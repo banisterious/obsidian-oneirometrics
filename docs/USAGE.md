@@ -3,128 +3,90 @@
 ## Quick Start
 
 1. Install the plugin from the Obsidian Community Plugins
-2. Configure your metrics in the plugin settings
-3. Add dream metrics to your journal entries
-4. Use the ribbon icon or command palette to analyze your dreams
+2. Open Settings > Community Plugins > OneiroMetrics
+3. Configure your metrics and project note path
+4. Add dream metrics to your notes using the callout format
+5. Use the ribbon icon or command palette to analyze your dreams
 
 ## Configuring Metrics
 
-### Using the Metric Editor
+### Project Note Path
+- Set the path where your metrics table will be stored
+- Use the autocomplete field to easily select an existing file
+- The file will be created if it doesn't exist
+- **Note**: The plugin will create backups before making changes
 
-1. Open the plugin settings (Settings > OneiroMetrics)
-2. Click "Add Metric" to create a new metric
-3. In the metric editor:
-   - Enter a name (letters, numbers, spaces, and hyphens only)
-   - Set the valid range (minimum and maximum values)
-   - Add a description
-   - Use the live preview to see how it will appear
-   - Press Enter to save or Esc to cancel
+### Metric Editor
+- Click the "Edit Metrics" button to open the metric editor
+- Add, edit, or remove metrics
+- Configure validation rules for each metric
+- Preview how metrics will appear in your notes
 
 ### Managing Metrics
-
-- **Reordering**: Drag metrics using the grip handle or use the up/down arrows
-- **Editing**: Click the pencil icon to modify a metric
-- **Deleting**: Click the trash icon to remove a metric
-- **Resetting**: Use "Reset to Defaults" to restore default metrics while preserving custom ones
-
-### Project Note Path
-
-The Project Note Path field includes autocomplete functionality:
-- Start typing to see matching markdown files
-- Click a suggestion to select it
-- Suggestions are limited to 5 matches
-- Click outside to hide suggestions
-
-### Default Metrics
-
-The plugin comes with five default metrics:
-
-1. **Sensory Detail (1-5)**
-   - Level of sensory information recalled from the dream
-
-2. **Emotional Recall (1-5)**
-   - Level of emotional detail recalled from the dream
-
-3. **Lost Segments (0-10)**
-   - Number of distinct instances where parts of the dream are missing
-
-4. **Descriptiveness (1-5)**
-   - Level of detail in the dream description
-
-5. **Confidence Score (1-5)**
-   - Confidence level in the completeness of dream recall
+- Drag and drop to reorder metrics
+- Use the edit button to modify existing metrics
+- Use the delete button to remove metrics
+- Changes are saved automatically
 
 ## Adding Dream Metrics
 
-Add metrics to your dream journal entries using callouts:
+### Callout Format
+Use the following format in your dream journal entries:
 
 ```markdown
 > [!dream-metrics]
-> Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2
+> lucidity: 7, vividness: 8, emotional-intensity: 6
 ```
 
-### Tips for Adding Metrics
-
-- Use the preview in the metric editor to see the correct format
-- Values must be within the defined range for each metric
-- Separate multiple metrics with commas
-- Use the exact metric names as defined in settings
+### Validation
+- Metrics are validated in real-time
+- Invalid values are highlighted
+- Hover over the callout for validation details
+- Suggestions appear for common errors
 
 ## Analyzing Dreams
 
-### Using the Ribbon Icon
+### Scraping Metrics
+1. Click the ribbon icon or use the command palette
+2. Select "Scrape Metrics" to analyze your dreams
+3. The plugin will:
+   - Create a backup of your project note
+   - Show a confirmation dialog
+   - Update the metrics table
+   - Preserve any content before/after the table
 
-1. Click the shell icon in the ribbon
-2. Configure the project note path (with autocomplete suggestions)
-3. Select the notes to analyze
-4. Click "Scrape" to collect metrics
-
-### Using the Command Palette
-
-1. Press `Ctrl+P` (or `Cmd+P` on Mac)
-2. Type "OneiroMetrics"
-3. Choose "Open OneiroMetrics" or "Scrape Metrics"
-
-## Viewing Results
-
-The plugin generates a table in your project note showing:
-
+### Metrics Table
+The generated table includes:
 - Average values for each metric
 - Minimum and maximum values
 - Number of entries analyzed
-- Word count statistics
+- Total word count statistics
 
-## Keyboard Shortcuts
-
-In the metric editor:
-- `Enter`: Save changes
-- `Esc`: Cancel
-- `Tab`: Next field
-- `Shift+Tab`: Previous field
+### Backup System
+- Automatic backups are created before each update
+- Backup files are named with timestamps
+- Backups are visually distinct in the file explorer
+- You can restore from backups if needed
 
 ## Troubleshooting
 
 ### Common Issues
+1. **Invalid Metric Values**
+   - Check the validation rules in settings
+   - Ensure values are within the specified range
+   - Use the correct format in callouts
 
-1. **Metrics not appearing in results**
-   - Check that the callout name matches your settings
-   - Verify that the metric names match exactly
-   - Ensure values are within the defined ranges
+2. **Missing Metrics**
+   - Verify the callout name matches your settings
+   - Check for typos in metric names
+   - Ensure the callout is properly formatted
 
-2. **File not found errors**
-   - Use the autocomplete suggestions to select valid files
-   - Verify the project note path
-   - Check that selected notes exist
-   - Ensure paths are relative to your vault root
-
-3. **Invalid metric values**
-   - Use only numbers within the defined range
-   - Don't include units or additional text
-   - Separate multiple metrics with commas
+3. **Backup Files**
+   - Backup files are stored in the same directory as your project note
+   - They are marked with a 💾 icon in the file explorer
+   - You can safely delete old backups
 
 ### Getting Help
-
-If you encounter issues:
-1. Check the [GitHub repository](https://github.com/banisterious/oneirometrics)
-2. Review the [Technical Specification](SPECIFICATION.md)
-3. Submit an issue with details about the problem 
+- Check the plugin settings for configuration options
+- Review the validation messages for specific issues
+- Visit the GitHub repository for updates and support 

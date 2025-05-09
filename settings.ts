@@ -219,7 +219,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 // Create suggestion container
                 const suggestionContainer = containerEl.createEl('div', {
                     cls: 'suggestion-container',
-                    attr: { style: 'display: none;' }
+                    attr: { style: 'display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; width: 100%;' }
                 });
 
                 // Handle input changes
@@ -242,8 +242,24 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         suggestions.forEach(suggestion => {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
+                                attr: { 
+                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);' 
+                                },
                                 text: suggestion
                             });
+                            
+                            // Highlight matching text
+                            const regex = new RegExp(`(${value})`, 'gi');
+                            item.innerHTML = suggestion.replace(regex, '<strong>$1</strong>');
+                            
+                            item.addEventListener('mouseover', () => {
+                                item.style.backgroundColor = 'var(--background-modifier-hover)';
+                            });
+                            
+                            item.addEventListener('mouseout', () => {
+                                item.style.backgroundColor = '';
+                            });
+                            
                             item.addEventListener('click', () => {
                                 inputEl.value = suggestion;
                                 this.plugin.settings.projectNotePath = suggestion;
@@ -252,8 +268,55 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             });
                         });
                         suggestionContainer.style.display = 'block';
+                        
+                        // Position the suggestion container below the input
+                        const inputRect = inputEl.getBoundingClientRect();
+                        suggestionContainer.style.top = `${inputRect.bottom}px`;
+                        suggestionContainer.style.left = `${inputRect.left}px`;
+                        suggestionContainer.style.width = `${inputRect.width}px`;
                     } else {
                         suggestionContainer.style.display = 'none';
+                    }
+                });
+
+                // Handle keyboard navigation
+                inputEl.addEventListener('keydown', (e) => {
+                    const items = suggestionContainer.querySelectorAll('.suggestion-item');
+                    const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
+                    
+                    switch (e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (currentIndex < items.length - 1) {
+                                items[currentIndex]?.classList.remove('is-selected');
+                                items[currentIndex + 1].classList.add('is-selected');
+                                items[currentIndex + 1].scrollIntoView({ block: 'nearest' });
+                            }
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            if (currentIndex > 0) {
+                                items[currentIndex]?.classList.remove('is-selected');
+                                items[currentIndex - 1].classList.add('is-selected');
+                                items[currentIndex - 1].scrollIntoView({ block: 'nearest' });
+                            }
+                            break;
+                        case 'Enter':
+                            e.preventDefault();
+                            const selectedItem = suggestionContainer.querySelector('.is-selected');
+                            if (selectedItem) {
+                                const path = selectedItem.textContent;
+                                if (path) {
+                                    inputEl.value = path;
+                                    this.plugin.settings.projectNotePath = path;
+                                    this.plugin.saveSettings();
+                                    suggestionContainer.style.display = 'none';
+                                }
+                            }
+                            break;
+                        case 'Escape':
+                            suggestionContainer.style.display = 'none';
+                            break;
                     }
                 });
 

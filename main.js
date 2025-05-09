@@ -501,10 +501,55 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
       return;
     }
     try {
-      await this.app.vault.modify(projectFile, this.generateMetricsTable(metrics));
+      const existingContent = await this.app.vault.read(projectFile);
+      const tableMatch = existingContent.match(/(.*?)(# Dream Metrics.*?)(\n\n.*)/s);
+      const beforeTable = tableMatch ? tableMatch[1] : "";
+      const afterTable = tableMatch ? tableMatch[3] : "";
+      const newContent = beforeTable + this.generateMetricsTable(metrics) + afterTable;
+      if (newContent !== existingContent) {
+        await this.backupProjectNote(projectFile);
+        const confirmed = await this.confirmOverwrite();
+        if (confirmed) {
+          await this.app.vault.modify(projectFile, newContent);
+          new import_obsidian2.Notice("Metrics table updated successfully!");
+        }
+      }
     } catch (error) {
       console.error("Error writing to project note:", error);
+      new import_obsidian2.Notice("Error updating metrics table. Check console for details.");
     }
+  }
+  async backupProjectNote(file) {
+    try {
+      const content = await this.app.vault.read(file);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const backupPath = `${this.settings.projectNotePath}.${timestamp}.backup`;
+      const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
+      if (existingBackup) {
+        await this.app.vault.delete(existingBackup);
+      }
+      await this.app.vault.create(backupPath, content);
+      console.log(`Created backup at: ${backupPath}`);
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      new import_obsidian2.Notice("Error creating backup. Check console for details.");
+    }
+  }
+  async confirmOverwrite() {
+    return new Promise((resolve) => {
+      const modal = new ConfirmModal(
+        this.app,
+        "Update Metrics Table",
+        "This will overwrite the current metrics table. A backup will be created before proceeding. Continue?"
+      );
+      modal.onConfirm = () => {
+        resolve(true);
+      };
+      modal.onCancel = () => {
+        resolve(false);
+      };
+      modal.open();
+    });
   }
   generateMetricsTable(metrics) {
     let table = "# OneiroMetrics Analysis\n\n";
@@ -573,6 +618,33 @@ var OneiroMetricsModal = class extends import_obsidian2.Modal {
       new import_obsidian2.Notice("Metrics scraped successfully!");
       this.close();
     }));
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+var ConfirmModal = class extends import_obsidian2.Modal {
+  constructor(app, title, message) {
+    super(app);
+    this.title = title;
+    this.message = message;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("oom-confirm-modal");
+    contentEl.createEl("h2", { text: this.title });
+    contentEl.createEl("p", { text: this.message });
+    const buttonContainer = contentEl.createEl("div", { cls: "oom-modal-buttons" });
+    new import_obsidian2.ButtonComponent(buttonContainer).setButtonText("Cancel").onClick(() => {
+      this.onCancel();
+      this.close();
+    });
+    new import_obsidian2.ButtonComponent(buttonContainer).setButtonText("Continue").setCta().onClick(() => {
+      this.onConfirm();
+      this.close();
+    });
   }
   onClose() {
     const { contentEl } = this;

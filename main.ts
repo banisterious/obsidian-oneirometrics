@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile, ButtonComponent } from 'obsidian';
 import { DEFAULT_METRICS, DreamMetricData, DreamMetricsSettings } from './types';
 import { DreamMetricsSettingTab } from './settings';
 
@@ -117,10 +117,75 @@ export default class DreamMetricsPlugin extends Plugin {
         }
 
         try {
-            await this.app.vault.modify(projectFile, this.generateMetricsTable(metrics));
+            // Read existing content
+            const existingContent = await this.app.vault.read(projectFile);
+            
+            // Extract content before and after the metrics table
+            const tableMatch = existingContent.match(/(.*?)(# Dream Metrics.*?)(\n\n.*)/s);
+            const beforeTable = tableMatch ? tableMatch[1] : '';
+            const afterTable = tableMatch ? tableMatch[3] : '';
+            
+            // Generate new content
+            const newContent = beforeTable + 
+                             this.generateMetricsTable(metrics) + 
+                             afterTable;
+            
+            // Only proceed if content has changed
+            if (newContent !== existingContent) {
+                // Create backup before modifying
+                await this.backupProjectNote(projectFile);
+                
+                // Confirm with user
+                const confirmed = await this.confirmOverwrite();
+                if (confirmed) {
+                    await this.app.vault.modify(projectFile, newContent);
+                    new Notice('Metrics table updated successfully!');
+                }
+            }
         } catch (error) {
             console.error('Error writing to project note:', error);
+            new Notice('Error updating metrics table. Check console for details.');
         }
+    }
+
+    private async backupProjectNote(file: TFile) {
+        try {
+            const content = await this.app.vault.read(file);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const backupPath = `${this.settings.projectNotePath}.${timestamp}.backup`;
+            
+            // Check if backup already exists
+            const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
+            if (existingBackup) {
+                await this.app.vault.delete(existingBackup);
+            }
+            
+            await this.app.vault.create(backupPath, content);
+            console.log(`Created backup at: ${backupPath}`);
+        } catch (error) {
+            console.error('Error creating backup:', error);
+            new Notice('Error creating backup. Check console for details.');
+        }
+    }
+
+    private async confirmOverwrite(): Promise<boolean> {
+        return new Promise((resolve) => {
+            const modal = new ConfirmModal(
+                this.app,
+                'Update Metrics Table',
+                'This will overwrite the current metrics table. A backup will be created before proceeding. Continue?'
+            );
+            
+            modal.onConfirm = () => {
+                resolve(true);
+            };
+            
+            modal.onCancel = () => {
+                resolve(false);
+            };
+            
+            modal.open();
+        });
     }
 
     private generateMetricsTable(metrics: Record<string, number[]>): string {
@@ -218,6 +283,51 @@ class OneiroMetricsModal extends Modal {
                     new Notice('Metrics scraped successfully!');
                     this.close();
                 }));
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
+}
+
+// Add ConfirmModal class
+class ConfirmModal extends Modal {
+    public onConfirm: () => void;
+    public onCancel: () => void;
+
+    constructor(
+        app: App,
+        private title: string,
+        private message: string
+    ) {
+        super(app);
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass('oom-confirm-modal');
+
+        contentEl.createEl('h2', { text: this.title });
+        contentEl.createEl('p', { text: this.message });
+
+        const buttonContainer = contentEl.createEl('div', { cls: 'oom-modal-buttons' });
+
+        new ButtonComponent(buttonContainer)
+            .setButtonText('Cancel')
+            .onClick(() => {
+                this.onCancel();
+                this.close();
+            });
+
+        new ButtonComponent(buttonContainer)
+            .setButtonText('Continue')
+            .setCta()
+            .onClick(() => {
+                this.onConfirm();
+                this.close();
+            });
     }
 
     onClose() {

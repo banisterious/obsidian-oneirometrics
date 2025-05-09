@@ -1,6 +1,6 @@
 {
-    "name": "oneirometrics",
-    "version": "0.1.1",
+    "name": "obsidian-oneirometrics",
+    "version": "0.1.2",
     "description": "Track and analyze dream journal metrics",
     "main": "main.js",
     "scripts": {

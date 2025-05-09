@@ -286,4 +286,37 @@
 
 .setting-item:hover .extra-button-container {
     opacity: 1;
+}
+
+/* Confirmation Modal
+   Styles for the confirmation dialog */
+.oom-confirm-modal {
+    max-width: 400px;
+}
+
+.oom-confirm-modal h2 {
+    margin-bottom: 1em;
+}
+
+.oom-confirm-modal p {
+    margin-bottom: 1.5em;
+    color: var(--text-muted);
+}
+
+.oom-modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 1.5em;
+}
+
+/* Backup File Styling
+   Styles for backup files in the file explorer */
+[data-path$=".backup"] {
+    opacity: 0.7;
+}
+
+[data-path$=".backup"]::before {
+    content: "💾";
+    margin-right: 4px;
 } 
