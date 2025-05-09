@@ -225,24 +225,33 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 // Helper to position the dropdown
                 function positionSuggestionContainer() {
                     const inputRect = inputEl.getBoundingClientRect();
-                    const modalRect = containerEl.closest('.modal')?.getBoundingClientRect() ?? containerEl.getBoundingClientRect();
+                    const modalEl = containerEl.closest('.modal') as HTMLElement;
+                    const modalRect = modalEl ? modalEl.getBoundingClientRect() : containerEl.getBoundingClientRect();
                     const dropdownWidth = Math.max(inputRect.width, 180);
-                    let left = inputRect.left;
-                    let alignRight = false;
-                    // Check if dropdown would overflow the modal/window
-                    if (left + dropdownWidth > modalRect.right) {
-                        // Align to right edge of input
-                        left = inputRect.right - dropdownWidth;
-                        alignRight = true;
-                    }
-                    // Set max width to modal width or 400px
-                    const maxWidth = Math.min(modalRect.width, 400);
-                    suggestionContainer.style.top = `${inputRect.bottom + window.scrollY}px`;
-                    suggestionContainer.style.left = `${left + window.scrollX}px`;
-                    suggestionContainer.style.width = `${dropdownWidth}px`;
+                    let left = inputRect.left - modalRect.left;
+                    let top = inputRect.bottom - modalRect.top;
+                    let maxWidth = modalRect.width;
+
+                    // Default: align left edge of dropdown with input
+                    suggestionContainer.style.position = 'absolute';
+                    suggestionContainer.style.left = `${left}px`;
+                    suggestionContainer.style.right = '';
                     suggestionContainer.style.maxWidth = `${maxWidth}px`;
+
+                    // If dropdown would overflow modal to the right, align right edge with modal
+                    if (left + dropdownWidth > modalRect.width) {
+                        suggestionContainer.style.left = 'auto';
+                        suggestionContainer.style.right = '0';
+                    }
+
+                    suggestionContainer.style.top = `${top}px`;
+                    suggestionContainer.style.width = `${dropdownWidth}px`;
                     suggestionContainer.style.overflowX = 'auto';
-                    suggestionContainer.style.right = alignRight ? 'unset' : '';
+                }
+
+                // Normalize function (lowercase, collapse whitespace)
+                function normalize(str: string) {
+                    return str.toLowerCase().replace(/\s+/g, '');
                 }
 
                 // Handle input changes
@@ -255,10 +264,28 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
                     // Get all markdown files in the vault
                     const files = this.app.vault.getMarkdownFiles();
+                    const lowerInput = value.toLowerCase();
+                    const normalizedInput = normalize(value);
+
                     const suggestions = files
                         .map(file => file.path)
-                        .filter(path => path.toLowerCase().includes(value.toLowerCase()))
+                        .filter(path => {
+                            const lowerPath = path.toLowerCase();
+                            const normalizedPath = normalize(path);
+                            // Split path into segments by / and space
+                            const segments = lowerPath.split(/[\/ ]+/);
+                            // Match if input is in the full path, any segment, or the normalized path
+                            return (
+                                lowerPath.includes(lowerInput) ||
+                                segments.some(segment => segment.includes(lowerInput)) ||
+                                normalizedPath.includes(normalizedInput)
+                            );
+                        })
                         .slice(0, 5); // Limit to 5 suggestions
+
+                    // Debug output
+                    console.log('[OneiroMetrics] Autocomplete input:', value);
+                    console.log('[OneiroMetrics] Suggestions:', suggestions);
 
                     if (suggestions.length > 0) {
                         suggestionContainer.empty();
@@ -266,7 +293,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
                                 attr: { 
-                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); white-space: nowrap;' 
+                                    title: suggestion
                                 },
                                 text: suggestion
                             });
@@ -357,14 +384,126 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Selected Notes Setting
         new Setting(containerEl)
             .setName('Selected Notes')
-            .setDesc('Notes to search for dream metrics (one per line)')
-            .addTextArea(text => text
-                .setPlaceholder('Journal/Journal.md\nDreams/2024.md')
-                .setValue(this.plugin.settings.selectedNotes.join('\n'))
-                .onChange(async (value) => {
-                    this.plugin.settings.selectedNotes = value.split('\n').filter(note => note.trim());
-                    await this.plugin.saveSettings();
-                }));
+            .setDesc('Notes to search for dream metrics (select one or more)')
+            .addExtraButton(button => {
+                // No-op, just for layout
+            });
+
+        // Multi-select autocomplete for Selected Notes
+        const selectedNotesContainer = containerEl.createEl('div', { cls: 'oom-multiselect-container' });
+        const chipsContainer = selectedNotesContainer.createEl('div', { cls: 'oom-chips-container' });
+        const input = selectedNotesContainer.createEl('input', {
+            type: 'text',
+            cls: 'oom-multiselect-input',
+            attr: { placeholder: 'Type to search notes...' }
+        });
+        const suggestionContainer = selectedNotesContainer.createEl('div', {
+            cls: 'suggestion-container',
+            attr: { style: 'display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;' }
+        });
+
+        // Render chips for selected notes
+        function renderChips() {
+            chipsContainer.empty();
+            for (const note of this.plugin.settings.selectedNotes) {
+                const chip = chipsContainer.createEl('span', { cls: 'oom-chip', text: note });
+                chip.setAttr('title', note);
+                const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
+                removeBtn.onclick = () => {
+                    this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n: string) => n !== note);
+                    this.plugin.saveSettings();
+                    renderChips.call(this);
+                };
+            }
+        }
+        renderChips.call(this);
+
+        // Suggestion logic
+        input.addEventListener('input', async (e) => {
+            const value = input.value;
+            if (!value) {
+                suggestionContainer.style.display = 'none';
+                return;
+            }
+            const files = this.app.vault.getMarkdownFiles();
+            const lowerInput = value.toLowerCase();
+            const suggestions = files
+                .map(file => file.path)
+                .filter(path =>
+                    !this.plugin.settings.selectedNotes.includes(path) &&
+                    path.toLowerCase().includes(lowerInput)
+                )
+                .slice(0, 7);
+            suggestionContainer.empty();
+            if (suggestions.length > 0) {
+                for (const suggestion of suggestions) {
+                    const item = suggestionContainer.createEl('div', {
+                        cls: 'suggestion-item',
+                        attr: { title: suggestion },
+                        text: suggestion
+                    });
+                    item.onclick = () => {
+                        this.plugin.settings.selectedNotes.push(suggestion);
+                        this.plugin.saveSettings();
+                        input.value = '';
+                        suggestionContainer.style.display = 'none';
+                        renderChips.call(this);
+                    };
+                }
+                suggestionContainer.style.display = 'block';
+            } else {
+                suggestionContainer.style.display = 'none';
+            }
+        });
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target as Node) && !suggestionContainer.contains(e.target as Node)) {
+                suggestionContainer.style.display = 'none';
+            }
+        });
+        // Keyboard navigation for suggestions
+        input.addEventListener('keydown', (e) => {
+            const items = suggestionContainer.querySelectorAll('.suggestion-item');
+            const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (currentIndex < items.length - 1) {
+                        items[currentIndex]?.classList.remove('is-selected');
+                        items[currentIndex + 1].classList.add('is-selected');
+                        items[currentIndex + 1].scrollIntoView({ block: 'nearest' });
+                    } else if (items.length > 0 && currentIndex === -1) {
+                        items[0].classList.add('is-selected');
+                        items[0].scrollIntoView({ block: 'nearest' });
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (currentIndex > 0) {
+                        items[currentIndex]?.classList.remove('is-selected');
+                        items[currentIndex - 1].classList.add('is-selected');
+                        items[currentIndex - 1].scrollIntoView({ block: 'nearest' });
+                    }
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    const selectedItem = suggestionContainer.querySelector('.is-selected');
+                    if (selectedItem) {
+                        const path = selectedItem.textContent;
+                        if (path) {
+                            this.plugin.settings.selectedNotes.push(path);
+                            this.plugin.saveSettings();
+                            input.value = '';
+                            suggestionContainer.style.display = 'none';
+                            renderChips.call(this);
+                        }
+                    }
+                    break;
+                case 'Escape':
+                    suggestionContainer.style.display = 'none';
+                    break;
+            }
+        });
 
         // Metrics Section
         containerEl.createEl('h3', { text: 'Metrics Configuration' });

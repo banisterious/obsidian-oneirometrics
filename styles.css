@@ -114,8 +114,12 @@
 }
 
 .suggestion-item {
-    padding: 6px 8px;
+    padding: 8px 12px;
     cursor: pointer;
+    border-bottom: 1px solid var(--background-modifier-border);
+    white-space: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 .suggestion-item:hover,
@@ -319,4 +323,64 @@
 [data-path$=".backup"]::before {
     content: "💾";
     margin-right: 4px;
+}
+
+.oom-multiselect-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5em;
+    margin-bottom: 1em;
+    position: relative;
+}
+
+.oom-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    align-items: center;
+}
+
+.oom-chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--background-primary-alt);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 16px;
+    padding: 2px 10px 2px 8px;
+    font-size: 0.95em;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    max-width: 220px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.oom-chip-remove {
+    margin-left: 6px;
+    color: var(--text-faint);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: color 0.2s;
+}
+.oom-chip-remove:hover {
+    color: var(--text-error);
+}
+
+.oom-multiselect-input {
+    flex: 1 1 180px;
+    min-width: 120px;
+    max-width: 300px;
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    outline: none;
+}
+.oom-multiselect-input:focus {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
 } 

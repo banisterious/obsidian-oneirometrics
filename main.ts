@@ -53,24 +53,31 @@ export default class DreamMetricsPlugin extends Plugin {
         const metrics: Record<string, number[]> = {};
         let totalWords = 0;
         let entriesProcessed = 0;
+        let calloutsFound = 0;
+        let validNotes = 0;
+
+        if (!this.settings.selectedNotes || this.settings.selectedNotes.length === 0) {
+            new Notice('No notes selected. Please select at least one note to scrape.');
+            console.warn('[OneiroMetrics] No notes selected.');
+            return;
+        }
 
         for (const path of this.settings.selectedNotes) {
             const file = this.app.vault.getAbstractFileByPath(path);
             if (!(file instanceof TFile)) {
-                console.log(`File not found or not a file: ${path}`);
+                console.warn(`[OneiroMetrics] File not found or not a file: ${path}`);
                 continue;
             }
-
+            validNotes++;
             try {
                 const content = await this.app.vault.read(file);
                 const calloutMatch = content.match(/>\s*\[!${this.settings.calloutName}\]\s*\n>(.*?)(?=\n\n|\n[^>]|$)/s);
-                
                 if (calloutMatch) {
+                    calloutsFound++;
                     const metricsText = calloutMatch[1].replace(/>\s*/g, '');
                     const wordCount = content.split(/\s+/).length;
                     totalWords += wordCount;
                     entriesProcessed++;
-
                     const metricPairs = metricsText.split(',').map(pair => pair.trim());
                     for (const pair of metricPairs) {
                         const [name, value] = pair.split(':').map(s => s.trim());
@@ -83,8 +90,26 @@ export default class DreamMetricsPlugin extends Plugin {
                     }
                 }
             } catch (error) {
-                console.error(`Error processing file ${path}:`, error);
+                console.error(`[OneiroMetrics] Error processing file ${path}:`, error);
+                new Notice(`Error processing file: ${path}`);
             }
+        }
+
+        console.log(`[OneiroMetrics] Notes processed: ${validNotes}`);
+        console.log(`[OneiroMetrics] Callouts found: ${calloutsFound}`);
+        console.log(`[OneiroMetrics] Entries processed: ${entriesProcessed}`);
+
+        if (validNotes === 0) {
+            new Notice('No valid notes found. Please check your selected notes.');
+            return;
+        }
+        if (calloutsFound === 0) {
+            new Notice('No dream metrics callouts found in selected notes.');
+            return;
+        }
+        if (entriesProcessed === 0) {
+            new Notice('No metrics data found in selected notes.');
+            return;
         }
 
         // Add average word count metric
