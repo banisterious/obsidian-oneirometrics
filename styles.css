@@ -85,4 +85,205 @@
 .oom-table th:nth-child(4),
 .oom-table th:nth-child(5) {
     text-align: right;
+}
+
+/* File Suggestion Field
+   Styles for the project note path autocomplete field */
+.oom-file-suggestion {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.oom-file-suggestion:focus {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    outline: none;
+}
+
+/* Suggestion Dropdown
+   Styles for the file suggestion dropdown */
+.suggestion-container {
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.suggestion-item {
+    padding: 6px 8px;
+    cursor: pointer;
+}
+
+.suggestion-item:hover,
+.suggestion-item.is-selected {
+    background-color: var(--background-modifier-hover);
+}
+
+/* Metric Editor Modal
+   Styles for the metric editor modal */
+.oom-metric-editor-modal {
+    max-width: 500px;
+}
+
+.oom-metric-editor-modal .setting-item {
+    margin-bottom: 1.5em;
+}
+
+.oom-metric-editor-modal .setting-item.is-invalid .setting-item-control {
+    border-color: var(--text-error);
+}
+
+.oom-metric-editor-modal .setting-item.is-invalid .setting-item-description {
+    color: var(--text-error);
+}
+
+.oom-metric-preview {
+    background-color: var(--background-primary-alt);
+    padding: 1em;
+    border-radius: 4px;
+    font-family: var(--font-monospace);
+    margin-top: 0.5em;
+}
+
+.oom-metric-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1em;
+    margin-top: 2em;
+}
+
+/* Drag Handle
+   Styles for the metric reordering drag handle */
+.oom-drag-handle {
+    cursor: grab;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.oom-drag-handle:hover {
+    opacity: 1;
+}
+
+.oom-drag-handle.is-dragging {
+    opacity: 1;
+    cursor: grabbing;
+}
+
+.oom-drop-target {
+    position: relative;
+}
+
+.oom-drop-target::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--interactive-accent);
+    transform: translateY(-100%);
+    animation: dropTargetPulse 1s infinite;
+}
+
+@keyframes dropTargetPulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* Metric List
+   Styles for the metric list in settings */
+.setting-item-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.setting-item-control .extra-button-container {
+    display: flex;
+    gap: 0.25em;
+}
+
+/* Keyboard Shortcuts
+   Styles for the keyboard shortcuts help section */
+.oom-keyboard-shortcuts {
+    margin-top: 2em;
+    padding: 1em;
+    background-color: var(--background-primary-alt);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.oom-keyboard-shortcuts > div {
+    margin: 0.5em 0;
+}
+
+.oom-keyboard-shortcuts > div:first-child {
+    font-weight: bold;
+    margin-bottom: 0.75em;
+}
+
+/* Enhanced Preview
+   Styles for the enhanced metric preview */
+.oom-metric-preview {
+    background-color: var(--background-primary-alt);
+    padding: 1em;
+    border-radius: 4px;
+    font-family: var(--font-monospace);
+    margin-top: 0.5em;
+    line-height: 1.5;
+}
+
+.oom-preview-range {
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Focus Styles
+   Enhanced focus styles for better keyboard navigation */
+.oom-metric-editor-modal input:focus,
+.oom-metric-editor-modal textarea:focus {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    outline: none;
+}
+
+/* Button States
+   Enhanced button states for better interaction feedback */
+.oom-metric-editor-buttons .mod-cta {
+    min-width: 100px;
+}
+
+.oom-metric-editor-buttons button:hover {
+    transform: translateY(-1px);
+    transition: transform 0.1s ease;
+}
+
+.oom-metric-editor-buttons button:active {
+    transform: translateY(0);
+}
+
+/* Metric List Item
+   Enhanced styles for metric list items */
+.setting-item {
+    transition: background-color 0.2s ease;
+}
+
+.setting-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.setting-item .extra-button-container {
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.setting-item:hover .extra-button-container {
+    opacity: 1;
 } 

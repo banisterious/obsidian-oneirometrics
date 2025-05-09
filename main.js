@@ -60,6 +60,139 @@ var DEFAULT_METRICS = [
 
 // settings.ts
 var import_obsidian = require("obsidian");
+function validateMetricName(name, existingMetrics) {
+  if (!name.trim())
+    return "Name cannot be empty";
+  if (name.length > 50)
+    return "Name must be 50 characters or less";
+  if (!/^[a-zA-Z0-9\s-]+$/.test(name))
+    return "Name can only contain letters, numbers, spaces, and hyphens";
+  if (existingMetrics.some((m) => m.name.toLowerCase() === name.toLowerCase())) {
+    return "A metric with this name already exists";
+  }
+  return null;
+}
+function validateMetricRange(min, max) {
+  if (min < 0 || max < 0)
+    return "Range values cannot be negative";
+  if (min > max)
+    return "Minimum value must be less than maximum value";
+  if (max > 100)
+    return "Maximum value cannot exceed 100";
+  if (!Number.isInteger(min) || !Number.isInteger(max))
+    return "Range values must be integers";
+  return null;
+}
+function validateMetricDescription(description) {
+  if (!description.trim())
+    return "Description cannot be empty";
+  if (description.length > 200)
+    return "Description must be 200 characters or less";
+  return null;
+}
+var MetricEditorModal = class extends import_obsidian.Modal {
+  constructor(app, metric, existingMetrics, onSubmit, isEditing = false) {
+    super(app);
+    this.metric = { ...metric };
+    this.existingMetrics = existingMetrics;
+    this.onSubmit = onSubmit;
+    this.isEditing = isEditing;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("oom-metric-editor-modal");
+    contentEl.createEl("h2", { text: this.isEditing ? "Edit Metric" : "Add New Metric" });
+    const nameSetting = new import_obsidian.Setting(contentEl).setName("Name").setDesc("The name of the metric (letters, numbers, spaces, and hyphens only)").addText((text) => {
+      text.setValue(this.metric.name).onChange((value) => {
+        const error = validateMetricName(value, this.existingMetrics);
+        nameSetting.setDesc(error || "The name of the metric (letters, numbers, spaces, and hyphens only)");
+        nameSetting.controlEl.classList.toggle("is-invalid", !!error);
+        this.metric.name = value;
+        this.updatePreview();
+      });
+    });
+    const rangeSetting = new import_obsidian.Setting(contentEl).setName("Range").setDesc("The valid range for this metric").addText((text) => {
+      text.setValue(this.metric.range.min.toString()).setPlaceholder("Min").onChange((value) => {
+        const min = parseInt(value);
+        const error = validateMetricRange(min, this.metric.range.max);
+        rangeSetting.setDesc(error || "The valid range for this metric");
+        rangeSetting.controlEl.classList.toggle("is-invalid", !!error);
+        if (!isNaN(min))
+          this.metric.range.min = min;
+        this.updatePreview();
+      });
+    }).addText((text) => {
+      text.setValue(this.metric.range.max.toString()).setPlaceholder("Max").onChange((value) => {
+        const max = parseInt(value);
+        const error = validateMetricRange(this.metric.range.min, max);
+        rangeSetting.setDesc(error || "The valid range for this metric");
+        rangeSetting.controlEl.classList.toggle("is-invalid", !!error);
+        if (!isNaN(max))
+          this.metric.range.max = max;
+        this.updatePreview();
+      });
+    });
+    const descSetting = new import_obsidian.Setting(contentEl).setName("Description").setDesc("A description of what this metric measures").addTextArea((text) => {
+      text.setValue(this.metric.description).onChange((value) => {
+        const error = validateMetricDescription(value);
+        descSetting.setDesc(error || "A description of what this metric measures");
+        descSetting.controlEl.classList.toggle("is-invalid", !!error);
+        this.metric.description = value;
+      });
+    });
+    const previewSetting = new import_obsidian.Setting(contentEl).setName("Preview").setDesc("How this metric will appear in your dream journal:");
+    const previewEl = contentEl.createEl("div", { cls: "oom-metric-preview" });
+    this.updatePreview(previewEl);
+    const shortcutsEl = contentEl.createEl("div", { cls: "oom-keyboard-shortcuts" });
+    shortcutsEl.createEl("div", { text: "Keyboard Shortcuts:" });
+    shortcutsEl.createEl("div", { text: "\u2022 Enter: Save changes" });
+    shortcutsEl.createEl("div", { text: "\u2022 Esc: Cancel" });
+    shortcutsEl.createEl("div", { text: "\u2022 Tab: Next field" });
+    shortcutsEl.createEl("div", { text: "\u2022 Shift+Tab: Previous field" });
+    const buttonContainer = contentEl.createEl("div", { cls: "oom-metric-editor-buttons" });
+    new import_obsidian.ButtonComponent(buttonContainer).setButtonText("Cancel").onClick(() => this.close());
+    new import_obsidian.ButtonComponent(buttonContainer).setButtonText(this.isEditing ? "Save Changes" : "Add Metric").setCta().onClick(() => {
+      if (this.validateAll()) {
+        this.onSubmit(this.metric);
+        this.close();
+      }
+    });
+    const nameInput = nameSetting.controlEl.querySelector("input");
+    if (nameInput)
+      nameInput.focus();
+  }
+  updatePreview(previewEl) {
+    if (!previewEl) {
+      const el = this.contentEl.querySelector(".oom-metric-preview");
+      if (!el)
+        return;
+      previewEl = el;
+    }
+    previewEl.empty();
+    previewEl.createEl("div", { text: `> [!dream-metrics]` });
+    const sampleValue = Math.floor((this.metric.range.min + this.metric.range.max) / 2);
+    previewEl.createEl("div", { text: `> ${this.metric.name}: ${sampleValue}` });
+    previewEl.createEl("div", {
+      cls: "oom-preview-range",
+      text: `Valid range: ${this.metric.range.min} to ${this.metric.range.max}`
+    });
+  }
+  validateAll() {
+    const nameError = validateMetricName(this.metric.name, this.existingMetrics);
+    const rangeError = validateMetricRange(this.metric.range.min, this.metric.range.max);
+    const descError = validateMetricDescription(this.metric.description);
+    if (nameError || rangeError || descError) {
+      new import_obsidian.Notice("Please fix all validation errors before saving");
+      return false;
+    }
+    return true;
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
 var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
@@ -69,7 +202,7 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "Dream Metrics Settings" });
-    new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("Path to the note where dream metrics will be aggregated").addText((text) => text.setPlaceholder("Dreams/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("Path to the note where dream metrics will be aggregated").addSearch((text) => text.setPlaceholder("Dreams/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
       this.plugin.settings.projectNotePath = value;
       await this.plugin.saveSettings();
     }));
@@ -83,23 +216,95 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
     }));
     containerEl.createEl("h3", { text: "Metrics Configuration" });
     this.plugin.settings.metrics.forEach((metric, index) => {
-      const metricSetting = new import_obsidian.Setting(containerEl).setName(metric.name).setDesc(`Range: ${metric.range.min}-${metric.range.max}`).addText((text) => text.setValue(metric.description).onChange(async (value) => {
-        this.plugin.settings.metrics[index].description = value;
-        await this.plugin.saveSettings();
+      const metricSetting = new import_obsidian.Setting(containerEl).setName(metric.name).setDesc(`Range: ${metric.range.min}-${metric.range.max}`).addExtraButton((button) => {
+        const handle = button.setIcon("grip-vertical").setTooltip("Drag to reorder").extraSettingsEl;
+        handle.addClass("oom-drag-handle");
+        handle.setAttribute("draggable", "true");
+        handle.addEventListener("dragstart", (e) => {
+          if (e.dataTransfer) {
+            e.dataTransfer.setData("text/plain", index.toString());
+            handle.addClass("is-dragging");
+          }
+        });
+        handle.addEventListener("dragend", () => {
+          handle.removeClass("is-dragging");
+        });
+      });
+      const settingEl = metricSetting.settingEl;
+      settingEl.setAttribute("data-index", index.toString());
+      settingEl.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const draggingEl = containerEl.querySelector(".is-dragging");
+        if (draggingEl && draggingEl !== settingEl) {
+          settingEl.addClass("oom-drop-target");
+        }
+      });
+      settingEl.addEventListener("dragleave", () => {
+        settingEl.removeClass("oom-drop-target");
+      });
+      settingEl.addEventListener("drop", async (e) => {
+        var _a;
+        e.preventDefault();
+        settingEl.removeClass("oom-drop-target");
+        const fromIndex = parseInt(((_a = e.dataTransfer) == null ? void 0 : _a.getData("text/plain")) || "-1");
+        const toIndex = parseInt(settingEl.getAttribute("data-index") || "-1");
+        if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+          const metrics = this.plugin.settings.metrics;
+          const [movedMetric] = metrics.splice(fromIndex, 1);
+          metrics.splice(toIndex, 0, movedMetric);
+          await this.plugin.saveSettings();
+          this.display();
+        }
+      });
+      if (index > 0) {
+        metricSetting.addExtraButton((button) => button.setIcon("arrow-up").setTooltip("Move up").onClick(async () => {
+          const metrics = this.plugin.settings.metrics;
+          [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+      }
+      if (index < this.plugin.settings.metrics.length - 1) {
+        metricSetting.addExtraButton((button) => button.setIcon("arrow-down").setTooltip("Move down").onClick(async () => {
+          const metrics = this.plugin.settings.metrics;
+          [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+      }
+      metricSetting.addExtraButton((button) => button.setIcon("pencil").setTooltip("Edit metric").onClick(() => {
+        new MetricEditorModal(
+          this.app,
+          metric,
+          this.plugin.settings.metrics,
+          async (updatedMetric) => {
+            this.plugin.settings.metrics[index] = updatedMetric;
+            await this.plugin.saveSettings();
+            this.display();
+          },
+          true
+        ).open();
       })).addExtraButton((button) => button.setIcon("trash").setTooltip("Remove metric").onClick(async () => {
         this.plugin.settings.metrics.splice(index, 1);
         await this.plugin.saveSettings();
         this.display();
       }));
     });
-    new import_obsidian.Setting(containerEl).setName("Add New Metric").addButton((button) => button.setButtonText("Add Metric").onClick(async () => {
-      this.plugin.settings.metrics.push({
-        name: "New Metric",
-        range: { min: 1, max: 5 },
-        description: "Description of the metric"
-      });
-      await this.plugin.saveSettings();
-      this.display();
+    new import_obsidian.Setting(containerEl).setName("Add New Metric").addButton((button) => button.setButtonText("Add Metric").onClick(() => {
+      new MetricEditorModal(
+        this.app,
+        {
+          name: "New Metric",
+          range: { min: 1, max: 5 },
+          description: "Description of the metric"
+        },
+        this.plugin.settings.metrics,
+        async (newMetric) => {
+          this.plugin.settings.metrics.push(newMetric);
+          await this.plugin.saveSettings();
+          this.display();
+        }
+      ).open();
     }));
     new import_obsidian.Setting(containerEl).setName("Reset to Defaults").setDesc("Restore default metrics configuration").addButton((button) => button.setButtonText("Reset").onClick(async () => {
       this.plugin.settings.metrics = [...DEFAULT_METRICS];
@@ -114,7 +319,7 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
-    this.addRibbonIcon("dream", "OneiroMetrics", () => {
+    this.addRibbonIcon("lucide-shell", "OneiroMetrics", () => {
       new OneiroMetricsModal(this.app, this).open();
     });
     this.addCommand({
@@ -252,9 +457,13 @@ var OneiroMetricsModal = class extends import_obsidian2.Modal {
     contentEl.empty();
     contentEl.addClass("oom-modal");
     contentEl.createEl("h2", { text: "OneiroMetrics" });
-    new import_obsidian2.Setting(contentEl).setName("Project Note Path").addText((text) => text.setValue(this.plugin.settings.projectNotePath).onChange((value) => {
-      this.plugin.settings.projectNotePath = value;
-    }));
+    new import_obsidian2.Setting(contentEl).setName("Project Note Path").addSearch((text) => {
+      text.setValue(this.plugin.settings.projectNotePath).onChange((value) => {
+        this.plugin.settings.projectNotePath = value;
+      });
+      text.inputEl.addClass("oom-file-suggestion");
+      text.inputEl.setAttribute("data-suggestion", "file");
+    });
     new import_obsidian2.Setting(contentEl).setName("Selected Notes").addTextArea((text) => text.setValue(this.plugin.settings.selectedNotes.join("\n")).onChange((value) => {
       this.plugin.settings.selectedNotes = value.split("\n").filter((note) => note.trim());
     }));

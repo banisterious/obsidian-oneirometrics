@@ -12,7 +12,7 @@ export default class DreamMetricsPlugin extends Plugin {
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
 
         // Add ribbon icon
-        this.addRibbonIcon('dream', 'OneiroMetrics', () => {
+        this.addRibbonIcon('lucide-shell', 'OneiroMetrics', () => {
             new OneiroMetricsModal(this.app, this).open();
         });
 
@@ -179,11 +179,16 @@ class OneiroMetricsModal extends Modal {
         // Project Note Path
         new Setting(contentEl)
             .setName('Project Note Path')
-            .addText(text => text
-                .setValue(this.plugin.settings.projectNotePath)
-                .onChange(value => {
-                    this.plugin.settings.projectNotePath = value;
-                }));
+            .addSearch(text => {
+                text.setValue(this.plugin.settings.projectNotePath)
+                    .onChange(value => {
+                        this.plugin.settings.projectNotePath = value;
+                    });
+                
+                // Configure file suggestions
+                text.inputEl.addClass('oom-file-suggestion');
+                text.inputEl.setAttribute('data-suggestion', 'file');
+            });
 
         // Selected Notes
         new Setting(contentEl)

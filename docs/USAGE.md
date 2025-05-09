@@ -1,182 +1,130 @@
-# Dream Metrics Usage Guide
+# OneiroMetrics Usage Guide
 
-This guide provides detailed instructions and examples for using the Dream Metrics plugin.
+## Quick Start
 
-## Table of Contents
+1. Install the plugin from the Obsidian Community Plugins
+2. Configure your metrics in the plugin settings
+3. Add dream metrics to your journal entries
+4. Use the ribbon icon or command palette to analyze your dreams
 
-1. [Getting Started](#getting-started)
-2. [Dream Note Format](#dream-note-format)
-3. [Plugin Settings](#plugin-settings)
-4. [Using the Plugin](#using-the-plugin)
-5. [Best Practices](#best-practices)
-6. [Troubleshooting](#troubleshooting)
+## Configuring Metrics
 
-## Getting Started
+### Using the Metric Editor
 
-### Installation
+1. Open the plugin settings (Settings > OneiroMetrics)
+2. Click "Add Metric" to create a new metric
+3. In the metric editor:
+   - Enter a name (letters, numbers, spaces, and hyphens only)
+   - Set the valid range (minimum and maximum values)
+   - Add a description
+   - Use the live preview to see how it will appear
+   - Press Enter to save or Esc to cancel
 
-1. Open Obsidian Settings
-2. Go to Community Plugins
-3. Click "Browse" and search for "Dream Metrics"
-4. Click Install
-5. Enable the plugin
+### Managing Metrics
 
-### Initial Setup
+- **Reordering**: Drag metrics using the grip handle or use the up/down arrows
+- **Editing**: Click the pencil icon to modify a metric
+- **Deleting**: Click the trash icon to remove a metric
+- **Resetting**: Use "Reset to Defaults" to restore default metrics while preserving custom ones
 
-1. Create a new note for your dream metrics (e.g., `Dreams/Metrics.md`)
-2. Open the plugin settings
-3. Set the project note path to your metrics note
-4. Add your dream journal notes to the selected notes list
+### Project Note Path
 
-## Dream Note Format
+The Project Note Path field includes autocomplete functionality:
+- Start typing to see matching markdown files
+- Click a suggestion to select it
+- Suggestions are limited to 5 matches
+- Click outside to hide suggestions
 
-### Basic Format
+### Default Metrics
 
-Add a callout block to your dream journal entries:
+The plugin comes with five default metrics:
+
+1. **Sensory Detail (1-5)**
+   - Level of sensory information recalled from the dream
+
+2. **Emotional Recall (1-5)**
+   - Level of emotional detail recalled from the dream
+
+3. **Lost Segments (0-10)**
+   - Number of distinct instances where parts of the dream are missing
+
+4. **Descriptiveness (1-5)**
+   - Level of detail in the dream description
+
+5. **Confidence Score (1-5)**
+   - Confidence level in the completeness of dream recall
+
+## Adding Dream Metrics
+
+Add metrics to your dream journal entries using callouts:
 
 ```markdown
 > [!dream-metrics]
-> Words: 343, Sensory Detail: 3, Emotional Recall: 3, Lost Segments: 3, Descriptiveness: 4, Confidence Score: 4
+> Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2
 ```
 
-### Metric Guidelines
+### Tips for Adding Metrics
 
-#### Sensory Detail (1-5)
-- 1: Minimal sensory information
-- 2: Basic sights or sounds
-- 3: Moderate sensory details
-- 4: Rich sensory experience
-- 5: Vivid across all senses
+- Use the preview in the metric editor to see the correct format
+- Values must be within the defined range for each metric
+- Separate multiple metrics with commas
+- Use the exact metric names as defined in settings
 
-#### Emotional Recall (1-5)
-- 1: Vague emotional sense
-- 2: Basic emotion identified
-- 3: Specific emotions
-- 4: Nuanced emotions
-- 5: Complex emotional landscape
+## Analyzing Dreams
 
-#### Lost Segments (0-10)
-- Count distinct gaps in dream memory
-- Example: "I remember the beginning and end, but the middle is missing" = 1
+### Using the Ribbon Icon
 
-#### Descriptiveness (1-5)
-- 1: Basic outline
-- 2: Simple account
-- 3: Detailed description
-- 4: Rich details
-- 5: Vivid imagery
+1. Click the shell icon in the ribbon
+2. Configure the project note path (with autocomplete suggestions)
+3. Select the notes to analyze
+4. Click "Scrape" to collect metrics
 
-#### Confidence Score (1-5)
-- 1: Very uncertain
-- 2: Somewhat uncertain
-- 3: Moderately confident
-- 4: Very confident
-- 5: Completely certain
+### Using the Command Palette
 
-## Plugin Settings
+1. Press `Ctrl+P` (or `Cmd+P` on Mac)
+2. Type "OneiroMetrics"
+3. Choose "Open OneiroMetrics" or "Scrape Metrics"
 
-### Project Note Path
-- Set the path to your metrics aggregation note
-- Example: `Dreams/Metrics.md`
+## Viewing Results
 
-### Selected Notes
-- Add paths to your dream journal notes
-- One path per line
-- Example:
-  ```
-  Journal/2025/Dreams.md
-  Journal/2025/May.md
-  ```
+The plugin generates a table in your project note showing:
 
-### Callout Name
-- Default: `dream-metrics`
-- Can be customized
-- Will be converted to lowercase with hyphens
+- Average values for each metric
+- Minimum and maximum values
+- Number of entries analyzed
+- Word count statistics
 
-### Custom Metrics
-1. Click "Add Metric"
-2. Set name, range, and description
-3. Use in your dream notes
+## Keyboard Shortcuts
 
-## Using the Plugin
-
-### Quick Access
-1. Click the ribbon icon (dream icon)
-2. Or use the command palette: "Open Dream Metrics"
-
-### Scraping Metrics
-1. Open the modal
-2. Verify settings
-3. Click "Scrape"
-4. View results in your project note
-
-### Project Note
-- Automatically generated table
-- Sortable columns
-- Date and title extraction
-- Metric values
-
-## Best Practices
-
-### Dream Notes
-1. **Consistent Format**
-   - Use the same callout format
-   - Keep metrics on one line
-   - Use consistent spacing
-
-2. **Metric Values**
-   - Stay within defined ranges
-   - Be consistent with scoring
-   - Document any special cases
-
-3. **Organization**
-   - Use clear note titles
-   - Include dates in filenames
-   - Group related dreams
-
-### Plugin Usage
-1. **Regular Updates**
-   - Scrape metrics regularly
-   - Review and validate data
-   - Update custom metrics as needed
-
-2. **Backup**
-   - Keep backups of your metrics note
-   - Export data periodically
-   - Document any changes
+In the metric editor:
+- `Enter`: Save changes
+- `Esc`: Cancel
+- `Tab`: Next field
+- `Shift+Tab`: Previous field
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Metrics Not Found**
-   - Check callout format
-   - Verify note paths
-   - Ensure plugin is enabled
+1. **Metrics not appearing in results**
+   - Check that the callout name matches your settings
+   - Verify that the metric names match exactly
+   - Ensure values are within the defined ranges
 
-2. **Invalid Values**
-   - Check metric ranges
-   - Verify number format
-   - Look for typos
+2. **File not found errors**
+   - Use the autocomplete suggestions to select valid files
+   - Verify the project note path
+   - Check that selected notes exist
+   - Ensure paths are relative to your vault root
 
-3. **Missing Data**
-   - Check file permissions
-   - Verify note exists
-   - Check for errors in console
+3. **Invalid metric values**
+   - Use only numbers within the defined range
+   - Don't include units or additional text
+   - Separate multiple metrics with commas
 
 ### Getting Help
 
-1. **Documentation**
-   - Check this guide
-   - Review README.md
-   - Check GitHub repository
-
-2. **Support**
-   - GitHub Issues
-   - Community Forum
-   - Discord Server
-
-3. **Feedback**
-   - Feature requests
-   - Bug reports
-   - Improvement suggestions 
+If you encounter issues:
+1. Check the [GitHub repository](https://github.com/banisterious/oneirometrics)
+2. Review the [Technical Specification](SPECIFICATION.md)
+3. Submit an issue with details about the problem 

@@ -1,95 +1,73 @@
 # OneiroMetrics
 
-OneiroMetrics (Turning dreams into data). A plugin for Obsidian to track and analyze dream journal metrics.
+A plugin for Obsidian that turns dreams into data by tracking and analyzing dream journal metrics.
 
-## Features
+## Overview
 
-- Track various metrics about your dreams using a simple callout format
-- Customize which metrics to track
-- Aggregate metrics across multiple dream journal entries
-- Generate beautiful tables of your dream data
-- Easy-to-use interface with both settings page and quick-access modal
+OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generating metrics, and visualizing patterns in your dreams. The plugin integrates seamlessly with Obsidian's interface and supports both manual and automated analysis.
+
+## Key Features
+
+- Dream journal analysis with detailed metrics
+- Customizable analysis parameters
+- Interactive metrics visualization
+- Support for both manual and automated processing
+- Seamless Obsidian integration
+- Enhanced metric management with:
+  - Real-time validation
+  - Live preview
+  - Drag-and-drop reordering
+  - Keyboard shortcuts
+  - Visual feedback
+- Smart file suggestions for project note path
+- Preserve custom metrics when resetting defaults
+
+## Documentation
+
+- [[docs/SPECIFICATION.md|Technical Specification]] - Detailed technical documentation
+- [[docs/USAGE.md|Usage Guide]] - How to use the plugin
+- [[CHANGELOG.md|Changelog]] - Version history and changes
+- [[RELEASING.md|Release Guide]] - Information about releases
+
+## Development
+
+- Built with TypeScript
+- Uses Obsidian's plugin API
+- Follows semantic versioning
+- MIT licensed
+
+## Repository
+
+- GitHub: [OneiroMetrics](https://github.com/banisterious/oneirometrics)
+- Current Version: 0.1.1
 
 ## Installation
 
 1. Open Obsidian Settings
 2. Go to Community Plugins
-3. Click "Browse" and search for "OneiroMetrics"
-4. Click Install
-5. Enable the plugin
+3. Disable Safe Mode
+4. Click Browse and search for "OneiroMetrics"
+5. Click Install
+6. Enable the plugin
 
 ## Usage
 
-### Setting Up Your Dream Notes
+1. Configure your metrics in the plugin settings
+   - Use the autocomplete field for project note path
+   - Add custom metrics with real-time validation
+   - Reset defaults while preserving custom metrics
+2. Add dream metrics to your journal entries using callouts:
+   ```markdown
+   > [!dream-metrics]
+   > Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2
+   ```
+3. Use the ribbon icon or command palette to analyze your dreams
+4. View the generated metrics in your project note
 
-Add a callout block to your dream journal entries using the following format:
+## Contributing
 
-```markdown
-> [!oneirometrics]
-> Words: 343, Sensory Detail: 3, Emotional Recall: 3, Lost Segments: 3, Descriptiveness: 4, Confidence Score: 4
-```
-
-### Configuring the Plugin
-
-1. Open the plugin settings (Settings > OneiroMetrics)
-2. Set the path for your project note (where metrics will be aggregated)
-3. Add the paths to your dream journal notes
-4. Customize the metrics you want to track
-5. Optionally change the callout name
-
-### Using the Plugin
-
-- Click the ribbon icon (dream icon) to open the quick-access modal
-- Use the "Open OneiroMetrics" command from the command palette
-- Click "Scrape" to collect metrics from your dream notes
-- View your aggregated metrics in the project note
-
-## Default Metrics
-
-The plugin comes with five default metrics:
-
-1. **Sensory Detail (1-5)**
-   - 1 (Minimal): Very little sensory information
-   - 2 (Limited): Basic sights or sounds
-   - 3 (Moderate): Noticeable amount of sensory details
-   - 4 (Rich): Significant amount across multiple senses
-   - 5 (Vivid): Highly detailed across all senses
-
-2. **Emotional Recall (1-5)**
-   - 1 (Vague): Faint sense of emotion
-   - 2 (General): Primary emotion identified
-   - 3 (Identified): Specific emotions with general intensity
-   - 4 (Nuanced): Several distinct emotions with nuances
-   - 5 (Deep and Complex): Complex emotional landscape
-
-3. **Lost Segments (Number)**
-   - Count of distinct instances where parts of the dream are missing
-
-4. **Descriptiveness (1-5)**
-   - 1 (Minimal): Very brief capture
-   - 2 (Limited): Basic account
-   - 3 (Moderate): Reasonably detailed
-   - 4 (Detailed): Significant elaboration
-   - 5 (Highly Elaborate): Rich in detail
-
-5. **Confidence Score (1-5)**
-   - 1 (Very Low): Barely scratched the surface
-   - 2 (Low): Fragmented recall
-   - 3 (Moderate): Fair amount recalled
-   - 4 (High): Majority recalled well
-   - 5 (Very High): Complete recall
-
-## Custom Metrics
-
-You can add your own custom metrics in the plugin settings. Each metric requires:
-- A name
-- A numeric range (minimum and maximum values)
-- A description
-
-## Support
-
-If you encounter any issues or have suggestions, please visit the [GitHub repository](https://github.com/banisterious/oneirometrics) to report them.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details. 
