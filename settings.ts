@@ -219,8 +219,31 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 // Create suggestion container
                 const suggestionContainer = containerEl.createEl('div', {
                     cls: 'suggestion-container',
-                    attr: { style: 'display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; width: 100%;' }
+                    attr: { style: 'display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;' }
                 });
+
+                // Helper to position the dropdown
+                function positionSuggestionContainer() {
+                    const inputRect = inputEl.getBoundingClientRect();
+                    const modalRect = containerEl.closest('.modal')?.getBoundingClientRect() ?? containerEl.getBoundingClientRect();
+                    const dropdownWidth = Math.max(inputRect.width, 180);
+                    let left = inputRect.left;
+                    let alignRight = false;
+                    // Check if dropdown would overflow the modal/window
+                    if (left + dropdownWidth > modalRect.right) {
+                        // Align to right edge of input
+                        left = inputRect.right - dropdownWidth;
+                        alignRight = true;
+                    }
+                    // Set max width to modal width or 400px
+                    const maxWidth = Math.min(modalRect.width, 400);
+                    suggestionContainer.style.top = `${inputRect.bottom + window.scrollY}px`;
+                    suggestionContainer.style.left = `${left + window.scrollX}px`;
+                    suggestionContainer.style.width = `${dropdownWidth}px`;
+                    suggestionContainer.style.maxWidth = `${maxWidth}px`;
+                    suggestionContainer.style.overflowX = 'auto';
+                    suggestionContainer.style.right = alignRight ? 'unset' : '';
+                }
 
                 // Handle input changes
                 inputEl.addEventListener('input', async (e) => {
@@ -243,23 +266,19 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
                                 attr: { 
-                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);' 
+                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); white-space: nowrap;' 
                                 },
                                 text: suggestion
                             });
-                            
                             // Highlight matching text
                             const regex = new RegExp(`(${value})`, 'gi');
                             item.innerHTML = suggestion.replace(regex, '<strong>$1</strong>');
-                            
                             item.addEventListener('mouseover', () => {
                                 item.style.backgroundColor = 'var(--background-modifier-hover)';
                             });
-                            
                             item.addEventListener('mouseout', () => {
                                 item.style.backgroundColor = '';
                             });
-                            
                             item.addEventListener('click', () => {
                                 inputEl.value = suggestion;
                                 this.plugin.settings.projectNotePath = suggestion;
@@ -268,12 +287,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             });
                         });
                         suggestionContainer.style.display = 'block';
-                        
-                        // Position the suggestion container below the input
-                        const inputRect = inputEl.getBoundingClientRect();
-                        suggestionContainer.style.top = `${inputRect.bottom}px`;
-                        suggestionContainer.style.left = `${inputRect.left}px`;
-                        suggestionContainer.style.width = `${inputRect.width}px`;
+                        positionSuggestionContainer();
                     } else {
                         suggestionContainer.style.display = 'none';
                     }

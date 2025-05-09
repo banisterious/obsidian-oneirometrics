@@ -211,27 +211,8 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.addClass("oom-file-suggestion");
       const suggestionContainer = containerEl.createEl("div", {
         cls: "suggestion-container",
-        attr: { style: "display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;" }
+        attr: { style: "display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; width: 100%;" }
       });
-      function positionSuggestionContainer() {
-        var _a, _b;
-        const inputRect = inputEl.getBoundingClientRect();
-        const modalRect = (_b = (_a = containerEl.closest(".modal")) == null ? void 0 : _a.getBoundingClientRect()) != null ? _b : containerEl.getBoundingClientRect();
-        const dropdownWidth = Math.max(inputRect.width, 180);
-        let left = inputRect.left;
-        let alignRight = false;
-        if (left + dropdownWidth > modalRect.right) {
-          left = inputRect.right - dropdownWidth;
-          alignRight = true;
-        }
-        const maxWidth = Math.min(modalRect.width, 400);
-        suggestionContainer.style.top = `${inputRect.bottom + window.scrollY}px`;
-        suggestionContainer.style.left = `${left + window.scrollX}px`;
-        suggestionContainer.style.width = `${dropdownWidth}px`;
-        suggestionContainer.style.maxWidth = `${maxWidth}px`;
-        suggestionContainer.style.overflowX = "auto";
-        suggestionContainer.style.right = alignRight ? "unset" : "";
-      }
       inputEl.addEventListener("input", async (e) => {
         const value = e.target.value;
         if (!value) {
@@ -246,7 +227,7 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
             const item = suggestionContainer.createEl("div", {
               cls: "suggestion-item",
               attr: {
-                style: "padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); white-space: nowrap;"
+                style: "padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);"
               },
               text: suggestion
             });
@@ -266,7 +247,10 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
             });
           });
           suggestionContainer.style.display = "block";
-          positionSuggestionContainer();
+          const inputRect = inputEl.getBoundingClientRect();
+          suggestionContainer.style.top = `${inputRect.bottom}px`;
+          suggestionContainer.style.left = `${inputRect.left}px`;
+          suggestionContainer.style.width = `${inputRect.width}px`;
         } else {
           suggestionContainer.style.display = "none";
         }
