@@ -202,10 +202,104 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "Dream Metrics Settings" });
-    new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("Path to the note where dream metrics will be aggregated").addSearch((text) => text.setPlaceholder("Dreams/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
-      this.plugin.settings.projectNotePath = value;
-      await this.plugin.saveSettings();
-    }));
+    new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("Path to the note where dream metrics will be aggregated").addSearch((text) => {
+      text.setPlaceholder("Dreams/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
+        this.plugin.settings.projectNotePath = value;
+        await this.plugin.saveSettings();
+      });
+      const inputEl = text.inputEl;
+      inputEl.addClass("oom-file-suggestion");
+      const suggestionContainer = containerEl.createEl("div", {
+        cls: "suggestion-container",
+        attr: { style: "display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; width: 100%;" }
+      });
+      inputEl.addEventListener("input", async (e) => {
+        const value = e.target.value;
+        if (!value) {
+          suggestionContainer.style.display = "none";
+          return;
+        }
+        const files = this.app.vault.getMarkdownFiles();
+        const suggestions = files.map((file) => file.path).filter((path) => path.toLowerCase().includes(value.toLowerCase())).slice(0, 5);
+        if (suggestions.length > 0) {
+          suggestionContainer.empty();
+          suggestions.forEach((suggestion) => {
+            const item = suggestionContainer.createEl("div", {
+              cls: "suggestion-item",
+              attr: {
+                style: "padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);"
+              },
+              text: suggestion
+            });
+            const regex = new RegExp(`(${value})`, "gi");
+            item.innerHTML = suggestion.replace(regex, "<strong>$1</strong>");
+            item.addEventListener("mouseover", () => {
+              item.style.backgroundColor = "var(--background-modifier-hover)";
+            });
+            item.addEventListener("mouseout", () => {
+              item.style.backgroundColor = "";
+            });
+            item.addEventListener("click", () => {
+              inputEl.value = suggestion;
+              this.plugin.settings.projectNotePath = suggestion;
+              this.plugin.saveSettings();
+              suggestionContainer.style.display = "none";
+            });
+          });
+          suggestionContainer.style.display = "block";
+          const inputRect = inputEl.getBoundingClientRect();
+          suggestionContainer.style.top = `${inputRect.bottom}px`;
+          suggestionContainer.style.left = `${inputRect.left}px`;
+          suggestionContainer.style.width = `${inputRect.width}px`;
+        } else {
+          suggestionContainer.style.display = "none";
+        }
+      });
+      inputEl.addEventListener("keydown", (e) => {
+        var _a, _b;
+        const items = suggestionContainer.querySelectorAll(".suggestion-item");
+        const currentIndex = Array.from(items).findIndex((item) => item.classList.contains("is-selected"));
+        switch (e.key) {
+          case "ArrowDown":
+            e.preventDefault();
+            if (currentIndex < items.length - 1) {
+              (_a = items[currentIndex]) == null ? void 0 : _a.classList.remove("is-selected");
+              items[currentIndex + 1].classList.add("is-selected");
+              items[currentIndex + 1].scrollIntoView({ block: "nearest" });
+            }
+            break;
+          case "ArrowUp":
+            e.preventDefault();
+            if (currentIndex > 0) {
+              (_b = items[currentIndex]) == null ? void 0 : _b.classList.remove("is-selected");
+              items[currentIndex - 1].classList.add("is-selected");
+              items[currentIndex - 1].scrollIntoView({ block: "nearest" });
+            }
+            break;
+          case "Enter":
+            e.preventDefault();
+            const selectedItem = suggestionContainer.querySelector(".is-selected");
+            if (selectedItem) {
+              const path = selectedItem.textContent;
+              if (path) {
+                inputEl.value = path;
+                this.plugin.settings.projectNotePath = path;
+                this.plugin.saveSettings();
+                suggestionContainer.style.display = "none";
+              }
+            }
+            break;
+          case "Escape":
+            suggestionContainer.style.display = "none";
+            break;
+        }
+      });
+      document.addEventListener("click", (e) => {
+        if (!inputEl.contains(e.target) && !suggestionContainer.contains(e.target)) {
+          suggestionContainer.style.display = "none";
+        }
+      });
+    });
     new import_obsidian.Setting(containerEl).setName("Callout Name").setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")').addText((text) => text.setPlaceholder("dream-metrics").setValue(this.plugin.settings.calloutName).onChange(async (value) => {
       this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, "-");
       await this.plugin.saveSettings();
@@ -306,8 +400,12 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
         }
       ).open();
     }));
-    new import_obsidian.Setting(containerEl).setName("Reset to Defaults").setDesc("Restore default metrics configuration").addButton((button) => button.setButtonText("Reset").onClick(async () => {
-      this.plugin.settings.metrics = [...DEFAULT_METRICS];
+    new import_obsidian.Setting(containerEl).setName("Reset to Defaults").setDesc("Restore default metrics while preserving custom metrics").addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      const defaultMetricNames = DEFAULT_METRICS.map((m) => m.name.toLowerCase());
+      const customMetrics = this.plugin.settings.metrics.filter(
+        (m) => !defaultMetricNames.includes(m.name.toLowerCase())
+      );
+      this.plugin.settings.metrics = [...DEFAULT_METRICS, ...customMetrics];
       await this.plugin.saveSettings();
       this.display();
     }));
