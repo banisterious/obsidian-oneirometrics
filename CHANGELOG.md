@@ -5,24 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-05-08
-
-### Added
-- Initial release of Dream Metrics plugin
-- Core functionality for tracking dream metrics using callout blocks
-- Settings page with customizable metrics
-- Quick-access modal for metric scraping
-- Default metrics:
-  - Sensory Detail (1-5)
-  - Emotional Recall (1-5)
-  - Lost Segments (0-10)
-  - Descriptiveness (1-5)
-  - Confidence Score (1-5)
-- Project note generation with sortable tables
-- Custom metric support
-- Ribbon icon and command palette integration
-
-## [0.1.2] - 2024-03-19
+## [0.1.2] - 2025-05-09
 
 ### Added
 - Automatic backup system for project notes
@@ -30,15 +13,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Content preservation for project notes
 - Visual indicators for backup files in file explorer
 - Enhanced error handling and user feedback
+- Multi-chip autocomplete for note selection in both Settings and modal
+- Smart file suggestion system with improved path matching
+- Content cleaning for markdown elements
+- Real-time validation feedback for metrics
+- Enhanced table styling with optimized column widths
+- Full-width table sections that override readable line length
+- Center-aligned numeric metrics for better readability
+- Improved filter controls layout
+- Better organization of Dream Entries section
 
 ### Changed
 - Improved project note update process
 - Enhanced documentation with new features
 - Updated styling for better visual feedback
+- Updated project note format to include summary and detailed sections
+- Enhanced file suggestion logic for year-based paths
+- Improved content preview with expandable/collapsible sections
+- Optimized table layout for better space utilization
+- Reduced overall table font sizes for better readability
+- Enhanced error handling with backup restoration options
+- Improved theme integration and mobile responsiveness
 
 ### Fixed
 - Potential data loss during metrics updates
 - Content preservation issues in project notes
+- Table width issues with Readable Line Length setting
+- File suggestion improvements for year-based paths
+- Content cleaning for markdown elements
+- Theme compatibility issues
+- Mobile responsiveness issues
 
 ## [0.1.1] - 2024-03-18
 

@@ -19,8 +19,19 @@ OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generati
   - Drag-and-drop reordering
   - Keyboard shortcuts
   - Visual feedback
-- Smart file suggestions for project note path
+- Smart file suggestions with:
+  - Multi-chip autocomplete
+  - Year-based path suggestions
+  - Case-insensitive matching
+  - Support for spaces and special characters
 - Preserve custom metrics when resetting defaults
+- Responsive table layout with optimized column widths
+- Full-width table support (overrides readable line length)
+- Automatic content cleaning for markdown elements
+- Automatic backup system with timestamped backups
+- Expandable/collapsible content preview
+- Center-aligned numeric metrics
+- Date range and metric filtering
 
 ## Documentation
 
@@ -28,6 +39,7 @@ OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generati
 - [[docs/USAGE.md|Usage Guide]] - How to use the plugin
 - [[CHANGELOG.md|Changelog]] - Version history and changes
 - [[RELEASING.md|Release Guide]] - Information about releases
+- [[TESTING.md|Testing Guide]] - Testing and troubleshooting information
 
 ## Development
 
@@ -39,7 +51,7 @@ OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generati
 ## Repository
 
 - GitHub: [OneiroMetrics](https://github.com/banisterious/oneirometrics)
-- Current Version: 0.1.1
+- Current Version: 0.1.2
 
 ## Installation
 
@@ -53,7 +65,7 @@ OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generati
 ## Usage
 
 1. Configure your metrics in the plugin settings
-   - Use the autocomplete field for project note path
+   - Use the smart file suggestion system for project note path
    - Add custom metrics with real-time validation
    - Reset defaults while preserving custom metrics
 2. Add dream metrics to your journal entries using callouts:
@@ -62,7 +74,10 @@ OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generati
    > Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2
    ```
 3. Use the ribbon icon or command palette to analyze your dreams
-4. View the generated metrics in your project note
+4. View the generated metrics in your project note:
+   - Summary section with averages and statistics
+   - Detailed section with expandable content
+   - Sortable and filterable columns
 
 ## Contributing
 

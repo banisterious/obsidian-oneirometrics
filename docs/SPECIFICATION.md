@@ -49,6 +49,8 @@ interface DreamMetricsSettings {
 interface DreamMetricData {
     date: string;
     title: string;
+    content: string;
+    wordCount: number;
     metrics: {
         [key: string]: number;
     };
@@ -72,35 +74,65 @@ Example:
 
 ### 4. Project Note Format
 
-The project note is generated as a Markdown table with the following structure:
+The project note is generated with two main sections:
 
+#### Summary Section
 ```markdown
-# Dream Metrics
+# Dream Metrics Summary
 
-| Date | Title | Metric1 | Metric2 | ... |
-|------|-------|---------|---------|-----|
-| 2025-05-08 | Dream Journal | value1 | value2 | ... |
+| Metric | Average | Min | Max | Count |
+|--------|---------|-----|-----|-------|
+| Metric1 | 3.5 | 1 | 5 | 10 |
+| Metric2 | 4.2 | 2 | 5 | 10 |
+```
+
+#### Detailed Section
+```markdown
+# Dream Entries
+
+| Date | Title | Words | Content | Metric1 | Metric2 | ... |
+|------|-------|-------|---------|---------|---------|-----|
+| 2025-05-08 | Dream Title | 343 | [Preview] | 4 | 3 | ... |
 ```
 
 ## Features
 
 ### 1. Settings Management
-- Project note path configuration
-- Custom metric definitions
-- Note selection
+- Project note path configuration with smart file suggestions
+- Multi-chip autocomplete for note selection
+- Custom metric definitions with validation
 - Callout name customization
+- Real-time validation feedback
 
 ### 2. Metric Scraping
 - Regex-based callout detection
 - Key-value pair parsing
 - Date and title extraction
 - Metric validation
+- Content cleaning for markdown elements
+- Automatic backup system
 
 ### 3. Data Presentation
-- Markdown table generation
+- Responsive table layout
+- Full-width sections (overrides readable line length)
+- Optimized column widths:
+  - Date: 8%
+  - Title: 15%
+  - Words: 7%
+  - Content: 30%
+  - Metrics: 8% each
+- Expandable/collapsible content preview
+- Center-aligned numeric metrics
 - Sortable columns
-- Custom styling
-- Error handling
+- Date range and metric filtering
+
+### 4. File Suggestion System
+- Smart path matching for:
+  - Spaces, dashes, underscores
+  - Case-insensitive matching
+  - Year-based paths (e.g., "2025" → "Journals/2025/2025.md")
+- Multi-chip autocomplete for note selection
+- Real-time validation and feedback
 
 ## Technical Requirements
 
@@ -111,6 +143,8 @@ The project note is generated as a Markdown table with the following structure:
   - File operations
   - UI components
   - Settings management
+  - Markdown parsing
+  - Theme integration
 
 ### 2. Development Environment
 - Node.js
@@ -130,16 +164,19 @@ The project note is generated as a Markdown table with the following structure:
    - Only access files specified by the user
    - Validate file paths
    - Handle missing files gracefully
+   - Automatic backup system
 
 2. **Data Validation**
    - Validate metric values against defined ranges
    - Sanitize user input
    - Handle malformed callouts
+   - Real-time validation feedback
 
 3. **Error Handling**
    - Graceful degradation
    - User-friendly error messages
    - Logging for debugging
+   - Backup restoration options
 
 ## Performance Considerations
 
@@ -147,24 +184,33 @@ The project note is generated as a Markdown table with the following structure:
    - Efficient file reading
    - Batch processing for multiple notes
    - Caching where appropriate
+   - Optimized content cleaning
 
 2. **UI Responsiveness**
    - Asynchronous operations
    - Progress indicators
    - Non-blocking UI updates
+   - Optimized table rendering
+
+3. **Memory Management**
+   - Efficient content preview handling
+   - Optimized table data structures
+   - Smart caching strategies
 
 ## Future Considerations
 
 1. **Potential Enhancements**
-   - Data visualization
+   - Advanced data visualization
    - Export functionality
-   - Advanced filtering
-   - Metric trends analysis
+   - Machine learning for pattern detection
+   - Custom metric formulas
+   - Theme customization options
 
 2. **Scalability**
    - Large vault support
    - Performance optimization
    - Memory management
+   - Batch processing improvements
 
 ## Testing Strategy
 
@@ -172,13 +218,18 @@ The project note is generated as a Markdown table with the following structure:
    - Metric parsing
    - Data validation
    - File operations
+   - Content cleaning
+   - File suggestion logic
 
 2. **Integration Tests**
    - Settings management
    - UI components
    - End-to-end workflows
+   - Theme compatibility
+   - Mobile responsiveness
 
 3. **User Testing**
    - Different vault sizes
    - Various note structures
-   - Edge cases 
+   - Edge cases
+   - Performance benchmarks 

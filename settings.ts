@@ -203,9 +203,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Project Note Path Setting
         new Setting(containerEl)
             .setName('Project Note Path')
-            .setDesc('Path to the note where dream metrics will be aggregated')
-            .addSearch(text => {
-                text.setPlaceholder('Dreams/Metrics.md')
+            .setDesc('The path where metrics tables will be written')
+            .addText(text => {
+                text.setPlaceholder('Journals/Dream Diary/Metrics/Metrics.md')
                     .setValue(this.plugin.settings.projectNotePath)
                     .onChange(async (value) => {
                         this.plugin.settings.projectNotePath = value;
@@ -218,8 +218,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 
                 // Create suggestion container
                 const suggestionContainer = containerEl.createEl('div', {
-                    cls: 'suggestion-container',
-                    attr: { style: 'display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;' }
+                    cls: 'suggestion-container oom-suggestion-container'
                 });
 
                 // Helper to position the dropdown
@@ -232,13 +231,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     let top = inputRect.bottom - modalRect.top;
                     let maxWidth = modalRect.width;
 
-                    // Default: align left edge of dropdown with input
                     suggestionContainer.style.position = 'absolute';
                     suggestionContainer.style.left = `${left}px`;
                     suggestionContainer.style.right = '';
                     suggestionContainer.style.maxWidth = `${maxWidth}px`;
 
-                    // If dropdown would overflow modal to the right, align right edge with modal
                     if (left + dropdownWidth > modalRect.width) {
                         suggestionContainer.style.left = 'auto';
                         suggestionContainer.style.right = '0';
@@ -258,113 +255,69 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 inputEl.addEventListener('input', async (e) => {
                     const value = (e.target as HTMLInputElement).value;
                     if (!value) {
-                        suggestionContainer.style.display = 'none';
+                        suggestionContainer.classList.add('oom-hidden');
                         return;
                     }
 
-                    // Get all markdown files in the vault
-                    const files = this.app.vault.getMarkdownFiles();
+                    const files = this.app.vault.getMarkdownFiles()
+                        .filter(file => !file.path.includes('/Backups/') && !file.path.endsWith('.backup'));
                     const lowerInput = value.toLowerCase();
                     const normalizedInput = normalize(value);
-
+                    
                     const suggestions = files
                         .map(file => file.path)
                         .filter(path => {
                             const lowerPath = path.toLowerCase();
                             const normalizedPath = normalize(path);
-                            // Split path into segments by / and space
-                            const segments = lowerPath.split(/[\/ ]+/);
-                            // Match if input is in the full path, any segment, or the normalized path
-                            return (
-                                lowerPath.includes(lowerInput) ||
-                                segments.some(segment => segment.includes(lowerInput)) ||
-                                normalizedPath.includes(normalizedInput)
-                            );
+                            const segments = lowerPath.split(/[\/\\]+/);
+                            
+                            // Check for year matches first
+                            if (lowerInput.match(/^\d{4}$/)) {
+                                return segments.some(segment => segment === lowerInput) ||
+                                       path.includes(`/Journals/${lowerInput}/`) ||
+                                       path.includes(`\\Journals\\${lowerInput}\\`);
+                            }
+                            
+                            // Check for exact matches
+                            if (lowerPath === lowerInput) return true;
+                            
+                            // Check for path segment matches
+                            if (segments.some(segment => segment.includes(lowerInput))) return true;
+                            
+                            // Check for normalized path matches
+                            if (normalizedPath.includes(normalizedInput)) return true;
+                            
+                            // Check for partial path matches
+                            return lowerPath.includes(lowerInput);
                         })
-                        .slice(0, 5); // Limit to 5 suggestions
+                        .slice(0, 7);
 
-                    // Debug output
-                    console.log('[OneiroMetrics] Autocomplete input:', value);
-                    console.log('[OneiroMetrics] Suggestions:', suggestions);
-
+                    suggestionContainer.empty();
                     if (suggestions.length > 0) {
-                        suggestionContainer.empty();
-                        suggestions.forEach(suggestion => {
+                        for (const suggestion of suggestions) {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
-                                attr: { 
-                                    title: suggestion
-                                },
+                                attr: { title: suggestion },
                                 text: suggestion
                             });
-                            // Highlight matching text
-                            const regex = new RegExp(`(${value})`, 'gi');
-                            item.innerHTML = suggestion.replace(regex, '<strong>$1</strong>');
-                            item.addEventListener('mouseover', () => {
-                                item.style.backgroundColor = 'var(--background-modifier-hover)';
-                            });
-                            item.addEventListener('mouseout', () => {
-                                item.style.backgroundColor = '';
-                            });
-                            item.addEventListener('click', () => {
+                            item.onclick = () => {
                                 inputEl.value = suggestion;
                                 this.plugin.settings.projectNotePath = suggestion;
                                 this.plugin.saveSettings();
-                                suggestionContainer.style.display = 'none';
-                            });
-                        });
-                        suggestionContainer.style.display = 'block';
+                                suggestionContainer.classList.add('oom-hidden');
+                            };
+                        }
+                        suggestionContainer.classList.remove('oom-hidden');
                         positionSuggestionContainer();
                     } else {
-                        suggestionContainer.style.display = 'none';
-                    }
-                });
-
-                // Handle keyboard navigation
-                inputEl.addEventListener('keydown', (e) => {
-                    const items = suggestionContainer.querySelectorAll('.suggestion-item');
-                    const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
-                    
-                    switch (e.key) {
-                        case 'ArrowDown':
-                            e.preventDefault();
-                            if (currentIndex < items.length - 1) {
-                                items[currentIndex]?.classList.remove('is-selected');
-                                items[currentIndex + 1].classList.add('is-selected');
-                                items[currentIndex + 1].scrollIntoView({ block: 'nearest' });
-                            }
-                            break;
-                        case 'ArrowUp':
-                            e.preventDefault();
-                            if (currentIndex > 0) {
-                                items[currentIndex]?.classList.remove('is-selected');
-                                items[currentIndex - 1].classList.add('is-selected');
-                                items[currentIndex - 1].scrollIntoView({ block: 'nearest' });
-                            }
-                            break;
-                        case 'Enter':
-                            e.preventDefault();
-                            const selectedItem = suggestionContainer.querySelector('.is-selected');
-                            if (selectedItem) {
-                                const path = selectedItem.textContent;
-                                if (path) {
-                                    inputEl.value = path;
-                                    this.plugin.settings.projectNotePath = path;
-                                    this.plugin.saveSettings();
-                                    suggestionContainer.style.display = 'none';
-                                }
-                            }
-                            break;
-                        case 'Escape':
-                            suggestionContainer.style.display = 'none';
-                            break;
+                        suggestionContainer.classList.add('oom-hidden');
                     }
                 });
 
                 // Hide suggestions when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!inputEl.contains(e.target as Node) && !suggestionContainer.contains(e.target as Node)) {
-                        suggestionContainer.style.display = 'none';
+                        suggestionContainer.classList.add('oom-hidden');
                     }
                 });
             });

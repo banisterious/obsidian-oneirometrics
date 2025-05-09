@@ -202,19 +202,18 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "Dream Metrics Settings" });
-    new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("Path to the note where dream metrics will be aggregated").addSearch((text) => {
-      text.setPlaceholder("Dreams/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("The path where metrics tables will be written").addText((text) => {
+      text.setPlaceholder("Journals/Dream Diary/Metrics/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
         this.plugin.settings.projectNotePath = value;
         await this.plugin.saveSettings();
       });
-      const inputEl = text.inputEl;
-      inputEl.addClass("oom-file-suggestion");
+      const inputEl2 = text.inputEl;
+      inputEl2.addClass("oom-file-suggestion");
       const suggestionContainer2 = containerEl.createEl("div", {
-        cls: "suggestion-container",
-        attr: { style: "display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;" }
+        cls: "suggestion-container oom-suggestion-container"
       });
       function positionSuggestionContainer() {
-        const inputRect = inputEl.getBoundingClientRect();
+        const inputRect = inputEl2.getBoundingClientRect();
         const modalEl = containerEl.closest(".modal");
         const modalRect = modalEl ? modalEl.getBoundingClientRect() : containerEl.getBoundingClientRect();
         const dropdownWidth = Math.max(inputRect.width, 180);
@@ -236,96 +235,54 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
       function normalize(str) {
         return str.toLowerCase().replace(/\s+/g, "");
       }
-      inputEl.addEventListener("input", async (e) => {
+      inputEl2.addEventListener("input", async (e) => {
         const value = e.target.value;
         if (!value) {
-          suggestionContainer2.style.display = "none";
+          suggestionContainer2.classList.add("oom-hidden");
           return;
         }
-        const files = this.app.vault.getMarkdownFiles();
+        const files = this.app.vault.getMarkdownFiles().filter((file) => !file.path.includes("/Backups/") && !file.path.endsWith(".backup"));
         const lowerInput = value.toLowerCase();
         const normalizedInput = normalize(value);
         const suggestions = files.map((file) => file.path).filter((path) => {
           const lowerPath = path.toLowerCase();
           const normalizedPath = normalize(path);
-          const segments = lowerPath.split(/[\/ ]+/);
-          return lowerPath.includes(lowerInput) || segments.some((segment) => segment.includes(lowerInput)) || normalizedPath.includes(normalizedInput);
-        }).slice(0, 5);
-        console.log("[OneiroMetrics] Autocomplete input:", value);
-        console.log("[OneiroMetrics] Suggestions:", suggestions);
+          const segments = lowerPath.split(/[\/\\]+/);
+          if (lowerInput.match(/^\d{4}$/)) {
+            return segments.some((segment) => segment === lowerInput) || path.includes(`/Journals/${lowerInput}/`) || path.includes(`\\Journals\\${lowerInput}\\`);
+          }
+          if (lowerPath === lowerInput)
+            return true;
+          if (segments.some((segment) => segment.includes(lowerInput)))
+            return true;
+          if (normalizedPath.includes(normalizedInput))
+            return true;
+          return lowerPath.includes(lowerInput);
+        }).slice(0, 7);
+        suggestionContainer2.empty();
         if (suggestions.length > 0) {
-          suggestionContainer2.empty();
-          suggestions.forEach((suggestion) => {
+          for (const suggestion of suggestions) {
             const item = suggestionContainer2.createEl("div", {
               cls: "suggestion-item",
-              attr: {
-                title: suggestion
-              },
+              attr: { title: suggestion },
               text: suggestion
             });
-            const regex = new RegExp(`(${value})`, "gi");
-            item.innerHTML = suggestion.replace(regex, "<strong>$1</strong>");
-            item.addEventListener("mouseover", () => {
-              item.style.backgroundColor = "var(--background-modifier-hover)";
-            });
-            item.addEventListener("mouseout", () => {
-              item.style.backgroundColor = "";
-            });
-            item.addEventListener("click", () => {
-              inputEl.value = suggestion;
+            item.onclick = () => {
+              inputEl2.value = suggestion;
               this.plugin.settings.projectNotePath = suggestion;
               this.plugin.saveSettings();
-              suggestionContainer2.style.display = "none";
-            });
-          });
-          suggestionContainer2.style.display = "block";
+              suggestionContainer2.classList.add("oom-hidden");
+            };
+          }
+          suggestionContainer2.classList.remove("oom-hidden");
           positionSuggestionContainer();
         } else {
-          suggestionContainer2.style.display = "none";
-        }
-      });
-      inputEl.addEventListener("keydown", (e) => {
-        var _a, _b;
-        const items = suggestionContainer2.querySelectorAll(".suggestion-item");
-        const currentIndex = Array.from(items).findIndex((item) => item.classList.contains("is-selected"));
-        switch (e.key) {
-          case "ArrowDown":
-            e.preventDefault();
-            if (currentIndex < items.length - 1) {
-              (_a = items[currentIndex]) == null ? void 0 : _a.classList.remove("is-selected");
-              items[currentIndex + 1].classList.add("is-selected");
-              items[currentIndex + 1].scrollIntoView({ block: "nearest" });
-            }
-            break;
-          case "ArrowUp":
-            e.preventDefault();
-            if (currentIndex > 0) {
-              (_b = items[currentIndex]) == null ? void 0 : _b.classList.remove("is-selected");
-              items[currentIndex - 1].classList.add("is-selected");
-              items[currentIndex - 1].scrollIntoView({ block: "nearest" });
-            }
-            break;
-          case "Enter":
-            e.preventDefault();
-            const selectedItem = suggestionContainer2.querySelector(".is-selected");
-            if (selectedItem) {
-              const path = selectedItem.textContent;
-              if (path) {
-                inputEl.value = path;
-                this.plugin.settings.projectNotePath = path;
-                this.plugin.saveSettings();
-                suggestionContainer2.style.display = "none";
-              }
-            }
-            break;
-          case "Escape":
-            suggestionContainer2.style.display = "none";
-            break;
+          suggestionContainer2.classList.add("oom-hidden");
         }
       });
       document.addEventListener("click", (e) => {
-        if (!inputEl.contains(e.target) && !suggestionContainer2.contains(e.target)) {
-          suggestionContainer2.style.display = "none";
+        if (!inputEl2.contains(e.target) && !suggestionContainer2.contains(e.target)) {
+          suggestionContainer2.classList.add("oom-hidden");
         }
       });
     });
@@ -564,12 +521,24 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
       name: "Scrape Metrics",
       callback: () => this.scrapeMetrics()
     });
+    this.registerEvent(
+      this.app.workspace.on("layout-change", () => {
+        this.updateProjectNoteView();
+      })
+    );
+    this.registerEvent(
+      this.app.workspace.on("file-open", (file) => {
+        if (file && file.path === this.settings.projectNotePath) {
+          this.updateProjectNoteView();
+        }
+      })
+    );
   }
   onunload() {
   }
   async loadSettings() {
     this.settings = Object.assign({}, {
-      projectNotePath: "Dreams/Metrics.md",
+      projectNotePath: "Journals/Dream Diary/Metrics/Metrics.md",
       metrics: [...DEFAULT_METRICS],
       selectedNotes: [],
       calloutName: "dream-metrics"
@@ -579,14 +548,22 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
     await this.saveData(this.settings);
   }
   async scrapeMetrics() {
+    const progressModal = new import_obsidian2.Modal(this.app);
+    progressModal.titleEl.setText("Scraping Dream Metrics...");
+    progressModal.contentEl.createEl("div", { text: "Please wait while metrics are being scraped. This may take a few seconds for large journals." });
+    progressModal.open();
     const metrics = {};
+    const dreamEntries = [];
     let totalWords = 0;
     let entriesProcessed = 0;
     let calloutsFound = 0;
     let validNotes = 0;
+    let foundAnyJournalEntries = false;
+    let foundAnyMetrics = false;
     if (!this.settings.selectedNotes || this.settings.selectedNotes.length === 0) {
       new import_obsidian2.Notice("No notes selected. Please select at least one note to scrape.");
       console.warn("[OneiroMetrics] No notes selected.");
+      progressModal.close();
       return;
     }
     for (const path of this.settings.selectedNotes) {
@@ -598,22 +575,79 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
       validNotes++;
       try {
         const content = await this.app.vault.read(file);
-        const calloutMatch = content.match(/>\s*\[!${this.settings.calloutName}\]\s*\n>(.*?)(?=\n\n|\n[^>]|$)/s);
-        if (calloutMatch) {
-          calloutsFound++;
-          const metricsText = calloutMatch[1].replace(/>\s*/g, "");
-          const wordCount = content.split(/\s+/).length;
-          totalWords += wordCount;
-          entriesProcessed++;
-          const metricPairs = metricsText.split(",").map((pair) => pair.trim());
-          for (const pair of metricPairs) {
-            const [name, value] = pair.split(":").map((s) => s.trim());
-            if (name && !isNaN(Number(value))) {
-              if (!metrics[name]) {
-                metrics[name] = [];
-              }
-              metrics[name].push(Number(value));
+        console.log(`[OneiroMetrics] Processing file: ${path}`);
+        console.log(`[OneiroMetrics] Content length: ${content.length} characters`);
+        let journalEntries = content.match(/---\n+> \[!journal-entry\][\s\S]*?\n> \^\d{8}[\s\S]*?(?=\n+---\n+(?:> \[!journal-entry\]|$)|$)/g);
+        if (!journalEntries) {
+          console.warn(`[OneiroMetrics] No journal entries found in: ${path}`);
+          console.log(`[OneiroMetrics] Content preview: ${content.substring(0, 500)}...`);
+          continue;
+        }
+        foundAnyJournalEntries = true;
+        console.log(`[OneiroMetrics] Found ${journalEntries.length} journal entries in ${path}`);
+        for (const journalEntry of journalEntries) {
+          const dateMatch = journalEntry.match(/\^(\d{8})/);
+          if (!dateMatch) {
+            console.warn(`[OneiroMetrics] Could not extract date from journal entry: ${journalEntry.substring(0, 100)}...`);
+            continue;
+          }
+          const date = dateMatch[1].replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+          const entryId = dateMatch[1];
+          const dreamDiaries = journalEntry.match(/> \[!dream-diary\].*?\[\[.*?\]\][\s\S]*?(?=\n\n> \[!(?!dream-metrics)|$)/g);
+          if (!dreamDiaries) {
+            console.log(`[OneiroMetrics] No dream diaries found in journal entry ${date}`);
+            continue;
+          }
+          console.log(`[OneiroMetrics] Found ${dreamDiaries.length} dream diaries in journal entry ${date}`);
+          for (const dreamDiary of dreamDiaries) {
+            const titleMatch = dreamDiary.match(/> \[!dream-diary\] (.*?) \[\[/);
+            if (!titleMatch) {
+              console.warn(`[OneiroMetrics] Could not extract title from dream diary: ${dreamDiary.substring(0, 100)}...`);
+              continue;
             }
+            const title = titleMatch[1].trim();
+            const metricsMatch = dreamDiary.match(/> \[!dream-metrics(?:\|.*)?\][\s\S]*?>\s*([\w\W]*?)(?=\n\n> \[!|$)/);
+            if (!metricsMatch) {
+              console.log(`[OneiroMetrics] No metrics callout found in dream diary: ${title}`);
+              continue;
+            }
+            calloutsFound++;
+            foundAnyMetrics = true;
+            const metricsText = metricsMatch[1].replace(/>\s*/g, "");
+            console.log(`[OneiroMetrics] Found metrics for dream: ${title}`);
+            console.log(`[OneiroMetrics] Metrics text: ${metricsText}`);
+            const dreamContent = dreamDiary.split(/> \[!dream-metrics\]/)[0].replace(/^> \[!dream-diary\].*?\[\[.*?\]\]\n/m, "").replace(/^>+\s*/gm, "").replace(/\[\[([^\]]+?)\]\]/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[([^\]]+?)\]\(.*?\)/g, "$1").replace(/`([^`]+?)`/g, "$1").replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/\*([^*]+?)\*/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/^---+\s*$/gm, "").replace(/\n{2,}/g, " ").trim();
+            const wordCount = dreamContent.split(/\s+/).length;
+            totalWords += wordCount;
+            entriesProcessed++;
+            const dreamMetrics = {};
+            const metricPairs = metricsText.split(",").map((pair) => pair.trim());
+            for (const pair of metricPairs) {
+              const [name, value] = pair.split(":").map((s) => s.trim());
+              if (name && value !== "\u2014" && !isNaN(Number(value))) {
+                if (!metrics[name]) {
+                  metrics[name] = [];
+                }
+                const numValue = Number(value);
+                metrics[name].push(numValue);
+                dreamMetrics[name] = numValue;
+              }
+            }
+            if (!metrics["Words"]) {
+              metrics["Words"] = [];
+            }
+            metrics["Words"].push(wordCount);
+            dreamMetrics["Words"] = wordCount;
+            dreamEntries.push({
+              date,
+              title,
+              content: dreamContent,
+              source: {
+                file: path,
+                id: entryId
+              },
+              metrics: dreamMetrics
+            });
           }
         }
       } catch (error) {
@@ -626,32 +660,30 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
     console.log(`[OneiroMetrics] Entries processed: ${entriesProcessed}`);
     if (validNotes === 0) {
       new import_obsidian2.Notice("No valid notes found. Please check your selected notes.");
+      progressModal.close();
       return;
     }
-    if (calloutsFound === 0) {
+    if (!foundAnyJournalEntries) {
+      new import_obsidian2.Notice("No journal entries found in selected notes.");
+      progressModal.close();
+      return;
+    }
+    if (!foundAnyMetrics) {
       new import_obsidian2.Notice("No dream metrics callouts found in selected notes.");
+      progressModal.close();
       return;
     }
     if (entriesProcessed === 0) {
       new import_obsidian2.Notice("No metrics data found in selected notes.");
+      progressModal.close();
       return;
     }
-    if (entriesProcessed > 0) {
-      const avgWords = Math.round(totalWords / entriesProcessed);
-      metrics["Average Words"] = [avgWords];
-    }
-    await this.updateProjectNote(metrics);
+    dreamEntries.sort((a, b) => a.date.localeCompare(b.date));
+    await this.updateProjectNote(metrics, dreamEntries);
+    progressModal.close();
+    new import_obsidian2.Notice("Metrics scraped successfully!");
   }
-  extractDateFromNotePath(path) {
-    const filename = path.split("/").pop() || "";
-    const dateMatch = filename.match(/\d{4}-\d{2}-\d{2}/);
-    return dateMatch ? dateMatch[0] : new Date().toISOString().split("T")[0];
-  }
-  extractTitleFromNotePath(path) {
-    const filename = path.split("/").pop() || "";
-    return filename.replace(/\.md$/, "");
-  }
-  async updateProjectNote(metrics) {
+  async updateProjectNote(metrics, dreamEntries) {
     const projectFile = this.app.vault.getAbstractFileByPath(this.settings.projectNotePath);
     if (!(projectFile instanceof import_obsidian2.TFile)) {
       console.log(`Project note not found: ${this.settings.projectNotePath}`);
@@ -659,28 +691,38 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
     }
     try {
       const existingContent = await this.app.vault.read(projectFile);
-      const tableMatch = existingContent.match(/(.*?)(# Dream Metrics.*?)(\n\n.*)/s);
+      const tableMatch = existingContent.match(/(.*?)(# OneiroMetrics Analysis.*?)(\n\n.*)/s);
       const beforeTable = tableMatch ? tableMatch[1] : "";
       const afterTable = tableMatch ? tableMatch[3] : "";
-      const newContent = beforeTable + this.generateMetricsTable(metrics) + afterTable;
+      const newContent = beforeTable + this.generateMetricsTable(metrics, dreamEntries) + afterTable;
       if (newContent !== existingContent) {
         await this.backupProjectNote(projectFile);
         const confirmed = await this.confirmOverwrite();
         if (confirmed) {
           await this.app.vault.modify(projectFile, newContent);
-          new import_obsidian2.Notice("Metrics table updated successfully!");
+          new import_obsidian2.Notice("Metrics tables updated successfully!");
+          this.updateProjectNoteView();
         }
       }
     } catch (error) {
       console.error("Error writing to project note:", error);
-      new import_obsidian2.Notice("Error updating metrics table. Check console for details.");
+      new import_obsidian2.Notice("Error updating metrics tables. Check console for details.");
     }
   }
   async backupProjectNote(file) {
     try {
       const content = await this.app.vault.read(file);
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const backupPath = `${this.settings.projectNotePath}.${timestamp}.backup`;
+      const projectDir = file.parent;
+      if (!projectDir) {
+        throw new Error("Project note has no parent directory");
+      }
+      const backupsFolderPath = `${projectDir.path}/Backups`;
+      const backupsFolder = this.app.vault.getAbstractFileByPath(backupsFolderPath);
+      if (!backupsFolder) {
+        await this.app.vault.createFolder(backupsFolderPath);
+      }
+      const backupPath = `${backupsFolderPath}/Metrics.${timestamp}.backup.md`;
       const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
       if (existingBackup) {
         await this.app.vault.delete(existingBackup);
@@ -696,8 +738,8 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
     return new Promise((resolve) => {
       const modal = new ConfirmModal(
         this.app,
-        "Update Metrics Table",
-        "This will overwrite the current metrics table. A backup will be created before proceeding. Continue?"
+        "Update Metrics Tables",
+        "This will overwrite the current metrics tables. A backup will be created before proceeding. Continue?"
       );
       modal.onConfirm = () => {
         resolve(true);
@@ -708,43 +750,140 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
       modal.open();
     });
   }
-  generateMetricsTable(metrics) {
-    let table = "# OneiroMetrics Analysis\n\n";
-    table += '<div class="oom-table-container">\n';
-    table += '<table class="oom-table">\n';
-    table += "<thead>\n";
-    table += "<tr>\n";
-    table += "<th>Metric</th>\n";
-    table += "<th>Average</th>\n";
-    table += "<th>Min</th>\n";
-    table += "<th>Max</th>\n";
-    table += "<th>Count</th>\n";
-    table += "</tr>\n";
-    table += "</thead>\n";
-    table += "<tbody>\n";
-    for (const [name, values] of Object.entries(metrics)) {
-      if (values.length === 0)
+  generateMetricsTable(metrics, dreamEntries) {
+    let content = "";
+    content += '<div class="oom-table-section">';
+    content += '<div class="oom-table-title">Metrics</div>';
+    content += '<div class="oom-table-container">\n';
+    content += '<table class="oom-table">\n';
+    content += "<thead>\n";
+    content += "<tr>\n";
+    content += "<th>Metric</th>\n";
+    content += "<th>Average</th>\n";
+    content += "<th>Min</th>\n";
+    content += "<th>Max</th>\n";
+    content += "<th>Count</th>\n";
+    content += "</tr>\n";
+    content += "</thead>\n";
+    content += "<tbody>\n";
+    const validMetricNames = [
+      "Words",
+      ...this.settings.metrics.map((m) => m.name)
+    ];
+    for (const name of validMetricNames) {
+      const values = metrics[name];
+      if (!values || values.length === 0)
         continue;
       const avg = values.reduce((a, b) => a + b) / values.length;
       const min = Math.min(...values);
       const max = Math.max(...values);
-      table += "<tr>\n";
-      table += `<td>${name}</td>
+      let label = name;
+      if (name === "Words") {
+        const total = values.reduce((a, b) => a + b, 0);
+        label = `Words <span class="oom-words-total">(total: ${total})</span>`;
+      }
+      content += "<tr>\n";
+      content += `<td>${label}</td>
 `;
-      table += `<td>${avg.toFixed(2)}</td>
+      content += `<td class="metric-value">${avg.toFixed(2)}</td>
 `;
-      table += `<td>${min}</td>
+      content += `<td class="metric-value">${min}</td>
 `;
-      table += `<td>${max}</td>
+      content += `<td class="metric-value">${max}</td>
 `;
-      table += `<td>${values.length}</td>
+      content += `<td class="metric-value">${values.length}</td>
 `;
-      table += "</tr>\n";
+      content += "</tr>\n";
     }
-    table += "</tbody>\n";
-    table += "</table>\n";
-    table += "</div>";
-    return table;
+    content += "</tbody>\n";
+    content += "</table>\n";
+    content += "</div>\n";
+    content += "</div>\n";
+    content += '<div class="oom-table-section">';
+    content += '<div class="oom-table-title">Dream Entries</div>';
+    content += '<div class="oom-filter-controls">\n';
+    content += '<div class="oom-date-filter">\n';
+    content += '<label for="dateRange">Date Range:</label>\n';
+    content += '<select id="dateRange" class="oom-select">\n';
+    content += '<option value="all">All Time</option>\n';
+    content += '<option value="month">Last Month</option>\n';
+    content += '<option value="week">Last Week</option>\n';
+    content += "</select>\n";
+    content += "</div>\n";
+    content += '<div class="oom-metric-filter">\n';
+    content += '<label for="metricFilter">Filter by Metric:</label>\n';
+    content += '<select id="metricFilter" class="oom-select">\n';
+    content += '<option value="all">All Metrics</option>\n';
+    for (const name of this.settings.metrics.map((m) => m.name)) {
+      content += `<option value="${name}">${name}</option>
+`;
+    }
+    content += "</select>\n";
+    content += "</div>\n";
+    content += "</div>\n";
+    content += '<div class="oom-table-container">\n';
+    content += '<table class="oom-table oom-sortable">\n';
+    content += "<thead>\n";
+    content += "<tr>\n";
+    content += '<th class="oom-sortable" data-sort="date">Date <span class="oom-sort-icon">\u2195</span></th>\n';
+    content += '<th class="oom-sortable" data-sort="title">Dream Title <span class="oom-sort-icon">\u2195</span></th>\n';
+    content += '<th class="oom-sortable metric-value" data-sort="words">Words <span class="oom-sort-icon">\u2195</span></th>\n';
+    content += "<th>Content</th>\n";
+    for (const name of this.settings.metrics.map((m) => m.name)) {
+      content += `<th class="oom-sortable metric-value" data-sort="${name}">${name} <span class="oom-sort-icon">\u2195</span></th>
+`;
+    }
+    content += "</tr>\n";
+    content += "</thead>\n";
+    content += "<tbody>\n";
+    for (const entry of dreamEntries) {
+      content += "<tr>\n";
+      content += `<td>${entry.date}</td>
+`;
+      content += `<td><a href="#^${entry.source.id}" data-href="${entry.source.file}#^${entry.source.id}" class="internal-link">${entry.title}</a></td>
+`;
+      content += `<td class="metric-value">${entry.metrics["Words"] || 0}</td>
+`;
+      let dreamContent = entry.content;
+      const diaryMatch = dreamContent.match(/> \[!dream-diary\].*?\[\[.*?\]\]\n([\s\S]*?)(?=\n> \[!dream-metrics\]|$)/);
+      if (diaryMatch) {
+        dreamContent = diaryMatch[1].replace(/^\[!journal-page\|right\]\s*$/gm, "").replace(/^![\w-]+-\d{8}-[\w-]+\.png\|\d+\s*$/gm, "").replace(/^>+\s*/gm, "").replace(/\[\[([^\]]+?)\]\]/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[([^\]]+?)\]\(.*?\)/g, "$1").replace(/`([^`]+?)`/g, "$1").replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/\*([^*]+?)\*/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/^---+\s*$/gm, "").replace(/\n{2,}/g, " ").replace(/^\s+|\s+$/gm, "").trim();
+      }
+      if (dreamContent.length > 200) {
+        const preview = dreamContent.substring(0, 200) + "...";
+        content += `<td class="oom-dream-content">
+                    <input type="checkbox" class="oom-show-toggle" id="oom-toggle-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, "")}">
+                    <div class="oom-content-preview">${preview}</div>
+                    <div class="oom-content-full">${dreamContent}</div>
+                    <label for="oom-toggle-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, "")}" class="oom-expand-button oom-show-more">Show more</label>
+                    <label for="oom-toggle-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, "")}" class="oom-expand-button oom-show-less">Show less</label>
+                </td>
+`;
+      } else {
+        content += `<td class="oom-dream-content"><div class="oom-content-preview">${dreamContent}</div></td>
+`;
+      }
+      for (const name of this.settings.metrics.map((m) => m.name)) {
+        content += `<td class="metric-value">${entry.metrics[name] || ""}</td>
+`;
+      }
+      content += "</tr>\n";
+    }
+    content += "</tbody>\n";
+    content += "</table>\n";
+    content += "</div>\n";
+    content += "</div>\n";
+    return content;
+  }
+  updateProjectNoteView() {
+    var _a;
+    const activeView = this.app.workspace.getActiveViewOfType(import_obsidian2.MarkdownView);
+    if (activeView && activeView.file && activeView.file.path === this.settings.projectNotePath) {
+      const previewEl = (_a = activeView.previewMode) == null ? void 0 : _a.containerEl;
+      if (previewEl) {
+        previewEl.setAttribute("data-type", "oom-project-note");
+      }
+    }
   }
 };
 var OneiroMetricsModal = class extends import_obsidian2.Modal {
@@ -758,15 +897,191 @@ var OneiroMetricsModal = class extends import_obsidian2.Modal {
     contentEl.addClass("oom-modal");
     contentEl.createEl("h2", { text: "OneiroMetrics" });
     new import_obsidian2.Setting(contentEl).setName("Project Note Path").addSearch((text) => {
-      text.setValue(this.plugin.settings.projectNotePath).onChange((value) => {
+      text.setValue(this.plugin.settings.projectNotePath).setPlaceholder("Journals/Dream Diary/Metrics/Metrics.md").onChange((value) => {
         this.plugin.settings.projectNotePath = value;
       });
-      text.inputEl.addClass("oom-file-suggestion");
-      text.inputEl.setAttribute("data-suggestion", "file");
+      const inputEl2 = text.inputEl;
+      inputEl2.addClass("oom-file-suggestion");
+      inputEl2.setAttribute("data-suggestion", "file");
+      const suggestionContainer2 = contentEl.createEl("div", {
+        cls: "suggestion-container oom-suggestion-container"
+      });
+      function positionSuggestionContainer() {
+        const inputRect = inputEl2.getBoundingClientRect();
+        const modalEl = contentEl.closest(".modal");
+        const modalRect = modalEl ? modalEl.getBoundingClientRect() : contentEl.getBoundingClientRect();
+        const dropdownWidth = Math.max(inputRect.width, 180);
+        let left = inputRect.left - modalRect.left;
+        let top = inputRect.bottom - modalRect.top;
+        let maxWidth = modalRect.width;
+        suggestionContainer2.style.position = "absolute";
+        suggestionContainer2.style.left = `${left}px`;
+        suggestionContainer2.style.right = "";
+        suggestionContainer2.style.maxWidth = `${maxWidth}px`;
+        if (left + dropdownWidth > modalRect.width) {
+          suggestionContainer2.style.left = "auto";
+          suggestionContainer2.style.right = "0";
+        }
+        suggestionContainer2.style.top = `${top}px`;
+        suggestionContainer2.style.width = `${dropdownWidth}px`;
+        suggestionContainer2.style.overflowX = "auto";
+      }
+      function normalize(str) {
+        return str.toLowerCase().replace(/\s+/g, "");
+      }
+      inputEl2.addEventListener("input", async (e) => {
+        const value = inputEl2.value;
+        if (!value) {
+          suggestionContainer2.classList.add("oom-hidden");
+          return;
+        }
+        const files = this.app.vault.getMarkdownFiles().filter((file) => !file.path.includes("/Backups/") && !file.path.endsWith(".backup"));
+        const lowerInput = value.toLowerCase();
+        const normalizedInput = normalize(value);
+        const suggestions = files.map((file) => file.path).filter((path) => {
+          const lowerPath = path.toLowerCase();
+          const normalizedPath = normalize(path);
+          const segments = lowerPath.split(/[\/ ]+/);
+          if (lowerPath === lowerInput)
+            return true;
+          if (segments.some((segment) => segment.includes(lowerInput)))
+            return true;
+          if (normalizedPath.includes(normalizedInput))
+            return true;
+          return lowerPath.includes(lowerInput);
+        }).slice(0, 7);
+        suggestionContainer2.empty();
+        if (suggestions.length > 0) {
+          for (const suggestion of suggestions) {
+            const item = suggestionContainer2.createEl("div", {
+              cls: "suggestion-item",
+              attr: { title: suggestion },
+              text: suggestion
+            });
+            item.onclick = () => {
+              this.plugin.settings.projectNotePath = suggestion;
+              this.plugin.saveSettings();
+              inputEl2.value = suggestion;
+              suggestionContainer2.classList.add("oom-hidden");
+            };
+          }
+          suggestionContainer2.classList.remove("oom-hidden");
+          positionSuggestionContainer();
+        } else {
+          suggestionContainer2.classList.add("oom-hidden");
+        }
+      });
     });
-    new import_obsidian2.Setting(contentEl).setName("Selected Notes").addTextArea((text) => text.setValue(this.plugin.settings.selectedNotes.join("\n")).onChange((value) => {
-      this.plugin.settings.selectedNotes = value.split("\n").filter((note) => note.trim());
-    }));
+    document.addEventListener("click", (e) => {
+      if (!inputEl.contains(e.target) && !suggestionContainer.contains(e.target)) {
+        suggestionContainer.classList.add("oom-hidden");
+      }
+    });
+    new import_obsidian2.Setting(contentEl).setName("Selected Notes").setDesc("Notes to search for dream metrics (select one or more)").addExtraButton((button) => {
+    });
+    const selectedNotesContainer = contentEl.createEl("div", { cls: "oom-multiselect-container" });
+    const chipsContainer = selectedNotesContainer.createEl("div", { cls: "oom-chips-container" });
+    const input = selectedNotesContainer.createEl("input", {
+      type: "text",
+      cls: "oom-multiselect-input",
+      attr: { placeholder: "Type to search notes..." }
+    });
+    const suggestionContainer = selectedNotesContainer.createEl("div", {
+      cls: "suggestion-container oom-suggestion-container"
+    });
+    function renderChips() {
+      chipsContainer.empty();
+      for (const note of this.plugin.settings.selectedNotes) {
+        const chip = chipsContainer.createEl("span", { cls: "oom-chip" });
+        const chipText = chip.createEl("span", { cls: "oom-chip-text", text: note });
+        chipText.setAttr("title", note);
+        const removeBtn = chip.createEl("span", { cls: "oom-chip-remove", text: "\xD7" });
+        removeBtn.onclick = () => {
+          this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n) => n !== note);
+          this.plugin.saveSettings();
+          renderChips.call(this);
+        };
+      }
+    }
+    renderChips.call(this);
+    input.addEventListener("input", async (e) => {
+      const value = input.value;
+      if (!value) {
+        suggestionContainer.classList.add("oom-hidden");
+        return;
+      }
+      const files = this.app.vault.getMarkdownFiles();
+      const lowerInput = value.toLowerCase();
+      const suggestions = files.map((file) => file.path).filter(
+        (path) => !this.plugin.settings.selectedNotes.includes(path) && path.toLowerCase().includes(lowerInput)
+      ).slice(0, 7);
+      suggestionContainer.empty();
+      if (suggestions.length > 0) {
+        for (const suggestion of suggestions) {
+          const item = suggestionContainer.createEl("div", {
+            cls: "suggestion-item",
+            attr: { title: suggestion },
+            text: suggestion
+          });
+          item.onclick = () => {
+            this.plugin.settings.selectedNotes.push(suggestion);
+            this.plugin.saveSettings();
+            input.value = "";
+            suggestionContainer.classList.add("oom-hidden");
+          };
+        }
+        suggestionContainer.classList.remove("oom-hidden");
+      } else {
+        suggestionContainer.classList.add("oom-hidden");
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!input.contains(e.target) && !suggestionContainer.contains(e.target)) {
+        suggestionContainer.classList.add("oom-hidden");
+      }
+    });
+    input.addEventListener("keydown", (e) => {
+      var _a, _b;
+      const items = suggestionContainer.querySelectorAll(".suggestion-item");
+      const currentIndex = Array.from(items).findIndex((item) => item.classList.contains("is-selected"));
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          if (currentIndex < items.length - 1) {
+            (_a = items[currentIndex]) == null ? void 0 : _a.classList.remove("is-selected");
+            items[currentIndex + 1].classList.add("is-selected");
+            items[currentIndex + 1].scrollIntoView({ block: "nearest" });
+          } else if (items.length > 0 && currentIndex === -1) {
+            items[0].classList.add("is-selected");
+            items[0].scrollIntoView({ block: "nearest" });
+          }
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          if (currentIndex > 0) {
+            (_b = items[currentIndex]) == null ? void 0 : _b.classList.remove("is-selected");
+            items[currentIndex - 1].classList.add("is-selected");
+            items[currentIndex - 1].scrollIntoView({ block: "nearest" });
+          }
+          break;
+        case "Enter":
+          e.preventDefault();
+          const selectedItem = suggestionContainer.querySelector(".is-selected");
+          if (selectedItem) {
+            const path = selectedItem.textContent;
+            if (path) {
+              this.plugin.settings.selectedNotes.push(path);
+              this.plugin.saveSettings();
+              input.value = "";
+              suggestionContainer.classList.add("oom-hidden");
+            }
+          }
+          break;
+        case "Escape":
+          suggestionContainer.classList.add("oom-hidden");
+          break;
+      }
+    });
     new import_obsidian2.Setting(contentEl).setName("Callout Name").addText((text) => text.setValue(this.plugin.settings.calloutName).onChange((value) => {
       this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, "-");
     }));

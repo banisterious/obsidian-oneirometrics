@@ -17,6 +17,11 @@ export interface DreamMetricsSettings {
 export interface DreamMetricData {
     date: string;
     title: string;
+    content: string;
+    source: {
+        file: string;
+        id: string;
+    };
     metrics: {
         [key: string]: number;
     };

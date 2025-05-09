@@ -210,8 +210,7 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
       const inputEl = text.inputEl;
       inputEl.addClass("oom-file-suggestion");
       const suggestionContainer = containerEl.createEl("div", {
-        cls: "suggestion-container",
-        attr: { style: "display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; width: 100%;" }
+        cls: "suggestion-container"
       });
       inputEl.addEventListener("input", async (e) => {
         const value = e.target.value;
