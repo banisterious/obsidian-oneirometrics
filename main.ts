@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile } from 'obsidian';
 import { DEFAULT_METRICS, DreamMetricData, DreamMetricsSettings } from './types';
 import { DreamMetricsSettingTab } from './settings';
 
@@ -12,17 +12,23 @@ export default class DreamMetricsPlugin extends Plugin {
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
 
         // Add ribbon icon
-        this.addRibbonIcon('dream', 'Dream Metrics', () => {
-            new DreamMetricsModal(this.app, this).open();
+        this.addRibbonIcon('dream', 'OneiroMetrics', () => {
+            new OneiroMetricsModal(this.app, this).open();
         });
 
         // Add command to open modal
         this.addCommand({
-            id: 'open-dream-metrics-modal',
-            name: 'Open Dream Metrics',
+            id: 'open-oneirometrics-modal',
+            name: 'Open OneiroMetrics',
             callback: () => {
-                new DreamMetricsModal(this.app, this).open();
+                new OneiroMetricsModal(this.app, this).open();
             }
+        });
+
+        this.addCommand({
+            id: 'scrape-metrics',
+            name: 'Scrape Metrics',
+            callback: () => this.scrapeMetrics(),
         });
     }
 
@@ -44,38 +50,47 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async scrapeMetrics() {
-        const metrics: DreamMetricData[] = [];
+        const metrics: Record<string, number[]> = {};
+        let totalWords = 0;
+        let entriesProcessed = 0;
 
-        for (const notePath of this.settings.selectedNotes) {
-            const file = this.app.vault.getAbstractFileByPath(notePath);
-            if (!file) {
-                new Notice(`Note not found: ${notePath}`);
+        for (const path of this.settings.selectedNotes) {
+            const file = this.app.vault.getAbstractFileByPath(path);
+            if (!(file instanceof TFile)) {
+                console.log(`File not found or not a file: ${path}`);
                 continue;
             }
 
-            const content = await this.app.vault.read(file);
-            const calloutRegex = new RegExp(`> \\[!${this.settings.calloutName}\\]\\n> ([^\\n]+)`, 'g');
-            let match;
+            try {
+                const content = await this.app.vault.read(file);
+                const calloutMatch = content.match(/>\s*\[!${this.settings.calloutName}\]\s*\n>(.*?)(?=\n\n|\n[^>]|$)/s);
+                
+                if (calloutMatch) {
+                    const metricsText = calloutMatch[1].replace(/>\s*/g, '');
+                    const wordCount = content.split(/\s+/).length;
+                    totalWords += wordCount;
+                    entriesProcessed++;
 
-            while ((match = calloutRegex.exec(content)) !== null) {
-                const metricsText = match[1];
-                const metricPairs = metricsText.split(',').map(pair => pair.trim());
-                const metricData: DreamMetricData = {
-                    date: this.extractDateFromNotePath(notePath),
-                    title: this.extractTitleFromNotePath(notePath),
-                    metrics: {}
-                };
-
-                for (const pair of metricPairs) {
-                    const [key, value] = pair.split(':').map(s => s.trim());
-                    const numValue = parseFloat(value);
-                    if (!isNaN(numValue)) {
-                        metricData.metrics[key] = numValue;
+                    const metricPairs = metricsText.split(',').map(pair => pair.trim());
+                    for (const pair of metricPairs) {
+                        const [name, value] = pair.split(':').map(s => s.trim());
+                        if (name && !isNaN(Number(value))) {
+                            if (!metrics[name]) {
+                                metrics[name] = [];
+                            }
+                            metrics[name].push(Number(value));
+                        }
                     }
                 }
-
-                metrics.push(metricData);
+            } catch (error) {
+                console.error(`Error processing file ${path}:`, error);
             }
+        }
+
+        // Add average word count metric
+        if (entriesProcessed > 0) {
+            const avgWords = Math.round(totalWords / entriesProcessed);
+            metrics['Average Words'] = [avgWords];
         }
 
         await this.updateProjectNote(metrics);
@@ -94,35 +109,59 @@ export default class DreamMetricsPlugin extends Plugin {
         return filename.replace(/\.md$/, '');
     }
 
-    private async updateProjectNote(metrics: DreamMetricData[]) {
+    private async updateProjectNote(metrics: Record<string, number[]>) {
         const projectFile = this.app.vault.getAbstractFileByPath(this.settings.projectNotePath);
-        if (!projectFile) {
-            // Create the project note if it doesn't exist
-            await this.app.vault.create(this.settings.projectNotePath, this.generateMetricsTable(metrics));
-        } else {
+        if (!(projectFile instanceof TFile)) {
+            console.log(`Project note not found: ${this.settings.projectNotePath}`);
+            return;
+        }
+
+        try {
             await this.app.vault.modify(projectFile, this.generateMetricsTable(metrics));
+        } catch (error) {
+            console.error('Error writing to project note:', error);
         }
     }
 
-    private generateMetricsTable(metrics: DreamMetricData[]): string {
-        const headers = ['Date', 'Title', ...this.settings.metrics.map(m => m.name)];
-        const rows = metrics.map(data => [
-            data.date,
-            data.title,
-            ...this.settings.metrics.map(m => data.metrics[m.name]?.toString() || '')
-        ]);
+    private generateMetricsTable(metrics: Record<string, number[]>): string {
+        let table = '# OneiroMetrics Analysis\n\n';
+        table += '<div class="oom-table-container">\n';
+        table += '<table class="oom-table">\n';
+        table += '<thead>\n';
+        table += '<tr>\n';
+        table += '<th>Metric</th>\n';
+        table += '<th>Average</th>\n';
+        table += '<th>Min</th>\n';
+        table += '<th>Max</th>\n';
+        table += '<th>Count</th>\n';
+        table += '</tr>\n';
+        table += '</thead>\n';
+        table += '<tbody>\n';
 
-        const table = [
-            '| ' + headers.join(' | ') + ' |',
-            '| ' + headers.map(() => '---').join(' | ') + ' |',
-            ...rows.map(row => '| ' + row.join(' | ') + ' |')
-        ].join('\n');
+        for (const [name, values] of Object.entries(metrics)) {
+            if (values.length === 0) continue;
 
-        return `# Dream Metrics\n\n${table}`;
+            const avg = values.reduce((a, b) => a + b) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            
+            table += '<tr>\n';
+            table += `<td>${name}</td>\n`;
+            table += `<td>${avg.toFixed(2)}</td>\n`;
+            table += `<td>${min}</td>\n`;
+            table += `<td>${max}</td>\n`;
+            table += `<td>${values.length}</td>\n`;
+            table += '</tr>\n';
+        }
+
+        table += '</tbody>\n';
+        table += '</table>\n';
+        table += '</div>';
+        return table;
     }
 }
 
-class DreamMetricsModal extends Modal {
+class OneiroMetricsModal extends Modal {
     plugin: DreamMetricsPlugin;
 
     constructor(app: App, plugin: DreamMetricsPlugin) {
@@ -133,8 +172,9 @@ class DreamMetricsModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
+        contentEl.addClass('oom-modal');
 
-        contentEl.createEl('h2', { text: 'Dream Metrics' });
+        contentEl.createEl('h2', { text: 'OneiroMetrics' });
 
         // Project Note Path
         new Setting(contentEl)

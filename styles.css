@@ -10,35 +10,41 @@
 
 /* Modal Styles
    Controls the appearance of the quick-access modal window */
-.dream-metrics-modal {
+.oom-modal {
     max-width: 600px; /* Limit modal width for better readability */
 }
 
 /* Modal Content Layout
    Styles for the settings and controls within the modal */
-.dream-metrics-modal .setting-item {
+.oom-modal .setting-item {
     margin-bottom: 1em; /* Add spacing between setting items */
 }
 
 /* Text Area Styling
    Styles for multi-line input fields (e.g., selected notes list) */
-.dream-metrics-modal textarea {
+.oom-modal textarea {
     min-height: 100px; /* Ensure enough space for multiple entries */
     width: 100%; /* Use full width of container */
 }
 
+/* Metrics Table Container
+   Wrapper for the metrics table in the project note */
+.oom-table-container {
+    margin: 1em 0; /* Add vertical spacing around table */
+}
+
 /* Metrics Table Styles
    Controls the appearance of the generated metrics table */
-.dream-metrics-table {
+.oom-table {
     width: 100%; /* Use full width of container */
     border-collapse: collapse; /* Remove spacing between cells */
-    margin: 1em 0; /* Add vertical spacing around table */
+    margin: 0; /* Reset margin as container handles spacing */
 }
 
 /* Table Cell Styling
    Styles for both header and data cells */
-.dream-metrics-table th,
-.dream-metrics-table td {
+.oom-table th,
+.oom-table td {
     padding: 8px; /* Add internal spacing */
     border: 1px solid var(--background-modifier-border); /* Use Obsidian's border color */
     text-align: left; /* Align text to the left */
@@ -46,19 +52,37 @@
 
 /* Table Header Styling
    Distinct styling for table headers */
-.dream-metrics-table th {
+.oom-table th {
     background-color: var(--background-primary-alt); /* Use Obsidian's alternate background */
     font-weight: bold; /* Make headers stand out */
 }
 
 /* Table Row Alternation
    Zebra striping for better row distinction */
-.dream-metrics-table tr:nth-child(even) {
+.oom-table tr:nth-child(even) {
     background-color: var(--background-primary); /* Use Obsidian's primary background */
 }
 
 /* Table Row Hover Effect
    Visual feedback when hovering over rows */
-.dream-metrics-table tr:hover {
+.oom-table tr:hover {
     background-color: var(--background-modifier-hover); /* Use Obsidian's hover color */
+}
+
+/* Table Column Alignment
+   Right-align numeric columns for better readability */
+.oom-table td:nth-child(2),
+.oom-table td:nth-child(3),
+.oom-table td:nth-child(4),
+.oom-table td:nth-child(5) {
+    text-align: right;
+}
+
+/* Table Header Alignment
+   Match header alignment with data columns */
+.oom-table th:nth-child(2),
+.oom-table th:nth-child(3),
+.oom-table th:nth-child(4),
+.oom-table th:nth-child(5) {
+    text-align: right;
 } 
