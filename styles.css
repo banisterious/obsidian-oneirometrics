@@ -1,0 +1,64 @@
+/* OneiroMetrics Plugin Styles
+ * 
+ * OneiroMetrics (Turning dreams into data)
+ * A plugin for Obsidian to track and analyze dream journal metrics.
+ * Provides a structured way to define, extract, and visualize dream-related data.
+ * 
+ * Author: John Banister
+ * GitHub: https://github.com/banisterious
+ */
+
+/* Modal Styles
+   Controls the appearance of the quick-access modal window */
+.dream-metrics-modal {
+    max-width: 600px; /* Limit modal width for better readability */
+}
+
+/* Modal Content Layout
+   Styles for the settings and controls within the modal */
+.dream-metrics-modal .setting-item {
+    margin-bottom: 1em; /* Add spacing between setting items */
+}
+
+/* Text Area Styling
+   Styles for multi-line input fields (e.g., selected notes list) */
+.dream-metrics-modal textarea {
+    min-height: 100px; /* Ensure enough space for multiple entries */
+    width: 100%; /* Use full width of container */
+}
+
+/* Metrics Table Styles
+   Controls the appearance of the generated metrics table */
+.dream-metrics-table {
+    width: 100%; /* Use full width of container */
+    border-collapse: collapse; /* Remove spacing between cells */
+    margin: 1em 0; /* Add vertical spacing around table */
+}
+
+/* Table Cell Styling
+   Styles for both header and data cells */
+.dream-metrics-table th,
+.dream-metrics-table td {
+    padding: 8px; /* Add internal spacing */
+    border: 1px solid var(--background-modifier-border); /* Use Obsidian's border color */
+    text-align: left; /* Align text to the left */
+}
+
+/* Table Header Styling
+   Distinct styling for table headers */
+.dream-metrics-table th {
+    background-color: var(--background-primary-alt); /* Use Obsidian's alternate background */
+    font-weight: bold; /* Make headers stand out */
+}
+
+/* Table Row Alternation
+   Zebra striping for better row distinction */
+.dream-metrics-table tr:nth-child(even) {
+    background-color: var(--background-primary); /* Use Obsidian's primary background */
+}
+
+/* Table Row Hover Effect
+   Visual feedback when hovering over rows */
+.dream-metrics-table tr:hover {
+    background-color: var(--background-modifier-hover); /* Use Obsidian's hover color */
+} 
