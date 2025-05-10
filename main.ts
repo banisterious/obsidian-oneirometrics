@@ -243,54 +243,33 @@ export default class DreamMetricsPlugin extends Plugin {
         // After extracting content, before further cleaning, strip [!dream-metrics] callouts and their content
         content = content.replace(/\[!dream-metrics\][^\n]*((\n[^\n]*)*)/g, '').replace(/>\s*\[!dream-metrics\][^\n]*((\n[^\n]*)*)/g, '');
 
-        // First pass: Remove specific patterns line by line
+        // Improved logic: preserve paragraph breaks
         content = content
             .split('\n')
             .map(line => {
-                // Remove any line containing image references or specific patterns
-                if (line.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?/i) ||
-                    line.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
-                    line.match(/^!.*?\|/) ||
-                    line.match(/^>\s*!.*?\|/) ||
-                    line.match(/^>\s*\[\[.*?\]\]/) ||
-                    line.match(/^>\s*\[!.*?\|/) ||
-                    line.match(/^---+$/)) {
-                    return '';
-                }
-                return line;
+                // If the line is only blockquote markers (with or without spaces), treat as paragraph break
+                if (/^([> ]+)$/.test(line.trim())) return '';
+                // Remove all leading blockquote markers (with or without spaces)
+                const stripped = line.replace(/^([> ]+)/, '').trim();
+                if (stripped === '') return '';
+                const filtered = stripped
+                    .split(' ')
+                    .filter(word =>
+                        !(
+                            word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) ||
+                            word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
+                            word.match(/^!.*?\|/) ||
+                            word.match(/\[\[.*?\]\]/) ||
+                            word.match(/\[!.*?\|.*?\]/)
+                        )
+                    )
+                    .join(' ')
+                    .replace(/\s+/g, ' ');
+                return filtered;
             })
-            .filter(line => line.trim() !== '')
-            .join('\n');
-
-        // Second pass: Clean up markdown while preserving formatting
-        content = content
-            .replace(/^>+\s*/gm, '')           // Remove blockquote markers
-            .replace(/\[\[([^\]]+?)\]\]/g, '[$1]') // Convert wiki links to markdown links
-            .replace(/!\[.*?\]\(.*?\)/g, '')   // Remove image links
-            .replace(/\[([^\]]+?)\]\(.*?\)/g, '[$1]') // Convert markdown links to plain text links
-            .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
-            .replace(/`([^`]+?)`/g, '$1')      // Convert inline code to plain text
-            .replace(/<\/?[^>]+(>|$)/g, '')    // Remove HTML tags
-            .replace(/\[!.*?\|.*?\]/g, '')     // Remove any remaining callouts
-            .replace(/\n{2,}/g, '\n')          // Replace multiple newlines with single newline
-            .trim();
-
-        // Third pass: Remove any remaining image references or unwanted patterns
-        content = content
-            .split(' ')
-            .filter(word => {
-                // Filter out any word that looks like an image reference or unwanted pattern
-                return !(
-                    word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) ||
-                    word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
-                    word.match(/^!.*?\|/) ||
-                    word.match(/\[\[.*?\]\]/) ||
-                    word.match(/\[!.*?\|.*?\]/)
-                );
-            })
-            .join(' ')
-            .replace(/\s+/g, ' ') // Normalize spaces
-            .trim();
+            .join('\n')
+            .replace(/([^\n])\n([^\n])/g, '$1\n\n$2') // Ensure a blank line between paragraphs
+            .replace(/^\n+|\n+$/g, ''); // Trim leading/trailing newlines
 
         return content;
     }
@@ -605,13 +584,19 @@ export default class DreamMetricsPlugin extends Plugin {
             // Process dream content for display
             let dreamContent = entry.content;
             
-            // Escape HTML special characters
+            // Escape HTML special characters, but allow <br> and <br /> tags, and preserve ampersands
             dreamContent = dreamContent
-                .replace(/&/g, '&amp;')
+                // First, temporarily protect <br> and <br /> tags
+                .replace(/<br\s*\/?\s*>/gi, '___BR___')
+                // Escape ampersands not part of an entity
+                .replace(/&(?![a-zA-Z]+;|#\d+;)/g, '&amp;')
+                // Escape other HTML special characters
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+                .replace(/'/g, '&#039;')
+                // Restore <br> and <br /> tags
+                .replace(/___BR___/g, '<br />');
 
             // Convert markdown to HTML
             dreamContent = dreamContent

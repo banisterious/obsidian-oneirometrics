@@ -47,10 +47,10 @@
 
 - [x] Table renders correctly
 - [x] All metrics are displayed
-- [x] Averages are calculated correctly
-- [x] Min/Max values are correct
-- [x] Count values are accurate
-- [x] Table is responsive on different screen sizes
+- [ ] Averages are calculated correctly
+- [ ] Min/Max values are correct
+- [ ] Count values are accurate
+- [ ] Table is responsive on different screen sizes
 
 ### Metrics Table - Detailed Section
 
@@ -59,7 +59,7 @@
 - [x] Data is sorted by date by default
 - [x] Clickable dream titles work
 - [x] Links navigate to correct journal entries
-- [x] Word counts are accurate
+- [ ] Word counts are accurate
 - [x] Lazy loading works for large datasets
 - [x] Table performance is smooth with 100+ entries
 
@@ -68,7 +68,7 @@
 - [x] Content preview shows first 200 characters
 - [x] Gradient fade effect works in preview
 - [x] "Show more" button appears for long content
-- [x] "Show less" button appears when expanded
+- [ ] "Show less" button appears when expanded
 - [x] Paragraph breaks are preserved
 - [x] Text wrapping works correctly
 - [x] Content is properly formatted
@@ -104,8 +104,8 @@
 - [x] Buttons have proper hover states
 - [x] Links have proper hover states
 - [x] Text is readable
-- [ ] Spacing is consistent
-- [ ] UI is responsive
+- [x] Spacing is consistent
+- [x] UI is responsive
 - [ ] No horizontal scrolling on desktop
 - [ ] Mobile view is usable
 - [ ] Table overrides readable line length setting

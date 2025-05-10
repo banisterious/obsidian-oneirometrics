@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Content cleaning for markdown elements
 - Theme compatibility issues
 - Mobile responsiveness issues
+- **Dream Content Rendering:** Dream diary entries are now captured and rendered exactly as expected, including proper handling of HTML (e.g., <br>), ampersands, and all blockquote/callout edge cases.
 
 ## [0.1.1] - 2024-03-18
 
@@ -96,4 +97,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Add search/filter to the icon picker.
-- Add more icons to the icon picker. 
+- Add more icons to the icon picker.
+- Add a Test Modal where users can paste Markdown and see how the plugin processes and renders it.
+- Modify backup files so that the file names end in .backup or another appropriate extension, to avoid having files be discoverable markdown documents in Obsidian. 
