@@ -1,69 +1,75 @@
-# OneiroMetrics Testing Guide
+## OneiroMetrics Testing Guide
 
-## Setup Testing
-- [ ] Plugin installs correctly in Obsidian
-- [ ] Plugin appears in the community plugins list
-- [ ] Plugin can be enabled/disabled without errors
-- [ ] Plugin settings are accessible
-- [ ] Plugin icon appears in the ribbon
+### Setup Testing
 
-## Settings Testing
-- [ ] Project note path can be set and saved
-- [ ] Selected notes can be added and removed using multi-chip autocomplete in both Settings and the modal
-- [ ] Chips are pre-populated from Settings in the modal
-- [ ] Removing a chip updates the selected notes
-- [ ] Adding a chip via autocomplete works as expected
-- [ ] Modal and Settings selected notes stay in sync
-- [ ] Callout name can be modified
-- [ ] Settings persist after Obsidian restart
-- [ ] Invalid paths are handled gracefully
-- [ ] File suggestions work in the project note path field
-- [ ] File suggestions work for paths with spaces and special characters (e.g., 'Journals/Dream Diary/Dream Diary.md')
-- [ ] Year-based paths are suggested correctly (e.g., typing '2025' suggests 'Journals/2025/2025.md')
+- [x] Plugin installs correctly in Obsidian
+- [x] Plugin appears in the community plugins list
+- [x] Plugin can be enabled/disabled without errors
+- [x] Plugin settings are accessible
+- [x] Plugin icon appears in the ribbon
+
+### Settings Testing
+
+- [x] Project note path can be set and saved
+- [x] Selected notes can be added and removed using multi-chip autocomplete in both Settings and the modal
+- [x] Chips are pre-populated from Settings in the modal
+- [x] Removing a chip updates the selected notes
+- [x] Adding a chip via autocomplete works as expected
+- [x] Modal and Settings selected notes stay in sync
+- [x] Callout name can be modified
+- [x] Settings persist after Obsidian restart
+- [x] Invalid paths are handled gracefully
+- [x] File suggestions work in the project note path field
+- [x] File suggestions work for paths with spaces and special characters (e.g., 'Journals/Dream Diary/Dream Diary.md')
+- [x] Year-based paths are suggested correctly (e.g., typing '2025' suggests 'Journals/2025/2025.md')
 - [ ] "Scrape Notes" vs "Scrape Folder" toggle works correctly
 - [ ] "Choose Notes" label is displayed correctly
 
-## Metrics Scraping
-- [ ] Scrape button works from modal
-- [ ] Scrape command works from command palette
-- [ ] Progress is shown during scraping with detailed status
-- [ ] Batch processing works for large datasets
-- [ ] Errors are handled gracefully
+### Metrics Scraping
+
+- [x] Scrape button works from modal
+- [x] Scrape command works from command palette
+- [x] Progress is shown during scraping with detailed status
+- [x] Batch processing works for large datasets
+- [x] Errors are handled gracefully
 - [ ] Backup is created before overwriting
-- [ ] Confirmation dialog appears before overwriting
-- [ ] Progress modal shows:
-  - [ ] Current file being processed
-  - [ ] Number of entries found
-  - [ ] Number of callouts found
-  - [ ] Overall progress bar
+- [x] Confirmation dialog appears before overwriting
+- [x] Progress modal shows:
+  - [x] Current file being processed
+  - [x] Number of entries found
+  - [x] Number of callouts found
+  - [x] Overall progress bar
 
-## Metrics Table - Summary Section
-- [ ] Table renders correctly
-- [ ] All metrics are displayed
-- [ ] Averages are calculated correctly
-- [ ] Min/Max values are correct
-- [ ] Count values are accurate
-- [ ] Table is responsive on different screen sizes
+### Metrics Table - Summary Section
 
-## Metrics Table - Detailed Section
-- [ ] Table renders correctly
-- [ ] All columns are present
-- [ ] Data is sorted by date by default
-- [ ] Clickable dream titles work
-- [ ] Links navigate to correct journal entries
-- [ ] Word counts are accurate
-- [ ] Lazy loading works for large datasets
-- [ ] Table performance is smooth with 100+ entries
+- [x] Table renders correctly
+- [x] All metrics are displayed
+- [x] Averages are calculated correctly
+- [x] Min/Max values are correct
+- [x] Count values are accurate
+- [x] Table is responsive on different screen sizes
 
-## Content Display
-- [ ] Content preview shows first 200 characters
-- [ ] Gradient fade effect works in preview
-- [ ] "Show more" button appears for long content
-- [ ] "Show less" button appears when expanded
-- [ ] Paragraph breaks are preserved
-- [ ] Text wrapping works correctly
-- [ ] Content is properly formatted
-- [ ] Font size and colors match theme
+### Metrics Table - Detailed Section
+
+- [x] Table renders correctly
+- [x] All columns are present
+- [x] Data is sorted by date by default
+- [x] Clickable dream titles work
+- [x] Links navigate to correct journal entries
+- [x] Word counts are accurate
+- [x] Lazy loading works for large datasets
+- [x] Table performance is smooth with 100+ entries
+
+### Content Display
+
+- [x] Content preview shows first 200 characters
+- [x] Gradient fade effect works in preview
+- [x] "Show more" button appears for long content
+- [x] "Show less" button appears when expanded
+- [x] Paragraph breaks are preserved
+- [x] Text wrapping works correctly
+- [x] Content is properly formatted
+- [x] Font size and colors match theme
 - [ ] Markdown elements are properly stripped:
   - [ ] Journal page callouts (e.g., [!journal-page|right])
   - [ ] Image embeds with dimensions (e.g., !image.png|400)
@@ -72,89 +78,97 @@
   - [ ] Horizontal rules
   - [ ] Multiple newlines
 
-## Filtering and Sorting
-- [ ] Date range filter works
-  - [ ] All Time option
-  - [ ] Last Month option
-  - [ ] Last Week option
-- [ ] Metric filter works
-  - [ ] All Metrics option
-  - [ ] Individual metric options
-- [ ] Column sorting works
-  - [ ] Date column
-  - [ ] Title column
-  - [ ] Words column
-  - [ ] Metric columns
-- [ ] Sort indicators show correct direction
+### Filtering and Sorting
 
-## Styling and UI
-- [ ] Tables match Obsidian theme
-- [ ] Hover effects work on rows
-- [ ] Buttons have proper hover states
-- [ ] Links have proper hover states
-- [ ] Text is readable
-- [ ] Spacing is consistent
-- [ ] UI is responsive
-- [ ] No horizontal scrolling on desktop
-- [ ] Mobile view is usable
-- [ ] Table overrides readable line length setting
-- [ ] Table maintains full width regardless of theme settings
-- [ ] Column widths are optimized:
-  - [ ] Date column (8%)
-  - [ ] Dream Title column (15%)
-  - [ ] Words column (7%)
-  - [ ] Content column (30%)
-  - [ ] Metric columns (8% each)
-- [ ] Progress modal styling matches theme
-- [ ] Suggestion containers use CSS classes instead of inline styles
+- [x] Date range filter works
+  - [x] All Time option
+  - [x] Last Month option
+  - [x] Last Week option
+- [x] Metric filter works
+  - [x] All Metrics option
+  - [x] Individual metric options
+- [x] Column sorting works
+  - [x] Date column
+  - [x] Title column
+  - [x] Words column
+  - [x] Metric columns
+- [x] Sort indicators show correct direction
 
-## Error Handling
-- [ ] Invalid file paths show appropriate errors
-- [ ] Missing metrics show appropriate messages
-- [ ] Network errors are handled gracefully
-- [ ] Permission errors are handled gracefully
-- [ ] Invalid data formats are handled gracefully
+### Styling and UI
+
+- [x] Tables match Obsidian theme
+- [x] Hover effects work on rows
+- [x] Buttons have proper hover states
+- [x] Links have proper hover states
+- [x] Text is readable
+- [x] Spacing is consistent
+- [x] UI is responsive
+- [x] No horizontal scrolling on desktop
+- [x] Mobile view is usable
+- [x] Table overrides readable line length setting
+- [x] Table maintains full width regardless of theme settings
+- [x] Column widths are optimized:
+  - [x] Date column (8%)
+  - [x] Dream Title column (15%)
+  - [x] Words column (7%)
+  - [x] Content column (30%)
+  - [x] Metric columns (8% each)
+- [x] Progress modal styling matches theme
+- [x] Suggestion containers use CSS classes instead of inline styles
+
+### Error Handling
+
+- [x] Invalid file paths show appropriate errors
+- [x] Missing metrics show appropriate messages
+- [x] Network errors are handled gracefully
+- [x] Permission errors are handled gracefully
+- [x] Invalid data formats are handled gracefully
 - [ ] Backup creation errors show appropriate messages
 - [ ] User is prompted to proceed without backup if backup fails
 
-## Performance
-- [ ] Plugin loads quickly
-- [ ] Tables render quickly
-- [ ] Sorting is responsive
-- [ ] Filtering is responsive
-- [ ] No lag when expanding content
-- [ ] Memory usage is reasonable
-- [ ] Batch processing improves performance with large datasets
-- [ ] Lazy loading improves table performance
-- [ ] Progress indicator updates smoothly
+### Performance
 
-## Browser Compatibility
-- [ ] Works in Chrome
-- [ ] Works in Firefox
-- [ ] Works in Safari
-- [ ] Works in Edge
+- [x] Plugin loads quickly
+- [x] Tables render quickly
+- [x] Sorting is responsive
+- [x] Filtering is responsive
+- [x] No lag when expanding content
+- [x] Memory usage is reasonable
+- [x] Batch processing improves performance with large datasets
+- [x] Lazy loading improves table performance
+- [x] Progress indicator updates smoothly
 
-## Theme Compatibility
-- [ ] Works with Light theme
-- [ ] Works with Dark theme
-- [ ] Works with custom themes
-- [ ] Colors adapt to theme changes
+### Browser Compatibility
 
-## Backup System Testing
+- [x] Works in Chrome
+- [x] Works in Firefox
+- [x] Works in Safari
+- [x] Works in Edge
+
+### Theme Compatibility
+
+- [x] Works with Light theme
+- [x] Works with Dark theme
+- [x] Works with custom themes
+- [x] Colors adapt to theme changes
+
+### Backup System Testing
+
 - [ ] Backup is created before table update
-- [ ] Backup filename includes timestamp
-- [ ] Backup contains complete note content
-- [ ] Backup is created in correct location
-- [ ] Backup can be restored if needed
-- [ ] Multiple backups are handled correctly
-- [ ] Backup process doesn't block UI
+- [x] Backup filename includes timestamp
+- [x] Backup contains complete note content
+- [x] Backup is created in correct location
+- [x] Backup can be restored if needed
+- [x] Multiple backups are handled correctly
+- [x] Backup process doesn't block UI
 - [ ] Backup errors are handled gracefully
-- [ ] Backup files are visually distinct in file explorer
-- [ ] Backup process works with large files
-- [ ] Backup is triggered on content changes
+- [x] Backup files are visually distinct in file explorer
+- [x] Backup process works with large files
+- [x] Backup is triggered on content changes
 - [ ] Backup is triggered before scraping
 
-## Notes for Testing
+### Notes for Testing
+
 1. Test with various dream journal entry lengths
 2. Test with different metric combinations
 3. Test with special characters in content
@@ -165,8 +179,10 @@
 8. Test backup creation with different file sizes
 9. Test progress indicator with various dataset sizes
 
-## Bug Reporting Template
+### Bug Reporting Template
+
 When reporting bugs, please include:
+
 1. Steps to reproduce
 2. Expected behavior
 3. Actual behavior
@@ -176,49 +192,52 @@ When reporting bugs, please include:
 7. Operating system
 8. Any error messages from the console
 
-## Performance Testing
-- [ ] Test with 100+ dream entries
-- [ ] Test with 10+ metrics
-- [ ] Test with large content (1000+ words)
-- [ ] Monitor memory usage
-- [ ] Check load times
-- [ ] Verify smooth scrolling
-- [ ] Check filter response time
-- [ ] Check sort response time
-- [ ] Test batch processing performance
-- [ ] Test lazy loading performance
-- [ ] Monitor progress indicator updates
+### Performance Testing
 
-## Troubleshooting: File Suggestion Issues
+- [x] Test with 100+ dream entries
+- [x] Test with 10+ metrics
+- [x] Test with large content (1000+ words)
+- [x] Monitor memory usage
+- [x] Check load times
+- [x] Verify smooth scrolling
+- [x] Check filter response time
+- [x] Check sort response time
+- [x] Test batch processing performance
+- [x] Test lazy loading performance
+- [x] Monitor progress indicator updates
+
+### Troubleshooting: File Suggestion Issues
 
 If a file path does not appear in suggestions:
-- [ ] Confirm the file and all parent folders exist in your vault
-- [ ] Check for typos, extra spaces, or case mismatches
-- [ ] Try typing the full path, including spaces and special characters
-- [ ] Try replacing spaces with dashes or underscores
-- [ ] If the file was recently created or renamed, restart Obsidian or reload the vault
-- [ ] Ensure the file is not hidden or excluded by Obsidian settings
-- [ ] If the issue persists, report it with details (see Bug Reporting Template)
 
-## Recent Changes to Test
+- [x] Confirm the file and all parent folders exist in your vault
+- [x] Check for typos, extra spaces, or case mismatches
+- [x] Try typing the full path, including spaces and special characters
+- [x] Try replacing spaces with dashes or underscores
+- [x] If the file was recently created or renamed, restart Obsidian or reload the vault
+- [x] Ensure the file is not hidden or excluded by Obsidian settings
+- [x] If the issue persists, report it with details (see Bug Reporting Template)
+
+### Recent Changes to Test
+
 1. Progress Indicator:
-   - [ ] Shows current file being processed
-   - [ ] Shows number of entries found
-   - [ ] Shows number of callouts found
-   - [ ] Progress bar updates smoothly
-   - [ ] Modal styling matches theme
+   - [x] Shows current file being processed
+   - [x] Shows number of entries found
+   - [x] Shows number of callouts found
+   - [x] Progress bar updates smoothly
+   - [x] Modal styling matches theme
 
 2. Batch Processing:
-   - [ ] Processes files in batches of 5
-   - [ ] UI remains responsive during processing
-   - [ ] Progress updates between batches
-   - [ ] Handles large datasets efficiently
+   - [x] Processes files in batches of 5
+   - [x] UI remains responsive during processing
+   - [x] Progress updates between batches
+   - [x] Handles large datasets efficiently
 
 3. CSS Improvements:
-   - [ ] All styles use CSS classes
-   - [ ] No inline styles present
-   - [ ] Theme compatibility maintained
-   - [ ] Responsive design preserved
+   - [x] All styles use CSS classes
+   - [x] No inline styles present
+   - [x] Theme compatibility maintained
+   - [x] Responsive design preserved
 
 4. Backup System:
    - [ ] Backup triggered on content changes
@@ -226,12 +245,14 @@ If a file path does not appear in suggestions:
    - [ ] Error handling improved
    - [ ] User confirmation for failed backups
 
-## Testing Methodologies
+### Testing Methodologies
 
-### Automated Unit Testing
+#### Automated Unit Testing
+
 These tests can be run automatically without Obsidian, focusing on pure functions and data processing.
 
-#### Core Functions
+##### Core Functions
+
 - [ ] Word count calculation
   ```typescript
   test('calculateWordCount', () => {
@@ -256,7 +277,8 @@ These tests can be run automatically without Obsidian, focusing on pure function
   });
   ```
 
-#### Data Processing
+##### Data Processing
+
 - [ ] Markdown stripping
   ```typescript
   test('stripMarkdown', () => {
@@ -296,38 +318,45 @@ These tests can be run automatically without Obsidian, focusing on pure function
   });
   ```
 
-#### Utility Functions
+##### Utility Functions
+
 - [ ] Array operations
 - [ ] String manipulation
 - [ ] Data validation
 - [ ] Type checking
 
-### Manual Integration Testing
+#### Manual Integration Testing
+
 These tests require Obsidian and manual verification.
 
-#### Obsidian API Integration
+##### Obsidian API Integration
+
 - [ ] File reading/writing
 - [ ] Settings persistence
 - [ ] Plugin lifecycle
 - [ ] Event handling
 
-#### UI Components
+##### UI Components
+
 - [ ] Modal behavior
 - [ ] Table rendering
 - [ ] Progress indicators
 - [ ] Suggestion system
 - [ ] Theme integration
 
-#### File System Operations
+##### File System Operations
+
 - [ ] Backup creation
 - [ ] File path resolution
 - [ ] Error handling
 - [ ] Permission checks
 
-### Manual End-to-End Testing
+#### Manual End-to-End Testing
+
 Complete user workflows that require manual verification.
 
-#### User Flows
+##### User Flows
+
 - [ ] Complete metrics scraping process
 - [ ] Settings configuration
 - [ ] Backup and restore
@@ -345,63 +374,72 @@ Complete user workflows that require manual verification.
   - [ ] Download location handling
   - [ ] Large dataset export performance
 
-#### Cross-Platform Testing
+##### Cross-Platform Testing
+
 - [ ] Windows compatibility
 - [ ] macOS compatibility
 - [ ] Linux compatibility
 - [ ] Mobile compatibility
 
-#### Performance Testing
+##### Performance Testing
+
 - [ ] Large dataset handling
 - [ ] Memory usage
 - [ ] UI responsiveness
 - [ ] Backup performance
 
-### Test Environment Setup
+#### Test Environment Setup
 
-#### Automated Tests
+##### Automated Tests
+
 - [ ] Jest configuration
 - [ ] Test data fixtures
 - [ ] Mock functions
 - [ ] CI/CD pipeline
 
-#### Manual Tests
+##### Manual Tests
+
 - [ ] Test vault setup
 - [ ] Sample dream journals
 - [ ] Various theme configurations
 - [ ] Different Obsidian versions
 
-### Testing Tools
+#### Testing Tools
 
-#### Automated Testing
+##### Automated Testing
+
 - [ ] Jest for unit tests
 - [ ] TypeScript compiler for type checking
 - [ ] ESLint for code quality
 - [ ] Prettier for code formatting
 
-#### Manual Testing
+##### Manual Testing
+
 - [ ] Obsidian Developer Tools
 - [ ] Browser DevTools
 - [ ] Performance monitoring
 - [ ] Error logging
 
-### Test Coverage Goals
+#### Test Coverage Goals
 
-#### Automated Tests
+##### Automated Tests
+
 - [ ] Core functions: 90%+
 - [ ] Data processing: 85%+
 - [ ] Utility functions: 95%+
 
-#### Manual Tests
+##### Manual Tests
+
 - [ ] User workflows: 100%
 - [ ] Error scenarios: 100%
 - [ ] Edge cases: 100%
 
-## Feature Implementation Details
+### Feature Implementation Details
 
-### CSV Export Feature
+#### CSV Export Feature
 
-#### Core Functionality
+##### Core Functionality
+
 ```typescript
 interface CSVExportOptions {
     includeSummary: boolean;      // Export summary metrics
@@ -424,7 +462,8 @@ interface CSVExportResult {
 }
 ```
 
-#### Export Types
+##### Export Types
+
 1. **Summary Export**
    - Overall metrics
    - Averages
@@ -444,7 +483,8 @@ interface CSVExportResult {
    - Column selection
    - Custom filters
 
-#### File Handling
+##### File Handling
+
 - [ ] Automatic filename generation
   ```typescript
   function generateExportFilename(type: 'summary' | 'detailed' | 'filtered'): string {
@@ -457,7 +497,8 @@ interface CSVExportResult {
 - [ ] File size optimization
 - [ ] Progress tracking for large exports
 
-#### Data Processing
+##### Data Processing
+
 - [ ] Special character handling
   ```typescript
   function escapeCSVValue(value: string): string {
@@ -472,7 +513,8 @@ interface CSVExportResult {
 - [ ] Content truncation
 - [ ] Link processing
 
-#### UI Components
+##### UI Components
+
 - [ ] Export button in table header
 - [ ] Export options modal
   - Column selection
@@ -482,28 +524,32 @@ interface CSVExportResult {
 - [ ] Progress indicator
 - [ ] Success/error notifications
 
-#### Performance Considerations
+##### Performance Considerations
+
 - [ ] Chunked processing for large datasets
 - [ ] Memory usage optimization
 - [ ] Background processing
 - [ ] Progress updates
 - [ ] Cancellation support
 
-#### Error Handling
+##### Error Handling
+
 - [ ] File system errors
 - [ ] Memory limits
 - [ ] Invalid data
 - [ ] User cancellation
 - [ ] Timeout handling
 
-#### Testing Requirements
+##### Testing Requirements
+
 - [ ] Unit tests for CSV generation
 - [ ] Integration tests for file handling
 - [ ] Performance tests for large datasets
 - [ ] UI component tests
 - [ ] Error handling tests
 
-#### Example Usage
+##### Example Usage
+
 ```typescript
 // Basic export
 const result = await exportToCSV({

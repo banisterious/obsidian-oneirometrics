@@ -12,8 +12,6 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
 - Data visualization components
 - Theme-aware styling system
 - Responsive design for all screen sizes
-
-### Recent Improvements
 - Enhanced CSS architecture with custom properties
 - Improved theme compatibility across Obsidian themes
 - Reduced use of `!important` declarations
@@ -21,35 +19,40 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
 - Enhanced responsive design
 - Improved table layout and spacing
 - Better handling of readable line width settings
-- **Fixed settings UI bug:** Patched incorrect use of `this.register` in the settings tab to `this.plugin.register`, restoring all settings fields (Project Note Path, Callout Name, Selected Notes, Metrics Configuration)
-- **Improved Selected Notes autocomplete:** Autocomplete and chip selection now work reliably in the settings modal
-- **Section heading consistency:** Section headings now use `--h2-size` and theme heading variables for full Obsidian theme compatibility
-- **Backup Folder autocomplete:** Patched for real-time, responsive suggestions as you type
-- **Ongoing:** Markdown stripping in content columns and metric configuration improvements
-- **Modal Selected Notes autocomplete:** The modal's Selected Notes field now only shows real, existing markdown files from your vault (not folders or non-existent files). This matches the settings page behavior and prevents confusion. Folder selection is planned for a future update.
+- Fixed settings UI bug: Patched incorrect use of `this.register` in the settings tab to `this.plugin.register`, restoring all settings fields
+- Improved Selected Notes autocomplete: Autocomplete and chip selection now work reliably in the settings modal
+- Section heading consistency: Section headings now use `--h2-size` and theme heading variables for full Obsidian theme compatibility
+- Backup Folder autocomplete: Patched for real-time, responsive suggestions as you type
+- Markdown stripping in content columns and metric configuration improvements
+- Modal Selected Notes autocomplete: The modal's Selected Notes field now only shows real, existing markdown files from your vault
 
 ### In Progress
 - CSS optimization and maintenance
 - Theme override system refinement
 - Performance improvements
 - Documentation updates
+- Selected Notes autocomplete in modal: Not listing files when text is entered; needs patching to match settings field logic
+- No backup created upon scraping: Backup logic may not be triggered or configured correctly; needs investigation
 
 ### Planned Features
-- Advanced data visualization
-- Custom metric definitions
-- Export/import functionality
-  - CSV export with filtering
-  - Summary and detailed exports
-  - Custom column selection
-  - Date range filtering
-- Integration with other Obsidian plugins
-- Enhanced search and filtering
-- Statistical analysis tools
-- **Settings callout preview and copy:** As the user enters a callout name and specifies a nesting level (e.g., 2 or `>>`), another field shows a live preview of the full callout as it would appear in markdown (with metrics and values), and allows the user to copy the code for use in their notes.
-- **Folder Selection Mode:** Add a toggle in Settings to switch between "Scrape Notes" and "Scrape Folder" modes. When in Folder mode, add a "Choose Folder" field with autocomplete based on existing folders.
-- **UI Text Update:** Rename "Select Notes" to "Choose Notes" for better clarity.
-- ### Planned Feature: Metric Descriptions Section
-- **Planned folder selection:** In the future, users will be able to select folders in the Selected Notes field to include all notes within those folders for metric scraping.
+- [ ] Advanced data visualization
+- [ ] Custom metric definitions
+- [ ] Widget for Readable Line Length
+    - [ ] Add a toggle in settings to enable/disable readable line length override for tables, allowing users to retain their preferred Obsidian setting.
+    - [ ] When implemented, display a notice or callout in the Project note to inform users that this feature is available and where to find the toggle in plugin settings.
+- [ ] Metrics Descriptions Section
+    - [ ] Add a section in the UI and/or documentation that clearly describes each metric, its scoring, and examples for user reference.
+- [ ] Export/Import functionality
+    - [ ] CSV export with filtering
+    - [ ] Summary and detailed exports
+    - [ ] Custom column selection
+    - [ ] Date range filtering
+- [ ] Integration with other Obsidian plugins
+- [ ] Enhanced search and filtering
+- [ ] Statistical analysis tools
+- [ ] Settings callout preview and copy
+- [ ] Folder selection mode
+- [ ] UI text updates ("Choose Notes" instead of "Select Notes")
 
 At the bottom of the Settings page, display a section:
 
@@ -294,21 +297,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Please use the checklist in `TESTING.md` when testing new features or reporting bugs.
 - For issues, include console logs, screenshots, and details as described in the bug reporting template in `TESTING.md`.
 - When suggesting UI improvements, please consider both desktop and mobile usability.
-
-## Planned Features
-- [ ] Advanced data visualization
-- [ ] Custom metric definitions
-- [ ] Export/Import functionality
-  - [ ] CSV export with filtering
-  - [ ] Summary and detailed exports
-  - [ ] Custom column selection
-  - [ ] Date range filtering
-- [ ] Integration with other Obsidian plugins
-- [ ] Enhanced search and filtering
-- [ ] Statistical analysis tools
-- [ ] Settings callout preview and copy
-- [ ] Folder selection mode
-- [ ] UI text updates ("Choose Notes" instead of "Select Notes")
 
 ## Testing Strategy
 - [ ] Automated unit testing for core functions
