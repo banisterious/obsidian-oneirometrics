@@ -979,58 +979,56 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
 }
 
 /* Suggestion Container Positioning */
-.suggestion-container {
-    position: absolute !important;
-    z-index: 1000 !important;
-    background: var(--background-primary) !important;
-    border: 1px solid var(--background-modifier-border) !important;
-    border-radius: 4px !important;
-    max-height: 200px !important;
-    overflow-y: auto !important;
-    width: 100% !important;
-    left: 0 !important;
-    top: 100% !important;
-    margin-top: 4px !important;
-    box-shadow: 0 2px 8px var(--background-modifier-box-shadow) !important;
+.oom-suggestion-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+    display: none;
 }
 
-/* Hide utility class */
-.oom-hidden {
-    display: none !important;
+.oom-suggestion-container.visible {
+    display: block;
 }
 
-/* Selected Notes Container */
-.oom-multiselect-container {
-    position: relative !important;
-    width: 100% !important;
-    margin-bottom: 1em !important;
+.oom-suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
 }
 
-/* Selected Notes Input */
-.oom-multiselect-input {
-    width: 100% !important;
-    padding: 6px 8px !important;
-    border: 1px solid var(--background-modifier-border) !important;
-    border-radius: 4px !important;
-    background-color: var(--background-primary) !important;
-    color: var(--text-normal) !important;
+.oom-suggestion-item:hover,
+.oom-suggestion-item.selected {
+    background-color: var(--background-modifier-hover);
 }
 
-.oom-multiselect-input:focus {
-    border-color: var(--interactive-accent) !important;
-    outline: none !important;
+/* Progress Bar */
+.oom-progress-fill {
+    height: 100%;
+    background-color: var(--interactive-accent);
+    width: 0;
+    transition: width 0.3s ease;
 }
 
-/* Suggestion Items */
-.suggestion-item {
-    padding: 8px 12px !important;
-    cursor: pointer !important;
-    border-bottom: 1px solid var(--background-modifier-border) !important;
+/* Loading Indicator */
+.oom-loading-indicator {
+    text-align: center;
+    padding: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9em;
+    display: none;
 }
 
-.suggestion-item:hover,
-.suggestion-item.is-selected {
-    background-color: var(--background-modifier-hover) !important;
+.oom-loading-indicator.visible {
+    display: block;
 }
 
 /* Chips Container */
@@ -1304,4 +1302,72 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
   margin-bottom: 0.5em;
   font-size: var(--h2-size);
   font-weight: var(--h2-weight, var(--font-bold));
+}
+
+.oom-selected-notes-container {
+    margin: 8px 0;
+    position: relative;
+}
+
+.oom-chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--background-modifier-hover);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin: 4px;
+    font-size: 0.9em;
+}
+
+.oom-chip-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 0 4px;
+}
+
+.oom-chip-remove:hover {
+    color: var(--text-normal);
+}
+
+.oom-input-container {
+    position: relative;
+    margin-top: 8px;
+}
+
+.oom-search-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.oom-progress-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.oom-status-text {
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.oom-progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.oom-details-text {
+    font-size: 0.9em;
+    color: var(--text-muted);
 } 

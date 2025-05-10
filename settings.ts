@@ -252,6 +252,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     const dropdownWidth = Math.max(inputRect.width, 180);
                     let left = inputRect.left - parentRect.left;
                     let top = inputRect.bottom - parentRect.top;
+                    suggestionContainer.classList.add('oom-suggestion-container');
                     suggestionContainer.style.position = 'absolute';
                     suggestionContainer.style.left = `${left}px`;
                     suggestionContainer.style.top = `${top}px`;
@@ -297,26 +298,22 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             item.textContent = folder;
                             
                             // Add hover effect
-                            item.addEventListener('mouseenter', () => {
-                                item.style.backgroundColor = 'var(--background-modifier-hover)';
-                            });
-                            item.addEventListener('mouseleave', () => {
-                                item.style.backgroundColor = 'var(--background-primary)';
-                            });
+                            item.classList.add('selected');
+                            item.classList.remove('selected');
                             
                             item.addEventListener('mousedown', async (e) => {
                                 e.preventDefault();
                                 search.setValue(folder);
                                 this.plugin.settings.backupFolderPath = folder;
                                 await this.plugin.saveSettings();
-                                suggestionContainer.style.display = 'none';
+                                suggestionContainer.classList.remove('visible');
                             });
                         });
                         
                         positionSuggestionContainer();
-                        suggestionContainer.style.display = 'block';
+                        suggestionContainer.classList.add('visible');
                     } else {
-                        suggestionContainer.style.display = 'none';
+                        suggestionContainer.classList.remove('visible');
                     }
                 };
 
@@ -357,20 +354,20 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                     search.setValue(folder);
                                     this.plugin.settings.backupFolderPath = folder;
                                     this.plugin.saveSettings();
-                                    suggestionContainer.style.display = 'none';
+                                    suggestionContainer.classList.remove('visible');
                                 }
                             }
                             break;
 
                         case 'Escape':
-                            suggestionContainer.style.display = 'none';
+                            suggestionContainer.classList.remove('visible');
                             break;
                     }
                 });
 
                 // Hide suggestions on blur (with delay for click)
                 search.inputEl.addEventListener('blur', () => {
-                    setTimeout(() => { suggestionContainer.style.display = 'none'; }, 200);
+                    setTimeout(() => { suggestionContainer.classList.remove('visible'); }, 200);
                 });
 
                 search.inputEl.addEventListener('input', (e) => {
@@ -380,7 +377,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
                 // Update suggestions on resize
                 window.addEventListener('resize', () => {
-                    if (suggestionContainer.style.display !== 'none') {
+                    if (suggestionContainer.classList.contains('visible')) {
                         positionSuggestionContainer();
                     }
                 });
@@ -417,6 +414,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     let top = inputRect.bottom - modalRect.top;
                     let maxWidth = modalRect.width;
 
+                    suggestionContainer.classList.add('oom-suggestion-container');
                     suggestionContainer.style.position = 'absolute';
                     suggestionContainer.style.left = `${left}px`;
                     suggestionContainer.style.right = '';
@@ -439,7 +437,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
                 // Hide suggestion container
                 function hideSuggestions() {
-                    suggestionContainer.style.display = 'none';
+                    suggestionContainer.classList.remove('visible');
                     suggestionContainer.empty();
                 }
 
@@ -539,12 +537,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             item.innerHTML = suggestion.replace(regex, '<strong>$1</strong>');
 
                             // Add hover effects
-                            item.addEventListener('mouseover', () => {
-                                item.style.backgroundColor = 'var(--background-modifier-hover)';
-                            });
-                            item.addEventListener('mouseout', () => {
-                                item.style.backgroundColor = '';
-                            });
+                            item.classList.add('selected');
+                            item.classList.remove('selected');
 
                             // Handle selection
                             item.addEventListener('click', async () => {
@@ -555,7 +549,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             });
                         });
 
-                        suggestionContainer.style.display = 'block';
+                        suggestionContainer.classList.add('visible');
                         positionSuggestionContainer();
                     } else {
                         hideSuggestions();
@@ -659,14 +653,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Function to hide suggestions
         function hideSuggestions() {
-            suggestionContainer.style.display = 'none';
+            suggestionContainer.classList.remove('visible');
             suggestionContainer.empty();
         }
 
         // Function to show suggestions
         function showSuggestions() {
             if (suggestionContainer.children.length > 0) {
-                suggestionContainer.style.display = 'block';
+                suggestionContainer.classList.add('visible');
                 const inputRect = input.getBoundingClientRect();
                 const containerRect = selectedNotesContainer.getBoundingClientRect();
                 suggestionContainer.style.top = `${inputRect.bottom - containerRect.top}px`;
@@ -750,12 +744,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     item.textContent = suggestion;
                     
                     // Add hover effect
-                    item.addEventListener('mouseenter', () => {
-                        item.style.backgroundColor = 'var(--background-modifier-hover)';
-                    });
-                    item.addEventListener('mouseleave', () => {
-                        item.style.backgroundColor = 'var(--background-primary)';
-                    });
+                    item.classList.add('selected');
+                    item.classList.remove('selected');
                     
                     item.onclick = () => {
                         this.plugin.settings.selectedNotes.push(suggestion);

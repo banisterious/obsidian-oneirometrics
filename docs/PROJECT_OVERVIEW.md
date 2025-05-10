@@ -314,3 +314,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [ ] Regular performance optimization
 - [ ] Consistent error handling
 - [ ] User feedback integration
+
+## Documentation
+For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](docs/METRICS.md).

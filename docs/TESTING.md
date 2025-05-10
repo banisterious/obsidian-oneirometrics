@@ -22,8 +22,10 @@
 - [x] File suggestions work in the project note path field
 - [x] File suggestions work for paths with spaces and special characters (e.g., 'Journals/Dream Diary/Dream Diary.md')
 - [x] Year-based paths are suggested correctly (e.g., typing '2025' suggests 'Journals/2025/2025.md')
-- [ ] "Scrape Notes" vs "Scrape Folder" toggle works correctly
-- [ ] "Choose Notes" label is displayed correctly
+- [x] "Scrape Notes" vs "Scrape Folder" toggle works correctly
+- [x] "Choose Notes" label is displayed correctly
+- [x] Lost Segments label shows "Any integer" (not "Range 0-10")
+- [x] Metrics Table font size is consistent for all columns, especially Confidence Score
 
 ### Metrics Scraping
 
@@ -32,7 +34,7 @@
 - [x] Progress is shown during scraping with detailed status
 - [x] Batch processing works for large datasets
 - [x] Errors are handled gracefully
-- [ ] Backup is created before overwriting
+- [x] Backup is created before overwriting
 - [x] Confirmation dialog appears before overwriting
 - [x] Progress modal shows:
   - [x] Current file being processed

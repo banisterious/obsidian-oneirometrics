@@ -14,11 +14,12 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 
 ## Documentation
 
-- [Project Overview](PROJECT_OVERVIEW.md) - Detailed project status, architecture, and development guidelines
-- [Testing Guide](TESTING.md) - Comprehensive testing procedures and requirements
-- [Known Issues](ISSUES.md) - Current bugs and feature requests
+- [Project Overview](docs/PROJECT_OVERVIEW.md) - Detailed project status, architecture, and development guidelines
+- [Testing Guide](docs/TESTING.md) - Comprehensive testing procedures and requirements
+- [Known Issues](docs/ISSUES.md) - Current bugs and feature requests
 - [Release Notes](CHANGELOG.md) - Version history and changes
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
+- [Metrics Guide](docs/METRICS.md) - Detailed descriptions of dream metrics and scoring guidelines
 
 ## Setup
 
