@@ -12,6 +12,14 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - Customizable settings for metrics and data management
 - Multi-chip autocomplete for selecting notes to analyze, now improved in both settings and modal: only real, existing markdown files can be selected (not folders or non-existent files).
 
+## Documentation
+
+- [Project Overview](PROJECT_OVERVIEW.md) - Detailed project status, architecture, and development guidelines
+- [Testing Guide](TESTING.md) - Comprehensive testing procedures and requirements
+- [Known Issues](ISSUES.md) - Current bugs and feature requests
+- [Release Notes](CHANGELOG.md) - Version history and changes
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
+
 ## Setup
 
 1. Install the plugin through Obsidian's Community Plugins browser
@@ -49,8 +57,9 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 ## Usage
 
 ### Adding Dream Metrics
-Add metrics to your dream entries using the following callout format:
+Add metrics to your dream entries using either of these callout formats:
 
+Format 1 (one metric per line):
 ```markdown
 > [!dream-metrics]
 > Sensory Detail: 4
@@ -58,6 +67,12 @@ Add metrics to your dream entries using the following callout format:
 > Lost Segments: 2
 > Descriptiveness: 4
 > Confidence Score: 5
+```
+
+Format 2 (all metrics on one line):
+```markdown
+> [!dream-metrics]
+> Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2, Descriptiveness: 4, Confidence Score: 5
 ```
 
 ### Analyzing Dreams
