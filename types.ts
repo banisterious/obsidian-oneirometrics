@@ -12,6 +12,8 @@ export interface DreamMetricsSettings {
     metrics: DreamMetric[];
     selectedNotes: string[];
     calloutName: string;
+    backupEnabled: boolean;
+    backupFolderPath: string;
 }
 
 export interface DreamMetricData {

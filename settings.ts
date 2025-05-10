@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice } from "obsidian";
+import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder } from "obsidian";
 import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings } from "./types";
 import DreamMetricsPlugin from "./main";
 
@@ -200,6 +200,192 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         containerEl.createEl('h2', { text: 'Dream Metrics Settings' });
 
+        // Backup Settings
+        containerEl.createEl('h3', { text: 'Backup Settings' });
+
+        // Enable Backups
+        new Setting(containerEl)
+            .setName('Enable Backups')
+            .setDesc('Create backups of the project note before making changes')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.backupEnabled)
+                .onChange(async (value) => {
+                    this.plugin.settings.backupEnabled = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // Backup Folder Path
+        const backupFolderSetting = new Setting(containerEl)
+            .setName('Backup Folder')
+            .setDesc('Select an existing folder where backups will be stored')
+            .addSearch(search => {
+                search
+                    .setPlaceholder('Choose backup folder...')
+                    .setValue(this.plugin.settings.backupFolderPath);
+
+                // Create suggestion container with fixed positioning
+                const parentForSuggestions = search.inputEl.parentElement || containerEl;
+                const suggestionContainer = parentForSuggestions.createEl('div', {
+                    cls: 'suggestion-container oom-suggestion-container',
+                    attr: {
+                        style: `
+                            display: none;
+                            position: absolute;
+                            z-index: 1000;
+                            background: var(--background-primary);
+                            border: 1px solid var(--background-modifier-border);
+                            border-radius: 4px;
+                            max-height: 200px;
+                            overflow-y: auto;
+                            min-width: 180px;
+                            width: 100%;
+                            box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+                        `
+                    }
+                });
+
+                // Helper to position the dropdown
+                function positionSuggestionContainer() {
+                    const inputRect = search.inputEl.getBoundingClientRect();
+                    const parent = search.inputEl.parentElement || containerEl;
+                    const parentRect = parent.getBoundingClientRect();
+                    const dropdownWidth = Math.max(inputRect.width, 180);
+                    let left = inputRect.left - parentRect.left;
+                    let top = inputRect.bottom - parentRect.top;
+                    suggestionContainer.style.position = 'absolute';
+                    suggestionContainer.style.left = `${left}px`;
+                    suggestionContainer.style.top = `${top}px`;
+                    suggestionContainer.style.width = `${dropdownWidth}px`;
+                    suggestionContainer.style.overflowX = 'auto';
+                }
+
+                // Clean up suggestion container on plugin unload
+                this.plugin.register(() => suggestionContainer.remove());
+
+                // Function to get all folders
+                const getFolders = (): string[] => {
+                    const folders: string[] = [];
+                    const files = this.app.vault.getAllLoadedFiles();
+                    files.forEach(file => {
+                        if (file instanceof TFolder) {
+                            folders.push(file.path);
+                        }
+                    });
+                    return folders.sort((a, b) => a.localeCompare(b));
+                };
+
+                // Function to show suggestions
+                const showSuggestions = (query: string) => {
+                    const folders = getFolders();
+                    const normalizedQuery = query.toLowerCase();
+                    const filteredFolders = folders
+                        .filter(folder => folder.toLowerCase().includes(normalizedQuery))
+                        .slice(0, 10);
+                    console.log('[Backup Folder] all folders:', folders);
+                    console.log('[Backup Folder] filtered folders:', filteredFolders);
+
+                    suggestionContainer.empty();
+                    
+                    if (filteredFolders.length > 0) {
+                        filteredFolders.forEach(folder => {
+                            const item = suggestionContainer.createEl('div', {
+                                cls: 'suggestion-item',
+                                attr: {
+                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary);'
+                                }
+                            });
+                            item.textContent = folder;
+                            
+                            // Add hover effect
+                            item.addEventListener('mouseenter', () => {
+                                item.style.backgroundColor = 'var(--background-modifier-hover)';
+                            });
+                            item.addEventListener('mouseleave', () => {
+                                item.style.backgroundColor = 'var(--background-primary)';
+                            });
+                            
+                            item.addEventListener('mousedown', async (e) => {
+                                e.preventDefault();
+                                search.setValue(folder);
+                                this.plugin.settings.backupFolderPath = folder;
+                                await this.plugin.saveSettings();
+                                suggestionContainer.style.display = 'none';
+                            });
+                        });
+                        
+                        positionSuggestionContainer();
+                        suggestionContainer.style.display = 'block';
+                    } else {
+                        suggestionContainer.style.display = 'none';
+                    }
+                };
+
+                // (Removed search.onChange; input event is more reliable for real-time suggestions)
+
+                // Keyboard navigation for suggestions
+                search.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+                    const items = suggestionContainer.querySelectorAll('.suggestion-item');
+                    const currentIndex = Array.from(items).findIndex(item => 
+                        item.classList.contains('is-selected')
+                    );
+
+                    switch (e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (currentIndex < items.length - 1) {
+                                items[currentIndex]?.classList.remove('is-selected');
+                                items[currentIndex + 1].classList.add('is-selected');
+                                (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                            }
+                            break;
+
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            if (currentIndex > 0) {
+                                items[currentIndex]?.classList.remove('is-selected');
+                                items[currentIndex - 1].classList.add('is-selected');
+                                (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                            }
+                            break;
+
+                        case 'Enter':
+                            e.preventDefault();
+                            const selectedItem = suggestionContainer.querySelector('.is-selected');
+                            if (selectedItem) {
+                                const folder = selectedItem.textContent;
+                                if (folder) {
+                                    search.setValue(folder);
+                                    this.plugin.settings.backupFolderPath = folder;
+                                    this.plugin.saveSettings();
+                                    suggestionContainer.style.display = 'none';
+                                }
+                            }
+                            break;
+
+                        case 'Escape':
+                            suggestionContainer.style.display = 'none';
+                            break;
+                    }
+                });
+
+                // Hide suggestions on blur (with delay for click)
+                search.inputEl.addEventListener('blur', () => {
+                    setTimeout(() => { suggestionContainer.style.display = 'none'; }, 200);
+                });
+
+                search.inputEl.addEventListener('input', (e) => {
+                    console.log('[Backup Folder] input event:', search.inputEl.value);
+                    showSuggestions(search.inputEl.value);
+                });
+
+                // Update suggestions on resize
+                window.addEventListener('resize', () => {
+                    if (suggestionContainer.style.display !== 'none') {
+                        positionSuggestionContainer();
+                    }
+                });
+            });
+
         // Project Note Path Setting
         new Setting(containerEl)
             .setName('Project Note Path')
@@ -247,77 +433,193 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 }
 
                 // Normalize function (lowercase, collapse whitespace)
-                function normalize(str: string) {
+                function normalize(str: string): string {
                     return str.toLowerCase().replace(/\s+/g, '');
                 }
 
-                // Handle input changes
-                inputEl.addEventListener('input', async (e) => {
-                    const value = (e.target as HTMLInputElement).value;
-                    if (!value) {
-                        suggestionContainer.classList.add('oom-hidden');
-                        return;
+                // Hide suggestion container
+                function hideSuggestions() {
+                    suggestionContainer.style.display = 'none';
+                    suggestionContainer.empty();
+                }
+
+                // Generate year-based path suggestions
+                function generateYearPaths(year: string): string[] {
+                    const basePaths = [
+                        'Journals',
+                        'Dreams',
+                        'Journal',
+                        'Dream Diary'
+                    ];
+                    
+                    return basePaths.flatMap(base => [
+                        `${base}/${year}/${year}.md`,
+                        `${base}/${year}/`,
+                        `${base}/${year}/Entries/`,
+                        `${base}/${year}/Dreams/`
+                    ]);
+                }
+
+                // Filter function for file suggestions
+                function filterFiles(files: TFile[], searchValue: string): string[] {
+                    const normalizedSearch = normalize(searchValue);
+                    const yearMatch = searchValue.match(/^(20\d{2})$/);
+                    let suggestions: string[] = [];
+
+                    // Add year-based suggestions if applicable
+                    if (yearMatch) {
+                        suggestions.push(...generateYearPaths(yearMatch[1]));
                     }
 
-                    const files = this.app.vault.getMarkdownFiles()
-                        .filter(file => !file.path.includes('/Backups/') && !file.path.endsWith('.backup'));
-                    const lowerInput = value.toLowerCase();
-                    const normalizedInput = normalize(value);
-                    
-                    const suggestions = files
-                        .map(file => file.path)
-                        .filter(path => {
-                            const lowerPath = path.toLowerCase();
-                            const normalizedPath = normalize(path);
-                            const segments = lowerPath.split(/[\/\\]+/);
-                            
-                            // Check for year matches first
-                            if (lowerInput.match(/^\d{4}$/)) {
-                                return segments.some(segment => segment === lowerInput) ||
-                                       path.includes(`/Journals/${lowerInput}/`) ||
-                                       path.includes(`\\Journals\\${lowerInput}\\`);
+                    // Add matching files, excluding backups and backup files
+                    const matchingFiles = files
+                        .filter(file => {
+                            // Exclude backup files and directories
+                            if (file.path.includes('.backup-') || 
+                                file.path.includes('/Backups/') ||
+                                file.basename.endsWith('.backup')) {
+                                return false;
                             }
+
+                            const normalizedPath = normalize(file.path);
+                            // Match by normalized path or year
+                            return normalizedPath.includes(normalizedSearch) || 
+                                   (yearMatch && file.path.includes(yearMatch[1]));
+                        })
+                        .map(file => file.path);
+
+                    suggestions.push(...matchingFiles);
+
+                    // Remove duplicates and sort
+                    suggestions = [...new Set(suggestions)]
+                        .sort((a, b) => {
+                            // Prioritize exact matches
+                            const aExact = a.toLowerCase() === searchValue.toLowerCase();
+                            const bExact = b.toLowerCase() === searchValue.toLowerCase();
+                            if (aExact && !bExact) return -1;
+                            if (!aExact && bExact) return 1;
                             
-                            // Check for exact matches
-                            if (lowerPath === lowerInput) return true;
+                            // Then prioritize year-based paths
+                            const aYear = a.includes(`/${searchValue}/`);
+                            const bYear = b.includes(`/${searchValue}/`);
+                            if (aYear && !bYear) return -1;
+                            if (!aYear && bYear) return 1;
                             
-                            // Check for path segment matches
-                            if (segments.some(segment => segment.includes(lowerInput))) return true;
-                            
-                            // Check for normalized path matches
-                            if (normalizedPath.includes(normalizedInput)) return true;
-                            
-                            // Check for partial path matches
-                            return lowerPath.includes(lowerInput);
+                            // Finally sort alphabetically
+                            return a.localeCompare(b);
                         })
                         .slice(0, 7);
 
-                    suggestionContainer.empty();
+                    return suggestions;
+                }
+
+                // Update suggestions
+                async function updateSuggestions() {
+                    const value = inputEl.value.trim();
+                    if (!value) {
+                        hideSuggestions();
+                        return;
+                    }
+
+                    const files = this.app.vault.getMarkdownFiles();
+                    const suggestions = filterFiles(files, value);
+
                     if (suggestions.length > 0) {
-                        for (const suggestion of suggestions) {
+                        suggestionContainer.empty();
+                        suggestions.forEach(suggestion => {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
-                                attr: { title: suggestion },
-                                text: suggestion
+                                attr: {
+                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);'
+                                }
                             });
-                            item.onclick = () => {
+
+                            // Highlight matching text
+                            const regex = new RegExp(`(${value})`, 'gi');
+                            item.innerHTML = suggestion.replace(regex, '<strong>$1</strong>');
+
+                            // Add hover effects
+                            item.addEventListener('mouseover', () => {
+                                item.style.backgroundColor = 'var(--background-modifier-hover)';
+                            });
+                            item.addEventListener('mouseout', () => {
+                                item.style.backgroundColor = '';
+                            });
+
+                            // Handle selection
+                            item.addEventListener('click', async () => {
                                 inputEl.value = suggestion;
                                 this.plugin.settings.projectNotePath = suggestion;
-                                this.plugin.saveSettings();
-                                suggestionContainer.classList.add('oom-hidden');
-                            };
-                        }
-                        suggestionContainer.classList.remove('oom-hidden');
+                                await this.plugin.saveSettings();
+                                hideSuggestions();
+                            });
+                        });
+
+                        suggestionContainer.style.display = 'block';
                         positionSuggestionContainer();
                     } else {
-                        suggestionContainer.classList.add('oom-hidden');
+                        hideSuggestions();
+                    }
+                }
+
+                // Event listeners
+                inputEl.addEventListener('input', updateSuggestions.bind(this));
+                inputEl.addEventListener('blur', () => {
+                    // Delay hiding to allow click events to process
+                    setTimeout(hideSuggestions, 200);
+                });
+
+                // Handle keyboard navigation
+                inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+                    const items = suggestionContainer.querySelectorAll('.suggestion-item');
+                    const currentIndex = Array.from(items).findIndex(item => 
+                        item.classList.contains('is-selected')
+                    );
+
+                    switch (e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (currentIndex < items.length - 1) {
+                                items[currentIndex]?.classList.remove('is-selected');
+                                items[currentIndex + 1].classList.add('is-selected');
+                                (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                            }
+                            break;
+
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            if (currentIndex > 0) {
+                                items[currentIndex]?.classList.remove('is-selected');
+                                items[currentIndex - 1].classList.add('is-selected');
+                                (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                            }
+                            break;
+
+                        case 'Enter':
+                            e.preventDefault();
+                            const selectedItem = suggestionContainer.querySelector('.is-selected');
+                            if (selectedItem) {
+                                const path = selectedItem.textContent;
+                                if (path) {
+                                    inputEl.value = path;
+                                    this.plugin.settings.projectNotePath = path;
+                                    this.plugin.saveSettings();
+                                    hideSuggestions();
+                                }
+                            }
+                            break;
+
+                        case 'Escape':
+                            hideSuggestions();
+                            break;
                     }
                 });
 
                 // Hide suggestions when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!inputEl.contains(e.target as Node) && !suggestionContainer.contains(e.target as Node)) {
-                        suggestionContainer.classList.add('oom-hidden');
+                document.addEventListener('click', (e: MouseEvent) => {
+                    if (!inputEl.contains(e.target as Node) && 
+                        !suggestionContainer.contains(e.target as Node)) {
+                        hideSuggestions();
                     }
                 });
             });
@@ -351,16 +653,35 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             attr: { placeholder: 'Type to search notes...' }
         });
         const suggestionContainer = selectedNotesContainer.createEl('div', {
-            cls: 'suggestion-container',
-            attr: { style: 'display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;' }
+            cls: 'suggestion-container oom-suggestion-container',
+            attr: { style: 'display: none; position: absolute; z-index: 1000; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px; width: 100%; box-shadow: 0 2px 8px var(--background-modifier-box-shadow);' }
         });
+
+        // Function to hide suggestions
+        function hideSuggestions() {
+            suggestionContainer.style.display = 'none';
+            suggestionContainer.empty();
+        }
+
+        // Function to show suggestions
+        function showSuggestions() {
+            if (suggestionContainer.children.length > 0) {
+                suggestionContainer.style.display = 'block';
+                const inputRect = input.getBoundingClientRect();
+                const containerRect = selectedNotesContainer.getBoundingClientRect();
+                suggestionContainer.style.top = `${inputRect.bottom - containerRect.top}px`;
+                suggestionContainer.style.left = '0';
+                suggestionContainer.style.width = `${inputRect.width}px`;
+            }
+        }
 
         // Render chips for selected notes
         function renderChips() {
             chipsContainer.empty();
             for (const note of this.plugin.settings.selectedNotes) {
-                const chip = chipsContainer.createEl('span', { cls: 'oom-chip', text: note });
-                chip.setAttr('title', note);
+                const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
+                const chipText = chip.createEl('span', { cls: 'oom-chip-text', text: note });
+                chipText.setAttr('title', note);
                 const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
                 removeBtn.onclick = () => {
                     this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n: string) => n !== note);
@@ -375,69 +696,115 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         input.addEventListener('input', async (e) => {
             const value = input.value;
             if (!value) {
-                suggestionContainer.style.display = 'none';
+                hideSuggestions();
                 return;
             }
             const files = this.app.vault.getMarkdownFiles();
             const lowerInput = value.toLowerCase();
-            const suggestions = files
+            const yearMatch = value.match(/^(20\d{2})$/);
+            let matchingFiles = files
                 .map(file => file.path)
-                .filter(path =>
-                    !this.plugin.settings.selectedNotes.includes(path) &&
-                    path.toLowerCase().includes(lowerInput)
-                )
+                .filter(path => {
+                    // Exclude backup files and directories
+                    if (path.includes('.backup-') || 
+                        path.includes('/Backups/') ||
+                        path.endsWith('.backup')) {
+                        return false;
+                    }
+                    const lowerPath = path.toLowerCase();
+                    return !this.plugin.settings.selectedNotes.includes(path) &&
+                        (lowerPath.includes(lowerInput) || (yearMatch && path.includes(yearMatch[1])));
+                });
+
+            // If user types a year, suggest Journals/<year>/<year>.md if it exists
+            if (yearMatch) {
+                const yearFile = `Journals/${yearMatch[1]}/${yearMatch[1]}.md`;
+                if (matchingFiles.includes(yearFile)) {
+                    matchingFiles = [yearFile, ...matchingFiles.filter(f => f !== yearFile)];
+                }
+            }
+
+            // Remove duplicates and sort
+            matchingFiles = [...new Set(matchingFiles)]
+                .sort((a, b) => {
+                    // Prioritize exact matches
+                    const aExact = a.toLowerCase() === lowerInput;
+                    const bExact = b.toLowerCase() === lowerInput;
+                    if (aExact && !bExact) return -1;
+                    if (!aExact && bExact) return 1;
+                    // Finally sort alphabetically
+                    return a.localeCompare(b);
+                })
                 .slice(0, 7);
+
             suggestionContainer.empty();
-            if (suggestions.length > 0) {
-                for (const suggestion of suggestions) {
+            if (matchingFiles.length > 0) {
+                for (const suggestion of matchingFiles) {
                     const item = suggestionContainer.createEl('div', {
                         cls: 'suggestion-item',
-                        attr: { title: suggestion },
-                        text: suggestion
+                        attr: { 
+                            title: suggestion,
+                            style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary);'
+                        }
                     });
+                    item.textContent = suggestion;
+                    
+                    // Add hover effect
+                    item.addEventListener('mouseenter', () => {
+                        item.style.backgroundColor = 'var(--background-modifier-hover)';
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.style.backgroundColor = 'var(--background-primary)';
+                    });
+                    
                     item.onclick = () => {
                         this.plugin.settings.selectedNotes.push(suggestion);
                         this.plugin.saveSettings();
                         input.value = '';
-                        suggestionContainer.style.display = 'none';
+                        hideSuggestions();
                         renderChips.call(this);
                     };
                 }
-                suggestionContainer.style.display = 'block';
+                showSuggestions();
             } else {
-                suggestionContainer.style.display = 'none';
+                hideSuggestions();
             }
         });
+
         // Hide suggestions when clicking outside
         document.addEventListener('click', (e) => {
-            if (!input.contains(e.target as Node) && !suggestionContainer.contains(e.target as Node)) {
-                suggestionContainer.style.display = 'none';
+            if (!selectedNotesContainer.contains(e.target as Node)) {
+                hideSuggestions();
             }
         });
+
         // Keyboard navigation for suggestions
         input.addEventListener('keydown', (e) => {
             const items = suggestionContainer.querySelectorAll('.suggestion-item');
             const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
+            
             switch (e.key) {
                 case 'ArrowDown':
                     e.preventDefault();
                     if (currentIndex < items.length - 1) {
                         items[currentIndex]?.classList.remove('is-selected');
                         items[currentIndex + 1].classList.add('is-selected');
-                        items[currentIndex + 1].scrollIntoView({ block: 'nearest' });
+                        (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
                     } else if (items.length > 0 && currentIndex === -1) {
                         items[0].classList.add('is-selected');
-                        items[0].scrollIntoView({ block: 'nearest' });
+                        (items[0] as HTMLElement).scrollIntoView({ block: 'nearest' });
                     }
                     break;
+
                 case 'ArrowUp':
                     e.preventDefault();
                     if (currentIndex > 0) {
                         items[currentIndex]?.classList.remove('is-selected');
                         items[currentIndex - 1].classList.add('is-selected');
-                        items[currentIndex - 1].scrollIntoView({ block: 'nearest' });
+                        (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
                     }
                     break;
+
                 case 'Enter':
                     e.preventDefault();
                     const selectedItem = suggestionContainer.querySelector('.is-selected');
@@ -447,13 +814,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             this.plugin.settings.selectedNotes.push(path);
                             this.plugin.saveSettings();
                             input.value = '';
-                            suggestionContainer.style.display = 'none';
+                            hideSuggestions();
                             renderChips.call(this);
                         }
                     }
                     break;
+
                 case 'Escape':
-                    suggestionContainer.style.display = 'none';
+                    hideSuggestions();
                     break;
             }
         });

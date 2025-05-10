@@ -65,4 +65,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Customizable metrics
 - Project note generation
 - Metric validation
-- File path autocomplete 
+- File path autocomplete
+
+## [0.1.3] - 2025-05-10
+
+### Changed
+- Modal's Selected Notes autocomplete now only shows real, existing markdown files (not folders or non-existent files), matching the settings page behavior.
+- UI and logic clean-up for autocomplete fields in both settings and modal.
+
+### Fixed
+- Fixed issue where modal's Selected Notes field would show suggested or non-existent files and folders.
+- Fixed variable shadowing and event handler context issues in modal autocomplete logic. 

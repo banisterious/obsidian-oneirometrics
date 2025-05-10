@@ -202,18 +202,160 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "Dream Metrics Settings" });
+    containerEl.createEl("h3", { text: "Backup Settings" });
+    new import_obsidian.Setting(containerEl).setName("Enable Backups").setDesc("Create backups of the project note before making changes").addToggle((toggle) => toggle.setValue(this.plugin.settings.backupEnabled).onChange(async (value) => {
+      this.plugin.settings.backupEnabled = value;
+      await this.plugin.saveSettings();
+    }));
+    const backupFolderSetting = new import_obsidian.Setting(containerEl).setName("Backup Folder").setDesc("Select an existing folder where backups will be stored").addSearch((search) => {
+      search.setPlaceholder("Choose backup folder...").setValue(this.plugin.settings.backupFolderPath);
+      const parentForSuggestions = search.inputEl.parentElement || containerEl;
+      const suggestionContainer2 = parentForSuggestions.createEl("div", {
+        cls: "suggestion-container oom-suggestion-container",
+        attr: {
+          style: `
+                            display: none;
+                            position: absolute;
+                            z-index: 1000;
+                            background: var(--background-primary);
+                            border: 1px solid var(--background-modifier-border);
+                            border-radius: 4px;
+                            max-height: 200px;
+                            overflow-y: auto;
+                            min-width: 180px;
+                            width: 100%;
+                            box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+                        `
+        }
+      });
+      function positionSuggestionContainer() {
+        const inputRect = search.inputEl.getBoundingClientRect();
+        const parent = search.inputEl.parentElement || containerEl;
+        const parentRect = parent.getBoundingClientRect();
+        const dropdownWidth = Math.max(inputRect.width, 180);
+        let left = inputRect.left - parentRect.left;
+        let top = inputRect.bottom - parentRect.top;
+        suggestionContainer2.style.position = "absolute";
+        suggestionContainer2.style.left = `${left}px`;
+        suggestionContainer2.style.top = `${top}px`;
+        suggestionContainer2.style.width = `${dropdownWidth}px`;
+        suggestionContainer2.style.overflowX = "auto";
+      }
+      this.plugin.register(() => suggestionContainer2.remove());
+      const getFolders = () => {
+        const folders = [];
+        const files = this.app.vault.getAllLoadedFiles();
+        files.forEach((file) => {
+          if (file instanceof import_obsidian.TFolder) {
+            folders.push(file.path);
+          }
+        });
+        return folders.sort((a, b) => a.localeCompare(b));
+      };
+      const showSuggestions2 = (query) => {
+        const folders = getFolders();
+        const normalizedQuery = query.toLowerCase();
+        const filteredFolders = folders.filter((folder) => folder.toLowerCase().includes(normalizedQuery)).slice(0, 10);
+        console.log("[Backup Folder] all folders:", folders);
+        console.log("[Backup Folder] filtered folders:", filteredFolders);
+        suggestionContainer2.empty();
+        if (filteredFolders.length > 0) {
+          filteredFolders.forEach((folder) => {
+            const item = suggestionContainer2.createEl("div", {
+              cls: "suggestion-item",
+              attr: {
+                style: "padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary);"
+              }
+            });
+            item.textContent = folder;
+            item.addEventListener("mouseenter", () => {
+              item.style.backgroundColor = "var(--background-modifier-hover)";
+            });
+            item.addEventListener("mouseleave", () => {
+              item.style.backgroundColor = "var(--background-primary)";
+            });
+            item.addEventListener("mousedown", async (e) => {
+              e.preventDefault();
+              search.setValue(folder);
+              this.plugin.settings.backupFolderPath = folder;
+              await this.plugin.saveSettings();
+              suggestionContainer2.style.display = "none";
+            });
+          });
+          positionSuggestionContainer();
+          suggestionContainer2.style.display = "block";
+        } else {
+          suggestionContainer2.style.display = "none";
+        }
+      };
+      search.inputEl.addEventListener("keydown", (e) => {
+        var _a, _b;
+        const items = suggestionContainer2.querySelectorAll(".suggestion-item");
+        const currentIndex = Array.from(items).findIndex(
+          (item) => item.classList.contains("is-selected")
+        );
+        switch (e.key) {
+          case "ArrowDown":
+            e.preventDefault();
+            if (currentIndex < items.length - 1) {
+              (_a = items[currentIndex]) == null ? void 0 : _a.classList.remove("is-selected");
+              items[currentIndex + 1].classList.add("is-selected");
+              items[currentIndex + 1].scrollIntoView({ block: "nearest" });
+            }
+            break;
+          case "ArrowUp":
+            e.preventDefault();
+            if (currentIndex > 0) {
+              (_b = items[currentIndex]) == null ? void 0 : _b.classList.remove("is-selected");
+              items[currentIndex - 1].classList.add("is-selected");
+              items[currentIndex - 1].scrollIntoView({ block: "nearest" });
+            }
+            break;
+          case "Enter":
+            e.preventDefault();
+            const selectedItem = suggestionContainer2.querySelector(".is-selected");
+            if (selectedItem) {
+              const folder = selectedItem.textContent;
+              if (folder) {
+                search.setValue(folder);
+                this.plugin.settings.backupFolderPath = folder;
+                this.plugin.saveSettings();
+                suggestionContainer2.style.display = "none";
+              }
+            }
+            break;
+          case "Escape":
+            suggestionContainer2.style.display = "none";
+            break;
+        }
+      });
+      search.inputEl.addEventListener("blur", () => {
+        setTimeout(() => {
+          suggestionContainer2.style.display = "none";
+        }, 200);
+      });
+      search.inputEl.addEventListener("input", (e) => {
+        console.log("[Backup Folder] input event:", search.inputEl.value);
+        showSuggestions2(search.inputEl.value);
+      });
+      window.addEventListener("resize", () => {
+        if (suggestionContainer2.style.display !== "none") {
+          positionSuggestionContainer();
+        }
+      });
+    });
     new import_obsidian.Setting(containerEl).setName("Project Note Path").setDesc("The path where metrics tables will be written").addText((text) => {
       text.setPlaceholder("Journals/Dream Diary/Metrics/Metrics.md").setValue(this.plugin.settings.projectNotePath).onChange(async (value) => {
         this.plugin.settings.projectNotePath = value;
         await this.plugin.saveSettings();
       });
-      const inputEl2 = text.inputEl;
-      inputEl2.addClass("oom-file-suggestion");
+      const inputEl = text.inputEl;
+      inputEl.addClass("oom-file-suggestion");
       const suggestionContainer2 = containerEl.createEl("div", {
         cls: "suggestion-container oom-suggestion-container"
       });
       function positionSuggestionContainer() {
-        const inputRect = inputEl2.getBoundingClientRect();
+        const inputRect = inputEl.getBoundingClientRect();
         const modalEl = containerEl.closest(".modal");
         const modalRect = modalEl ? modalEl.getBoundingClientRect() : containerEl.getBoundingClientRect();
         const dropdownWidth = Math.max(inputRect.width, 180);
@@ -235,54 +377,142 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
       function normalize(str) {
         return str.toLowerCase().replace(/\s+/g, "");
       }
-      inputEl2.addEventListener("input", async (e) => {
-        const value = e.target.value;
+      function hideSuggestions2() {
+        suggestionContainer2.style.display = "none";
+        suggestionContainer2.empty();
+      }
+      function generateYearPaths(year) {
+        const basePaths = [
+          "Journals",
+          "Dreams",
+          "Journal",
+          "Dream Diary"
+        ];
+        return basePaths.flatMap((base) => [
+          `${base}/${year}/${year}.md`,
+          `${base}/${year}/`,
+          `${base}/${year}/Entries/`,
+          `${base}/${year}/Dreams/`
+        ]);
+      }
+      function filterFiles(files, searchValue) {
+        const normalizedSearch = normalize(searchValue);
+        const yearMatch = searchValue.match(/^(20\d{2})$/);
+        let suggestions = [];
+        if (yearMatch) {
+          suggestions.push(...generateYearPaths(yearMatch[1]));
+        }
+        const matchingFiles = files.filter((file) => {
+          if (file.path.includes(".backup-") || file.path.includes("/Backups/") || file.basename.endsWith(".backup")) {
+            return false;
+          }
+          const normalizedPath = normalize(file.path);
+          return normalizedPath.includes(normalizedSearch) || yearMatch && file.path.includes(yearMatch[1]);
+        }).map((file) => file.path);
+        suggestions.push(...matchingFiles);
+        suggestions = [...new Set(suggestions)].sort((a, b) => {
+          const aExact = a.toLowerCase() === searchValue.toLowerCase();
+          const bExact = b.toLowerCase() === searchValue.toLowerCase();
+          if (aExact && !bExact)
+            return -1;
+          if (!aExact && bExact)
+            return 1;
+          const aYear = a.includes(`/${searchValue}/`);
+          const bYear = b.includes(`/${searchValue}/`);
+          if (aYear && !bYear)
+            return -1;
+          if (!aYear && bYear)
+            return 1;
+          return a.localeCompare(b);
+        }).slice(0, 7);
+        return suggestions;
+      }
+      async function updateSuggestions() {
+        const value = inputEl.value.trim();
         if (!value) {
-          suggestionContainer2.classList.add("oom-hidden");
+          hideSuggestions2();
           return;
         }
-        const files = this.app.vault.getMarkdownFiles().filter((file) => !file.path.includes("/Backups/") && !file.path.endsWith(".backup"));
-        const lowerInput = value.toLowerCase();
-        const normalizedInput = normalize(value);
-        const suggestions = files.map((file) => file.path).filter((path) => {
-          const lowerPath = path.toLowerCase();
-          const normalizedPath = normalize(path);
-          const segments = lowerPath.split(/[\/\\]+/);
-          if (lowerInput.match(/^\d{4}$/)) {
-            return segments.some((segment) => segment === lowerInput) || path.includes(`/Journals/${lowerInput}/`) || path.includes(`\\Journals\\${lowerInput}\\`);
-          }
-          if (lowerPath === lowerInput)
-            return true;
-          if (segments.some((segment) => segment.includes(lowerInput)))
-            return true;
-          if (normalizedPath.includes(normalizedInput))
-            return true;
-          return lowerPath.includes(lowerInput);
-        }).slice(0, 7);
-        suggestionContainer2.empty();
+        const files = this.app.vault.getMarkdownFiles();
+        const suggestions = filterFiles(files, value);
         if (suggestions.length > 0) {
-          for (const suggestion of suggestions) {
+          suggestionContainer2.empty();
+          suggestions.forEach((suggestion) => {
             const item = suggestionContainer2.createEl("div", {
               cls: "suggestion-item",
-              attr: { title: suggestion },
-              text: suggestion
+              attr: {
+                style: "padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);"
+              }
             });
-            item.onclick = () => {
-              inputEl2.value = suggestion;
+            const regex = new RegExp(`(${value})`, "gi");
+            item.innerHTML = suggestion.replace(regex, "<strong>$1</strong>");
+            item.addEventListener("mouseover", () => {
+              item.style.backgroundColor = "var(--background-modifier-hover)";
+            });
+            item.addEventListener("mouseout", () => {
+              item.style.backgroundColor = "";
+            });
+            item.addEventListener("click", async () => {
+              inputEl.value = suggestion;
               this.plugin.settings.projectNotePath = suggestion;
-              this.plugin.saveSettings();
-              suggestionContainer2.classList.add("oom-hidden");
-            };
-          }
-          suggestionContainer2.classList.remove("oom-hidden");
+              await this.plugin.saveSettings();
+              hideSuggestions2();
+            });
+          });
+          suggestionContainer2.style.display = "block";
           positionSuggestionContainer();
         } else {
-          suggestionContainer2.classList.add("oom-hidden");
+          hideSuggestions2();
+        }
+      }
+      inputEl.addEventListener("input", updateSuggestions.bind(this));
+      inputEl.addEventListener("blur", () => {
+        setTimeout(hideSuggestions2, 200);
+      });
+      inputEl.addEventListener("keydown", (e) => {
+        var _a, _b;
+        const items = suggestionContainer2.querySelectorAll(".suggestion-item");
+        const currentIndex = Array.from(items).findIndex(
+          (item) => item.classList.contains("is-selected")
+        );
+        switch (e.key) {
+          case "ArrowDown":
+            e.preventDefault();
+            if (currentIndex < items.length - 1) {
+              (_a = items[currentIndex]) == null ? void 0 : _a.classList.remove("is-selected");
+              items[currentIndex + 1].classList.add("is-selected");
+              items[currentIndex + 1].scrollIntoView({ block: "nearest" });
+            }
+            break;
+          case "ArrowUp":
+            e.preventDefault();
+            if (currentIndex > 0) {
+              (_b = items[currentIndex]) == null ? void 0 : _b.classList.remove("is-selected");
+              items[currentIndex - 1].classList.add("is-selected");
+              items[currentIndex - 1].scrollIntoView({ block: "nearest" });
+            }
+            break;
+          case "Enter":
+            e.preventDefault();
+            const selectedItem = suggestionContainer2.querySelector(".is-selected");
+            if (selectedItem) {
+              const path = selectedItem.textContent;
+              if (path) {
+                inputEl.value = path;
+                this.plugin.settings.projectNotePath = path;
+                this.plugin.saveSettings();
+                hideSuggestions2();
+              }
+            }
+            break;
+          case "Escape":
+            hideSuggestions2();
+            break;
         }
       });
       document.addEventListener("click", (e) => {
-        if (!inputEl2.contains(e.target) && !suggestionContainer2.contains(e.target)) {
-          suggestionContainer2.classList.add("oom-hidden");
+        if (!inputEl.contains(e.target) && !suggestionContainer2.contains(e.target)) {
+          hideSuggestions2();
         }
       });
     });
@@ -300,14 +530,29 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
       attr: { placeholder: "Type to search notes..." }
     });
     const suggestionContainer = selectedNotesContainer.createEl("div", {
-      cls: "suggestion-container",
-      attr: { style: "display: none; position: absolute; z-index: 100; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px;" }
+      cls: "suggestion-container oom-suggestion-container",
+      attr: { style: "display: none; position: absolute; z-index: 1000; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px; width: 100%; box-shadow: 0 2px 8px var(--background-modifier-box-shadow);" }
     });
+    function hideSuggestions() {
+      suggestionContainer.style.display = "none";
+      suggestionContainer.empty();
+    }
+    function showSuggestions() {
+      if (suggestionContainer.children.length > 0) {
+        suggestionContainer.style.display = "block";
+        const inputRect = input.getBoundingClientRect();
+        const containerRect = selectedNotesContainer.getBoundingClientRect();
+        suggestionContainer.style.top = `${inputRect.bottom - containerRect.top}px`;
+        suggestionContainer.style.left = "0";
+        suggestionContainer.style.width = `${inputRect.width}px`;
+      }
+    }
     function renderChips() {
       chipsContainer.empty();
       for (const note of this.plugin.settings.selectedNotes) {
-        const chip = chipsContainer.createEl("span", { cls: "oom-chip", text: note });
-        chip.setAttr("title", note);
+        const chip = chipsContainer.createEl("span", { cls: "oom-chip" });
+        const chipText = chip.createEl("span", { cls: "oom-chip-text", text: note });
+        chipText.setAttr("title", note);
         const removeBtn = chip.createEl("span", { cls: "oom-chip-remove", text: "\xD7" });
         removeBtn.onclick = () => {
           this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n) => n !== note);
@@ -320,38 +565,67 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
     input.addEventListener("input", async (e) => {
       const value = input.value;
       if (!value) {
-        suggestionContainer.style.display = "none";
+        hideSuggestions();
         return;
       }
       const files = this.app.vault.getMarkdownFiles();
       const lowerInput = value.toLowerCase();
-      const suggestions = files.map((file) => file.path).filter(
-        (path) => !this.plugin.settings.selectedNotes.includes(path) && path.toLowerCase().includes(lowerInput)
-      ).slice(0, 7);
+      const yearMatch = value.match(/^(20\d{2})$/);
+      let matchingFiles = files.map((file) => file.path).filter((path) => {
+        if (path.includes(".backup-") || path.includes("/Backups/") || path.endsWith(".backup")) {
+          return false;
+        }
+        const lowerPath = path.toLowerCase();
+        return !this.plugin.settings.selectedNotes.includes(path) && (lowerPath.includes(lowerInput) || yearMatch && path.includes(yearMatch[1]));
+      });
+      if (yearMatch) {
+        const yearFile = `Journals/${yearMatch[1]}/${yearMatch[1]}.md`;
+        if (matchingFiles.includes(yearFile)) {
+          matchingFiles = [yearFile, ...matchingFiles.filter((f) => f !== yearFile)];
+        }
+      }
+      matchingFiles = [...new Set(matchingFiles)].sort((a, b) => {
+        const aExact = a.toLowerCase() === lowerInput;
+        const bExact = b.toLowerCase() === lowerInput;
+        if (aExact && !bExact)
+          return -1;
+        if (!aExact && bExact)
+          return 1;
+        return a.localeCompare(b);
+      }).slice(0, 7);
       suggestionContainer.empty();
-      if (suggestions.length > 0) {
-        for (const suggestion of suggestions) {
+      if (matchingFiles.length > 0) {
+        for (const suggestion of matchingFiles) {
           const item = suggestionContainer.createEl("div", {
             cls: "suggestion-item",
-            attr: { title: suggestion },
-            text: suggestion
+            attr: {
+              title: suggestion,
+              style: "padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary);"
+            }
+          });
+          item.textContent = suggestion;
+          item.addEventListener("mouseenter", () => {
+            item.style.backgroundColor = "var(--background-modifier-hover)";
+          });
+          item.addEventListener("mouseleave", () => {
+            item.style.backgroundColor = "var(--background-primary)";
           });
           item.onclick = () => {
             this.plugin.settings.selectedNotes.push(suggestion);
             this.plugin.saveSettings();
             input.value = "";
-            suggestionContainer.style.display = "none";
+            hideSuggestions();
             renderChips.call(this);
           };
         }
-        suggestionContainer.style.display = "block";
+        showSuggestions();
       } else {
-        suggestionContainer.style.display = "none";
+        hideSuggestions();
       }
     });
     document.addEventListener("click", (e) => {
-      if (!input.contains(e.target) && !suggestionContainer.contains(e.target)) {
-        suggestionContainer.style.display = "none";
+      if (!selectedNotesContainer.contains(e.target)) {
+        hideSuggestions();
       }
     });
     input.addEventListener("keydown", (e) => {
@@ -387,13 +661,13 @@ var DreamMetricsSettingTab = class extends import_obsidian.PluginSettingTab {
               this.plugin.settings.selectedNotes.push(path);
               this.plugin.saveSettings();
               input.value = "";
-              suggestionContainer.style.display = "none";
+              hideSuggestions();
               renderChips.call(this);
             }
           }
           break;
         case "Escape":
-          suggestionContainer.style.display = "none";
+          hideSuggestions();
           break;
       }
     });
@@ -541,7 +815,9 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
       projectNotePath: "Journals/Dream Diary/Metrics/Metrics.md",
       metrics: [...DEFAULT_METRICS],
       selectedNotes: [],
-      calloutName: "dream-metrics"
+      calloutName: "dream-metrics",
+      backupEnabled: true,
+      backupFolderPath: ""
     }, await this.loadData());
   }
   async saveSettings() {
@@ -616,7 +892,7 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
             const metricsText = metricsMatch[1].replace(/>\s*/g, "");
             console.log(`[OneiroMetrics] Found metrics for dream: ${title}`);
             console.log(`[OneiroMetrics] Metrics text: ${metricsText}`);
-            const dreamContent = dreamDiary.split(/> \[!dream-metrics\]/)[0].replace(/^> \[!dream-diary\].*?\[\[.*?\]\]\n/m, "").replace(/^>+\s*/gm, "").replace(/\[\[([^\]]+?)\]\]/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[([^\]]+?)\]\(.*?\)/g, "$1").replace(/`([^`]+?)`/g, "$1").replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/\*([^*]+?)\*/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/^---+\s*$/gm, "").replace(/\n{2,}/g, " ").trim();
+            const dreamContent = dreamDiary.split(/> \[!dream-metrics\]/)[0].replace(/^> \[!dream-diary\].*?\[\[.*?\]\]\n/m, "").replace(/^>+\s*/gm, "").replace(/\[\[([^\]]+?)\]\]/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[([^\]]+?)\]\(.*?\)/g, "$1").replace(/```[\s\S]*?```/g, "").replace(/`([^`]+?)`/g, "$1").replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/\*([^*]+?)\*/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/^---+\s*$/gm, "").replace(/\[!journal-page\|.*?\]/g, "").replace(/![^|\n]+?\|?\d*\s*/g, "").replace(/\n{2,}/g, " ").trim();
             const wordCount = dreamContent.split(/\s+/).length;
             totalWords += wordCount;
             entriesProcessed++;
@@ -710,28 +986,37 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
     }
   }
   async backupProjectNote(file) {
+    if (!this.settings.backupEnabled) {
+      console.log("Backups are disabled in settings");
+      return;
+    }
+    if (!this.settings.backupFolderPath) {
+      console.log("No backup folder path set in settings");
+      new import_obsidian2.Notice("Please select a backup folder in settings");
+      return;
+    }
     try {
       const content = await this.app.vault.read(file);
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const projectDir = file.parent;
-      if (!projectDir) {
-        throw new Error("Project note has no parent directory");
-      }
-      const backupsFolderPath = `${projectDir.path}/Backups`;
-      const backupsFolder = this.app.vault.getAbstractFileByPath(backupsFolderPath);
-      if (!backupsFolder) {
-        await this.app.vault.createFolder(backupsFolderPath);
-      }
-      const backupPath = `${backupsFolderPath}/Metrics.${timestamp}.backup.md`;
-      const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
-      if (existingBackup) {
-        await this.app.vault.delete(existingBackup);
+      const fileName = file.basename;
+      const backupPath = `${this.settings.backupFolderPath}/${fileName}.backup-${timestamp}.md`;
+      const backupFolder = this.app.vault.getAbstractFileByPath(this.settings.backupFolderPath);
+      if (!backupFolder) {
+        try {
+          await this.app.vault.createFolder(this.settings.backupFolderPath);
+          console.log(`Created backup folder: ${this.settings.backupFolderPath}`);
+        } catch (error) {
+          console.error("Error creating backup folder:", error);
+          new import_obsidian2.Notice(`Error creating backup folder: ${error.message}`);
+          return;
+        }
       }
       await this.app.vault.create(backupPath, content);
       console.log(`Created backup at: ${backupPath}`);
+      new import_obsidian2.Notice(`Backup created: ${backupPath}`);
     } catch (error) {
       console.error("Error creating backup:", error);
-      new import_obsidian2.Notice("Error creating backup. Check console for details.");
+      new import_obsidian2.Notice(`Error creating backup: ${error.message}`);
     }
   }
   async confirmOverwrite() {
@@ -847,7 +1132,20 @@ var DreamMetricsPlugin = class extends import_obsidian2.Plugin {
       let dreamContent = entry.content;
       const diaryMatch = dreamContent.match(/> \[!dream-diary\].*?\[\[.*?\]\]\n([\s\S]*?)(?=\n> \[!dream-metrics\]|$)/);
       if (diaryMatch) {
-        dreamContent = diaryMatch[1].replace(/^\[!journal-page\|right\]\s*$/gm, "").replace(/^![\w-]+-\d{8}-[\w-]+\.png\|\d+\s*$/gm, "").replace(/^>+\s*/gm, "").replace(/\[\[([^\]]+?)\]\]/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[([^\]]+?)\]\(.*?\)/g, "$1").replace(/`([^`]+?)`/g, "$1").replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/\*([^*]+?)\*/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/^---+\s*$/gm, "").replace(/\n{2,}/g, " ").replace(/^\s+|\s+$/gm, "").trim();
+        dreamContent = diaryMatch[1];
+        dreamContent = dreamContent.split("\n").map((line) => {
+          if (line.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?/i) || line.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) || line.match(/^!.*?\|/) || line.match(/^>\s*!.*?\|/) || line.match(/^>\s*\[\[.*?\]\]/) || line.match(/^>\s*\[!.*?\|/) || line.match(/^---+$/)) {
+            return "";
+          }
+          return line;
+        }).filter((line) => line.trim() !== "").join("\n");
+        dreamContent = dreamContent.replace(/^>+\s*/gm, "").replace(/\[\[([^\]]+?)\]\]/g, "$1").replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[([^\]]+?)\]\(.*?\)/g, "$1").replace(/```[\s\S]*?```/g, "").replace(/`([^`]+?)`/g, "$1").replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/\*([^*]+?)\*/g, "$1").replace(/<\/?[^>]+(>|$)/g, "").replace(/\[!.*?\|.*?\]/g, "").replace(/\n{2,}/g, " ").trim();
+        dreamContent = dreamContent.split(" ").filter((word) => {
+          return !(word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) || word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) || word.match(/^!.*?\|/) || word.match(/\[\[.*?\]\]/) || word.match(/\[!.*?\|.*?\]/));
+        }).join(" ").replace(/\s+/g, " ").trim();
+      }
+      if (!dreamContent || !dreamContent.trim()) {
+        dreamContent = "";
       }
       if (dreamContent.length > 200) {
         const preview = dreamContent.substring(0, 200) + "...";
@@ -900,60 +1198,86 @@ var OneiroMetricsModal = class extends import_obsidian2.Modal {
       text.setValue(this.plugin.settings.projectNotePath).setPlaceholder("Journals/Dream Diary/Metrics/Metrics.md").onChange((value) => {
         this.plugin.settings.projectNotePath = value;
       });
-      const inputEl2 = text.inputEl;
-      inputEl2.addClass("oom-file-suggestion");
-      inputEl2.setAttribute("data-suggestion", "file");
-      const suggestionContainer2 = contentEl.createEl("div", {
+      const projectNoteInput = text.inputEl;
+      projectNoteInput.addClass("oom-file-suggestion");
+      projectNoteInput.setAttribute("data-suggestion", "file");
+      const projectNoteSuggestionContainer = contentEl.createEl("div", {
         cls: "suggestion-container oom-suggestion-container"
       });
       function positionSuggestionContainer() {
-        const inputRect = inputEl2.getBoundingClientRect();
+        const inputRect = projectNoteInput.getBoundingClientRect();
         const modalEl = contentEl.closest(".modal");
         const modalRect = modalEl ? modalEl.getBoundingClientRect() : contentEl.getBoundingClientRect();
         const dropdownWidth = Math.max(inputRect.width, 180);
         let left = inputRect.left - modalRect.left;
         let top = inputRect.bottom - modalRect.top;
         let maxWidth = modalRect.width;
-        suggestionContainer2.style.position = "absolute";
-        suggestionContainer2.style.left = `${left}px`;
-        suggestionContainer2.style.right = "";
-        suggestionContainer2.style.maxWidth = `${maxWidth}px`;
+        projectNoteSuggestionContainer.style.position = "absolute";
+        projectNoteSuggestionContainer.style.left = `${left}px`;
+        projectNoteSuggestionContainer.style.right = "";
+        projectNoteSuggestionContainer.style.maxWidth = `${maxWidth}px`;
         if (left + dropdownWidth > modalRect.width) {
-          suggestionContainer2.style.left = "auto";
-          suggestionContainer2.style.right = "0";
+          projectNoteSuggestionContainer.style.left = "auto";
+          projectNoteSuggestionContainer.style.right = "0";
         }
-        suggestionContainer2.style.top = `${top}px`;
-        suggestionContainer2.style.width = `${dropdownWidth}px`;
-        suggestionContainer2.style.overflowX = "auto";
+        projectNoteSuggestionContainer.style.top = `${top}px`;
+        projectNoteSuggestionContainer.style.width = `${dropdownWidth}px`;
+        projectNoteSuggestionContainer.style.overflowX = "auto";
       }
       function normalize(str) {
         return str.toLowerCase().replace(/\s+/g, "");
       }
-      inputEl2.addEventListener("input", async (e) => {
-        const value = inputEl2.value;
+      projectNoteInput.addEventListener("input", async (e) => {
+        const value = projectNoteInput.value;
         if (!value) {
-          suggestionContainer2.classList.add("oom-hidden");
+          projectNoteSuggestionContainer.classList.add("oom-hidden");
           return;
         }
-        const files = this.app.vault.getMarkdownFiles().filter((file) => !file.path.includes("/Backups/") && !file.path.endsWith(".backup"));
+        const files = this.app.vault.getMarkdownFiles();
         const lowerInput = value.toLowerCase();
-        const normalizedInput = normalize(value);
-        const suggestions = files.map((file) => file.path).filter((path) => {
+        const yearMatch = value.match(/^(20\d{2})$/);
+        let suggestions = [];
+        if (yearMatch) {
+          const basePaths = [
+            "Journals",
+            "Dreams",
+            "Journal",
+            "Dream Diary"
+          ];
+          suggestions.push(...basePaths.flatMap((base) => [
+            `${base}/${yearMatch[1]}/${yearMatch[1]}.md`,
+            `${base}/${yearMatch[1]}/`,
+            `${base}/${yearMatch[1]}/Entries/`,
+            `${base}/${yearMatch[1]}/Dreams/`
+          ]));
+        }
+        const matchingFiles = files.map((file) => file.path).filter((path) => {
+          if (path.includes(".backup-") || path.includes("/Backups/") || path.endsWith(".backup")) {
+            return false;
+          }
           const lowerPath = path.toLowerCase();
-          const normalizedPath = normalize(path);
-          const segments = lowerPath.split(/[\/ ]+/);
-          if (lowerPath === lowerInput)
-            return true;
-          if (segments.some((segment) => segment.includes(lowerInput)))
-            return true;
-          if (normalizedPath.includes(normalizedInput))
-            return true;
-          return lowerPath.includes(lowerInput);
+          return !this.plugin.settings.selectedNotes.includes(path) && (lowerPath.includes(lowerInput) || yearMatch && path.includes(yearMatch[1]));
+        });
+        suggestions.push(...matchingFiles);
+        suggestions = [...new Set(suggestions)].sort((a, b) => {
+          const aExact = a.toLowerCase() === lowerInput;
+          const bExact = b.toLowerCase() === lowerInput;
+          if (aExact && !bExact)
+            return -1;
+          if (!aExact && bExact)
+            return 1;
+          const aYear = a.includes(`/${value}/`);
+          const bYear = b.includes(`/${value}/`);
+          if (aYear && !bYear)
+            return -1;
+          if (!aYear && bYear)
+            return 1;
+          return a.localeCompare(b);
         }).slice(0, 7);
-        suggestionContainer2.empty();
+        projectNoteSuggestionContainer.empty();
         if (suggestions.length > 0) {
           for (const suggestion of suggestions) {
-            const item = suggestionContainer2.createEl("div", {
+            const item = projectNoteSuggestionContainer.createEl("div", {
               cls: "suggestion-item",
               attr: { title: suggestion },
               text: suggestion
@@ -961,125 +1285,135 @@ var OneiroMetricsModal = class extends import_obsidian2.Modal {
             item.onclick = () => {
               this.plugin.settings.projectNotePath = suggestion;
               this.plugin.saveSettings();
-              inputEl2.value = suggestion;
-              suggestionContainer2.classList.add("oom-hidden");
+              projectNoteInput.value = suggestion;
+              projectNoteSuggestionContainer.classList.add("oom-hidden");
             };
           }
-          suggestionContainer2.classList.remove("oom-hidden");
+          projectNoteSuggestionContainer.classList.remove("oom-hidden");
           positionSuggestionContainer();
         } else {
-          suggestionContainer2.classList.add("oom-hidden");
+          projectNoteSuggestionContainer.classList.add("oom-hidden");
         }
       });
-    });
-    document.addEventListener("click", (e) => {
-      if (!inputEl.contains(e.target) && !suggestionContainer.contains(e.target)) {
-        suggestionContainer.classList.add("oom-hidden");
-      }
+      document.addEventListener("click", (e) => {
+        if (!projectNoteInput.contains(e.target) && !projectNoteSuggestionContainer.contains(e.target)) {
+          projectNoteSuggestionContainer.classList.add("oom-hidden");
+        }
+      });
     });
     new import_obsidian2.Setting(contentEl).setName("Selected Notes").setDesc("Notes to search for dream metrics (select one or more)").addExtraButton((button) => {
     });
     const selectedNotesContainer = contentEl.createEl("div", { cls: "oom-multiselect-container" });
     const chipsContainer = selectedNotesContainer.createEl("div", { cls: "oom-chips-container" });
-    const input = selectedNotesContainer.createEl("input", {
+    const selectedNotesInput = selectedNotesContainer.createEl("input", {
       type: "text",
       cls: "oom-multiselect-input",
       attr: { placeholder: "Type to search notes..." }
     });
-    const suggestionContainer = selectedNotesContainer.createEl("div", {
-      cls: "suggestion-container oom-suggestion-container"
+    const selectedNotesSuggestionContainer = selectedNotesContainer.createEl("div", {
+      cls: "suggestion-container oom-suggestion-container oom-hidden",
+      attr: {
+        style: `
+                    position: absolute;
+                    z-index: 1000;
+                    background: var(--background-primary);
+                    border: 1px solid var(--background-modifier-border);
+                    border-radius: 4px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+                    width: 100%;
+                    top: 100%;
+                    left: 0;
+                `
+      }
     });
-    function renderChips() {
+    function hideSelectedNotesSuggestions() {
+      selectedNotesSuggestionContainer.classList.add("oom-hidden");
+    }
+    function showSelectedNotesSuggestions() {
+      selectedNotesSuggestionContainer.classList.remove("oom-hidden");
+      const inputRect = selectedNotesInput.getBoundingClientRect();
+      const containerRect = selectedNotesContainer.getBoundingClientRect();
+      selectedNotesSuggestionContainer.style.top = `${inputRect.bottom - containerRect.top}px`;
+      selectedNotesSuggestionContainer.style.width = `${inputRect.width}px`;
+    }
+    const renderChips = () => {
       chipsContainer.empty();
-      for (const note of this.plugin.settings.selectedNotes) {
-        const chip = chipsContainer.createEl("span", { cls: "oom-chip" });
-        const chipText = chip.createEl("span", { cls: "oom-chip-text", text: note });
-        chipText.setAttr("title", note);
-        const removeBtn = chip.createEl("span", { cls: "oom-chip-remove", text: "\xD7" });
+      this.plugin.settings.selectedNotes.forEach((note) => {
+        const chip = chipsContainer.createEl("div", { cls: "oom-chip" });
+        chip.createEl("span", { text: note });
+        const removeBtn = chip.createEl("button", { cls: "oom-chip-remove" });
         removeBtn.onclick = () => {
           this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n) => n !== note);
           this.plugin.saveSettings();
-          renderChips.call(this);
+          renderChips();
         };
-      }
-    }
-    renderChips.call(this);
-    input.addEventListener("input", async (e) => {
-      const value = input.value;
+      });
+    };
+    renderChips();
+    selectedNotesInput.addEventListener("input", async (e) => {
+      const value = selectedNotesInput.value;
+      console.log("[OneiroMetrics][Modal] Input event fired. Value:", value);
+      console.log("[OneiroMetrics][Modal] Current selectedNotes:", this.plugin.settings.selectedNotes);
       if (!value) {
-        suggestionContainer.classList.add("oom-hidden");
+        hideSelectedNotesSuggestions();
         return;
       }
       const files = this.app.vault.getMarkdownFiles();
+      console.log("[OneiroMetrics][Modal] Files returned by getMarkdownFiles:", files.map((f) => f.path));
       const lowerInput = value.toLowerCase();
-      const suggestions = files.map((file) => file.path).filter(
-        (path) => !this.plugin.settings.selectedNotes.includes(path) && path.toLowerCase().includes(lowerInput)
-      ).slice(0, 7);
-      suggestionContainer.empty();
+      let suggestions = [];
+      const matchingFiles = files.map((file) => file.path).filter((path) => {
+        if (path.includes(".backup-") || path.includes("/Backups/") || path.endsWith(".backup")) {
+          return false;
+        }
+        const lowerPath = path.toLowerCase();
+        return !this.plugin.settings.selectedNotes.includes(path) && lowerPath.includes(lowerInput);
+      });
+      suggestions = matchingFiles.sort((a, b) => {
+        const aExact = a.toLowerCase() === lowerInput;
+        const bExact = b.toLowerCase() === lowerInput;
+        if (aExact && !bExact)
+          return -1;
+        if (!aExact && bExact)
+          return 1;
+        return a.localeCompare(b);
+      }).slice(0, 7);
+      console.log("[OneiroMetrics][Modal] Suggestions to display:", suggestions);
+      selectedNotesSuggestionContainer.empty();
       if (suggestions.length > 0) {
+        console.log("[OneiroMetrics][Modal] Creating suggestion items...");
         for (const suggestion of suggestions) {
-          const item = suggestionContainer.createEl("div", {
+          const item = selectedNotesSuggestionContainer.createEl("div", {
             cls: "suggestion-item",
             attr: { title: suggestion },
             text: suggestion
           });
           item.onclick = () => {
-            this.plugin.settings.selectedNotes.push(suggestion);
-            this.plugin.saveSettings();
-            input.value = "";
-            suggestionContainer.classList.add("oom-hidden");
+            if (!this.plugin.settings.selectedNotes.includes(suggestion)) {
+              this.plugin.settings.selectedNotes.push(suggestion);
+              this.plugin.saveSettings();
+              renderChips();
+            }
+            selectedNotesInput.value = "";
+            hideSelectedNotesSuggestions();
           };
         }
-        suggestionContainer.classList.remove("oom-hidden");
+        console.log("[OneiroMetrics][Modal] Showing suggestions container...");
+        console.log("[OneiroMetrics][Modal] Container display style:", selectedNotesSuggestionContainer.style.display);
+        console.log("[OneiroMetrics][Modal] Container classList:", selectedNotesSuggestionContainer.classList);
+        showSelectedNotesSuggestions();
+        console.log("[OneiroMetrics][Modal] Container display style after show:", selectedNotesSuggestionContainer.style.display);
+        console.log("[OneiroMetrics][Modal] Container classList after show:", selectedNotesSuggestionContainer.classList);
       } else {
-        suggestionContainer.classList.add("oom-hidden");
+        console.log("[OneiroMetrics][Modal] No suggestions to display");
+        hideSelectedNotesSuggestions();
       }
     });
     document.addEventListener("click", (e) => {
-      if (!input.contains(e.target) && !suggestionContainer.contains(e.target)) {
-        suggestionContainer.classList.add("oom-hidden");
-      }
-    });
-    input.addEventListener("keydown", (e) => {
-      var _a, _b;
-      const items = suggestionContainer.querySelectorAll(".suggestion-item");
-      const currentIndex = Array.from(items).findIndex((item) => item.classList.contains("is-selected"));
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          if (currentIndex < items.length - 1) {
-            (_a = items[currentIndex]) == null ? void 0 : _a.classList.remove("is-selected");
-            items[currentIndex + 1].classList.add("is-selected");
-            items[currentIndex + 1].scrollIntoView({ block: "nearest" });
-          } else if (items.length > 0 && currentIndex === -1) {
-            items[0].classList.add("is-selected");
-            items[0].scrollIntoView({ block: "nearest" });
-          }
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          if (currentIndex > 0) {
-            (_b = items[currentIndex]) == null ? void 0 : _b.classList.remove("is-selected");
-            items[currentIndex - 1].classList.add("is-selected");
-            items[currentIndex - 1].scrollIntoView({ block: "nearest" });
-          }
-          break;
-        case "Enter":
-          e.preventDefault();
-          const selectedItem = suggestionContainer.querySelector(".is-selected");
-          if (selectedItem) {
-            const path = selectedItem.textContent;
-            if (path) {
-              this.plugin.settings.selectedNotes.push(path);
-              this.plugin.saveSettings();
-              input.value = "";
-              suggestionContainer.classList.add("oom-hidden");
-            }
-          }
-          break;
-        case "Escape":
-          suggestionContainer.classList.add("oom-hidden");
-          break;
+      if (!selectedNotesInput.contains(e.target) && !selectedNotesSuggestionContainer.contains(e.target)) {
+        hideSelectedNotesSuggestions();
       }
     });
     new import_obsidian2.Setting(contentEl).setName("Callout Name").addText((text) => text.setValue(this.plugin.settings.calloutName).onChange((value) => {

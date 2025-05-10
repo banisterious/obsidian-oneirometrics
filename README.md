@@ -2,87 +2,87 @@
 
 A plugin for Obsidian that turns dreams into data by tracking and analyzing dream journal metrics.
 
-## Overview
+## Features
 
-OneiroMetrics (OOM) provides tools for analyzing dream journal entries, generating metrics, and visualizing patterns in your dreams. The plugin integrates seamlessly with Obsidian's interface and supports both manual and automated analysis.
+- Track multiple customizable metrics for each dream entry
+- Automatically scrape metrics from dream journal entries
+- Generate detailed analysis tables with sortable columns
+- Filter entries by date range and specific metrics
+- Backup system to protect your data
+- Customizable settings for metrics and data management
+- Multi-chip autocomplete for selecting notes to analyze, now improved in both settings and modal: only real, existing markdown files can be selected (not folders or non-existent files).
 
-## Key Features
+## Setup
 
-- Dream journal analysis with detailed metrics
-- Customizable analysis parameters
-- Interactive metrics visualization
-- Support for both manual and automated processing
-- Seamless Obsidian integration
-- Enhanced metric management with:
-  - Real-time validation
-  - Live preview
-  - Drag-and-drop reordering
-  - Keyboard shortcuts
-  - Visual feedback
-- Smart file suggestions with:
-  - Multi-chip autocomplete
-  - Year-based path suggestions
-  - Case-insensitive matching
-  - Support for spaces and special characters
-- Preserve custom metrics when resetting defaults
-- Responsive table layout with optimized column widths
-- Full-width table support (overrides readable line length)
-- Automatic content cleaning for markdown elements
-- Automatic backup system with timestamped backups
-- Expandable/collapsible content preview
-- Center-aligned numeric metrics
-- Date range and metric filtering
+1. Install the plugin through Obsidian's Community Plugins browser
+2. Enable the plugin in Obsidian's settings
+3. Configure your settings:
+   - Set your project note path where metrics tables will be written
+   - Select your dream journal notes to analyze
+   - Configure backup settings (optional)
+   - Customize metrics as needed
 
-## Documentation
+## Settings
 
-- [[docs/SPECIFICATION.md|Technical Specification]] - Detailed technical documentation
-- [[docs/USAGE.md|Usage Guide]] - How to use the plugin
-- [[CHANGELOG.md|Changelog]] - Version history and changes
-- [[RELEASING.md|Release Guide]] - Information about releases
-- [[TESTING.md|Testing Guide]] - Testing and troubleshooting information
+### Project Note
+- **Project Note Path**: The path where metrics tables will be written
+- **Selected Notes**: Choose which notes to analyze for dream metrics
 
-## Development
+### Backup Settings
+- **Enable Backups**: Toggle to enable/disable automatic backups (enabled by default)
+- **Backup Folder**: Select an existing folder where backups will be stored
+- **Note**: Backups are created automatically before any changes to the project note
 
-- Built with TypeScript
-- Uses Obsidian's plugin API
-- Follows semantic versioning
-- MIT licensed
-
-## Repository
-
-- GitHub: [OneiroMetrics](https://github.com/banisterious/oneirometrics)
-- Current Version: 0.1.2
-
-## Installation
-
-1. Open Obsidian Settings
-2. Go to Community Plugins
-3. Disable Safe Mode
-4. Click Browse and search for "OneiroMetrics"
-5. Click Install
-6. Enable the plugin
+### Metrics Configuration
+- Add, edit, or remove metrics
+- Each metric includes:
+  - Name
+  - Valid range (min/max)
+  - Description
+- Default metrics provided:
+  - Sensory Detail (1-5)
+  - Emotional Recall (1-5)
+  - Lost Segments (0-10)
+  - Descriptiveness (1-5)
+  - Confidence Score (1-5)
 
 ## Usage
 
-1. Configure your metrics in the plugin settings
-   - Use the smart file suggestion system for project note path
-   - Add custom metrics with real-time validation
-   - Reset defaults while preserving custom metrics
-2. Add dream metrics to your journal entries using callouts:
-   ```markdown
-   > [!dream-metrics]
-   > Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2
-   ```
-3. Use the ribbon icon or command palette to analyze your dreams
-4. View the generated metrics in your project note:
-   - Summary section with averages and statistics
-   - Detailed section with expandable content
-   - Sortable and filterable columns
+### Adding Dream Metrics
+Add metrics to your dream entries using the following callout format:
 
-## Contributing
+```markdown
+> [!dream-metrics]
+> Sensory Detail: 4
+> Emotional Recall: 3
+> Lost Segments: 2
+> Descriptiveness: 4
+> Confidence Score: 5
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Analyzing Dreams
+1. Open OneiroMetrics from the ribbon icon or command palette
+2. Select the notes you want to analyze
+3. Click "Scrape Metrics" to generate analysis
+4. View your metrics tables in the project note
+
+### Using Backups
+1. Enable backups in settings (enabled by default)
+2. Select an existing folder for storing backups
+3. Backups are automatically created before any changes
+4. Each backup includes a timestamp for easy reference
+
+## Tips
+- Create a dedicated folder for backups to keep your vault organized
+- Regular backups are recommended when making significant changes
+- Use the date range and metric filters to focus on specific aspects of your dreams
+- Sort table columns to identify patterns in your dream journal
+
+## Support
+If you encounter any issues or have suggestions, please:
+1. Check the GitHub issues page
+2. Create a new issue with detailed information
+3. Include steps to reproduce any bugs
 
 ## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details. 
+MIT License - see LICENSE file for details 

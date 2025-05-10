@@ -56,7 +56,9 @@ export default class DreamMetricsPlugin extends Plugin {
             projectNotePath: 'Journals/Dream Diary/Metrics/Metrics.md',
             metrics: [...DEFAULT_METRICS],
             selectedNotes: [],
-            calloutName: 'dream-metrics'
+            calloutName: 'dream-metrics',
+            backupEnabled: true,
+            backupFolderPath: ''
         }, await this.loadData());
     }
 
@@ -150,11 +152,14 @@ export default class DreamMetricsPlugin extends Plugin {
                             .replace(/\[\[([^\]]+?)\]\]/g, '$1') // Convert wiki links to plain text
                             .replace(/!\[.*?\]\(.*?\)/g, '') // Remove image links
                             .replace(/\[([^\]]+?)\]\(.*?\)/g, '$1') // Convert markdown links to plain text
-                            .replace(/`([^`]+?)`/g, '$1') // Convert inline code to plain text
+                            .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
+                            .replace(/`([^`]+?)`/g, '$1')      // Convert inline code to plain text
                             .replace(/\*\*([^*]+?)\*\*/g, '$1') // Convert bold to plain text
-                            .replace(/\*([^*]+?)\*/g, '$1') // Convert italic to plain text
-                            .replace(/<\/?[^>]+(>|$)/g, '') // Remove HTML tags
+                            .replace(/\*([^*]+?)\*/g, '$1')    // Convert italic to plain text
+                            .replace(/<\/?[^>]+(>|$)/g, '')    // Remove HTML tags
                             .replace(/^---+\s*$/gm, '') // Remove horizontal rules
+                            .replace(/\[!journal-page\|.*?\]/g, '') // Remove journal-page callouts
+                            .replace(/![^|\n]+?\|?\d*\s*/g, '') // Remove image embeds with optional dimensions
                             .replace(/\n{2,}/g, ' ') // Replace multiple newlines with space
                             .trim();
                         const wordCount = dreamContent.split(/\s+/).length;
@@ -270,32 +275,43 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private async backupProjectNote(file: TFile) {
+        if (!this.settings.backupEnabled) {
+            console.log('Backups are disabled in settings');
+            return;
+        }
+
+        if (!this.settings.backupFolderPath) {
+            console.log('No backup folder path set in settings');
+            new Notice('Please select a backup folder in settings');
+            return;
+        }
+
         try {
             const content = await this.app.vault.read(file);
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            // Get the directory of the project note
-            const projectDir = file.parent;
-            if (!projectDir) {
-                throw new Error('Project note has no parent directory');
+            const fileName = file.basename;
+            const backupPath = `${this.settings.backupFolderPath}/${fileName}.backup-${timestamp}.md`;
+            
+            // Create backup folder if it doesn't exist
+            const backupFolder = this.app.vault.getAbstractFileByPath(this.settings.backupFolderPath);
+            if (!backupFolder) {
+                try {
+                    await this.app.vault.createFolder(this.settings.backupFolderPath);
+                    console.log(`Created backup folder: ${this.settings.backupFolderPath}`);
+                } catch (error) {
+                    console.error('Error creating backup folder:', error);
+                    new Notice(`Error creating backup folder: ${error.message}`);
+                    return;
+                }
             }
-            // Create Backups folder if it doesn't exist
-            const backupsFolderPath = `${projectDir.path}/Backups`;
-            const backupsFolder = this.app.vault.getAbstractFileByPath(backupsFolderPath);
-            if (!backupsFolder) {
-                await this.app.vault.createFolder(backupsFolderPath);
-            }
-            // Create backup file in the Backups folder
-            const backupPath = `${backupsFolderPath}/Metrics.${timestamp}.backup.md`;
-            // Check if backup already exists
-            const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
-            if (existingBackup) {
-                await this.app.vault.delete(existingBackup);
-            }
+            
+            // Create the backup file
             await this.app.vault.create(backupPath, content);
             console.log(`Created backup at: ${backupPath}`);
+            new Notice(`Backup created: ${backupPath}`);
         } catch (error) {
             console.error('Error creating backup:', error);
-            new Notice('Error creating backup. Check console for details.');
+            new Notice(`Error creating backup: ${error.message}`);
         }
     }
 
@@ -422,23 +438,62 @@ export default class DreamMetricsPlugin extends Plugin {
             // Find the content between dream-diary and dream-metrics callouts
             const diaryMatch = dreamContent.match(/> \[!dream-diary\].*?\[\[.*?\]\]\n([\s\S]*?)(?=\n> \[!dream-metrics\]|$)/);
             if (diaryMatch) {
-                dreamContent = diaryMatch[1]
-                    // First, remove specific markdown elements
-                    .replace(/^\[!journal-page\|right\]\s*$/gm, '') // Remove journal-page callouts exactly as they appear
-                    .replace(/^![\w-]+-\d{8}-[\w-]+\.png\|\d+\s*$/gm, '') // Remove image embeds with date format and dimensions
-                    // Then proceed with general markdown cleaning
-                    .replace(/^>+\s*/gm, '') // Remove blockquote markers
+                dreamContent = diaryMatch[1];
+                
+                // First pass: Remove specific patterns line by line
+                dreamContent = dreamContent
+                    .split('\n')
+                    .map(line => {
+                        // Remove any line containing image references or specific patterns
+                        if (line.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?/i) ||
+                            line.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
+                            line.match(/^!.*?\|/) ||
+                            line.match(/^>\s*!.*?\|/) ||
+                            line.match(/^>\s*\[\[.*?\]\]/) ||
+                            line.match(/^>\s*\[!.*?\|/) ||
+                            line.match(/^---+$/)) {
+                            return '';
+                        }
+                        return line;
+                    })
+                    .filter(line => line.trim() !== '')
+                    .join('\n');
+
+                // Second pass: Clean up markdown and other elements
+                dreamContent = dreamContent
+                    .replace(/^>+\s*/gm, '')           // Remove blockquote markers
                     .replace(/\[\[([^\]]+?)\]\]/g, '$1') // Convert wiki links to plain text
-                    .replace(/!\[.*?\]\(.*?\)/g, '') // Remove image links
+                    .replace(/!\[.*?\]\(.*?\)/g, '')   // Remove image links
                     .replace(/\[([^\]]+?)\]\(.*?\)/g, '$1') // Convert markdown links to plain text
-                    .replace(/`([^`]+?)`/g, '$1') // Convert inline code to plain text
+                    .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
+                    .replace(/`([^`]+?)`/g, '$1')      // Convert inline code to plain text
                     .replace(/\*\*([^*]+?)\*\*/g, '$1') // Convert bold to plain text
-                    .replace(/\*([^*]+?)\*/g, '$1') // Convert italic to plain text
-                    .replace(/<\/?[^>]+(>|$)/g, '') // Remove HTML tags
-                    .replace(/^---+\s*$/gm, '') // Remove horizontal rules
-                    .replace(/\n{2,}/g, ' ') // Replace multiple newlines with space
-                    .replace(/^\s+|\s+$/gm, '') // Trim each line
+                    .replace(/\*([^*]+?)\*/g, '$1')    // Convert italic to plain text
+                    .replace(/<\/?[^>]+(>|$)/g, '')    // Remove HTML tags
+                    .replace(/\[!.*?\|.*?\]/g, '')     // Remove any remaining callouts
+                    .replace(/\n{2,}/g, ' ')           // Replace multiple newlines with space
                     .trim();
+
+                // Third pass: Remove any remaining image references or unwanted patterns
+                dreamContent = dreamContent
+                    .split(' ')
+                    .filter(word => {
+                        // Filter out any word that looks like an image reference or unwanted pattern
+                        return !(
+                            word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) ||
+                            word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
+                            word.match(/^!.*?\|/) ||
+                            word.match(/\[\[.*?\]\]/) ||
+                            word.match(/\[!.*?\|.*?\]/)
+                        );
+                    })
+                    .join(' ')
+                    .replace(/\s+/g, ' ') // Normalize spaces
+                    .trim();
+            }
+
+            if (!dreamContent || !dreamContent.trim()) {
+                dreamContent = '';
             }
 
             if (dreamContent.length > 200) {
@@ -503,35 +558,35 @@ class OneiroMetricsModal extends Modal {
                         this.plugin.settings.projectNotePath = value;
                     });
                 // Configure file suggestions
-                const inputEl = text.inputEl;
-                inputEl.addClass('oom-file-suggestion');
-                inputEl.setAttribute('data-suggestion', 'file');
+                const projectNoteInput = text.inputEl;
+                projectNoteInput.addClass('oom-file-suggestion');
+                projectNoteInput.setAttribute('data-suggestion', 'file');
 
                 // Create suggestion container
-                const suggestionContainer = contentEl.createEl('div', {
+                const projectNoteSuggestionContainer = contentEl.createEl('div', {
                     cls: 'suggestion-container oom-suggestion-container'
                 });
 
                 // Helper to position the dropdown
                 function positionSuggestionContainer() {
-                    const inputRect = inputEl.getBoundingClientRect();
+                    const inputRect = projectNoteInput.getBoundingClientRect();
                     const modalEl = contentEl.closest('.modal');
                     const modalRect = modalEl ? modalEl.getBoundingClientRect() : contentEl.getBoundingClientRect();
                     const dropdownWidth = Math.max(inputRect.width, 180);
                     let left = inputRect.left - modalRect.left;
                     let top = inputRect.bottom - modalRect.top;
                     let maxWidth = modalRect.width;
-                    suggestionContainer.style.position = 'absolute';
-                    suggestionContainer.style.left = `${left}px`;
-                    suggestionContainer.style.right = '';
-                    suggestionContainer.style.maxWidth = `${maxWidth}px`;
+                    projectNoteSuggestionContainer.style.position = 'absolute';
+                    projectNoteSuggestionContainer.style.left = `${left}px`;
+                    projectNoteSuggestionContainer.style.right = '';
+                    projectNoteSuggestionContainer.style.maxWidth = `${maxWidth}px`;
                     if (left + dropdownWidth > modalRect.width) {
-                        suggestionContainer.style.left = 'auto';
-                        suggestionContainer.style.right = '0';
+                        projectNoteSuggestionContainer.style.left = 'auto';
+                        projectNoteSuggestionContainer.style.right = '0';
                     }
-                    suggestionContainer.style.top = `${top}px`;
-                    suggestionContainer.style.width = `${dropdownWidth}px`;
-                    suggestionContainer.style.overflowX = 'auto';
+                    projectNoteSuggestionContainer.style.top = `${top}px`;
+                    projectNoteSuggestionContainer.style.width = `${dropdownWidth}px`;
+                    projectNoteSuggestionContainer.style.overflowX = 'auto';
                 }
 
                 // Normalize function (lowercase, collapse whitespace)
@@ -539,43 +594,78 @@ class OneiroMetricsModal extends Modal {
                     return str.toLowerCase().replace(/\s+/g, '');
                 }
 
-                inputEl.addEventListener('input', async (e) => {
-                    const value = inputEl.value;
+                projectNoteInput.addEventListener('input', async (e) => {
+                    const value = projectNoteInput.value;
                     if (!value) {
-                        suggestionContainer.classList.add('oom-hidden');
+                        projectNoteSuggestionContainer.classList.add('oom-hidden');
                         return;
                     }
 
-                    const files = this.app.vault.getMarkdownFiles()
-                        .filter(file => !file.path.includes('/Backups/') && !file.path.endsWith('.backup'));
+                    const files = this.app.vault.getMarkdownFiles();
                     const lowerInput = value.toLowerCase();
-                    const normalizedInput = normalize(value);
-                    
-                    const suggestions = files
+                    const yearMatch = value.match(/^(20\d{2})$/);
+                    let suggestions: string[] = [];
+
+                    // Add year-based suggestions if it's a year
+                    if (yearMatch) {
+                        const basePaths = [
+                            'Journals',
+                            'Dreams',
+                            'Journal',
+                            'Dream Diary'
+                        ];
+                        suggestions.push(...basePaths.flatMap(base => [
+                            `${base}/${yearMatch[1]}/${yearMatch[1]}.md`,
+                            `${base}/${yearMatch[1]}/`,
+                            `${base}/${yearMatch[1]}/Entries/`,
+                            `${base}/${yearMatch[1]}/Dreams/`
+                        ]));
+                    }
+
+                    // Add matching files, excluding backups
+                    const matchingFiles = files
                         .map(file => file.path)
                         .filter(path => {
+                            // Exclude backup files and directories
+                            if (path.includes('.backup-') || 
+                                path.includes('/Backups/') ||
+                                path.endsWith('.backup')) {
+                                return false;
+                            }
+
                             const lowerPath = path.toLowerCase();
-                            const normalizedPath = normalize(path);
-                            const segments = lowerPath.split(/[\/ ]+/);
+                            // Match by path or year
+                            return !this.plugin.settings.selectedNotes.includes(path) &&
+                                   (lowerPath.includes(lowerInput) || 
+                                    (yearMatch && path.includes(yearMatch[1])));
+                        });
+
+                    suggestions.push(...matchingFiles);
+
+                    // Remove duplicates and sort
+                    suggestions = [...new Set(suggestions)]
+                        .sort((a, b) => {
+                            // Prioritize exact matches
+                            const aExact = a.toLowerCase() === lowerInput;
+                            const bExact = b.toLowerCase() === lowerInput;
+                            if (aExact && !bExact) return -1;
+                            if (!aExact && bExact) return 1;
                             
-                            // Check for exact matches first
-                            if (lowerPath === lowerInput) return true;
+                            // Then prioritize year-based paths
+                            const aYear = a.includes(`/${value}/`);
+                            const bYear = b.includes(`/${value}/`);
+                            if (aYear && !bYear) return -1;
+                            if (!aYear && bYear) return 1;
                             
-                            // Check for path segment matches
-                            if (segments.some(segment => segment.includes(lowerInput))) return true;
-                            
-                            // Check for normalized path matches
-                            if (normalizedPath.includes(normalizedInput)) return true;
-                            
-                            // Check for partial path matches
-                            return lowerPath.includes(lowerInput);
+                            // Finally sort alphabetically
+                            return a.localeCompare(b);
                         })
                         .slice(0, 7);
 
-                    suggestionContainer.empty();
+                    projectNoteSuggestionContainer.empty();
                     if (suggestions.length > 0) {
                         for (const suggestion of suggestions) {
-                            const item = suggestionContainer.createEl('div', {
+                            const item = projectNoteSuggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
                                 attr: { title: suggestion },
                                 text: suggestion
@@ -583,24 +673,24 @@ class OneiroMetricsModal extends Modal {
                             item.onclick = () => {
                                 this.plugin.settings.projectNotePath = suggestion;
                                 this.plugin.saveSettings();
-                                inputEl.value = suggestion;
-                                suggestionContainer.classList.add('oom-hidden');
+                                projectNoteInput.value = suggestion;
+                                projectNoteSuggestionContainer.classList.add('oom-hidden');
                             };
                         }
-                        suggestionContainer.classList.remove('oom-hidden');
+                        projectNoteSuggestionContainer.classList.remove('oom-hidden');
                         positionSuggestionContainer();
                     } else {
-                        suggestionContainer.classList.add('oom-hidden');
+                        projectNoteSuggestionContainer.classList.add('oom-hidden');
+                    }
+                });
+
+                // Hide suggestions when clicking outside (scoped to this field)
+                document.addEventListener('click', (e) => {
+                    if (!projectNoteInput.contains(e.target as Node) && !projectNoteSuggestionContainer.contains(e.target as Node)) {
+                        projectNoteSuggestionContainer.classList.add('oom-hidden');
                     }
                 });
             });
-
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!inputEl.contains(e.target as Node) && !suggestionContainer.contains(e.target as Node)) {
-                suggestionContainer.classList.add('oom-hidden');
-            }
-        });
 
         // Selected Notes (multi-chip autocomplete)
         new Setting(contentEl)
@@ -613,114 +703,142 @@ class OneiroMetricsModal extends Modal {
         // Multi-select autocomplete for Selected Notes
         const selectedNotesContainer = contentEl.createEl('div', { cls: 'oom-multiselect-container' });
         const chipsContainer = selectedNotesContainer.createEl('div', { cls: 'oom-chips-container' });
-        const input = selectedNotesContainer.createEl('input', {
+        const selectedNotesInput = selectedNotesContainer.createEl('input', {
             type: 'text',
             cls: 'oom-multiselect-input',
             attr: { placeholder: 'Type to search notes...' }
         });
-        const suggestionContainer = selectedNotesContainer.createEl('div', {
-            cls: 'suggestion-container oom-suggestion-container'
+        const selectedNotesSuggestionContainer = selectedNotesContainer.createEl('div', {
+            cls: 'suggestion-container oom-suggestion-container oom-hidden',
+            attr: {
+                style: `
+                    position: absolute;
+                    z-index: 1000;
+                    background: var(--background-primary);
+                    border: 1px solid var(--background-modifier-border);
+                    border-radius: 4px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+                    width: 100%;
+                    top: 100%;
+                    left: 0;
+                `
+            }
         });
 
-        // Render chips for selected notes
-        function renderChips() {
+        // Function to hide suggestions
+        function hideSelectedNotesSuggestions() {
+            selectedNotesSuggestionContainer.classList.add('oom-hidden');
+        }
+
+        // Function to show suggestions
+        function showSelectedNotesSuggestions() {
+            selectedNotesSuggestionContainer.classList.remove('oom-hidden');
+            // Position the container below the input
+            const inputRect = selectedNotesInput.getBoundingClientRect();
+            const containerRect = selectedNotesContainer.getBoundingClientRect();
+            selectedNotesSuggestionContainer.style.top = `${inputRect.bottom - containerRect.top}px`;
+            selectedNotesSuggestionContainer.style.width = `${inputRect.width}px`;
+        }
+
+        // Function to render chips
+        const renderChips = () => {
             chipsContainer.empty();
-            for (const note of this.plugin.settings.selectedNotes) {
-                const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
-                const chipText = chip.createEl('span', { cls: 'oom-chip-text', text: note });
-                chipText.setAttr('title', note);
-                const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
+            this.plugin.settings.selectedNotes.forEach((note: string) => {
+                const chip = chipsContainer.createEl('div', { cls: 'oom-chip' });
+                chip.createEl('span', { text: note });
+                const removeBtn = chip.createEl('button', { cls: 'oom-chip-remove' });
                 removeBtn.onclick = () => {
                     this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n: string) => n !== note);
                     this.plugin.saveSettings();
-                    renderChips.call(this);
+                    renderChips();
                 };
-            }
-        }
-        renderChips.call(this);
+            });
+        };
 
-        // Suggestion logic
-        input.addEventListener('input', async (e) => {
-            const value = input.value;
+        // Initial render of chips
+        renderChips();
+
+        // Handle input for autocomplete
+        selectedNotesInput.addEventListener('input', async (e) => {
+            const value = selectedNotesInput.value;
+            console.log('[OneiroMetrics][Modal] Input event fired. Value:', value);
+            console.log('[OneiroMetrics][Modal] Current selectedNotes:', this.plugin.settings.selectedNotes);
             if (!value) {
-                suggestionContainer.classList.add('oom-hidden');
+                hideSelectedNotesSuggestions();
                 return;
             }
+
+            // Only get real markdown files
             const files = this.app.vault.getMarkdownFiles();
+            console.log('[OneiroMetrics][Modal] Files returned by getMarkdownFiles:', files.map(f => f.path));
             const lowerInput = value.toLowerCase();
-            const suggestions = files
+            let suggestions: string[] = [];
+
+            // Only add matching files, excluding backups and already-selected notes
+            const matchingFiles = files
                 .map(file => file.path)
-                .filter(path =>
-                    !this.plugin.settings.selectedNotes.includes(path) &&
-                    path.toLowerCase().includes(lowerInput)
-                )
+                .filter(path => {
+                    // Exclude backup files and directories
+                    if (path.includes('.backup-') || 
+                        path.includes('/Backups/') ||
+                        path.endsWith('.backup')) {
+                        return false;
+                    }
+                    const lowerPath = path.toLowerCase();
+                    return !this.plugin.settings.selectedNotes.includes(path) && lowerPath.includes(lowerInput);
+                });
+
+            suggestions = matchingFiles
+                .sort((a, b) => {
+                    // Prioritize exact matches
+                    const aExact = a.toLowerCase() === lowerInput;
+                    const bExact = b.toLowerCase() === lowerInput;
+                    if (aExact && !bExact) return -1;
+                    if (!aExact && bExact) return 1;
+                    // Finally sort alphabetically
+                    return a.localeCompare(b);
+                })
                 .slice(0, 7);
-            suggestionContainer.empty();
+
+            console.log('[OneiroMetrics][Modal] Suggestions to display:', suggestions);
+
+            selectedNotesSuggestionContainer.empty();
             if (suggestions.length > 0) {
+                console.log('[OneiroMetrics][Modal] Creating suggestion items...');
                 for (const suggestion of suggestions) {
-                    const item = suggestionContainer.createEl('div', {
+                    const item = selectedNotesSuggestionContainer.createEl('div', {
                         cls: 'suggestion-item',
                         attr: { title: suggestion },
                         text: suggestion
                     });
                     item.onclick = () => {
-                        this.plugin.settings.selectedNotes.push(suggestion);
-                        this.plugin.saveSettings();
-                        input.value = '';
-                        suggestionContainer.classList.add('oom-hidden');
+                        if (!this.plugin.settings.selectedNotes.includes(suggestion)) {
+                            this.plugin.settings.selectedNotes.push(suggestion);
+                            this.plugin.saveSettings();
+                            renderChips();
+                        }
+                        selectedNotesInput.value = '';
+                        hideSelectedNotesSuggestions();
                     };
                 }
-                suggestionContainer.classList.remove('oom-hidden');
+                console.log('[OneiroMetrics][Modal] Showing suggestions container...');
+                console.log('[OneiroMetrics][Modal] Container display style:', selectedNotesSuggestionContainer.style.display);
+                console.log('[OneiroMetrics][Modal] Container classList:', selectedNotesSuggestionContainer.classList);
+                showSelectedNotesSuggestions();
+                console.log('[OneiroMetrics][Modal] Container display style after show:', selectedNotesSuggestionContainer.style.display);
+                console.log('[OneiroMetrics][Modal] Container classList after show:', selectedNotesSuggestionContainer.classList);
             } else {
-                suggestionContainer.classList.add('oom-hidden');
+                console.log('[OneiroMetrics][Modal] No suggestions to display');
+                hideSelectedNotesSuggestions();
             }
         });
+
         // Hide suggestions when clicking outside
         document.addEventListener('click', (e) => {
-            if (!input.contains(e.target as Node) && !suggestionContainer.contains(e.target as Node)) {
-                suggestionContainer.classList.add('oom-hidden');
-            }
-        });
-        // Keyboard navigation for suggestions
-        input.addEventListener('keydown', (e) => {
-            const items = suggestionContainer.querySelectorAll('.suggestion-item');
-            const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    if (currentIndex < items.length - 1) {
-                        items[currentIndex]?.classList.remove('is-selected');
-                        items[currentIndex + 1].classList.add('is-selected');
-                        items[currentIndex + 1].scrollIntoView({ block: 'nearest' });
-                    } else if (items.length > 0 && currentIndex === -1) {
-                        items[0].classList.add('is-selected');
-                        items[0].scrollIntoView({ block: 'nearest' });
-                    }
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    if (currentIndex > 0) {
-                        items[currentIndex]?.classList.remove('is-selected');
-                        items[currentIndex - 1].classList.add('is-selected');
-                        items[currentIndex - 1].scrollIntoView({ block: 'nearest' });
-                    }
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    const selectedItem = suggestionContainer.querySelector('.is-selected');
-                    if (selectedItem) {
-                        const path = selectedItem.textContent;
-                        if (path) {
-                            this.plugin.settings.selectedNotes.push(path);
-                            this.plugin.saveSettings();
-                            input.value = '';
-                            suggestionContainer.classList.add('oom-hidden');
-                        }
-                    }
-                    break;
-                case 'Escape':
-                    suggestionContainer.classList.add('oom-hidden');
-                    break;
+            if (!selectedNotesInput.contains(e.target as Node) && !selectedNotesSuggestionContainer.contains(e.target as Node)) {
+                hideSelectedNotesSuggestions();
             }
         });
 
