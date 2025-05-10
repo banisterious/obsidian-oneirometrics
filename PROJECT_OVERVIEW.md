@@ -38,10 +38,16 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
 - Advanced data visualization
 - Custom metric definitions
 - Export/import functionality
+  - CSV export with filtering
+  - Summary and detailed exports
+  - Custom column selection
+  - Date range filtering
 - Integration with other Obsidian plugins
 - Enhanced search and filtering
 - Statistical analysis tools
 - **Settings callout preview and copy:** As the user enters a callout name and specifies a nesting level (e.g., 2 or `>>`), another field shows a live preview of the full callout as it would appear in markdown (with metrics and values), and allows the user to copy the code for use in their notes.
+- **Folder Selection Mode:** Add a toggle in Settings to switch between "Scrape Notes" and "Scrape Folder" modes. When in Folder mode, add a "Choose Folder" field with autocomplete based on existing folders.
+- **UI Text Update:** Rename "Select Notes" to "Choose Notes" for better clarity.
 - ### Planned Feature: Metric Descriptions Section
 - **Planned folder selection:** In the future, users will be able to select folders in the Selected Notes field to include all notes within those folders for metric scraping.
 
@@ -189,6 +195,13 @@ Key CSS features:
    - UI interactions
    - Performance
 
+4. **Automated unit testing for core functions**
+5. **Manual integration testing for Obsidian API**
+6. **End-to-end testing for user workflows**
+7. **Performance testing for large datasets**
+8. **Cross-platform compatibility testing**
+9. **Theme compatibility testing**
+
 ## Next Steps
 1. Complete CSS optimization
 2. Enhance theme compatibility
@@ -236,6 +249,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - ⏳ **Markdown stripping in Content column:** Not yet fully stripping all markdown/image/file links; patch in progress.
 - ⏳ **Lost Segments metric:** Still shows 1–10 range; update to fixed integer in progress.
 - 🆕 **Planned:** Settings callout preview/copy feature and Metric Descriptions section added to roadmap.
+- 🆕 **Planned:** Performance optimizations and new feature requests added to roadmap.
 
 ---
 
@@ -247,6 +261,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [ ] Markdown/image/file links not fully stripped from Content column.
 - [ ] Lost Segments metric still shows 1–10 range (should be integer).
 - [ ] Section headings patch pending user verification.
+- [ ] Performance optimizations pending implementation and testing.
 
 ---
 
@@ -279,3 +294,35 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Please use the checklist in `TESTING.md` when testing new features or reporting bugs.
 - For issues, include console logs, screenshots, and details as described in the bug reporting template in `TESTING.md`.
 - When suggesting UI improvements, please consider both desktop and mobile usability.
+
+## Planned Features
+- [ ] Advanced data visualization
+- [ ] Custom metric definitions
+- [ ] Export/Import functionality
+  - [ ] CSV export with filtering
+  - [ ] Summary and detailed exports
+  - [ ] Custom column selection
+  - [ ] Date range filtering
+- [ ] Integration with other Obsidian plugins
+- [ ] Enhanced search and filtering
+- [ ] Statistical analysis tools
+- [ ] Settings callout preview and copy
+- [ ] Folder selection mode
+- [ ] UI text updates ("Choose Notes" instead of "Select Notes")
+
+## Testing Strategy
+- [ ] Automated unit testing for core functions
+- [ ] Manual integration testing for Obsidian API
+- [ ] End-to-end testing for user workflows
+- [ ] Performance testing for large datasets
+- [ ] Cross-platform compatibility testing
+- [ ] Theme compatibility testing
+
+## Development Guidelines
+- [ ] Follow TypeScript best practices
+- [ ] Maintain comprehensive test coverage
+- [ ] Document all new features
+- [ ] Update testing documentation
+- [ ] Regular performance optimization
+- [ ] Consistent error handling
+- [ ] User feedback integration
