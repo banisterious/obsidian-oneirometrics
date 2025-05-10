@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="images/gsa-barn.jpg" alt="A country barn painting, representing the foundation of dream journaling." width="600"/>
+</p>
+<p align="center"><em>“Barn at Sunrise” by Gary Armstrong, inspiration for OneiroMetrics</em></p>
+
 # OneiroMetrics Plugin Project Overview
 
 ## Project Description
@@ -316,4 +321,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [ ] User feedback integration
 
 ## Documentation
-For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](docs/METRICS.md).
+For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](METRICS.md).
