@@ -1,6 +1,16 @@
-import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder } from "obsidian";
+import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent } from "obsidian";
 import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings } from "./types";
 import DreamMetricsPlugin from "./main";
+import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound } from 'lucide-static';
+
+const lucideIconMap: Record<string, string> = {
+  eye: Eye,
+  heart: Heart,
+  'circle-minus': CircleMinus,
+  'pen-tool': PenTool,
+  'check-circle': CheckCircle,
+  'users-round': UsersRound,
+};
 
 // Validation functions
 function validateMetricName(name: string, existingMetrics: DreamMetric[]): string | null {
@@ -50,8 +60,8 @@ class MetricEditorModal extends Modal {
 
         contentEl.createEl('h2', { text: this.isEditing ? 'Edit Metric' : 'Add New Metric' });
 
-        // Name field
-        const nameSetting = new Setting(contentEl)
+        const nameSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        const nameSetting = new Setting(nameSection)
             .setName('Name')
             .setDesc('The name of the metric (letters, numbers, spaces, and hyphens only)')
             .addText(text => {
@@ -61,41 +71,83 @@ class MetricEditorModal extends Modal {
                         nameSetting.setDesc(error || 'The name of the metric (letters, numbers, spaces, and hyphens only)');
                         nameSetting.controlEl.classList.toggle('is-invalid', !!error);
                         this.metric.name = value;
+                        renderRangeSection();
                         this.updatePreview();
                     });
             });
 
-        // Range fields
-        const rangeSetting = new Setting(contentEl)
-            .setName('Range')
-            .setDesc('The valid range for this metric')
-            .addText(text => {
-                text.setValue(this.metric.range.min.toString())
-                    .setPlaceholder('Min')
-                    .onChange(value => {
-                        const min = parseInt(value);
-                        const error = validateMetricRange(min, this.metric.range.max);
-                        rangeSetting.setDesc(error || 'The valid range for this metric');
-                        rangeSetting.controlEl.classList.toggle('is-invalid', !!error);
-                        if (!isNaN(min)) this.metric.range.min = min;
-                        this.updatePreview();
-                    });
-            })
-            .addText(text => {
-                text.setValue(this.metric.range.max.toString())
-                    .setPlaceholder('Max')
-                    .onChange(value => {
-                        const max = parseInt(value);
-                        const error = validateMetricRange(this.metric.range.min, max);
-                        rangeSetting.setDesc(error || 'The valid range for this metric');
-                        rangeSetting.controlEl.classList.toggle('is-invalid', !!error);
-                        if (!isNaN(max)) this.metric.range.max = max;
-                        this.updatePreview();
-                    });
+        const iconSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        const iconPickerContainer = contentEl.createEl('div', { cls: 'oom-icon-picker-container' });
+        iconPickerContainer.createEl('div', { text: 'Icon (optional):', cls: 'oom-icon-picker-label' });
+        const iconGrid = iconPickerContainer.createEl('div', { cls: 'oom-icon-picker-grid' });
+        Object.entries(lucideIconMap).forEach(([iconName, iconSVG]) => {
+            const iconBtn = iconGrid.createEl('button', {
+                cls: 'oom-icon-picker-btn',
+                attr: { type: 'button', 'aria-label': iconName }
             });
+            iconBtn.innerHTML = iconSVG;
+            if (this.metric.icon === iconName) iconBtn.classList.add('selected');
+            iconBtn.onclick = () => {
+                this.metric.icon = iconName;
+                Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
+                iconBtn.classList.add('selected');
+                this.updatePreview();
+            };
+        });
+        const clearBtn = iconPickerContainer.createEl('button', {
+            cls: 'oom-icon-picker-clear',
+            text: 'No icon',
+            attr: { type: 'button' }
+        });
+        clearBtn.onclick = () => {
+            this.metric.icon = '';
+            Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
+            this.updatePreview();
+        };
 
-        // Description field
-        const descSetting = new Setting(contentEl)
+        const rangeSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        let rangeSetting: Setting | undefined;
+        const renderRangeSection = () => {
+            rangeSection.empty();
+            const isAnyWholeNumber = ["Lost Segments", "Familiar People"].includes(this.metric.name);
+            if (!isAnyWholeNumber) {
+                rangeSetting = new Setting(rangeSection)
+                    .setName('Range')
+                    .setDesc('The valid range for this metric')
+                    .addText(text => {
+                        text.setValue(this.metric.range.min.toString())
+                            .setPlaceholder('Min')
+                            .onChange(value => {
+                                const min = parseInt(value);
+                                const error = validateMetricRange(min, this.metric.range.max);
+                                rangeSetting!.setDesc(error || 'The valid range for this metric');
+                                rangeSetting!.controlEl.classList.toggle('is-invalid', !!error);
+                                if (!isNaN(min)) this.metric.range.min = min;
+                                this.updatePreview();
+                            });
+                    })
+                    .addText(text => {
+                        text.setValue(this.metric.range.max.toString())
+                            .setPlaceholder('Max')
+                            .onChange(value => {
+                                const max = parseInt(value);
+                                const error = validateMetricRange(this.metric.range.min, max);
+                                rangeSetting!.setDesc(error || 'The valid range for this metric');
+                                rangeSetting!.controlEl.classList.toggle('is-invalid', !!error);
+                                if (!isNaN(max)) this.metric.range.max = max;
+                                this.updatePreview();
+                            });
+                    });
+            } else {
+                new Setting(rangeSection)
+                    .setName('Valid values')
+                    .setDesc('Any whole number (integer)');
+            }
+        };
+        renderRangeSection();
+
+        const descSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        const descSetting = new Setting(descSection)
             .setName('Description')
             .setDesc('A description of what this metric measures')
             .addTextArea(text => {
@@ -105,15 +157,15 @@ class MetricEditorModal extends Modal {
                         descSetting.setDesc(error || 'A description of what this metric measures');
                         descSetting.controlEl.classList.toggle('is-invalid', !!error);
                         this.metric.description = value;
+                        this.updatePreview();
                     });
             });
 
-        // Preview
-        const previewSetting = new Setting(contentEl)
+        const previewSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        const previewSetting = new Setting(previewSection)
             .setName('Preview')
             .setDesc('How this metric will appear in your dream journal:');
-        
-        const previewEl = contentEl.createEl('div', { cls: 'oom-metric-preview' });
+        const previewEl = previewSection.createEl('div', { cls: 'oom-metric-preview' });
         this.updatePreview(previewEl);
 
         // Keyboard shortcuts help
@@ -162,10 +214,17 @@ class MetricEditorModal extends Modal {
         previewEl.createEl('div', { text: `> ${this.metric.name}: ${sampleValue}` });
 
         // Add range information
-        previewEl.createEl('div', { 
-            cls: 'oom-preview-range',
-            text: `Valid range: ${this.metric.range.min} to ${this.metric.range.max}`
-        });
+        if (["Lost Segments", "Familiar People"].includes(this.metric.name)) {
+            previewEl.createEl('div', {
+                cls: 'oom-preview-range',
+                text: `Valid values: Any whole number`
+            });
+        } else {
+            previewEl.createEl('div', {
+                cls: 'oom-preview-range',
+                text: `Valid range: ${this.metric.range.min} to ${this.metric.range.max}`
+            });
+        }
     }
 
     private validateAll(): boolean {
@@ -197,6 +256,17 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
+
+        const prevScroll = containerEl.scrollTop;
+        const activeElement = document.activeElement as HTMLElement;
+        let focusSelector = '';
+        if (activeElement && containerEl.contains(activeElement)) {
+            if (activeElement.classList.contains('oom-drag-handle')) {
+                focusSelector = `.oom-drag-handle[data-index="${activeElement.closest('.setting')?.getAttribute('data-index')}"]`;
+            } else if (activeElement.classList.contains('setting-action')) {
+                focusSelector = '.setting-action';
+            }
+        }
 
         containerEl.createEl('h2', { text: 'Dream Metrics Settings' });
 
@@ -253,11 +323,16 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     let left = inputRect.left - parentRect.left;
                     let top = inputRect.bottom - parentRect.top;
                     suggestionContainer.classList.add('oom-suggestion-container');
-                    suggestionContainer.style.position = 'absolute';
-                    suggestionContainer.style.left = `${left}px`;
-                    suggestionContainer.style.top = `${top}px`;
-                    suggestionContainer.style.width = `${dropdownWidth}px`;
-                    suggestionContainer.style.overflowX = 'auto';
+                    suggestionContainer.style.removeProperty('position');
+                    suggestionContainer.style.removeProperty('left');
+                    suggestionContainer.style.removeProperty('top');
+                    suggestionContainer.style.removeProperty('width');
+                    suggestionContainer.style.removeProperty('overflowX');
+                    suggestionContainer.style.removeProperty('maxWidth');
+                    suggestionContainer.style.removeProperty('right');
+                    suggestionContainer.style.setProperty('--oom-suggestion-left', `${left}px`);
+                    suggestionContainer.style.setProperty('--oom-suggestion-top', `${top}px`);
+                    suggestionContainer.style.setProperty('--oom-suggestion-width', `${dropdownWidth}px`);
                 }
 
                 // Clean up suggestion container on plugin unload
@@ -291,9 +366,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         filteredFolders.forEach(folder => {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
-                                attr: {
-                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary);'
-                                }
+                                attr: { title: folder }
                             });
                             item.textContent = folder;
                             
@@ -306,14 +379,17 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                 search.setValue(folder);
                                 this.plugin.settings.backupFolderPath = folder;
                                 await this.plugin.saveSettings();
+                                suggestionContainer.classList.add('visible');
                                 suggestionContainer.classList.remove('visible');
                             });
                         });
                         
                         positionSuggestionContainer();
                         suggestionContainer.classList.add('visible');
+                        suggestionContainer.style.display = 'block';
                     } else {
                         suggestionContainer.classList.remove('visible');
+                        suggestionContainer.style.display = 'none';
                     }
                 };
 
@@ -354,6 +430,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                     search.setValue(folder);
                                     this.plugin.settings.backupFolderPath = folder;
                                     this.plugin.saveSettings();
+                                    suggestionContainer.classList.add('visible');
                                     suggestionContainer.classList.remove('visible');
                                 }
                             }
@@ -361,13 +438,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
                         case 'Escape':
                             suggestionContainer.classList.remove('visible');
+                            suggestionContainer.style.display = 'none';
                             break;
                     }
                 });
 
                 // Hide suggestions on blur (with delay for click)
                 search.inputEl.addEventListener('blur', () => {
-                    setTimeout(() => { suggestionContainer.classList.remove('visible'); }, 200);
+                    setTimeout(() => { suggestionContainer.classList.remove('visible'); suggestionContainer.style.display = 'none'; }, 200);
                 });
 
                 search.inputEl.addEventListener('input', (e) => {
@@ -415,19 +493,22 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     let maxWidth = modalRect.width;
 
                     suggestionContainer.classList.add('oom-suggestion-container');
-                    suggestionContainer.style.position = 'absolute';
-                    suggestionContainer.style.left = `${left}px`;
-                    suggestionContainer.style.right = '';
-                    suggestionContainer.style.maxWidth = `${maxWidth}px`;
+                    suggestionContainer.style.removeProperty('position');
+                    suggestionContainer.style.removeProperty('left');
+                    suggestionContainer.style.removeProperty('top');
+                    suggestionContainer.style.removeProperty('width');
+                    suggestionContainer.style.removeProperty('overflowX');
+                    suggestionContainer.style.removeProperty('maxWidth');
+                    suggestionContainer.style.removeProperty('right');
 
                     if (left + dropdownWidth > modalRect.width) {
                         suggestionContainer.style.left = 'auto';
                         suggestionContainer.style.right = '0';
                     }
 
-                    suggestionContainer.style.top = `${top}px`;
-                    suggestionContainer.style.width = `${dropdownWidth}px`;
-                    suggestionContainer.style.overflowX = 'auto';
+                    suggestionContainer.style.setProperty('--oom-suggestion-left', `${left}px`);
+                    suggestionContainer.style.setProperty('--oom-suggestion-top', `${top}px`);
+                    suggestionContainer.style.setProperty('--oom-suggestion-width', `${dropdownWidth}px`);
                 }
 
                 // Normalize function (lowercase, collapse whitespace)
@@ -527,9 +608,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         suggestions.forEach(suggestion => {
                             const item = suggestionContainer.createEl('div', {
                                 cls: 'suggestion-item',
-                                attr: {
-                                    style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border);'
-                                }
+                                attr: { title: suggestion }
                             });
 
                             // Highlight matching text
@@ -550,6 +629,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         });
 
                         suggestionContainer.classList.add('visible');
+                        suggestionContainer.style.display = 'block';
                         positionSuggestionContainer();
                     } else {
                         hideSuggestions();
@@ -638,182 +718,19 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 // No-op, just for layout
             });
 
-        // Multi-select autocomplete for Selected Notes
+        // Use shared autocomplete utility
         const selectedNotesContainer = containerEl.createEl('div', { cls: 'oom-multiselect-container' });
-        const chipsContainer = selectedNotesContainer.createEl('div', { cls: 'oom-chips-container' });
-        const input = selectedNotesContainer.createEl('input', {
-            type: 'text',
-            cls: 'oom-multiselect-input',
-            attr: { placeholder: 'Type to search notes...' }
-        });
-        const suggestionContainer = selectedNotesContainer.createEl('div', {
-            cls: 'suggestion-container oom-suggestion-container',
-            attr: { style: 'display: none; position: absolute; z-index: 1000; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 4px; max-height: 200px; overflow-y: auto; min-width: 180px; width: 100%; box-shadow: 0 2px 8px var(--background-modifier-box-shadow);' }
-        });
-
-        // Function to hide suggestions
-        function hideSuggestions() {
-            suggestionContainer.classList.remove('visible');
-            suggestionContainer.empty();
-        }
-
-        // Function to show suggestions
-        function showSuggestions() {
-            if (suggestionContainer.children.length > 0) {
-                suggestionContainer.classList.add('visible');
-                const inputRect = input.getBoundingClientRect();
-                const containerRect = selectedNotesContainer.getBoundingClientRect();
-                suggestionContainer.style.top = `${inputRect.bottom - containerRect.top}px`;
-                suggestionContainer.style.left = '0';
-                suggestionContainer.style.width = `${inputRect.width}px`;
-            }
-        }
-
-        // Render chips for selected notes
-        function renderChips() {
-            chipsContainer.empty();
-            for (const note of this.plugin.settings.selectedNotes) {
-                const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
-                const chipText = chip.createEl('span', { cls: 'oom-chip-text', text: note });
-                chipText.setAttr('title', note);
-                const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
-                removeBtn.onclick = () => {
-                    this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter((n: string) => n !== note);
+        import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: selectedNotesContainer,
+                selectedNotes: this.plugin.settings.selectedNotes,
+                onChange: (selected) => {
+                    this.plugin.settings.selectedNotes = selected;
                     this.plugin.saveSettings();
-                    renderChips.call(this);
-                };
-            }
-        }
-        renderChips.call(this);
-
-        // Suggestion logic
-        input.addEventListener('input', async (e) => {
-            const value = input.value;
-            if (!value) {
-                hideSuggestions();
-                return;
-            }
-            const files = this.app.vault.getMarkdownFiles();
-            const lowerInput = value.toLowerCase();
-            const yearMatch = value.match(/^(20\d{2})$/);
-            let matchingFiles = files
-                .map(file => file.path)
-                .filter(path => {
-                    // Exclude backup files and directories
-                    if (path.includes('.backup-') || 
-                        path.includes('/Backups/') ||
-                        path.endsWith('.backup')) {
-                        return false;
-                    }
-                    const lowerPath = path.toLowerCase();
-                    return !this.plugin.settings.selectedNotes.includes(path) &&
-                        (lowerPath.includes(lowerInput) || (yearMatch && path.includes(yearMatch[1])));
-                });
-
-            // If user types a year, suggest Journals/<year>/<year>.md if it exists
-            if (yearMatch) {
-                const yearFile = `Journals/${yearMatch[1]}/${yearMatch[1]}.md`;
-                if (matchingFiles.includes(yearFile)) {
-                    matchingFiles = [yearFile, ...matchingFiles.filter(f => f !== yearFile)];
                 }
-            }
-
-            // Remove duplicates and sort
-            matchingFiles = [...new Set(matchingFiles)]
-                .sort((a, b) => {
-                    // Prioritize exact matches
-                    const aExact = a.toLowerCase() === lowerInput;
-                    const bExact = b.toLowerCase() === lowerInput;
-                    if (aExact && !bExact) return -1;
-                    if (!aExact && bExact) return 1;
-                    // Finally sort alphabetically
-                    return a.localeCompare(b);
-                })
-                .slice(0, 7);
-
-            suggestionContainer.empty();
-            if (matchingFiles.length > 0) {
-                for (const suggestion of matchingFiles) {
-                    const item = suggestionContainer.createEl('div', {
-                        cls: 'suggestion-item',
-                        attr: { 
-                            title: suggestion,
-                            style: 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary);'
-                        }
-                    });
-                    item.textContent = suggestion;
-                    
-                    // Add hover effect
-                    item.classList.add('selected');
-                    item.classList.remove('selected');
-                    
-                    item.onclick = () => {
-                        this.plugin.settings.selectedNotes.push(suggestion);
-                        this.plugin.saveSettings();
-                        input.value = '';
-                        hideSuggestions();
-                        renderChips.call(this);
-                    };
-                }
-                showSuggestions();
-            } else {
-                hideSuggestions();
-            }
-        });
-
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!selectedNotesContainer.contains(e.target as Node)) {
-                hideSuggestions();
-            }
-        });
-
-        // Keyboard navigation for suggestions
-        input.addEventListener('keydown', (e) => {
-            const items = suggestionContainer.querySelectorAll('.suggestion-item');
-            const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
-            
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    if (currentIndex < items.length - 1) {
-                        items[currentIndex]?.classList.remove('is-selected');
-                        items[currentIndex + 1].classList.add('is-selected');
-                        (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                    } else if (items.length > 0 && currentIndex === -1) {
-                        items[0].classList.add('is-selected');
-                        (items[0] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                    }
-                    break;
-
-                case 'ArrowUp':
-                    e.preventDefault();
-                    if (currentIndex > 0) {
-                        items[currentIndex]?.classList.remove('is-selected');
-                        items[currentIndex - 1].classList.add('is-selected');
-                        (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                    }
-                    break;
-
-                case 'Enter':
-                    e.preventDefault();
-                    const selectedItem = suggestionContainer.querySelector('.is-selected');
-                    if (selectedItem) {
-                        const path = selectedItem.textContent;
-                        if (path) {
-                            this.plugin.settings.selectedNotes.push(path);
-                            this.plugin.saveSettings();
-                            input.value = '';
-                            hideSuggestions();
-                            renderChips.call(this);
-                        }
-                    }
-                    break;
-
-                case 'Escape':
-                    hideSuggestions();
-                    break;
-            }
+            });
         });
 
         // Metrics Section
@@ -822,30 +739,49 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Display existing metrics
         this.plugin.settings.metrics.forEach((metric, index) => {
             const metricSetting = new Setting(containerEl)
-                .setName(metric.name)
-                .setDesc(`Range: ${metric.range.min}-${metric.range.max}`)
-                .addExtraButton(button => {
-                    const handle = button
-                        .setIcon('grip-vertical')
-                        .setTooltip('Drag to reorder')
-                        .extraSettingsEl;
-                    
-                    handle.addClass('oom-drag-handle');
-                    handle.setAttribute('draggable', 'true');
-                    
-                    // Drag start
-                    handle.addEventListener('dragstart', (e: DragEvent) => {
-                        if (e.dataTransfer) {
-                            e.dataTransfer.setData('text/plain', index.toString());
-                            handle.addClass('is-dragging');
-                        }
-                    });
+                .setName(metric.icon && lucideIconMap[metric.icon] ? `${metric.name} ` : metric.name)
+                .setDesc(`${metric.description} (${['Lost Segments', 'Familiar People'].includes(metric.name) ? 'Any whole number' : `Range: ${metric.range.min}-${metric.range.max}`})`)
+                .setClass('oom-metric-setting');
+            if (metric.icon && lucideIconMap[metric.icon]) {
+                const iconSVG = lucideIconMap[metric.icon];
+                const iconEl = document.createElement('span');
+                iconEl.className = 'oom-metric-icon-svg oom-metric-icon--start';
+                iconEl.innerHTML = iconSVG;
+                metricSetting.nameEl.insertBefore(iconEl, metricSetting.nameEl.firstChild);
+            }
 
-                    // Drag end
-                    handle.addEventListener('dragend', () => {
-                        handle.removeClass('is-dragging');
-                    });
+            // Add drag handle
+            metricSetting.addExtraButton((button: ExtraButtonComponent) => {
+                const handle = button
+                    .setIcon('grip-vertical')
+                    .setTooltip('Drag to reorder')
+                    .extraSettingsEl;
+
+                handle.addClass('oom-drag-handle');
+                handle.setAttribute('draggable', 'true');
+                handle.setAttribute('tabindex', '0');
+                handle.setAttribute('aria-label', 'Reorder metric');
+                handle.setAttribute('aria-grabbed', 'false');
+                handle.addEventListener('focus', () => handle.classList.add('is-focused'));
+                handle.addEventListener('blur', () => handle.classList.remove('is-focused'));
+                handle.addEventListener('keydown', async (e: KeyboardEvent) => {
+                    if (e.key === 'ArrowUp' && index > 0) {
+                        e.preventDefault();
+                        const metrics = this.plugin.settings.metrics;
+                        [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
+                        await this.plugin.saveSettings();
+                        this.display();
+                        announce('Metric moved up');
+                    } else if (e.key === 'ArrowDown' && index < this.plugin.settings.metrics.length - 1) {
+                        e.preventDefault();
+                        const metrics = this.plugin.settings.metrics;
+                        [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
+                        await this.plugin.saveSettings();
+                        this.display();
+                        announce('Metric moved down');
+                    }
                 });
+            });
 
             // Add drop zone
             const settingEl = metricSetting.settingEl;
@@ -881,7 +817,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
             // Add up/down buttons for reordering
             if (index > 0) {
-                metricSetting.addExtraButton(button => button
+                metricSetting.addExtraButton((button: ExtraButtonComponent) => button
                     .setIcon('arrow-up')
                     .setTooltip('Move up')
                     .onClick(async () => {
@@ -893,7 +829,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             }
 
             if (index < this.plugin.settings.metrics.length - 1) {
-                metricSetting.addExtraButton(button => button
+                metricSetting.addExtraButton((button: ExtraButtonComponent) => button
                     .setIcon('arrow-down')
                     .setTooltip('Move down')
                     .onClick(async () => {
@@ -905,7 +841,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             }
 
             metricSetting
-                .addExtraButton(button => button
+                .addExtraButton((button: ExtraButtonComponent) => button
                     .setIcon('pencil')
                     .setTooltip('Edit metric')
                     .onClick(() => {
@@ -921,7 +857,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             true
                         ).open();
                     }))
-                .addExtraButton(button => button
+                .addExtraButton((button: ExtraButtonComponent) => button
                     .setIcon('trash')
                     .setTooltip('Remove metric')
                     .onClick(async () => {
@@ -974,5 +910,29 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     this.display();
                 }));
+
+        // Add a visually hidden live region for announcements at the top of display()
+        let liveRegion = containerEl.querySelector('.oom-live-region') as HTMLElement;
+        if (!liveRegion) {
+            liveRegion = containerEl.createEl('div', { cls: 'oom-live-region' });
+            liveRegion.setAttr('aria-live', 'polite');
+            liveRegion.setAttr('role', 'status');
+            liveRegion.style.position = 'absolute';
+            liveRegion.style.width = '1px';
+            liveRegion.style.height = '1px';
+            liveRegion.style.overflow = 'hidden';
+            liveRegion.style.clip = 'rect(0 0 0 0)';
+            liveRegion.style.whiteSpace = 'nowrap';
+            liveRegion.style.border = '0';
+        }
+        function announce(msg: string) {
+            liveRegion.textContent = msg;
+        }
+
+        containerEl.scrollTop = prevScroll;
+        if (focusSelector) {
+            const toFocus = containerEl.querySelector(focusSelector) as HTMLElement;
+            if (toFocus) toFocus.focus();
+        }
     }
 } 

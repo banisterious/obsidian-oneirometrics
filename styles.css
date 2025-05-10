@@ -851,7 +851,7 @@ div[data-type="markdown"][data-type="oom-project-note"],
 
 /* Table font size adjustments */
 .oom-table {
-    font-size: 0.85em !important;
+    font-size: 0.95em !important;
 }
 
 .oom-table td,
@@ -863,7 +863,7 @@ div[data-type="markdown"][data-type="oom-project-note"],
 
 /* Content column specific adjustments */
 .oom-table td:nth-child(4) {  /* Content column */
-    font-size: 0.85em !important;
+    font-size: 0.95em !important;
     line-height: 1.4 !important;
 }
 
@@ -922,41 +922,53 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
     min-width: 70px !important;
 }
 
-/* Show/Hide Toggle */
-.oom-show-toggle {
-    display: none;
-}
-
-.oom-show-toggle + .oom-content-preview {
-    display: block;
-}
-
-.oom-show-toggle:checked + .oom-content-preview {
-    display: none;
-}
-
-.oom-show-toggle + .oom-content-preview + .oom-content-full {
-    display: none;
-}
-
-.oom-show-toggle:checked + .oom-content-preview + .oom-content-full {
-    display: block;
-}
-
-.oom-show-toggle + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more {
-    display: inline-block;
-}
-
-.oom-show-toggle:checked + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more {
-    display: none;
-}
-
-.oom-show-toggle + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more + .oom-expand-button.oom-show-less {
-    display: none;
-}
-
+/* Remove old checkbox/label expand/collapse rules */
+.oom-show-toggle,
+.oom-show-toggle + .oom-content-preview,
+.oom-show-toggle:checked + .oom-content-preview,
+.oom-show-toggle + .oom-content-preview + .oom-content-full,
+.oom-show-toggle:checked + .oom-content-preview + .oom-content-full,
+.oom-show-toggle + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more,
+.oom-show-toggle:checked + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more,
+.oom-show-toggle + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more + .oom-expand-button.oom-show-less,
 .oom-show-toggle:checked + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more + .oom-expand-button.oom-show-less {
-    display: inline-block;
+    display: none !important;
+}
+
+/* New expand/collapse logic for .oom-dream-content */
+.oom-dream-content .oom-content-full {
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    display: none;
+}
+.oom-dream-content.expanded .oom-content-full {
+    max-height: 1000px;
+    opacity: 1;
+    overflow: visible;
+    display: block;
+}
+.oom-dream-content.expanded .oom-content-preview {
+    display: none;
+}
+.oom-dream-content .oom-expand-button {
+    outline: none;
+}
+.oom-dream-content .oom-expand-button:focus {
+    box-shadow: 0 0 0 2px var(--text-accent);
+    border-color: var(--text-accent);
+}
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
 }
 
 /* Metric Value Alignment */
@@ -964,6 +976,7 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
     text-align: left !important;
     white-space: nowrap;
     min-width: 80px;
+    font-size: inherit !important;
 }
 
 /* Link Styling */
@@ -981,9 +994,9 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
 /* Suggestion Container Positioning */
 .oom-suggestion-container {
     position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
+    top: var(--oom-suggestion-top, 100%);
+    left: var(--oom-suggestion-left, 0);
+    width: var(--oom-suggestion-width, 100%);
     background: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
@@ -1002,7 +1015,7 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
     padding: 8px 12px;
     cursor: pointer;
     border-bottom: 1px solid var(--background-modifier-border);
-    background-color: var(--background-primary);
+    background: var(--background-primary);
 }
 
 .oom-suggestion-item:hover,
@@ -1370,4 +1383,260 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
 .oom-details-text {
     font-size: 0.9em;
     color: var(--text-muted);
+}
+
+.oom-metric-icon,
+.oom-metric-icon-svg {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 1em;
+    width: 1.1em;
+    height: 1.1em;
+    margin-left: 6px;
+    margin-right: 0;
+    opacity: 0.8;
+    color: var(--text-muted);
+    fill: var(--text-muted);
+    transition: color 0.2s, opacity 0.2s, fill 0.2s;
+}
+.oom-metric-icon--start {
+    margin-left: 0 !important;
+    margin-right: 6px !important;
+}
+.oom-metric-icon:hover,
+.oom-metric-icon-svg:hover {
+    opacity: 1;
+    color: var(--text-normal);
+    fill: var(--text-normal);
+}
+
+/* Ensure icons are properly aligned in tables */
+.oom-table th .oom-metric-icon,
+.oom-table td .oom-metric-icon {
+    vertical-align: middle;
+}
+
+/* Style icons in select dropdowns */
+.oom-select option .oom-metric-icon {
+    margin-right: 4px;
+}
+
+/* Ensure icons don't break table layout */
+.oom-table th,
+.oom-table td {
+    white-space: nowrap;
+}
+
+/* Add some spacing between icon and text */
+.oom-metric-icon {
+    margin-left: 6px;
+}
+
+/* Ensure icons are visible in both light and dark themes */
+.theme-light .oom-metric-icon,
+.theme-dark .oom-metric-icon {
+    color: var(--text-muted);
+}
+
+/* Hover effect for icons */
+.oom-metric-icon:hover {
+    color: var(--text-normal);
+}
+
+.oom-multiselect-container {
+    position: relative;
+}
+
+.oom-content-full {
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+.oom-show-toggle:checked + .oom-content-preview + .oom-content-full {
+    max-height: 1000px;
+    opacity: 1;
+    overflow: visible;
+}
+.oom-expand-button {
+    outline: none;
+}
+.oom-expand-button:focus {
+    box-shadow: 0 0 0 2px var(--text-accent);
+    border-color: var(--text-accent);
+}
+
+.oom-drag-handle {
+    cursor: grab;
+    padding: 0 8px;
+    color: var(--text-muted);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.oom-drag-handle:active {
+    cursor: grabbing;
+    opacity: 1;
+}
+.is-dragging {
+    opacity: 0.4 !important;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+}
+.oom-drop-target {
+    background: var(--background-modifier-hover) !important;
+    border: 2px dashed var(--text-accent) !important;
+}
+
+.oom-drag-handle.is-focused {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--background-modifier-border);
+    opacity: 1;
+}
+.oom-live-region {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.oom-icon-picker-container {
+    margin: 1em 0;
+}
+.oom-icon-picker-label {
+    font-weight: 500;
+    margin-bottom: 0.5em;
+}
+.oom-icon-picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 0.5em;
+}
+.oom-icon-picker-btn {
+    background: var(--background-primary-alt);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 6px;
+    width: 2.2em;
+    height: 2.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    color: var(--text-muted);
+    outline: none;
+}
+.oom-icon-picker-btn.selected,
+.oom-icon-picker-btn:focus {
+    border-color: var(--text-accent);
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+.oom-icon-picker-btn:hover {
+    border-color: var(--text-accent);
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+.oom-icon-picker-clear {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-left: 0.5em;
+    font-size: 0.95em;
+    text-decoration: underline;
+    padding: 0 0.5em;
+}
+.oom-icon-picker-clear:hover,
+.oom-icon-picker-clear:focus {
+    color: var(--text-accent);
+    text-decoration: underline;
+}
+
+.oom-metric-editor-modal {
+    padding: 1.5em 1.5em 1em 1.5em;
+    background: var(--background-primary);
+    border-radius: 10px;
+    box-shadow: 0 6px 32px var(--background-modifier-box-shadow);
+    max-width: 480px;
+    margin: 0 auto;
+    border: 1.5px solid var(--background-modifier-border);
+}
+.oom-metric-editor-section {
+    margin-bottom: 1.2em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+.oom-metric-editor-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.oom-metric-editor-buttons {
+    margin-top: 1.5em;
+    display: flex;
+    gap: 1em;
+    justify-content: flex-end;
+}
+.oom-metric-preview {
+    background: var(--background-primary-alt);
+    border-radius: 6px;
+    padding: 0.75em 1em;
+    margin-top: 0.5em;
+    font-size: 0.95em;
+    color: var(--text-normal);
+}
+.oom-metric-setting {
+    margin-bottom: 1em;
+    padding: 1em;
+    background: var(--background-primary-alt);
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+    display: flex;
+    align-items: center;
+    gap: 1.5em;
+    transition: background 0.2s, border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.03);
+}
+.oom-metric-setting:hover,
+.oom-metric-setting:focus-within {
+    background: var(--background-modifier-hover);
+    border-color: var(--text-accent);
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.07);
+}
+.oom-metric-setting:last-child {
+    margin-bottom: 0;
+}
+.oom-metric-setting .setting-name {
+    font-weight: 500;
+    font-size: 1.05em;
+}
+.oom-metric-setting .setting-desc {
+    color: var(--text-muted);
+    font-size: 0.95em;
+    margin-top: 0.2em;
+}
+.oom-metric-editor-modal h2 {
+    margin-top: 0;
+    margin-bottom: 1.2em;
+    font-size: 1.4em;
+    font-weight: 600;
+    background: var(--background-primary-alt);
+    padding: 0.5em 1em;
+    border-radius: 8px 8px 0 0;
+    letter-spacing: 0.01em;
+}
+.oom-metric-editor-modal .oom-keyboard-shortcuts {
+    margin-top: 1.2em;
+    margin-bottom: 0.5em;
+    font-size: 0.95em;
+    color: var(--text-muted);
+    background: var(--background-primary-alt);
+    border-radius: 6px;
+    padding: 0.5em 1em;
 } 

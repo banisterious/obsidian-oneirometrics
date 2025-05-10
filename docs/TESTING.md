@@ -26,6 +26,7 @@
 - [x] "Choose Notes" label is displayed correctly
 - [x] Lost Segments label shows "Any integer" (not "Range 0-10")
 - [x] Metrics Table font size is consistent for all columns, especially Confidence Score
+- [x] Lucide icons render as SVGs for all metrics in the settings UI (not as plain text or HTML)
 
 ### Metrics Scraping
 
@@ -72,29 +73,29 @@
 - [x] Text wrapping works correctly
 - [x] Content is properly formatted
 - [x] Font size and colors match theme
-- [ ] Markdown elements are properly stripped:
-  - [ ] Journal page callouts (e.g., [!journal-page|right])
-  - [ ] Image embeds with dimensions (e.g., !image.png|400)
-  - [ ] Wiki links
-  - [ ] HTML tags
-  - [ ] Horizontal rules
-  - [ ] Multiple newlines
+- [x] Markdown elements are properly stripped:
+  - [x] Journal page callouts (e.g., [!journal-page|right])
+  - [x] Image embeds with dimensions (e.g., !image.png|400)
+  - [x] Wiki links
+  - [x] HTML tags
+  - [x] Horizontal rules
+  - [x] Multiple newlines
 
 ### Filtering and Sorting
 
-- [x] Date range filter works
-  - [x] All Time option
-  - [x] Last Month option
-  - [x] Last Week option
-- [x] Metric filter works
-  - [x] All Metrics option
-  - [x] Individual metric options
-- [x] Column sorting works
-  - [x] Date column
-  - [x] Title column
-  - [x] Words column
-  - [x] Metric columns
-- [x] Sort indicators show correct direction
+- [ ] Date range filter works
+  - [ ] All Time option
+  - [ ] Last Month option
+  - [ ] Last Week option
+- [ ] Metric filter works
+  - [ ] All Metrics option
+  - [ ] Individual metric options
+- [ ] Column sorting works
+  - [ ] Date column
+  - [ ] Title column
+  - [ ] Words column
+  - [ ] Metric columns
+- [ ] Sort indicators show correct direction
 
 ### Styling and UI
 
@@ -103,28 +104,28 @@
 - [x] Buttons have proper hover states
 - [x] Links have proper hover states
 - [x] Text is readable
-- [x] Spacing is consistent
-- [x] UI is responsive
-- [x] No horizontal scrolling on desktop
-- [x] Mobile view is usable
-- [x] Table overrides readable line length setting
-- [x] Table maintains full width regardless of theme settings
-- [x] Column widths are optimized:
-  - [x] Date column (8%)
-  - [x] Dream Title column (15%)
-  - [x] Words column (7%)
-  - [x] Content column (30%)
-  - [x] Metric columns (8% each)
-- [x] Progress modal styling matches theme
-- [x] Suggestion containers use CSS classes instead of inline styles
+- [ ] Spacing is consistent
+- [ ] UI is responsive
+- [ ] No horizontal scrolling on desktop
+- [ ] Mobile view is usable
+- [ ] Table overrides readable line length setting
+- [ ] Table maintains full width regardless of theme settings
+- [ ] Column widths are optimized:
+  - [ ] Date column (8%)
+  - [ ] Dream Title column (15%)
+  - [ ] Words column (7%)
+  - [ ] Content column (30%)
+  - [ ] Metric columns (8% each)
+- [ ] Progress modal styling matches theme
+- [ ] Suggestion containers use CSS classes instead of inline styles
 
 ### Error Handling
 
-- [x] Invalid file paths show appropriate errors
-- [x] Missing metrics show appropriate messages
-- [x] Network errors are handled gracefully
-- [x] Permission errors are handled gracefully
-- [x] Invalid data formats are handled gracefully
+- [ ] Invalid file paths show appropriate errors
+- [ ] Missing metrics show appropriate messages
+- [ ] Network errors are handled gracefully
+- [ ] Permission errors are handled gracefully
+- [ ] Invalid data formats are handled gracefully
 - [ ] Backup creation errors show appropriate messages
 - [ ] User is prompted to proceed without backup if backup fails
 
@@ -132,31 +133,24 @@
 
 - [x] Plugin loads quickly
 - [x] Tables render quickly
-- [x] Sorting is responsive
-- [x] Filtering is responsive
-- [x] No lag when expanding content
-- [x] Memory usage is reasonable
-- [x] Batch processing improves performance with large datasets
-- [x] Lazy loading improves table performance
-- [x] Progress indicator updates smoothly
-
-### Browser Compatibility
-
-- [x] Works in Chrome
-- [x] Works in Firefox
-- [x] Works in Safari
-- [x] Works in Edge
+- [ ] Sorting is responsive
+- [ ] Filtering is responsive
+- [ ] No lag when expanding content
+- [ ] Memory usage is reasonable
+- [ ] Batch processing improves performance with large datasets
+- [ ] Lazy loading improves table performance
+- [ ] Progress indicator updates smoothly
 
 ### Theme Compatibility
 
-- [x] Works with Light theme
-- [x] Works with Dark theme
-- [x] Works with custom themes
-- [x] Colors adapt to theme changes
+- [ ] Works with Light theme
+- [ ] Works with Dark theme
+- [ ] Works with custom themes
+- [ ] Colors adapt to theme changes
 
 ### Backup System Testing
 
-- [ ] Backup is created before table update
+- [x] Backup is created before table update
 - [x] Backup filename includes timestamp
 - [x] Backup contains complete note content
 - [x] Backup is created in correct location
@@ -164,9 +158,9 @@
 - [x] Multiple backups are handled correctly
 - [x] Backup process doesn't block UI
 - [ ] Backup errors are handled gracefully
-- [x] Backup files are visually distinct in file explorer
-- [x] Backup process works with large files
-- [x] Backup is triggered on content changes
+- [ ] Backup files are visually distinct in file explorer
+- [ ] Backup process works with large files
+- [ ] Backup is triggered on content changes
 - [ ] Backup is triggered before scraping
 
 ### Notes for Testing
@@ -197,16 +191,16 @@ When reporting bugs, please include:
 ### Performance Testing
 
 - [x] Test with 100+ dream entries
-- [x] Test with 10+ metrics
-- [x] Test with large content (1000+ words)
-- [x] Monitor memory usage
-- [x] Check load times
-- [x] Verify smooth scrolling
-- [x] Check filter response time
-- [x] Check sort response time
-- [x] Test batch processing performance
-- [x] Test lazy loading performance
-- [x] Monitor progress indicator updates
+- [ ] Test with 10+ metrics
+- [ ] Test with large content (1000+ words)
+- [ ] Monitor memory usage
+- [ ] Check load times
+- [ ] Verify smooth scrolling
+- [ ] Check filter response time
+- [ ] Check sort response time
+- [ ] Test batch processing performance
+- [ ] Test lazy loading performance
+- [ ] Monitor progress indicator updates
 
 ### Troubleshooting: File Suggestion Issues
 
@@ -223,10 +217,10 @@ If a file path does not appear in suggestions:
 ### Recent Changes to Test
 
 1. Progress Indicator:
-   - [x] Shows current file being processed
-   - [x] Shows number of entries found
-   - [x] Shows number of callouts found
-   - [x] Progress bar updates smoothly
+   - [ ] Shows current file being processed
+   - [ ] Shows number of entries found
+   - [ ] Shows number of callouts found
+   - [ ] Progress bar updates smoothly
    - [x] Modal styling matches theme
 
 2. Batch Processing:
@@ -237,7 +231,7 @@ If a file path does not appear in suggestions:
 
 3. CSS Improvements:
    - [x] All styles use CSS classes
-   - [x] No inline styles present
+   - [ ] No inline styles present
    - [x] Theme compatibility maintained
    - [x] Responsive design preserved
 
@@ -378,7 +372,7 @@ Complete user workflows that require manual verification.
 
 ##### Cross-Platform Testing
 
-- [ ] Windows compatibility
+- [x] Windows compatibility
 - [ ] macOS compatibility
 - [ ] Linux compatibility
 - [ ] Mobile compatibility

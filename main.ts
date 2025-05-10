@@ -233,23 +233,66 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private processDreamContent(dreamDiary: string): string {
-        return dreamDiary
-            .split(/> \[!dream-metrics\]/)[0]
-            .replace(/^> \[!dream-diary\].*?\[\[.*?\]\]\n/m, '')
-            .replace(/^>+\s*/gm, '')
-            .replace(/\[\[([^\]]+?)\]\]/g, '$1')
-            .replace(/!\[.*?\]\(.*?\)/g, '')
-            .replace(/\[([^\]]+?)\]\(.*?\)/g, '$1')
-            .replace(/```[\s\S]*?```/g, '')
-            .replace(/`([^`]+?)`/g, '$1')
-            .replace(/\*\*([^*]+?)\*\*/g, '$1')
-            .replace(/\*([^*]+?)\*/g, '$1')
-            .replace(/<\/?[^>]+(>|$)/g, '')
-            .replace(/^---+\s*$/gm, '')
-            .replace(/\[!journal-page\|.*?\]/g, '')
-            .replace(/![^|\n]+?\|?\d*\s*/g, '')
-            .replace(/\n{2,}/g, ' ')
+        // First, extract the content between dream-diary and dream-metrics callouts
+        const diaryMatch = dreamDiary.match(/> \[!dream-diary\].*?\[\[.*?\]\]\n([\s\S]*?)(?=\n> \[!dream-metrics\]|$)/);
+        if (!diaryMatch) {
+            return '';
+        }
+        let content = diaryMatch[1];
+
+        // After extracting content, before further cleaning, strip [!dream-metrics] callouts and their content
+        content = content.replace(/\[!dream-metrics\][^\n]*((\n[^\n]*)*)/g, '').replace(/>\s*\[!dream-metrics\][^\n]*((\n[^\n]*)*)/g, '');
+
+        // First pass: Remove specific patterns line by line
+        content = content
+            .split('\n')
+            .map(line => {
+                // Remove any line containing image references or specific patterns
+                if (line.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?/i) ||
+                    line.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
+                    line.match(/^!.*?\|/) ||
+                    line.match(/^>\s*!.*?\|/) ||
+                    line.match(/^>\s*\[\[.*?\]\]/) ||
+                    line.match(/^>\s*\[!.*?\|/) ||
+                    line.match(/^---+$/)) {
+                    return '';
+                }
+                return line;
+            })
+            .filter(line => line.trim() !== '')
+            .join('\n');
+
+        // Second pass: Clean up markdown while preserving formatting
+        content = content
+            .replace(/^>+\s*/gm, '')           // Remove blockquote markers
+            .replace(/\[\[([^\]]+?)\]\]/g, '[$1]') // Convert wiki links to markdown links
+            .replace(/!\[.*?\]\(.*?\)/g, '')   // Remove image links
+            .replace(/\[([^\]]+?)\]\(.*?\)/g, '[$1]') // Convert markdown links to plain text links
+            .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
+            .replace(/`([^`]+?)`/g, '$1')      // Convert inline code to plain text
+            .replace(/<\/?[^>]+(>|$)/g, '')    // Remove HTML tags
+            .replace(/\[!.*?\|.*?\]/g, '')     // Remove any remaining callouts
+            .replace(/\n{2,}/g, '\n')          // Replace multiple newlines with single newline
             .trim();
+
+        // Third pass: Remove any remaining image references or unwanted patterns
+        content = content
+            .split(' ')
+            .filter(word => {
+                // Filter out any word that looks like an image reference or unwanted pattern
+                return !(
+                    word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) ||
+                    word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
+                    word.match(/^!.*?\|/) ||
+                    word.match(/\[\[.*?\]\]/) ||
+                    word.match(/\[!.*?\|.*?\]/)
+                );
+            })
+            .join(' ')
+            .replace(/\s+/g, ' ') // Normalize spaces
+            .trim();
+
+        return content;
     }
 
     private processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number> {
@@ -279,6 +322,21 @@ export default class DreamMetricsPlugin extends Plugin {
         }
 
         try {
+            // Create backup before any operations if enabled
+            if (this.settings.backupEnabled) {
+                try {
+                    await this.backupProjectNote(projectFile);
+                } catch (error) {
+                    console.error('Error creating backup:', error);
+                    new Notice('Error creating backup. Check console for details.');
+                    // Ask user if they want to proceed without backup
+                    const proceed = await this.confirmProceedWithoutBackup();
+                    if (!proceed) {
+                        return;
+                    }
+                }
+            }
+
             // Read existing content
             const existingContent = await this.app.vault.read(projectFile);
             
@@ -294,21 +352,6 @@ export default class DreamMetricsPlugin extends Plugin {
             
             // Only proceed if content has changed
             if (newContent !== existingContent) {
-                // Create backup before modifying
-                if (this.settings.backupEnabled) {
-                    try {
-                        await this.backupProjectNote(projectFile);
-                    } catch (error) {
-                        console.error('Error creating backup:', error);
-                        new Notice('Error creating backup. Check console for details.');
-                        // Ask user if they want to proceed without backup
-                        const proceed = await this.confirmProceedWithoutBackup();
-                        if (!proceed) {
-                            return;
-                        }
-                    }
-                }
-                
                 // Confirm with user
                 const confirmed = await this.confirmOverwrite();
                 if (confirmed) {
@@ -328,42 +371,76 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private async backupProjectNote(file: TFile) {
         if (!this.settings.backupEnabled) {
-            console.log('Backups are disabled in settings');
+            console.log('[OneiroMetrics] Backups are disabled in settings');
             return;
         }
 
         if (!this.settings.backupFolderPath) {
-            console.log('No backup folder path set in settings');
+            console.log('[OneiroMetrics] No backup folder path set in settings');
             new Notice('Please select a backup folder in settings');
             return;
         }
 
         try {
+            // Read the file content
             const content = await this.app.vault.read(file);
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            
+            // Generate timestamp in a more readable format
+            const now = new Date();
+            const timestamp = now.toISOString()
+                .replace(/[:.]/g, '-')
+                .replace('T', '_')
+                .replace('Z', '');
+            
+            // Create backup filename with original filename and timestamp
             const fileName = file.basename;
             const backupPath = `${this.settings.backupFolderPath}/${fileName}.backup-${timestamp}.md`;
             
-            // Create backup folder if it doesn't exist
+            // Check if backup folder exists
             const backupFolder = this.app.vault.getAbstractFileByPath(this.settings.backupFolderPath);
             if (!backupFolder) {
                 try {
                     await this.app.vault.createFolder(this.settings.backupFolderPath);
-                    console.log(`Created backup folder: ${this.settings.backupFolderPath}`);
+                    console.log(`[OneiroMetrics] Created backup folder: ${this.settings.backupFolderPath}`);
                 } catch (error) {
-                    console.error('Error creating backup folder:', error);
-                    new Notice(`Error creating backup folder: ${error.message}`);
-                    return;
+                    console.error('[OneiroMetrics] Error creating backup folder:', error);
+                    throw new Error(`Failed to create backup folder: ${error.message}`);
                 }
+            }
+            
+            // Check if backup file already exists
+            const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
+            if (existingBackup) {
+                console.log(`[OneiroMetrics] Backup file already exists: ${backupPath}`);
+                throw new Error('Backup file already exists');
             }
             
             // Create the backup file
             await this.app.vault.create(backupPath, content);
-            console.log(`Created backup at: ${backupPath}`);
+            console.log(`[OneiroMetrics] Created backup at: ${backupPath}`);
+            
+            // Clean up old backups (keep last 5)
+            try {
+                const backupFiles = this.app.vault.getMarkdownFiles()
+                    .filter(f => f.path.startsWith(this.settings.backupFolderPath) && 
+                                f.basename.startsWith(fileName) && 
+                                f.basename.includes('.backup-'))
+                    .sort((a, b) => b.stat.mtime - a.stat.mtime);
+                
+                // Delete backups older than the 5 most recent
+                for (let i = 5; i < backupFiles.length; i++) {
+                    await this.app.vault.delete(backupFiles[i]);
+                    console.log(`[OneiroMetrics] Deleted old backup: ${backupFiles[i].path}`);
+                }
+            } catch (error) {
+                console.warn('[OneiroMetrics] Error cleaning up old backups:', error);
+                // Don't throw here, as the main backup was successful
+            }
+            
             new Notice(`Backup created: ${backupPath}`);
         } catch (error) {
-            console.error('Error creating backup:', error);
-            new Notice(`Error creating backup: ${error.message}`);
+            console.error('[OneiroMetrics] Error creating backup:', error);
+            throw new Error(`Failed to create backup: ${error.message}`);
         }
     }
 
@@ -457,6 +534,11 @@ export default class DreamMetricsPlugin extends Plugin {
             if (name === 'Words') {
                 const total = values.reduce((a, b) => a + b, 0);
                 label = `Words <span class="oom-words-total">(total: ${total})</span>`;
+            } else {
+                const metric = this.settings.metrics.find(m => m.name === name);
+                if (metric?.icon) {
+                    label = `<span class="oom-metric-icon oom-metric-icon--start">${metric.icon}</span> ${name}`;
+                }
             }
             content += '<tr>\n';
             content += `<td>${label}</td>\n`;
@@ -489,8 +571,9 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<label for="metricFilter">Filter by Metric:</label>\n';
         content += '<select id="metricFilter" class="oom-select">\n';
         content += '<option value="all">All Metrics</option>\n';
-        for (const name of this.settings.metrics.map(m => m.name)) {
-            content += `<option value="${name}">${name}</option>\n`;
+        for (const metric of this.settings.metrics) {
+            const label = metric.icon ? `<span class="oom-metric-icon oom-metric-icon--start">${metric.icon}</span> ${metric.name}` : metric.name;
+            content += `<option value="${metric.name}">${label}</option>\n`;
         }
         content += '</select>\n';
         content += '</div>\n';
@@ -505,8 +588,9 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<th class="oom-sortable" data-sort="title">Dream Title <span class="oom-sort-icon">↕</span></th>\n';
         content += '<th class="oom-sortable metric-value" data-sort="words">Words <span class="oom-sort-icon">↕</span></th>\n';
         content += '<th>Content</th>\n';
-        for (const name of this.settings.metrics.map(m => m.name)) {
-            content += `<th class="oom-sortable metric-value" data-sort="${name}">${name} <span class="oom-sort-icon">↕</span></th>\n`;
+        for (const metric of this.settings.metrics) {
+            const label = metric.icon ? `<span class="oom-metric-icon oom-metric-icon--start">${metric.icon}</span> ${metric.name}` : metric.name;
+            content += `<th class="oom-sortable metric-value" data-sort="${metric.name}">${label} <span class="oom-sort-icon">↕</span></th>\n`;
         }
         content += '</tr>\n';
         content += '</thead>\n';
@@ -518,65 +602,25 @@ export default class DreamMetricsPlugin extends Plugin {
             content += `<td><a href="#^${entry.source.id}" data-href="${entry.source.file}#^${entry.source.id}" class="internal-link">${entry.title}</a></td>\n`;
             content += `<td class="metric-value">${entry.metrics['Words'] || 0}</td>\n`;
 
-            // Extract and clean only the dream content
+            // Process dream content for display
             let dreamContent = entry.content;
             
-            // Find the content between dream-diary and dream-metrics callouts
-            const diaryMatch = dreamContent.match(/> \[!dream-diary\].*?\[\[.*?\]\]\n([\s\S]*?)(?=\n> \[!dream-metrics\]|$)/);
-            if (diaryMatch) {
-                dreamContent = diaryMatch[1];
-                
-                // First pass: Remove specific patterns line by line
-                dreamContent = dreamContent
-                    .split('\n')
-                    .map(line => {
-                        // Remove any line containing image references or specific patterns
-                        if (line.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?/i) ||
-                            line.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
-                            line.match(/^!.*?\|/) ||
-                            line.match(/^>\s*!.*?\|/) ||
-                            line.match(/^>\s*\[\[.*?\]\]/) ||
-                            line.match(/^>\s*\[!.*?\|/) ||
-                            line.match(/^---+$/)) {
-                            return '';
-                        }
-                        return line;
-                    })
-                    .filter(line => line.trim() !== '')
-                    .join('\n');
+            // Escape HTML special characters
+            dreamContent = dreamContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
 
-                // Second pass: Clean up markdown and other elements
-                dreamContent = dreamContent
-                    .replace(/^>+\s*/gm, '')           // Remove blockquote markers
-                    .replace(/\[\[([^\]]+?)\]\]/g, '$1') // Convert wiki links to plain text
-                    .replace(/!\[.*?\]\(.*?\)/g, '')   // Remove image links
-                    .replace(/\[([^\]]+?)\]\(.*?\)/g, '$1') // Convert markdown links to plain text
-                    .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
-                    .replace(/`([^`]+?)`/g, '$1')      // Convert inline code to plain text
-                    .replace(/\*\*([^*]+?)\*\*/g, '$1') // Convert bold to plain text
-                    .replace(/\*([^*]+?)\*/g, '$1')    // Convert italic to plain text
-                    .replace(/<\/?[^>]+(>|$)/g, '')    // Remove HTML tags
-                    .replace(/\[!.*?\|.*?\]/g, '')     // Remove any remaining callouts
-                    .replace(/\n{2,}/g, ' ')           // Replace multiple newlines with space
-                    .trim();
-
-                // Third pass: Remove any remaining image references or unwanted patterns
-                dreamContent = dreamContent
-                    .split(' ')
-                    .filter(word => {
-                        // Filter out any word that looks like an image reference or unwanted pattern
-                        return !(
-                            word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) ||
-                            word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
-                            word.match(/^!.*?\|/) ||
-                            word.match(/\[\[.*?\]\]/) ||
-                            word.match(/\[!.*?\|.*?\]/)
-                        );
-                    })
-                    .join(' ')
-                    .replace(/\s+/g, ' ') // Normalize spaces
-                    .trim();
-            }
+            // Convert markdown to HTML
+            dreamContent = dreamContent
+                .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')  // Bold
+                .replace(/\*([^*]+?)\*/g, '<em>$1</em>')             // Italic
+                .replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, '<a href="$2">$1</a>')  // Links
+                .replace(/\[\[([^\]]+?)\]\]/g, '<a href="$1">$1</a>')  // Wiki links
+                .replace(/`([^`]+?)`/g, '<code>$1</code>')           // Inline code
+                .replace(/\n/g, '<br>');                             // Line breaks
 
             if (!dreamContent || !dreamContent.trim()) {
                 dreamContent = '';
@@ -584,12 +628,11 @@ export default class DreamMetricsPlugin extends Plugin {
 
             if (dreamContent.length > 200) {
                 const preview = dreamContent.substring(0, 200) + '...';
-                content += `<td class="oom-dream-content">
-                    <input type="checkbox" class="oom-show-toggle" id="oom-toggle-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}">
+                const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}`;
+                content += `<td class="oom-dream-content" id="${cellId}">
                     <div class="oom-content-preview">${preview}</div>
                     <div class="oom-content-full">${dreamContent}</div>
-                    <label for="oom-toggle-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}" class="oom-expand-button oom-show-more">Show more</label>
-                    <label for="oom-toggle-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}" class="oom-expand-button oom-show-less">Show less</label>
+                    <button type="button" class="oom-expand-button oom-show-more" aria-expanded="false" aria-controls="${cellId}-full">Show more<span class="visually-hidden"> full dream content</span></button>
                 </td>\n`;
             } else {
                 content += `<td class="oom-dream-content"><div class="oom-content-preview">${dreamContent}</div></td>\n`;
@@ -597,7 +640,7 @@ export default class DreamMetricsPlugin extends Plugin {
 
             // Add metric values
             for (const name of this.settings.metrics.map(m => m.name)) {
-                content += `<td class="metric-value">${entry.metrics[name] || ''}</td>\n`;
+                content += `<td class="metric-value" data-metric="${name}">${entry.metrics[name] || ''}</td>\n`;
             }
             content += '</tr>\n';
         }
@@ -605,6 +648,24 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '</table>\n';
         content += '</div>\n';
         content += '</div>\n';
+
+        // Reference the external sorting/filtering script instead of injecting it
+        content += '<script src="js/oom-table.js"></script>';
+        // Add expand/collapse script for dream content
+        content += `<script>
+        document.querySelectorAll('.oom-dream-content').forEach(cell => {
+            const preview = cell.querySelector('.oom-content-preview');
+            const full = cell.querySelector('.oom-content-full');
+            const button = cell.querySelector('.oom-expand-button');
+            if (!button) return;
+            button.addEventListener('click', () => {
+                const expanded = cell.classList.contains('expanded');
+                button.setAttribute('aria-expanded', String(!expanded));
+                cell.classList.toggle('expanded');
+            });
+        });
+        </script>`;
+
         return content;
     }
 
@@ -761,110 +822,16 @@ class OneiroMetricsModal extends Modal {
             cls: 'oom-selected-notes-container'
         });
 
-        // Display current selections
-        this.plugin.settings.selectedNotes.forEach(note => {
-            const chip = selectedNotesContainer.createEl('div', {
-                cls: 'oom-chip',
-                text: note
+        import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: selectedNotesContainer,
+                selectedNotes: this.plugin.settings.selectedNotes,
+                onChange: (selected) => {
+                    this.plugin.settings.selectedNotes = selected;
+                }
             });
-            const removeBtn = chip.createEl('button', {
-                cls: 'oom-chip-remove',
-                text: '×'
-            });
-            removeBtn.addEventListener('click', () => {
-                this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter(n => n !== note);
-                chip.remove();
-            });
-        });
-
-        // Add note input
-        const inputContainer = selectedNotesContainer.createEl('div', {
-            cls: 'oom-input-container'
-        });
-        const input = inputContainer.createEl('input', {
-            type: 'text',
-            placeholder: 'Type to search notes...',
-            cls: 'oom-search-input'
-        });
-
-        const suggestionContainer = inputContainer.createEl('div', {
-            cls: 'oom-suggestion-container'
-        });
-
-        // Show/hide suggestions
-        const showSuggestions = (suggestions: string[]) => {
-            suggestionContainer.empty();
-            if (suggestions.length > 0) {
-                suggestions.forEach(suggestion => {
-                    const item = suggestionContainer.createEl('div', {
-                        cls: 'oom-suggestion-item',
-                        text: suggestion
-                    });
-                    item.addEventListener('click', () => {
-                        if (!this.plugin.settings.selectedNotes.includes(suggestion)) {
-                            this.plugin.settings.selectedNotes.push(suggestion);
-                            const chip = selectedNotesContainer.createEl('div', {
-                                cls: 'oom-chip',
-                                text: suggestion
-                            });
-                            const removeBtn = chip.createEl('button', {
-                                cls: 'oom-chip-remove',
-                                text: '×'
-                            });
-                            removeBtn.addEventListener('click', () => {
-                                this.plugin.settings.selectedNotes = this.plugin.settings.selectedNotes.filter(n => n !== suggestion);
-                                chip.remove();
-                            });
-                        }
-                        input.value = '';
-                        suggestionContainer.empty();
-                    });
-                });
-                suggestionContainer.classList.add('visible');
-            } else {
-                suggestionContainer.classList.remove('visible');
-            }
-        };
-
-        // Handle input
-        input.addEventListener('input', async (e) => {
-            const value = input.value;
-            if (!value) {
-                suggestionContainer.classList.remove('visible');
-                return;
-            }
-
-            const files = this.app.vault.getMarkdownFiles();
-            const lowerInput = value.toLowerCase();
-            const suggestions = files
-                .map(file => file.path)
-                .filter(path => {
-                    if (path.includes('.backup-') || 
-                        path.includes('/Backups/') ||
-                        path.endsWith('.backup')) {
-                        return false;
-                    }
-                    const lowerPath = path.toLowerCase();
-                    return !this.plugin.settings.selectedNotes.includes(path) && 
-                           lowerPath.includes(lowerInput);
-                })
-                .sort((a, b) => {
-                    const aExact = a.toLowerCase() === lowerInput;
-                    const bExact = b.toLowerCase() === lowerInput;
-                    if (aExact && !bExact) return -1;
-                    if (!aExact && bExact) return 1;
-                    return a.localeCompare(b);
-                })
-                .slice(0, 7);
-
-            showSuggestions(suggestions);
-        });
-
-        // Hide suggestions on blur
-        input.addEventListener('blur', () => {
-            setTimeout(() => {
-                suggestionContainer.classList.remove('visible');
-            }, 200);
         });
 
         // Callout Name
@@ -876,7 +843,7 @@ class OneiroMetricsModal extends Modal {
                     this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
                 }));
 
-        // Scrape Button
+        // Scrape Metrics button
         new Setting(contentEl)
             .setName('Scrape Metrics')
             .addButton(button => button

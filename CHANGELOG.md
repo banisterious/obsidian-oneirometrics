@@ -75,4 +75,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed issue where modal's Selected Notes field would show suggested or non-existent files and folders.
-- Fixed variable shadowing and event handler context issues in modal autocomplete logic. 
+- Fixed variable shadowing and event handler context issues in modal autocomplete logic.
+
+## [0.2.0] - 2024-05-10
+
+### Added
+- **Metric Icon Picker:** You can now select a custom icon for any metric, including custom ones, via a user-friendly picker in the Metric Editor Modal.
+- **Keyboard & Accessibility:** Metric reordering and expand/collapse UI are now fully keyboard accessible and screen reader friendly.
+- **UI Polish:** Improved spacing, grouping, and visual clarity in the Metric Editor Modal and metrics list.
+
+### Changed
+- **Autocomplete & Suggestion UI:** All inline styles have been moved to the stylesheet for better maintainability and theming.
+- **Dream Content Expand/Collapse:** Now features smooth animation and improved accessibility.
+- **Table Sorting/Filtering:** Logic moved to an external JS file for maintainability.
+
+### Fixed
+- **Dream Content Extraction:** `[!dream-metrics]` callouts and their content are now stripped from dream content previews and exports.
+- **Metric Settings Live Preview:** All changes (name, range, description) now update the preview instantly.
+- **Metric Reordering:** Preserves scroll position and focus after reordering or removing metrics.
+
+### Planned
+- Add search/filter to the icon picker.
+- Add more icons to the icon picker. 

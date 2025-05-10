@@ -53,11 +53,42 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
     - [ ] Custom column selection
     - [ ] Date range filtering
 - [ ] Integration with other Obsidian plugins
+    - [ ] Calendar
+    - [ ] Graph View
+    - [ ] Dataview
 - [ ] Enhanced search and filtering
+    - [ ] Full-text search
+    - [ ] Advanced filters
+    - [ ] Saved searches
 - [ ] Statistical analysis tools
+    - [ ] Trend analysis
+    - [ ] Correlation analysis
+    - [ ] Pattern detection
 - [ ] Settings callout preview and copy
+    - [ ] Add preview of callout format
+    - [ ] Add copy button
+    - [ ] Add paste button
 - [ ] Folder selection mode
-- [ ] UI text updates ("Choose Notes" instead of "Select Notes")
+    - [ ] Add folder selection option
+    - [ ] Implement recursive folder scanning
+    - [ ] Add folder exclusion patterns
+- [ ] UI text updates
+    - [ ] Update button text
+    - [ ] Update modal text
+    - [ ] Update settings text
+- [ ] Hybrid approach for metrics table editing
+    - [ ] Warning modal when editing
+    - [ ] Visual indicator for auto-generated content
+    - [ ] Copy to clipboard functionality
+    - [ ] View source in raw markdown
+    - [ ] Maintain editability while preventing accidental modifications
+- [ ] Lucide icons for Dream Metrics
+    - [ ] Add icon mapping for each metric
+    - [ ] Implement icon display in settings page
+    - [ ] Add icons to metrics table in Project Note
+    - [ ] Ensure consistent icon usage across the plugin
+    - [ ] Add tooltips for icon meanings
+- [ ] Change Lucide icon sizes in Settings > Metrics from 24px to 20px
 
 At the bottom of the Settings page, display a section:
 
@@ -91,6 +122,17 @@ This metric tracks the number of distinct instances where you have a clear feeli
 If you recall the dream as a complete, seamless narrative with no sense of missing parts, this score would be 0.
 
 If you have a distinct feeling of one or more breaks or missing chunks in the dream's sequence, you would count each of those instances.
+
+### Familiar People (Score 1-5)
+This metric tracks the presence and significance of people you know from your waking life in your dreams.
+
+| Score                | Description |
+| -------------------- | ----------- |
+| 1 (None)            | No familiar people appear in the dream. |
+| 2 (Brief)           | One or two familiar people appear briefly or in passing. |
+| 3 (Present)         | Several familiar people appear and have some interaction or presence in the dream. |
+| 4 (Significant)     | Multiple familiar people play important roles or have meaningful interactions in the dream. |
+| 5 (Central)         | Familiar people are central to the dream's narrative and have deep, meaningful interactions or relationships portrayed. |
 
 ### Descriptiveness (Score 1-5)
 This metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details (which have their own metric). This considers how thoroughly you describe the events, characters, interactions, and the overall narrative flow.
@@ -150,6 +192,31 @@ Key CSS features:
 - Touch device optimizations
 - Accessible color contrast
 - Flexible layout system
+
+### Lucide Icon Mappings
+The plugin uses Lucide icons to provide visual indicators for different metrics. Here are the current mappings:
+
+| Metric | Icon | Description |
+|--------|------|-------------|
+| Lost Segments | `circle-minus` | Indicates missing or forgotten dream segments |
+| Lucidity | `sparkles` | Represents awareness within the dream |
+| Emotional Intensity | `heart` | Shows emotional impact of the dream |
+| Vividness | `eye` | Indicates visual clarity and detail |
+| Control | `wand-2` | Represents dream control and influence |
+| Bizarreness | `zap` | Shows unusual or surreal elements |
+| Clarity | `glasses` | Indicates overall dream clarity |
+| Coherence | `link` | Shows narrative connectedness |
+| Length | `ruler` | Represents dream duration/length |
+| Complexity | `layers` | Indicates narrative complexity |
+| Familiar People | `users-round` | Shows presence of known people |
+
+These icons are used consistently throughout the plugin's interface to provide quick visual recognition of different metrics. The icons are displayed:
+- In the settings page next to each metric name
+- In the metrics table header for each metric column
+- In tooltips when hovering over metric values
+- In the metric editor when configuring metrics
+
+The icons are implemented using the Lucide icon library, which provides a consistent and modern look across the plugin. Each icon is chosen to intuitively represent its associated metric, making it easier for users to quickly identify and understand different metrics at a glance.
 
 ## Development Guidelines
 
@@ -250,14 +317,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Current Status (as of May 2025)
 
 - ✅ **Backup Folder autocomplete:** Now working correctly and matches other autocomplete fields.
-- ⚠️ **Selected Notes autocomplete in modal:** Not listing files when text is entered; needs patching to match settings field logic.
-- ⚠️ **No backup created upon scraping:** Backup logic may not be triggered or configured correctly; needs investigation.
-- ✅ **Selected Notes autocomplete in settings:** Working as expected.
-- ⏳ **Section headings:** Patch to use `var(--h2-size)` and theme heading variables applied; pending user verification.
+- ⚠️ **Selected Notes autocomplete in modal:** Files list does not appear when typing; should match settings modal behavior.
+- ⚠️ **Selected Notes autocomplete in settings:** Files appear, but are misaligned (appear up to the left).
+- ⚠️ **Edit Metric Modal (Lost Segments):** Missing field for value type or min/max (should show "Any whole number" and hide min/max fields).
+- ⚠️ **Metrics Table font size:** Still inconsistent across columns and UI.
+- ⚠️ **Filters:** Filters in the metrics table do not change the content shown.
+- ⚠️ **Columns not sorting:** Clicking column headers does not sort the table.
+- ⚠️ **Icons not rendering:** Lucide icons are not rendering in the metrics table.
+- ⚠️ **Content column paragraph breaks:** Dream content needs paragraph breaks (`<br>` or similar) preserved in the table.
+- ⚠️ **Scraping incomplete:** Some entries still need to be scraped or scraping is only partially successful.
 - ⏳ **Markdown stripping in Content column:** Not yet fully stripping all markdown/image/file links; patch in progress.
 - ⏳ **Lost Segments metric:** Still shows 1–10 range; update to fixed integer in progress.
-- 🆕 **Planned:** Settings callout preview/copy feature and Metric Descriptions section added to roadmap.
-- 🆕 **Planned:** Performance optimizations and new feature requests added to roadmap.
+- ⏳ **No backup created upon scraping:** Backup logic may not be triggered or configured correctly; needs investigation.
+- ⏳ **Section headings:** Patch to use `var(--h2-size)` and theme heading variables applied; pending user verification.
 
 ---
 
@@ -265,9 +337,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [x] Backup Folder autocomplete now works as expected.
 - [ ] Selected Notes autocomplete in modal does not list files (should match settings field behavior).
-- [ ] No backup is created when scraping, even if enabled and folder is set.
+- [ ] Selected Notes autocomplete in settings: Files appear, but are misaligned.
+- [ ] Edit Metric Modal (Lost Segments): Missing field for value type or min/max.
+- [ ] Metrics Table font size is inconsistent.
+- [ ] Filters in the metrics table do not change the content shown.
+- [ ] Columns not sorting.
+- [ ] Icons not rendering in the metrics table.
+- [ ] Content column paragraph breaks not preserved.
+- [ ] Scraping incomplete.
 - [ ] Markdown/image/file links not fully stripped from Content column.
 - [ ] Lost Segments metric still shows 1–10 range (should be integer).
+- [ ] No backup is created when scraping, even if enabled and folder is set.
 - [ ] Section headings patch pending user verification.
 - [ ] Performance optimizations pending implementation and testing.
 
@@ -322,3 +402,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Documentation
 For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](METRICS.md).
+
+- 🛠️ **Lucide icons now render correctly as SVGs in the Settings > Metrics section, providing clear visual indicators for each metric.**
+- 🛠️ **Metric range labels for 'Lost Segments' and 'Familiar People' now display 'Any whole number' instead of a fixed range.**
+- 🛠️ **File/folder suggestion and autocomplete logic in settings has been reviewed and is being improved for reliability and usability.**
+- 🛠️ **Metric editor modal now supports 'Any whole number' for Lost Segments and Familiar People, hiding min/max fields and updating the preview accordingly.**
+- 🛠️ **Fix for file/folder suggestions in settings is in progress.**
+- 🛠️ **File/folder suggestion dropdowns in settings now explicitly set display:block/display:none, ensuring suggestions are visible as you type in Backup Folder and Selected Notes fields.**
