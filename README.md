@@ -1,6 +1,6 @@
 # OneiroMetrics
 
-A plugin for Obsidian that turns dreams into data by tracking and analyzing dream journal metrics.
+A plugin for Obsidian that Turns Dreams Into Data by tracking and analyzing dream journal metrics.
 
 ## Features
 
