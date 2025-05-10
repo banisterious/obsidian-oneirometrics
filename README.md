@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="docs/images/gsa-barn.jpg" alt="A country barn painting, representing the foundation of dream journaling." width="600"/>
+</p>
+<p align="center"><em>“Barn at Sunrise” by [Artist Name], inspiration for OneiroMetrics</em></p>
+
 # OneiroMetrics
 
 A plugin for Obsidian that turns dreams into data by tracking and analyzing dream journal metrics.
