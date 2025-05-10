@@ -13,6 +13,11 @@
     - [ ] When implemented, display a notice or callout in the Project note to inform users that this feature is available and where to find the toggle in plugin settings.
 - [ ] **Metrics Descriptions Section:** Add a section in the UI and/or documentation that clearly describes each metric, its scoring, and examples for user reference.
 - [ ] **CSV Export:** Export summary and detailed dream metrics as CSV, with filtering and column selection (see TESTING.md for details).
+- [ ] **Callout Metadata Support:** Add support for metadata in dream metrics callouts:
+    - [ ] Document supported metadata options (e.g., `hide`, `compact`, `summary`)
+    - [ ] Add CSS classes for metadata-based styling
+    - [ ] Create a settings option to configure default metadata
+    - [ ] Add metadata documentation to the UI
 
 ## Current Focus
 - [ ] **Selected Notes autocomplete in modal:** Not listing files when text is entered; needs patching to match settings field logic.

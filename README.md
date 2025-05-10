@@ -75,6 +75,16 @@ Format 2 (all metrics on one line):
 > Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2, Descriptiveness: 4, Confidence Score: 5
 ```
 
+You can also add metadata to the callout for custom styling:
+```markdown
+> [!dream-metrics|hide]  # Hides the metrics in the note view
+> Sensory Detail: 4
+> Emotional Recall: 3
+> Lost Segments: 2
+> Descriptiveness: 4
+> Confidence Score: 5
+```
+
 ### Analyzing Dreams
 1. Open OneiroMetrics from the ribbon icon or command palette
 2. Select the notes you want to analyze
