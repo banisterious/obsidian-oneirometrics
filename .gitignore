@@ -13,6 +13,8 @@ release/
 # IDE
 .vscode/
 .idea/
+.cursor/
+.cursorrules
 
 # OS
 .DS_Store
@@ -28,4 +30,7 @@ oom-debug-log.txt
 # Environment
 .env
 .env.local
-.env.*.local 
+.env.*.local
+
+# User data
+Journals/ 

@@ -868,3 +868,6 @@ When reporting issues, include:
 
 ## Contributing
 If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
+
+## UI Improvements
+- **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.

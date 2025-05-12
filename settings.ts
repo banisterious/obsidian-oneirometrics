@@ -1226,33 +1226,36 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
 
         // Metrics Section
-        containerEl.createEl('h3', { text: 'Metrics Configuration' });
-
-        // Default metrics order: Sensory Detail, Emotional Recall, Descriptiveness, Characters Role, Confidence Score
-        // Optional metrics order: Characters Count, Familiar Count, Unfamiliar Count, Characters List, Dream Theme, Lucidity Level, Dream Coherence, Setting Familiarity, Ease of Recall, Recall Stability
-
-        // Wrap optional metrics in a collapsible container
-        const optionalMetricsSection = containerEl.createEl('div', { cls: 'oom-optional-metrics-section' });
-        optionalMetricsSection.createEl('h3', { text: 'Optional Metrics' });
-        const optionalMetricsContainer = optionalMetricsSection.createEl('div', { cls: 'oom-optional-metrics-container' });
-        optionalMetricsContainer.style.display = 'none'; // Initially collapsed
-
-        // Toggle button for optional metrics
-        const toggleBtn = optionalMetricsSection.createEl('button', { text: 'Show Optional Metrics', cls: 'oom-toggle-btn' });
-        toggleBtn.onclick = () => {
-            const isVisible = optionalMetricsContainer.style.display !== 'none';
-            optionalMetricsContainer.style.display = isVisible ? 'none' : 'block';
-            toggleBtn.textContent = isVisible ? 'Show Optional Metrics' : 'Hide Optional Metrics';
+        const metricsHeaderRow = containerEl.createEl('div');
+        metricsHeaderRow.style.display = 'flex';
+        metricsHeaderRow.style.alignItems = 'center';
+        metricsHeaderRow.style.gap = '0.5em';
+        const metricsHeader = metricsHeaderRow.createEl('h3', { text: 'Metrics Configuration' });
+        metricsHeader.style.marginBottom = '0';
+        // Add Metrics Descriptions button (mini)
+        const descBtn = metricsHeaderRow.createEl('button', { text: 'Metrics Descriptions', cls: 'oom-button oom-button--mini' });
+        descBtn.style.fontSize = '0.85em';
+        descBtn.style.padding = '2px 10px';
+        descBtn.onclick = () => {
+            new MetricsDescriptionsModal(this.app, this.plugin).open();
         };
 
-        // Render optional metrics inside the container
+        // Default metrics (always visible)
+        const defaultMetrics = [
+            'Sensory Detail',
+            'Emotional Recall',
+            'Descriptiveness',
+            'Characters Role',
+            'Confidence Score'
+        ];
+        const defaultMetricsSection = containerEl.createEl('div', { cls: 'oom-default-metrics-section' });
+        defaultMetricsSection.createEl('h4', { text: 'Default Metrics' });
         this.plugin.settings.metrics.forEach((metric, index) => {
-            if (metric.name === 'Characters Count' || metric.name === 'Familiar Count' || metric.name === 'Unfamiliar Count' || metric.name === 'Characters List' || metric.name === 'Dream Theme' || metric.name === 'Lucidity Level' || metric.name === 'Dream Coherence' || metric.name === 'Setting Familiarity' || metric.name === 'Ease of Recall' || metric.name === 'Recall Stability') {
-                const metricSetting = new Setting(optionalMetricsContainer)
+            if (defaultMetrics.includes(metric.name)) {
+                const metricSetting = new Setting(defaultMetricsSection)
                     .setName(metric.icon && lucideIconMap[metric.icon] ? `${metric.name} ` : metric.name)
-                    .setDesc(`${metric.description} (${['Lost Segments', 'Familiar People'].includes(metric.name) ? 'Any whole number' : `Range: ${metric.range.min}-${metric.range.max}`})`)
+                    .setDesc(`${metric.description} (Range: ${metric.range.min}-${metric.range.max})`)
                     .setClass('oom-metric-setting');
-
                 // Add enable/disable toggle
                 metricSetting.addToggle(toggle => {
                     toggle
@@ -1262,7 +1265,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         });
                 });
-
                 // Render icon if present and valid
                 if (metric.icon && lucideIconMap[metric.icon]) {
                     const iconSVG = lucideIconMap[metric.icon];
@@ -1271,97 +1273,82 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     iconEl.innerHTML = iconSVG;
                     metricSetting.nameEl.insertBefore(iconEl, metricSetting.nameEl.firstChild);
                 }
-
-                // Add drag handle
-                metricSetting.addExtraButton((button: ExtraButtonComponent) => {
-                    const handle = button
-                        .setIcon('grip-vertical')
-                        .setTooltip('Drag to reorder')
-                        .extraSettingsEl;
-
-                    handle.addClass('oom-drag-handle');
-                    handle.setAttribute('draggable', 'true');
-                    handle.setAttribute('tabindex', '0');
-                    handle.setAttribute('aria-label', 'Reorder metric');
-                    handle.setAttribute('aria-grabbed', 'false');
-                    handle.addEventListener('focus', () => handle.classList.add('is-focused'));
-                    handle.addEventListener('blur', () => handle.classList.remove('is-focused'));
-                    handle.addEventListener('keydown', async (e: KeyboardEvent) => {
-                        if (e.key === 'ArrowUp' && index > 0) {
-                            e.preventDefault();
-                            const metrics = this.plugin.settings.metrics;
-                            [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
-                            await this.plugin.saveSettings();
-                            this.display();
-                            announce('Metric moved up');
-                        } else if (e.key === 'ArrowDown' && index < this.plugin.settings.metrics.length - 1) {
-                            e.preventDefault();
-                            const metrics = this.plugin.settings.metrics;
-                            [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
-                            await this.plugin.saveSettings();
-                            this.display();
-                            announce('Metric moved down');
-                        }
-                    });
-                });
-
-                // Add drop zone
-                const settingEl = metricSetting.settingEl;
-                settingEl.setAttribute('data-index', index.toString());
-                
-                settingEl.addEventListener('dragover', (e: DragEvent) => {
-                    e.preventDefault();
-                    const draggingEl = containerEl.querySelector('.is-dragging');
-                    if (draggingEl && draggingEl !== settingEl) {
-                        settingEl.addClass('oom-drop-target');
-                    }
-                });
-
-                settingEl.addEventListener('dragleave', () => {
-                    settingEl.removeClass('oom-drop-target');
-                });
-
-                settingEl.addEventListener('drop', async (e: DragEvent) => {
-                    e.preventDefault();
-                    settingEl.removeClass('oom-drop-target');
-                    
-                    const fromIndex = parseInt(e.dataTransfer?.getData('text/plain') || '-1');
-                    const toIndex = parseInt(settingEl.getAttribute('data-index') || '-1');
-                    
-                    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-                        const metrics = this.plugin.settings.metrics;
-                        const [movedMetric] = metrics.splice(fromIndex, 1);
-                        metrics.splice(toIndex, 0, movedMetric);
-                        await this.plugin.saveSettings();
-                        this.display();
-                    }
-                });
-
-                // Add up/down buttons for reordering
-                if (index > 0) {
-                    metricSetting.addExtraButton((button: ExtraButtonComponent) => button
-                        .setIcon('arrow-up')
-                        .setTooltip('Move up')
+                // Add edit/trash buttons as before
+                metricSetting
+                    .addExtraButton((button: ExtraButtonComponent) => button
+                        .setIcon('pencil')
+                        .setTooltip('Edit metric')
+                        .onClick(() => {
+                            new MetricEditorModal(
+                                this.app,
+                                metric,
+                                this.plugin.settings.metrics,
+                                async (updatedMetric) => {
+                                    this.plugin.settings.metrics[index] = updatedMetric;
+                                    await this.plugin.saveSettings();
+                                    this.display();
+                                },
+                                true
+                            ).open();
+                        }))
+                    .addExtraButton((button: ExtraButtonComponent) => button
+                        .setIcon('trash')
+                        .setTooltip('Remove metric')
                         .onClick(async () => {
-                            const metrics = this.plugin.settings.metrics;
-                            [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
+                            this.plugin.settings.metrics.splice(index, 1);
                             await this.plugin.saveSettings();
                             this.display();
                         }));
-                }
+            }
+        });
 
-                if (index < this.plugin.settings.metrics.length - 1) {
-                    metricSetting.addExtraButton((button: ExtraButtonComponent) => button
-                        .setIcon('arrow-down')
-                        .setTooltip('Move down')
-                        .onClick(async () => {
-                            const metrics = this.plugin.settings.metrics;
-                            [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
+        // --- Optional metrics in a Style Settings–style collapsible group ---
+        const styleCollapse = containerEl.createEl('div', { cls: 'style-settings-collapse' });
+        const styleCollapseHeader = styleCollapse.createEl('div', { cls: 'style-settings-collapse-header' });
+        const chevron = styleCollapseHeader.createEl('div', { cls: 'style-settings-collapse-indicator' });
+        chevron.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18"><path d="M6 7l3 3 3-3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        styleCollapseHeader.createEl('div', { cls: 'style-settings-collapse-title', text: 'Optional Metrics' });
+        const styleCollapseContent = styleCollapse.createEl('div', { cls: 'style-settings-collapse-content' });
+        styleCollapseContent.style.display = 'none';
+        styleCollapseHeader.addEventListener('click', () => {
+            const isCollapsed = styleCollapseContent.style.display === 'none';
+            styleCollapseContent.style.display = isCollapsed ? '' : 'none';
+            styleCollapse.classList.toggle('is-collapsed', !isCollapsed);
+        });
+        // Optional metrics list
+        const optionalMetrics = [
+            'Characters Count',
+            'Familiar Count',
+            'Unfamiliar Count',
+            'Characters List',
+            'Dream Theme',
+            'Lucidity Level',
+            'Dream Coherence',
+            'Setting Familiarity',
+            'Ease of Recall',
+            'Recall Stability'
+        ];
+        this.plugin.settings.metrics.forEach((metric, index) => {
+            if (optionalMetrics.includes(metric.name)) {
+                const metricSetting = new Setting(styleCollapseContent)
+                    .setName(metric.icon && lucideIconMap[metric.icon] ? `${metric.name} ` : metric.name)
+                    .setDesc(`${metric.description} (${['Lost Segments', 'Familiar People'].includes(metric.name) ? 'Any whole number' : `Range: ${metric.range.min}-${metric.range.max}`})`)
+                    .setClass('oom-metric-setting');
+                metricSetting.addToggle(toggle => {
+                    toggle
+                        .setValue(metric.enabled)
+                        .onChange(async (value) => {
+                            metric.enabled = value;
                             await this.plugin.saveSettings();
-                            this.display();
-                        }));
+                        });
+                });
+                if (metric.icon && lucideIconMap[metric.icon]) {
+                    const iconSVG = lucideIconMap[metric.icon];
+                    const iconEl = document.createElement('span');
+                    iconEl.className = 'oom-metric-icon-svg oom-metric-icon--start';
+                    iconEl.innerHTML = iconSVG;
+                    metricSetting.nameEl.insertBefore(iconEl, metricSetting.nameEl.firstChild);
                 }
-
                 metricSetting
                     .addExtraButton((button: ExtraButtonComponent) => button
                         .setIcon('pencil')
@@ -1629,122 +1616,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Metrics Description Section
-        const metricsDescH3 = containerEl.createEl('h3', { text: 'Metrics Descriptions' });
-        metricsDescH3.style.marginTop = '2.5em';
-        const descSection = containerEl.createEl('div', { cls: 'oom-metrics-description-section' });
-        // Add custom CSS for table borders and metric icons
-        const style = document.createElement('style');
-        style.textContent = `
-            .oom-metrics-description-section table {
-                border-collapse: collapse;
-                width: 100%;
-                margin-bottom: 1em;
-            }
-            .oom-metrics-description-section th, .oom-metrics-description-section td {
-                border: 1px solid #ddd;
-                padding: 6px 10px;
-            }
-            .oom-metrics-description-section th {
-                background: #f3f3f3;
-            }
-            .oom-metric-desc-heading {
-                display: flex;
-                align-items: center;
-                gap: 0.6em;
-                font-size: 1.08em;
-                margin-top: 1.7em;
-                margin-bottom: 0.2em;
-            }
-            .oom-metric-desc-icon {
-                width: 20px;
-                height: 20px;
-                display: inline-block;
-                vertical-align: middle;
-            }
-        `;
-        descSection.appendChild(style);
-        // Render Metrics Descriptions with icons
-        const metricDescriptions = [
-            {
-                name: 'Sensory Detail',
-                icon: 'eye',
-                heading: 'Sensory Detail (Score 1-5)',
-                markdown: `This metric aims to capture the richness and vividness of the sensory information you recall from your dream.
-
-| Score        | Description |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 (Minimal)  | You recall very little sensory information. The dream feels vague and lacks specific sights, sounds, textures, smells, or tastes. You might remember the general feeling of a place but not any distinct visual elements, for example. |
-| 2 (Limited)  | You recall a few basic sensory details, perhaps a dominant color or a general sound. The sensory landscape is still quite sparse. |
-| 3 (Moderate) | You recall a noticeable amount of sensory information. You might remember some visual details, perhaps a few distinct sounds, or a general feeling of touch. |
-| 4 (Rich)     | You recall a significant amount of sensory information across multiple senses. You can describe specific visual elements, distinct sounds, perhaps a smell or a texture. The dream feels more immersive. |
-| 5 (Vivid)    | Your recall is highly detailed and encompasses a wide range of sensory experiences. You can clearly describe intricate visual scenes, distinct and multiple sounds, and perhaps even specific tastes and smells. The dream feels very real and alive in your memory. |`
-            },
-            {
-                name: 'Emotional Recall',
-                icon: 'heart',
-                heading: 'Emotional Recall (Score 1-5)',
-                markdown: `This metric focuses on your ability to remember and articulate the emotions you experienced within the dream.
-
-| Score                | Description |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 (Vague)            | You have a faint sense that you felt some emotion in the dream, but you can't identify it specifically. You might just say you felt "something." |
-| 2 (General)          | You can identify a primary emotion (e.g., happy, sad, scared) but can't describe its intensity or nuances. |
-| 3 (Identified)       | You can identify one or two specific emotions you felt and perhaps describe their general intensity. |
-| 4 (Nuanced)          | You recall several distinct emotions and can describe some of the nuances or shifts in your feelings throughout the dream. |
-| 5 (Deep and Complex) | You have a strong recollection of the emotional landscape of the dream, including multiple emotions, their intensity, how they evolved, and perhaps even subtle emotional undertones. |`
-            },
-            {
-                name: 'Lost Segments',
-                icon: 'circle-minus',
-                heading: 'Lost Segments (Number)',
-                markdown: `This metric tracks the number of distinct instances where you have a clear feeling or awareness that a part of the dream is missing or has been forgotten. This isn't about omitting fragments you never recalled in the first place. It's about those "gaps" in your recalled narrative where you feel like "there was something else there," or you have a fleeting image or feeling that then vanishes.
-
-If you recall the dream as a complete, seamless narrative with no sense of missing parts, this score would be 0.
-
-If you have a distinct feeling of one or more breaks or missing chunks in the dream's sequence, you would count each of those instances.`
-            },
-            {
-                name: 'Descriptiveness',
-                icon: 'pen-tool',
-                heading: 'Descriptiveness (Score 1-5)',
-                markdown: `This metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details (which have their own metric). This considers how thoroughly you describe the events, characters, interactions, and the overall narrative flow.
-
-| Score                | Description |
-| -------------------- | ----------- |
-| 1 (Minimal)          | Your capture is very brief and outlines only the most basic elements of the dream. It lacks detail and elaboration. |
-| 2 (Limited)          | Your capture provides a basic account of the dream but lacks significant descriptive detail in terms of actions, character behavior, or plot progression. |
-| 3 (Moderate)         | Your capture provides a reasonably detailed account of the main events and characters, with some descriptive language used. |
-| 4 (Detailed)         | Your capture includes a significant level of descriptive detail, bringing the dream narrative and its elements to life with more thorough explanations and imagery. |
-| 5 (Highly Elaborate) | Your capture is very rich in detail, using vivid language to describe the events, characters, their motivations (if perceived), and the overall unfolding of the dream narrative. |`
-            },
-            {
-                name: 'Confidence Score',
-                icon: 'check-circle',
-                heading: 'Confidence Score (Score 1-5)',
-                markdown: `This is a subjective metric reflecting your overall sense of how complete and accurate your dream recall feels immediately after waking. It's your gut feeling about how much of the dream you've managed to retrieve.
-
-| Score         | Description |
-| ------------- | ----------- |
-| 1 (Very Low)  | You feel like you've barely scratched the surface of the dream, remembering only a tiny fragment or a fleeting feeling. You suspect you've forgotten a significant portion. |
-| 2 (Low)       | You recall a bit more, but you still feel like a substantial part of the dream is lost. The recall feels fragmented and incomplete. |
-| 3 (Moderate)  | You feel like you've recalled a fair amount of the dream, perhaps the main storyline, but there might be some fuzzy areas or details you're unsure about. |
-| 4 (High)      | You feel like you've recalled the majority of the dream with a good level of detail and coherence. You feel relatively confident in the accuracy of your memory. |
-| 5 (Very High) | You feel like you've recalled the entire dream in vivid detail and with strong confidence in the accuracy and completeness of your memory. You don't have a sense of significant missing parts. |`
-            }
-        ];
-        for (const desc of metricDescriptions) {
-            const headingRow = descSection.createEl('div', { cls: 'oom-metric-desc-heading' });
-            const iconSVG = lucideIconMap[desc.icon];
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'oom-metric-desc-icon';
-            iconSpan.innerHTML = iconSVG;
-            headingRow.appendChild(iconSpan);
-            headingRow.appendChild(document.createTextNode(desc.heading));
-            const descDiv = descSection.createEl('div');
-            MarkdownRenderer.renderMarkdown(desc.markdown, descDiv, this.plugin.app.vault.getAbstractFileByPath('') as any, this.plugin);
-        }
-
         // Add a visually hidden live region for announcements at the top of display()
         let liveRegion = containerEl.querySelector('.oom-live-region') as HTMLElement;
         if (!liveRegion) {
@@ -1768,5 +1639,67 @@ If you have a distinct feeling of one or more breaks or missing chunks in the dr
             const toFocus = containerEl.querySelector(focusSelector) as HTMLElement;
             if (toFocus) toFocus.focus();
         }
+    }
+}
+
+// --- Metrics Descriptions Modal ---
+class MetricsDescriptionsModal extends Modal {
+    plugin: DreamMetricsPlugin;
+    constructor(app: App, plugin: DreamMetricsPlugin) {
+        super(app);
+        this.plugin = plugin;
+    }
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass('oom-metrics-modal');
+        // Modal Title
+        contentEl.createEl('h2', { text: 'Metrics Descriptions' });
+        // Markdown content (default + optional)
+        const allMetricsMarkdown = `### Default Metrics\n\n- **Sensory Detail (Score 1-5):** Level of sensory information recalled from the dream.\n- **Emotional Recall (Score 1-5):** Level of emotional detail recalled from the dream.\n- **Descriptiveness (Score 1-5):** Level of detail in the dream description.\n- **Characters Role (Score 1-5):** Significance of familiar characters in the dream narrative.\n- **Confidence Score (Score 1-5):** Confidence level in the completeness of dream recall.\n\n#### Full Descriptions\n\n#### Sensory Detail (Score 1-5)\nThis metric aims to capture the richness and vividness of the sensory information you recall from your dream.\n\n| Score        | Description |\n| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| 1 (Minimal)  | You recall very little sensory information. The dream feels vague and lacks specific sights, sounds, textures, smells, or tastes. You might remember the general feeling of a place but not any distinct visual elements, for example. |\n| 2 (Limited)  | You recall a few basic sensory details, perhaps a dominant color or a general sound. The sensory landscape is still quite sparse. |\n| 3 (Moderate) | You recall a noticeable amount of sensory information. You might remember some visual details, perhaps a few distinct sounds, or a general feeling of touch. |\n| 4 (Rich)     | You recall a significant amount of sensory information across multiple senses. You can describe specific visual elements, distinct sounds, perhaps a smell or a texture. The dream feels more immersive. |\n| 5 (Vivid)    | Your recall is highly detailed and encompasses a wide range of sensory experiences. You can clearly describe intricate visual scenes, distinct and multiple sounds, and perhaps even specific tastes and smells. The dream feels very real and alive in your memory. |\n\n#### Emotional Recall (Score 1-5)\nThis metric focuses on your ability to remember and articulate the emotions you experienced within the dream.\n\n| Score                | Description |\n| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| 1 (Vague)            | You have a faint sense that you felt some emotion in the dream, but you can't identify it specifically. You might just say you felt \"something.\" |\n| 2 (General)          | You can identify a primary emotion (e.g., happy, sad, scared) but can't describe its intensity or nuances. |\n| 3 (Identified)       | You can identify one or two specific emotions you felt and perhaps describe their general intensity. |\n| 4 (Nuanced)          | You recall several distinct emotions and can describe some of the nuances or shifts in your feelings throughout the dream. |\n| 5 (Deep and Complex) | You have a strong recollection of the emotional landscape of the dream, including multiple emotions, their intensity, how they evolved, and perhaps even subtle emotional undertones. |\n\n#### Descriptiveness (Score 1-5)\nThis metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details (which have their own metric). This considers how thoroughly you describe the events, characters, interactions, and the overall narrative flow.\n\n| Score                | Description |\n| -------------------- | ----------- |\n| 1 (Minimal)          | Your capture is very brief and outlines only the most basic elements of the dream. It lacks detail and elaboration. |\n| 2 (Limited)          | Your capture provides a basic account of the dream but lacks significant descriptive detail in terms of actions, character behavior, or plot progression. |\n| 3 (Moderate)         | Your capture provides a reasonably detailed account of the main events and characters, with some descriptive language used. |\n| 4 (Detailed)         | Your capture includes a significant level of descriptive detail, bringing the dream narrative and its elements to life with more thorough explanations and imagery. |\n| 5 (Highly Elaborate) | Your capture is very rich in detail, using vivid language to describe the events, characters, their motivations (if perceived), and the overall unfolding of the dream narrative. |\n\n#### Characters Role (Score 1-5)\nThis metric tracks the significance of familiar characters in the dream narrative.\n\n| Score                | Description |\n| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| 1 (None)             | No familiar characters appear in the dream. |\n| 2 (Background)       | Familiar characters appear but only in minor or background roles. |\n| 3 (Supporting)       | Familiar characters play supporting roles in the dream narrative. |\n| 4 (Major)            | Familiar characters are central to the dream's events or narrative. |\n| 5 (Dominant)         | The dream is primarily about or dominated by interactions with familiar characters. |\n\n#### Confidence Score (Score 1-5)\nThis is a subjective metric reflecting your overall sense of how complete and accurate your dream recall feels immediately after waking. It's your gut feeling about how much of the dream you've managed to retrieve.\n\n| Score         | Description |\n| ------------- | ----------- |\n| 1 (Very Low)  | You feel like you've barely scratched the surface of the dream, remembering only a tiny fragment or a fleeting feeling. You suspect you've forgotten a significant portion. |\n| 2 (Low)       | You recall a bit more, but you still feel like a substantial part of the dream is lost. The recall feels fragmented and incomplete. |\n| 3 (Moderate)  | You feel like you've recalled a fair amount of the dream, perhaps the main storyline, but there might be some fuzzy areas or details you're unsure about. |\n| 4 (High)      | You feel like you've recalled the majority of the dream with a good level of detail and coherence. You feel relatively confident in the accuracy of your memory. |\n| 5 (Very High) | You feel like you've recalled the entire dream in vivid detail and with strong confidence in the accuracy and completeness of your memory. You don't have a sense of significant missing parts. |\n\n---\n\n### Optional Metrics\n\n(See plugin documentation for full details.)\n\n### Characters Count\nThis metric represents the total number of characters in your dream. It is automatically calculated as the sum of Familiar Count and Unfamiliar Count.\n\n### Familiar Count\nThis metric tracks the number of characters you know from your waking life that appear in the dream. This includes people, pets, or any other familiar beings.\n\n### Unfamiliar Count\nThis metric tracks the number of characters you don't know from your waking life that appear in the dream. This includes strangers, fictional characters, or any other unfamiliar beings.\n\n### Characters List\nThis metric allows you to list all characters that appeared in your dream. You can add multiple entries, one per line. For example:\n\`\`\`markdown\nMom\nDad\nMy dog Max\nA stranger in a red coat\n\`\`\`\n\n### Dream Theme (Categorical/Keywords)\nThis metric aims to identify the dominant subjects, ideas, or emotional undercurrents present in your dream. Instead of a numerical score, you will select one or more keywords or categories that best represent the core themes of the dream.\n\n*Possible Categories/Keywords (Examples - User-definable list in plugin recommended):*\nTravel/Journey, Conflict/Argument, Learning/Discovery, Loss/Grief, Joy/Happiness, Fear/Anxiety, Absurdity/Surrealism, Creativity/Inspiration, Relationship Dynamics, Work/Career, Health/Illness, Nostalgia/Past, Technology, Nature/Environment, Spiritual/Mystical, Transformation, Communication, Power/Control, Vulnerability\n\n### Lucidity Level (Score 1-5)\nThis metric tracks your degree of awareness that you are dreaming while the dream is in progress.\n\n* 1 (Non-Lucid): You have no awareness that you are dreaming.\n* 2 (Faint Awareness): You might have a fleeting thought or a vague feeling that something is unusual or dreamlike, but this awareness doesn't solidify into the certainty that you are dreaming.\n* 3 (Clear Awareness): You become clearly aware that you are dreaming. However, your ability to control or influence the dream environment and events might be limited. You are an observer who knows it's a dream.\n* 4 (Moderate Control): You are aware that you are dreaming and can actively influence some aspects of the dream, such as your own actions, the environment to a limited extent, or the course of the narrative.\n* 5 (High Lucidity): You have a strong and stable awareness that you are dreaming and possess a significant degree of control over the dream environment, characters, and events.\n\n### Dream Coherence (Score 1-5)\nThis metric assesses the logical consistency and narrative flow of your dream.\n\n* 1 (Incoherent): The dream is fragmented, disjointed, and nonsensical.\n* 2 (Loosely Connected): Some elements or scenes might have a vague or thematic relationship, but the overall narrative lacks a clear and logical progression.\n* 3 (Moderately Coherent): The dream has a discernible narrative thread, but it may contain illogical elements, inconsistencies in character behavior or setting, or sudden, unexplained shifts in the storyline.\n* 4 (Mostly Coherent): The dream generally follows a logical progression with a relatively consistent narrative, characters, and settings. Any illogical elements are minor or don't significantly disrupt the overall sense of a somewhat realistic (albeit dreamlike) experience.\n* 5 (Highly Coherent): The dream feels like a consistent and logical experience, even if the content is surreal or fantastical.\n\n### Setting Familiarity (Score 1-5)\nThis metric tracks the degree to which the locations and environments in your dream are recognizable from your waking life.\n\n* 1 (Completely Unfamiliar): All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.\n* 2 (Vaguely Familiar): You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories.\n* 3 (Partially Familiar): The dream settings are a blend of recognizable and unfamiliar elements.\n* 4 (Mostly Familiar): The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.\n* 5 (Completely Familiar): All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.\n\n### Ease of Recall (Score 1-5)\nThis metric assesses how readily and effortlessly you can remember the dream upon waking.\n\n* 1 (Very Difficult): You wake up with little to no memory of having dreamed.\n* 2 (Difficult): You remember a few isolated images, emotions, or very brief snippets of the dream, but the overall narrative is elusive and hard to piece together.\n* 3 (Moderate): You can recall the basic outline or a few key scenes of the dream with a reasonable amount of effort.\n* 4 (Easy): You remember the dream relatively clearly and can recount a significant portion of the narrative and details without much difficulty.\n* 5 (Very Easy): The dream is vividly and immediately present in your memory upon waking.\n\n### Recall Stability (Score 1-5)\nThis metric assesses how well your memory of the dream holds up in the minutes immediately following waking.\n\n* 1 (Rapidly Fading): The dream memory begins to dissipate almost instantly upon waking.\n* 2 (Significant Fading): You can recall a fair amount initially, but key details and the overall narrative structure fade noticeably within the first 10-15 minutes after waking, making it difficult to reconstruct the full dream later.\n* 3 (Moderate Fading): Some details and less significant parts of the dream might fade within the first 15-30 minutes, but the core narrative and key events remain relatively intact.\n* 4 (Mostly Stable): Your recall of the dream remains largely consistent for at least 30 minutes after waking.\n* 5 (Very Stable): The memory of the dream feels solid and enduring in the immediate post-waking period.`;
+        const descDiv = contentEl.createEl('div');
+        MarkdownRenderer.renderMarkdown(allMetricsMarkdown, descDiv, this.plugin.app.vault.getAbstractFileByPath('') as any, this.plugin);
+        // Inject Lucide icons into headings
+        const iconMap: Record<string, string> = {
+            'Sensory Detail': 'eye',
+            'Emotional Recall': 'heart',
+            'Descriptiveness': 'pen-tool',
+            'Characters Role': 'user-cog',
+            'Confidence Score': 'check-circle',
+            'Characters Count': 'users',
+            'Familiar Count': 'user-check',
+            'Unfamiliar Count': 'user-x',
+            'Characters List': 'users-round',
+            'Dream Theme': 'sparkles',
+            'Lucidity Level': 'wand-2',
+            'Dream Coherence': 'link',
+            'Setting Familiarity': 'glasses',
+            'Ease of Recall': 'zap',
+            'Recall Stability': 'layers'
+        };
+        // For h3/h4 headings, inject icon if heading matches
+        const headings = descDiv.querySelectorAll('h3, h4');
+        headings.forEach(h => {
+            const text = h.textContent || '';
+            for (const key in iconMap) {
+                if (text.startsWith(key)) {
+                    const iconName = iconMap[key];
+                    if (lucideIconMap[iconName]) {
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'oom-metric-desc-icon';
+                        iconSpan.innerHTML = lucideIconMap[iconName];
+                        h.insertBefore(iconSpan, h.firstChild);
+                        break;
+                    }
+                }
+            }
+        });
+        // OK button
+        const btnRow = contentEl.createEl('div', { cls: 'oom-metrics-modal-btn-row' });
+        btnRow.style.display = 'flex';
+        btnRow.style.justifyContent = 'center';
+        btnRow.style.marginTop = '2em';
+        const okBtn = btnRow.createEl('button', { text: 'OK', cls: 'oom-button oom-button--primary' });
+        okBtn.onclick = () => this.close();
     }
 } 

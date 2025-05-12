@@ -16,6 +16,9 @@
 - **UI Enhancements:**
   - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
 
+## UI Improvements
+- **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.
+
 ## Current Issues
 - **Testing Required:** Ensure the new optional metrics and collapsible section function as expected.
 - **Performance Optimization:** Further optimization may be needed for table regeneration and modal feedback.
