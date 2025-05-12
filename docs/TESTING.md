@@ -833,3 +833,38 @@ When reporting issues, include:
    - Test color contrast ratios
 
 ### Table Testing
+
+## Recent Changes
+- **New Optional Metrics Added:**
+  - Dream Theme (Categorical/Keywords)
+  - Lucidity Level (Score 1-5)
+  - Dream Coherence (Score 1-5)
+  - Setting Familiarity (Score 1-5)
+  - Ease of Recall (Score 1-5)
+  - Recall Stability (Score 1-5)
+
+- **Metric Order Updated:**
+  - **Default Metrics:** Sensory Detail, Emotional Recall, Descriptiveness, Characters Role, Confidence Score
+  - **Optional Metrics:** Characters Count, Familiar Count, Unfamiliar Count, Characters List, Dream Theme, Lucidity Level, Dream Coherence, Setting Familiarity, Ease of Recall, Recall Stability
+
+- **UI Enhancements:**
+  - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
+
+## Testing New Features
+- **Optional Metrics:**
+  - Verify that all new optional metrics are displayed correctly in the settings panel.
+  - Test the collapsible section to ensure it toggles visibility as expected.
+  - Check that the metrics can be enabled/disabled and edited without issues.
+
+- **Metric Order:**
+  - Confirm that the default and optional metrics are displayed in the specified order.
+
+- **UI Enhancements:**
+  - Test the collapsible section for optional metrics to ensure it functions correctly and improves usability.
+
+## General Testing Guidelines
+- Ensure all features work as expected across different environments and devices.
+- Report any issues or bugs encountered during testing.
+
+## Contributing
+If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.

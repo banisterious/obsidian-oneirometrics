@@ -5,6 +5,37 @@
 
 # OneiroMetrics Project Overview
 
+## Recent Updates
+- **New Optional Metrics Added:**
+  - Dream Theme (Categorical/Keywords)
+  - Lucidity Level (Score 1-5)
+  - Dream Coherence (Score 1-5)
+  - Setting Familiarity (Score 1-5)
+  - Ease of Recall (Score 1-5)
+  - Recall Stability (Score 1-5)
+
+- **Metric Order Updated:**
+  - **Default Metrics:** Sensory Detail, Emotional Recall, Descriptiveness, Characters Role, Confidence Score
+  - **Optional Metrics:** Characters Count, Familiar Count, Unfamiliar Count, Characters List, Dream Theme, Lucidity Level, Dream Coherence, Setting Familiarity, Ease of Recall, Recall Stability
+
+- **UI Enhancements:**
+  - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
+
+## Current Status
+- The project is actively maintained and updated with new features and improvements.
+- Recent changes include the addition of new metrics and UI enhancements to improve user experience.
+
+## Next Steps
+- **Testing:** Ensure the new optional metrics and collapsible section function as expected.
+- **Documentation:** Review and update documentation to reflect recent changes.
+- **Feedback:** Gather user feedback on the new metrics and UI enhancements.
+
+## Contributing
+Contributions are welcome! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Recent Improvements
 
 ### Version 0.3.0 (May 2025)
@@ -29,31 +60,6 @@
 ### Version 0.1.3 (May 2025)
 - **UI Improvements**: Enhanced autocomplete logic and modal fields
 - **Bug Fixes**: Resolved various UI issues
-
-## Current Status
-
-### Working Features
-- ✅ Multi-chip autocomplete for note selection
-- ✅ Metric Icon Picker with Lucide icons
-- ✅ Keyboard accessibility and screen reader support
-- ✅ 'This Week' filter with configurable start day
-- ✅ Widget for Readable Line Length control
-- ✅ Enhanced Metrics Description section
-- ✅ Open Metrics Note button
-- ✅ Automatic backup system with .bak extension
-- ✅ Table sorting and filtering
-- ✅ Theme compatibility improvements
-
-### Known Issues
-- 🔄 Table regeneration needs optimization
-- 🔄 Modal feedback improvements needed
-- 🔄 Performance optimization required
-
-### Planned Improvements
-- 🔜 Add search/filter to icon picker
-- 🔜 Expand icon selection
-- 🔜 Reduce excessive logging in future builds
-- 🔜 Add filters for Yesterday and Today
 
 ## Project Description
 

@@ -1,72 +1,33 @@
-# Known Issues & Feature Requests
+# Known Issues and Future Improvements
+
+## Recent Changes
+- **New Optional Metrics Added:**
+  - Dream Theme (Categorical/Keywords)
+  - Lucidity Level (Score 1-5)
+  - Dream Coherence (Score 1-5)
+  - Setting Familiarity (Score 1-5)
+  - Ease of Recall (Score 1-5)
+  - Recall Stability (Score 1-5)
+
+- **Metric Order Updated:**
+  - **Default Metrics:** Sensory Detail, Emotional Recall, Descriptiveness, Characters Role, Confidence Score
+  - **Optional Metrics:** Characters Count, Familiar Count, Unfamiliar Count, Characters List, Dream Theme, Lucidity Level, Dream Coherence, Setting Familiarity, Ease of Recall, Recall Stability
+
+- **UI Enhancements:**
+  - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
 
 ## Current Issues
+- **Testing Required:** Ensure the new optional metrics and collapsible section function as expected.
+- **Performance Optimization:** Further optimization may be needed for table regeneration and modal feedback.
 
-### High Priority
-- [ ] **Table Regeneration:** Dream Entry and Statistics tables sometimes do not update or duplicate. This is still being debugged.
-- [ ] **Modal Feedback:** Modal feedback and reliability are still being improved.
-- [ ] Implement proper error handling for failed metric scraping
-- [ ] Add support for custom metric validation rules
-- [ ] Improve performance of large dataset handling
+## Future Improvements
+- **Search/Filter for Icon Picker:** Implement search functionality for the icon picker.
+- **Expand Icon Selection:** Add more icons to the selection.
+- **Reduce Logging:** Minimize excessive logging in future builds.
+- **Add Filters:** Implement filters for Yesterday and Today.
 
-### Medium Priority
-- [ ] **Performance Optimization:** Reduce excessive logging and remove or limit debug console.logs, especially those related to backup creation and extraction logic.
-- [ ] Add export functionality for metrics data
-- [ ] Implement metric trend visualization
-- [ ] Add support for metric categories/tags
-- [ ] Improve mobile responsiveness of tables
-- [ ] Add keyboard shortcuts for common actions
-
-### Low Priority
-- [ ] **Documentation Updates:** Some documentation sections need to be updated to reflect recent changes.
-- [ ] Add support for custom date formats
-- [ ] Implement metric comparison features
-- [ ] Add support for metric notes/comments
-- [ ] Improve accessibility of button interactions
-- [ ] Add support for custom table layouts
-
-## Feature Requests
-
-### Planned Features
-- [ ] **Icon Picker Enhancements:**
-  - Add search/filter functionality
-  - Add more icons to the picker
-- [ ] **Test Modal:** Add a Test Modal where users can paste Markdown and see how the plugin processes and renders it
-- [ ] **Performance Improvements:**
-  - Optimize table rendering
-  - Reduce memory usage
-  - Improve backup system efficiency
-
-### UI/UX Improvements
-- [ ] **Theme Integration:**
-  - Further improve theme compatibility
-  - Add support for more Obsidian themes
-- [ ] **Mobile Experience:**
-  - Enhance touch interactions
-  - Optimize layout for small screens
-
-## Recent Resolutions
-
-The following issues have been resolved in version 0.3.0:
-- ✅ Show More Button functionality
-- ✅ Metric Edit Modal Icon display
-- ✅ Scraping completion issues
-- ✅ Callout Structure Box wrapping
-- ✅ Backup Filename Date formatting
-- ✅ Readable Line Length Override
-- ✅ Chips Area UI styling
-- ✅ Backup File Extension (.bak)
-- ✅ Open Metrics Note Button
-- ✅ Parser blockStack logic
-- ✅ Callout metadata handling
-- ✅ Table sorting and filtering
-- ✅ Dream content extraction and rendering
-- ✅ Autocomplete and file suggestion reliability
-- ✅ Standardized button system implementation
-- ✅ Improved table performance with virtual scrolling
-- ✅ Enhanced mobile responsiveness
-- ✅ Added proper cleanup for event listeners
-- ✅ Implemented memoization for table calculations
+## Contributing
+If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request.
 
 ## How to Report Issues
 
