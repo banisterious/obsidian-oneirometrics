@@ -14,7 +14,7 @@
   - **Optional Metrics:** Characters Count, Familiar Count, Unfamiliar Count, Characters List, Dream Theme, Lucidity Level, Dream Coherence, Setting Familiarity, Ease of Recall, Recall Stability
 
 - **UI Enhancements:**
-  - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
+  - Optional metrics are now displayed in section, improving usability and reducing visual clutter.
   - **Settings Page Overhaul:** The Settings page now features a bordered metrics section, clear section dividers, and helper text under section headers. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ## UI Improvements
@@ -26,6 +26,16 @@
 - **Performance Optimization:** Further optimization may be needed for table regeneration and modal feedback.
 
 ## Future Improvements
+- **Lucide Icon Picker Implementation:**
+  - Single, search-first grid (8x5) without sidebar
+  - Live search with minimum 1 character
+  - No favorites/recents or clear icon option
+  - CDN-powered with localStorage caching and fallback
+  - SVGs inlined for theme coloring
+  - Keyboard navigation and high-contrast support
+  - Picker only in metric editor, icons used everywhere
+  - Store only icon name in settings
+  - For detailed technical specifications, see [Icon Picker Technical Implementation](docs/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md)
 - **Search/Filter for Icon Picker:** Implement search functionality for the icon picker.
 - **Expand Icon Selection:** Add more icons to the selection.
 - **Reduce Logging:** Minimize excessive logging in future builds.

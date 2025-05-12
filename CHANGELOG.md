@@ -37,11 +37,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File suggestion and autocomplete reliability
 
 ### Planned
-- Add search/filter to the icon picker
-- Add more icons to the icon picker
+- **Lucide Icon Picker Implementation:**
+  - Single, search-first grid (8x5) without sidebar
+  - Live search with minimum 1 character
+  - No favorites/recents or clear icon option
+  - CDN-powered with localStorage caching and fallback
+  - SVGs inlined for theme coloring
+  - Keyboard navigation and high-contrast support
+  - Picker only in metric editor, icons used everywhere
+  - Store only icon name in settings
+  - For detailed technical specifications, see [Icon Picker Technical Implementation](docs/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md)
 - Add a Test Modal for Markdown processing
 - Reduce excessive logging in future builds
-- Add CSV Export/Import functionality for metrics configuration and data
 
 ## [0.1.2] - 2025-05-09
 
