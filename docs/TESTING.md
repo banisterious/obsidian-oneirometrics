@@ -33,6 +33,7 @@
 - [ ] Callout Metadata Support: 'hide' hides the metrics section, 'compact' condenses it, 'summary' highlights it. Settings and documentation are present in the UI.
 - [x] Metrics Export/Import (JSON) works as expected
 - [ ] CSV Export button generates a CSV file with summary and detailed structure
+- [ ] Settings page UI/UX overhaul: Bordered metrics section, clear section dividers, and helper text under section headers are present and visually correct. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ### Metrics Scraping
 
@@ -183,6 +184,7 @@
 7. Test with large datasets (100+ entries)
 8. Test backup creation with different file sizes
 9. Test progress indicator with various dataset sizes
+10. **Visually verify the new Settings page layout, section borders, and helper text descriptions.**
 
 ### Bug Reporting Template
 

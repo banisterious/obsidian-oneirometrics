@@ -1456,6 +1456,33 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
     background: var(--background-modifier-hover);
 }
 
+/* Mini button style for Metrics Descriptions and similar buttons */
+.oom-button--mini,
+.oom-metrics-desc-btn {
+  font-size: 0.8em;
+  padding: 2px 10px;
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: none;
+  background: var(--background-secondary);
+  margin-left: 0.5em;
+  vertical-align: middle;
+}
+
+/* Section heading style for settings page */
+.oneirometrics-settings .setting-item-name {
+  /*font-size: 1.25em;
+  font-weight: bold;*/
+  margin: 0;
+}
+
+/* Flex row for headings and buttons */
+.oneirometrics-settings .metrics-header-row,
+.oneirometrics-settings .style-settings-collapse-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
 /* Remove old button classes */
 .oom-update-metrics-btn,
 .oom-show-more,
@@ -1512,21 +1539,40 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
 
 /* Metrics Descriptions Modal Styles */
 .oom-metrics-modal {
-  max-width: 750px;
-  width: 85vw;
-  max-height: 75vh;
-  padding: 1.5em 2em 1em 2em;
-  font-size: 0.95em;
+  max-width: 1150px;
+  width: 90vw;
+  max-height: 70vh;
+  min-width: 700px;
+  min-height: 400px;
+  padding: 2.5em 3em 2em 3em;
+  font-size: 1.05em;
   background: var(--background-primary);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: 0 8px 32px var(--background-modifier-box-shadow);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
-@media (max-width: 700px) {
-  .oom-metrics-modal {
+.oom-callout-modal {
+  max-width: 900px;
+  width: 70vw;
+  max-height: 60vh;
+  min-width: 600px;
+  min-height: 350px;
+  padding: 2em 2.5em 1.5em 2.5em;
+  font-size: 1.05em;
+  background: var(--background-primary);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px var(--background-modifier-box-shadow);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 1200px) {
+  .oom-metrics-modal, .oom-callout-modal {
     max-width: 99vw;
     width: 99vw;
-    max-height: 95vh;
+    min-width: 0;
     padding: 1em;
   }
 }
@@ -1556,4 +1602,90 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
   display: flex;
   align-items: center;
   gap: 0.5em;
+}
+
+/* --- OneiroMetrics Settings Overhaul Styles --- */
+
+.oneirometrics-settings .oom-section-border {
+  border-bottom: 1.5px solid #e0e0e0;
+  margin: 1.5em 0 1.5em 0;
+}
+
+.oneirometrics-settings .setting-item-name {
+  /*font-size: 1.25em;
+  font-weight: bold;*/
+  margin: 0;
+}
+
+.oneirometrics-settings .oom-header-row,
+.oneirometrics-settings .oom-metrics-header-row,
+.oneirometrics-settings .oom-optional-metrics-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+/* Default Metrics section border */
+.oneirometrics-settings .oom-default-metrics-section {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1em 1.2em 0.5em 1.2em;
+  margin-bottom: 2em;
+  background: #fafafa;
+}
+
+/* Optional Metrics section border */
+.oneirometrics-settings .style-settings-collapse {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1em 1.2em 0.5em 1.2em;
+  margin-bottom: 2em;
+  background: #fafafa;
+}
+
+/* Remove collapse indicator and behavior */
+.oneirometrics-settings .style-settings-collapse-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  cursor: default;
+  user-select: none;
+}
+.oneirometrics-settings .style-settings-collapse-indicator {
+  display: none;
+}
+
+/* Add New Metric section border */
+.oneirometrics-settings .oom-add-metric-section {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1em 1.2em 0.5em 1.2em;
+  margin-bottom: 2em;
+  background: #fafafa;
+}
+
+/* Export Metrics Data section border */
+.oneirometrics-settings .oom-export-section {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1em 1.2em 0.5em 1.2em;
+  margin-bottom: 2em;
+  background: #fafafa;
+}
+
+/* Outer border for metrics section */
+.oneirometrics-settings .oom-metrics-section-outer {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 2em 1.5em 1.5em 1.5em;
+  margin-bottom: 2em;
+  background: #fafafa;
+}
+
+/* Helper/description text under section headers */
+.oneirometrics-settings .oom-section-desc {
+  font-size: 1em;
+  color: #888;
+  margin: 0.2em 0 1.2em 0;
+  line-height: 1.5;
 } 

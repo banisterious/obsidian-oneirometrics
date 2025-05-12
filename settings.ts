@@ -395,6 +395,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
+        containerEl.addClass('oneirometrics-settings');
 
         const prevScroll = containerEl.scrollTop;
         const activeElement = document.activeElement as HTMLElement;
@@ -408,9 +409,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         }
 
         containerEl.createEl('h2', { text: 'OneiroMetrics Settings' });
-
-        // Backup Settings
-        containerEl.createEl('h3', { text: 'Backup Settings' });
 
         // Enable Backups
         new Setting(containerEl)
@@ -602,9 +600,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 });
             });
 
-        // OneiroMetrics Note Path Setting
+        // OneiroMetrics Path Setting
         new Setting(containerEl)
-            .setName('OneiroMetrics Note Path')
+            .setName('OneiroMetrics Path')
             .setDesc('The path where OneiroMetrics tables will be written')
             .addText(text => {
                 text.setPlaceholder('Journals/Dream Diary/Metrics/Metrics.md')
@@ -1231,7 +1229,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         calloutSectionRow.style.alignItems = 'center';
         calloutSectionRow.style.justifyContent = 'space-between';
         calloutSectionRow.style.margin = '1.5em 0 0.5em 0';
-        calloutSectionRow.createEl('h3', { text: 'Callout Customizations' });
+        calloutSectionRow.createEl('h3', { text: 'Callout Customizations', cls: 'setting-item-name' });
         const calloutBtn = calloutSectionRow.createEl('button', { text: 'Callout Customizations', cls: 'oom-button oom-button--mini oom-callout-custom-btn' });
         calloutBtn.onclick = () => {
             new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
@@ -1242,26 +1240,33 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         calloutBtn.style.boxShadow = 'none';
         calloutBtn.style.background = 'var(--background-secondary)';
         calloutBtn.style.marginLeft = '1em';
-
-        // --- Metrics Section ---
-        const metricsHeader = containerEl.createEl('h3', { text: 'Metrics Configuration' });
-        metricsHeader.style.marginBottom = '0.5em';
-        const descBtnRow = containerEl.createEl('div');
-        descBtnRow.style.display = 'flex';
-        descBtnRow.style.justifyContent = 'flex-end';
-        descBtnRow.style.marginBottom = '1em';
-        const descBtn = descBtnRow.createEl('button', { text: 'Metrics Descriptions', cls: 'oom-button oom-button--mini oom-metrics-desc-btn' });
+        // Add section border after Callout Customizations
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+        // --- Metrics Section Outer ---
+        const metricsSectionOuter = containerEl.createEl('div', { cls: 'oom-metrics-section-outer' });
+        // Metrics Configuration header and description
+        const metricsHeaderRow = metricsSectionOuter.createEl('div');
+        metricsHeaderRow.style.display = 'flex';
+        metricsHeaderRow.style.alignItems = 'center';
+        metricsHeaderRow.style.gap = '0.5em';
+        metricsHeaderRow.style.marginBottom = '0.5em';
+        const metricsHeader = metricsHeaderRow.createEl('h3', { text: 'Metrics Configuration', cls: 'setting-item-name' });
+        metricsHeader.style.margin = '0';
+        const descBtn = metricsHeaderRow.createEl('button', { text: 'Metrics Descriptions', cls: 'oom-button oom-button--mini oom-metrics-desc-btn' });
         descBtn.onclick = () => {
             new MetricsDescriptionsModal(this.app, this.plugin).open();
         };
-        descBtn.style.fontSize = '0.82em';
+        descBtn.style.fontSize = '0.8em';
         descBtn.style.padding = '2px 10px';
         descBtn.style.border = '1px solid var(--background-modifier-border)';
         descBtn.style.boxShadow = 'none';
         descBtn.style.background = 'var(--background-secondary)';
-        descBtn.style.marginLeft = '1em';
-
-        // Default metrics (always visible)
+        descBtn.style.marginLeft = '0.5em';
+        // Metrics Configuration helper text
+        metricsSectionOuter.createEl('div', { text: 'Configure which metrics are available for dream analysis and how they are described.', cls: 'oom-section-desc' });
+        // Add section border after Metrics Configuration
+        metricsSectionOuter.createEl('div', { cls: 'oom-section-border' });
+        // --- Default Metrics Section ---
         const defaultMetrics = [
             'Sensory Detail',
             'Emotional Recall',
@@ -1269,7 +1274,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             'Characters Role',
             'Confidence Score'
         ];
-        const defaultMetricsSection = containerEl.createEl('div', { cls: 'oom-default-metrics-section' });
+        const defaultMetricsSection = metricsSectionOuter.createEl('div', { cls: 'oom-default-metrics-section' });
         defaultMetricsSection.createEl('h4', { text: 'Default Metrics' });
         this.plugin.settings.metrics.forEach((metric, index) => {
             if (defaultMetrics.includes(metric.name)) {
@@ -1277,7 +1282,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     .setName(metric.icon && lucideIconMap[metric.icon] ? `${metric.name} ` : metric.name)
                     .setDesc(`${metric.description} (Range: ${metric.range.min}-${metric.range.max})`)
                     .setClass('oom-metric-setting');
-                // Add enable/disable toggle
                 metricSetting.addToggle(toggle => {
                     toggle
                         .setValue(metric.enabled)
@@ -1286,7 +1290,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         });
                 });
-                // Render icon if present and valid
                 if (metric.icon && lucideIconMap[metric.icon]) {
                     const iconSVG = lucideIconMap[metric.icon];
                     const iconEl = document.createElement('span');
@@ -1294,7 +1297,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     iconEl.innerHTML = iconSVG;
                     metricSetting.nameEl.insertBefore(iconEl, metricSetting.nameEl.firstChild);
                 }
-                // Add edit/trash buttons as before
                 metricSetting
                     .addExtraButton((button: ExtraButtonComponent) => button
                         .setIcon('pencil')
@@ -1322,20 +1324,28 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         }));
             }
         });
-
         // --- Optional metrics in a Style Settings–style collapsible group ---
-        const styleCollapse = containerEl.createEl('div', { cls: 'style-settings-collapse' });
+        const styleCollapse = metricsSectionOuter.createEl('div', { cls: 'style-settings-collapse' });
         const styleCollapseHeader = styleCollapse.createEl('div', { cls: 'style-settings-collapse-header' });
+        styleCollapseHeader.style.display = 'flex';
+        styleCollapseHeader.style.alignItems = 'center';
+        styleCollapseHeader.style.gap = '0.5em';
         const chevron = styleCollapseHeader.createEl('div', { cls: 'style-settings-collapse-indicator' });
         chevron.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18"><path d="M6 7l3 3 3-3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        styleCollapseHeader.createEl('div', { cls: 'style-settings-collapse-title', text: 'Optional Metrics' });
+        const optMetricsTitle = styleCollapseHeader.createEl('div', { cls: 'style-settings-collapse-title', text: 'Optional Metrics' });
+        optMetricsTitle.style.margin = '0';
+        const optDescBtn = styleCollapseHeader.createEl('button', { text: 'Metrics Descriptions', cls: 'oom-button oom-button--mini oom-metrics-desc-btn' });
+        optDescBtn.onclick = () => {
+            new MetricsDescriptionsModal(this.app, this.plugin).open();
+        };
+        optDescBtn.style.fontSize = '0.8em';
+        optDescBtn.style.padding = '2px 10px';
+        optDescBtn.style.border = '1px solid var(--background-modifier-border)';
+        optDescBtn.style.boxShadow = 'none';
+        optDescBtn.style.background = 'var(--background-secondary)';
+        optDescBtn.style.marginLeft = '0.5em';
         const styleCollapseContent = styleCollapse.createEl('div', { cls: 'style-settings-collapse-content' });
-        styleCollapseContent.style.display = 'none';
-        styleCollapseHeader.addEventListener('click', () => {
-            const isCollapsed = styleCollapseContent.style.display === 'none';
-            styleCollapseContent.style.display = isCollapsed ? '' : 'none';
-            styleCollapse.classList.toggle('is-collapsed', !isCollapsed);
-        });
+        styleCollapseContent.style.display = '';
         // Optional metrics list
         const optionalMetrics = [
             'Characters Count',
@@ -1397,9 +1407,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         }));
             }
         });
-
-        // Add New Metric Button
-        new Setting(containerEl)
+        // Add section border after Optional Metrics
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+        // --- Add New Metric Section ---
+        const addMetricSection = containerEl.createEl('div', { cls: 'oom-add-metric-section' });
+        new Setting(addMetricSection)
             .setName('Add New Metric')
             .addButton(button => button
                 .setButtonText('Add Metric')
@@ -1410,9 +1422,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             name: "New Metric",
                             range: { min: 1, max: 5 },
                             description: "Description of the metric",
-                            icon: "ruler",  // Default icon for new metrics
+                            icon: "ruler",
                             enabled: true
-                        } as DreamMetric,  // Type assertion to ensure proper typing
+                        } as DreamMetric,
                         this.plugin.settings.metrics,
                         async (newMetric) => {
                             this.plugin.settings.metrics.push(newMetric);
@@ -1421,31 +1433,26 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         }
                     ).open();
                 }));
-
-        // Reset to Defaults Button
-        new Setting(containerEl)
+        // Add section border after Add New Metric
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+        // --- Export Metrics Data Section ---
+        const exportSection = containerEl.createEl('div', { cls: 'oom-export-section' });
+        // Move Export/Import/CSV settings into exportSection
+        new Setting(exportSection)
             .setName('Reset to Defaults')
             .setDesc('Restore default metrics while preserving custom metrics')
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
-                    // Get names of default metrics
                     const defaultMetricNames = DEFAULT_METRICS.map(m => m.name.toLowerCase());
-                    
-                    // Filter out default metrics
                     const customMetrics = this.plugin.settings.metrics.filter(
                         m => !defaultMetricNames.includes(m.name.toLowerCase())
                     );
-                    
-                    // Combine default metrics with custom ones
                     this.plugin.settings.metrics = [...DEFAULT_METRICS, ...customMetrics];
-                    
                     await this.plugin.saveSettings();
                     this.display();
                 }));
-
-        // Metrics Export/Import Section
-        new Setting(containerEl)
+        new Setting(exportSection)
             .setName('Export Metrics')
             .setDesc('Export your current metrics configuration as a JSON file')
             .addButton(button => button
@@ -1465,7 +1472,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }, 100);
                 })
             );
-        new Setting(containerEl)
+        new Setting(exportSection)
             .setName('Import Metrics')
             .setDesc('Import a metrics configuration from a JSON file (replaces current metrics)')
             .addButton(button => button
@@ -1495,31 +1502,25 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     input.click();
                 })
             );
-
-        // CSV Export Section
-        new Setting(containerEl)
+        new Setting(exportSection)
             .setName('Export Metrics Data (CSV)')
             .setDesc('Export your current metrics data (summary and detailed dream entries) as a CSV file')
             .addButton(button => button
                 .setButtonText('Export CSV')
                 .onClick(async () => {
-                    // Gather data from plugin (simulate for now)
                     const summaryRows = [
                         ['Metric', 'Average', 'Min', 'Max', 'Count'],
                         ...this.plugin.settings.metrics.map(m => [
                             m.name,
-                            '', // Placeholder for average
-                            '', // Placeholder for min
-                            '', // Placeholder for max
-                            ''  // Placeholder for count
+                            '',
+                            '',
+                            '',
+                            ''
                         ])
                     ];
-                    // Simulate detailed entries (empty for now)
                     const detailedRows = [
                         ['Date', 'Title', 'Words', ...this.plugin.settings.metrics.map(m => m.name)],
-                        // Add rows here if available
                     ];
-                    // Convert to CSV
                     function toCSV(rows: string[][]) {
                         return rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(',')).join('\n');
                     }
@@ -1537,6 +1538,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }, 100);
                 })
             );
+        // Add section border after Export Metrics Data
+        containerEl.createEl('div', { cls: 'oom-section-border' });
 
         containerEl.scrollTop = prevScroll;
         if (focusSelector) {
@@ -1618,7 +1621,7 @@ class MetricsCalloutCustomizationsModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.addClass('oom-metrics-modal');
+        contentEl.addClass('oom-callout-modal');
         contentEl.createEl('h2', { text: 'Metrics Callout Customizations' });
         // State for the callout structure
         let calloutMetadata = this.plugin.settings.defaultCalloutMetadata || '';

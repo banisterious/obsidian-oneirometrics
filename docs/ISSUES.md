@@ -15,9 +15,11 @@
 
 - **UI Enhancements:**
   - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
+  - **Settings Page Overhaul:** The Settings page now features a bordered metrics section, clear section dividers, and helper text under section headers. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ## UI Improvements
 - **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.
+- **Settings Page Overhaul:** The Settings page now features a visually distinct bordered metrics section, clear section dividers, and helper text under key section headers for improved clarity and usability. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ## Current Issues
 - **Testing Required:** Ensure the new optional metrics and collapsible section function as expected.

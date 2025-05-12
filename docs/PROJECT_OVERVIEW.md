@@ -21,6 +21,7 @@
 - **UI Enhancements:**
   - Optional metrics are now displayed in a collapsible section, improving usability and reducing visual clutter.
   - **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.
+  - **Settings Page Overhaul:** The Settings page now features a visually distinct bordered metrics section, clear section dividers, and helper text under key section headers for improved clarity and usability. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ## Current Status
 - The project is actively maintained and updated with new features and improvements.
@@ -76,6 +77,7 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
 
 ### User Interface
 - Clean, modern interface with consistent styling
+- **Settings page features a bordered metrics section, clear section dividers, and helper text under section headers for improved clarity.**
 - Standardized button system with semantic variants:
   - `.oom-button` base class for all buttons
   - `.oom-button--primary` for primary actions
@@ -89,6 +91,7 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
 
 ### User Experience
 - **Intuitive Design**: Easy-to-use interface for metric management
+- **Section descriptions and visual grouping in Settings make configuration more approachable.**
 - **Real-time Feedback**: Immediate validation and error messages
 - **Smart Suggestions**: Intelligent file and path suggestions
 - **Responsive Tables**: Optimized for readability and interaction
