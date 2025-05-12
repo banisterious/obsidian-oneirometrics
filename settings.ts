@@ -1,16 +1,50 @@
 import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer } from "obsidian";
 import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings } from "./types";
 import DreamMetricsPlugin from "./main";
-import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound } from 'lucide-static';
+import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 
-export const lucideIconMap: Record<string, string> = {
-  eye: Eye,
-  heart: Heart,
-  'circle-minus': CircleMinus,
-  'pen-tool': PenTool,
-  'check-circle': CheckCircle,
-  'users-round': UsersRound,
-};
+interface IconCategory {
+    name: string;
+    description: string;
+    icons: Record<string, string>;
+}
+
+export const iconCategories: IconCategory[] = [
+    {
+        name: "Metrics",
+        description: "Icons for core metrics",
+        icons: {
+            eye: Eye,
+            heart: Heart,
+            'circle-minus': CircleMinus,
+            'pen-tool': PenTool,
+            'check-circle': CheckCircle,
+            sparkles: Sparkles,
+            'wand-2': Wand2,
+            zap: Zap,
+            glasses: Glasses,
+            link: Link,
+            ruler: Ruler,
+            layers: Layers
+        }
+    },
+    {
+        name: "Characters",
+        description: "Icons for character-related metrics",
+        icons: {
+            'user-cog': UserCog,
+            users: Users,
+            'user-check': UserCheck,
+            'user-x': UserX,
+            'users-round': UsersRound
+        }
+    }
+];
+
+// For backward compatibility
+export const lucideIconMap: Record<string, string> = Object.assign({}, 
+    ...iconCategories.map(category => category.icons)
+);
 
 // Validation functions
 function validateMetricName(name: string, existingMetrics: DreamMetric[]): string | null {
@@ -78,22 +112,89 @@ class MetricEditorModal extends Modal {
 
         const iconSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
         const iconPickerContainer = contentEl.createEl('div', { cls: 'oom-icon-picker-container' });
-        iconPickerContainer.createEl('div', { text: 'Icon (optional):', cls: 'oom-icon-picker-label' });
-        const iconGrid = iconPickerContainer.createEl('div', { cls: 'oom-icon-picker-grid' });
-        Object.entries(lucideIconMap).forEach(([iconName, iconSVG]) => {
-            const iconBtn = iconGrid.createEl('button', {
-                cls: 'oom-icon-picker-btn',
-                attr: { type: 'button', 'aria-label': iconName }
+        
+        // Add search bar
+        const searchContainer = iconPickerContainer.createEl('div', { cls: 'oom-icon-picker-search' });
+        const searchInput = searchContainer.createEl('input', {
+            type: 'text',
+            placeholder: 'Search icons...',
+            cls: 'oom-icon-picker-search-input'
+        });
+
+        // Add category tabs
+        const categoryTabs = iconPickerContainer.createEl('div', { cls: 'oom-icon-picker-tabs' });
+        iconCategories.forEach((category, index) => {
+            const tab = categoryTabs.createEl('button', {
+                cls: 'oom-icon-picker-tab',
+                text: category.name,
+                attr: { type: 'button' }
             });
-            iconBtn.innerHTML = iconSVG;
-            if (this.metric.icon === iconName) iconBtn.classList.add('selected');
-            iconBtn.onclick = () => {
-                this.metric.icon = iconName;
-                Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
-                iconBtn.classList.add('selected');
-                this.updatePreview();
+            if (index === 0) tab.classList.add('active');
+            tab.onclick = () => {
+                categoryTabs.querySelectorAll('.oom-icon-picker-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderIconGrid(category);
             };
         });
+
+        // Create icon grid container
+        const iconGrid = iconPickerContainer.createEl('div', { cls: 'oom-icon-picker-grid' });
+
+        // Function to render icons for a category
+        const renderIconGrid = (category: IconCategory) => {
+            iconGrid.empty();
+            Object.entries(category.icons).forEach(([iconName, iconSVG]: [string, string]) => {
+                const iconBtn = iconGrid.createEl('button', {
+                    cls: 'oom-icon-picker-btn',
+                    attr: { 
+                        type: 'button',
+                        'aria-label': iconName,
+                        'data-icon-name': iconName
+                    }
+                });
+                iconBtn.innerHTML = iconSVG;
+                if (this.metric.icon === iconName) iconBtn.classList.add('selected');
+                iconBtn.onclick = () => {
+                    this.metric.icon = String(iconName);
+                    Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
+                    iconBtn.classList.add('selected');
+                    this.updatePreview();
+                };
+            });
+        };
+
+        // Initial render of first category
+        renderIconGrid(iconCategories[0]);
+
+        // Add search functionality
+        searchInput.oninput = (e) => {
+            const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+            const allIcons = Object.assign({}, ...iconCategories.map(category => category.icons));
+            
+            iconGrid.empty();
+            Object.entries(allIcons).forEach(([iconName, iconSVG]: [string, string]) => {
+                if (iconName.toLowerCase().includes(searchTerm)) {
+                    const iconBtn = iconGrid.createEl('button', {
+                        cls: 'oom-icon-picker-btn',
+                        attr: { 
+                            type: 'button',
+                            'aria-label': iconName,
+                            'data-icon-name': iconName
+                        }
+                    });
+                    iconBtn.innerHTML = iconSVG;
+                    if (this.metric.icon === iconName) iconBtn.classList.add('selected');
+                    iconBtn.onclick = () => {
+                        this.metric.icon = String(iconName);
+                        Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
+                        iconBtn.classList.add('selected');
+                        this.updatePreview();
+                    };
+                }
+            });
+        };
+
+        // Add clear button
         const clearBtn = iconPickerContainer.createEl('button', {
             cls: 'oom-icon-picker-clear',
             text: 'No icon',
@@ -157,6 +258,20 @@ class MetricEditorModal extends Modal {
                         descSetting.setDesc(error || 'A description of what this metric measures');
                         descSetting.controlEl.classList.toggle('is-invalid', !!error);
                         this.metric.description = value;
+                        this.updatePreview();
+                    });
+            });
+
+        // Add enable/disable toggle
+        const enableSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        new Setting(enableSection)
+            .setName('Enabled')
+            .setDesc('Whether this metric should be enabled by default')
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.metric.enabled)
+                    .onChange(value => {
+                        this.metric.enabled = value;
                         this.updatePreview();
                     });
             });
@@ -1113,142 +1228,166 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Metrics Section
         containerEl.createEl('h3', { text: 'Metrics Configuration' });
 
-        // Display existing metrics
+        // Default metrics order: Sensory Detail, Emotional Recall, Descriptiveness, Characters Role, Confidence Score
+        // Optional metrics order: Characters Count, Familiar Count, Unfamiliar Count, Characters List, Dream Theme, Lucidity Level, Dream Coherence, Setting Familiarity, Ease of Recall, Recall Stability
+
+        // Wrap optional metrics in a collapsible container
+        const optionalMetricsSection = containerEl.createEl('div', { cls: 'oom-optional-metrics-section' });
+        optionalMetricsSection.createEl('h3', { text: 'Optional Metrics' });
+        const optionalMetricsContainer = optionalMetricsSection.createEl('div', { cls: 'oom-optional-metrics-container' });
+        optionalMetricsContainer.style.display = 'none'; // Initially collapsed
+
+        // Toggle button for optional metrics
+        const toggleBtn = optionalMetricsSection.createEl('button', { text: 'Show Optional Metrics', cls: 'oom-toggle-btn' });
+        toggleBtn.onclick = () => {
+            const isVisible = optionalMetricsContainer.style.display !== 'none';
+            optionalMetricsContainer.style.display = isVisible ? 'none' : 'block';
+            toggleBtn.textContent = isVisible ? 'Show Optional Metrics' : 'Hide Optional Metrics';
+        };
+
+        // Render optional metrics inside the container
         this.plugin.settings.metrics.forEach((metric, index) => {
-            const metricSetting = new Setting(containerEl)
-                .setName(metric.icon && lucideIconMap[metric.icon] ? `${metric.name} ` : metric.name)
-                .setDesc(`${metric.description} (${['Lost Segments', 'Familiar People'].includes(metric.name) ? 'Any whole number' : `Range: ${metric.range.min}-${metric.range.max}`})`)
-                .setClass('oom-metric-setting');
-            // Render icon if present and valid, else show nothing (or a placeholder if desired)
-            if (metric.icon && lucideIconMap[metric.icon]) {
-                const iconSVG = lucideIconMap[metric.icon];
-                const iconEl = document.createElement('span');
-                iconEl.className = 'oom-metric-icon-svg oom-metric-icon--start';
-                iconEl.innerHTML = iconSVG;
-                metricSetting.nameEl.insertBefore(iconEl, metricSetting.nameEl.firstChild);
-            } else if (metric.icon) {
-                // Optionally, show a placeholder or warning if icon is missing from map
-                // const placeholder = document.createElement('span');
-                // placeholder.className = 'oom-metric-icon-svg oom-metric-icon--start';
-                // placeholder.textContent = '?';
-                // metricSetting.nameEl.insertBefore(placeholder, metricSetting.nameEl.firstChild);
-            }
+            if (metric.name === 'Characters Count' || metric.name === 'Familiar Count' || metric.name === 'Unfamiliar Count' || metric.name === 'Characters List' || metric.name === 'Dream Theme' || metric.name === 'Lucidity Level' || metric.name === 'Dream Coherence' || metric.name === 'Setting Familiarity' || metric.name === 'Ease of Recall' || metric.name === 'Recall Stability') {
+                const metricSetting = new Setting(optionalMetricsContainer)
+                    .setName(metric.icon && lucideIconMap[metric.icon] ? `${metric.name} ` : metric.name)
+                    .setDesc(`${metric.description} (${['Lost Segments', 'Familiar People'].includes(metric.name) ? 'Any whole number' : `Range: ${metric.range.min}-${metric.range.max}`})`)
+                    .setClass('oom-metric-setting');
 
-            // Add drag handle
-            metricSetting.addExtraButton((button: ExtraButtonComponent) => {
-                const handle = button
-                    .setIcon('grip-vertical')
-                    .setTooltip('Drag to reorder')
-                    .extraSettingsEl;
+                // Add enable/disable toggle
+                metricSetting.addToggle(toggle => {
+                    toggle
+                        .setValue(metric.enabled)
+                        .onChange(async (value) => {
+                            metric.enabled = value;
+                            await this.plugin.saveSettings();
+                        });
+                });
 
-                handle.addClass('oom-drag-handle');
-                handle.setAttribute('draggable', 'true');
-                handle.setAttribute('tabindex', '0');
-                handle.setAttribute('aria-label', 'Reorder metric');
-                handle.setAttribute('aria-grabbed', 'false');
-                handle.addEventListener('focus', () => handle.classList.add('is-focused'));
-                handle.addEventListener('blur', () => handle.classList.remove('is-focused'));
-                handle.addEventListener('keydown', async (e: KeyboardEvent) => {
-                    if (e.key === 'ArrowUp' && index > 0) {
-                        e.preventDefault();
-                        const metrics = this.plugin.settings.metrics;
-                        [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
-                        await this.plugin.saveSettings();
-                        this.display();
-                        announce('Metric moved up');
-                    } else if (e.key === 'ArrowDown' && index < this.plugin.settings.metrics.length - 1) {
-                        e.preventDefault();
-                        const metrics = this.plugin.settings.metrics;
-                        [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
-                        await this.plugin.saveSettings();
-                        this.display();
-                        announce('Metric moved down');
+                // Render icon if present and valid
+                if (metric.icon && lucideIconMap[metric.icon]) {
+                    const iconSVG = lucideIconMap[metric.icon];
+                    const iconEl = document.createElement('span');
+                    iconEl.className = 'oom-metric-icon-svg oom-metric-icon--start';
+                    iconEl.innerHTML = iconSVG;
+                    metricSetting.nameEl.insertBefore(iconEl, metricSetting.nameEl.firstChild);
+                }
+
+                // Add drag handle
+                metricSetting.addExtraButton((button: ExtraButtonComponent) => {
+                    const handle = button
+                        .setIcon('grip-vertical')
+                        .setTooltip('Drag to reorder')
+                        .extraSettingsEl;
+
+                    handle.addClass('oom-drag-handle');
+                    handle.setAttribute('draggable', 'true');
+                    handle.setAttribute('tabindex', '0');
+                    handle.setAttribute('aria-label', 'Reorder metric');
+                    handle.setAttribute('aria-grabbed', 'false');
+                    handle.addEventListener('focus', () => handle.classList.add('is-focused'));
+                    handle.addEventListener('blur', () => handle.classList.remove('is-focused'));
+                    handle.addEventListener('keydown', async (e: KeyboardEvent) => {
+                        if (e.key === 'ArrowUp' && index > 0) {
+                            e.preventDefault();
+                            const metrics = this.plugin.settings.metrics;
+                            [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
+                            await this.plugin.saveSettings();
+                            this.display();
+                            announce('Metric moved up');
+                        } else if (e.key === 'ArrowDown' && index < this.plugin.settings.metrics.length - 1) {
+                            e.preventDefault();
+                            const metrics = this.plugin.settings.metrics;
+                            [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
+                            await this.plugin.saveSettings();
+                            this.display();
+                            announce('Metric moved down');
+                        }
+                    });
+                });
+
+                // Add drop zone
+                const settingEl = metricSetting.settingEl;
+                settingEl.setAttribute('data-index', index.toString());
+                
+                settingEl.addEventListener('dragover', (e: DragEvent) => {
+                    e.preventDefault();
+                    const draggingEl = containerEl.querySelector('.is-dragging');
+                    if (draggingEl && draggingEl !== settingEl) {
+                        settingEl.addClass('oom-drop-target');
                     }
                 });
-            });
 
-            // Add drop zone
-            const settingEl = metricSetting.settingEl;
-            settingEl.setAttribute('data-index', index.toString());
-            
-            settingEl.addEventListener('dragover', (e: DragEvent) => {
-                e.preventDefault();
-                const draggingEl = containerEl.querySelector('.is-dragging');
-                if (draggingEl && draggingEl !== settingEl) {
-                    settingEl.addClass('oom-drop-target');
-                }
-            });
+                settingEl.addEventListener('dragleave', () => {
+                    settingEl.removeClass('oom-drop-target');
+                });
 
-            settingEl.addEventListener('dragleave', () => {
-                settingEl.removeClass('oom-drop-target');
-            });
-
-            settingEl.addEventListener('drop', async (e: DragEvent) => {
-                e.preventDefault();
-                settingEl.removeClass('oom-drop-target');
-                
-                const fromIndex = parseInt(e.dataTransfer?.getData('text/plain') || '-1');
-                const toIndex = parseInt(settingEl.getAttribute('data-index') || '-1');
-                
-                if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-                    const metrics = this.plugin.settings.metrics;
-                    const [movedMetric] = metrics.splice(fromIndex, 1);
-                    metrics.splice(toIndex, 0, movedMetric);
-                    await this.plugin.saveSettings();
-                    this.display();
-                }
-            });
-
-            // Add up/down buttons for reordering
-            if (index > 0) {
-                metricSetting.addExtraButton((button: ExtraButtonComponent) => button
-                    .setIcon('arrow-up')
-                    .setTooltip('Move up')
-                    .onClick(async () => {
+                settingEl.addEventListener('drop', async (e: DragEvent) => {
+                    e.preventDefault();
+                    settingEl.removeClass('oom-drop-target');
+                    
+                    const fromIndex = parseInt(e.dataTransfer?.getData('text/plain') || '-1');
+                    const toIndex = parseInt(settingEl.getAttribute('data-index') || '-1');
+                    
+                    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
                         const metrics = this.plugin.settings.metrics;
-                        [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
+                        const [movedMetric] = metrics.splice(fromIndex, 1);
+                        metrics.splice(toIndex, 0, movedMetric);
                         await this.plugin.saveSettings();
                         this.display();
-                    }));
-            }
+                    }
+                });
 
-            if (index < this.plugin.settings.metrics.length - 1) {
-                metricSetting.addExtraButton((button: ExtraButtonComponent) => button
-                    .setIcon('arrow-down')
-                    .setTooltip('Move down')
-                    .onClick(async () => {
-                        const metrics = this.plugin.settings.metrics;
-                        [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
-                        await this.plugin.saveSettings();
-                        this.display();
-                    }));
-            }
+                // Add up/down buttons for reordering
+                if (index > 0) {
+                    metricSetting.addExtraButton((button: ExtraButtonComponent) => button
+                        .setIcon('arrow-up')
+                        .setTooltip('Move up')
+                        .onClick(async () => {
+                            const metrics = this.plugin.settings.metrics;
+                            [metrics[index], metrics[index - 1]] = [metrics[index - 1], metrics[index]];
+                            await this.plugin.saveSettings();
+                            this.display();
+                        }));
+                }
 
-            metricSetting
-                .addExtraButton((button: ExtraButtonComponent) => button
-                    .setIcon('pencil')
-                    .setTooltip('Edit metric')
-                    .onClick(() => {
-                        new MetricEditorModal(
-                            this.app,
-                            metric,
-                            this.plugin.settings.metrics,
-                            async (updatedMetric) => {
-                                this.plugin.settings.metrics[index] = updatedMetric;
-                                await this.plugin.saveSettings();
-                                this.display();
-                            },
-                            true
-                        ).open();
-                    }))
-                .addExtraButton((button: ExtraButtonComponent) => button
-                    .setIcon('trash')
-                    .setTooltip('Remove metric')
-                    .onClick(async () => {
-                        this.plugin.settings.metrics.splice(index, 1);
-                        await this.plugin.saveSettings();
-                        this.display();
-                    }));
+                if (index < this.plugin.settings.metrics.length - 1) {
+                    metricSetting.addExtraButton((button: ExtraButtonComponent) => button
+                        .setIcon('arrow-down')
+                        .setTooltip('Move down')
+                        .onClick(async () => {
+                            const metrics = this.plugin.settings.metrics;
+                            [metrics[index], metrics[index + 1]] = [metrics[index + 1], metrics[index]];
+                            await this.plugin.saveSettings();
+                            this.display();
+                        }));
+                }
+
+                metricSetting
+                    .addExtraButton((button: ExtraButtonComponent) => button
+                        .setIcon('pencil')
+                        .setTooltip('Edit metric')
+                        .onClick(() => {
+                            new MetricEditorModal(
+                                this.app,
+                                metric,
+                                this.plugin.settings.metrics,
+                                async (updatedMetric) => {
+                                    this.plugin.settings.metrics[index] = updatedMetric;
+                                    await this.plugin.saveSettings();
+                                    this.display();
+                                },
+                                true
+                            ).open();
+                        }))
+                    .addExtraButton((button: ExtraButtonComponent) => button
+                        .setIcon('trash')
+                        .setTooltip('Remove metric')
+                        .onClick(async () => {
+                            this.plugin.settings.metrics.splice(index, 1);
+                            await this.plugin.saveSettings();
+                            this.display();
+                        }));
+            }
         });
 
         // Add New Metric Button
@@ -1260,10 +1399,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     new MetricEditorModal(
                         this.app,
                         {
-                            name: 'New Metric',
+                            name: "New Metric",
                             range: { min: 1, max: 5 },
-                            description: 'Description of the metric'
-                        },
+                            description: "Description of the metric",
+                            icon: "ruler",  // Default icon for new metrics
+                            enabled: true
+                        } as DreamMetric,  // Type assertion to ensure proper typing
                         this.plugin.settings.metrics,
                         async (newMetric) => {
                             this.plugin.settings.metrics.push(newMetric);
