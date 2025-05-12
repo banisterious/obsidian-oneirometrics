@@ -1331,4 +1331,78 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* Base button styles */
+.oom-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+}
+
+.oom-button:hover {
+    background: var(--interactive-hover);
+}
+
+.oom-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+}
+
+/* Button variants */
+.oom-button--primary {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-button--primary:hover {
+    background: var(--interactive-accent-hover);
+}
+
+.oom-button--secondary {
+    background: var(--background-secondary);
+    border-color: var(--background-modifier-border);
+}
+
+.oom-button--secondary:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-button--expand {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-button--expand:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-button--batch {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-button--batch:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Remove old button classes */
+.oom-update-metrics-btn,
+.oom-show-more,
+.oom-modal-btn--batch,
+.oom-modal-btn--continue {
+    /* These classes are deprecated and will be removed in a future update */
 } 

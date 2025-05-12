@@ -1,0 +1,174 @@
+# Instructions for Inline Style Cleanup
+
+    This file instructs Cursor to periodically identify and move inline styles to `styles.css`.
+
+    ## 1. Purpose
+
+    -   Maintain clean separation of concerns by removing inline styles.
+    -   Improve CSS maintainability and theme compatibility.
+    -   Enhance code performance by reducing redundant style declarations.
+
+    ## 2. Scope
+
+    -   Search for inline styles within:
+        -   `.html` files
+        -   `.js` files (especially within DOM manipulation code)
+        -   `.ts` files (for TypeScript code)
+
+    ## 3. Identification
+
+    -   Look for the `style="..."` attribute in HTML tags.
+    -   Be aware that JavaScript code might also assign styles (e.g., `element.style.property = "value";`).
+    -   Use a regex or CSS parser to accurately extract CSS properties and values.
+
+    ## 4. Action Steps
+
+    1.  **Extraction:**
+        -   Extract the CSS properties and values from the `style` attribute.
+        -   Preserve the original order of properties.
+    2.  **CSS Rule Generation:**
+        -   Generate a unique class name (e.g., `inline-style-123`).
+        -   Create a new CSS rule in `styles.css` using the generated class name and the extracted styles.
+    3.  **Replacement:**
+        -   Replace the `style="..."` attribute with `class="inline-style-123"`.
+        -   If JavaScript is assigning styles, modify the code to add the generated class.
+    4.  **Frequency:**
+        -   Perform this check and cleanup periodically (e.g., after major feature additions or refactoring).
+
+    ## 5. Example
+
+    **Original HTML:**
+
+    ```html
+    <div style="color: blue; font-size: 16px;">...</div>
+    ```
+
+    **Generated CSS in `styles.css`:**
+
+    ```css
+    .inline-style-123 {
+        color: blue;
+        font-size: 16px;
+    }
+    ```
+
+    **Modified HTML:**
+
+    ```html
+    <div class="inline-style-123">...</div>
+    ```
+
+    ## Important Notes for Cursor
+
+    -   Prioritize accuracy in CSS parsing to avoid errors.
+    -   Generate unique class names to prevent conflicts.
+    -   Preserve the original order of CSS properties when possible.
+    -   Be mindful of existing CSS specificity when generating new rules.
+    -   Provide clear logging or feedback on the changes made.
+    ```
+
+**2. Periodic `console.log` Audit**
+
+* **The Challenge:**
+    * Cursor needs to understand the *context* of `console.log` statements. Some are essential for debugging, while others are temporary and should be removed.
+    * You want to define criteria for when `console.log` is acceptable and when it's not.
+* **Best Approach:**
+    * **`.mdc` for Contextual Rules:** Again, a `.mdc` file is ideal for setting the rules.
+    * **Criteria Definition:** In the `.mdc`, clearly define when `console.log` statements should be removed:
+        * "Remove `console.log` statements added for temporary debugging."
+        * "Limit `console.log` in production code to only essential logging (e.g., errors)."
+        * "Prioritize removing `console.log` from files related to features marked as 'Resolved' in `ISSUES.md`."
+    * **Example `.mdc` Content:**
+
+```markdownc
+    # Instructions for console.log Audit
+
+    This file instructs Cursor to periodically audit and reduce the number of `console.log` statements in the codebase.
+
+    ## 1. Purpose
+
+    -   Improve code performance by reducing unnecessary logging.
+    -   Maintain cleaner code by removing temporary debugging statements.
+    -   Ensure that production code only contains essential logging.
+
+    ## 2. Scope
+
+    -   Search for all instances of `console.log` in:
+    -   `.js` files
+    -   `.ts` files
+
+    ## 3. Audit Criteria
+
+    -   **Remove:**
+        -   `console.log` statements that were clearly added for temporary debugging (e.g., logging intermediate values during development).
+        -   `console.log` statements within functions or modules related to features that are marked as "Resolved" in `docs/ISSUES.md`.
+    -   **Limit:**
+        -   `console.log` statements in production code. Only keep essential logging, such as:
+            -   Error logging (`console.error`)
+            -   Warning messages (`console.warn`)
+            -   Critical information logging
+    -   **Keep:**
+        -   `console.log` statements specifically intended for developer debugging tools (if any).
+
+    ## 4. Action Steps
+
+    1.  **Identification:**
+        -   Find all occurrences of `console.log(...)`.
+    2.  **Context Analysis:**
+        -   Examine the surrounding code to determine the purpose of the `console.log` statement.
+        -   Check if the related feature is marked as "Resolved" in `docs/ISSUES.md`.
+    3.  **Decision:**
+        -   Based on the criteria above, decide whether to:
+            -   Remove the `console.log` statement.
+            -   Modify it (e.g., change to `console.warn` or add conditional logic).
+            -   Leave it as is.
+    4.  **Modification (If Necessary):**
+        -   If modifying, ensure the logging level is appropriate (e.g., `console.error` for errors).
+        -   Consider adding conditional logic to control logging in production (e.g., using a debug flag).
+    5.  **Frequency:**
+        -   Perform this audit regularly, especially before releases.
+
+    ## 5. Example
+
+    **Original Code:**
+
+    ```javascript
+    function calculateTotal(items) {
+        console.log("Calculating total..."); // Temporary debug log
+        let total = 0;
+        for (const item of items) {
+            total += item.price;
+        }
+        console.log("Total:", total); // Another temporary log
+        return total;
+    }
+    ```
+
+    **Audited Code:**
+
+    ```javascript
+    function calculateTotal(items) {
+        let total = 0;
+        for (const item of items) {
+            total += item.price;
+        }
+        return total;
+    }
+    ```
+
+    ## Important Notes for Cursor
+
+    -   Use your best judgment to determine the purpose of `console.log` statements.
+    -   Prioritize removing temporary debugging logs.
+    -   Be cautious when removing logs related to error handling or critical operations.
+    -   Provide clear explanations for any changes made.
+    ```
+
+**Key Considerations:**
+
+* **Tooling:** For both tasks, you might want to suggest specific tools or libraries that Cursor could use (e.g., a CSS parser library, a code analysis tool).
+* **Context:** Provide as much context as possible in the `.mdc` files. The more Cursor understands the *why* behind these tasks, the better it will perform them.
+* **Iteration:** These are likely to be tasks that you refine over time as you see how Cursor performs them. Be prepared to update your `.mdc` files with more specific instructions or constraints.
+* **Combined Instructions:** You *could* put both sets of instructions in a single `.mdc` file, but separating them makes them easier to manage and update independently.
+
+By combining clear `.mdc` instructions with guidance on how to approach these tasks, you can effectively leverage Cursor to help you maintain a cleaner and more maintainable codebase!

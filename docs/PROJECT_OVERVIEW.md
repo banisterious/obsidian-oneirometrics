@@ -53,6 +53,7 @@
 - 🔜 Add search/filter to icon picker
 - 🔜 Expand icon selection
 - 🔜 Reduce excessive logging in future builds
+- 🔜 Add filters for Yesterday and Today
 
 ## Project Description
 
@@ -67,11 +68,17 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
 - **Automatic Backups**: Reliable backup system with .bak extension
 
 ### User Interface
-- **Settings Modal**: Configure metrics and project settings
-- **Metric Icon Picker**: Visual customization of metrics
-- **Data Tables**: Sortable and filterable dream entry data
-- **Summary Views**: Overview of dream metrics and patterns
-- **Accessibility Features**: Keyboard navigation and screen reader support
+- Clean, modern interface with consistent styling
+- Standardized button system with semantic variants:
+  - `.oom-button` base class for all buttons
+  - `.oom-button--primary` for primary actions
+  - `.oom-button--secondary` for secondary actions
+  - `.oom-button--expand` for expand/collapse buttons
+  - `.oom-button--batch` for batch action buttons
+- Responsive tables with virtual scrolling
+- Interactive filters and sorting
+- Expandable dream content previews
+- Theme-aware styling that adapts to light/dark modes
 
 ### User Experience
 - **Intuitive Design**: Easy-to-use interface for metric management

@@ -224,6 +224,7 @@ The project note is generated with two main sections:
    - Theme customization options
    - Icon picker search/filter functionality
    - Additional icon options
+   - Date filters for Yesterday and Today
 
 2. **Scalability**
    - Large vault support

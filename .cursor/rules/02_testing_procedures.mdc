@@ -1,0 +1,54 @@
+# Instructions for Using docs/TESTING.md
+
+This file provides guidance on how to interpret and utilize the information in the `docs/TESTING.md` document.
+
+## 1. Purpose of docs/TESTING.md
+
+-   Understand that `docs/TESTING.md` outlines the detailed testing strategies, procedures, and guidelines for the OneiroMetrics plugin.
+-   Recognize that adhering to these procedures is essential for ensuring code quality, stability, and adherence to requirements.
+
+## 2. Structure of docs/TESTING.md
+
+-   Note that `docs/TESTING.md` is organized into the following main sections:
+    -   **Setup Testing:** Tests for initial plugin setup.
+    -   **Settings Testing:** Tests for plugin settings functionality.
+    -   **Metrics Scraping:** Tests for the metric scraping process.
+    -   **Metrics Table - Summary Section:** Tests for the summary table display.
+    -   **Metrics Table - Detailed Section:** Tests for the detailed table display.
+    -   **Content Display:** Tests for how dream entry content is displayed.
+    -   **Filtering and Sorting:** Tests for table filtering and sorting.
+    -   **Styling and UI:** Tests for the plugin's styling and user interface.
+    -   **Error Handling:** Tests for error handling scenarios.
+    -   **Performance:** Tests for plugin performance.
+    -   **Theme Compatibility:** Tests for compatibility with Obsidian themes.
+    -   **Backup System Testing:** Tests for the backup functionality.
+    -   **Notes for Testing:** General testing guidelines.
+    -   **Bug Reporting Template:** Instructions on how to report bugs.
+    -   **Performance Testing:** Specific performance testing procedures.
+    -   **Troubleshooting: File Suggestion Issues:** Steps to troubleshoot file suggestion problems.
+    -   **Testing Methodologies:** Overview of testing approaches (Automated Unit Testing, Manual Integration Testing, Manual End-to-End Testing).
+    -   **Feature Implementation Details:** (Example: CSV Export Feature) Detailed specification and testing requirements for specific features.
+    -   **June 2024: New Features & Fixes:** Testing instructions for features and fixes from June 2024.
+    -   **June 2025: New Features & Fixes:** Testing instructions for features and fixes from June 2025.
+    -   **Planned Features to Test:** Testing instructions for planned features.
+    -   **Debug Logging & Note Update Troubleshooting:** Instructions for debugging and troubleshooting.
+    -   **Logging and Debug Output:** Guidelines on logging and debug output.
+    -   **Current Status:** Summary of current testing status.
+    -   **Version 0.3.0 Testing Requirements:** Testing requirements specific to version 0.3.0.
+    -   **Reporting Issues:** Instructions on how to report issues.
+    -   **Test Environment:** Information about the testing environment.
+    -   **Automated Testing:** Information about automated testing.
+-   Use this structure to quickly locate relevant testing information.
+
+## 3. How to Use docs/TESTING.md
+
+-   **Testing Scope:** When asked about testing, refer to the relevant sections in `docs/TESTING.md` to determine the scope of testing needed.
+-   **Testing Procedures:** Follow the detailed checklists and procedures provided in each section. Each section often lists specific test cases with checkboxes `[ ]` to indicate completion status.
+-   **Testing Tools and Frameworks:** If specific testing tools or frameworks are mentioned (e.g., Jest, Obsidian Developer Tools), ensure that any generated code or testing suggestions are compatible.
+-   **Testing Scenarios:** Pay close attention to specific testing scenarios, such as:
+    -   Testing with various data inputs (e.g., dream journal entry lengths, metric combinations, special characters).
+    -   Testing with different environments (e.g., screen sizes, Obsidian themes, operating systems).
+    -   Testing with large datasets (e.g., 100+ entries).
+    -   Testing specific features (e.g., CSV Export, Backup System).
+-   **Automated vs. Manual Testing:** Distinguish between automated testing procedures (e.g., Unit Testing) and manual testing procedures (e.g., Integration Testing, End-to-End Testing).
+-   **Performance Testing:** When discussing performance, refer to the "Performance Testing" sections

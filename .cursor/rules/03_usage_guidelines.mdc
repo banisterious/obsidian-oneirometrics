@@ -1,0 +1,47 @@
+# Instructions for Using docs/USAGE.md
+
+This file provides guidance on how to interpret and utilize the information in the `docs/USAGE.md` document.
+
+## 1. Purpose of docs/USAGE.md
+
+-   Understand that `docs/USAGE.md` provides user instructions on how to install, configure, and use the OneiroMetrics plugin.
+-   Recognize that this document is crucial for explaining plugin functionality to users and assisting them with common tasks and troubleshooting.
+
+## 2. Structure of docs/USAGE.md
+
+-   Note that `docs/USAGE.md` is organized into the following main sections:
+    -   **Quick Start:** A brief overview of the main steps to begin using the plugin.
+    -   **Configuring Metrics:** Instructions on setting up and managing metrics.
+    -   **Adding Dream Metrics:** Guidance on how to format and add metrics within dream journal entries.
+    -   **Analyzing Dreams:** Explanation of how to use the plugin to analyze dream data.
+    -   **Multi-Note Selection:** Instructions on selecting multiple notes for analysis.
+    -   **Troubleshooting:** Solutions to common user problems.
+-   Use this structure to quickly locate relevant usage information.
+
+## 3. How to Use docs/USAGE.md
+
+-   **Installation and Setup:** When asked about installing or setting up the plugin, refer to the "Quick Start" and "Configuring Metrics" sections.
+-   **Metric Configuration:** When discussing how to define, edit, or manage metrics, refer to the "Configuring Metrics" section.
+    -   Pay attention to the sub-sections: "Project Note Path," "Metric Editor," and "Managing Metrics."
+    -   Emphasize features like the smart file suggestion system, real-time validation, keyboard shortcuts, and icon customization.
+-   **Adding Metrics to Notes:** When explaining how to add metrics to dream journal entries, refer to the "Adding Dream Metrics" section.
+    -   Provide the exact "Callout Format" example from the document.
+    -   Use the "Complete Sample Journal Entry" to illustrate a real-world scenario.
+-   **Analyzing Dream Data:** When describing how to use the plugin to analyze data, refer to the "Analyzing Dreams" section.
+    -   Explain the "Scraping Metrics" process.
+    -   Describe the "Metrics Table" structure (Summary Section and Detailed Section) and its features.
+    -   Highlight the "Backup System" functionality.
+-   **Multi-Note Functionality:** When discussing how to select and use multiple notes for analysis, refer to the "Multi-Note Selection" section.
+    -   Explain the "Note Selection" process with the multi-chip autocomplete field.
+    -   Describe the "File Suggestions" features.
+-   **Troubleshooting User Issues:** When addressing common user problems, refer to the "Troubleshooting" section.
+    -   Provide the solutions listed for "Invalid Metric Values," "Missing Metrics," "Backup Files," and "Table Display Issues."
+    -   Guide users on "Getting Help" by directing them to plugin settings, validation messages, the GitHub repository, and the console.
+
+## 4. Important Notes for Cursor
+
+-   Provide clear, concise, and step-by-step instructions based on `docs/USAGE.md`.
+-   Use the same terminology and formatting as in `docs/USAGE.md` to avoid confusion.
+-   When providing examples, use the code snippets and examples directly from `docs/USAGE.md`.
+-   Assume the user has a basic understanding of Obsidian.
+-   Emphasize important user features and potential pitfalls.

@@ -5,12 +5,25 @@
 ### High Priority
 - [ ] **Table Regeneration:** Dream Entry and Statistics tables sometimes do not update or duplicate. This is still being debugged.
 - [ ] **Modal Feedback:** Modal feedback and reliability are still being improved.
+- [ ] Implement proper error handling for failed metric scraping
+- [ ] Add support for custom metric validation rules
+- [ ] Improve performance of large dataset handling
 
 ### Medium Priority
 - [ ] **Performance Optimization:** Reduce excessive logging and remove or limit debug console.logs, especially those related to backup creation and extraction logic.
+- [ ] Add export functionality for metrics data
+- [ ] Implement metric trend visualization
+- [ ] Add support for metric categories/tags
+- [ ] Improve mobile responsiveness of tables
+- [ ] Add keyboard shortcuts for common actions
 
 ### Low Priority
 - [ ] **Documentation Updates:** Some documentation sections need to be updated to reflect recent changes.
+- [ ] Add support for custom date formats
+- [ ] Implement metric comparison features
+- [ ] Add support for metric notes/comments
+- [ ] Improve accessibility of button interactions
+- [ ] Add support for custom table layouts
 
 ## Feature Requests
 
@@ -49,6 +62,11 @@ The following issues have been resolved in version 0.3.0:
 - ✅ Table sorting and filtering
 - ✅ Dream content extraction and rendering
 - ✅ Autocomplete and file suggestion reliability
+- ✅ Standardized button system implementation
+- ✅ Improved table performance with virtual scrolling
+- ✅ Enhanced mobile responsiveness
+- ✅ Added proper cleanup for event listeners
+- ✅ Implemented memoization for table calculations
 
 ## How to Report Issues
 

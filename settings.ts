@@ -257,6 +257,18 @@ class MetricEditorModal extends Modal {
     }
 }
 
+// Add debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout;
+    return (...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
+
 export class DreamMetricsSettingTab extends PluginSettingTab {
     plugin: DreamMetricsPlugin;
 
@@ -405,7 +417,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }
                 };
 
-                // (Removed search.onChange; input event is more reliable for real-time suggestions)
+                // Update search input handling
+                search.inputEl.addEventListener('input', debounce((e) => {
+                    showSuggestions(search.inputEl.value);
+                }, 300));
+
+                search.inputEl.addEventListener('focus', debounce((e) => {
+                    showSuggestions(search.inputEl.value);
+                }, 300));
 
                 // Keyboard navigation for suggestions
                 search.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -458,11 +477,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 // Hide suggestions on blur (with delay for click)
                 search.inputEl.addEventListener('blur', () => {
                     setTimeout(() => { suggestionContainer.classList.remove('visible'); suggestionContainer.style.display = 'none'; }, 200);
-                });
-
-                search.inputEl.addEventListener('input', (e) => {
-                    console.log('[Backup Folder] input event:', search.inputEl.value);
-                    showSuggestions(search.inputEl.value);
                 });
 
                 // Update suggestions on resize

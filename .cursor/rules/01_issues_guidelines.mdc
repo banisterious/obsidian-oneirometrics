@@ -1,0 +1,62 @@
+# Instructions for Using ISSUES.md
+
+This file provides guidance on how to interpret and utilize the information in the `ISSUES.md` document.
+
+## 1. Purpose of ISSUES.md
+
+-   Understand that `ISSUES.md` tracks known problems (Current Issues) and desired enhancements (Feature Requests) for the OneiroMetrics plugin.
+-   Recognize that this document is crucial for avoiding the introduction or exacerbation of existing issues and for informing development decisions.
+
+## 2. Structure of ISSUES.md
+
+-   Note that `ISSUES.md` is divided into the following main sections:
+    -   **Current Issues:** Describes existing bugs and problems.
+    -   **Feature Requests:** Outlines desired new features and improvements.
+    -   **Recent Resolutions:** Lists issues that have been fixed in recent updates.
+-   Pay attention to this structure to find the relevant information quickly.
+
+## 3. How to Use Current Issues
+
+-   **Preventing Regressions:** Before generating code for new features or modifications, consult the "Current Issues" section to identify any related bugs or potential conflicts.
+-   **Addressing Existing Issues:** If asked to fix a bug, check the "Current Issues" section for specific details about the problem.
+-   **Prioritization:** The "Current Issues" section uses priority levels (High, Medium, Low). Address High Priority issues first, then Medium, and then Low.
+    -   **High Priority:** Table Regeneration, Modal Feedback
+    -   **Medium Priority:** Performance Optimization (logging)
+    -   **Low Priority:** Documentation Updates
+-   **Status:** Issues in the "Current Issues" section are marked with a checkbox `[ ]`. Only attempt to fix issues with an unchecked box.
+
+## 4. How to Use Feature Requests
+
+-   **Understanding Desired Enhancements:** The "Feature Requests" section outlines potential new features and improvements.
+-   **Categorization:** Feature requests are categorized into "Planned Features" (e.g., Icon Picker Enhancements, Test Modal, Performance Improvements) and "UI/UX Improvements" (e.g., Theme Integration, Mobile Experience). Use these categories to guide development.
+-   **Status:** Feature requests also use checkboxes `[ ]`. These indicate features that are not yet implemented.
+
+## 5. How to Use Recent Resolutions
+
+-   **Avoiding Redundant Work:** The "Recent Resolutions" section lists issues that have been *resolved*. Do not attempt to fix these issues.
+-   **Understanding Recent Changes:** This section provides context about recent development activity.
+
+## 6. Issue Reporting Guidelines
+
+-   If asked about how to report a new issue, refer to the "How to Report Issues" section.
+-   Inform the user to include:
+    -   Steps to reproduce
+    -   Expected behavior
+    -   Actual behavior
+    -   Screenshots (if applicable)
+    -   Console logs (if available)
+    -   Obsidian version
+    -   Plugin version
+    -   Theme being used
+
+## 7. Specific Instructions Based on PROJECT_OVERVIEW.md
+
+-   Refer to the "Known Issues" section in `PROJECT_OVERVIEW.md` for a summary of key issues. Use this as a starting point, and then consult `docs/ISSUES.md` for detailed information.
+-   For example, `PROJECT_OVERVIEW.md` mentions "Modal feedback improvements needed." `ISSUES.md` clarifies this as "Modal Feedback: Modal feedback and reliability are still being improved."
+
+## Important Notes for Cursor:
+
+-   Always check `docs/ISSUES.md` before generating code that could be affected by known problems or when considering new features.
+-   Provide accurate and detailed information about the status and priority of issues/features.
+-   Do not attempt to "fix" resolved issues.
+-   Follow the issue reporting guidelines when instructing users on how to report new problems.

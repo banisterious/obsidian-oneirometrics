@@ -1,0 +1,110 @@
+#   Instructions for Using linting_guidelines.md
+
+This file provides guidance on how to interpret and apply the linting rules defined in `docs/linting_guidelines.md`.
+
+##   1.  Purpose
+
+-   Understand that `docs/linting_guidelines.md` specifies the code style, formatting, and best practices for the project.
+-   Adhere to these guidelines to ensure consistency, readability, and maintainability.
+
+##   2.  Scope
+
+-   Apply these guidelines to:
+    -   TypeScript (`.ts`) files
+    -   JavaScript (`.js`) files
+    -   CSS (`.css`) files
+
+##   3.  General Linting Principles
+
+-   **Consistency:** Maintain a uniform code style.
+-   **Readability:** Write code that is easy to understand.
+-   **Automation:** Rely on linting tools for enforcement.
+-   **Error Prevention:** Use linting to catch errors early.
+
+##   4.  Specific Rules - TypeScript and JavaScript
+
+###   4.1.  Formatting
+
+-   **Indentation:** Use 4 spaces, no tabs.
+-   **Spacing:** Consistent spacing around operators, commas, and curly braces.
+-   **Line Length:** Max 120 characters.
+-   **Quotes:** Double quotes (`"`) for strings.
+-   **Semicolons:** Use semicolons.
+-   **Trailing Commas:** Use trailing commas.
+
+###   4.2.  Naming Conventions
+
+-   **Variables:** `camelCase` (e.g., `myVariable`)
+-   **Functions:** `camelCase` (e.g., `calculateTotal`)
+-   **Classes:** `PascalCase` (e.g., `MyClass`)
+-   **Interfaces/Types:** `PascalCase` (e.g., `UserData`)
+
+###   4.3.  Best Practices
+
+-   **`any` Type:** Avoid `any` in TypeScript.
+-   **`const` and `let`:** Use `const` for non-reassigned variables, `let` for reassigned. Avoid `var`.
+-   **Error Handling:** Use `try...catch`, log errors, provide informative messages.
+-   **Code Organization:** Modular components, clear file structure, comments.
+-   **ECMAScript Syntax:** Ensure that all generated TypeScript or JavaScript code adheres to ECMAScript 2018 syntax.
+
+###   4.4.  Commenting
+
+-   **Purpose:** Explain complex logic, non-obvious code, function/class purpose.
+-   **Types:**
+    -   `//` for short explanations
+    -   `/* ... */` for longer explanations/code blocks
+    -   `/** ... */` for JSDoc function/class documentation
+-   **Clarity:** Clear, concise, explain *why* not *what*.
+-   **Maintenance:** Keep comments updated.
+
+##   5.  Specific Rules - CSS
+
+###   5.1.  Formatting
+
+-   **Indentation:** 4 spaces, no tabs.
+-   **Spacing:** Space before `{`, spacing in property/value declarations, newline after each declaration.
+-   **Line Length:** Keep lines reasonably short.
+-   **Quotes:** Double quotes where required (e.g., `url()`).
+-   **Semicolons:** Semicolons at the end of property declarations.
+
+###   5.2.  Naming Conventions
+
+-   **Classes:** `kebab-case` (e.g., `my-element`)
+-   **IDs:** Avoid IDs, use `camelCase` or `kebab-case` if necessary.
+
+###   5.3.  Best Practices
+
+-   **CSS Variables:** Use CSS variables (`--my-variable`).
+-   **Specificity:** Keep specificity low, avoid complex selectors.
+-   **`!important`:** Avoid `!important`, use sparingly.
+-   **CSS Architecture:** Follow a component-based approach.
+
+###   5.4.  Commenting
+
+-   **Purpose:** Organize CSS, explain rules/selectors, document hacks.
+-   **Formatting:** Use `/* ... */` for all CSS comments.
+-   **Clarity:** Concise and informative.
+
+##   6.  Tool Configuration
+
+-   (Refer to the `docs/linting_guidelines.md` document for any tool-specific configuration details.)
+
+##   7.  Enforcement
+
+-   Linting is enforced automatically by Cursor.
+-   Address linting errors promptly.
+
+##   8.  Examples
+
+-   (Refer to the `docs/linting_guidelines.md` document for code examples.)
+
+##   9.  Resources
+
+-   (Refer to the `docs/linting_guidelines.md` document for links to external documentation.)
+
+##   Important Notes for Cursor
+
+-   Always adhere to the rules in `docs/linting_guidelines.md` when generating or modifying code.
+-   Prioritize consistency and readability.
+-   When in doubt, err on the side of clarity.
+-   If there are conflicting instructions, follow the most specific rule.

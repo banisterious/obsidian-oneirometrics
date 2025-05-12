@@ -794,3 +794,42 @@ When reporting issues, include:
 - [ ] Integration tests for Obsidian API
 - [ ] End-to-end tests for workflows
 - [ ] Performance benchmarks
+
+## Styling and UI Testing
+
+### Button System Testing
+1. **Base Button Styles**
+   - Verify `.oom-button` base styles are applied correctly
+   - Check hover and focus states
+   - Confirm proper spacing and alignment
+   - Test in both light and dark themes
+
+2. **Button Variants**
+   - Test `.oom-button--primary` for primary actions
+   - Test `.oom-button--secondary` for secondary actions
+   - Test `.oom-button--expand` for expand/collapse functionality
+   - Test `.oom-button--batch` for batch actions
+   - Verify each variant has appropriate hover/focus states
+
+3. **Button Interactions**
+   - Test click handlers for all button types
+   - Verify proper event propagation
+   - Check keyboard navigation (Tab, Enter, Space)
+   - Test screen reader compatibility
+   - Verify proper ARIA attributes
+
+4. **Button States**
+   - Test disabled state styling
+   - Verify loading state indicators
+   - Check active/pressed states
+   - Test focus ring visibility
+   - Verify proper color contrast
+
+5. **Button Accessibility**
+   - Verify proper ARIA labels
+   - Test keyboard navigation
+   - Check screen reader announcements
+   - Verify focus management
+   - Test color contrast ratios
+
+### Table Testing

@@ -10,6 +10,10 @@ import { lucideIconMap } from './settings';
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
 
+    // Add memoization for table calculations
+    private memoizedTableData = new Map<string, any>();
+    private cleanupFunctions: (() => void)[] = [];
+
     async onload() {
         await this.loadSettings();
 
@@ -53,7 +57,12 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     onunload() {
-        // Clean up if needed
+        // Execute all cleanup functions
+        this.cleanupFunctions.forEach(cleanup => cleanup());
+        this.cleanupFunctions = [];
+        
+        // Clear memoization cache
+        this.memoizedTableData.clear();
     }
 
     async loadSettings() {
@@ -762,6 +771,11 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
+        const cacheKey = JSON.stringify({ metrics, dreamEntries });
+        if (this.memoizedTableData.has(cacheKey)) {
+            return this.memoizedTableData.get(cacheKey);
+        }
+
         let content = '';
         // Add explicit markers for section replacement
         content += '\n<!-- OOM METRICS START -->\n';
@@ -832,7 +846,7 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<div class="oom-table-title">Dream Entries</div>';
         // Update Metrics Button
         content += `<div class="oom-update-metrics-row">
-            <button id="oom-update-metrics-btn" class="oom-update-metrics-btn">Update Metrics</button>
+            <button id="oom-update-metrics-btn" class="oom-button oom-button--primary">Update Metrics</button>
             <span class="oom-update-metrics-desc">Re-scrape all selected notes or folder</span>
         </div>`;
         // Readable Line Length Toggle Widget
@@ -930,7 +944,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 content += `<td class="oom-dream-content" id="${cellId}">
                     <div class="oom-content-preview">${preview}</div>
                     <div class="oom-content-full">${dreamContent}</div>
-                    <button type="button" class="oom-expand-button oom-show-more" aria-expanded="false" aria-controls="${cellId}-full">Show more<span class="visually-hidden"> full dream content</span></button>
+                    <button type="button" class="oom-button oom-button--expand" aria-expanded="false" aria-controls="${cellId}-full">Show more<span class="visually-hidden"> full dream content</span></button>
                 </td>\n`;
             } else {
                 content += `<td class="oom-dream-content"><div class="oom-content-preview">${dreamContent}</div></td>\n`;
@@ -948,7 +962,10 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '</div>\n';
         content += '\n<!-- OOM METRICS END -->\n';
         console.log('[OneiroMetrics] generateMetricsTable output (first 200 chars):', content.slice(0, 200));
-        return content;
+
+        const result = content;
+        this.memoizedTableData.set(cacheKey, result);
+        return result;
     }
 
     private updateProjectNoteView() {
@@ -1003,6 +1020,10 @@ export default class DreamMetricsPlugin extends Plugin {
 
             // Attach event listeners for interactive elements
             this.attachProjectNoteEventListeners();
+
+            // Add virtual scrolling to tables
+            const tables = this.app.workspace.containerEl.querySelectorAll('.oom-metrics-table');
+            tables.forEach(table => this.setupVirtualScrolling(table as HTMLElement));
         } catch (err) {
             new Notice('Error updating OneiroMetrics Note view. See console for details.');
             console.error('[OneiroMetrics] Error in updateProjectNoteView:', err);
@@ -1010,6 +1031,9 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private attachProjectNoteEventListeners() {
+        const container = this.app.workspace.containerEl;
+        const cleanupFunctions: (() => void)[] = [];
+
         console.log('[OneiroMetrics][DEBUG] attachProjectNoteEventListeners called');
         const previewEl = document.querySelector('.markdown-preview-view[data-type="oom-project-note"]');
         if (!previewEl) {
@@ -1102,7 +1126,7 @@ export default class DreamMetricsPlugin extends Plugin {
                     modal.contentEl.empty();
                     modal.contentEl.createEl('div', { text: 'Metrics tables have been updated.' });
                     const okBtn = modal.contentEl.createEl('button', { text: 'OK' });
-                    okBtn.classList.add('oom-modal-btn');
+                    okBtn.classList.add('oom-button', 'oom-button--primary');
                     okBtn.onclick = () => modal.close();
                     this.updateProjectNoteView();
                 } catch (error) {
@@ -1110,7 +1134,7 @@ export default class DreamMetricsPlugin extends Plugin {
                     modal.contentEl.empty();
                     modal.contentEl.createEl('div', { text: 'Error updating metrics. Check console for details.' });
                     const okBtn = modal.contentEl.createEl('button', { text: 'OK' });
-                    okBtn.classList.add('oom-modal-btn');
+                    okBtn.classList.add('oom-button', 'oom-button--primary');
                     okBtn.onclick = () => modal.close();
                     console.error('Error updating metrics:', error);
                 }
@@ -1160,6 +1184,9 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.updateProjectNoteView();
             });
         }
+
+        // Store cleanup functions
+        this.cleanupFunctions.push(...cleanupFunctions);
     }
 
     private sortTable(table: HTMLElement, column: string) {
@@ -1274,6 +1301,42 @@ export default class DreamMetricsPlugin extends Plugin {
         });
 
         console.log('[OneiroMetrics][DEBUG] Table filtered successfully');
+    }
+
+    // Add virtual scrolling implementation
+    private setupVirtualScrolling(table: HTMLElement) {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const rowHeight = 40;
+        const visibleRows = Math.ceil(tbody.clientHeight / rowHeight);
+        let lastScrollTop = 0;
+
+        const scrollHandler = () => {
+            const scrollTop = tbody.scrollTop;
+            if (Math.abs(scrollTop - lastScrollTop) > rowHeight) {
+                const startIndex = Math.floor(scrollTop / rowHeight);
+                const endIndex = Math.min(startIndex + visibleRows + 2, tbody.children.length);
+                
+                Array.from(tbody.children).forEach((row, index) => {
+                    const htmlRow = row as HTMLElement;
+                    if (index >= startIndex && index < endIndex) {
+                        htmlRow.style.display = '';
+                    } else {
+                        htmlRow.style.display = 'none';
+                    }
+                });
+                
+                lastScrollTop = scrollTop;
+            }
+        };
+
+        tbody.addEventListener('scroll', scrollHandler);
+        
+        // Add cleanup function
+        this.cleanupFunctions.push(() => {
+            tbody.removeEventListener('scroll', scrollHandler);
+        });
     }
 }
 
@@ -1592,7 +1655,7 @@ class OneiroMetricsModal extends Modal {
                         // Add batch action buttons
                         const batchActionsRow = content.createEl('div', { cls: 'oom-batch-actions-row' });
                         const selectAllBtn = batchActionsRow.createEl('button', { text: 'Select All' });
-                        selectAllBtn.classList.add('oom-modal-btn', 'oom-modal-btn--batch');
+                        selectAllBtn.classList.add('oom-button', 'oom-button--batch');
                         selectAllBtn.setAttribute('aria-label', 'Select all files');
                         selectAllBtn.onclick = () => {
                             fileList.forEach(f => f.checked = true);
@@ -1600,7 +1663,7 @@ class OneiroMetricsModal extends Modal {
                             selectAllBtn.focus();
                         };
                         const deselectAllBtn = batchActionsRow.createEl('button', { text: 'Deselect All' });
-                        deselectAllBtn.classList.add('oom-modal-btn', 'oom-modal-btn--batch');
+                        deselectAllBtn.classList.add('oom-button', 'oom-button--batch');
                         deselectAllBtn.setAttribute('aria-label', 'Deselect all files');
                         deselectAllBtn.onclick = () => {
                             fileList.forEach(f => f.checked = false);
@@ -1624,7 +1687,7 @@ class OneiroMetricsModal extends Modal {
                         // Add Continue and Cancel buttons
                         const btnRow = content.createEl('div', { cls: 'oom-modal-btn-row' });
                         const continueBtn = btnRow.createEl('button', { text: 'Continue' });
-                        continueBtn.classList.add('oom-modal-btn', 'oom-modal-btn--continue');
+                        continueBtn.classList.add('oom-button', 'oom-button--primary');
                         continueBtn.onclick = async () => {
                             const selectedFiles = fileList.filter(f => f.checked).map(f => f.path);
                             if (selectedFiles.length === 0) {
@@ -1643,7 +1706,7 @@ class OneiroMetricsModal extends Modal {
                             showSuccessModal(this.app, 'Metrics scraped successfully!');
                         };
                         const cancelBtn = btnRow.createEl('button', { text: 'Cancel' });
-                        cancelBtn.classList.add('oom-modal-btn');
+                        cancelBtn.classList.add('oom-button', 'oom-button--secondary');
                         cancelBtn.onclick = () => {
                             modal.close();
                         };
@@ -1686,6 +1749,7 @@ class ConfirmModal extends Modal {
 
         new ButtonComponent(buttonContainer)
             .setButtonText('Cancel')
+            .setClass('oom-button oom-button--secondary')
             .onClick(() => {
                 this.onCancel();
                 this.close();
@@ -1693,7 +1757,7 @@ class ConfirmModal extends Modal {
 
         new ButtonComponent(buttonContainer)
             .setButtonText('Continue')
-            .setCta()
+            .setClass('oom-button oom-button--primary')
             .onClick(() => {
                 this.onConfirm();
                 this.close();
@@ -1712,7 +1776,7 @@ function showSuccessModal(app: App, message: string) {
     modal.titleEl.setText('Success');
     modal.contentEl.createEl('div', { text: message, cls: 'oom-success-message' });
     const closeBtn = modal.contentEl.createEl('button', { text: 'Close' });
-    closeBtn.classList.add('oom-modal-btn');
+    closeBtn.classList.add('oom-button', 'oom-button--primary');
     closeBtn.onclick = () => modal.close();
     modal.open();
 } 
