@@ -1512,10 +1512,10 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
 
 /* Metrics Descriptions Modal Styles */
 .oom-metrics-modal {
-  max-width: 900px;
-  width: 90vw;
-  max-height: 80vh;
-  padding: 2em 2.5em 1.5em 2.5em;
+  max-width: 750px;
+  width: 85vw;
+  max-height: 75vh;
+  padding: 1.5em 2em 1em 2em;
   font-size: 0.95em;
   background: var(--background-primary);
   border-radius: 12px;

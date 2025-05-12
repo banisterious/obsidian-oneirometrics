@@ -1225,20 +1225,41 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 });
             });
 
-        // Metrics Section
-        const metricsHeaderRow = containerEl.createEl('div');
-        metricsHeaderRow.style.display = 'flex';
-        metricsHeaderRow.style.alignItems = 'center';
-        metricsHeaderRow.style.gap = '0.5em';
-        const metricsHeader = metricsHeaderRow.createEl('h3', { text: 'Metrics Configuration' });
-        metricsHeader.style.marginBottom = '0';
-        // Add Metrics Descriptions button (mini)
-        const descBtn = metricsHeaderRow.createEl('button', { text: 'Metrics Descriptions', cls: 'oom-button oom-button--mini' });
-        descBtn.style.fontSize = '0.85em';
-        descBtn.style.padding = '2px 10px';
+        // --- Callout Customizations Section ---
+        const calloutSectionRow = containerEl.createEl('div', { cls: 'oom-callout-customizations-row' });
+        calloutSectionRow.style.display = 'flex';
+        calloutSectionRow.style.alignItems = 'center';
+        calloutSectionRow.style.justifyContent = 'space-between';
+        calloutSectionRow.style.margin = '1.5em 0 0.5em 0';
+        calloutSectionRow.createEl('h3', { text: 'Callout Customizations' });
+        const calloutBtn = calloutSectionRow.createEl('button', { text: 'Callout Customizations', cls: 'oom-button oom-button--mini oom-callout-custom-btn' });
+        calloutBtn.onclick = () => {
+            new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
+        };
+        calloutBtn.style.fontSize = '0.82em';
+        calloutBtn.style.padding = '2px 10px';
+        calloutBtn.style.border = '1px solid var(--background-modifier-border)';
+        calloutBtn.style.boxShadow = 'none';
+        calloutBtn.style.background = 'var(--background-secondary)';
+        calloutBtn.style.marginLeft = '1em';
+
+        // --- Metrics Section ---
+        const metricsHeader = containerEl.createEl('h3', { text: 'Metrics Configuration' });
+        metricsHeader.style.marginBottom = '0.5em';
+        const descBtnRow = containerEl.createEl('div');
+        descBtnRow.style.display = 'flex';
+        descBtnRow.style.justifyContent = 'flex-end';
+        descBtnRow.style.marginBottom = '1em';
+        const descBtn = descBtnRow.createEl('button', { text: 'Metrics Descriptions', cls: 'oom-button oom-button--mini oom-metrics-desc-btn' });
         descBtn.onclick = () => {
             new MetricsDescriptionsModal(this.app, this.plugin).open();
         };
+        descBtn.style.fontSize = '0.82em';
+        descBtn.style.padding = '2px 10px';
+        descBtn.style.border = '1px solid var(--background-modifier-border)';
+        descBtn.style.boxShadow = 'none';
+        descBtn.style.background = 'var(--background-secondary)';
+        descBtn.style.marginLeft = '1em';
 
         // Default metrics (always visible)
         const defaultMetrics = [
@@ -1517,123 +1538,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 })
             );
 
-        // OneiroMetrics Callout Customizations Section
-        const calloutSection = containerEl.createEl('div', { cls: 'oom-callout-customizations' });
-        calloutSection.style.border = '1px solid #ccc';
-        calloutSection.style.borderRadius = '8px';
-        calloutSection.style.padding = '18px 18px 12px 18px';
-        calloutSection.style.marginBottom = '2em';
-        calloutSection.style.background = 'var(--background-secondary, #f8f9fa)';
-        calloutSection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
-        calloutSection.style.marginTop = '2em';
-
-        // Section heading and Copy button
-        const headingRow = calloutSection.createEl('div');
-        headingRow.style.display = 'flex';
-        headingRow.style.alignItems = 'center';
-        headingRow.style.justifyContent = 'space-between';
-        headingRow.style.marginBottom = '0.3em';
-        headingRow.createEl('div', { text: 'OneiroMetrics Callout Customizations', cls: 'oom-callout-customizations-heading' });
-        const copyBtn = headingRow.createEl('button', { text: 'Copy', cls: 'oom-copy-btn' });
-        copyBtn.style.marginLeft = '1em';
-        copyBtn.style.fontSize = '0.95em';
-        copyBtn.style.padding = '2px 10px';
-        copyBtn.style.borderRadius = '4px';
-        copyBtn.style.border = '1px solid #bbb';
-        copyBtn.style.background = '#f5f5f5';
-        copyBtn.style.cursor = 'pointer';
-
-        // State for the callout structure
-        let calloutMetadata = this.plugin.settings.defaultCalloutMetadata || '';
-        let singleLine = false;
-
-        // Helper to build the callout structure
-        const buildCallout = () => {
-            const meta = calloutMetadata.trim();
-            const metaStr = meta ? `|${meta}` : '';
-            const header = `> [!dream-metrics${metaStr}]`;
-            const metrics = [
-                'Sensory Detail:',
-                'Emotional Recall:',
-                'Lost Segments:',
-                'Descriptiveness:',
-                'Confidence Score:'
-            ];
-            if (singleLine) {
-                return `${header}\n> ${metrics.join(' , ')}`;
-            } else {
-                return `${header}\n> ${metrics.join(' \n> ')}`;
-            }
-        };
-
-        // Callout Structure Preview (styled div)
-        const calloutBox = calloutSection.createEl('div', {
-            cls: 'oom-callout-structure-box',
-        });
-        calloutBox.style.width = '100%';
-        calloutBox.style.minHeight = '90px';
-        calloutBox.style.fontFamily = 'var(--font-monospace, monospace)';
-        calloutBox.style.fontSize = '0.93em';
-        calloutBox.style.background = '#f5f5f5';
-        calloutBox.style.border = '1px solid #bbb';
-        calloutBox.style.borderRadius = '4px';
-        calloutBox.style.marginBottom = '0.7em';
-        calloutBox.style.padding = '8px 12px';
-        calloutBox.style.whiteSpace = 'pre-wrap';
-        calloutBox.style.wordBreak = 'break-word';
-        calloutBox.style.userSelect = 'all';
-        calloutBox.textContent = buildCallout();
-
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(calloutBox.textContent || '');
-            new Notice('Copied!');
-        };
-
-        // Single-Line Toggle
-        new Setting(calloutSection)
-            .setName('Single-Line Callout Structure')
-            .setDesc('Show all metric fields on a single line in the callout structure')
-            .addToggle(toggle => {
-                toggle.setValue(singleLine)
-                    .onChange(async (value) => {
-                        singleLine = value;
-                        calloutBox.textContent = buildCallout();
-                    });
-            });
-
-        // Callout Metadata Field
-        new Setting(calloutSection)
-            .setName('Callout Metadata')
-            .setDesc('Comma-separated list of metadata to add to new [!dream-metrics] callouts (e.g., "compact,summary")')
-            .addText(text => {
-                text.setPlaceholder('compact,summary')
-                    .setValue(calloutMetadata)
-                    .onChange(async (value) => {
-                        calloutMetadata = value;
-                        this.plugin.settings.defaultCalloutMetadata = value;
-                        calloutBox.textContent = buildCallout();
-                        await this.plugin.saveSettings();
-                    });
-            });
-
-        // Add a visually hidden live region for announcements at the top of display()
-        let liveRegion = containerEl.querySelector('.oom-live-region') as HTMLElement;
-        if (!liveRegion) {
-            liveRegion = containerEl.createEl('div', { cls: 'oom-live-region' });
-            liveRegion.setAttr('aria-live', 'polite');
-            liveRegion.setAttr('role', 'status');
-            liveRegion.style.position = 'absolute';
-            liveRegion.style.width = '1px';
-            liveRegion.style.height = '1px';
-            liveRegion.style.overflow = 'hidden';
-            liveRegion.style.clip = 'rect(0 0 0 0)';
-            liveRegion.style.whiteSpace = 'nowrap';
-            liveRegion.style.border = '0';
-        }
-        function announce(msg: string) {
-            liveRegion.textContent = msg;
-        }
-
         containerEl.scrollTop = prevScroll;
         if (focusSelector) {
             const toFocus = containerEl.querySelector(focusSelector) as HTMLElement;
@@ -1701,5 +1605,96 @@ class MetricsDescriptionsModal extends Modal {
         btnRow.style.marginTop = '2em';
         const okBtn = btnRow.createEl('button', { text: 'OK', cls: 'oom-button oom-button--primary' });
         okBtn.onclick = () => this.close();
+    }
+}
+
+// --- Metrics Callout Customizations Modal ---
+class MetricsCalloutCustomizationsModal extends Modal {
+    plugin: DreamMetricsPlugin;
+    constructor(app: App, plugin: DreamMetricsPlugin) {
+        super(app);
+        this.plugin = plugin;
+    }
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass('oom-metrics-modal');
+        contentEl.createEl('h2', { text: 'Metrics Callout Customizations' });
+        // State for the callout structure
+        let calloutMetadata = this.plugin.settings.defaultCalloutMetadata || '';
+        let singleLine = false;
+        // Helper to build the callout structure
+        const buildCallout = () => {
+            const meta = calloutMetadata.trim();
+            const metaStr = meta ? `|${meta}` : '';
+            const header = `> [!dream-metrics${metaStr}]`;
+            const metrics = [
+                'Sensory Detail:',
+                'Emotional Recall:',
+                'Lost Segments:',
+                'Descriptiveness:',
+                'Confidence Score:'
+            ];
+            if (singleLine) {
+                return `${header}\n> ${metrics.join(' , ')}`;
+            } else {
+                return `${header}\n> ${metrics.join(' \n> ')}`;
+            }
+        };
+        // Callout Structure Preview (styled div)
+        const calloutBox = contentEl.createEl('div', {
+            cls: 'oom-callout-structure-box',
+        });
+        calloutBox.style.width = '100%';
+        calloutBox.style.minHeight = '90px';
+        calloutBox.style.fontFamily = 'var(--font-monospace, monospace)';
+        calloutBox.style.fontSize = '0.93em';
+        calloutBox.style.background = '#f5f5f5';
+        calloutBox.style.border = '1px solid #bbb';
+        calloutBox.style.borderRadius = '4px';
+        calloutBox.style.marginBottom = '0.7em';
+        calloutBox.style.padding = '8px 12px';
+        calloutBox.style.whiteSpace = 'pre-wrap';
+        calloutBox.style.wordBreak = 'break-word';
+        calloutBox.style.userSelect = 'all';
+        calloutBox.textContent = buildCallout();
+        // Copy button
+        const copyBtn = contentEl.createEl('button', { text: 'Copy', cls: 'oom-copy-btn' });
+        copyBtn.style.fontSize = '0.92em';
+        copyBtn.style.padding = '2px 10px';
+        copyBtn.style.borderRadius = '4px';
+        copyBtn.style.border = '1px solid #bbb';
+        copyBtn.style.background = '#f5f5f5';
+        copyBtn.style.cursor = 'pointer';
+        copyBtn.style.marginBottom = '1em';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(calloutBox.textContent || '');
+            new Notice('Copied!');
+        };
+        // Single-Line Toggle
+        new Setting(contentEl)
+            .setName('Single-Line Callout Structure')
+            .setDesc('Show all metric fields on a single line in the callout structure')
+            .addToggle(toggle => {
+                toggle.setValue(singleLine)
+                    .onChange(async (value) => {
+                        singleLine = value;
+                        calloutBox.textContent = buildCallout();
+                    });
+            });
+        // Callout Metadata Field
+        new Setting(contentEl)
+            .setName('Callout Metadata')
+            .setDesc('Comma-separated list of metadata to add to new [!dream-metrics] callouts (e.g., "compact,summary")')
+            .addText(text => {
+                text.setPlaceholder('compact,summary')
+                    .setValue(calloutMetadata)
+                    .onChange(async (value) => {
+                        calloutMetadata = value;
+                        this.plugin.settings.defaultCalloutMetadata = value;
+                        calloutBox.textContent = buildCallout();
+                        await this.plugin.saveSettings();
+                    });
+            });
     }
 } 
