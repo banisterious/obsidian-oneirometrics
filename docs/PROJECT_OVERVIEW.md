@@ -1,160 +1,119 @@
 <p align="center">
   <img src="images/gsa-barn.jpg" alt="A country barn painting, representing the foundation of dream journaling." width="600"/>
 </p>
-<p align="center"><em>“Barn at Sunrise” by Gary Armstrong, inspiration for OneiroMetrics</em></p>
+<p align="center"><em>"Barn at Sunrise" by Gary Armstrong, inspiration for OneiroMetrics</em></p>
 
-# OneiroMetrics Plugin Project Overview
+# OneiroMetrics Project Overview
+
+## Recent Improvements
+
+### Version 0.3.0 (May 2025)
+- **Metric Icon Picker**: Added visual customization for metrics with Lucide icons
+- **Keyboard & Accessibility**: Implemented full keyboard navigation and screen reader support
+- **'This Week' Filter**: Added configurable week start day for better date filtering
+- **Readable Line Length Widget**: Added control for table width
+- **Enhanced Metrics Description**: Improved metric information display
+- **Automatic Backup System**: Added .bak extension for backup files
+- **Open Metrics Note Button**: Added quick access to metrics note
+
+### Version 0.2.1 (May 2025)
+- **Widget for Readable Line Length**: Added control for table width
+- **Metrics Description Section**: Added detailed metric information
+- **UI Improvements**: Enhanced table styling and theme compatibility
+
+### Version 0.2.0 (May 2025)
+- **Metric Icon Picker**: Added visual customization for metrics
+- **Keyboard & Accessibility**: Implemented full keyboard navigation
+- **Table Improvements**: Enhanced sorting and filtering capabilities
+
+### Version 0.1.3 (May 2025)
+- **UI Improvements**: Enhanced autocomplete logic and modal fields
+- **Bug Fixes**: Resolved various UI issues
+
+## Current Status
+
+### Working Features
+- ✅ Multi-chip autocomplete for note selection
+- ✅ Metric Icon Picker with Lucide icons
+- ✅ Keyboard accessibility and screen reader support
+- ✅ 'This Week' filter with configurable start day
+- ✅ Widget for Readable Line Length control
+- ✅ Enhanced Metrics Description section
+- ✅ Open Metrics Note button
+- ✅ Automatic backup system with .bak extension
+- ✅ Table sorting and filtering
+- ✅ Theme compatibility improvements
+
+### Known Issues
+- 🔄 Table regeneration needs optimization
+- 🔄 Modal feedback improvements needed
+- 🔄 Performance optimization required
+
+### Planned Improvements
+- 🔜 Add search/filter to icon picker
+- 🔜 Expand icon selection
+- 🔜 Reduce excessive logging in future builds
 
 ## Project Description
-OneiroMetrics is an Obsidian plugin designed to transform dream journaling into structured data analysis. It provides tools for tracking, analyzing, and visualizing dream-related metrics, making it easier to identify patterns and insights in your dream journal.
 
-## Current Development Status
+OneiroMetrics is an Obsidian plugin designed to transform dream journaling into structured data analysis. It allows users to track and analyze various metrics from their dream journal entries, providing insights into dream patterns and characteristics.
 
-### Completed Features
-- Basic plugin structure and configuration
-- Dream journal entry parsing and data extraction
-- Metric tracking system
-- Data visualization components
-- Theme-aware styling system
-- Responsive design for all screen sizes
-- Enhanced CSS architecture with custom properties
-- Improved theme compatibility across Obsidian themes
-- Reduced use of `!important` declarations
-- Better organization of style rules
-- Enhanced responsive design
-- Improved table layout and spacing
-- Better handling of readable line width settings
-- Fixed settings UI bug: Patched incorrect use of `this.register` in the settings tab to `this.plugin.register`, restoring all settings fields
-- Improved Selected Notes autocomplete: Autocomplete and chip selection now work reliably in the settings modal
-- Section heading consistency: Section headings now use `--h2-size` and theme heading variables for full Obsidian theme compatibility
-- Backup Folder autocomplete: Patched for real-time, responsive suggestions as you type
-- Markdown stripping in content columns and metric configuration improvements
-- Modal Selected Notes autocomplete: The modal's Selected Notes field now only shows real, existing markdown files from your vault
+### Key Features
+- **Metric Tracking**: Define and track custom metrics for dream analysis
+- **Data Visualization**: Generate comprehensive tables and summaries
+- **Smart File Selection**: Intelligent note selection with autocomplete
+- **Accessibility**: Full keyboard navigation and screen reader support
+- **Theme Integration**: Seamless integration with Obsidian themes
+- **Automatic Backups**: Reliable backup system with .bak extension
 
-### In Progress
-- CSS optimization and maintenance
-- Theme override system refinement
-- Performance improvements
-- Documentation updates
-- Selected Notes autocomplete in modal: Not listing files when text is entered; needs patching to match settings field logic
-- No backup created upon scraping: Backup logic may not be triggered or configured correctly; needs investigation
+### User Interface
+- **Settings Modal**: Configure metrics and project settings
+- **Metric Icon Picker**: Visual customization of metrics
+- **Data Tables**: Sortable and filterable dream entry data
+- **Summary Views**: Overview of dream metrics and patterns
+- **Accessibility Features**: Keyboard navigation and screen reader support
 
-### Planned Features
-- [ ] Advanced data visualization
-- [ ] Custom metric definitions
-- [ ] Widget for Readable Line Length
-    - [ ] Add a toggle in settings to enable/disable readable line length override for tables, allowing users to retain their preferred Obsidian setting.
-    - [ ] When implemented, display a notice or callout in the Project note to inform users that this feature is available and where to find the toggle in plugin settings.
-- [ ] Metrics Descriptions Section
-    - [ ] Add a section in the UI and/or documentation that clearly describes each metric, its scoring, and examples for user reference.
-- [ ] Export/Import functionality
-    - [ ] CSV export with filtering
-    - [ ] Summary and detailed exports
-    - [ ] Custom column selection
-    - [ ] Date range filtering
-- [ ] Integration with other Obsidian plugins
-    - [ ] Calendar
-    - [ ] Graph View
-    - [ ] Dataview
-- [ ] Enhanced search and filtering
-    - [ ] Full-text search
-    - [ ] Advanced filters
-    - [ ] Saved searches
-- [ ] Statistical analysis tools
-    - [ ] Trend analysis
-    - [ ] Correlation analysis
-    - [ ] Pattern detection
-- [ ] Settings callout preview and copy
-    - [ ] Add preview of callout format
-    - [ ] Add copy button
-    - [ ] Add paste button
-- [ ] Folder selection mode
-    - [ ] Add folder selection option
-    - [ ] Implement recursive folder scanning
-    - [ ] Add folder exclusion patterns
-- [ ] UI text updates
-    - [ ] Update button text
-    - [ ] Update modal text
-    - [ ] Update settings text
-- [ ] Hybrid approach for metrics table editing
-    - [ ] Warning modal when editing
-    - [ ] Visual indicator for auto-generated content
-    - [ ] Copy to clipboard functionality
-    - [ ] View source in raw markdown
-    - [ ] Maintain editability while preventing accidental modifications
-- [ ] Lucide icons for Dream Metrics
-    - [ ] Add icon mapping for each metric
-    - [ ] Implement icon display in settings page
-    - [ ] Add icons to metrics table in Project Note
-    - [ ] Ensure consistent icon usage across the plugin
-    - [ ] Add tooltips for icon meanings
-- [ ] Change Lucide icon sizes in Settings > Metrics from 24px to 20px
+### User Experience
+- **Intuitive Design**: Easy-to-use interface for metric management
+- **Real-time Feedback**: Immediate validation and error messages
+- **Smart Suggestions**: Intelligent file and path suggestions
+- **Responsive Tables**: Optimized for readability and interaction
+- **Theme Compatibility**: Consistent appearance across themes
+- **Keyboard Navigation**: Efficient keyboard-based interaction
 
-At the bottom of the Settings page, display a section:
+## Development Focus
 
-## Metric Descriptions
+### Current Priorities
+1. **Performance Optimization**
+   - Table regeneration efficiency
+   - Memory usage optimization
+   - Icon rendering performance
 
-### Sensory Detail (Score 1-5)
-This metric aims to capture the richness and vividness of the sensory information you recall from your dream.
+2. **User Experience**
+   - Modal feedback improvements
+   - Accessibility enhancements
+   - Theme compatibility
 
-| Score        | Description |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 (Minimal)  | You recall very little sensory information. The dream feels vague and lacks specific sights, sounds, textures, smells, or tastes. You might remember the general feeling of a place but not any distinct visual elements, for example. |
-| 2 (Limited)  | You recall a few basic sensory details, perhaps a dominant color or a general sound. The sensory landscape is still quite sparse. |
-| 3 (Moderate) | You recall a noticeable amount of sensory information. You might remember some visual details, perhaps a few distinct sounds, or a general feeling of touch. |
-| 4 (Rich)     | You recall a significant amount of sensory information across multiple senses. You can describe specific visual elements, distinct sounds, perhaps a smell or a texture. The dream feels more immersive. |
-| 5 (Vivid)    | Your recall is highly detailed and encompasses a wide range of sensory experiences. You can clearly describe intricate visual scenes, distinct and multiple sounds, and perhaps even specific tastes and smells. The dream feels very real and alive in your memory. |
+3. **Documentation**
+   - Usage guidelines
+   - API documentation
+   - Testing procedures
 
-### Emotional Recall (Score 1-5)
-This metric focuses on your ability to remember and articulate the emotions you experienced within the dream.
+### Future Enhancements
+1. **Feature Expansion**
+   - Icon picker search/filter
+   - Additional icon options
+   - Advanced data visualization
 
-| Score                | Description |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 (Vague)            | You have a faint sense that you felt some emotion in the dream, but you can't identify it specifically. You might just say you felt "something." |
-| 2 (General)          | You can identify a primary emotion (e.g., happy, sad, scared) but can't describe its intensity or nuances. |
-| 3 (Identified)       | You can identify one or two specific emotions you felt and perhaps describe their general intensity. |
-| 4 (Nuanced)          | You recall several distinct emotions and can describe some of the nuances or shifts in your feelings throughout the dream. |
-| 5 (Deep and Complex) | You have a strong recollection of the emotional landscape of the dream, including multiple emotions, their intensity, how they evolved, and perhaps even subtle emotional undertones. |
+2. **Technical Improvements**
+   - Code optimization
+   - Testing coverage
+   - Performance monitoring
 
-### Lost Segments (Number)
-This metric tracks the number of distinct instances where you have a clear feeling or awareness that a part of the dream is missing or has been forgotten. This isn't about omitting fragments you never recalled in the first place. It's about those "gaps" in your recalled narrative where you feel like "there was something else there," or you have a fleeting image or feeling that then vanishes.
-
-If you recall the dream as a complete, seamless narrative with no sense of missing parts, this score would be 0.
-
-If you have a distinct feeling of one or more breaks or missing chunks in the dream's sequence, you would count each of those instances.
-
-### Familiar People (Score 1-5)
-This metric tracks the presence and significance of people you know from your waking life in your dreams.
-
-| Score                | Description |
-| -------------------- | ----------- |
-| 1 (None)            | No familiar people appear in the dream. |
-| 2 (Brief)           | One or two familiar people appear briefly or in passing. |
-| 3 (Present)         | Several familiar people appear and have some interaction or presence in the dream. |
-| 4 (Significant)     | Multiple familiar people play important roles or have meaningful interactions in the dream. |
-| 5 (Central)         | Familiar people are central to the dream's narrative and have deep, meaningful interactions or relationships portrayed. |
-
-### Descriptiveness (Score 1-5)
-This metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details (which have their own metric). This considers how thoroughly you describe the events, characters, interactions, and the overall narrative flow.
-
-| Score                | Description |
-| -------------------- | ----------- |
-| 1 (Minimal)          | Your capture is very brief and outlines only the most basic elements of the dream. It lacks detail and elaboration. |
-| 2 (Limited)          | Your capture provides a basic account of the dream but lacks significant descriptive detail in terms of actions, character behavior, or plot progression. |
-| 3 (Moderate)         | Your capture provides a reasonably detailed account of the main events and characters, with some descriptive language used. |
-| 4 (Detailed)         | Your capture includes a significant level of descriptive detail, bringing the dream narrative and its elements to life with more thorough explanations and imagery. |
-| 5 (Highly Elaborate) | Your capture is very rich in detail, using vivid language to describe the events, characters, their motivations (if perceived), and the overall unfolding of the dream narrative. |
-
-### Confidence Score (Score 1-5)
-This is a subjective metric reflecting your overall sense of how complete and accurate your dream recall feels immediately after waking. It's your gut feeling about how much of the dream you've managed to retrieve.
-
-| Score         | Description |
-| ------------- | ----------- |
-| 1 (Very Low)  | You feel like you've barely scratched the surface of the dream, remembering only a tiny fragment or a fleeting feeling. You suspect you've forgotten a significant portion. |
-| 2 (Low)       | You recall a bit more, but you still feel like a substantial part of the dream is lost. The recall feels fragmented and incomplete. |
-| 3 (Moderate)  | You feel like you've recalled a fair amount of the dream, perhaps the main storyline, but there might be some fuzzy areas or details you're unsure about. |
-| 4 (High)      | You feel like you've recalled the majority of the dream with a good level of detail and coherence. You feel relatively confident in the accuracy of your memory. |
-| 5 (Very High) | You feel like you've recalled the entire dream in vivid detail and with strong confidence in the accuracy and completeness of your memory. You don't have a sense of significant missing parts. |
+3. **User Support**
+   - Enhanced documentation
+   - Tutorial content
+   - Community resources
 
 ## Technical Architecture
 
@@ -314,44 +273,34 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
+## Recent Fixes (May 2025)
+
+- Lucide icons now render correctly in all tables and modals, including the Metric Edit modal and Project Note tables.
+- The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table.
+- Table sorting is fully functional: click any column header to sort Dream Entries by that column.
+- Filtering by date and metric now works as expected in the Dream Entries table.
+- All previously identified UI/UX issues with autocomplete, backup creation, content column formatting, and metric modal fields have been resolved.
+- The codebase now attaches all interactive logic (sorting, filtering, expand/collapse) directly via the plugin, ensuring compatibility with Obsidian's preview mode.
+
 ## Current Status (as of May 2025)
 
-- ✅ **Backup Folder autocomplete:** Now working correctly and matches other autocomplete fields.
-- ⚠️ **Selected Notes autocomplete in modal:** Files list does not appear when typing; should match settings modal behavior.
-- ⚠️ **Selected Notes autocomplete in settings:** Files appear, but are misaligned (appear up to the left).
-- ⚠️ **Edit Metric Modal (Lost Segments):** Missing field for value type or min/max (should show "Any whole number" and hide min/max fields).
-- ⚠️ **Metrics Table font size:** Still inconsistent across columns and UI.
-- ⚠️ **Filters:** Filters in the metrics table do not change the content shown.
-- ⚠️ **Columns not sorting:** Clicking column headers does not sort the table.
-- ⚠️ **Icons not rendering:** Lucide icons are not rendering in the metrics table.
-- ⚠️ **Content column paragraph breaks:** Dream content needs paragraph breaks (`<br>` or similar) preserved in the table.
-- ⚠️ **Scraping incomplete:** Some entries still need to be scraped or scraping is only partially successful.
-- ⏳ **Markdown stripping in Content column:** Not yet fully stripping all markdown/image/file links; patch in progress.
-- ⏳ **Lost Segments metric:** Still shows 1–10 range; update to fixed integer in progress.
-- ⏳ **No backup created upon scraping:** Backup logic may not be triggered or configured correctly; needs investigation.
-- ⏳ **Section headings:** Patch to use `var(--h2-size)` and theme heading variables applied; pending user verification.
-
----
+- ✅ **Lucide icons:** Now render correctly in all tables and modals.
+- ✅ **Show more button:** Expands/collapses dream content as expected.
+- ✅ **Table sorting:** Clicking column headers sorts the Dream Entries table.
+- ✅ **Filtering:** Date and metric filtering now updates the Dream Entries table.
+- ✅ **Autocomplete, backup, and modal UI:** All previously reported issues are resolved.
+- ⏳ **Performance optimizations:** Pending further implementation and testing.
+- ⏳ **Advanced features:** See Planned Features below.
 
 ## Known Issues & Testing
 
-- [x] Backup Folder autocomplete now works as expected.
-- [ ] Selected Notes autocomplete in modal does not list files (should match settings field behavior).
-- [ ] Selected Notes autocomplete in settings: Files appear, but are misaligned.
-- [ ] Edit Metric Modal (Lost Segments): Missing field for value type or min/max.
-- [ ] Metrics Table font size is inconsistent.
-- [ ] Filters in the metrics table do not change the content shown.
-- [ ] Columns not sorting.
-- [ ] Icons not rendering in the metrics table.
-- [ ] Content column paragraph breaks not preserved.
-- [ ] Scraping incomplete.
-- [ ] Markdown/image/file links not fully stripped from Content column.
-- [ ] Lost Segments metric still shows 1–10 range (should be integer).
-- [ ] No backup is created when scraping, even if enabled and folder is set.
-- [ ] Section headings patch pending user verification.
+- [x] Lucide icons now render in all tables and modals.
+- [x] Show more button expands/collapses content.
+- [x] Table sorting works for all columns except Content.
+- [x] Filtering by date and metric works as expected.
+- [x] All previously reported UI/UX issues are resolved.
 - [ ] Performance optimizations pending implementation and testing.
-
----
+- [ ] Advanced features and enhancements in progress (see Planned Features).
 
 ## Documentation & Testing
 
@@ -374,6 +323,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
    - Sort any column by clicking its header
    - Filter by date range or specific metrics
    - Expand dream content entries for more detail
+   - **Toggle Readable Line Length** directly below the Dream Entries heading for instant table width control (also available in settings).
 
 ---
 
@@ -409,3 +359,33 @@ For detailed information about the metrics used in OneiroMetrics, including scor
 - 🛠️ **Metric editor modal now supports 'Any whole number' for Lost Segments and Familiar People, hiding min/max fields and updating the preview accordingly.**
 - 🛠️ **Fix for file/folder suggestions in settings is in progress.**
 - 🛠️ **File/folder suggestion dropdowns in settings now explicitly set display:block/display:none, ensuring suggestions are visible as you type in Backup Folder and Selected Notes fields.**
+- 🛠️ **Parser blockStack logic has been fixed:** The plugin now correctly nests dream-diary and dream-metrics callouts under their parent journal-entry and dream-diary blocks, enabling robust extraction of dream entries from nested callouts.
+- 🛠️ **Granular debug logging:** Extensive debug logs and iterative troubleshooting were used to diagnose and resolve extraction issues, ensuring reliability for real-world dream journal structures.
+
+## Recent Updates (June 2025)
+
+- **Chips Area UI:** The chips area for selected notes is now visually flat, with no border, background, or box-shadow.
+- **Backup File Extension:** Backup files now use the .bak extension instead of .md.
+- **Open Metrics Note Button:** The modal now includes an Open Metrics Note button, only enabled when the note exists, which opens the note in Obsidian.
+
+## Debug Logging & Troubleshooting Note Updates
+
+To ensure reliability in metrics extraction and note updating, the plugin now includes granular debug logging at key steps:
+
+- When scraping, logs show the number of dream entries found, the project note path, and the full array of extracted entries.
+- Before updating the OneiroMetrics Note, logs and Notices indicate whether the update function is called, the number of entries, and the content being written.
+- If no entries are found or the note path does not match, debug Notices and logs are shown.
+
+**Troubleshooting Steps:**
+1. Check for debug Notices in Obsidian (e.g., `[DEBUG] updateProjectNote called for: ...`).
+2. Confirm the "OneiroMetrics Note Path" in settings matches the file you are viewing.
+3. Open the note in the editor and look for the `<!-- OOM METRICS START -->` marker in the raw Markdown.
+4. If no entries are found, check the console for logs about dream entry extraction.
+5. If issues persist, enable even more granular debug logs in the extraction loop to print each entry (date, title, metrics).
+
+This approach helps pinpoint where the update process may be breaking down and ensures the correct file is being updated with the latest metrics.
+
+## Logging and Debug Output Policy
+
+- To improve performance and maintainability, we plan to reduce excessive logging and remove or limit debug console.logs, especially those related to backup creation and extraction logic.
+- Future code changes should ensure only essential logs remain, and debug output should be temporary and well-scoped.

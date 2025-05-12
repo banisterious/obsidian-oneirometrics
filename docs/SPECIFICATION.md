@@ -26,6 +26,7 @@ dream-metrics/
 ```typescript
 interface DreamMetric {
     name: string;
+    icon: string;        // Lucide icon identifier
     range: {
         min: number;
         max: number;
@@ -41,6 +42,8 @@ interface DreamMetricsSettings {
     metrics: DreamMetric[];
     selectedNotes: string[];
     calloutName: string;
+    weekStartDay: number;  // 0-6, where 0 is Sunday
+    overrideReadableLineLength: boolean;
 }
 ```
 
@@ -103,6 +106,9 @@ The project note is generated with two main sections:
 - Custom metric definitions with validation
 - Callout name customization
 - Real-time validation feedback
+- Metric icon picker with Lucide icons
+- Week start day configuration
+- Readable line length override toggle
 
 ### 2. Metric Scraping
 - Regex-based callout detection
@@ -110,7 +116,7 @@ The project note is generated with two main sections:
 - Date and title extraction
 - Metric validation
 - Content cleaning for markdown elements
-- Automatic backup system
+- Automatic backup system with .bak extension
 
 ### 3. Data Presentation
 - Responsive table layout
@@ -125,6 +131,7 @@ The project note is generated with two main sections:
 - Center-aligned numeric metrics
 - Sortable columns
 - Date range and metric filtering
+- 'This Week' filter with configurable start day
 
 ### 4. File Suggestion System
 - Smart path matching for:
@@ -133,6 +140,13 @@ The project note is generated with two main sections:
   - Year-based paths (e.g., "2025" → "Journals/2025/2025.md")
 - Multi-chip autocomplete for note selection
 - Real-time validation and feedback
+
+### 5. Accessibility Features
+- Full keyboard navigation support
+- Screen reader compatibility
+- ARIA labels and roles
+- Focus management
+- Keyboard shortcuts for common actions
 
 ## Technical Requirements
 
@@ -145,12 +159,14 @@ The project note is generated with two main sections:
   - Settings management
   - Markdown parsing
   - Theme integration
+  - Keyboard event handling
 
 ### 2. Development Environment
 - Node.js
 - TypeScript
 - esbuild
 - Obsidian plugin development tools
+- Lucide icons library
 
 ### 3. Build Process
 - TypeScript compilation
@@ -164,7 +180,7 @@ The project note is generated with two main sections:
    - Only access files specified by the user
    - Validate file paths
    - Handle missing files gracefully
-   - Automatic backup system
+   - Automatic backup system with .bak extension
 
 2. **Data Validation**
    - Validate metric values against defined ranges
@@ -191,20 +207,23 @@ The project note is generated with two main sections:
    - Progress indicators
    - Non-blocking UI updates
    - Optimized table rendering
+   - Efficient icon rendering
 
 3. **Memory Management**
    - Efficient content preview handling
    - Optimized table data structures
    - Smart caching strategies
+   - Icon resource management
 
 ## Future Considerations
 
 1. **Potential Enhancements**
    - Advanced data visualization
-   - Export functionality
    - Machine learning for pattern detection
    - Custom metric formulas
    - Theme customization options
+   - Icon picker search/filter functionality
+   - Additional icon options
 
 2. **Scalability**
    - Large vault support
@@ -220,6 +239,8 @@ The project note is generated with two main sections:
    - File operations
    - Content cleaning
    - File suggestion logic
+   - Icon picker functionality
+   - Keyboard navigation
 
 2. **Integration Tests**
    - Settings management
@@ -227,9 +248,11 @@ The project note is generated with two main sections:
    - End-to-end workflows
    - Theme compatibility
    - Mobile responsiveness
+   - Accessibility compliance
 
 3. **User Testing**
    - Different vault sizes
    - Various note structures
    - Edge cases
-   - Performance benchmarks 
+   - Performance benchmarks
+   - Accessibility testing 

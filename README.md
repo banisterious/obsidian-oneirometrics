@@ -15,7 +15,13 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - Filter entries by date range and specific metrics
 - Backup system to protect your data
 - Customizable settings for metrics and data management
-- Multi-chip autocomplete for selecting notes to analyze, now improved in both settings and modal: only real, existing markdown files can be selected (not folders or non-existent files).
+- Multi-chip autocomplete for selecting notes to analyze
+- Metric Icon Picker for visual customization
+- Keyboard accessibility and screen reader support
+- 'This Week' filter with configurable week start day
+- Widget for Readable Line Length control
+- Enhanced Metrics Description section
+- Open Metrics Note button for quick access
 
 ## Documentation
 
@@ -25,6 +31,7 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - [Release Notes](CHANGELOG.md) - Version history and changes
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
 - [Metrics Guide](docs/METRICS.md) - Detailed descriptions of dream metrics and scoring guidelines
+- [Usage Guide](docs/USAGE.md) - Detailed instructions for using the plugin
 
 ## Setup
 
@@ -41,16 +48,19 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 ### Project Note
 - **Project Note Path**: The path where metrics tables will be written
 - **Selected Notes**: Choose which notes to analyze for dream metrics
+- **Open Metrics Note**: Quick access button to open your metrics note
 
 ### Backup Settings
 - **Enable Backups**: Toggle to enable/disable automatic backups (enabled by default)
 - **Backup Folder**: Select an existing folder where backups will be stored
 - **Note**: Backups are created automatically before any changes to the project note
+- **Backup Extension**: Uses .bak extension for better file management
 
 ### Metrics Configuration
 - Add, edit, or remove metrics
 - Each metric includes:
   - Name
+  - Icon (customizable via icon picker)
   - Valid range (min/max)
   - Description
 - Default metrics provided:
@@ -59,6 +69,11 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
   - Lost Segments (0-10)
   - Descriptiveness (1-5)
   - Confidence Score (1-5)
+
+### Display Settings
+- **Readable Line Length**: Toggle to override table width
+- **This Week Filter**: Configure week start day
+- **Metrics Description**: View detailed metric information
 
 ## Usage
 
@@ -96,18 +111,22 @@ You can also add metadata to the callout for custom styling:
 2. Select the notes you want to analyze
 3. Click "Scrape Metrics" to generate analysis
 4. View your metrics tables in the project note
+5. Use the Open Metrics Note button for quick access
 
 ### Using Backups
 1. Enable backups in settings (enabled by default)
 2. Select an existing folder for storing backups
 3. Backups are automatically created before any changes
 4. Each backup includes a timestamp for easy reference
+5. Backup files use .bak extension for better organization
 
 ## Tips
 - Create a dedicated folder for backups to keep your vault organized
 - Regular backups are recommended when making significant changes
 - Use the date range and metric filters to focus on specific aspects of your dreams
 - Sort table columns to identify patterns in your dream journal
+- Use the Readable Line Length toggle to optimize table display
+- Customize metric icons for better visual organization
 
 ## Support
 If you encounter any issues or have suggestions, please:

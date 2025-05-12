@@ -1,0 +1,50 @@
+{
+  "automation": {
+    "update_docs_every_minutes": 15,
+    "docs_to_update": [
+      "docs/PROJECT_OVERVIEW.md",
+      "docs/ISSUES.md",
+      "docs/TESTING.md"
+    ],
+    "trigger": "sustained_conversation"
+  },
+  "sustained_conversation_definition": "A sustained conversation is a period of at least 15 minutes during which neither the user nor the assistant is inactive for more than 10 minutes between messages. If a gap of 10 minutes or more occurs, the timer resets.",
+  "automation_inline_styles": {
+    "check_interval_minutes": 60,
+    "action": "move_inline_styles_to_css",
+    "target_files": ["main.ts", "*.ts", "*.tsx", "*.js", "*.jsx"],
+    "css_file": "styles.css",
+    "trigger": "sustained_conversation",
+    "description": "Every hour of sustained conversation, check all code for inline styles and move them into styles.css."
+  },
+  "automation_linting": {
+    "check_interval_minutes": 30,
+    "action": "lint_and_format",
+    "target_files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+    "linter": "eslint",
+    "formatter": "prettier",
+    "trigger": "sustained_conversation",
+    "description": "Every 30 minutes of sustained conversation, lint and format all code files."
+  },
+  "automation_docs_consistency": {
+    "check_interval_minutes": 90,
+    "action": "check_docs_consistency",
+    "target_files": ["*.ts", "*.js"],
+    "docs_files": ["README.md", "docs/*.md"],
+    "trigger": "sustained_conversation",
+    "description": "Every 90 minutes, check that code documentation matches the implementation."
+  },
+  "automation_security": {
+    "check_interval_minutes": 180,
+    "action": "check_dependencies",
+    "package_files": ["package.json", "package-lock.json"],
+    "trigger": "sustained_conversation",
+    "description": "Every 3 hours, check for outdated or vulnerable dependencies."
+  },
+  "ai_assistant": {
+    "explain_code_on_request": true,
+    "suggest_tests_on_new_function": true,
+    "auto_summarize_discussion": true,
+    "max_suggestion_length": 20
+  }
+}

@@ -17,31 +17,49 @@ export function createSelectedNotesAutocomplete({
     onChange
 }: AutocompleteOptions) {
     // Container for chips and input
-    const chipsContainer = containerEl.createEl('div', { cls: 'oom-chips-container' });
     const input = containerEl.createEl('input', {
         type: 'text',
         cls: 'oom-multiselect-input',
         attr: { placeholder: 'Type to search notes...' }
     });
+    const chipsContainer = containerEl.createEl('div', { cls: 'oom-chips-container' });
+    chipsContainer.style.border = 'none';
+    chipsContainer.style.background = 'none';
+    chipsContainer.style.padding = '0';
+    chipsContainer.style.margin = '0';
+    chipsContainer.style.boxShadow = 'none';
+    // Remove border/background from .oom-chip as well
+    const style = document.createElement('style');
+    style.textContent = `
+        .oom-chips-container { border: none !important; background: none !important; box-shadow: none !important; }
+        .oom-chip { border: none !important; background: none !important; box-shadow: none !important; }
+    `;
+    document.head.appendChild(style);
+
     const suggestionContainer = containerEl.createEl('div', {
         cls: 'suggestion-container oom-suggestion-container'
     });
 
     function renderChips() {
         chipsContainer.empty();
-        for (const note of selectedNotes) {
-            const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
-            const chipText = chip.createEl('span', { cls: 'oom-chip-text', text: note });
-            chipText.setAttr('title', note);
-            const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
-            removeBtn.onclick = () => {
-                const idx = selectedNotes.indexOf(note);
-                if (idx !== -1) {
-                    selectedNotes.splice(idx, 1);
-                    onChange([...selectedNotes]);
-                    renderChips();
-                }
-            };
+        if (selectedNotes.length === 0) {
+            chipsContainer.style.display = 'none';
+        } else {
+            chipsContainer.style.display = '';
+            for (const note of selectedNotes) {
+                const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
+                const chipText = chip.createEl('span', { cls: 'oom-chip-text', text: note });
+                chipText.setAttr('title', note);
+                const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
+                removeBtn.onclick = () => {
+                    const idx = selectedNotes.indexOf(note);
+                    if (idx !== -1) {
+                        selectedNotes.splice(idx, 1);
+                        onChange([...selectedNotes]);
+                        renderChips();
+                    }
+                };
+            }
         }
     }
     renderChips();
@@ -56,9 +74,10 @@ export function createSelectedNotesAutocomplete({
             suggestionContainer.classList.add('visible');
             const inputRect = input.getBoundingClientRect();
             const containerRect = containerEl.getBoundingClientRect();
-            suggestionContainer.style.setProperty('--oom-suggestion-top', `${inputRect.bottom - containerRect.top}px`);
-            suggestionContainer.style.setProperty('--oom-suggestion-left', `0px`);
-            suggestionContainer.style.setProperty('--oom-suggestion-width', `${inputRect.width}px`);
+            suggestionContainer.style.position = 'absolute';
+            suggestionContainer.style.top = `${input.offsetTop + input.offsetHeight}px`;
+            suggestionContainer.style.left = `${input.offsetLeft}px`;
+            suggestionContainer.style.width = `${input.offsetWidth}px`;
         }
     }
 

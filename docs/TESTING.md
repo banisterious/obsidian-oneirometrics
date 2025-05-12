@@ -3,14 +3,14 @@
 ### Setup Testing
 
 - [x] Plugin installs correctly in Obsidian
-- [x] Plugin appears in the community plugins list
+- [ ] Plugin appears in the community plugins list
 - [x] Plugin can be enabled/disabled without errors
 - [x] Plugin settings are accessible
 - [x] Plugin icon appears in the ribbon
 
 ### Settings Testing
 
-- [x] Project note path can be set and saved
+- [x] OneiroMetrics Note path can be set and saved
 - [x] Selected notes can be added and removed using multi-chip autocomplete in both Settings and the modal
 - [x] Chips are pre-populated from Settings in the modal
 - [x] Removing a chip updates the selected notes
@@ -19,7 +19,7 @@
 - [x] Callout name can be modified
 - [x] Settings persist after Obsidian restart
 - [x] Invalid paths are handled gracefully
-- [x] File suggestions work in the project note path field
+- [x] File suggestions work in the OneiroMetrics Note path field
 - [x] File suggestions work for paths with spaces and special characters (e.g., 'Journals/Dream Diary/Dream Diary.md')
 - [x] Year-based paths are suggested correctly (e.g., typing '2025' suggests 'Journals/2025/2025.md')
 - [x] "Scrape Notes" vs "Scrape Folder" toggle works correctly
@@ -27,11 +27,17 @@
 - [x] Lost Segments label shows "Any integer" (not "Range 0-10")
 - [x] Metrics Table font size is consistent for all columns, especially Confidence Score
 - [x] Lucide icons render as SVGs for all metrics in the settings UI (not as plain text or HTML)
+- [ ] Readable Line Length toggle works and affects table width (test in both plugin settings and directly in the OneiroMetrics Note; toggles are always in sync)
+- [x] Metrics Description section displays all metrics, icons, descriptions, and ranges
+- [x] Metrics Description section renders Markdown as formatted HTML (not as raw text or code)
+- [ ] Callout Metadata Support: 'hide' hides the metrics section, 'compact' condenses it, 'summary' highlights it. Settings and documentation are present in the UI.
+- [x] Metrics Export/Import (JSON) works as expected
+- [ ] CSV Export button generates a CSV file with summary and detailed structure
 
 ### Metrics Scraping
 
-- [x] Scrape button works from modal
-- [x] Scrape command works from command palette
+- [x] Scrape button works from modal (notes mode only)
+- [ ] Scrape command works from command palette
 - [x] Progress is shown during scraping with detailed status
 - [x] Batch processing works for large datasets
 - [x] Errors are handled gracefully
@@ -42,11 +48,12 @@
   - [x] Number of entries found
   - [x] Number of callouts found
   - [x] Overall progress bar
+- [ ] Folder preview and scraping workflow (in both modal and settings) is now fully functional; Apply/Continue button in folder preview modal provides feedback and triggers scraping. Persistent exclusions per folder and file count sync are implemented and should be tested.
 
 ### Metrics Table - Summary Section
 
-- [x] Table renders correctly
-- [x] All metrics are displayed
+- [ ] Table renders correctly
+- [ ] All metrics are displayed
 - [ ] Averages are calculated correctly
 - [ ] Min/Max values are correct
 - [ ] Count values are accurate
@@ -59,7 +66,7 @@
 - [x] Data is sorted by date by default
 - [x] Clickable dream titles work
 - [x] Links navigate to correct journal entries
-- [ ] Word counts are accurate
+- [x] Word counts are accurate
 - [x] Lazy loading works for large datasets
 - [x] Table performance is smooth with 100+ entries
 
@@ -68,11 +75,12 @@
 - [x] Content preview shows first 200 characters
 - [x] Gradient fade effect works in preview
 - [x] "Show more" button appears for long content
-- [ ] "Show less" button appears when expanded
+- [x] "Show less" button appears when expanded (if implemented)
 - [x] Paragraph breaks are preserved
 - [x] Text wrapping works correctly
 - [x] Content is properly formatted
 - [x] Font size and colors match theme
+- [x] Callout metadata (hide, compact, summary) affect metrics section as described
 - [x] Markdown elements are properly stripped:
   - [x] Journal page callouts (e.g., [!journal-page|right])
   - [x] Image embeds with dimensions (e.g., !image.png|400)
@@ -83,25 +91,25 @@
 
 ### Filtering and Sorting
 
-- [ ] Date range filter works
-  - [ ] All Time option
-  - [ ] Last Month option
-  - [ ] Last Week option
-- [ ] Metric filter works
-  - [ ] All Metrics option
-  - [ ] Individual metric options
-- [ ] Column sorting works
-  - [ ] Date column
-  - [ ] Title column
-  - [ ] Words column
-  - [ ] Metric columns
-- [ ] Sort indicators show correct direction
+- [x] Date range filter works
+  - [x] All Time option
+  - [x] Last Month option
+  - [x] Last Week option
+- [x] Metric filter works
+  - [x] All Metrics option
+  - [x] Individual metric options
+- [x] Column sorting works
+  - [x] Date column
+  - [x] Title column
+  - [x] Words column
+  - [x] Metric columns
+- [x] Sort indicators show correct direction
 
 ### Styling and UI
 
 - [x] Tables match Obsidian theme
 - [x] Hover effects work on rows
-- [x] Buttons have proper hover states
+- [ ] Buttons have proper hover states
 - [x] Links have proper hover states
 - [x] Text is readable
 - [x] Spacing is consistent
@@ -118,6 +126,7 @@
   - [ ] Metric columns (8% each)
 - [ ] Progress modal styling matches theme
 - [ ] Suggestion containers use CSS classes instead of inline styles
+- [x] No inline styles present (all styles use CSS classes)
 
 ### Error Handling
 
@@ -143,9 +152,9 @@
 
 ### Theme Compatibility
 
-- [ ] Works with Light theme
+- [x] Works with Light theme
 - [ ] Works with Dark theme
-- [ ] Works with custom themes
+- [x] Works with custom themes
 - [ ] Colors adapt to theme changes
 
 ### Backup System Testing
@@ -217,10 +226,10 @@ If a file path does not appear in suggestions:
 ### Recent Changes to Test
 
 1. Progress Indicator:
-   - [ ] Shows current file being processed
-   - [ ] Shows number of entries found
-   - [ ] Shows number of callouts found
-   - [ ] Progress bar updates smoothly
+   - [x] Shows current file being processed
+   - [x] Shows number of entries found
+   - [x] Shows number of callouts found
+   - [x] Progress bar updates smoothly
    - [x] Modal styling matches theme
 
 2. Batch Processing:
@@ -231,7 +240,7 @@ If a file path does not appear in suggestions:
 
 3. CSS Improvements:
    - [x] All styles use CSS classes
-   - [ ] No inline styles present
+   - [x] No inline styles present
    - [x] Theme compatibility maintained
    - [x] Responsive design preserved
 
@@ -334,7 +343,7 @@ These tests require Obsidian and manual verification.
 
 ##### UI Components
 
-- [ ] Modal behavior
+- [x] Modal behavior: persistent exclusions per folder, file count display, and state sync are always accurate and should be tested.
 - [ ] Table rendering
 - [ ] Progress indicators
 - [ ] Suggestion system
@@ -570,4 +579,218 @@ const filteredResult = await exportToCSV({
         metrics: ['lucidity', 'vividness']
     }
 });
-``` 
+```
+
+## June 2024: New Features & Fixes
+
+### Dream Metrics Callout Customizations
+- Go to plugin settings and locate the 'Dream Metrics Callout Customizations' section above Metrics Descriptions.
+- Verify the bordered section and pseudo-heading are present.
+- Confirm the 'Current Callout Structure' box is read-only, live-updating, and selectable.
+- Enter metadata in the 'Callout Metadata' field and verify the callout structure updates.
+- Toggle 'Single-Line Callout Structure' and confirm the callout structure updates to a single line.
+
+### Metrics Description Table Styling
+- In settings, verify that all tables in the Metrics Descriptions section have a light gray border and improved readability.
+
+### Readable Line Length Toggle Debugging
+- In the OneiroMetrics Note UI, toggle 'Override Readable Line Length for this table'.
+- Confirm a Notice appears with the new value.
+- Open the developer console and check for logs indicating whether the full-width style is being applied or removed.
+- Verify that the table width changes as expected when toggling.
+- If not, note the console output for further debugging.
+
+## June 2025: New Features & Fixes
+
+### Selected Notes UI
+- Verify the search field is above the chips area.
+- Confirm the chips area is hidden when no notes are selected and only appears when notes are selected.
+- Ensure the UI is less confusing and more intuitive.
+
+### Callout Structure Box Wrapping
+- Confirm the callout structure preview wraps text and does not overflow the box, even for long single-line callouts.
+
+### Backup Filename Date
+- Verify that backup files use the correct local date and time in their filenames (not UTC).
+
+### Readable Line Length Override
+- Toggle the override and confirm the table always expands to full width, regardless of Obsidian's core setting or theme constraints.
+
+### June 2025: Additional Features & Fixes
+- Chips area for selected notes is visually flat (no border, background, or box-shadow).
+- Backup files use the .bak extension instead of .md.
+- Open Metrics Note button is present in the modal, only enabled when the note exists, and opens the note in Obsidian.
+
+## Planned Features to Test
+
+- [ ] Open Project Button
+  - [ ] Verify the "Open Project" button appears in the modal.
+  - [ ] Button is only enabled when the OneiroMetrics Note can be opened.
+  - [ ] Clicking the button opens the correct OneiroMetrics Note.
+- [ ] Backup File Extension
+  - [ ] Confirm that backup files are created with a .bak extension instead of .md.
+
+### Flexible Note/Folder Selection & File Preview
+- [ ] Folder selection: Select a folder, verify 200-file cap, helper text, and label
+- [ ] File preview modal: Opens before scraping, shows correct files, supports filter, sort (name/date), select/deselect, persistent exclusions, and batch actions
+- [ ] Persistent exclusions: Exclusions are remembered per folder if checkbox is checked, and not if unchecked
+- [ ] Select All / Deselect All: Buttons work as expected in preview modal
+- [ ] Progress bar/spinner: Appears during file gathering and scraping
+- [ ] Success/failure toasts: Show correct file counts and errors
+- [ ] Inline status: Appears after "Update Metrics" in OneiroMetrics Note
+- [ ] "Update Metrics" button: Triggers preview modal and scrape as expected
+- [ ] All features work in both settings and OneiroMetrics Note workflows
+
+### New Features & Fixes
+- [ ] Folder preview modal reliably displays a file list with checkboxes styled for theme compatibility.
+- [ ] Continue button in folder preview modal enables scraping only selected files.
+- [ ] File count is displayed above file list in folder preview modal.
+- [ ] No debug/test elements are present in the modal.
+
+### Debug Logging & Note Update Troubleshooting
+
+- [ ] Check for debug Notices in Obsidian (e.g., [DEBUG] updateProjectNote called for: ...)
+- [ ] Confirm the OneiroMetrics Note Path in settings matches the file you are viewing
+- [ ] Open the note in the editor and look for the <!-- OOM METRICS START --> marker in the raw Markdown
+- [ ] Check the console for logs about dream entry extraction and metrics
+- [ ] If no entries are found, add granular debug logs in the extraction loop to print each entry (date, title, metrics)
+- [ ] Confirm that updateProjectNote is called with the correct number of entries and the expected content
+
+This checklist helps ensure the plugin is updating the correct note and extracting dream entries as expected.
+
+- [x] Parser blockStack logic fixed: Dream-diary and dream-metrics callouts are now robustly extracted from nested callouts. Granular debug logging was used to verify correct extraction and nesting during troubleshooting.
+- [ ] Verify that callout metadata (including 'hide', 'compact', 'summary', and arbitrary values) is not reflected as CSS classes on the Statistics or Dream Entry tables. Only standard classes should be present.
+
+## Logging and Debug Output
+
+- Excessive debug logging should be avoided in production builds.
+- Tests should confirm that only essential logs are present during normal operation.
+- Debug logs for backup and extraction logic should be temporary and removed after troubleshooting.
+
+## Current Status
+
+- **Table regeneration/update issues:** Still being debugged; sometimes tables are not updated or are duplicated.
+- **Button responsiveness:** Show more and Update Metrics buttons are mostly fixed, but modal feedback and reliability are still being improved.
+- **Markdown/HTML stripping:** Resolved; content column is clean.
+- **Logging:** Logging policy added; plan to reduce debug output.
+- **Current focus:** Ensuring reliable table updates and user feedback after scraping.
+
+# Testing Guide
+
+## Version 0.3.0 Testing Requirements
+
+### Core Functionality Testing
+
+#### Metric Icon Picker
+- [ ] Verify icon selection in Metric Editor Modal
+- [ ] Test keyboard navigation in icon picker
+- [ ] Confirm icon persistence after save
+- [ ] Check icon rendering in tables and settings
+
+#### CSV Export/Import
+- [ ] Test metrics configuration export/import
+- [ ] Verify metrics data CSV export
+- [ ] Check CSV formatting and data integrity
+- [ ] Test with various metric configurations
+
+#### 'This Week' Filter
+- [ ] Verify week start day setting
+- [ ] Test filter with different date ranges
+- [ ] Check filter persistence
+- [ ] Verify filter updates table correctly
+
+#### Readable Line Length Widget
+- [ ] Test toggle in settings
+- [ ] Test toggle in project note
+- [ ] Verify sync between settings and note
+- [ ] Check table width changes
+
+### UI/UX Testing
+
+#### Table Functionality
+- [ ] Verify column sorting
+- [ ] Test date and metric filtering
+- [ ] Check expand/collapse content
+- [ ] Verify table width adjustments
+- [ ] Test mobile responsiveness
+
+#### Modal Testing
+- [ ] Test file/folder selection
+- [ ] Verify autocomplete functionality
+- [ ] Check backup creation
+- [ ] Test Open Metrics Note button
+- [ ] Verify progress indicators
+
+#### Theme Compatibility
+- [ ] Test with light themes
+- [ ] Test with dark themes
+- [ ] Verify custom theme support
+- [ ] Check mobile theme rendering
+
+### Performance Testing
+
+#### Table Performance
+- [ ] Test with large datasets
+- [ ] Verify sorting performance
+- [ ] Check filtering response time
+- [ ] Test content expansion speed
+
+#### Memory Usage
+- [ ] Monitor memory during operations
+- [ ] Check for memory leaks
+- [ ] Verify cleanup after operations
+- [ ] Test long-running sessions
+
+### Error Handling
+
+#### Backup System
+- [ ] Test backup creation
+- [ ] Verify backup restoration
+- [ ] Check error handling
+- [ ] Test backup file naming
+
+#### Data Validation
+- [ ] Test invalid metric values
+- [ ] Verify error messages
+- [ ] Check data persistence
+- [ ] Test recovery from errors
+
+### Accessibility Testing
+
+#### Keyboard Navigation
+- [ ] Test all interactive elements
+- [ ] Verify focus management
+- [ ] Check keyboard shortcuts
+- [ ] Test screen reader compatibility
+
+#### Visual Accessibility
+- [ ] Verify color contrast
+- [ ] Check text scaling
+- [ ] Test high contrast mode
+- [ ] Verify focus indicators
+
+## Reporting Issues
+
+When reporting issues, include:
+1. Steps to reproduce
+2. Expected behavior
+3. Actual behavior
+4. Screenshots if applicable
+5. Console logs
+6. Obsidian version
+7. Plugin version
+8. Theme being used
+
+## Test Environment
+
+- Obsidian version: 0.15.0 or higher
+- Operating systems: Windows, macOS, Linux
+- Mobile devices: iOS, Android
+- Various screen sizes and resolutions
+
+## Automated Testing
+
+- [ ] Unit tests for core functions
+- [ ] Integration tests for Obsidian API
+- [ ] End-to-end tests for workflows
+- [ ] Performance benchmarks

@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-05-11
+
+### Added
+- **Metric Icon Picker:** Custom icon selection for metrics via user-friendly picker
+- **Keyboard & Accessibility:** Full keyboard navigation and screen reader support
+- **'This Week' Filter:** New filter option with configurable week start day
+- **Widget for Readable Line Length:** Toggle in settings and project note for table width control
+- **Metrics Description Section:** Enhanced settings page with metric details
+- **Automatic Backup System:** Improved backup creation with .bak extension
+- **Open Metrics Note Button:** Quick access to metrics note from modal
+
+### Changed
+- All inline styles moved to stylesheet for better maintainability
+- Enhanced table styling with optimized column widths
+- Improved theme compatibility and mobile responsiveness
+- Better organization of Dream Entries section
+- Enhanced error handling with backup restoration options
+- Improved content preview with expandable/collapsible sections
+- Optimized table layout for better space utilization
+- Reduced overall table font sizes for better readability
+
+### Fixed
+- Lucide icons now render correctly in all tables and modals
+- Show more/less button functionality restored
+- Table sorting and filtering issues resolved
+- Dream content extraction and rendering issues fixed
+- Autocomplete, backup, and modal UI improvements
+- Callout metadata handling in tables
+- Parser blockStack logic for nested callouts
+- File suggestion and autocomplete reliability
+
+### Planned
+- Add search/filter to the icon picker
+- Add more icons to the icon picker
+- Add a Test Modal for Markdown processing
+- Reduce excessive logging in future builds
+- Add CSV Export/Import functionality for metrics configuration and data
+
 ## [0.1.2] - 2025-05-09
 
 ### Added
@@ -99,4 +137,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add search/filter to the icon picker.
 - Add more icons to the icon picker.
 - Add a Test Modal where users can paste Markdown and see how the plugin processes and renders it.
-- Modify backup files so that the file names end in .backup or another appropriate extension, to avoid having files be discoverable markdown documents in Obsidian. 
+- Modify backup files so that the file names end in .backup or another appropriate extension, to avoid having files be discoverable markdown documents in Obsidian.
+
+## [0.2.1] - 2025-05-10
+
+### Added
+- **Widget for Readable Line Length:** Toggle in settings to override readable line width for metrics tables.
+- **Metrics Description Section:** Settings page now displays a section listing each metric, its icon, description, and range.
+- **CSV Export/Import:** Export and import metrics configuration as JSON; export metrics data as CSV from settings.
+- **'This Week' filter and week start day setting:** Added to metrics table and settings.
+- **Metrics Export/Import UI:** Added buttons to settings for exporting/importing metrics configuration.
+
+### Fixed
+- **Lucide icons:** Now render correctly in all tables and modals, including the Metric Edit modal and Project Note tables.
+- **Show more/less button:** Expands and collapses dream content as expected, with correct button text.
+- **Table sorting:** Clicking column headers sorts the Dream Entries table.
+- **Filtering:** Date and metric filtering now updates the Dream Entries table.
+- **Autocomplete, backup, and modal UI:** All previously reported issues are resolved.
+
+### Changed
+- All interactive logic (sorting, filtering, expand/collapse) is now attached directly via the plugin for better compatibility with Obsidian's preview mode.
+- UI polish and accessibility improvements throughout settings and modals.
+
+- Callout metadata is no longer reflected as CSS classes on the Statistics or Dream Entry tables. Only standard classes are used, preventing accidental hiding or styling due to user metadata such as 'hide', 'compact', or 'summary'.
+
+---
+
+For more details, see PROJECT_OVERVIEW.md and TESTING.md. 

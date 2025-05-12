@@ -197,8 +197,50 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content,
 .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content,
 .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content {
-    max-width: none;
+    position: relative;
+    max-height: none;
     overflow: visible;
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-content-preview {
+    display: block;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-content-full {
+    display: none;
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content.expanded .oom-content-preview {
+    display: none;
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content.expanded .oom-content-full {
+    display: block;
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-expand-button {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: background-color 0.2s ease;
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-expand-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-expand-button:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
 /* Filter Controls Layout */
@@ -460,7 +502,9 @@ div[data-type="markdown"][data-type="oom-project-note"] .oom-table td {
 
 /* Content Cell */
 .oom-dream-content {
-    color: var(--text-normal) !important;
+    position: relative !important;
+    max-height: none !important;
+    overflow: visible !important;
 }
 
 .oom-content-preview,
@@ -470,6 +514,51 @@ div[data-type="markdown"][data-type="oom-project-note"] .oom-table td {
     word-break: break-word;
     font-family: var(--font-text);
     line-height: 1.4;
+}
+
+.oom-content-preview {
+    display: block !important;
+    max-height: 200px !important;
+    overflow: hidden !important;
+    transition: max-height 0.3s ease-out !important;
+}
+
+.oom-content-full {
+    display: none !important;
+    max-height: none !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease-out !important;
+}
+
+.oom-dream-content.expanded .oom-content-preview {
+    display: none !important;
+}
+
+.oom-dream-content.expanded .oom-content-full {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+.oom-dream-content .oom-expand-button {
+    display: inline-block !important;
+    margin-top: 8px !important;
+    padding: 4px 8px !important;
+    background-color: var(--interactive-accent) !important;
+    color: var(--text-on-accent) !important;
+    border: none !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: var(--font-ui-smaller) !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.oom-dream-content .oom-expand-button:hover {
+    background-color: var(--interactive-accent-hover) !important;
+}
+
+.oom-dream-content .oom-expand-button:focus {
+    outline: 2px solid var(--interactive-accent) !important;
+    outline-offset: 2px !important;
 }
 
 /* Column Widths */
@@ -750,566 +839,6 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
     }
 }
 
-/* Theme Override Selectors
-   These selectors ensure consistent styling across different themes */
-.theme-light .markdown-preview-view[data-type="oom-project-note"],
-.theme-dark .markdown-preview-view[data-type="oom-project-note"],
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
-.minimal-default .markdown-preview-view[data-type="oom-project-note"],
-.minimal-light .markdown-preview-view[data-type="oom-project-note"],
-.minimal-dark .markdown-preview-view[data-type="oom-project-note"],
-div[data-type="markdown"][data-type="oom-project-note"],
-.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
-    /* Ensure consistent font and color variables */
-    --font-text: var(--font-text);
-    --text-normal: var(--text-normal);
-    --text-muted: var(--text-muted);
-    --text-faint: var(--text-faint);
-    --background-primary: var(--background-primary);
-    --background-secondary: var(--background-secondary);
-    --background-modifier-border: var(--background-modifier-border);
-}
-
-/* Table Styles */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] table,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1em 0;
-}
-
-/* Ensure content is aligned properly */
-.markdown-preview-view[data-type="oom-project-note"] .internal-embed,
-.markdown-preview-view[data-type="oom-project-note"] .markdown-embed {
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Override any theme-specific readable line constraints */
-.theme-light .markdown-preview-view[data-type="oom-project-note"],
-.theme-dark .markdown-preview-view[data-type="oom-project-note"],
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
-.minimal-default .markdown-preview-view[data-type="oom-project-note"],
-.minimal-light .markdown-preview-view[data-type="oom-project-note"],
-.minimal-dark .markdown-preview-view[data-type="oom-project-note"],
-div[data-type="markdown"][data-type="oom-project-note"],
-.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
-    --line-width-adaptive: var(--oom-line-width);
-    --line-width: var(--oom-line-width);
-    --max-width: var(--oom-max-width);
-    --file-line-width: var(--oom-line-width);
-    max-width: var(--oom-max-width);
-    width: var(--oom-line-width);
-    padding-left: var(--oom-padding);
-    padding-right: var(--oom-padding);
-    margin-left: var(--oom-margin);
-    margin-right: var(--oom-margin);
-}
-
-/* Override Obsidian's readable line width styles */
-.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
-    max-width: var(--oom-max-width);
-    margin-left: var(--oom-margin);
-    margin-right: var(--oom-margin);
-    width: var(--oom-line-width);
-}
-
-.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] {
-    max-width: var(--oom-max-width);
-    width: var(--oom-line-width);
-    padding-left: var(--oom-padding);
-    padding-right: var(--oom-padding);
-}
-
-/* Also override for specific themes */
-.theme-light .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.theme-dark .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.minimal-theme .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.minimal-default .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.minimal-light .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
-.minimal-dark .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] {
-    max-width: var(--oom-max-width);
-    width: var(--oom-line-width);
-    padding-left: var(--oom-padding);
-    padding-right: var(--oom-padding);
-}
-
-.theme-light .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer,
-.theme-dark .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer,
-.minimal-theme .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer,
-.minimal-default .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer,
-.minimal-light .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer,
-.minimal-dark .markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
-    max-width: var(--oom-max-width);
-    margin-left: var(--oom-margin);
-    margin-right: var(--oom-margin);
-    width: var(--oom-line-width);
-}
-
-/* Table font size adjustments */
-.oom-table {
-    font-size: 0.95em !important;
-}
-
-.oom-table td,
-.oom-table th {
-    padding: 12px;
-    text-align: left;
-    border: 1px solid var(--background-modifier-border);
-}
-
-/* Content column specific adjustments */
-.oom-table td:nth-child(4) {  /* Content column */
-    font-size: 0.95em !important;
-    line-height: 1.4 !important;
-}
-
-/* Make sure the container doesn't force horizontal scroll */
-.oom-table-container {
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Ensure parent containers don't restrict width */
-.markdown-preview-sizer,
-.markdown-preview-view,
-.workspace-leaf-content[data-type='markdown'] {
-    max-width: none !important;
-    width: 100% !important;
-}
-
-/* Additional override for readable line width */
-body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-readable-line-width .markdown-preview-sizer {
-    max-width: none !important;
-    width: 100% !important;
-    padding: 0 !important;
-}
-
-/* Adjust column widths for better space utilization */
-.oom-table th:nth-child(1),
-.oom-table td:nth-child(1) {  /* Date */
-    width: 8% !important;
-    min-width: 85px !important;
-}
-
-.oom-table th:nth-child(2),
-.oom-table td:nth-child(2) {  /* Dream Title */
-    width: 15% !important;
-    min-width: 120px !important;
-}
-
-.oom-table th:nth-child(3),
-.oom-table td:nth-child(3) {  /* Words */
-    width: 7% !important;
-    min-width: 60px !important;
-}
-
-.oom-table th:nth-child(4),
-.oom-table td:nth-child(4) {  /* Content */
-    width: 30% !important;  /* Reduced from 45% */
-    min-width: 200px !important;
-}
-
-/* Metric columns (5th onwards) - redistributed the extra space */
-.oom-table th:nth-child(n+5),
-.oom-table td:nth-child(n+5) {
-    width: 8% !important;  /* Increased from 5% */
-    min-width: 70px !important;
-}
-
-/* Remove old checkbox/label expand/collapse rules */
-.oom-show-toggle,
-.oom-show-toggle + .oom-content-preview,
-.oom-show-toggle:checked + .oom-content-preview,
-.oom-show-toggle + .oom-content-preview + .oom-content-full,
-.oom-show-toggle:checked + .oom-content-preview + .oom-content-full,
-.oom-show-toggle + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more,
-.oom-show-toggle:checked + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more,
-.oom-show-toggle + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more + .oom-expand-button.oom-show-less,
-.oom-show-toggle:checked + .oom-content-preview + .oom-content-full + .oom-expand-button.oom-show-more + .oom-expand-button.oom-show-less {
-    display: none !important;
-}
-
-/* New expand/collapse logic for .oom-dream-content */
-.oom-dream-content .oom-content-full {
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    display: none;
-}
-.oom-dream-content.expanded .oom-content-full {
-    max-height: 1000px;
-    opacity: 1;
-    overflow: visible;
-    display: block;
-}
-.oom-dream-content.expanded .oom-content-preview {
-    display: none;
-}
-.oom-dream-content .oom-expand-button {
-    outline: none;
-}
-.oom-dream-content .oom-expand-button:focus {
-    box-shadow: 0 0 0 2px var(--text-accent);
-    border-color: var(--text-accent);
-}
-.visually-hidden {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-}
-
-/* Metric Value Alignment */
-.metric-value {
-    text-align: left !important;
-    white-space: nowrap;
-    min-width: 80px;
-    font-size: inherit !important;
-}
-
-/* Link Styling */
-.oom-table td a.internal-link {
-    color: var(--text-accent) !important;
-    opacity: 1;
-    text-decoration: none;
-}
-
-.oom-table td a.internal-link:hover {
-    color: var(--text-accent-hover) !important;
-    text-decoration: underline;
-}
-
-/* Suggestion Container Positioning */
-.oom-suggestion-container {
-    position: absolute;
-    top: var(--oom-suggestion-top, 100%);
-    left: var(--oom-suggestion-left, 0);
-    width: var(--oom-suggestion-width, 100%);
-    background: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
-    display: none;
-}
-
-.oom-suggestion-container.visible {
-    display: block;
-}
-
-.oom-suggestion-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--background-modifier-border);
-    background: var(--background-primary);
-}
-
-.oom-suggestion-item:hover,
-.oom-suggestion-item.selected {
-    background-color: var(--background-modifier-hover);
-}
-
-/* Progress Bar */
-.oom-progress-fill {
-    height: 100%;
-    background-color: var(--interactive-accent);
-    width: 0;
-    transition: width 0.3s ease;
-}
-
-/* Loading Indicator */
-.oom-loading-indicator {
-    text-align: center;
-    padding: 1rem;
-    color: var(--text-muted);
-    font-size: 0.9em;
-    display: none;
-}
-
-.oom-loading-indicator.visible {
-    display: block;
-}
-
-/* Chips Container */
-.oom-chips-container {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 0.5em !important;
-    margin: 0.5em 0 !important;
-    min-height: 32px !important;
-    padding: 4px !important;
-    border: 1px solid var(--background-modifier-border) !important;
-    border-radius: 4px !important;
-    background: var(--background-primary) !important;
-}
-
-.oom-chip {
-    display: inline-flex !important;
-    align-items: center !important;
-    background: var(--background-primary-alt) !important;
-    border: 1px solid var(--background-modifier-border) !important;
-    border-radius: 16px !important;
-    padding: 2px 8px !important;
-    font-size: 0.9em !important;
-    max-width: 100% !important;
-}
-
-/* Filter Controls Layout */
-.oom-filter-controls {
-    margin: 2em 0 1em 0 !important;
-    padding: 1em !important;
-    background: var(--background-primary-alt) !important;
-    border-radius: 6px !important;
-    display: flex !important;
-    gap: 2em !important;
-    align-items: center !important;
-}
-
-.oom-date-filter,
-.oom-metric-filter {
-    display: flex !important;
-    align-items: center !important;
-    gap: 1em !important;
-    flex: 1 !important;
-}
-
-.oom-select {
-    flex: 1 !important;
-    min-width: 120px !important;
-    padding: 4px 8px !important;
-    border: 1px solid var(--background-modifier-border) !important;
-    border-radius: 4px !important;
-    background: var(--background-primary) !important;
-}
-
-/* Table Row and Cell Styling */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table tr {
-    border-bottom: 1px solid var(--background-modifier-border);
-    transition: background-color 0.2s ease;
-}
-
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
-    background-color: var(--background-modifier-hover);
-}
-
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table td {
-    padding: 8px 12px;
-    vertical-align: top;
-    border: 1px solid var(--background-modifier-border);
-    color: var(--text-normal);
-    background: var(--background-primary);
-    transition: background-color 0.2s ease;
-}
-
-/* Content Cell Styling */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content {
-    max-width: none;
-    overflow: visible;
-    color: var(--text-normal);
-}
-
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-content-preview,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-content-preview,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-content-preview,
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-content-full,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-content-full,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: var(--font-text);
-    line-height: 1.4;
-    color: var(--text-normal);
-}
-
-/* Show/Hide Toggle */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle {
-    display: none;
-}
-
-/* Content Preview States */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle + .oom-content-preview,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle + .oom-content-preview,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle + .oom-content-preview {
-    display: block;
-}
-
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle:checked + .oom-content-preview,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle:checked + .oom-content-preview,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle:checked + .oom-content-preview {
-    display: none;
-}
-
-/* Full Content States */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle + .oom-content-preview + .oom-content-full,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle + .oom-content-preview + .oom-content-full,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle + .oom-content-preview + .oom-content-full {
-    display: none;
-}
-
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle:checked + .oom-content-preview + .oom-content-full,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle:checked + .oom-content-preview + .oom-content-full,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-show-toggle:checked + .oom-content-preview + .oom-content-full {
-    display: block;
-}
-
-/* Expand/Collapse Buttons */
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button {
-    display: inline-block;
-    margin-top: 0.5em;
-    padding: 4px 8px;
-    background: var(--background-primary-alt);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    color: var(--text-normal);
-    cursor: pointer;
-    font-size: var(--font-ui-smaller);
-    transition: all 0.2s ease;
-}
-
-.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button:hover,
-.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button:hover,
-.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button:hover {
-    background: var(--background-modifier-hover);
-    border-color: var(--background-modifier-border-hover);
-}
-
-/* Responsive Styles */
-@media screen and (max-width: 768px) {
-    /* Tablet Layout */
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
-        margin: 0;
-        padding: 0;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table {
-        font-size: 0.85em;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table td {
-        padding: 6px 8px;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    /* Mobile Layout */
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
-        margin: 0 -1em;
-        padding: 0 0.5em;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table {
-        font-size: 0.8em;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-content-preview,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-content-preview,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-content-preview,
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-content-full,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-content-full,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
-        font-size: 0.95em;
-        line-height: 1.3;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button {
-        display: block;
-        text-align: center;
-        margin: 4px 0;
-        padding: 8px;
-    }
-}
-
-@media screen and (max-width: 360px) {
-    /* Small Mobile Layout */
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
-        margin: 0 -0.5em;
-        padding: 0 0.25em;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table {
-        font-size: 0.75em;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table td {
-        padding: 4px 6px;
-    }
-}
-
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-expand-button {
-        min-height: 32px;
-        line-height: 32px;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table-container,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
-        -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
-    }
-
-    .theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table,
-    .minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table {
-        user-select: none;
-    }
-}
-
 .markdown-preview-view .oom-table-title {
   margin-top: 1.5em;
   margin-bottom: 0.5em;
@@ -1533,9 +1062,8 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
 }
 .oom-icon-picker-btn.selected,
 .oom-icon-picker-btn:focus {
-    border-color: var(--text-accent);
-    background: var(--background-modifier-hover);
-    color: var(--text-accent);
+    background: var(--background-modifier-hover, #e0e0e0);
+    color: var(--text-normal, #000000);
 }
 .oom-icon-picker-btn:hover {
     border-color: var(--text-accent);
@@ -1639,4 +1167,168 @@ body .workspace-leaf-content[data-type='markdown'] .markdown-preview-view.is-rea
     background: var(--background-primary-alt);
     border-radius: 6px;
     padding: 0.5em 1em;
+}
+
+.oom-table th.oom-sortable {
+  cursor: pointer;
+}
+
+.markdown-preview-view[data-type="oom-project-note"].oom-full-width,
+.markdown-preview-view[data-type="oom-project-note"] .markdown-preview-sizer.oom-full-width {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+.oom-metrics-hide {
+    display: none !important;
+}
+.oom-metrics-compact {
+    padding: 0.5em 0.5em !important;
+    font-size: 0.92em !important;
+}
+.oom-metrics-summary {
+    border: 2px dashed var(--text-accent);
+    background: var(--background-primary-alt);
+}
+
+/* Modal Button Styles for Folder Preview */
+.oom-modal-btn {
+  font-size: 1em;
+  padding: 4px 18px;
+  border: none;
+  border-radius: 4px;
+  background: var(--background-secondary, #f5f5f5);
+  color: var(--text-normal, #222);
+  cursor: pointer;
+  margin-left: 0.5em;
+  transition: background 0.15s, color 0.15s;
+}
+.oom-modal-btn:hover,
+.oom-modal-btn:focus {
+  background: var(--background-modifier-hover, #e0e7ef);
+}
+.oom-modal-btn--apply {
+  background: var(--interactive-accent, #2563eb);
+  color: var(--text-on-accent, #fff);
+}
+.oom-modal-btn--apply:hover,
+.oom-modal-btn--apply:focus {
+  background: var(--interactive-accent-hover, #1749b1);
+  color: var(--text-on-accent, #fff);
+}
+
+/* Checkbox styling for OneiroMetrics modals */
+.oom-checkbox {
+  accent-color: var(--checkbox-marker-color, var(--interactive-accent, #2563eb));
+  /* Fallback to accent if marker color is not set */
+  border: 1px solid var(--background-modifier-border, #888);
+  border-radius: 3px;
+  background: var(--background-primary, #fff);
+}
+
+/* Dream Content Styles */
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content {
+    position: relative;
+    max-height: none;
+    overflow: visible;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-content-preview {
+    display: block;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-content-full {
+    display: none;
+    max-height: none;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content.expanded .oom-content-preview {
+    display: none;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content.expanded .oom-content-full {
+    display: block;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-expand-button {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: background-color 0.2s ease;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-expand-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-expand-button:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+/* No Metrics Message */
+.markdown-preview-view[data-type="oom-project-note"] .oom-no-metrics {
+    text-align: center;
+    padding: 1em;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Statistics Table Section */
+.oom-stats-section {
+    margin-bottom: 2em !important;
+}
+
+.oom-stats-title {
+    font-size: var(--h2-size) !important;
+    font-weight: var(--h2-weight, var(--font-bold)) !important;
+    margin-bottom: 0.5em !important;
+    color: var(--text-normal) !important;
+}
+
+.oom-stats-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 1em !important;
+}
+
+.oom-stats-table th,
+.oom-stats-table td {
+    padding: 8px 12px !important;
+    border: 1px solid var(--background-modifier-border) !important;
+    text-align: left !important;
+}
+
+.oom-stats-table th {
+    background-color: var(--background-primary-alt) !important;
+    font-weight: 600 !important;
+}
+
+.oom-stats-table td.metric-value {
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
+.oom-stats-table tr:hover {
+    background-color: var(--background-modifier-hover) !important;
+}
+
+.oom-stats-table tr:hover td {
+    background: inherit !important;
+}
+
+/* Ensure the statistics section is visible */
+.oom-table-section.oom-stats-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 } 

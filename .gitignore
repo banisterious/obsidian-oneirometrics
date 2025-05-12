@@ -23,6 +23,7 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+oom-debug-log.txt
 
 # Environment
 .env

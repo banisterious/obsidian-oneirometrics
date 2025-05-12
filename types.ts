@@ -15,6 +15,14 @@ export interface DreamMetricsSettings {
     calloutName: string;
     backupEnabled: boolean;
     backupFolderPath: string;
+    weekStartDay: number; // 0 = Sunday, 1 = Monday
+    readableLineLengthOverride: boolean; // true = full width, false = Obsidian default
+    defaultCalloutMetadata?: string;
+    // Flexible Note/Folder Selection
+    selectionMode?: "notes" | "folder"; // 'notes' (default) or 'folder'
+    selectedFolder?: string; // path to selected folder if in folder mode
+    // Persistent file exclusions per folder
+    _persistentExclusions?: { [folderPath: string]: string[] };
 }
 
 export interface DreamMetricData {
@@ -28,6 +36,7 @@ export interface DreamMetricData {
     metrics: {
         [key: string]: number;
     };
+    calloutMetadata?: string[];
 }
 
 export const DEFAULT_METRICS: DreamMetric[] = [

@@ -14,9 +14,10 @@
 - Set the path where your metrics table will be stored
 - Use the smart file suggestion system to easily select an existing file
 - Supports paths with spaces and special characters
-- Year-based paths are suggested automatically (e.g., typing "2024" suggests "Journals/2024/2024.md")
+- Year-based paths are suggested automatically (e.g., typing "2025" suggests "Journals/2025/2025.md")
 - The file will be created if it doesn't exist
 - **Note**: The plugin will create backups before making changes
+- Use the Open Metrics Note button for quick access to your metrics note
 
 ### Metric Editor
 - Click the "Edit Metrics" button to open the metric editor
@@ -28,6 +29,8 @@
   - Esc: Cancel
   - Tab: Next field
   - Shift+Tab: Previous field
+- Customize metric icons using the icon picker
+- View detailed metric descriptions in the Metrics Description section
 
 ### Managing Metrics
 - Drag and drop to reorder metrics
@@ -35,6 +38,7 @@
 - Use the delete button to remove metrics
 - Changes are saved automatically
 - Reset to defaults while preserving custom metrics
+- Customize icons for better visual organization
 
 ## Adding Dream Metrics
 
@@ -43,7 +47,34 @@ Use the following format in your dream journal entries:
 
 ```markdown
 > [!dream-metrics]
-> lucidity: 7, vividness: 8, emotional-intensity: 6
+> Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2, Descriptiveness: 3, Confidence Score: 5
+```
+
+#### Complete Sample Journal Entry
+
+```markdown
+---
+title: 2025-05-06
+tags: [journal, dream, lucid]
+date: 2025-05-06
+---
+
+> [!journal-entry] 2025-05-06
+> ^20250506
+> 
+> ### 7:00am
+>
+>> [!dream-diary] Moonlight Painting [[2025-05-06]]
+>> I was painting the wind with a brush made of moonlight. Each stroke created invisible ripples that rustled the leaves on silent trees. The colors of the wind were feelings: joy was a vibrant gold, sorrow a deep blue. A flock of paper cranes soared past, carrying the scent of distant memories.
+>>
+>> [!dream-metrics]
+>> Words: 50, Sensory Detail: 3, Emotional Recall: 1, Lost Segments: 3, Descriptiveness: 4, Confidence Score: 5
+> 
+> ### 5:00pm
+> 
+> The rain outside mirrors the quiet unease within. Today, the old oak in the backyard seemed to sigh as the wind rustled its new leaves. I found a robin's eggshell, a fragile blue fragment, under the porch swing – a tiny echo of a life begun and ended. The sourdough starter is bubbling vigorously; a small victory in the face of a persistent melancholy I can't quite place. Perhaps a walk in Forest Park tomorrow will shake it off. The scent of damp earth always helps.
+> 
+> The city hums a low thrum. Coffee steams. The sky, a bruised purple, promises even more rain. A quiet Tuesday unfolds.
 ```
 
 ### Validation
@@ -90,12 +121,15 @@ The generated table includes two main sections:
 - Center-aligned numeric metrics
 - Sortable columns
 - Date range and metric filtering
+- 'This Week' filter with configurable week start day
 - Responsive design for all screen sizes
 - Theme-aware styling
+- Readable Line Length toggle for table width control
 
 ### Backup System
 - Automatic backups are created before each update
 - Backup files are named with timestamps
+- Backups use .bak extension for better organization
 - Backups are visually distinct in the file explorer
 - You can restore from backups if needed
 
@@ -108,7 +142,7 @@ The generated table includes two main sections:
 - Example format:
   ```
   Journal/Journal.md
-  Dreams/2024.md
+  Dreams/2025.md
   ```
 
 ### File Suggestions
@@ -134,10 +168,11 @@ The generated table includes two main sections:
 
 3. **Backup Files**
    - Backup files are stored in the same directory as your project note
-   - They are marked with a 💾 icon in the file explorer
+   - They use .bak extension for better organization
    - You can safely delete old backups
 
 4. **Table Display Issues**
+   - Use the Readable Line Length toggle to control table width
    - Check if the table is properly contained within the table container
    - Verify that the readable line length setting isn't affecting the table
    - Ensure your theme supports the table styling
