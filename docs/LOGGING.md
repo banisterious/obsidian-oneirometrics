@@ -78,3 +78,53 @@ Stack: ... // For error logs
 - Performance logging includes operation duration
 - Log data is structured for easy parsing
 - Error logs include full stack traces for debugging 
+
+## Debug Log File
+The plugin maintains a debug log file at `oom-debug-log.txt` in the vault root. This file is used for:
+- Capturing detailed logs during development and testing
+- Troubleshooting issues reported by users
+- Monitoring performance and behavior in production
+
+### Using the Debug Log
+1. When reporting issues, please include relevant sections from the debug log
+2. The log file is automatically excluded from version control (see `.gitignore`)
+3. To capture logs:
+   - Open the Obsidian Developer Tools (Ctrl+Shift+I)
+   - Copy relevant log entries
+   - Paste them into `oom-debug-log.txt`
+   - Include the log entries when reporting issues
+
+### Log Format
+Each log entry follows this format:
+```
+[OneiroMetrics][Category] Message
+Data: {optional JSON data}
+```
+
+### Performance Logging
+Performance measurements are logged with timing information:
+```
+[OneiroMetrics][Performance] Operation took X.XXms
+Data: {
+  "category": "Category",
+  "operation": "Operation name",
+  "duration": X.XX
+}
+```
+
+### Error Logging
+Errors include stack traces and context:
+```
+[OneiroMetrics][Error] Error message
+Error: Error details
+Stack: Error stack trace
+Data: {optional context data}
+```
+
+## Contributing
+When contributing to the project:
+1. Use the logging system consistently
+2. Add appropriate log entries for new features
+3. Include error logging for edge cases
+4. Document any new log categories
+5. Test logging behavior in different scenarios 

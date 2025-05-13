@@ -136,6 +136,10 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - Steps to reproduce
 - Expected vs actual behavior
 - Relevant logs and screenshots
+  - Copy logs from Obsidian Developer Tools (Ctrl+Shift+I)
+  - Paste into `oom-debug-log.txt`
+  - Include relevant sections in your report
+- See [LOGGING.md](./LOGGING.md) for more details about the logging system
 
 ### UI Improvements
 - [ ] Relocate Time Filters button
