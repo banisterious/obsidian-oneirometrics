@@ -121,6 +121,31 @@ Stack: Error stack trace
 Data: {optional context data}
 ```
 
+## Log File Management
+
+### Automatic Cleanup
+The plugin implements automatic log file management:
+- Logs are automatically cleared after successful issue resolution
+- A backup of the log is created before clearing (with timestamp)
+- Maximum log file size is enforced (default: 1MB)
+- Old log backups are automatically cleaned up (keeps last 5)
+
+### Manual Management
+You can also manage the log file manually:
+1. Clear the log:
+   - Use the "Clear Debug Log" command in the command palette
+   - Or delete the contents of `oom-debug-log.txt`
+2. Create a backup:
+   - Use the "Backup Debug Log" command
+   - Or manually copy the file with a timestamp
+
+### Best Practices
+1. Clear the log before starting a new testing session
+2. Create a backup before clearing if the logs might be needed later
+3. Include log file management in your testing workflow
+4. Check log file size periodically
+5. Review and clean up old log backups
+
 ## Contributing
 When contributing to the project:
 1. Use the logging system consistently

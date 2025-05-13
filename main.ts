@@ -311,6 +311,24 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             }
         });
+
+        // Add commands for log management
+        this.addCommand({
+            id: 'clear-debug-log',
+            name: 'Clear Debug Log',
+            callback: () => this.clearDebugLog()
+        });
+
+        this.addCommand({
+            id: 'backup-debug-log',
+            name: 'Backup Debug Log',
+            callback: () => this.backupDebugLog()
+        });
+
+        // Check log file size periodically
+        this.registerInterval(
+            window.setInterval(() => this.checkLogFileSize(), 5 * 60 * 1000) // Check every 5 minutes
+        );
     }
 
     onunload() {
@@ -1864,5 +1882,70 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Update row numbers
         this.updateRowNumbers();
+    }
+
+    private async clearDebugLog() {
+        try {
+            const logPath = 'oom-debug-log.txt';
+            const logFile = this.app.vault.getAbstractFileByPath(logPath);
+            
+            if (logFile instanceof TFile) {
+                // Create backup before clearing
+                const backupPath = `oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+                const content = await this.app.vault.read(logFile);
+                await this.app.vault.create(backupPath, content);
+                
+                // Clear the log file
+                await this.app.vault.modify(logFile, '');
+                this.logger.log('Log', 'Debug log cleared and backed up');
+                
+                // Clean up old backups (keep last 5)
+                const backupFiles = this.app.vault.getMarkdownFiles()
+                    .filter(f => f.path.startsWith('oom-debug-log.backup-'))
+                    .sort((a, b) => b.stat.mtime - a.stat.mtime);
+                
+                for (let i = 5; i < backupFiles.length; i++) {
+                    await this.app.vault.delete(backupFiles[i]);
+                }
+            }
+        } catch (error) {
+            this.logger.error('Log', 'Failed to clear debug log', error as Error);
+            new Notice('Failed to clear debug log. See console for details.');
+        }
+    }
+
+    private async backupDebugLog() {
+        try {
+            const logPath = 'oom-debug-log.txt';
+            const logFile = this.app.vault.getAbstractFileByPath(logPath);
+            
+            if (logFile instanceof TFile) {
+                const backupPath = `oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+                const content = await this.app.vault.read(logFile);
+                await this.app.vault.create(backupPath, content);
+                this.logger.log('Log', 'Debug log backed up');
+                new Notice('Debug log backed up successfully');
+            }
+        } catch (error) {
+            this.logger.error('Log', 'Failed to backup debug log', error as Error);
+            new Notice('Failed to backup debug log. See console for details.');
+        }
+    }
+
+    private async checkLogFileSize() {
+        try {
+            const logPath = 'oom-debug-log.txt';
+            const logFile = this.app.vault.getAbstractFileByPath(logPath);
+            
+            if (logFile instanceof TFile) {
+                const MAX_SIZE = 1024 * 1024; // 1MB
+                if (logFile.stat.size > MAX_SIZE) {
+                    await this.clearDebugLog();
+                    new Notice('Debug log exceeded size limit and was cleared');
+                }
+            }
+        } catch (error) {
+            this.logger.error('Log', 'Failed to check log file size', error as Error);
+        }
     }
 } 
