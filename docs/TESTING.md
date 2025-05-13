@@ -90,12 +90,75 @@
   - [x] Horizontal rules
   - [x] Multiple newlines
 
+### Time Filter UI Testing
+
+- [ ] Calendar Preview
+  - [ ] Calendar renders correctly
+  - [ ] Current month is displayed
+  - [ ] Selected dates are highlighted
+  - [ ] Today's date is marked
+  - [ ] Clicking dates selects range
+  - [ ] Multi-month view works (if implemented)
+  - [ ] Week numbers display correctly (if implemented)
+
+- [ ] Accessibility Features
+  - [ ] Keyboard navigation works
+    - [ ] Arrow keys move focus
+    - [ ] Enter/Space activates buttons
+    - [ ] Tab order is logical
+    - [ ] Focus indicators are visible
+  - [ ] Screen reader support
+    - [ ] ARIA labels are present
+    - [ ] Announcements work
+    - [ ] Button roles are correct
+    - [ ] Live regions update properly
+  - [ ] High contrast mode
+    - [ ] Colors are visible
+    - [ ] Text is readable
+    - [ ] Icons are clear
+  - [ ] Reduced motion
+    - [ ] Animations respect preference
+    - [ ] Transitions are smooth
+
+- [ ] Mobile Optimization
+  - [ ] Layout adapts to screen size
+  - [ ] Touch targets are large enough
+  - [ ] Buttons are easily tappable
+  - [ ] Calendar is usable on small screens
+  - [ ] No horizontal scrolling needed
+
+- [ ] Theme Compatibility
+  - [ ] Colors match theme
+  - [ ] Icons are visible
+  - [ ] Text is readable
+  - [ ] Borders are visible
+  - [ ] Hover states work
+
+- [ ] Performance
+  - [ ] Calendar renders quickly
+  - [ ] Date selection is responsive
+  - [ ] Range updates are smooth
+  - [ ] No lag when switching months
+  - [ ] Memory usage is reasonable
+
 ### Filtering and Sorting
 
 - [x] Date range filter works
   - [x] All Time option
   - [x] Last Month option
   - [x] Last Week option
+  - [x] Today option
+  - [x] Yesterday option
+  - [x] This Week option
+  - [x] Custom range via calendar
+- [x] Duration and relative time indicators
+  - [x] Shows length of selected period
+  - [x] Indicates if period is current/past/future
+  - [x] Updates when range changes
+- [x] SVG icons for filter buttons
+  - [x] Icons are visible
+  - [x] Icons match theme
+  - [x] Icons are properly sized
 - [x] Metric filter works
   - [x] All Metrics option
   - [x] Individual metric options

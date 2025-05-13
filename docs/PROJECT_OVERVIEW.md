@@ -6,6 +6,16 @@
 # OneiroMetrics Project Overview
 
 ## Recent Updates
+- **Enhanced Time Filter UI:**
+  - Visual calendar preview for date range selection
+  - Duration and relative time indicators
+  - SVG icons for quick filter recognition
+  - Full keyboard navigation support
+  - Screen reader announcements
+  - High contrast mode support
+  - Reduced motion preferences
+  - Mobile-optimized layout
+
 - **New Optional Metrics Added:**
   - Dream Theme (Categorical/Keywords)
   - Lucidity Level (Score 1-5)
@@ -25,12 +35,20 @@
 
 ## Current Status
 - The project is actively maintained and updated with new features and improvements.
-- Recent changes include the addition of new metrics and UI enhancements to improve user experience.
+- Recent changes include:
+  - Enhanced time filter UI with calendar preview and accessibility features
+  - New optional metrics for more detailed dream analysis
+  - Improved UI/UX with better accessibility and mobile support
+  - Theme-aware styling and responsive design improvements
 
 ## Next Steps
-- **Testing:** Ensure the new optional metrics and collapsible section function as expected.
-- **Documentation:** Review and update documentation to reflect recent changes.
-- **Feedback:** Gather user feedback on the new metrics and UI enhancements.
+- **Testing:** 
+  - Verify time filter UI accessibility features
+  - Test calendar preview responsiveness
+  - Validate keyboard navigation
+  - Check high contrast mode compatibility
+- **Documentation:** Review and update documentation to reflect recent changes
+- **Feedback:** Gather user feedback on the new time filter UI and metrics
 
 ## Contributing
 Contributions are welcome! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project.

@@ -12,6 +12,14 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - Track multiple customizable metrics for each dream entry
 - Automatically scrape metrics from dream journal entries
 - Generate detailed analysis tables with sortable columns
+- Enhanced time filter UI with:
+  - Visual calendar preview
+  - Duration and relative time indicators
+  - SVG icons for quick recognition
+  - Full keyboard navigation
+  - Screen reader support
+  - High contrast mode
+  - Mobile-optimized layout
 - Filter entries by date range and specific metrics
 - Backup system to protect your data
 - Customizable settings for metrics and data management

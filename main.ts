@@ -6,6 +6,8 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 import { DEFAULT_METRICS, DreamMetricData, DreamMetricsSettings } from './types';
 import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
+import { TimeFilterView, TIME_FILTER_VIEW_TYPE } from './src/TimeFilterView';
+import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -54,6 +56,107 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             })
         );
+
+        // Register the time filter view
+        this.registerView(
+            TIME_FILTER_VIEW_TYPE,
+            (leaf) => new TimeFilterView(leaf)
+        );
+
+        // Add ribbon icon for time filter
+        this.addRibbonIcon('calendar', 'Time Filter', () => {
+            this.activateView();
+        });
+
+        // Add command to open time filter
+        this.addCommand({
+            id: 'open-time-filter',
+            name: 'Open Time Filter',
+            callback: () => {
+                this.activateView();
+            }
+        });
+
+        // Register time filter commands
+        this.addCommand({
+            id: 'set-today-filter',
+            name: 'Set filter to Today',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    view.getFilterManager().setFilter('today');
+                }
+            }
+        });
+
+        this.addCommand({
+            id: 'set-yesterday-filter',
+            name: 'Set filter to Yesterday',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    view.getFilterManager().setFilter('yesterday');
+                }
+            }
+        });
+
+        this.addCommand({
+            id: 'set-this-week-filter',
+            name: 'Set filter to This Week',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    view.getFilterManager().setFilter('thisWeek');
+                }
+            }
+        });
+
+        this.addCommand({
+            id: 'set-last-week-filter',
+            name: 'Set filter to Last Week',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    view.getFilterManager().setFilter('lastWeek');
+                }
+            }
+        });
+
+        this.addCommand({
+            id: 'set-this-month-filter',
+            name: 'Set filter to This Month',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    view.getFilterManager().setFilter('thisMonth');
+                }
+            }
+        });
+
+        this.addCommand({
+            id: 'set-last-month-filter',
+            name: 'Set filter to Last Month',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    view.getFilterManager().setFilter('lastMonth');
+                }
+            }
+        });
+
+        this.addCommand({
+            id: 'open-custom-date-range',
+            name: 'Open Custom Date Range',
+            callback: () => {
+                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (view) {
+                    new CustomDateRangeModal(this.app, (start, end) => {
+                        const filter = view.getFilterManager().addCustomFilter(start, end);
+                        view.getFilterManager().setFilter(filter.id);
+                    }).open();
+                }
+            }
+        });
     }
 
     onunload() {
@@ -1337,6 +1440,27 @@ export default class DreamMetricsPlugin extends Plugin {
         this.cleanupFunctions.push(() => {
             tbody.removeEventListener('scroll', scrollHandler);
         });
+    }
+
+    async activateView() {
+        const { workspace } = this.app;
+        
+        let leaf = workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0];
+        
+        if (!leaf) {
+            const newLeaf = workspace.getRightLeaf(false);
+            if (newLeaf) {
+                await newLeaf.setViewState({
+                    type: TIME_FILTER_VIEW_TYPE,
+                    active: true,
+                });
+                leaf = newLeaf;
+            }
+        }
+        
+        if (leaf) {
+            workspace.revealLeaf(leaf);
+        }
     }
 }
 

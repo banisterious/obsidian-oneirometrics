@@ -22,10 +22,23 @@
 - **Settings Page Overhaul:** The Settings page now features a visually distinct bordered metrics section, clear section dividers, and helper text under key section headers for improved clarity and usability. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ## Current Issues
-- **Testing Required:** Ensure the new optional metrics and collapsible section function as expected.
-- **Performance Optimization:** Further optimization may be needed for table regeneration and modal feedback.
+- **Testing Required:** 
+  - Verify time filter UI accessibility features
+  - Test calendar preview responsiveness
+  - Validate keyboard navigation in time filter
+  - Check high contrast mode compatibility
+  - Test screen reader announcements
+  - Verify mobile layout behavior
 
 ## Future Improvements
+- **Time Filter Enhancements:**
+  - Add support for custom date ranges via calendar
+  - Implement date range presets (Last 7 days, Last 30 days, etc.)
+  - Add relative time indicators (e.g., "2 days ago")
+  - Enhance calendar preview with multi-month view
+  - Add support for week numbers in calendar
+  - Implement date range comparison features
+
 - **Lucide Icon Picker Implementation:**
   - Single, search-first grid (8x5) without sidebar
   - Live search with minimum 1 character
@@ -36,10 +49,11 @@
   - Picker only in metric editor, icons used everywhere
   - Store only icon name in settings
   - For detailed technical specifications, see [Icon Picker Technical Implementation](docs/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md)
-- **Search/Filter for Icon Picker:** Implement search functionality for the icon picker.
-- **Expand Icon Selection:** Add more icons to the selection.
-- **Reduce Logging:** Minimize excessive logging in future builds.
-- **Add Filters:** Implement filters for Yesterday and Today.
+
+- **Performance Optimization:**
+  - Reduce excessive logging in future builds
+  - Optimize calendar preview rendering
+  - Improve time filter state management
 
 ## Contributing
 If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request.

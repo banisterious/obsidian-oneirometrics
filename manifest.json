@@ -1,7 +1,7 @@
 {
     "id": "oneirometrics",
     "name": "OneiroMetrics",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "minAppVersion": "0.15.0",
     "description": "Track and analyze dream journal metrics",
     "author": "John Banister",

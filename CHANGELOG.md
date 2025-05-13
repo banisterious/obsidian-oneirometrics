@@ -168,6 +168,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Callout metadata is no longer reflected as CSS classes on the Statistics or Dream Entry tables. Only standard classes are used, preventing accidental hiding or styling due to user metadata such as 'hide', 'compact', or 'summary'.
 
+## [0.3.1] - 2024-05-11
+
+### Added
+- **Enhanced Time Filter UI:**
+  - SVG icons for all filter buttons
+  - Calendar preview for date range visualization
+  - Duration and relative time indicators
+  - Full keyboard navigation support
+  - Screen reader announcements
+  - High contrast mode support
+  - Reduced motion preferences
+  - Mobile-optimized layout
+
+### Changed
+- Improved time filter button styling and layout
+- Enhanced accessibility of date range display
+- Optimized calendar preview for different screen sizes
+
+### Fixed
+- Time filter view type checking issues
+- Calendar preview rendering in different themes
+
 ---
 
 For more details, see PROJECT_OVERVIEW.md and TESTING.md. 
