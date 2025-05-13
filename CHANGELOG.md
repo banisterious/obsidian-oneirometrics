@@ -1,3 +1,68 @@
+# OneiroMetrics Changelog
+
+## Recent Changes and Fixes
+
+### Time Filter Integration
+- Fixed event handling by replacing non-existent `file-change` event with correct `modify` event from vault
+- Added proper event subscriptions for:
+  - Layout changes
+  - Workspace resizing
+  - Active leaf changes
+  - File modifications
+- Enhanced logging for filter updates and changes
+
+### Date Handling
+- Added robust date parsing for multiple formats:
+  - YYYY-MM-DD
+  - Block reference format (^YYYYMMDD)
+  - Month Day, YYYY
+  - General date formats
+- Added detailed logging for date parsing attempts
+- Improved error handling for invalid dates
+
+### Expand/Collapse Functionality
+- Enhanced button state management
+- Added aria-expanded and data-expanded attributes
+- Improved visibility toggling
+- Added logging for button interactions
+
+### Logging Improvements
+Added detailed logging for:
+- Date parsing and formatting
+- Filter updates and changes
+- Button interactions
+- Content visibility toggling
+- Table updates
+
+## Known Issues
+1. Time filter integration needs testing with new event handling
+2. Date display may need standardization
+3. Expand/collapse buttons need verification
+
+## Next Steps
+1. Test time filter with new event handling
+2. Simplify expand/collapse logic if needed
+3. Standardize date handling if issues persist
+
+## Recent Fixes Applied
+1. Replaced `file-change` event with `modify` event from vault
+2. Added proper event subscriptions for filter updates
+3. Enhanced logging throughout the codebase
+4. Improved error handling for date parsing
+
+## Logging Points Added
+- Date parsing attempts and results
+- Filter updates and changes
+- Button interactions
+- Content visibility toggling
+- Table updates and modifications
+
+## Notes for Future Development
+- Keep event handling simple and use correct Obsidian events
+- Maintain consistent logging for debugging
+- Focus on core functionality before adding complexity
+- Test each change thoroughly before moving on
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -168,27 +233,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Callout metadata is no longer reflected as CSS classes on the Statistics or Dream Entry tables. Only standard classes are used, preventing accidental hiding or styling due to user metadata such as 'hide', 'compact', or 'summary'.
 
-## [0.3.1] - 2024-05-11
+## [0.3.1] - 2025-05-12
 
 ### Added
-- **Enhanced Time Filter UI:**
-  - SVG icons for all filter buttons
-  - Calendar preview for date range visualization
-  - Duration and relative time indicators
-  - Full keyboard navigation support
-  - Screen reader announcements
-  - High contrast mode support
-  - Reduced motion preferences
-  - Mobile-optimized layout
-
-### Changed
-- Improved time filter button styling and layout
-- Enhanced accessibility of date range display
-- Optimized calendar preview for different screen sizes
+- **Enhanced Time Filters:** Added comprehensive time-based filtering options
+  - "This Week" filter for current week's entries
+  - "Last Week" filter for previous week's entries
+  - "This Month" filter for current month's entries
+  - "Last Month" filter for previous month's entries
+  - "This Year" filter for current year's entries
+  - "Last Year" filter for previous year's entries
+  - "All Time" option to show all entries
+- **Improved Date Handling:** Enhanced date parsing and display
+  - Support for multiple date formats (YYYY-MM-DD, block references, journal dates)
+  - Better error handling for invalid dates
+  - Detailed logging for date parsing attempts
 
 ### Fixed
-- Time filter view type checking issues
-- Calendar preview rendering in different themes
+- **Expand/Collapse Functionality:** Fixed issues with content visibility toggling
+  - Improved button state management
+  - Enhanced visibility toggling logic
+  - Added detailed logging for debugging
+- **Time Filter Integration:** Fixed filter application and updates
+  - Proper event handling for filter changes
+  - Correct subscription to workspace events
+  - Improved filter state management
+
+### Changed
+- **UI Improvements:** Enhanced filter display and interaction
+  - Clear visual feedback for active filters
+  - Improved filter button states
+  - Better accessibility for filter controls
 
 ---
 

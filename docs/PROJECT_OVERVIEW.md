@@ -40,6 +40,9 @@
   - New optional metrics for more detailed dream analysis
   - Improved UI/UX with better accessibility and mobile support
   - Theme-aware styling and responsive design improvements
+  - Robust date parsing and display
+  - Improved expand/collapse functionality
+  - Enhanced logging throughout the codebase
 
 ## Next Steps
 - **Testing:** 
@@ -56,30 +59,32 @@ Contributions are welcome! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Recent Improvements
+## Recent Improvements and Lessons Learned (May 12, 2025)
 
-### Version 0.3.0 (May 2025)
-- **Metric Icon Picker**: Added visual customization for metrics with Lucide icons
-- **Keyboard & Accessibility**: Implemented full keyboard navigation and screen reader support
-- **'This Week' Filter**: Added configurable week start day for better date filtering
-- **Readable Line Length Widget**: Added control for table width
-- **Enhanced Metrics Description**: Improved metric information display
-- **Automatic Backup System**: Added .bak extension for backup files
-- **Open Metrics Note Button**: Added quick access to metrics note
+### Event Handling Improvements
+- Replaced non-existent `file-change` event with correct `modify` event from vault
+- Added proper event subscriptions for workspace changes
+- Enhanced logging for better debugging
+- Improved filter state management
 
-### Version 0.2.1 (May 2025)
-- **Widget for Readable Line Length**: Added control for table width
-- **Metrics Description Section**: Added detailed metric information
-- **UI Improvements**: Enhanced table styling and theme compatibility
+### Date Handling Enhancements
+- Implemented robust date parsing for multiple formats
+- Added detailed logging for date parsing attempts
+- Improved error handling for invalid dates
+- Enhanced date format detection
 
-### Version 0.2.0 (May 2025)
-- **Metric Icon Picker**: Added visual customization for metrics
-- **Keyboard & Accessibility**: Implemented full keyboard navigation
-- **Table Improvements**: Enhanced sorting and filtering capabilities
+### UI/UX Refinements
+- Simplified expand/collapse functionality
+- Added ARIA attributes for better accessibility
+- Improved button state management
+- Enhanced content visibility toggling
 
-### Version 0.1.3 (May 2025)
-- **UI Improvements**: Enhanced autocomplete logic and modal fields
-- **Bug Fixes**: Resolved various UI issues
+### Development Best Practices
+- Keep event handling simple and use correct Obsidian events
+- Maintain consistent logging for debugging
+- Focus on core functionality before adding complexity
+- Test each change thoroughly before moving on
+- Document changes and fixes promptly
 
 ## Project Description
 

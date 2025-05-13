@@ -1,5 +1,40 @@
 # Known Issues and Future Improvements
 
+## Recent Issues and Fixes (May 12, 2025)
+
+### Time Filter Integration
+- **Issue:** Time filter integration was broken due to incorrect event handling
+- **Fix:** 
+  - Replaced non-existent `file-change` event with correct `modify` event from vault
+  - Added proper event subscriptions for layout changes, workspace resizing, and active leaf changes
+  - Enhanced logging for filter updates and changes
+  - Improved filter state management
+
+### Date Display
+- **Issue:** "Invalid Date" displays in the metrics table
+- **Fix:**
+  - Added robust date parsing for multiple formats (YYYY-MM-DD, block references, journal dates)
+  - Implemented detailed logging for date parsing attempts
+  - Added better error handling for invalid dates
+  - Improved date format detection order
+
+### Expand/Collapse Functionality
+- **Issue:** Expand/collapse buttons were non-functional
+- **Fix:**
+  - Simplified button state management
+  - Added aria-expanded and data-expanded attributes
+  - Improved visibility toggling logic
+  - Added detailed logging for button interactions
+  - Enhanced error handling for content visibility
+
+### Logging Improvements
+- Added comprehensive logging throughout the codebase:
+  - Date parsing and formatting
+  - Filter updates and changes
+  - Button interactions
+  - Content visibility toggling
+  - Table updates
+
 ## Recent Changes
 - **New Optional Metrics Added:**
   - Dream Theme (Categorical/Keywords)
@@ -29,6 +64,9 @@
   - Check high contrast mode compatibility
   - Test screen reader announcements
   - Verify mobile layout behavior
+  - Test date parsing with various formats
+  - Verify expand/collapse functionality
+  - Test filter state persistence
 
 ## Future Improvements
 - **Time Filter Enhancements:**
@@ -54,6 +92,41 @@
   - Reduce excessive logging in future builds
   - Optimize calendar preview rendering
   - Improve time filter state management
+
+## Date Format Standardization (May 12, 2025)
+
+### Current Situation
+- Multiple date formats are currently supported:
+  - YYYY-MM-DD
+  - Block reference format (^YYYYMMDD)
+  - Journal date format
+  - Month Day, YYYY
+  - Various other formats
+- This complexity leads to:
+  - Increased parsing overhead
+  - More potential points of failure
+  - Harder to maintain code
+  - Inconsistent date display
+
+### Proposed Solution
+- Standardize on a single primary date format (YYYY-MM-DD)
+- Add clear documentation for users about the preferred format
+- Provide a migration path for existing entries
+- Consider adding a date format conversion tool
+
+### Benefits
+- Simpler, more reliable date parsing
+- Consistent date display across the plugin
+- Better performance
+- Easier maintenance
+- Reduced bug surface area
+
+### Implementation Plan
+1. Document the preferred date format
+2. Add warnings for non-standard formats
+3. Create a conversion utility
+4. Update documentation
+5. Consider adding a date format validation step
 
 ## Contributing
 If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request.

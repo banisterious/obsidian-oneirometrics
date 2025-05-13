@@ -936,3 +936,41 @@ If you find any issues or have suggestions for improvements, please open an issu
 
 ## UI Improvements
 - **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.
+
+### Recent Fixes Testing (May 12, 2025)
+
+#### Time Filter Integration
+- [ ] Event Handling
+  - [ ] Filter updates when file is modified
+  - [ ] Filter updates on layout changes
+  - [ ] Filter updates on workspace resize
+  - [ ] Filter updates on active leaf change
+  - [ ] Filter state persists between tab switches
+  - [ ] Console shows proper event logging
+
+#### Date Display
+- [ ] Date Parsing
+  - [ ] YYYY-MM-DD format displays correctly
+  - [ ] Block reference format (^YYYYMMDD) displays correctly
+  - [ ] Journal date format displays correctly
+  - [ ] Invalid dates show appropriate error handling
+  - [ ] Console shows date parsing attempts
+  - [ ] Date sorting works correctly
+
+#### Expand/Collapse Functionality
+- [ ] Button Behavior
+  - [ ] Buttons toggle content visibility
+  - [ ] Button text updates correctly
+  - [ ] ARIA attributes update properly
+  - [ ] Content expands/collapses smoothly
+  - [ ] Multiple buttons work independently
+  - [ ] Console shows button interaction logs
+
+#### Logging Verification
+- [ ] Console Logs
+  - [ ] Date parsing attempts are logged
+  - [ ] Filter updates are logged
+  - [ ] Button interactions are logged
+  - [ ] Content visibility changes are logged
+  - [ ] Table updates are logged
+  - [ ] Error states are properly logged

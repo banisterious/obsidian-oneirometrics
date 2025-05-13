@@ -9,12 +9,91 @@ import { lucideIconMap } from './settings';
 import { TimeFilterView, TIME_FILTER_VIEW_TYPE } from './src/TimeFilterView';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 
+class OneiroMetricsModal extends Modal {
+    private plugin: DreamMetricsPlugin;
+
+    constructor(app: App, plugin: DreamMetricsPlugin) {
+        super(app);
+        this.plugin = plugin;
+    }
+
+    open(): void {
+        super.open();
+        this.contentEl.empty();
+        this.titleEl.setText('OneiroMetrics');
+        
+        // Add scrape button
+        const scrapeButton = this.contentEl.createEl('button', {
+            text: 'Scrape Metrics',
+            cls: 'mod-cta'
+        });
+        scrapeButton.addEventListener('click', () => {
+            this.plugin.scrapeMetrics();
+            this.close();
+        });
+    }
+
+    close(): void {
+        super.close();
+    }
+}
+
+class ConfirmModal extends Modal {
+    private onConfirmCallback: () => void;
+    private onCancelCallback: () => void;
+
+    constructor(app: App, title: string, message: string) {
+        super(app);
+        this.titleEl.setText(title);
+        this.contentEl.createEl('p', { text: message });
+    }
+
+    set onConfirm(callback: () => void) {
+        this.onConfirmCallback = callback;
+    }
+
+    set onCancel(callback: () => void) {
+        this.onCancelCallback = callback;
+    }
+
+    open(): void {
+        super.open();
+        const buttonContainer = this.contentEl.createEl('div', {
+            cls: 'modal-button-container'
+        });
+
+        const cancelButton = buttonContainer.createEl('button', {
+            text: 'Cancel',
+            cls: 'mod-warning'
+        });
+        cancelButton.addEventListener('click', () => {
+            if (this.onCancelCallback) this.onCancelCallback();
+            this.close();
+        });
+
+        const confirmButton = buttonContainer.createEl('button', {
+            text: 'Confirm',
+            cls: 'mod-cta'
+        });
+        confirmButton.addEventListener('click', () => {
+            if (this.onConfirmCallback) this.onConfirmCallback();
+            this.close();
+        });
+    }
+
+    close(): void {
+        super.close();
+    }
+}
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
 
     // Add memoization for table calculations
     private memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
+
+    private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
         await this.loadSettings();
@@ -189,7 +268,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async scrapeMetrics() {
-        console.log('[OneiroMetrics][DEBUG] scrapeMetrics called - VERSION DEBUG-LOG-1');
+        console.log('[OneiroMetrics] Starting metrics scrape...');
         // Show progress modal with detailed status
         const progressModal = new Modal(this.app);
         progressModal.titleEl.setText('Scraping Dream Metrics...');
@@ -408,6 +487,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Process files in batches of 5
         const BATCH_SIZE = 5;
         const totalFiles = files.length;
+        console.log(`[OneiroMetrics] Processing ${totalFiles} files in batches of ${BATCH_SIZE}`);
 
         for (let i = 0; i < totalFiles; i += BATCH_SIZE) {
             const batch = files.slice(i, i + BATCH_SIZE);
@@ -431,31 +511,36 @@ export default class DreamMetricsPlugin extends Plugin {
                     // --- Robust Nested Callout Parsing ---
                     // Split content into lines
                     const lines = content.split('\n');
+                    let journals: any[] = [];
                     let currentJournal: any = null;
                     let currentDiary: any = null;
                     let currentMetrics: any = null;
                     let blockLevel = 0;
                     let blockStack: any[] = [];
-                    let currentBlock: any = null;
+                    
                     // Helper to get callout type from a line
                     const getCalloutType = (line: string) => {
                         const match = line.match(/^>+\s*\[!(\w[\w-]*)/i);
                         return match ? match[1].toLowerCase() : null;
                     };
+                    
                     // Helper to get blockquote level
                     const getBlockLevel = (line: string) => {
                         const match = line.match(/^(>+)/);
                         return match ? match[1].length : 0;
                     };
+                    
                     // --- BEGIN IMPROVED STACK LOGIC ---
                     for (let idx = 0; idx < lines.length; idx++) {
                         const line = lines[idx];
                         const level = getBlockLevel(line);
                         const calloutType = getCalloutType(line);
+                        
                         // Only pop the stack if the current level is LESS than the top of the stack's level
                         while (blockStack.length > 0 && blockStack[blockStack.length - 1].level > level) {
                             blockStack.pop();
                         }
+                        
                         if (calloutType === 'journal-entry') {
                             currentJournal = {
                                 lines: [line],
@@ -463,6 +548,7 @@ export default class DreamMetricsPlugin extends Plugin {
                                 idx,
                                 diaries: []
                             };
+                            journals.push(currentJournal);
                             blockStack.push({ type: 'journal-entry', obj: currentJournal, level });
                         } else if (calloutType === 'dream-diary') {
                             currentDiary = {
@@ -491,78 +577,125 @@ export default class DreamMetricsPlugin extends Plugin {
                             // Add line to current block
                             blockStack[blockStack.length - 1].obj.lines.push(line);
                         }
-                        // Debug log for each line
-                        console.log('[OneiroMetrics][DEBUG] Line:', { idx, line, level, calloutType, blockStack: JSON.stringify(blockStack) });
                     }
-                    // --- END IMPROVED STACK LOGIC ---
+                    
                     // Now extract data from the parsed structure
-                    if (currentJournal && currentJournal.diaries.length > 0) {
-                        foundAnyJournalEntries = true;
-                        for (const diary of currentJournal.diaries) {
-                            for (const metricsBlock of diary.metrics) {
-                                // Extract metrics text
-                                const metricsText = metricsBlock.lines.map((l: string) => l.replace(/^>+\s*/, '')).join(' ').replace(/\s+/g, ' ').trim();
-                                // Extract dream content (all lines in diary except metrics blocks)
-                                const diaryContentLines = diary.lines.filter((l: string) => !/^>+\s*\[!dream-diary/i.test(l) && !/^>+\s*\[!dream-metrics/i.test(l));
-                                let dreamContent = diaryContentLines.map((l: string) => l.replace(/^>+\s*/, '').trim()).join(' ').replace(/\s+/g, ' ').trim();
-                                console.log('[OneiroMetrics][DEBUG] dreamContent after filtering:', dreamContent.slice(0, 200));
-                                // Extract date and title from the journal and diary callout lines
-                                const journalLine = currentJournal.lines[0];
-                                const diaryLine = diary.lines[0];
-                                
-                                // Try to extract date in YYYY-MM-DD format first
-                                let dateMatch = journalLine.match(/\b(\d{4}-\d{2}-\d{2})\b/);
-                                let date = dateMatch ? dateMatch[1] : '';
-                                
-                                // If no YYYY-MM-DD format found, try Month Day, YYYY format
-                                if (!date) {
-                                    const monthDayMatch = journalLine.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}/);
-                                    if (monthDayMatch) {
-                                        const dateObj = new Date(monthDayMatch[0]);
-                                        date = dateObj.toISOString().split('T')[0];
+                    for (const journal of journals) {
+                        if (journal.diaries.length > 0) {
+                            foundAnyJournalEntries = true;
+                            for (const diary of journal.diaries) {
+                                for (const metricsBlock of diary.metrics) {
+                                    // Extract metrics text
+                                    const metricsText = metricsBlock.lines.map((l: string) => l.replace(/^>+\s*/, '')).join(' ').replace(/\s+/g, ' ').trim();
+                                    
+                                    // Extract dream content (all lines in diary except metrics blocks)
+                                    const diaryContentLines = diary.lines.filter((l: string) => !/^>+\s*\[!dream-diary/i.test(l) && !/^>+\s*\[!dream-metrics/i.test(l));
+                                    let dreamContent = diaryContentLines.map((l: string) => l.replace(/^>+\s*/, '').trim()).join(' ').replace(/\s+/g, ' ').trim();
+                                    
+                                    // Extract date and title from the journal and diary callout lines
+                                    const journalLine = journal.lines[0];
+                                    const diaryLine = diary.lines[0];
+                                    
+                                    // More flexible date extraction
+                                    let date = '';
+                                    // Try YYYY-MM-DD format
+                                    let dateMatch = journalLine.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+                                    if (dateMatch) {
+                                        date = dateMatch[1];
+                                        console.log(`[OneiroMetrics] Found date in YYYY-MM-DD format: ${date}`);
+                                    } else {
+                                        // Try Month Day, YYYY format
+                                        const monthDayMatch = journalLine.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}/);
+                                        if (monthDayMatch) {
+                                            const dateObj = new Date(monthDayMatch[0]);
+                                            date = dateObj.toISOString().split('T')[0];
+                                            console.log(`[OneiroMetrics] Found date in Month Day format: ${date}`);
+                                        } else {
+                                            // Try block reference format
+                                            const blockRefMatch = journalLine.match(/\^(\d{8})/);
+                                            if (blockRefMatch) {
+                                                const dateStr = blockRefMatch[1];
+                                                date = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+                                                console.log(`[OneiroMetrics] Found date in block reference format: ${date}`);
+                                            } else {
+                                                // Try to extract date from the journal line itself
+                                                const anyDateMatch = journalLine.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                                                if (anyDateMatch) {
+                                                    const [_, year, month, day] = anyDateMatch;
+                                                    date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                                                    console.log(`[OneiroMetrics] Found date in general format: ${date}`);
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                                
-                                // If still no date found, try to extract from the block reference
-                                if (!date) {
-                                    const blockRefMatch = journalLine.match(/\^(\d{8})/);
-                                    if (blockRefMatch) {
-                                        const dateStr = blockRefMatch[1];
-                                        date = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+                                    
+                                    if (!date) {
+                                        console.error(`[OneiroMetrics] Could not extract date from line: ${journalLine}`);
                                     }
+                                    
+                                    // More flexible title extraction
+                                    let title = '';
+                                    let blockId = '';
+                                    // Try dream-diary callout format
+                                    const titleMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*?)(?:\s*\[\[|$)/);
+                                    if (titleMatch) {
+                                        title = titleMatch[1].trim();
+                                    }
+                                    // Try block reference format
+                                    if (!title) {
+                                        const blockRefMatch = diaryLine.match(/\[\[.*?\|(.*?)\]\]/);
+                                        if (blockRefMatch) {
+                                            title = blockRefMatch[1].trim();
+                                        }
+                                    }
+                                    // Try plain text after callout
+                                    if (!title) {
+                                        const plainTextMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*)/);
+                                        if (plainTextMatch) {
+                                            title = plainTextMatch[1].trim();
+                                        }
+                                    }
+                                    // Default if no title found
+                                    if (!title) {
+                                        title = 'Untitled Dream';
+                                    }
+
+                                    // Extract block ID if present
+                                    const blockIdMatch = diaryLine.match(/\^(\d{8})/);
+                                    if (blockIdMatch) {
+                                        blockId = blockIdMatch[1];
+                                        console.log(`[OneiroMetrics] Found block ID: ${blockId}`);
+                                    }
+                                    
+                                    // Parse metrics
+                                    const dreamMetrics = this.processMetrics(metricsText, metrics);
+                                    dreamMetrics['Words'] = dreamContent.split(/\s+/).length;
+                                    if (!metrics['Words']) {
+                                        metrics['Words'] = [];
+                                    }
+                                    metrics['Words'].push(dreamMetrics['Words']);
+                                    
+                                    // Add dream entry
+                                    foundAnyMetrics = true;
+                                    dreamEntries.push({
+                                        date,
+                                        title,
+                                        content: dreamContent,
+                                        source: {
+                                            file: path,
+                                            id: blockId // Store the block ID
+                                        },
+                                        metrics: dreamMetrics,
+                                        calloutMetadata: [] // Could extract if needed
+                                    });
+                                    entriesProcessed++;
                                 }
-                                
-                                const titleMatch = diaryLine.match(/\] (.*?) \[\[/);
-                                const title = titleMatch ? titleMatch[1].trim() : '';
-                                // Parse metrics
-                                const dreamMetrics = this.processMetrics(metricsText, metrics);
-                                dreamMetrics['Words'] = dreamContent.split(/\s+/).length;
-                                if (!metrics['Words']) {
-                                    metrics['Words'] = [];
-                                }
-                                metrics['Words'].push(dreamMetrics['Words']);
-                                // Add dream entry
-                                foundAnyMetrics = true;
-                                console.log('[OneiroMetrics][DEBUG] foundAnyMetrics set to true');
-                                dreamEntries.push({
-                                    date,
-                                    title,
-                                    content: dreamContent,
-                                    source: {
-                                        file: path,
-                                        id: '' // Could extract block ref if needed
-                                    },
-                                    metrics: dreamMetrics,
-                                    calloutMetadata: [] // Could extract if needed
-                                });
-                                entriesProcessed++;
-                                console.log(`[OneiroMetrics] Extracted dream entry: ${date} - ${title}`);
-                                console.log(`[OneiroMetrics][DEBUG] Extracted dream entry:`, { date, title, metrics: dreamMetrics, content: dreamContent.slice(0, 100), source: path });
                             }
                         }
                     }
+                    // --- END IMPROVED STACK LOGIC ---
                     // After the blockStack/line-walking loop, before extracting dream entries:
-                    console.log('[OneiroMetrics][DEBUG] Parsed callout structure for file:', path, JSON.stringify({ currentJournal, blockStack }, null, 2));
+                    console.log('[OneiroMetrics][DEBUG] Parsed callout structure for file:', path, JSON.stringify({ journals, blockStack }, null, 2));
                 } catch (error) {
                     console.error(`[OneiroMetrics] Error processing file ${path}:`, error);
                     new Notice(`Error processing file: ${path}`);
@@ -573,27 +706,34 @@ export default class DreamMetricsPlugin extends Plugin {
             await Promise.all(batchPromises);
         }
 
-        // Final validation
+        // Final validation and logging
+        console.log('[OneiroMetrics] Scrape complete:');
+        console.log(`- Valid notes: ${validNotes}`);
+        console.log(`- Journal entries found: ${foundAnyJournalEntries}`);
+        console.log(`- Metrics found: ${foundAnyMetrics}`);
+        console.log(`- Total entries processed: ${entriesProcessed}`);
+        console.log(`- Total callouts found: ${calloutsFound}`);
+
         if (validNotes === 0) {
-            console.log('[OneiroMetrics][DEBUG] scrapeMetrics early return: validNotes === 0');
+            console.log('[OneiroMetrics] No valid notes found');
             new Notice('No valid notes found. Please check your selected notes.');
             progressModal.close();
             return;
         }
         if (!foundAnyJournalEntries) {
-            console.log('[OneiroMetrics][DEBUG] scrapeMetrics early return: !foundAnyJournalEntries');
+            console.log('[OneiroMetrics] No journal entries found');
             new Notice('No journal entries found in selected notes.');
             progressModal.close();
             return;
         }
         if (!foundAnyMetrics) {
-            console.log('[OneiroMetrics][DEBUG] scrapeMetrics early return: !foundAnyMetrics');
+            console.log('[OneiroMetrics] No dream metrics callouts found');
             new Notice('No dream metrics callouts found in selected notes.');
             progressModal.close();
             return;
         }
         if (entriesProcessed === 0) {
-            console.log('[OneiroMetrics][DEBUG] scrapeMetrics early return: entriesProcessed === 0');
+            console.log('[OneiroMetrics] No metrics data found');
             new Notice('No metrics data found in selected notes.');
             progressModal.close();
             return;
@@ -601,16 +741,8 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Sort and update
         dreamEntries.sort((a, b) => a.date.localeCompare(b.date));
-        // After processing all files and before calling updateProjectNote:
-        console.log('[OneiroMetrics][DEBUG] scrapeMetrics: dreamEntries.length =', dreamEntries.length);
-        console.log('[OneiroMetrics][DEBUG] scrapeMetrics: dreamEntries =', JSON.stringify(dreamEntries, null, 2));
-        if (dreamEntries.length === 0) {
-            new Notice('[DEBUG] No dream entries found. updateProjectNote will not be called.');
-            console.log('[OneiroMetrics][DEBUG] No dream entries found. updateProjectNote will not be called. Metrics object:', metrics);
-        } else {
-            console.log('[OneiroMetrics][DEBUG] scrapeMetrics: About to call updateProjectNote with', dreamEntries.length, 'entries');
-            this.updateProjectNote(metrics, dreamEntries);
-        }
+        console.log(`[OneiroMetrics] Updating project note with ${dreamEntries.length} entries`);
+        this.updateProjectNote(metrics, dreamEntries);
         progressModal.close();
         new Notice('Metrics scraped successfully!');
 
@@ -619,45 +751,20 @@ export default class DreamMetricsPlugin extends Plugin {
         if (pluginAny._excludedFilesForNextScrape) pluginAny._excludedFilesForNextScrape = [];
     }
 
-    private processDreamContent(dreamDiary: string): string {
-        // First, extract the content between dream-diary and dream-metrics callouts
-        const diaryMatch = dreamDiary.match(/> \[!dream-diary\].*?\[\[.*?\]\]\n([\s\S]*?)(?=\n> \[!dream-metrics\]|$)/);
-        if (!diaryMatch) {
-            return '';
-        }
-        let content = diaryMatch[1];
-
-        // After extracting content, before further cleaning, strip [!dream-metrics] callouts and their content
-        content = content.replace(/\[!dream-metrics\][^\n]*((\n[^\n]*)*)/g, '').replace(/>\s*\[!dream-metrics\][^\n]*((\n[^\n]*)*)/g, '');
-
-        // Improved logic: preserve paragraph breaks
-        content = content
-            .split('\n')
-            .map(line => {
-                // If the line is only blockquote markers (with or without spaces), treat as paragraph break
-                if (/^([> ]+)$/.test(line.trim())) return '';
-                // Remove all leading blockquote markers (with or without spaces)
-                const stripped = line.replace(/^([> ]+)/, '').trim();
-                if (stripped === '') return '';
-                const filtered = stripped
-                    .split(' ')
-                    .filter(word =>
-                        !(
-                            word.match(/\.(?:png|jpg|jpeg|gif)(?:\|\d+)?$/i) ||
-                            word.match(/(?:banister|anister)-journals-\d{8}-.*?(?:\|\d+)?/) ||
-                            word.match(/^!.*?\|/) ||
-                            word.match(/\[\[.*?\]\]/) ||
-                            word.match(/\[!.*?\|.*?\]/)
-                        )
-                    )
-                    .join(' ')
-                    .replace(/\s+/g, ' ');
-                return filtered;
-            })
-            .join('\n')
-            .replace(/([^\n])\n([^\n])/g, '$1\n\n$2') // Ensure a blank line between paragraphs
-            .replace(/^\n+|\n+$/g, ''); // Trim leading/trailing newlines
-
+    private processDreamContent(content: string): string {
+        // Remove callouts and images
+        content = content.replace(/\[!.*?\]/g, '')
+                       .replace(/!\[\[.*?\]\]/g, '')
+                       .replace(/\[\[.*?\]\]/g, '')
+                       .trim();
+        
+        // Remove any remaining markdown artifacts
+        content = content.replace(/[#*_~`]/g, '')
+                       .replace(/\n{3,}/g, '\n\n')
+                       .replace(/^>\s*>/g, '') // Remove nested blockquotes
+                       .replace(/^>\s*/gm, '') // Remove single blockquotes
+                       .trim();
+        
         return content;
     }
 
@@ -874,13 +981,14 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
+        console.log(`[OneiroMetrics] Generating table with ${dreamEntries.length} entries`);
         const cacheKey = JSON.stringify({ metrics, dreamEntries });
         if (this.memoizedTableData.has(cacheKey)) {
+            console.log('[OneiroMetrics] Using cached table data');
             return this.memoizedTableData.get(cacheKey);
         }
 
         let content = '';
-        // Add explicit markers for section replacement
         content += '\n<!-- OOM METRICS START -->\n';
         
         // Metrics Section
@@ -947,30 +1055,15 @@ export default class DreamMetricsPlugin extends Plugin {
         // Dream Entries Section
         content += '<div class="oom-table-section">';
         content += '<div class="oom-table-title">Dream Entries</div>';
-        // Update Metrics Button
-        content += `<div class="oom-update-metrics-row">
-            <button id="oom-update-metrics-btn" class="oom-button oom-button--primary">Update Metrics</button>
-            <span class="oom-update-metrics-desc">Re-scrape all selected notes or folder</span>
-        </div>`;
-        // Readable Line Length Toggle Widget
-        content += `<div class="oom-line-length-toggle">
-            <label class="oom-line-length-label">
-                <input type="checkbox" id="oom-line-length-toggle" ${this.settings.readableLineLengthOverride ? 'checked' : ''} />
-                Override Readable Line Length for this table
-            </label>
-            <span class="oom-line-length-desc">When enabled, this table will use the full width of the editor, ignoring Obsidian's readable line width setting.</span>
-        </div>`;
         
         // Filter Controls
         content += '<div class="oom-filter-controls">\n';
-        content += '<div class="oom-date-filter">\n';
-        content += '<label for="dateRange">Date Range:</label>\n';
-        content += '<select id="dateRange" class="oom-select">\n';
-        content += '<option value="all">All Time</option>\n';
-        content += '<option value="month">Last Month</option>\n';
-        content += '<option value="week">Last Week</option>\n';
-        content += '<option value="thisweek">This Week</option>\n';
-        content += '</select>\n';
+        content += '<div class="oom-time-filter">\n';
+        content += '<button id="oom-time-filter-btn" class="oom-button oom-button--icon" aria-label="Open Time Filter">\n';
+        content += '<span class="oom-button-icon">📅</span>\n';
+        content += '<span class="oom-button-text">Time Filter</span>\n';
+        content += '</button>\n';
+        content += '<div id="oom-time-filter-display" class="oom-time-filter-display">All Time</div>\n';
         content += '</div>\n';
         content += '<div class="oom-metric-filter">\n';
         content += '<label for="metricFilter">Filter by Metric:</label>\n';
@@ -1005,38 +1098,102 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '</thead>\n';
         content += '<tbody>\n';
 
-        for (const entry of dreamEntries) {
-            content += '<tr>\n';
-            content += `<td>${entry.date}</td>\n`;
-            content += `<td><a href="#^${entry.source.id}" data-href="${entry.source.file}#^${entry.source.id}" class="internal-link">${entry.title}</a></td>\n`;
+        // Sort entries by date before displaying
+        const sortedEntries = [...dreamEntries].sort((a, b) => a.date.localeCompare(b.date));
+
+        for (const entry of sortedEntries) {
+            content += `<tr class="oom-dream-row" data-date="${entry.date}">\n`;
+            
+            // Format date - ensure it's a valid date string
+            let formattedDate = 'Invalid Date';
+            try {
+                console.log(`[OneiroMetrics] Processing date for table: ${entry.date}`);
+                
+                // Try parsing as YYYY-MM-DD first
+                const dateMatch = entry.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (dateMatch) {
+                    const [_, year, month, day] = dateMatch;
+                    console.log(`[OneiroMetrics] Found YYYY-MM-DD format: ${year}-${month}-${day}`);
+                    const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                    if (!isNaN(parsedDate.getTime())) {
+                        formattedDate = parsedDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+                        console.log(`[OneiroMetrics] Successfully formatted date: ${formattedDate}`);
+                    } else {
+                        console.error(`[OneiroMetrics] Failed to parse date components: ${year}-${month}-${day}`);
+                    }
+                } else {
+                    // Try block reference format
+                    const blockRefMatch = entry.date.match(/\^(\d{8})/);
+                    if (blockRefMatch) {
+                        const dateStr = blockRefMatch[1];
+                        console.log(`[OneiroMetrics] Found block reference format: ${dateStr}`);
+                        const year = dateStr.slice(0, 4);
+                        const month = dateStr.slice(4, 6);
+                        const day = dateStr.slice(6, 8);
+                        const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                        if (!isNaN(parsedDate.getTime())) {
+                            formattedDate = parsedDate.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            });
+                            console.log(`[OneiroMetrics] Successfully formatted date from block reference: ${formattedDate}`);
+                        } else {
+                            console.error(`[OneiroMetrics] Failed to parse block reference date: ${dateStr}`);
+                        }
+                    } else {
+                        // Try to extract date from the journal line itself
+                        const anyDateMatch = entry.date.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                        if (anyDateMatch) {
+                            const [_, year, month, day] = anyDateMatch;
+                            console.log(`[OneiroMetrics] Found general date format: ${year}-${month}-${day}`);
+                            const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                            if (!isNaN(parsedDate.getTime())) {
+                                formattedDate = parsedDate.toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                });
+                                console.log(`[OneiroMetrics] Successfully formatted date from general format: ${formattedDate}`);
+                            } else {
+                                console.error(`[OneiroMetrics] Failed to parse general format date: ${entry.date}`);
+                            }
+                        } else {
+                            // Try parsing as ISO string
+                            console.log(`[OneiroMetrics] Trying to parse as ISO string: ${entry.date}`);
+                            const date = new Date(entry.date);
+                            if (!isNaN(date.getTime())) {
+                                formattedDate = date.toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                });
+                                console.log(`[OneiroMetrics] Successfully formatted date from ISO: ${formattedDate}`);
+                            } else {
+                                console.error(`[OneiroMetrics] Date format not recognized: ${entry.date}`);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`[OneiroMetrics] Error formatting date ${entry.date}:`, e);
+            }
+            content += `<td>${formattedDate}</td>\n`;
+            
+            // Create note link with block reference
+            const noteLink = entry.source.file.replace(/\.md$/, '');
+            const blockRef = entry.source.id ? `#^${entry.source.id}` : '';
+            const fullLink = `${noteLink}${blockRef}`;
+            console.log(`[OneiroMetrics] Creating link: ${fullLink}`);
+            content += `<td class="oom-dream-title"><a href="${fullLink}" data-href="${fullLink}" class="internal-link" data-link-type="block" data-link-path="${noteLink}" data-link-hash="${blockRef}" title="${entry.title}">${entry.title}</a></td>\n`;
             content += `<td class="metric-value">${entry.metrics['Words'] || 0}</td>\n`;
 
             // Process dream content for display
-            let dreamContent = entry.content;
-            
-            // Escape HTML special characters, but allow <br> and <br /> tags, and preserve ampersands
-            dreamContent = dreamContent
-                // First, temporarily protect <br> and <br /> tags
-                .replace(/<br\s*\/?\s*>/gi, '___BR___')
-                // Escape ampersands not part of an entity
-                .replace(/&(?![a-zA-Z]+;|#\d+;)/g, '&amp;')
-                // Escape other HTML special characters
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;')
-                // Restore <br> and <br /> tags
-                .replace(/___BR___/g, '<br />');
-
-            // Convert markdown to HTML
-            dreamContent = dreamContent
-                .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')  // Bold
-                .replace(/\*([^*]+?)\*/g, '<em>$1</em>')             // Italic
-                .replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, '<a href="$2">$1</a>')  // Links
-                .replace(/\[\[([^\]]+?)\]\]/g, '<a href="$1">$1</a>')  // Wiki links
-                .replace(/`([^`]+?)`/g, '<code>$1</code>')           // Inline code
-                .replace(/\n/g, '<br>');                             // Line breaks
-
+            let dreamContent = this.processDreamContent(entry.content);
             if (!dreamContent || !dreamContent.trim()) {
                 dreamContent = '';
             }
@@ -1046,8 +1203,11 @@ export default class DreamMetricsPlugin extends Plugin {
                 const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}`;
                 content += `<td class="oom-dream-content" id="${cellId}">
                     <div class="oom-content-preview">${preview}</div>
-                    <div class="oom-content-full">${dreamContent}</div>
-                    <button type="button" class="oom-button oom-button--expand" aria-expanded="false" aria-controls="${cellId}-full">Show more<span class="visually-hidden"> full dream content</span></button>
+                    <div class="oom-content-full" style="display: none;">${dreamContent}</div>
+                    <button type="button" class="oom-button oom-button--expand" aria-expanded="false" aria-controls="${cellId}" data-expanded="false">
+                        <span class="oom-button-text">Show more</span>
+                        <span class="visually-hidden"> full dream content</span>
+                    </button>
                 </td>\n`;
             } else {
                 content += `<td class="oom-dream-content"><div class="oom-content-preview">${dreamContent}</div></td>\n`;
@@ -1064,10 +1224,10 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '</div>\n';
         content += '</div>\n';
         content += '\n<!-- OOM METRICS END -->\n';
-        console.log('[OneiroMetrics] generateMetricsTable output (first 200 chars):', content.slice(0, 200));
 
         const result = content;
         this.memoizedTableData.set(cacheKey, result);
+        console.log('[OneiroMetrics] Table generation complete');
         return result;
     }
 
@@ -1137,17 +1297,17 @@ export default class DreamMetricsPlugin extends Plugin {
         const container = this.app.workspace.containerEl;
         const cleanupFunctions: (() => void)[] = [];
 
-        console.log('[OneiroMetrics][DEBUG] attachProjectNoteEventListeners called');
+        console.log('[OneiroMetrics] Attaching project note event listeners');
         const previewEl = document.querySelector('.markdown-preview-view[data-type="oom-project-note"]');
         if (!previewEl) {
-            console.log('[OneiroMetrics][DEBUG] No project note preview element found');
+            console.log('[OneiroMetrics] No project note preview element found');
             return;
         }
 
         // Function to attach event listeners to expand buttons
         const attachExpandButtonListeners = (container: Element) => {
-            const expandButtons = container.querySelectorAll('.oom-expand-button');
-            console.log('[OneiroMetrics][DEBUG] Found', expandButtons.length, 'expand buttons');
+            const expandButtons = container.querySelectorAll('.oom-button--expand');
+            console.log('[OneiroMetrics] Found', expandButtons.length, 'expand buttons');
             
             expandButtons.forEach(button => {
                 // Remove any existing listeners to prevent duplicates
@@ -1155,39 +1315,56 @@ export default class DreamMetricsPlugin extends Plugin {
                 button.parentNode?.replaceChild(newButton, button);
                 
                 // Add the click listener
-                newButton.addEventListener('click', handleExpandClick);
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('[OneiroMetrics] Expand button clicked');
+                    const contentCell = newButton.closest('.oom-dream-content');
+                    if (!contentCell) {
+                        console.log('[OneiroMetrics] No content cell found for button');
+                        return;
+                    }
+
+                    const preview = contentCell.querySelector('.oom-content-preview') as HTMLElement;
+                    const full = contentCell.querySelector('.oom-content-full') as HTMLElement;
+                    if (!preview || !full) {
+                        console.log('[OneiroMetrics] Missing preview or full content elements');
+                        return;
+                    }
+
+                    const isExpanded = newButton.getAttribute('aria-expanded') === 'true';
+                    console.log('[OneiroMetrics] Current expanded state:', isExpanded);
+
+                    // Toggle visibility using inline styles
+                    if (isExpanded) {
+                        preview.style.display = 'block';
+                        full.style.display = 'none';
+                    } else {
+                        preview.style.display = 'none';
+                        full.style.display = 'block';
+                    }
+                    
+                    newButton.setAttribute('aria-expanded', (!isExpanded).toString());
+                    newButton.setAttribute('data-expanded', (!isExpanded).toString());
+                    
+                    // Update button text and add visual feedback
+                    const buttonText = newButton.querySelector('.oom-button-text');
+                    if (buttonText) {
+                        buttonText.textContent = isExpanded ? 'Show more' : 'Show less';
+                    }
+                    newButton.classList.toggle('is-expanded', !isExpanded);
+                    
+                    // Force a reflow to ensure styles are applied
+                    newButton.offsetHeight;
+                    
+                    console.log('[OneiroMetrics] Content visibility toggled:', {
+                        previewDisplay: preview.style.display,
+                        fullDisplay: full.style.display,
+                        buttonState: newButton.getAttribute('aria-expanded')
+                    });
+                });
             });
-        };
-
-        // Click handler for expand buttons
-        const handleExpandClick = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const button = e.currentTarget as HTMLButtonElement;
-            const contentCell = button.closest('.oom-dream-content');
-            if (!contentCell) {
-                console.log('[OneiroMetrics][DEBUG] No content cell found for button');
-                return;
-            }
-
-            const isExpanded = contentCell.classList.contains('expanded');
-            contentCell.classList.toggle('expanded');
-            button.setAttribute('aria-expanded', (!isExpanded).toString());
-            
-            // Update button text
-            const buttonText = button.querySelector('span:not(.visually-hidden)');
-            if (buttonText) {
-                buttonText.textContent = isExpanded ? 'Show more' : 'Show less';
-            }
-            
-            // Update hidden text for screen readers
-            const hiddenText = button.querySelector('.visually-hidden');
-            if (hiddenText) {
-                hiddenText.textContent = isExpanded ? ' full dream content' : ' less dream content';
-            }
-
-            console.log('[OneiroMetrics][DEBUG] Button clicked, expanded:', !isExpanded);
         };
 
         // Initial attachment of listeners
@@ -1215,177 +1392,219 @@ export default class DreamMetricsPlugin extends Plugin {
         // Clean up observer when plugin is unloaded
         this.register(() => observer.disconnect());
 
-        // Attach event listener for Update Metrics button
-        const updateBtn = previewEl.querySelector('#oom-update-metrics-btn');
-        if (updateBtn) {
-            updateBtn.addEventListener('click', async () => {
-                const modal = new Modal(this.app);
-                modal.titleEl.setText('Updating metrics...');
-                modal.contentEl.createEl('div', { text: 'Please wait while metrics are updated.' });
-                modal.open();
-                try {
-                    await this.scrapeMetrics();
-                    modal.titleEl.setText('Metrics updated successfully!');
-                    modal.contentEl.empty();
-                    modal.contentEl.createEl('div', { text: 'Metrics tables have been updated.' });
-                    const okBtn = modal.contentEl.createEl('button', { text: 'OK' });
-                    okBtn.classList.add('oom-button', 'oom-button--primary');
-                    okBtn.onclick = () => modal.close();
-                    this.updateProjectNoteView();
-                } catch (error) {
-                    modal.titleEl.setText('Error updating metrics');
-                    modal.contentEl.empty();
-                    modal.contentEl.createEl('div', { text: 'Error updating metrics. Check console for details.' });
-                    const okBtn = modal.contentEl.createEl('button', { text: 'OK' });
-                    okBtn.classList.add('oom-button', 'oom-button--primary');
-                    okBtn.onclick = () => modal.close();
-                    console.error('Error updating metrics:', error);
+        // Attach event listener for Time Filter button
+        const timeFilterBtn = previewEl.querySelector('#oom-time-filter-btn');
+        if (timeFilterBtn) {
+            timeFilterBtn.addEventListener('click', () => {
+                console.log('[OneiroMetrics] Time filter button clicked');
+                this.activateView();
+            });
+        }
+
+        // Subscribe to time filter changes
+        const timeFilterView = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+        if (timeFilterView) {
+            const filterManager = timeFilterView.getFilterManager();
+            
+            // Function to update the table based on the current filter
+            const updateTableWithFilter = () => {
+                console.log('[OneiroMetrics] Updating table with current filter');
+                const currentFilter = filterManager.getCurrentFilter();
+                const metricFilter = (previewEl.querySelector('#metricFilter') as HTMLSelectElement)?.value || 'all';
+                
+                if (currentFilter) {
+                    const dateRange = currentFilter.getDateRange();
+                    console.log('[OneiroMetrics] Filter date range:', dateRange);
+                    
+                    const rows = previewEl.querySelectorAll('.oom-dream-row');
+                    let visibleCount = 0;
+                    
+                    rows.forEach(row => {
+                        const date = row.getAttribute('data-date');
+                        if (date) {
+                            // Try to parse the date from various formats
+                            let dreamDate: Date | null = null;
+                            
+                            // Try YYYY-MM-DD format
+                            const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                            if (dateMatch) {
+                                const [_, year, month, day] = dateMatch;
+                                console.log(`[OneiroMetrics] Parsing YYYY-MM-DD format: ${year}-${month}-${day}`);
+                                dreamDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                            } else {
+                                // Try block reference format
+                                const blockRefMatch = date.match(/\^(\d{8})/);
+                                if (blockRefMatch) {
+                                    const dateStr = blockRefMatch[1];
+                                    console.log(`[OneiroMetrics] Parsing block reference format: ${dateStr}`);
+                                    const year = dateStr.slice(0, 4);
+                                    const month = dateStr.slice(4, 6);
+                                    const day = dateStr.slice(6, 8);
+                                    dreamDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                                } else {
+                                    // Try to extract date from the journal line itself
+                                    const anyDateMatch = date.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+                                    if (anyDateMatch) {
+                                        const [_, year, month, day] = anyDateMatch;
+                                        console.log(`[OneiroMetrics] Parsing general date format: ${year}-${month}-${day}`);
+                                        dreamDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                                    } else {
+                                        // Try ISO string as last resort
+                                        console.log(`[OneiroMetrics] Trying to parse as ISO string: ${date}`);
+                                        dreamDate = new Date(date);
+                                    }
+                                }
+                            }
+                            
+                            if (dreamDate && !isNaN(dreamDate.getTime())) {
+                                const isInRange = dreamDate >= dateRange.start && dreamDate <= dateRange.end;
+                                (row as HTMLElement).style.display = isInRange ? '' : 'none';
+                                if (isInRange) visibleCount++;
+                                console.log(`[OneiroMetrics] Row date ${dreamDate.toISOString()} is ${isInRange ? 'in' : 'out of'} range`);
+                            } else {
+                                console.error(`[OneiroMetrics] Failed to parse date: ${date}`);
+                                (row as HTMLElement).style.display = 'none';
+                            }
+                        }
+                    });
+                    
+                    // Update the filter display
+                    const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
+                    if (filterDisplay) {
+                        filterDisplay.textContent = `${currentFilter.name} (${visibleCount} entries)`;
+                    }
+                    
+                    console.log('[OneiroMetrics] Table updated with filter:', currentFilter.name, 'Visible entries:', visibleCount);
                 }
-            });
-        }
+            };
 
-        // Attach event listeners to sortable headers
-        const table = previewEl.querySelector('.oom-table.oom-sortable') as HTMLElement;
-        if (!table) {
-            console.log('[OneiroMetrics][DEBUG] No sortable table found');
-            return;
-        }
+            // Subscribe to filter changes
+            this.registerEvent(
+                this.app.workspace.on('layout-change', () => {
+                    console.log('[OneiroMetrics] Layout changed, checking for filter updates');
+                    const newTimeFilterView = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                    if (newTimeFilterView) {
+                        const newFilterManager = newTimeFilterView.getFilterManager();
+                        const currentFilter = newFilterManager.getCurrentFilter();
+                        if (currentFilter) {
+                            console.log('[OneiroMetrics] New filter detected:', currentFilter.name);
+                            updateTableWithFilter();
+                        }
+                    }
+                })
+            );
 
-        const headers = table.querySelectorAll('th.oom-sortable');
-        headers.forEach(header => {
-            const sortKey = header.getAttribute('data-sort');
-            if (sortKey) {
-                header.setAttribute('data-column', sortKey);
-                header.addEventListener('click', () => {
-                    this.sortTable(table, sortKey);
-                });
-            }
-        });
+            // Subscribe to filter manager changes
+            this.registerEvent(
+                this.app.workspace.on('resize', () => {
+                    console.log('[OneiroMetrics] Workspace resized, updating filter');
+                    updateTableWithFilter();
+                })
+            );
 
-        // Attach event listeners to filters
-        const dateRangeSelect = previewEl.querySelector('#dateRange') as HTMLSelectElement;
-        const metricFilterSelect = previewEl.querySelector('#metricFilter') as HTMLSelectElement;
+            // Subscribe to active leaf changes
+            this.registerEvent(
+                this.app.workspace.on('active-leaf-change', () => {
+                    console.log('[OneiroMetrics] Active leaf changed, updating filter');
+                    updateTableWithFilter();
+                })
+            );
 
-        if (dateRangeSelect) {
-            dateRangeSelect.addEventListener('change', () => {
-                this.filterTable(table, dateRangeSelect.value, metricFilterSelect?.value || 'all');
-            });
-        }
+            // Subscribe to vault changes instead of file-change
+            this.registerEvent(
+                this.app.vault.on('modify', () => {
+                    console.log('[OneiroMetrics] File modified, updating filter');
+                    updateTableWithFilter();
+                })
+            );
 
-        if (metricFilterSelect) {
-            metricFilterSelect.addEventListener('change', () => {
-                this.filterTable(table, dateRangeSelect?.value || 'all', metricFilterSelect.value);
-            });
-        }
-
-        // Attach event listener for line length toggle
-        const lineLengthToggle = previewEl.querySelector('#oom-line-length-toggle') as HTMLInputElement;
-        if (lineLengthToggle) {
-            lineLengthToggle.addEventListener('change', () => {
-                this.settings.readableLineLengthOverride = lineLengthToggle.checked;
-                this.saveSettings();
-                this.updateProjectNoteView();
-            });
+            // Initial update
+            updateTableWithFilter();
         }
 
         // Store cleanup functions
         this.cleanupFunctions.push(...cleanupFunctions);
     }
 
-    private sortTable(table: HTMLElement, column: string) {
-        console.log('[OneiroMetrics][DEBUG] Sorting table by column:', column);
-        const headers = table.querySelectorAll('th.oom-sortable');
+    private sortTable(column: string) {
+        const table = document.querySelector('.oom-metrics-table');
+        if (!table) return;
+
         const tbody = table.querySelector('tbody');
-        if (!tbody) {
-            console.log('[OneiroMetrics][DEBUG] No tbody found in table');
-            return;
-        }
+        if (!tbody) return;
 
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const header = Array.from(headers).find(h => h.getAttribute('data-sort') === column);
-        if (!header) {
-            console.log('[OneiroMetrics][DEBUG] No header found for column:', column);
-            return;
-        }
+        const rows = Array.from(tbody.querySelectorAll('.oom-dream-row'));
+        const currentDirection = this.currentSortDirection[column] || 'asc';
 
-        const currentDirection = header.getAttribute('data-direction') || 'asc';
-        const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
-
-        // Update sort direction indicators
-        headers.forEach(h => {
-            h.setAttribute('data-direction', '');
-            const icon = h.querySelector('.oom-sort-icon');
-            if (icon) icon.textContent = '↕';
-        });
-        header.setAttribute('data-direction', newDirection);
-        const thisIcon = header.querySelector('.oom-sort-icon');
-        if (thisIcon) thisIcon.textContent = newDirection === 'asc' ? '↑' : '↓';
-
-        // Sort the rows
+        // Sort rows
         rows.sort((a, b) => {
-            const colIndex = Array.from(headers).indexOf(header);
-            const aCell = a.querySelector(`td:nth-child(${colIndex + 1})`);
-            const bCell = b.querySelector(`td:nth-child(${colIndex + 1})`);
-            let aVal = aCell?.textContent?.trim() || '';
-            let bVal = bCell?.textContent?.trim() || '';
+            let aValue: string | number = '';
+            let bValue: string | number = '';
 
-            // Handle numeric columns
-            if (header.classList.contains('metric-value') || column === 'words') {
-                aVal = String(parseFloat(aVal) || 0);
-                bVal = String(parseFloat(bVal) || 0);
-            } else if (column === 'date') {
-                aVal = String(Date.parse(aVal.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1/$2/$3')) || 0);
-                bVal = String(Date.parse(bVal.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1/$2/$3')) || 0);
-            } else {
-                aVal = aVal.toLowerCase();
-                bVal = bVal.toLowerCase();
+            switch (column) {
+                case 'date':
+                    aValue = a.getAttribute('data-date') || '';
+                    bValue = b.getAttribute('data-date') || '';
+                    break;
+                case 'title':
+                    aValue = a.querySelector('.oom-dream-title')?.textContent || '';
+                    bValue = b.querySelector('.oom-dream-title')?.textContent || '';
+                    break;
+                case 'content':
+                    aValue = a.querySelector('.oom-dream-content')?.textContent || '';
+                    bValue = b.querySelector('.oom-dream-content')?.textContent || '';
+                    break;
+                default:
+                    aValue = a.querySelector(`[data-metric="${column}"]`)?.textContent || '';
+                    bValue = b.querySelector(`[data-metric="${column}"]`)?.textContent || '';
             }
 
-            if (aVal < bVal) return newDirection === 'asc' ? -1 : 1;
-            if (aVal > bVal) return newDirection === 'asc' ? 1 : -1;
+            // Handle numeric values
+            if (!isNaN(Number(aValue)) && !isNaN(Number(bValue))) {
+                aValue = Number(aValue);
+                bValue = Number(bValue);
+            }
+
+            // Compare values
+            if (aValue < bValue) return currentDirection === 'asc' ? -1 : 1;
+            if (aValue > bValue) return currentDirection === 'asc' ? 1 : -1;
             return 0;
         });
 
+        // Update sort direction
+        this.currentSortDirection[column] = currentDirection === 'asc' ? 'desc' : 'asc';
+
         // Reorder rows
         rows.forEach(row => tbody.appendChild(row));
-        console.log('[OneiroMetrics][DEBUG] Table sorted successfully');
+
+        // Update row numbers
+        this.updateRowNumbers();
     }
 
-    private filterTable(table: HTMLElement, dateRange: string, metricFilter: string) {
+    private filterTable(dateRange: string, metricFilter: string) {
         console.log('[OneiroMetrics][DEBUG] Filtering table with dateRange:', dateRange, 'metricFilter:', metricFilter);
-        const tbody = table.querySelector('tbody');
+        const tbody = document.querySelector('.oom-metrics-table tbody');
         if (!tbody) {
             console.log('[OneiroMetrics][DEBUG] No tbody found in table');
             return;
         }
 
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
+        const rows = Array.from(tbody.querySelectorAll('.oom-dream-row'));
+        const timeFilterView = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+        const currentFilter = timeFilterView?.getFilterManager().getCurrentFilter();
+        const currentRange = currentFilter?.getDateRange();
 
         rows.forEach(row => {
-            const dateCell = row.querySelector('td:first-child');
+            const date = row.getAttribute('data-date');
+            const title = row.querySelector('.oom-dream-title')?.textContent?.toLowerCase() || '';
+            const content = row.querySelector('.oom-dream-content')?.textContent?.toLowerCase() || '';
             const metricCells = row.querySelectorAll('td[data-metric]');
             let showRow = true;
 
-            // Apply date filter
-            if (dateRange !== 'all' && dateCell) {
-                const date = new Date(dateCell.textContent || '');
-                switch (dateRange) {
-                    case 'week':
-                        showRow = date >= oneWeekAgo;
-                        break;
-                    case 'month':
-                        showRow = date >= oneMonthAgo;
-                        break;
-                    case 'thisweek':
-                        showRow = date >= startOfWeek;
-                        break;
-                }
+            // Apply time filter
+            if (currentRange && date) {
+                const dreamDate = new Date(date);
+                showRow = dreamDate >= currentRange.start && dreamDate <= currentRange.end;
             }
 
             // Apply metric filter
@@ -1400,10 +1619,26 @@ export default class DreamMetricsPlugin extends Plugin {
             }
 
             // Update row visibility
-            row.style.display = showRow ? '' : 'none';
+            (row as HTMLElement).style.display = showRow ? '' : 'none';
         });
 
+        // Update row numbers
+        this.updateRowNumbers();
         console.log('[OneiroMetrics][DEBUG] Table filtered successfully');
+    }
+
+    private updateRowNumbers() {
+        const rows = document.querySelectorAll('.oom-dream-row');
+        let visibleCount = 0;
+        rows.forEach(row => {
+            if ((row as HTMLElement).style.display !== 'none') {
+                visibleCount++;
+                const numberCell = row.querySelector('td:first-child');
+                if (numberCell) {
+                    numberCell.textContent = visibleCount.toString();
+                }
+            }
+        });
     }
 
     // Add virtual scrolling implementation
@@ -1462,445 +1697,96 @@ export default class DreamMetricsPlugin extends Plugin {
             workspace.revealLeaf(leaf);
         }
     }
-}
 
-class OneiroMetricsModal extends Modal {
-    plugin: DreamMetricsPlugin;
-
-    constructor(app: App, plugin: DreamMetricsPlugin) {
-        super(app);
-        this.plugin = plugin;
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        contentEl.addClass('oom-modal');
-        contentEl.createEl('h2', { text: 'OneiroMetrics' });
-
-        // Project Note Path
-        new Setting(contentEl)
-            .setName('OneiroMetrics Note Path')
-            .addSearch(text => {
-                text.setValue(this.plugin.settings.projectNotePath)
-                    .setPlaceholder('Journals/Dream Diary/Metrics/Metrics.md')
-                    .onChange(value => {
-                        this.plugin.settings.projectNotePath = value;
-                    });
-                text.inputEl.addClass('oom-file-suggestion');
-            });
-
-        // Open Metrics Note Button
-        const openBtnSetting = new Setting(contentEl)
-            .setName('Open OneiroMetrics Note')
-            .setDesc('Open your configured OneiroMetrics Note for metrics tables.');
-        let openBtnComponent: ButtonComponent | null = null;
-        openBtnSetting.addButton(btn => {
-            openBtnComponent = btn;
-            btn.setButtonText('Open OneiroMetrics Note')
-                .setCta()
-                .setDisabled(true)
-                .onClick(async () => {
-                    const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.projectNotePath);
-                    if (file) {
-                        await this.app.workspace.getLeaf(true).openFile(file as TFile);
-                        this.close();
-                    }
-                });
-        });
-        // Enable button if file exists
-        const checkEnable = () => {
-            const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.projectNotePath);
-            if (openBtnComponent) openBtnComponent.setDisabled(!file);
-        };
-        checkEnable();
-        // Re-check when path changes
-        contentEl.querySelectorAll('.oom-file-suggestion').forEach(input => {
-            input.addEventListener('input', checkEnable);
-        });
-
-        // --- Flexible Note/Folder Selection (mirroring settings tab) ---
-        new Setting(contentEl)
-            .setName('Selection Mode')
-            .setDesc('Choose whether to select individual notes or a folder for metrics scraping')
-            .addDropdown(drop => {
-                drop.addOption('notes', 'Notes');
-                drop.addOption('folder', 'Folder');
-                drop.setValue(this.plugin.settings.selectionMode || 'notes');
-                drop.onChange(async (value) => {
-                    this.plugin.settings.selectionMode = value as 'notes' | 'folder';
-                    // Clear irrelevant selection when switching modes
-                    if (value === 'folder') {
-                        this.plugin.settings.selectedNotes = [];
-                    } else {
-                        this.plugin.settings.selectedFolder = '';
-                    }
-                    await this.plugin.saveSettings();
-                    this.close();
-                    new OneiroMetricsModal(this.app, this.plugin).open();
-                });
-            });
-
-        // Dynamic label and field
-        let selectionLabel = this.plugin.settings.selectionMode === 'folder' ? 'Selected Folder' : 'Selected Notes';
-        let selectionDesc = this.plugin.settings.selectionMode === 'folder'
-            ? 'Choose a folder to recursively search for dream metrics (max 200 files)'
-            : 'Notes to search for dream metrics (select one or more)';
-        let selectionSetting = new Setting(contentEl)
-            .setName(selectionLabel)
-            .setDesc(selectionDesc);
-
-        if ((this.plugin.settings.selectionMode || 'notes') === 'folder') {
-            // Folder autocomplete (styled like in settings)
-            selectionSetting.addSearch(search => {
-                search.setPlaceholder('Choose folder...');
-                search.setValue(this.plugin.settings.selectedFolder || '');
-                const parentForSuggestions = search.inputEl.parentElement || contentEl;
-                const suggestionContainer = parentForSuggestions.createEl('div', {
-                    cls: 'suggestion-container oom-suggestion-container',
-                    attr: {
-                        style: `
-                            display: none;
-                            position: absolute;
-                            z-index: 1000;
-                            background: var(--background-primary);
-                            border: 1px solid var(--background-modifier-border);
-                            border-radius: 4px;
-                            max-height: 200px;
-                            overflow-y: auto;
-                            min-width: 180px;
-                            width: 100%;
-                            box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
-                        `
-                    }
-                });
-                function positionSuggestionContainer() {
-                    const inputRect = search.inputEl.getBoundingClientRect();
-                    const parent = search.inputEl.parentElement || contentEl;
-                    const parentRect = parent.getBoundingClientRect();
-                    const dropdownWidth = Math.max(inputRect.width, 180);
-                    let left = inputRect.left - parentRect.left;
-                    let top = inputRect.bottom - parentRect.top;
-                    suggestionContainer.classList.add('oom-suggestion-container');
-                    suggestionContainer.style.removeProperty('position');
-                    suggestionContainer.style.removeProperty('left');
-                    suggestionContainer.style.removeProperty('top');
-                    suggestionContainer.style.removeProperty('width');
-                    suggestionContainer.style.removeProperty('overflowX');
-                    suggestionContainer.style.removeProperty('maxWidth');
-                    suggestionContainer.style.removeProperty('right');
-                    suggestionContainer.style.setProperty('--oom-suggestion-left', `${left}px`);
-                    suggestionContainer.style.setProperty('--oom-suggestion-top', `${top}px`);
-                    suggestionContainer.style.setProperty('--oom-suggestion-width', `${dropdownWidth}px`);
-                }
-                this.plugin.register(() => suggestionContainer.remove());
-                const getFolders = (): string[] => {
-                    const folders: string[] = [];
-                    const files = this.app.vault.getAllLoadedFiles();
-                    files.forEach(file => {
-                        if (file instanceof TFolder) {
-                            folders.push(file.path);
-                        }
-                    });
-                    return folders.sort((a, b) => a.localeCompare(b));
-                };
-                const showSuggestions = (query: string) => {
-                    const folders = getFolders();
-                    const normalizedQuery = query.toLowerCase();
-                    const filteredFolders = folders
-                        .filter(folder => folder.toLowerCase().includes(normalizedQuery))
-                        .slice(0, 10);
-                    suggestionContainer.empty();
-                    if (filteredFolders.length > 0) {
-                        filteredFolders.forEach(folder => {
-                            const item = suggestionContainer.createEl('div', {
-                                cls: 'suggestion-item',
-                                attr: { title: folder }
-                            });
-                            item.textContent = folder;
-                            item.addEventListener('mousedown', async (e) => {
-                                e.preventDefault();
-                                search.setValue(folder);
-                                this.plugin.settings.selectedFolder = folder;
-                                await this.plugin.saveSettings();
-                            });
-                        });
-                        positionSuggestionContainer();
-                        suggestionContainer.classList.add('visible');
-                        suggestionContainer.style.display = 'block';
-                    } else {
-                        suggestionContainer.classList.remove('visible');
-                        suggestionContainer.style.display = 'none';
-                    }
-                };
-                search.inputEl.addEventListener('input', (e) => {
-                    showSuggestions(search.inputEl.value);
-                });
-                search.inputEl.addEventListener('focus', (e) => {
-                    showSuggestions(search.inputEl.value);
-                });
-                search.inputEl.addEventListener('blur', () => {
-                    setTimeout(() => {
-                        suggestionContainer.classList.remove('visible');
-                        suggestionContainer.style.display = 'none';
-                    }, 200);
-                });
-            });
-        } else {
-            // Multi-chip note autocomplete (existing)
-            selectionSetting.addExtraButton(button => { }); // No-op for layout
-            const searchFieldContainer = contentEl.createEl('div', { cls: 'oom-multiselect-search-container' });
-            const chipsContainer = contentEl.createEl('div', { cls: 'oom-multiselect-chips-container' });
-            chipsContainer.style.display = (this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0) ? '' : 'none';
-            import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
-                createSelectedNotesAutocomplete({
-                    app: this.app,
-                    plugin: this.plugin,
-                    containerEl: searchFieldContainer,
-                    selectedNotes: this.plugin.settings.selectedNotes,
-                    onChange: (selected) => {
-                        this.plugin.settings.selectedNotes = selected;
-                        chipsContainer.style.display = (selected && selected.length > 0) ? '' : 'none';
-                        this.plugin.saveSettings();
-                    }
-                });
+    private setupFilterHandlers() {
+        // Date range filter
+        const dateRangeFilter = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+        if (dateRangeFilter) {
+            dateRangeFilter.addEventListener('change', () => {
+                this.applyFilters();
             });
         }
 
-        // Callout Name
-        new Setting(contentEl)
-            .setName('Callout Name')
-            .addText(text => text
-                .setValue(this.plugin.settings.calloutName)
-                .onChange(value => {
-                    this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
-                }));
-
-        // Scrape Metrics button
-        new Setting(contentEl)
-            .setName('Scrape Metrics')
-            .addButton(button => button
-                .setButtonText('Scrape')
-                .onClick(async () => {
-                    new Notice('[DEBUG] Scrape button clicked in Project Note modal');
-                    console.log('[DEBUG] Scrape button clicked in Project Note modal');
-                    // If in folder mode, show preview modal before scraping
-                    if (this.plugin.settings.selectionMode === 'folder' && this.plugin.settings.selectedFolder) {
-                        new Notice('[DEBUG] About to create folder preview modal in Project Note modal');
-                        console.log('[DEBUG] About to create folder preview modal in Project Note modal');
-                        const folderPath = this.plugin.settings.selectedFolder;
-                        if (!folderPath) {
-                            new Notice('Please select a folder first.');
-                            return;
-                        }
-                        const folder = this.app.vault.getAbstractFileByPath(folderPath);
-                        if (!folder || !(folder instanceof TFolder)) {
-                            new Notice('Selected folder not found.');
-                            return;
-                        }
-                        // Gather up to 200 markdown files recursively
-                        const files: string[] = [];
-                        const gatherFiles = (folder: TFolder, acc: string[]) => {
-                            for (const child of folder.children) {
-                                if (child instanceof TFile && child.extension === 'md') {
-                                    acc.push(child.path);
-                                    if (acc.length >= 200) break;
-                                } else if (child instanceof TFolder) {
-                                    gatherFiles(child, acc);
-                                    if (acc.length >= 200) break;
-                                }
-                            }
-                        };
-                        gatherFiles(folder, files);
-                        // Count total markdown files (for warning)
-                        let totalCount = 0;
-                        const countFiles = (folder: TFolder) => {
-                            for (const child of folder.children) {
-                                if (child instanceof TFile && child.extension === 'md') {
-                                    totalCount++;
-                                } else if (child instanceof TFolder) {
-                                    countFiles(child);
-                                }
-                            }
-                        };
-                        countFiles(folder);
-                        if (files.length === 0) {
-                            new Notice('No markdown files found in the selected folder.');
-                            return;
-                        }
-                        // Get any previously excluded files for this folder
-                        const pluginAny = this.plugin as any;
-                        const persistentKey = folderPath;
-                        const persistentExclusions = (this.plugin.settings._persistentExclusions && this.plugin.settings._persistentExclusions[persistentKey]) || [];
-                        let fileList: { path: string; name: string; checked: boolean; mtime: number }[] = files.map(path => {
-                            const file = this.app.vault.getAbstractFileByPath(path);
-                            return {
-                                path,
-                                name: path.split('/').pop() || path,
-                                checked: !persistentExclusions.includes(path),
-                                mtime: file instanceof TFile ? file.stat.mtime : 0
-                            };
-                        });
-                        const modal = new Modal(this.app);
-                        modal.titleEl.setText('Preview Files to be Scraped');
-                        const content = modal.contentEl.createEl('div');
-                        content.style.maxHeight = '400px';
-                        content.style.overflowY = 'auto';
-                        content.style.fontSize = '0.98em';
-                        content.style.padding = '0.5em 0';
-                        // File list UI
-                        const listContainer = content.createEl('div');
-                        listContainer.style.margin = '0';
-                        listContainer.style.paddingLeft = '0';
-                        // Render function
-                        function renderList() {
-                            listContainer.empty();
-                            // File count display
-                            const selectedCount = fileList.filter(f => f.checked).length;
-                            const totalCount = fileList.length;
-                            const countDisplay = listContainer.createEl('div', { cls: 'oom-file-count' });
-                            countDisplay.textContent = `${selectedCount} of ${totalCount} files selected`;
-                            // Render file list
-                            fileList.forEach((file, idx) => {
-                                const row = listContainer.createEl('div', { cls: 'oom-file-row' });
-                                const checkbox = row.createEl('input');
-                                checkbox.type = 'checkbox';
-                                checkbox.checked = file.checked;
-                                checkbox.addClass('oom-checkbox');
-                                checkbox.addEventListener('change', () => {
-                                    fileList[idx].checked = checkbox.checked;
-                                    // Update file count display
-                                    countDisplay.textContent = `${fileList.filter(f => f.checked).length} of ${fileList.length} files selected`;
-                                });
-                                row.createEl('span', { text: file.name, cls: 'oom-file-name' });
-                            });
-                        }
-                        renderList();
-                        // Add batch action buttons
-                        const batchActionsRow = content.createEl('div', { cls: 'oom-batch-actions-row' });
-                        const selectAllBtn = batchActionsRow.createEl('button', { text: 'Select All' });
-                        selectAllBtn.classList.add('oom-button', 'oom-button--batch');
-                        selectAllBtn.setAttribute('aria-label', 'Select all files');
-                        selectAllBtn.onclick = () => {
-                            fileList.forEach(f => f.checked = true);
-                            renderList();
-                            selectAllBtn.focus();
-                        };
-                        const deselectAllBtn = batchActionsRow.createEl('button', { text: 'Deselect All' });
-                        deselectAllBtn.classList.add('oom-button', 'oom-button--batch');
-                        deselectAllBtn.setAttribute('aria-label', 'Deselect all files');
-                        deselectAllBtn.onclick = () => {
-                            fileList.forEach(f => f.checked = false);
-                            renderList();
-                            deselectAllBtn.focus();
-                        };
-                        // Add spinner/progress bar and status message
-                        const statusRow = content.createEl('div', { cls: 'oom-modal-status-row', attr: { role: 'status', 'aria-live': 'polite' } });
-                        const spinner = statusRow.createEl('div', { cls: 'oom-spinner', attr: { 'aria-hidden': 'true' } });
-                        spinner.style.display = 'none';
-                        const statusMsg = statusRow.createEl('span', { text: '', cls: 'oom-status-msg' });
-                        function showStatus(msg: string, showSpinner = false) {
-                            statusMsg.textContent = msg;
-                            spinner.style.display = showSpinner ? '' : 'none';
-                        }
-                        // Show gathering status at start
-                        showStatus('Gathering files…', true);
-                        setTimeout(() => {
-                            showStatus('Ready', false);
-                        }, 500);
-                        // Add Continue and Cancel buttons
-                        const btnRow = content.createEl('div', { cls: 'oom-modal-btn-row' });
-                        const continueBtn = btnRow.createEl('button', { text: 'Continue' });
-                        continueBtn.classList.add('oom-button', 'oom-button--primary');
-                        continueBtn.onclick = async () => {
-                            const selectedFiles = fileList.filter(f => f.checked).map(f => f.path);
-                            if (selectedFiles.length === 0) {
-                                new Notice('Please select at least one file to scrape.');
-                                return;
-                            }
-                            // Save persistent exclusions for this folder
-                            if (!this.plugin.settings._persistentExclusions) this.plugin.settings._persistentExclusions = {};
-                            this.plugin.settings._persistentExclusions[persistentKey] = fileList.filter(f => !f.checked).map(f => f.path);
-                            await this.plugin.saveSettings();
-                            // Pass selectedFiles to the scraping logic
-                            const pluginAny = this.plugin as any;
-                            pluginAny._excludedFilesForNextScrape = fileList.filter(f => !f.checked).map(f => f.path);
-                            await this.plugin.scrapeMetrics();
-                            modal.close();
-                            showSuccessModal(this.app, 'Metrics scraped successfully!');
-                        };
-                        const cancelBtn = btnRow.createEl('button', { text: 'Cancel' });
-                        cancelBtn.classList.add('oom-button', 'oom-button--secondary');
-                        cancelBtn.onclick = () => {
-                            modal.close();
-                        };
-                        modal.open();
-                    }
-                    // Notes mode: scrape immediately
-                    await this.plugin.scrapeMetrics();
-                    showSuccessModal(this.app, 'Metrics scraped successfully!');
-                }));
-    }
-
-    onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
-    }
-}
-
-// Add ConfirmModal class
-class ConfirmModal extends Modal {
-    public onConfirm: () => void;
-    public onCancel: () => void;
-
-    constructor(
-        app: App,
-        private title: string,
-        private message: string
-    ) {
-        super(app);
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        contentEl.addClass('oom-confirm-modal');
-
-        contentEl.createEl('h2', { text: this.title });
-        contentEl.createEl('p', { text: this.message });
-
-        const buttonContainer = contentEl.createEl('div', { cls: 'oom-modal-buttons' });
-
-        new ButtonComponent(buttonContainer)
-            .setButtonText('Cancel')
-            .setClass('oom-button oom-button--secondary')
-            .onClick(() => {
-                this.onCancel();
-                this.close();
+        // Title filter
+        const titleFilter = document.getElementById('oom-title-filter') as HTMLInputElement;
+        if (titleFilter) {
+            titleFilter.addEventListener('input', () => {
+                this.applyFilters();
             });
+        }
 
-        new ButtonComponent(buttonContainer)
-            .setButtonText('Continue')
-            .setClass('oom-button oom-button--primary')
-            .onClick(() => {
-                this.onConfirm();
-                this.close();
+        // Content filter
+        const contentFilter = document.getElementById('oom-content-filter') as HTMLInputElement;
+        if (contentFilter) {
+            contentFilter.addEventListener('input', () => {
+                this.applyFilters();
             });
+        }
+
+        // Sort controls
+        const sortControls = document.querySelectorAll('.oom-sort-control');
+        sortControls.forEach(control => {
+            control.addEventListener('click', (e) => {
+                const target = e.currentTarget as HTMLElement;
+                const column = target.getAttribute('data-column');
+                if (column) {
+                    this.sortTable(column);
+                }
+            });
+        });
     }
 
-    onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
-    }
-}
+    private applyFilters() {
+        const dateRange = (document.getElementById('oom-date-range-filter') as HTMLSelectElement)?.value || 'all';
+        const titleFilter = (document.getElementById('oom-title-filter') as HTMLInputElement)?.value.toLowerCase() || '';
+        const contentFilter = (document.getElementById('oom-content-filter') as HTMLInputElement)?.value.toLowerCase() || '';
 
-// Helper function to show a success modal
-function showSuccessModal(app: App, message: string) {
-    const modal = new Modal(app);
-    modal.titleEl.setText('Success');
-    modal.contentEl.createEl('div', { text: message, cls: 'oom-success-message' });
-    const closeBtn = modal.contentEl.createEl('button', { text: 'Close' });
-    closeBtn.classList.add('oom-button', 'oom-button--primary');
-    closeBtn.onclick = () => modal.close();
-    modal.open();
+        const rows = document.querySelectorAll('.oom-dream-row');
+        rows.forEach(row => {
+            const date = row.getAttribute('data-date');
+            const title = row.querySelector('.oom-dream-title')?.textContent?.toLowerCase() || '';
+            const content = row.querySelector('.oom-dream-content')?.textContent?.toLowerCase() || '';
+
+            let showRow = true;
+
+            // Apply date range filter
+            if (dateRange !== 'all' && date) {
+                const dreamDate = new Date(date);
+                const now = new Date();
+                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+                switch (dateRange) {
+                    case 'week':
+                        showRow = dreamDate >= oneWeekAgo;
+                        break;
+                    case 'month':
+                        showRow = dreamDate >= oneMonthAgo;
+                        break;
+                    case 'year':
+                        showRow = dreamDate >= oneYearAgo;
+                        break;
+                    default:
+                        showRow = true;
+                }
+            }
+
+            // Apply title filter
+            if (showRow && titleFilter) {
+                showRow = title.includes(titleFilter);
+            }
+
+            // Apply content filter
+            if (showRow && contentFilter) {
+                showRow = content.includes(contentFilter);
+            }
+
+            // Show/hide row
+            (row as HTMLElement).style.display = showRow ? '' : 'none';
+        });
+
+        // Update row numbers
+        this.updateRowNumbers();
+    }
 } 
