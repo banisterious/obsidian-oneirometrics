@@ -55,8 +55,8 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 ## Settings
 
 ### Project Note
-- **Project Note Path:** Path to the main note where your dream metrics are stored.
-- **Selected Notes:** Choose which notes to analyze for dream metrics
+- **OneiroMetrics Path:** Path to the main note where your dream metrics are stored (previously called "Project Note").
+- **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics.
 - **Open Metrics Note:** Quick access button to open your metrics note
 
 ### Backup Settings
