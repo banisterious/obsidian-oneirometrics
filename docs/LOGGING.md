@@ -3,6 +3,18 @@
 ## Overview
 The OneiroMetrics plugin implements a comprehensive logging system to aid in debugging, monitoring, and performance tracking. The system uses a singleton Logger class that provides structured logging with different categories and severity levels.
 
+## Configuration
+The logging system can be configured through the plugin settings:
+
+1. Open the OneiroMetrics settings
+2. Navigate to the "Logging Settings" section (located after basic settings)
+3. Configure the following options:
+   - **Logging Level**: Choose between "Off", "Errors Only", or "Debug"
+   - **Maximum Log Size**: Set the maximum size of the log file in MB
+   - **Maximum Backups**: Set the number of backup log files to keep
+
+> **Note**: During the current development phase, logging is set to "Debug" by default to assist with issue tracking. This will be changed back to "Off" after issues stabilize.
+
 ## Log Categories
 - **Date**: Date parsing and validation operations
 - **Events**: Event listener management and user interactions

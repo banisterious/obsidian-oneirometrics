@@ -358,6 +358,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Filtering by date and metric now works as expected in the Dream Entries table.
 - All previously identified UI/UX issues with autocomplete, backup creation, content column formatting, and metric modal fields have been resolved.
 - The codebase now attaches all interactive logic (sorting, filtering, expand/collapse) directly via the plugin, ensuring compatibility with Obsidian's preview mode.
+- Added comprehensive logging system with configurable levels and performance tracking.
+- Implemented efficient state persistence for expanded/collapsed content.
+- Enhanced performance with debounced updates and optimized DOM operations.
+- Improved accessibility with ARIA attributes and keyboard navigation.
 
 ## Current Status (as of May 2025)
 
@@ -366,7 +370,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - ✅ **Table sorting:** Clicking column headers sorts the Dream Entries table.
 - ✅ **Filtering:** Date and metric filtering now updates the Dream Entries table.
 - ✅ **Autocomplete, backup, and modal UI:** All previously reported issues are resolved.
-- ⏳ **Performance optimizations:** Pending further implementation and testing.
+- ✅ **Logging system:** Implemented with configurable levels and performance tracking.
+- ✅ **State persistence:** Expanded/collapsed states now persist across sessions.
+- ✅ **Performance:** Optimized with debounced updates and efficient DOM operations.
+- ✅ **Accessibility:** Enhanced with ARIA attributes and keyboard navigation.
+- ⏳ **Performance optimizations:** Additional optimizations pending for large datasets.
 - ⏳ **Advanced features:** See Planned Features below.
 
 ## Known Issues & Testing
@@ -374,6 +382,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [x] Lucide icons now render in all tables and modals.
 - [x] Show more button expands/collapses content.
 - [x] Table sorting works for all columns except Content.
+- [x] Filtering updates table correctly.
+- [x] State persistence works across sessions.
+- [x] Logging system provides comprehensive debugging.
+- [ ] Performance with large datasets needs further optimization.
 - [x] Filtering by date and metric works as expected.
 - [x] All previously reported UI/UX issues are resolved.
 - [ ] Performance optimizations pending implementation and testing.

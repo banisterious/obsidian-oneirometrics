@@ -84,6 +84,12 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - **This Week Filter**: Configure week start day
 - **Metrics Description**: View detailed metric information
 
+### Logging Settings
+- **Logging Level**: Control logging verbosity (Off/Errors Only/Debug)
+- **Maximum Log Size**: Set log file size limit in MB
+- **Maximum Backups**: Configure number of backup log files
+- **Note**: During development, logging is set to "Debug" by default
+
 ## Usage
 
 ### Adding Dream Metrics
