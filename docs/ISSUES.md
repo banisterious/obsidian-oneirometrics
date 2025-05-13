@@ -136,3 +136,10 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - Steps to reproduce
 - Expected vs actual behavior
 - Relevant logs and screenshots
+
+### UI Improvements
+- [ ] Relocate Time Filters button
+  - Remove from ribbon to reduce UI clutter
+  - Keep access through OneiroMetrics note only
+  - Consider adding keyboard shortcut for quick access
+  - Ensure discoverability through documentation and UI hints
