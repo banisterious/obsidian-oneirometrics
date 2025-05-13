@@ -55,9 +55,9 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 ## Settings
 
 ### Project Note
-- **Project Note Path**: The path where metrics tables will be written
-- **Selected Notes**: Choose which notes to analyze for dream metrics
-- **Open Metrics Note**: Quick access button to open your metrics note
+- **Project Note Path:** Path to the main note where your dream metrics are stored.
+- **Selected Notes:** Choose which notes to analyze for dream metrics
+- **Open Metrics Note:** Quick access button to open your metrics note
 
 ### Backup Settings
 - **Enable Backups**: Toggle to enable/disable automatic backups (enabled by default)
@@ -157,4 +157,9 @@ MIT License - see LICENSE file for details
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
-- Backup files now use the .bak extension instead of .md for better file management 
+- Backup files now use the .bak extension instead of .md for better file management
+
+## New Features (May 2025)
+
+- **OneiroMetrics Path:** Path to the main note where your dream metrics are stored (previously called "Project Note").
+- **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics. 
