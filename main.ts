@@ -329,7 +329,7 @@ export default class DreamMetricsPlugin extends Plugin {
             selectedNotes: [],
             calloutName: 'dream-metrics',
             backupEnabled: true,
-            backupFolderPath: '',
+            backupFolderPath: 'Meta/Backups/OOM',
             weekStartDay: 0,
             readableLineLengthOverride: false
         }, await this.loadData());

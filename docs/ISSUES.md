@@ -83,6 +83,14 @@
 - Optimize real-time filter updates
 - Balance performance with feature richness
 
+### Backup System
+- [ ] Make backup path more user-friendly and configurable
+  - Current default path (`Meta/Backups/OOM`) is specific to a particular vault structure
+  - Consider implementing a more flexible path system that works better for different vault organizations
+  - Add option to create backup folder automatically if it doesn't exist
+  - Consider adding a "Backup Location" section in settings with common options (e.g., "Same folder as project note", "Dedicated backup folder", "Custom location")
+  - Add validation to ensure backup path is valid and writable
+
 ## Testing Guidelines
 
 ### State Persistence Testing
