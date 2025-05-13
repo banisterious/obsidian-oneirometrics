@@ -97,8 +97,8 @@
 
 ### Current Situation
 - Multiple date formats are currently supported:
+  - Block reference format (^YYYYMMDD) - Primary preferred format
   - YYYY-MM-DD
-  - Block reference format (^YYYYMMDD)
   - Journal date format
   - Month Day, YYYY
   - Various other formats
@@ -108,25 +108,95 @@
   - Harder to maintain code
   - Inconsistent date display
 
-### Proposed Solution
-- Standardize on a single primary date format (YYYY-MM-DD)
-- Add clear documentation for users about the preferred format
-- Provide a migration path for existing entries
-- Consider adding a date format conversion tool
+### Date Handling Strategy
+
+#### Primary Date Source: Block References
+- Block references (^YYYYMMDD) are the preferred and most reliable date source because:
+  - They are manually created, ensuring accuracy
+  - They provide a direct link to the exact location in the note
+  - They are consistent and machine-readable
+  - They are part of Obsidian's core functionality
+  - They maintain a clear connection between the metrics and the source content
+
+#### Fallback Date Sources
+While block references are preferred, the plugin supports multiple date formats to accommodate different user workflows:
+1. **Block References (^YYYYMMDD)**
+   - First choice for date extraction
+   - Most reliable and consistent
+   - Provides direct linking capability
+   - Example: ^20250512
+
+2. **YYYY-MM-DD Format**
+   - Common in many journal systems
+   - Easily sortable
+   - Machine-readable
+   - Example: 2025-05-12
+
+3. **Journal Date Format**
+   - Compatible with Obsidian's journal plugin
+   - Maintains consistency with core Obsidian features
+   - Example: 2025-05-12
+
+4. **Human-Readable Formats**
+   - Supports various localized formats
+   - Useful for display purposes
+   - Example: May 12, 2025
+
+### Implementation Details
+
+#### Date Extraction Process
+1. **Primary Check**
+   - First attempt to find a block reference (^YYYYMMDD)
+   - Log success/failure for debugging
+   - Use this as the authoritative date if found
+
+2. **Fallback Chain**
+   - If no block reference is found, try other formats in order:
+     1. YYYY-MM-DD
+     2. Journal date format
+     3. Other supported formats
+   - Log which method was used for debugging
+   - Consider adding a warning if block references aren't found
+
+3. **Date Validation**
+   - Validate all extracted dates
+   - Ensure they fall within reasonable ranges
+   - Log any validation failures
+   - Provide clear error messages
+
+#### User Experience Considerations
+1. **Documentation**
+   - Clear explanation of preferred date format
+   - Examples of supported formats
+   - Benefits of using block references
+   - Instructions for adding block references
+
+2. **Assistance Features**
+   - Consider adding a feature to help users add block references
+   - Provide warnings when block references are missing
+   - Offer conversion tools for existing entries
+
+3. **Flexibility**
+   - Maintain support for multiple formats
+   - Allow users to choose their preferred format
+   - Provide clear feedback about date extraction
 
 ### Benefits
-- Simpler, more reliable date parsing
-- Consistent date display across the plugin
-- Better performance
-- Easier maintenance
+- Reliable date extraction with block references as the source of truth
+- Flexible support for various user workflows
+- Clear documentation and user guidance
+- Improved debugging capabilities
+- Better maintainability
 - Reduced bug surface area
 
 ### Implementation Plan
-1. Document the preferred date format
-2. Add warnings for non-standard formats
-3. Create a conversion utility
-4. Update documentation
-5. Consider adding a date format validation step
+1. Document the preferred date format and strategy
+2. Add warnings for missing block references
+3. Create a conversion utility for existing entries
+4. Update documentation with detailed examples
+5. Add date format validation
+6. Implement logging for date extraction process
+7. Consider adding a block reference helper feature
 
 ## Contributing
 If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request.
