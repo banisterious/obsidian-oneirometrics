@@ -162,7 +162,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
   - Copy logs from Obsidian Developer Tools (Ctrl+Shift+I)
   - Paste into `oom-debug-log.txt`
   - Include relevant sections in your report
-- See [LOGGING.md](./LOGGING.md) for more details about the logging system
+- See [docs/LOGGING.md](docs/LOGGING.md) for more details about the logging system
 
 ### UI Improvements
 - [ ] Relocate Time Filters button
@@ -214,3 +214,10 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - Current Phase: Logging is set to "Debug" level by default to assist with development and issue tracking
 - Future Change: After issues stabilize, logging will be set back to "Off" by default
 - Users can still manually adjust logging level in settings if needed for troubleshooting
+
+**Note:** The root-level LOGGING.md has been removed; all logging documentation is now in `docs/LOGGING.md`.
+
+## Recent Fixes (May 2025)
+- The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
+- All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
+- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.

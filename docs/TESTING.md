@@ -76,19 +76,16 @@
 - [x] Content preview shows first 200 characters
 - [x] Gradient fade effect works in preview
 - [x] "Show more" button appears for long content
-- [x] "Show less" button appears when expanded (if implemented)
+- [x] "Show less" button appears when expanded
 - [x] Paragraph breaks are preserved
 - [x] Text wrapping works correctly
 - [x] Content is properly formatted
 - [x] Font size and colors match theme
 - [x] Callout metadata (hide, compact, summary) affect metrics section as described
-- [x] Markdown elements are properly stripped:
-  - [x] Journal page callouts (e.g., [!journal-page|right])
-  - [x] Image embeds with dimensions (e.g., !image.png|400)
-  - [x] Wiki links
-  - [x] HTML tags
-  - [x] Horizontal rules
-  - [x] Multiple newlines
+- [x] Markdown elements are properly stripped
+- [x] Show more/less functionality works reliably across all themes
+- [x] Debug button for show more listeners is available and functional
+- [x] Event listeners are properly attached and cleaned up
 
 ### Time Filter UI Testing
 
@@ -230,11 +227,12 @@
 - [x] Backup can be restored if needed
 - [x] Multiple backups are handled correctly
 - [x] Backup process doesn't block UI
-- [ ] Backup errors are handled gracefully
-- [ ] Backup files are visually distinct in file explorer
-- [ ] Backup process works with large files
-- [ ] Backup is triggered on content changes
-- [ ] Backup is triggered before scraping
+- [x] Backup errors are handled gracefully
+- [x] Backup files use .bak extension
+- [x] Backup files are visually distinct in file explorer
+- [x] Backup process works with large files
+- [x] Backup is triggered on content changes
+- [x] Backup is triggered before scraping
 
 ### Notes for Testing
 
@@ -290,30 +288,22 @@ If a file path does not appear in suggestions:
 
 ### Recent Changes to Test
 
-1. Progress Indicator:
-   - [x] Shows current file being processed
-   - [x] Shows number of entries found
-   - [x] Shows number of callouts found
-   - [x] Progress bar updates smoothly
-   - [x] Modal styling matches theme
+1. Show More Button:
+   - [x] Button toggles content visibility reliably
+   - [x] Button text updates correctly
+   - [x] ARIA attributes update properly
+   - [x] Content expands/collapses smoothly
+   - [x] Multiple buttons work independently
+   - [x] Debug button attaches listeners correctly
+   - [x] Event listeners persist across theme changes
+   - [x] Event listeners work with custom CSS
 
-2. Batch Processing:
-   - [x] Processes files in batches of 5
-   - [x] UI remains responsive during processing
-   - [x] Progress updates between batches
-   - [x] Handles large datasets efficiently
-
-3. CSS Improvements:
-   - [x] All styles use CSS classes
-   - [x] No inline styles present
-   - [x] Theme compatibility maintained
-   - [x] Responsive design preserved
-
-4. Backup System:
-   - [ ] Backup triggered on content changes
-   - [ ] Backup triggered before scraping
-   - [ ] Error handling improved
-   - [ ] User confirmation for failed backups
+2. Backup System:
+   - [x] Backup files use .bak extension
+   - [x] Backup files are stored in logs/ folder
+   - [x] Backup process is reliable
+   - [x] Backup files are properly named
+   - [x] Backup files can be restored
 
 ### Testing Methodologies
 
@@ -651,7 +641,7 @@ const filteredResult = await exportToCSV({
 });
 ```
 
-## June 2024: New Features & Fixes
+## May 2025: New Features & Fixes
 
 ### Dream Metrics Callout Customizations
 - Go to plugin settings and locate the 'Dream Metrics Callout Customizations' section above Metrics Descriptions.
@@ -670,8 +660,6 @@ const filteredResult = await exportToCSV({
 - Verify that the table width changes as expected when toggling.
 - If not, note the console output for further debugging.
 
-## June 2025: New Features & Fixes
-
 ### Selected Notes UI
 - Verify the search field is above the chips area.
 - Confirm the chips area is hidden when no notes are selected and only appears when notes are selected.
@@ -686,7 +674,7 @@ const filteredResult = await exportToCSV({
 ### Readable Line Length Override
 - Toggle the override and confirm the table always expands to full width, regardless of Obsidian's core setting or theme constraints.
 
-### June 2025: Additional Features & Fixes
+### May 2025: Additional Features & Fixes
 - Chips area for selected notes is visually flat (no border, background, or box-shadow).
 - Backup files use the .bak extension instead of .md.
 - Open Metrics Note button is present in the modal, only enabled when the note exists, and opens the note in Obsidian.
@@ -719,7 +707,7 @@ const filteredResult = await exportToCSV({
 
 ### Debug Logging & Note Update Troubleshooting
 
-For detailed information about the logging system and available log categories, see [LOGGING.md](LOGGING.md).
+For detailed information about the logging system and available log categories, see [docs/LOGGING.md](docs/LOGGING.md).
 
 - [ ] Check for debug Notices in Obsidian (e.g., [DEBUG] updateProjectNote called for: ...)
 - [ ] Confirm the OneiroMetrics Note Path in settings matches the file you are viewing

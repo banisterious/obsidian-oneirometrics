@@ -40,7 +40,7 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
 - [Metrics Guide](docs/METRICS.md) - Detailed descriptions of dream metrics and scoring guidelines
 - [Usage Guide](docs/USAGE.md) - Detailed instructions for using the plugin
-- [Logging Guide](LOGGING.md) - Information about the plugin's logging system and debugging capabilities
+- [Logging Guide](docs/LOGGING.md) - Information about the plugin's logging system and debugging capabilities
 
 ## Setup
 
@@ -88,7 +88,7 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - **Logging Level**: Control logging verbosity (Off/Errors Only/Debug)
 - **Maximum Log Size**: Set log file size limit in MB
 - **Maximum Backups**: Configure number of backup log files
-- **Note**: During development, logging is set to "Debug" by default
+- **Note**: Logging is set to "Off" by default. Enable logging only when needed for debugging issues.
 
 ## Usage
 
@@ -150,4 +150,11 @@ If you encounter any issues or have suggestions, please:
 3. Include steps to reproduce any bugs
 
 ## License
-MIT License - see LICENSE file for details 
+MIT License - see LICENSE file for details
+
+## Recent Fixes (May 2025)
+
+- The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets
+- All debug and backup log files are now stored in the `logs/` folder and excluded from version control
+- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
+- Backup files now use the .bak extension instead of .md for better file management 

@@ -1442,4 +1442,27 @@ For detailed information about layout options and styling, please refer to the [
 
 ---
 
-*Last updated: May 12, 2025* 
+*Last updated: May 12, 2025*
+
+## Dream Entry Date Extraction Priority (2025 Update)
+
+When extracting the date for each dream entry, OneiroMetrics now uses the following priority order:
+
+1. **Block Reference** (`^YYYYMMDD`) on the callout line or the next line.
+2. **Date in the Callout Line** (e.g., "Monday, January 6, 2025").
+3. **YAML `created` Field** (parse the date part, e.g., `created: 20241229 16:07:34 pm` → `2024-12-29`).
+4. **YAML `modified` Field** (as a fallback if `created` is missing).
+5. **Folder or Filename** (extracts year if that's all that's available, e.g., `Journals/2025/2025.md` → `2025`).
+6. **Current Date** (only if all else fails).
+
+This order is robust for both daily-note and year-note journal structures. The extraction logic will always use the most specific date available, and gracefully fall back to less specific options if needed.
+
+- For daily note users, folder/filename can provide a full date.
+- For year note users, folder/filename will only provide a year, so YAML or callout/block reference is preferred.
+
+The implementation is in the `getDreamEntryDate` helper function in `main.ts`. 
+
+---
+
+**Note:**
+All debug and backup log files are now stored in the `logs/` folder (e.g., `logs/oom-debug-log.txt`, `logs/oom-debug-log.backup-*.txt`). Update any references to log file paths accordingly. 

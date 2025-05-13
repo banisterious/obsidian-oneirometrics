@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT
 
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile, ButtonComponent, TFolder, View, WorkspaceLeaf } from 'obsidian';
-import { DEFAULT_METRICS, DreamMetricData, DreamMetricsSettings, LogLevel } from './types';
+import { DEFAULT_METRICS, DreamMetricData, DreamMetricsSettings, LogLevel, DEFAULT_LOGGING } from './types';
 import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
 import { TimeFilterView, TIME_FILTER_VIEW_TYPE } from './src/TimeFilterView';
@@ -361,11 +361,17 @@ export default class DreamMetricsPlugin extends Plugin {
             backupEnabled: true,
             backupFolderPath: 'Meta/Backups/OOM',
             weekStartDay: 0,
-            readableLineLengthOverride: false
+            readableLineLengthOverride: false,
+            logging: { ...DEFAULT_LOGGING }  // Initialize logging with default values
         }, await this.loadData());
 
         // Before accessing or assigning to _persistentExclusions, ensure it is defined
         if (!this.settings._persistentExclusions) this.settings._persistentExclusions = {};
+        
+        // Ensure logging settings are properly initialized
+        if (!this.settings.logging) {
+            this.settings.logging = { ...DEFAULT_LOGGING };
+        }
     }
 
     async saveSettings() {
@@ -705,40 +711,9 @@ export default class DreamMetricsPlugin extends Plugin {
                                     const diaryLine = diary.lines[0];
                                     
                                     // More flexible date extraction
-                                    let date = '';
-                                    // Try YYYY-MM-DD format
-                                    let dateMatch = journalLine.match(/\b(\d{4}-\d{2}-\d{2})\b/);
-                                    if (dateMatch) {
-                                        date = dateMatch[1];
-                                        console.log(`[OneiroMetrics] Found date in YYYY-MM-DD format: ${date}`);
-                                    } else {
-                                        // Try Month Day, YYYY format
-                                        const monthDayMatch = journalLine.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}/);
-                                        if (monthDayMatch) {
-                                            const dateObj = new Date(monthDayMatch[0]);
-                                            date = dateObj.toISOString().split('T')[0];
-                                            console.log(`[OneiroMetrics] Found date in Month Day format: ${date}`);
-                                        } else {
-                                            // Try block reference format
-                                            const blockRefMatch = journalLine.match(/\^(\d{8})/);
-                                            if (blockRefMatch) {
-                                                const dateStr = blockRefMatch[1];
-                                                date = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-                                                console.log(`[OneiroMetrics] Found date in block reference format: ${date}`);
-                                            } else {
-                                                // Try to extract date from the journal line itself
-                                                const anyDateMatch = journalLine.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-                                                if (anyDateMatch) {
-                                                    const [_, year, month, day] = anyDateMatch;
-                                                    date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                                                    console.log(`[OneiroMetrics] Found date in general format: ${date}`);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    
+                                    let date = getDreamEntryDate([journalLine, lines[journal.idx + 1] || ''], path, content);
                                     if (!date) {
-                                        console.error(`[OneiroMetrics] Could not extract date from line: ${journalLine}`);
+                                        console.error(`[OneiroMetrics] Could not extract date for journal at line: ${journalLine}`);
                                     }
                                     
                                     // More flexible title extraction
@@ -936,7 +911,6 @@ export default class DreamMetricsPlugin extends Plugin {
                 await this.app.vault.modify(projectFile, newContent);
                 new Notice('Metrics tables updated successfully!');
                 console.log('[OneiroMetrics] Project note updated with new metrics and dream entries.');
-                
                 // Force reload of the project note in all open leaves
                 let reloaded = false;
                 this.app.workspace.iterateAllLeaves(leaf => {
@@ -951,9 +925,13 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
                 // Update view after content change
                 this.updateProjectNoteView();
+                // Attach event listeners after table render
+                setTimeout(() => this.attachProjectNoteEventListeners(), 500);
             } else {
                 new Notice('[DEBUG] No changes to metrics tables.');
                 console.log('[OneiroMetrics] No changes detected. Project note left unchanged.');
+                // Attach event listeners after table render
+                setTimeout(() => this.attachProjectNoteEventListeners(), 500);
             }
         } catch (error) {
             console.error('[OneiroMetrics][ERROR] updateProjectNote error:', error);
@@ -1181,7 +1159,7 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<option value="month">Last Month</option>\n';
         content += '<option value="year">Last Year</option>\n';
         content += '</select>\n';
-        content += '<button id="oom-time-filter-btn">Time Filters</button>\n';
+        content += '<button id="oom-time-filter-btn" class="oom-button">Time Filters</button>\n';
         content += '</div>\n';
         content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
         content += '</div>\n';
@@ -1245,7 +1223,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}`;
                 content += `<td class="oom-dream-content" id="${cellId}">
                     <div class="oom-content-preview">${preview}</div>
-                    <div class="oom-content-full" style="display: none;">${dreamContent}</div>
+                    <div class="oom-content-full">${dreamContent}</div>
                     <button type="button" class="oom-button oom-button--expand" aria-expanded="false" aria-controls="${cellId}" data-expanded="false">
                         <span class="oom-button-text">Show more</span>
                         <span class="visually-hidden"> full dream content</span>
@@ -1268,7 +1246,6 @@ export default class DreamMetricsPlugin extends Plugin {
 
         const result = content;
         this.memoizedTableData.set(cacheKey, result);
-        console.log('[OneiroMetrics] Table generation complete');
         return result;
     }
 
@@ -1314,24 +1291,14 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         }
 
-        // Try journal entry format (e.g., "Monday, January 6")
-        const journalEntryMatch = dateStr.match(/(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})/);
+        // Try journal entry format (e.g., "Monday, January 6, 2024")
+        const journalEntryMatch = dateStr.match(/(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}/);
         if (journalEntryMatch) {
-            type MonthName = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December';
-            const monthNames: Record<MonthName, number> = {
-                'January': 0, 'February': 1, 'March': 2, 'April': 3,
-                'May': 4, 'June': 5, 'July': 6, 'August': 7,
-                'September': 8, 'October': 9, 'November': 10, 'December': 11
-            };
-            const parts = dateStr.split(',')[1].trim().split(' ');
-            const month = monthNames[parts[0] as MonthName];
-            const day = parseInt(parts[1]);
-            const year = new Date().getFullYear(); // Use current year instead of hardcoded 2025
-            const date = new Date(year, month, day);
-            if (this.validateDate(date)) {
-                this.logger.log('Date', `Parsed journal entry format: ${date.toISOString()}`);
+            const dateObj = new Date(journalEntryMatch[0]);
+            if (!isNaN(dateObj.getTime())) {
+                this.logger.log('Date', `Parsed journal entry format: ${dateObj.toISOString()}`);
                 this.logger.performance('Date', 'parseDate', startTime);
-                return date;
+                return dateObj;
             }
         }
 
@@ -1353,7 +1320,6 @@ export default class DreamMetricsPlugin extends Plugin {
         try {
             const leaves = this.app.workspace.getLeavesOfType('markdown');
             let updated = false;
-
             leaves.forEach(leaf => {
                 const view = leaf.view;
                 if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNotePath) {
@@ -1369,25 +1335,30 @@ export default class DreamMetricsPlugin extends Plugin {
                         rescrapeButton.addEventListener('click', () => {
                             this.scrapeMetrics();
                         });
+                        // Add a temporary debug button for manual event attachment
+                        const debugButton = buttonContainer.createEl('button', {
+                            text: 'Debug: Attach Show More Listeners',
+                            cls: 'mod-warning oom-debug-attach-listeners'
+                        });
+                        debugButton.addEventListener('click', () => {
+                            new Notice('Manually attaching Show More listeners...');
+                            this.attachProjectNoteEventListeners();
+                        });
                     }
-
                     // Update the view's content
                     if (view.getMode() === 'preview') {
                         view.previewMode?.rerender();
                     } else {
                         view.editor?.refresh();
                     }
-
                     updated = true;
                 }
             });
-
             if (!updated) {
                 this.logger.debug('UI', 'Project note was not open in any workspace leaf.');
             }
-
-            // Attach event listeners for interactive elements
-            this.attachProjectNoteEventListeners();
+            // Attach event listeners after table render
+            setTimeout(() => this.attachProjectNoteEventListeners(), 500);
         } catch (err) {
             this.logger.error('UI', 'Error updating OneiroMetrics Note view', err as Error);
             new Notice('Error updating OneiroMetrics Note view. See console for details.');
@@ -1423,10 +1394,16 @@ export default class DreamMetricsPlugin extends Plugin {
         const container = this.app.workspace.containerEl;
         const cleanupFunctions: (() => void)[] = [];
 
-        this.logger.log('Events', 'Attaching project note event listeners');
-        const previewEl = container.querySelector('.markdown-preview-view');
+        this.logger.log('Events', 'Attaching project note event listeners (start)');
+        // Try to find the preview element robustly
+        let previewEl = container.querySelector('.markdown-preview-view');
         if (!previewEl) {
-            this.logger.warn('Events', 'No project note preview element found');
+            // Try fallback selectors for Minimal or other themes
+            previewEl = container.querySelector('[data-type="oom-project-note"]');
+            this.logger.warn('Events', 'Fallback: No .markdown-preview-view found, using [data-type="oom-project-note"]');
+        }
+        if (!previewEl) {
+            this.logger.error('Events', 'No project note preview element found after all attempts');
             return;
         }
 
@@ -1434,7 +1411,11 @@ export default class DreamMetricsPlugin extends Plugin {
         const attachExpandButtonListeners = (container: Element) => {
             const expandButtons = container.querySelectorAll('.oom-button--expand');
             this.logger.log('Events', `Found ${expandButtons.length} expand buttons`);
-            
+            if (expandButtons.length === 0) {
+                this.logger.warn('Events', 'No expand buttons found on first attempt, retrying in 500ms');
+                setTimeout(() => attachExpandButtonListeners(container), 500);
+                return;
+            }
             expandButtons.forEach((button, index) => {
                 const buttonEl = button as HTMLElement;
                 const contentCell = buttonEl.closest('.oom-dream-content') as HTMLElement;
@@ -1453,12 +1434,11 @@ export default class DreamMetricsPlugin extends Plugin {
                 // Get unique identifier for this content
                 const contentId = this.getContentStateId(contentCell);
                 const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
-                
+
                 // Check if this content was previously expanded
                 const wasExpanded = this.expandedStates.has(contentId);
                 if (wasExpanded) {
-                    previewDiv.style.display = 'none';
-                    fullDiv.style.display = 'block';
+                    contentCell.classList.add('expanded');
                     buttonEl.setAttribute('data-expanded', 'true');
                     buttonEl.setAttribute('aria-expanded', 'true');
                     buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
@@ -1473,20 +1453,16 @@ export default class DreamMetricsPlugin extends Plugin {
                     const isExpanded = buttonEl.getAttribute('data-expanded') === 'true';
                     buttonEl.setAttribute('data-expanded', (!isExpanded).toString());
                     buttonEl.setAttribute('aria-expanded', (!isExpanded).toString());
-                    
-                    // Add visual feedback
                     buttonEl.classList.add('oom-button--clicked');
                     setTimeout(() => buttonEl.classList.remove('oom-button--clicked'), 200);
-                    
+
                     if (isExpanded) {
-                        previewDiv.style.display = 'block';
-                        fullDiv.style.display = 'none';
-                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
+                        contentCell.classList.remove('expanded');
+                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
                         this.expandedStates.delete(contentId);
                     } else {
-                        previewDiv.style.display = 'none';
-                        fullDiv.style.display = 'block';
-                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
+                        contentCell.classList.add('expanded');
+                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
                         this.expandedStates.add(contentId);
                     }
 
@@ -1504,7 +1480,10 @@ export default class DreamMetricsPlugin extends Plugin {
                 };
 
                 buttonEl.addEventListener('click', clickHandler);
-                cleanupFunctions.push(() => buttonEl.removeEventListener('click', clickHandler));
+                this.logger.debug('Events', `Attached click handler to expand button ${index}`, {
+                    contentId,
+                    title
+                });
             });
         };
 
@@ -1533,37 +1512,31 @@ export default class DreamMetricsPlugin extends Plugin {
         this.logger.performance('Events', 'attachProjectNoteEventListeners', startTime);
     }
 
-    private applyFilters() {
-        const startTime = performance.now();
-        const previewEl = this.app.workspace.containerEl.querySelector('.markdown-preview-view');
-        if (!previewEl) {
-            this.logger.warn('Filter', 'No preview element found for filtering');
-            return;
-        }
-
+    private applyFilters(previewEl: HTMLElement) {
+        const rows = previewEl.querySelectorAll('.oom-dream-row');
         const dateRange = (previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement)?.value || 'all';
         this.logger.debug('Filter', `Applying filter: ${dateRange}`, {
-            timestamp: new Date().toISOString(),
-            filterType: 'dateRange'
+            totalRows: rows.length
         });
 
-        const rows = previewEl.querySelectorAll('.oom-dream-row');
         let visibleCount = 0;
         let invalidDates = 0;
         let outOfRangeDates = 0;
 
-        // Add visual feedback to the filter
-        const filterSelect = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
-        if (filterSelect) {
-            filterSelect.classList.add('oom-filter--active');
-            setTimeout(() => filterSelect.classList.remove('oom-filter--active'), 200);
-            this.logger.debug('Filter', 'Applied visual feedback to filter select');
-        }
+        const now = new Date();
+        const ranges = {
+            week: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+            month: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+            year: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+        };
 
-        rows.forEach((row, index) => {
+        rows.forEach((rowEl, index) => {
+            const row = rowEl as HTMLElement;
             const date = row.getAttribute('data-date');
             if (!date) {
                 this.logger.warn('Filter', `Row ${index} has no date attribute`);
+                row.classList.remove('oom-row--visible');
+                row.style.display = 'none';
                 return;
             }
 
@@ -1571,56 +1544,29 @@ export default class DreamMetricsPlugin extends Plugin {
             if (isNaN(dreamDate.getTime())) {
                 this.logger.error('Filter', `Invalid date for row ${index}: ${date}`);
                 invalidDates++;
+                row.classList.remove('oom-row--visible');
+                row.style.display = 'none';
                 return;
             }
 
-            let showRow = true;
-            let filterReason = '';
-
-            // Apply date range filter
+            let isVisible = true;
             if (dateRange !== 'all') {
-                const now = new Date();
-                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-
-                switch (dateRange) {
-                    case 'week':
-                        showRow = dreamDate >= oneWeekAgo;
-                        filterReason = showRow ? 'within last week' : 'older than last week';
-                        break;
-                    case 'month':
-                        showRow = dreamDate >= oneMonthAgo;
-                        filterReason = showRow ? 'within last month' : 'older than last month';
-                        break;
-                    case 'year':
-                        showRow = dreamDate >= oneYearAgo;
-                        filterReason = showRow ? 'within last year' : 'older than last year';
-                        break;
-                }
-
-                if (!showRow) {
-                    outOfRangeDates++;
-                    this.logger.debug('Filter', `Row ${index} filtered out: ${filterReason}`, {
-                        date: dreamDate.toISOString(),
-                        filterRange: dateRange
-                    });
-                }
+                const rangeStart = ranges[dateRange as keyof typeof ranges];
+                isVisible = dreamDate >= rangeStart && dreamDate <= now;
+                if (!isVisible) outOfRangeDates++;
             }
 
-            // Update row visibility with animation
-            const rowEl = row as HTMLElement;
-            if (showRow) {
-                rowEl.style.display = '';
-                rowEl.classList.add('oom-row--visible');
+            if (isVisible) {
+                row.classList.add('oom-row--visible');
+                row.style.display = '';
                 visibleCount++;
                 this.logger.debug('Filter', `Row ${index} visible`, {
                     date: dreamDate.toISOString(),
-                    title: rowEl.querySelector('.oom-dream-title')?.textContent
+                    title: row.querySelector('.oom-dream-title')?.textContent
                 });
             } else {
-                rowEl.classList.remove('oom-row--visible');
-                rowEl.style.display = 'none';
+                row.classList.remove('oom-row--visible');
+                row.style.display = 'none';
             }
         });
 
@@ -1678,16 +1624,6 @@ export default class DreamMetricsPlugin extends Plugin {
             filterDisplay.classList.add('oom-filter-display--updated');
             setTimeout(() => filterDisplay.classList.remove('oom-filter-display--updated'), 500);
         }
-
-        this.logger.log('Filter', `Filter applied successfully`, {
-            filterType: dateRange,
-            totalEntries: rows.length,
-            visibleEntries: visibleCount,
-            hiddenEntries: rows.length - visibleCount,
-            invalidDates,
-            outOfRangeDates,
-            duration: performance.now() - startTime
-        });
     }
 
     async activateView() {
@@ -1713,12 +1649,12 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private async clearDebugLog() {
         try {
-            const logPath = 'oom-debug-log.txt';
+            const logPath = 'logs/oom-debug-log.txt';
             const logFile = this.app.vault.getAbstractFileByPath(logPath);
             
             if (logFile instanceof TFile) {
                 // Create backup before clearing
-                const backupPath = `oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+                const backupPath = `logs/oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
                 const content = await this.app.vault.read(logFile);
                 await this.app.vault.create(backupPath, content);
                 
@@ -1728,7 +1664,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 // Clean up old backups (keep last 5)
                 const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith('oom-debug-log.backup-'))
+                    .filter(f => f.path.startsWith('logs/oom-debug-log.backup-'))
                     .sort((a, b) => b.stat.mtime - a.stat.mtime);
                 
                 for (let i = 5; i < backupFiles.length; i++) {
@@ -1743,11 +1679,11 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private async backupDebugLog() {
         try {
-            const logPath = 'oom-debug-log.txt';
+            const logPath = 'logs/oom-debug-log.txt';
             const logFile = this.app.vault.getAbstractFileByPath(logPath);
             
             if (logFile instanceof TFile) {
-                const backupPath = `oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+                const backupPath = `logs/oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
                 const content = await this.app.vault.read(logFile);
                 await this.app.vault.create(backupPath, content);
                 this.logger.log('Log', 'Debug log backed up');
@@ -1761,7 +1697,7 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private async checkLogFileSize() {
         try {
-            const logPath = 'oom-debug-log.txt';
+            const logPath = 'logs/oom-debug-log.txt';
             const logFile = this.app.vault.getAbstractFileByPath(logPath);
             
             if (logFile instanceof TFile) {
@@ -1797,7 +1733,7 @@ export default class DreamMetricsPlugin extends Plugin {
             }
 
             // Get or create the log file
-            const logPath = 'oom-debug-log.txt';
+            const logPath = 'logs/oom-debug-log.txt';
             let logFile = this.app.vault.getAbstractFileByPath(logPath);
             
             if (!logFile) {
@@ -1847,4 +1783,49 @@ export default class DreamMetricsPlugin extends Plugin {
     setLogConfig(level: LogLevel, maxLogSize: number, maxBackups: number) {
         this.logger.configure(level, maxLogSize, maxBackups);
     }
+}
+
+// Helper to extract date for a dream entry
+function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {
+    // 1. Block Reference (^YYYYMMDD) on the callout line or the next line
+    const blockRefRegex = /\^(\d{8})/;
+    for (let i = 0; i < Math.min(2, journalLines.length); i++) {
+        const blockRefMatch = journalLines[i].match(blockRefRegex);
+        if (blockRefMatch) {
+            const dateStr = blockRefMatch[1];
+            return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+        }
+    }
+    // 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
+    const calloutLine = journalLines[0] || '';
+    const longDateRegex = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})/;
+    const longDateMatch = calloutLine.match(longDateRegex);
+    if (longDateMatch) {
+        const [_, month, day, year] = longDateMatch;
+        const dateObj = new Date(`${month} ${day}, ${year}`);
+        if (!isNaN(dateObj.getTime())) {
+            return dateObj.toISOString().split('T')[0];
+        }
+    }
+    // 3. YAML 'created' field
+    const yamlCreatedMatch = fileContent.match(/created:\s*(\d{8})/);
+    if (yamlCreatedMatch) {
+        const dateStr = yamlCreatedMatch[1];
+        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+    }
+    // 4. YAML 'modified' field
+    const yamlModifiedMatch = fileContent.match(/modified:\s*(\d{8})/);
+    if (yamlModifiedMatch) {
+        const dateStr = yamlModifiedMatch[1];
+        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+    }
+    // 5. Folder or filename (for year only, as a fallback)
+    // Try to extract year from folder or filename
+    const yearRegex = /\b(\d{4})\b/;
+    const pathMatch = filePath.match(yearRegex);
+    if (pathMatch) {
+        return pathMatch[1];
+    }
+    // 6. Current date
+    return new Date().toISOString().split('T')[0];
 } 

@@ -197,7 +197,7 @@ The project note is generated with two main sections:
 - [Testing Guide](TESTING.md) for testing procedures
 - [Project Overview](PROJECT_OVERVIEW.md) for high-level architecture
 - [Issues and Future Improvements](ISSUES.md) for known issues and planned features
-- [Logging System](LOGGING.md) for debugging and monitoring capabilities
+- [Logging System](docs/LOGGING.md) for debugging and monitoring capabilities
 
 ## Security Considerations
 
@@ -327,3 +327,8 @@ The project note is generated with two main sections:
    - Edge cases
    - Performance benchmarks
    - Accessibility testing 
+
+## Recent Fixes (May 2025)
+- The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
+- All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
+- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed. 

@@ -526,8 +526,6 @@ div[data-type="markdown"][data-type="oom-project-note"] .oom-table td {
 .oom-content-full {
     display: none !important;
     max-height: none !important;
-    opacity: 0 !important;
-    transition: opacity 0.3s ease-out !important;
 }
 
 .oom-dream-content.expanded .oom-content-preview {
@@ -536,7 +534,6 @@ div[data-type="markdown"][data-type="oom-project-note"] .oom-table td {
 
 .oom-dream-content.expanded .oom-content-full {
     display: block !important;
-    opacity: 1 !important;
 }
 
 .oom-dream-content .oom-expand-button {
@@ -977,15 +974,8 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
     position: relative;
 }
 
-.oom-content-full {
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-}
 .oom-show-toggle:checked + .oom-content-preview + .oom-content-full {
     max-height: 1000px;
-    opacity: 1;
     overflow: visible;
 }
 .oom-expand-button {
@@ -1298,8 +1288,8 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
 }
 
 .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content .oom-content-full {
-    display: none;
-    max-height: none;
+    display: none !important;
+    max-height: none !important;
 }
 
 .markdown-preview-view[data-type="oom-project-note"] .oom-dream-content.expanded .oom-content-preview {
@@ -1914,5 +1904,85 @@ div[data-type="markdown"][data-type="oom-project-note"] td,
 
     .oneirometrics-calendar-day {
         font-size: 0.8rem;
+    }
+}
+
+/* Filter Display Styles */
+.oom-filter-display {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+    transition: all 0.3s ease;
+}
+
+.oom-filter-display--updated {
+    animation: filterUpdate 0.5s ease;
+}
+
+.oom-filter-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+.oom-filter-text {
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* Color coding for filter states */
+.oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter--mostly-visible {
+    color: var(--text-accent);
+}
+
+.oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-hidden {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin-left: 4px;
+}
+
+/* Tooltip styles */
+.oom-filter-display[title] {
+    position: relative;
+    cursor: help;
+}
+
+.oom-filter-display[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: pre;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes filterUpdate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
     }
 } 

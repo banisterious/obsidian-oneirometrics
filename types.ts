@@ -9,6 +9,8 @@ export interface DreamMetric {
     enabled: boolean;  // Whether the metric is enabled by default
 }
 
+export type LogLevel = 'off' | 'errors' | 'debug';
+
 export interface DreamMetricsSettings {
     projectNotePath: string;
     metrics: DreamMetric[];
@@ -27,7 +29,19 @@ export interface DreamMetricsSettings {
     // Enabled metrics configuration
     enabledMetrics: { [metricName: string]: boolean };
     expandedStates?: string[]; // Array of content IDs that are expanded
+    logging: {
+        level: LogLevel;
+        maxLogSize: number;  // in bytes
+        maxBackups: number;
+    };
 }
+
+// Default logging configuration
+export const DEFAULT_LOGGING = {
+    level: 'debug' as LogLevel,
+    maxLogSize: 1024 * 1024, // 1MB
+    maxBackups: 5
+};
 
 export interface DreamMetricData {
     date: string;

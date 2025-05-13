@@ -352,16 +352,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Recent Fixes (May 2025)
 
-- Lucide icons now render correctly in all tables and modals, including the Metric Edit modal and Project Note tables.
-- The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table.
-- Table sorting is fully functional: click any column header to sort Dream Entries by that column.
-- Filtering by date and metric now works as expected in the Dream Entries table.
-- All previously identified UI/UX issues with autocomplete, backup creation, content column formatting, and metric modal fields have been resolved.
-- The codebase now attaches all interactive logic (sorting, filtering, expand/collapse) directly via the plugin, ensuring compatibility with Obsidian's preview mode.
-- Added comprehensive logging system with configurable levels and performance tracking.
-- Implemented efficient state persistence for expanded/collapsed content.
-- Enhanced performance with debounced updates and optimized DOM operations.
-- Improved accessibility with ARIA attributes and keyboard navigation.
+- The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
+- All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
+- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.
+- The root-level LOGGING.md has been removed; all logging documentation is now in `docs/LOGGING.md`.
 
 ## Current Status (as of May 2025)
 
@@ -396,7 +390,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - 📄 **Testing & Troubleshooting Guide:**  
   See [`TESTING.md`](TESTING.md) in the project root for a full checklist, performance tests, and troubleshooting steps.
 
-For information about the plugin's logging system and debugging capabilities, see [LOGGING.md](LOGGING.md).
+For information about the plugin's logging system and debugging capabilities, see [docs/LOGGING.md](docs/LOGGING.md).
 
 ---
 
@@ -444,7 +438,7 @@ For information about the plugin's logging system and debugging capabilities, se
 ## Documentation
 For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](METRICS.md).
 
-For information about the plugin's logging system and debugging capabilities, see [LOGGING.md](LOGGING.md).
+For information about the plugin's logging system and debugging capabilities, see [docs/LOGGING.md](docs/LOGGING.md).
 
 - 🛠️ **Lucide icons now render correctly as SVGs in the Settings > Metrics section, providing clear visual indicators for each metric.**
 - 🛠️ **Metric range labels for 'Lost Segments' and 'Familiar People' now display 'Any whole number' instead of a fixed range.**
@@ -455,7 +449,7 @@ For information about the plugin's logging system and debugging capabilities, se
 - 🛠️ **Parser blockStack logic has been fixed:** The plugin now correctly nests dream-diary and dream-metrics callouts under their parent journal-entry and dream-diary blocks, enabling robust extraction of dream entries from nested callouts.
 - 🛠️ **Granular debug logging:** Extensive debug logs and iterative troubleshooting were used to diagnose and resolve extraction issues, ensuring reliability for real-world dream journal structures.
 
-## Recent Updates (June 2025)
+## Recent Updates (May 2025)
 
 - **Chips Area UI:** The chips area for selected notes is now visually flat, with no border, background, or box-shadow.
 - **Backup File Extension:** Backup files now use the .bak extension instead of .md.
@@ -489,5 +483,5 @@ This approach helps pinpoint where the update process may be breaking down and e
 - [Testing Guide](TESTING.md) for testing procedures
 - [Project Overview](PROJECT_OVERVIEW.md) for high-level architecture
 - [Issues and Future Improvements](ISSUES.md) for known issues and planned features
-- [Logging System](LOGGING.md) for debugging and monitoring capabilities
+- [Logging System](docs/LOGGING.md) for debugging and monitoring capabilities
 - [State Persistence](STATE_PERSISTENCE.md) for user preference management

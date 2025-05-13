@@ -13,7 +13,9 @@ The logging system can be configured through the plugin settings:
    - **Maximum Log Size**: Set the maximum size of the log file in MB
    - **Maximum Backups**: Set the number of backup log files to keep
 
-> **Note**: During the current development phase, logging is set to "Debug" by default to assist with issue tracking. This will be changed back to "Off" after issues stabilize.
+> **Note**: Logging is set to "Off" by default. Enable logging only when needed for debugging issues. When reporting issues, please enable logging and include relevant log entries.
+
+> **Note:** All debug and backup log files are stored in the `logs/` folder (e.g., `logs/oom-debug-log.txt`, `logs/oom-debug-log.backup-*.txt`).
 
 ## Log Categories
 - **Date**: Date parsing and validation operations
@@ -92,7 +94,7 @@ Stack: ... // For error logs
 - Error logs include full stack traces for debugging 
 
 ## Debug Log File
-The plugin maintains a debug log file at `oom-debug-log.txt` in the vault root. This file is used for:
+The plugin maintains a debug log file at `logs/oom-debug-log.txt` in the vault root. This file is used for:
 - Capturing detailed logs during development and testing
 - Troubleshooting issues reported by users
 - Monitoring performance and behavior in production
@@ -103,7 +105,7 @@ The plugin maintains a debug log file at `oom-debug-log.txt` in the vault root. 
 3. To capture logs:
    - Open the Obsidian Developer Tools (Ctrl+Shift+I)
    - Copy relevant log entries
-   - Paste them into `oom-debug-log.txt`
+   - Paste them into `logs/oom-debug-log.txt`
    - Include the log entries when reporting issues
 
 ### Log Format
@@ -146,12 +148,25 @@ The plugin implements automatic log file management:
 You can also manage the log file manually:
 1. Clear the log:
    - Use the "Clear Debug Log" command in the command palette
-   - Or delete the contents of `oom-debug-log.txt`
+   - Or delete the contents of `logs/oom-debug-log.txt`
 2. Create a backup:
    - Use the "Backup Debug Log" command
    - Or manually copy the file with a timestamp
 
-### Best Practices
+### Debugging UI Event Attachment
+
+A temporary debug button labeled **"Debug: Attach Show More Listeners"** appears at the top of the project note. This button can be used to manually trigger the attachment of event listeners for the Show more/Show less buttons in the Dream Entries table.
+
+- **Purpose:**
+  - To help diagnose and resolve issues where the Show more/Show less buttons do not respond due to event listeners not being attached (often due to theme or timing issues).
+- **Where it appears:**
+  - At the top of the project note, next to the "Rescrape Metrics" button.
+- **When to use:**
+  - If you notice that the Show more/Show less buttons are not working, click this debug button to manually attach the listeners. This is especially useful during development or when testing with new themes or custom CSS snippets.
+- **Note:**
+  - This button is intended for debugging and may be removed or hidden in production releases once event attachment is fully robust.
+
+## Best Practices
 1. Clear the log before starting a new testing session
 2. Create a backup before clearing if the logs might be needed later
 3. Include log file management in your testing workflow
