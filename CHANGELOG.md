@@ -1,5 +1,22 @@
 # OneiroMetrics Changelog
 
+## [0.3.2] - 2025-05-13
+
+### Added
+- Temporary debug button for show more listeners
+- Dedicated logs folder for better organization
+- Enhanced logging system with configurable levels
+
+### Changed
+- Set logging to "Off" by default
+- Changed backup files to use .bak extension
+- Updated all documentation to reflect recent changes
+
+### Fixed
+- Show more button functionality across all themes
+- Event listener attachment and cleanup
+- Log file organization and management
+
 ## Recent Changes and Fixes
 
 ### Logging System
