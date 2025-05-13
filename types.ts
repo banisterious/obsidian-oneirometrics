@@ -26,6 +26,7 @@ export interface DreamMetricsSettings {
     _persistentExclusions?: { [folderPath: string]: string[] };
     // Enabled metrics configuration
     enabledMetrics: { [metricName: string]: boolean };
+    expandedStates?: string[]; // Array of content IDs that are expanded
 }
 
 export interface DreamMetricData {

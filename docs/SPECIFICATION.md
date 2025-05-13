@@ -148,6 +148,23 @@ The project note is generated with two main sections:
 - Focus management
 - Keyboard shortcuts for common actions
 
+## Technical Architecture
+
+### Core Components
+1. **Data Management**
+   - Dream entry parsing
+   - Metric extraction
+   - Data storage and retrieval
+   - State management
+   - See [State Persistence](STATE_PERSISTENCE.md) for user preference management
+
+2. **Date Handling Strategy**
+   - See [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for detailed implementation
+   - Block references as primary date source
+   - Fallback date formats
+   - Time filter system
+   - Calendar integration
+
 ## Technical Requirements
 
 ### 1. Obsidian API

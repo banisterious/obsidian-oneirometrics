@@ -405,6 +405,11 @@ These tests require Obsidian and manual verification.
 - [ ] Settings persistence
 - [ ] Plugin lifecycle
 - [ ] Event handling
+- [ ] State persistence (see [State Persistence](STATE_PERSISTENCE.md) for details)
+  - [ ] Expanded/collapsed state restoration
+  - [ ] State persistence across sessions
+  - [ ] Performance with large datasets
+  - [ ] State cleanup on unload
 
 ##### UI Components
 

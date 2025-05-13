@@ -470,3 +470,12 @@ This approach helps pinpoint where the update process may be breaking down and e
 
 - To improve performance and maintainability, we plan to reduce excessive logging and remove or limit debug console.logs, especially those related to backup creation and extraction logic.
 - Future code changes should ensure only essential logs remain, and debug output should be temporary and well-scoped.
+
+## Documentation Requirements
+- [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for date handling implementation
+- [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for UI/UX implementation
+- [Testing Guide](TESTING.md) for testing procedures
+- [Project Overview](PROJECT_OVERVIEW.md) for high-level architecture
+- [Issues and Future Improvements](ISSUES.md) for known issues and planned features
+- [Logging System](LOGGING.md) for debugging and monitoring capabilities
+- [State Persistence](STATE_PERSISTENCE.md) for user preference management

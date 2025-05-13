@@ -161,6 +161,10 @@ For detailed information about date and time handling, including block reference
 
 For comprehensive information about layout options, styling features, and theme integration, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md).
 
+## State Persistence
+
+The plugin maintains your preferences across sessions, including expanded/collapsed states for dream entries. For detailed information about state persistence features and implementation, see the [State Persistence](STATE_PERSISTENCE.md) documentation.
+
 ## Troubleshooting
 
 ### Common Issues

@@ -9,6 +9,72 @@ import { lucideIconMap } from './settings';
 import { TimeFilterView, TIME_FILTER_VIEW_TYPE } from './src/TimeFilterView';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 
+class Logger {
+    private static instance: Logger;
+    private categories: Set<string> = new Set([
+        'Date',
+        'Events',
+        'Filter',
+        'Metrics',
+        'UI',
+        'Performance',
+        'Error'
+    ]);
+
+    private constructor() {}
+
+    static getInstance(): Logger {
+        if (!Logger.instance) {
+            Logger.instance = new Logger();
+        }
+        return Logger.instance;
+    }
+
+    private formatMessage(category: string, message: string, data?: any): string {
+        const timestamp = new Date().toISOString();
+        const dataStr = data ? `\nData: ${JSON.stringify(data, null, 2)}` : '';
+        return `[OneiroMetrics][${category}] ${message}${dataStr}`;
+    }
+
+    log(category: string, message: string, data?: any) {
+        if (!this.categories.has(category)) {
+            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
+            return;
+        }
+        console.log(this.formatMessage(category, message, data));
+    }
+
+    warn(category: string, message: string, data?: any) {
+        if (!this.categories.has(category)) {
+            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
+            return;
+        }
+        console.warn(this.formatMessage(category, message, data));
+    }
+
+    error(category: string, message: string, error?: Error, data?: any) {
+        if (!this.categories.has(category)) {
+            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
+            return;
+        }
+        const errorStr = error ? `\nError: ${error.message}\nStack: ${error.stack}` : '';
+        console.error(this.formatMessage(category, message, data) + errorStr);
+    }
+
+    debug(category: string, message: string, data?: any) {
+        if (!this.categories.has(category)) {
+            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
+            return;
+        }
+        console.debug(this.formatMessage(category, message, data));
+    }
+
+    performance(category: string, operation: string, startTime: number) {
+        const duration = performance.now() - startTime;
+        this.log('Performance', `${operation} took ${duration.toFixed(2)}ms`, { category, operation, duration });
+    }
+}
+
 class OneiroMetricsModal extends Modal {
     private plugin: DreamMetricsPlugin;
 
@@ -88,6 +154,8 @@ class ConfirmModal extends Modal {
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
+    private logger: Logger;
+    private expandedStates: Set<string> = new Set();
 
     // Add memoization for table calculations
     private memoizedTableData = new Map<string, any>();
@@ -96,7 +164,14 @@ export default class DreamMetricsPlugin extends Plugin {
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
+        this.logger = Logger.getInstance();
         await this.loadSettings();
+        
+        // Load expanded states from settings
+        if (this.settings.expandedStates) {
+            this.expandedStates = new Set(this.settings.expandedStates);
+            this.logger.debug('UI', `Loaded ${this.expandedStates.size} expanded states`);
+        }
 
         // Add settings tab
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
@@ -264,7 +339,10 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async saveSettings() {
+        // Save expanded states to settings
+        this.settings.expandedStates = Array.from(this.expandedStates);
         await this.saveData(this.settings);
+        this.logger.debug('UI', `Saved ${this.expandedStates.size} expanded states`);
     }
 
     async scrapeMetrics() {
@@ -980,18 +1058,8 @@ export default class DreamMetricsPlugin extends Plugin {
         });
     }
 
-    private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
-        console.log(`[OneiroMetrics] Generating table with ${dreamEntries.length} entries`);
-        const cacheKey = JSON.stringify({ metrics, dreamEntries });
-        if (this.memoizedTableData.has(cacheKey)) {
-            console.log('[OneiroMetrics] Using cached table data');
-            return this.memoizedTableData.get(cacheKey);
-        }
-
+    private generateSummaryTable(metrics: Record<string, number[]>): string {
         let content = '';
-        content += '\n<!-- OOM METRICS START -->\n';
-        
-        // Metrics Section
         content += `<div class="oom-table-section oom-stats-section">`;
         content += '<div class="oom-table-title oom-stats-title">Statistics</div>';
         content += '<div class="oom-table-container">\n';
@@ -1051,133 +1119,75 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '</table>\n';
         content += '</div>\n';
         content += '</div>\n';
+        return content;
+    }
 
-        // Dream Entries Section
-        content += '<div class="oom-table-section">';
-        content += '<div class="oom-table-title">Dream Entries</div>';
+    private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
+        console.log(`[OneiroMetrics] Generating table with ${dreamEntries.length} entries`);
+        let content = '';
+        const cacheKey = JSON.stringify({ metrics, dreamEntries });
         
-        // Filter Controls
-        content += '<div class="oom-filter-controls">\n';
-        content += '<div class="oom-time-filter">\n';
-        content += '<button id="oom-time-filter-btn" class="oom-button oom-button--icon" aria-label="Open Time Filter">\n';
-        content += '<span class="oom-button-icon">📅</span>\n';
-        content += '<span class="oom-button-text">Time Filter</span>\n';
-        content += '</button>\n';
-        content += '<div id="oom-time-filter-display" class="oom-time-filter-display">All Time</div>\n';
-        content += '</div>\n';
-        content += '<div class="oom-metric-filter">\n';
-        content += '<label for="metricFilter">Filter by Metric:</label>\n';
-        content += '<select id="metricFilter" class="oom-select">\n';
-        content += '<option value="all">All Metrics</option>\n';
-        for (const metric of this.settings.metrics) {
-            const label = metric.icon && lucideIconMap[metric.icon]
-                ? `<span class="oom-metric-icon-svg oom-metric-icon--start">${lucideIconMap[metric.icon]}</span> ${metric.name}`
-                : metric.name;
-            content += `<option value="${metric.name}">${label}</option>\n`;
+        if (this.memoizedTableData.has(cacheKey)) {
+            console.log('[OneiroMetrics] Using cached table data');
+            return this.memoizedTableData.get(cacheKey);
         }
+
+        content += '<!-- OOM METRICS START -->\n';
+        content += '<div class="oom-metrics-container">\n';
+        content += '<div class="oom-metrics-content">\n';
+
+        // Add filter controls
+        content += '<div class="oom-filter-controls">\n';
+        content += '<div class="oom-date-filter">\n';
+        content += '<select id="oom-date-range-filter" class="oom-select">\n';
+        content += '<option value="all">All Time</option>\n';
+        content += '<option value="week">Last Week</option>\n';
+        content += '<option value="month">Last Month</option>\n';
+        content += '<option value="year">Last Year</option>\n';
         content += '</select>\n';
         content += '</div>\n';
         content += '</div>\n';
-        
-        // Detailed Entries Table
-        content += '<div class="oom-table-container">\n';
-        content += '<table class="oom-table oom-sortable">\n';
-        content += '<thead>\n';
-        content += '<tr>\n';
-        content += '<th class="oom-sortable" data-sort="date">Date <span class="oom-sort-icon">↕</span></th>\n';
-        content += '<th class="oom-sortable" data-sort="title">Dream Title <span class="oom-sort-icon">↕</span></th>\n';
-        content += '<th class="oom-sortable metric-value" data-sort="words">Words <span class="oom-sort-icon">↕</span></th>\n';
+
+        // Generate summary table
+        content += this.generateSummaryTable(metrics);
+
+        // Generate detailed table
+        content += '<h2 class="oom-dream-entries-title">Dream Entries</h2>\n';
+        content += '<div class="oom-table-section">\n';
+        content += '<table class="oom-table">\n';
+        content += '<thead>\n<tr>\n';
+        content += '<th>Date</th>\n';
+        content += '<th>Dream Title</th>\n';
+        content += '<th>Words</th>\n';
         content += '<th>Content</th>\n';
+        
+        // Add metric columns
         for (const metric of this.settings.metrics) {
-            const label = metric.icon && lucideIconMap[metric.icon]
-                ? `<span class="oom-metric-icon-svg oom-metric-icon--start">${lucideIconMap[metric.icon]}</span> ${metric.name}`
-                : metric.name;
-            content += `<th class="oom-sortable metric-value" data-sort="${metric.name}">${label} <span class="oom-sort-icon">↕</span></th>\n`;
+            content += `<th>${metric.name}</th>\n`;
         }
-        content += '</tr>\n';
-        content += '</thead>\n';
-        content += '<tbody>\n';
+        
+        content += '</tr>\n</thead>\n<tbody>\n';
 
-        // Sort entries by date before displaying
-        const sortedEntries = [...dreamEntries].sort((a, b) => a.date.localeCompare(b.date));
+        // Sort entries by date
+        dreamEntries.sort((a, b) => {
+            const dateA = this.parseDate(a.date);
+            const dateB = this.parseDate(b.date);
+            return dateA.getTime() - dateB.getTime();
+        });
 
-        for (const entry of sortedEntries) {
+        for (const entry of dreamEntries) {
             content += `<tr class="oom-dream-row" data-date="${entry.date}">\n`;
             
-            // Format date - ensure it's a valid date string
+            // Format date
             let formattedDate = 'Invalid Date';
             try {
-                console.log(`[OneiroMetrics] Processing date for table: ${entry.date}`);
-                
-                // Try parsing as YYYY-MM-DD first
-                const dateMatch = entry.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                if (dateMatch) {
-                    const [_, year, month, day] = dateMatch;
-                    console.log(`[OneiroMetrics] Found YYYY-MM-DD format: ${year}-${month}-${day}`);
-                    const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                    if (!isNaN(parsedDate.getTime())) {
-                        formattedDate = parsedDate.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        });
-                        console.log(`[OneiroMetrics] Successfully formatted date: ${formattedDate}`);
-                    } else {
-                        console.error(`[OneiroMetrics] Failed to parse date components: ${year}-${month}-${day}`);
-                    }
-                } else {
-                    // Try block reference format
-                    const blockRefMatch = entry.date.match(/\^(\d{8})/);
-                    if (blockRefMatch) {
-                        const dateStr = blockRefMatch[1];
-                        console.log(`[OneiroMetrics] Found block reference format: ${dateStr}`);
-                        const year = dateStr.slice(0, 4);
-                        const month = dateStr.slice(4, 6);
-                        const day = dateStr.slice(6, 8);
-                        const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                        if (!isNaN(parsedDate.getTime())) {
-                            formattedDate = parsedDate.toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                            });
-                            console.log(`[OneiroMetrics] Successfully formatted date from block reference: ${formattedDate}`);
-                        } else {
-                            console.error(`[OneiroMetrics] Failed to parse block reference date: ${dateStr}`);
-                        }
-                    } else {
-                        // Try to extract date from the journal line itself
-                        const anyDateMatch = entry.date.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-                        if (anyDateMatch) {
-                            const [_, year, month, day] = anyDateMatch;
-                            console.log(`[OneiroMetrics] Found general date format: ${year}-${month}-${day}`);
-                            const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                            if (!isNaN(parsedDate.getTime())) {
-                                formattedDate = parsedDate.toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                });
-                                console.log(`[OneiroMetrics] Successfully formatted date from general format: ${formattedDate}`);
-                            } else {
-                                console.error(`[OneiroMetrics] Failed to parse general format date: ${entry.date}`);
-                            }
-                        } else {
-                            // Try parsing as ISO string
-                            console.log(`[OneiroMetrics] Trying to parse as ISO string: ${entry.date}`);
-                            const date = new Date(entry.date);
-                            if (!isNaN(date.getTime())) {
-                                formattedDate = date.toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                });
-                                console.log(`[OneiroMetrics] Successfully formatted date from ISO: ${formattedDate}`);
-                            } else {
-                                console.error(`[OneiroMetrics] Date format not recognized: ${entry.date}`);
-                            }
-                        }
-                    }
+                const parsedDate = this.parseDate(entry.date);
+                if (!isNaN(parsedDate.getTime())) {
+                    formattedDate = parsedDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
                 }
             } catch (e) {
                 console.error(`[OneiroMetrics] Error formatting date ${entry.date}:`, e);
@@ -1188,7 +1198,6 @@ export default class DreamMetricsPlugin extends Plugin {
             const noteLink = entry.source.file.replace(/\.md$/, '');
             const blockRef = entry.source.id ? `#^${entry.source.id}` : '';
             const fullLink = `${noteLink}${blockRef}`;
-            console.log(`[OneiroMetrics] Creating link: ${fullLink}`);
             content += `<td class="oom-dream-title"><a href="${fullLink}" data-href="${fullLink}" class="internal-link" data-link-type="block" data-link-path="${noteLink}" data-link-hash="${blockRef}" title="${entry.title}">${entry.title}</a></td>\n`;
             content += `<td class="metric-value">${entry.metrics['Words'] || 0}</td>\n`;
 
@@ -1219,8 +1228,7 @@ export default class DreamMetricsPlugin extends Plugin {
             }
             content += '</tr>\n';
         }
-        content += '</tbody>\n';
-        content += '</table>\n';
+        content += '</tbody>\n</table>\n';
         content += '</div>\n';
         content += '</div>\n';
         content += '\n<!-- OOM METRICS END -->\n';
@@ -1231,39 +1239,108 @@ export default class DreamMetricsPlugin extends Plugin {
         return result;
     }
 
+    private validateDate(date: Date): boolean {
+        return !isNaN(date.getTime()) && 
+               date.getFullYear() >= 1900 && 
+               date.getFullYear() <= 2100;
+    }
+
+    private parseDate(dateStr: string): Date {
+        const startTime = performance.now();
+        this.logger.debug('Date', `Processing date: ${dateStr}`);
+        
+        // Try block reference format first (^YYYYMMDD)
+        const blockRefMatch = dateStr.match(/\^(\d{8})/);
+        if (blockRefMatch) {
+            const dateStr = blockRefMatch[1];
+            const year = parseInt(dateStr.slice(0, 4));
+            const month = parseInt(dateStr.slice(4, 6)) - 1;
+            const day = parseInt(dateStr.slice(6, 8));
+            const date = new Date(year, month, day);
+            if (this.validateDate(date)) {
+                this.logger.log('Date', `Parsed block reference format: ${date.toISOString()}`);
+                this.logger.performance('Date', 'parseDate', startTime);
+                return date;
+            }
+        }
+
+        // Try YYYY-MM-DD format
+        const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (dateMatch) {
+            const [_, year, month, day] = dateMatch;
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            if (this.validateDate(date)) {
+                this.logger.log('Date', `Parsed YYYY-MM-DD format: ${date.toISOString()}`);
+                this.logger.performance('Date', 'parseDate', startTime);
+                return date;
+            }
+        }
+
+        // Try Month Day, YYYY format
+        const monthDayMatch = dateStr.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}/);
+        if (monthDayMatch) {
+            const date = new Date(monthDayMatch[0]);
+            if (this.validateDate(date)) {
+                this.logger.log('Date', `Parsed Month Day format: ${date.toISOString()}`);
+                this.logger.performance('Date', 'parseDate', startTime);
+                return date;
+            }
+        }
+
+        // Try general date format
+        const anyDateMatch = dateStr.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (anyDateMatch) {
+            const [_, year, month, day] = anyDateMatch;
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            if (this.validateDate(date)) {
+                this.logger.log('Date', `Parsed general format: ${date.toISOString()}`);
+                this.logger.performance('Date', 'parseDate', startTime);
+                return date;
+            }
+        }
+
+        // Try ISO string as last resort
+        const date = new Date(dateStr);
+        if (this.validateDate(date)) {
+            this.logger.log('Date', `Parsed ISO string: ${date.toISOString()}`);
+            this.logger.performance('Date', 'parseDate', startTime);
+            return date;
+        }
+
+        // If all parsing attempts fail, log error and return current date
+        this.logger.error('Date', `Failed to parse date: ${dateStr}`, new Error('Date parsing failed'));
+        this.logger.performance('Date', 'parseDate', startTime);
+        return new Date();
+    }
+
+    private formatDate(date: Date): string {
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
     private updateProjectNoteView() {
         try {
-            // Get all leaves that might contain our project note
             const leaves = this.app.workspace.getLeavesOfType('markdown');
             let updated = false;
 
             leaves.forEach(leaf => {
                 const view = leaf.view;
                 if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNotePath) {
-                    // Set the data attribute to identify this as our project note
+                    // Add rescraping button at the top of the note
                     const container = view.containerEl;
-                    container.setAttribute('data-type', 'oom-project-note');
-
-                    // Apply styles to the preview container
-                    const previewEl = container.querySelector('.markdown-preview-view') as HTMLElement;
-                    if (previewEl) {
-                        previewEl.setAttribute('data-type', 'oom-project-note');
-                        
-                        // Apply full width styles if enabled
-                        if (this.settings.readableLineLengthOverride) {
-                            previewEl.classList.add('oom-full-width');
-                            previewEl.style.setProperty('--oom-line-width', '100%', 'important');
-                            previewEl.style.setProperty('--oom-max-width', 'none', 'important');
-                        } else {
-                            previewEl.classList.remove('oom-full-width');
-                            previewEl.style.removeProperty('--oom-line-width');
-                            previewEl.style.removeProperty('--oom-max-width');
-                        }
-
-                        // Force a reflow to ensure styles are applied
-                        previewEl.style.display = 'none';
-                        previewEl.offsetHeight; // Force reflow
-                        previewEl.style.display = '';
+                    const existingButton = container.querySelector('.oom-rescrape-button');
+                    if (!existingButton) {
+                        const buttonContainer = container.createDiv('oom-rescrape-container');
+                        const rescrapeButton = buttonContainer.createEl('button', {
+                            text: 'Rescrape Metrics',
+                            cls: 'mod-cta oom-rescrape-button'
+                        });
+                        rescrapeButton.addEventListener('click', () => {
+                            this.scrapeMetrics();
+                        });
                     }
 
                     // Update the view's content
@@ -1293,112 +1370,128 @@ export default class DreamMetricsPlugin extends Plugin {
         }
     }
 
+    private debounce<T extends (...args: any[]) => any>(
+        func: T,
+        wait: number
+    ): (...args: Parameters<T>) => void {
+        let timeout: NodeJS.Timeout | null = null;
+        
+        return (...args: Parameters<T>) => {
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+            
+            timeout = setTimeout(() => {
+                func(...args);
+                timeout = null;
+            }, wait);
+        };
+    }
+
+    private getContentStateId(contentCell: HTMLElement): string {
+        const date = contentCell.closest('.oom-dream-row')?.getAttribute('data-date');
+        const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
+        return `${date}-${title}`.replace(/[^a-zA-Z0-9-]/g, '');
+    }
+
     private attachProjectNoteEventListeners() {
+        const startTime = performance.now();
         const container = this.app.workspace.containerEl;
         const cleanupFunctions: (() => void)[] = [];
 
-        console.log('[OneiroMetrics] Attaching project note event listeners');
+        this.logger.log('Events', 'Attaching project note event listeners');
         const previewEl = document.querySelector('.markdown-preview-view[data-type="oom-project-note"]');
         if (!previewEl) {
-            console.log('[OneiroMetrics] No project note preview element found');
+            this.logger.warn('Events', 'No project note preview element found');
             return;
         }
 
         // Function to attach event listeners to expand buttons
         const attachExpandButtonListeners = (container: Element) => {
             const expandButtons = container.querySelectorAll('.oom-button--expand');
-            console.log('[OneiroMetrics] Found', expandButtons.length, 'expand buttons');
+            this.logger.log('Events', `Found ${expandButtons.length} expand buttons`);
             
             expandButtons.forEach(button => {
-                // Remove any existing listeners to prevent duplicates
-                const newButton = button.cloneNode(true) as HTMLButtonElement;
-                button.parentNode?.replaceChild(newButton, button);
+                const buttonEl = button as HTMLElement;
+                const contentCell = buttonEl.closest('.oom-dream-content') as HTMLElement;
+                if (!contentCell) return;
+
+                const previewDiv = contentCell.querySelector('.oom-content-preview') as HTMLElement;
+                const fullDiv = contentCell.querySelector('.oom-content-full') as HTMLElement;
+                if (!previewDiv || !fullDiv) return;
+
+                // Get unique identifier for this content
+                const contentId = this.getContentStateId(contentCell);
                 
-                // Add the click listener
-                newButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                // Check if this content was previously expanded
+                const wasExpanded = this.expandedStates.has(contentId);
+                if (wasExpanded) {
+                    previewDiv.style.display = 'none';
+                    fullDiv.style.display = 'block';
+                    buttonEl.setAttribute('data-expanded', 'true');
+                    buttonEl.setAttribute('aria-expanded', 'true');
+                    buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
+                }
+
+                const clickHandler = () => {
+                    const isExpanded = buttonEl.getAttribute('data-expanded') === 'true';
+                    buttonEl.setAttribute('data-expanded', (!isExpanded).toString());
+                    buttonEl.setAttribute('aria-expanded', (!isExpanded).toString());
                     
-                    console.log('[OneiroMetrics] Expand button clicked');
-                    const contentCell = newButton.closest('.oom-dream-content');
-                    if (!contentCell) {
-                        console.log('[OneiroMetrics] No content cell found for button');
-                        return;
-                    }
-
-                    const preview = contentCell.querySelector('.oom-content-preview') as HTMLElement;
-                    const full = contentCell.querySelector('.oom-content-full') as HTMLElement;
-                    if (!preview || !full) {
-                        console.log('[OneiroMetrics] Missing preview or full content elements');
-                        return;
-                    }
-
-                    const isExpanded = newButton.getAttribute('aria-expanded') === 'true';
-                    console.log('[OneiroMetrics] Current expanded state:', isExpanded);
-
-                    // Toggle visibility using inline styles
                     if (isExpanded) {
-                        preview.style.display = 'block';
-                        full.style.display = 'none';
+                        previewDiv.style.display = 'block';
+                        fullDiv.style.display = 'none';
+                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
+                        this.expandedStates.delete(contentId);
                     } else {
-                        preview.style.display = 'none';
-                        full.style.display = 'block';
+                        previewDiv.style.display = 'none';
+                        fullDiv.style.display = 'block';
+                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
+                        this.expandedStates.add(contentId);
                     }
-                    
-                    newButton.setAttribute('aria-expanded', (!isExpanded).toString());
-                    newButton.setAttribute('data-expanded', (!isExpanded).toString());
-                    
-                    // Update button text and add visual feedback
-                    const buttonText = newButton.querySelector('.oom-button-text');
-                    if (buttonText) {
-                        buttonText.textContent = isExpanded ? 'Show more' : 'Show less';
-                    }
-                    newButton.classList.toggle('is-expanded', !isExpanded);
-                    
-                    // Force a reflow to ensure styles are applied
-                    newButton.offsetHeight;
-                    
-                    console.log('[OneiroMetrics] Content visibility toggled:', {
-                        previewDisplay: preview.style.display,
-                        fullDisplay: full.style.display,
-                        buttonState: newButton.getAttribute('aria-expanded')
+
+                    // Save state after a short delay to prevent too frequent saves
+                    this.debounce(() => {
+                        this.saveSettings();
+                    }, 500)();
+
+                    this.logger.log('UI', `Content ${isExpanded ? 'collapsed' : 'expanded'}`, {
+                        contentId,
+                        buttonId: buttonEl.id,
+                        contentCellId: contentCell.id
                     });
-                });
+                };
+
+                buttonEl.addEventListener('click', clickHandler);
+                cleanupFunctions.push(() => buttonEl.removeEventListener('click', clickHandler));
             });
         };
 
-        // Initial attachment of listeners
+        // Initial attachment
         attachExpandButtonListeners(previewEl);
 
-        // Set up MutationObserver to handle dynamic content changes
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach((node) => {
-                        if (node instanceof Element) {
-                            attachExpandButtonListeners(node);
-                        }
-                    });
-                }
-            });
+        // Re-attach when content changes
+        const observer = new MutationObserver(() => {
+            this.logger.debug('Events', 'Content changed, reattaching expand button listeners');
+            attachExpandButtonListeners(previewEl);
         });
 
-        // Start observing the preview element for changes
         observer.observe(previewEl, {
             childList: true,
             subtree: true
         });
 
-        // Clean up observer when plugin is unloaded
-        this.register(() => observer.disconnect());
+        cleanupFunctions.push(() => observer.disconnect());
 
         // Attach event listener for Time Filter button
         const timeFilterBtn = previewEl.querySelector('#oom-time-filter-btn');
         if (timeFilterBtn) {
-            timeFilterBtn.addEventListener('click', () => {
-                console.log('[OneiroMetrics] Time filter button clicked');
+            const timeFilterHandler = () => {
+                this.logger.log('Events', 'Time filter button clicked');
                 this.activateView();
-            });
+            };
+            timeFilterBtn.addEventListener('click', timeFilterHandler);
+            cleanupFunctions.push(() => timeFilterBtn.removeEventListener('click', timeFilterHandler));
         }
 
         // Subscribe to time filter changes
@@ -1408,13 +1501,14 @@ export default class DreamMetricsPlugin extends Plugin {
             
             // Function to update the table based on the current filter
             const updateTableWithFilter = () => {
-                console.log('[OneiroMetrics] Updating table with current filter');
+                const filterStartTime = performance.now();
+                this.logger.log('Filter', 'Updating table with current filter');
                 const currentFilter = filterManager.getCurrentFilter();
                 const metricFilter = (previewEl.querySelector('#metricFilter') as HTMLSelectElement)?.value || 'all';
                 
                 if (currentFilter) {
                     const dateRange = currentFilter.getDateRange();
-                    console.log('[OneiroMetrics] Filter date range:', dateRange);
+                    this.logger.debug('Filter', 'Filter date range', dateRange);
                     
                     const rows = previewEl.querySelectorAll('.oom-dream-row');
                     let visibleCount = 0;
@@ -1422,47 +1516,14 @@ export default class DreamMetricsPlugin extends Plugin {
                     rows.forEach(row => {
                         const date = row.getAttribute('data-date');
                         if (date) {
-                            // Try to parse the date from various formats
-                            let dreamDate: Date | null = null;
-                            
-                            // Try YYYY-MM-DD format
-                            const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                            if (dateMatch) {
-                                const [_, year, month, day] = dateMatch;
-                                console.log(`[OneiroMetrics] Parsing YYYY-MM-DD format: ${year}-${month}-${day}`);
-                                dreamDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                            } else {
-                                // Try block reference format
-                                const blockRefMatch = date.match(/\^(\d{8})/);
-                                if (blockRefMatch) {
-                                    const dateStr = blockRefMatch[1];
-                                    console.log(`[OneiroMetrics] Parsing block reference format: ${dateStr}`);
-                                    const year = dateStr.slice(0, 4);
-                                    const month = dateStr.slice(4, 6);
-                                    const day = dateStr.slice(6, 8);
-                                    dreamDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                                } else {
-                                    // Try to extract date from the journal line itself
-                                    const anyDateMatch = date.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-                                    if (anyDateMatch) {
-                                        const [_, year, month, day] = anyDateMatch;
-                                        console.log(`[OneiroMetrics] Parsing general date format: ${year}-${month}-${day}`);
-                                        dreamDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                                    } else {
-                                        // Try ISO string as last resort
-                                        console.log(`[OneiroMetrics] Trying to parse as ISO string: ${date}`);
-                                        dreamDate = new Date(date);
-                                    }
-                                }
-                            }
-                            
+                            const dreamDate = this.parseDate(date);
                             if (dreamDate && !isNaN(dreamDate.getTime())) {
                                 const isInRange = dreamDate >= dateRange.start && dreamDate <= dateRange.end;
                                 (row as HTMLElement).style.display = isInRange ? '' : 'none';
                                 if (isInRange) visibleCount++;
-                                console.log(`[OneiroMetrics] Row date ${dreamDate.toISOString()} is ${isInRange ? 'in' : 'out of'} range`);
+                                this.logger.debug('Filter', `Row date ${dreamDate.toISOString()} is ${isInRange ? 'in' : 'out of'} range`);
                             } else {
-                                console.error(`[OneiroMetrics] Failed to parse date: ${date}`);
+                                this.logger.error('Filter', `Failed to parse date: ${date}`);
                                 (row as HTMLElement).style.display = 'none';
                             }
                         }
@@ -1474,56 +1535,78 @@ export default class DreamMetricsPlugin extends Plugin {
                         filterDisplay.textContent = `${currentFilter.name} (${visibleCount} entries)`;
                     }
                     
-                    console.log('[OneiroMetrics] Table updated with filter:', currentFilter.name, 'Visible entries:', visibleCount);
+                    this.logger.log('Filter', `Table updated with filter: ${currentFilter.name}`, {
+                        visibleEntries: visibleCount,
+                        totalEntries: rows.length
+                    });
+                }
+                this.logger.performance('Filter', 'updateTableWithFilter', filterStartTime);
+            };
+
+            // Create debounced version of updateTableWithFilter
+            const debouncedUpdateTable = this.debounce(updateTableWithFilter, 250);
+
+            // Subscribe to filter changes
+            const layoutChangeHandler = () => {
+                this.logger.debug('Events', 'Layout changed, checking for filter updates');
+                const newTimeFilterView = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
+                if (newTimeFilterView) {
+                    const newFilterManager = newTimeFilterView.getFilterManager();
+                    const currentFilter = newFilterManager.getCurrentFilter();
+                    if (currentFilter) {
+                        this.logger.log('Filter', `New filter detected: ${currentFilter.name}`);
+                        debouncedUpdateTable();
+                    }
                 }
             };
 
-            // Subscribe to filter changes
             this.registerEvent(
-                this.app.workspace.on('layout-change', () => {
-                    console.log('[OneiroMetrics] Layout changed, checking for filter updates');
-                    const newTimeFilterView = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                    if (newTimeFilterView) {
-                        const newFilterManager = newTimeFilterView.getFilterManager();
-                        const currentFilter = newFilterManager.getCurrentFilter();
-                        if (currentFilter) {
-                            console.log('[OneiroMetrics] New filter detected:', currentFilter.name);
-                            updateTableWithFilter();
-                        }
-                    }
-                })
+                this.app.workspace.on('layout-change', layoutChangeHandler)
             );
 
             // Subscribe to filter manager changes
+            const resizeHandler = () => {
+                this.logger.debug('Events', 'Workspace resized, updating filter');
+                debouncedUpdateTable();
+            };
+
             this.registerEvent(
-                this.app.workspace.on('resize', () => {
-                    console.log('[OneiroMetrics] Workspace resized, updating filter');
-                    updateTableWithFilter();
-                })
+                this.app.workspace.on('resize', resizeHandler)
             );
 
             // Subscribe to active leaf changes
+            const activeLeafChangeHandler = () => {
+                this.logger.debug('Events', 'Active leaf changed, updating filter');
+                debouncedUpdateTable();
+            };
+
             this.registerEvent(
-                this.app.workspace.on('active-leaf-change', () => {
-                    console.log('[OneiroMetrics] Active leaf changed, updating filter');
-                    updateTableWithFilter();
-                })
+                this.app.workspace.on('active-leaf-change', activeLeafChangeHandler)
             );
 
-            // Subscribe to vault changes instead of file-change
+            // Subscribe to vault changes
+            const vaultModifyHandler = () => {
+                this.logger.debug('Events', 'File modified, updating filter');
+                debouncedUpdateTable();
+            };
+
             this.registerEvent(
-                this.app.vault.on('modify', () => {
-                    console.log('[OneiroMetrics] File modified, updating filter');
-                    updateTableWithFilter();
-                })
+                this.app.vault.on('modify', vaultModifyHandler)
             );
 
-            // Initial update
+            // Initial update (not debounced)
             updateTableWithFilter();
         }
 
         // Store cleanup functions
         this.cleanupFunctions.push(...cleanupFunctions);
+
+        this.logger.performance('Events', 'attachProjectNoteEventListeners', startTime);
+
+        // Return cleanup function
+        return () => {
+            cleanupFunctions.forEach(cleanup => cleanup());
+        };
     }
 
     private sortTable(column: string) {
