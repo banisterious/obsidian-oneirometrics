@@ -164,7 +164,26 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
    - Data storage and retrieval
    - State management
 
-2. **User Interface**
+2. **Date Handling Strategy**
+   - **Primary Source: Block References**
+     - Uses Obsidian block references (^YYYYMMDD) as the authoritative date source
+     - Provides direct linking to source content
+     - Ensures accuracy through manual creation
+     - Maintains clear connection between metrics and source
+
+   - **Fallback Chain**
+     - YYYY-MM-DD format for standard journal entries
+     - Journal plugin date format compatibility
+     - Human-readable date formats for display
+     - Comprehensive date validation
+
+   - **Implementation**
+     - Prioritized date extraction process
+     - Detailed logging for debugging
+     - Clear user feedback
+     - Flexible format support
+
+3. **User Interface**
    - Table-based data display
    - Filter controls
    - Responsive design
