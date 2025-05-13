@@ -714,6 +714,8 @@ const filteredResult = await exportToCSV({
 
 ### Debug Logging & Note Update Troubleshooting
 
+For detailed information about the logging system and available log categories, see [LOGGING.md](LOGGING.md).
+
 - [ ] Check for debug Notices in Obsidian (e.g., [DEBUG] updateProjectNote called for: ...)
 - [ ] Confirm the OneiroMetrics Note Path in settings matches the file you are viewing
 - [ ] Open the note in the editor and look for the <!-- OOM METRICS START --> marker in the raw Markdown
@@ -974,3 +976,66 @@ If you find any issues or have suggestions for improvements, please open an issu
   - [ ] Content visibility changes are logged
   - [ ] Table updates are logged
   - [ ] Error states are properly logged
+
+## Potential Future Features Testing Considerations
+
+### Dream Sequence Visualization
+- [ ] Timeline Rendering
+  - [ ] Verify correct timeline display
+  - [ ] Test scene transition visualization
+  - [ ] Check parallel timeline support
+  - [ ] Validate color coding system
+  - [ ] Test performance with large datasets
+  - [ ] Verify mobile responsiveness
+
+### Temporal Analysis
+- [ ] Time Series Processing
+  - [ ] Test pattern detection accuracy
+  - [ ] Verify event correlation
+  - [ ] Check long-term data handling
+  - [ ] Validate visualization accuracy
+  - [ ] Test performance optimization
+  - [ ] Verify data export functionality
+
+### Pattern Recognition
+- [ ] Analysis Features
+  - [ ] Test theme detection accuracy
+  - [ ] Verify symbol tracking
+  - [ ] Check emotional state analysis
+  - [ ] Validate location correlation
+  - [ ] Test performance with large datasets
+  - [ ] Verify pattern visualization
+
+### Statistical Analysis
+- [ ] Analysis Tools
+  - [ ] Test metric correlation accuracy
+  - [ ] Verify visualization engine
+  - [ ] Check data export formats
+  - [ ] Validate comparative analysis
+  - [ ] Test performance optimization
+  - [ ] Verify mobile display
+
+### General Testing Requirements
+- [ ] Performance Testing
+  - [ ] Load testing with large datasets
+  - [ ] Memory usage monitoring
+  - [ ] Response time measurement
+  - [ ] Mobile device testing
+  - [ ] Theme compatibility
+  - [ ] Accessibility compliance
+
+- [ ] Integration Testing
+  - [ ] Theme compatibility
+  - [ ] Plugin interactions
+  - [ ] Data import/export
+  - [ ] File system operations
+  - [ ] User settings persistence
+  - [ ] Error handling
+
+- [ ] User Experience Testing
+  - [ ] Interface usability
+  - [ ] Navigation flow
+  - [ ] Error messaging
+  - [ ] Help documentation
+  - [ ] Mobile experience
+  - [ ] Accessibility features

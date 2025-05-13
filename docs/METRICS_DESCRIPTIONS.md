@@ -1,3 +1,7 @@
+# Metric Descriptions
+
+This document provides detailed descriptions of all metrics used in the OneiroMetrics plugin. For information about metric styling and layout, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md). For details about temporal aspects of metrics, see the [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md).
+
 # OneiroMetrics Metrics Guide
 
 This document provides detailed descriptions of the metrics used in OneiroMetrics for dream journal analysis.
@@ -83,7 +87,7 @@ This metric tracks the number of characters you don't know from your waking life
 
 ### Characters List
 This metric allows you to list all characters that appeared in your dream. You can add multiple entries, one per line. For example:
-```
+```markdown
 Mom
 Dad
 My dog Max

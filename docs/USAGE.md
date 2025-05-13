@@ -153,6 +153,14 @@ The generated table includes two main sections:
 - Real-time validation and feedback
 - Easy navigation through suggestions
 
+## Date and Time Features
+
+For detailed information about date and time handling, including block references, time filters, and calendar integration, see the [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md).
+
+## Layout and Styling
+
+For comprehensive information about layout options, styling features, and theme integration, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md).
+
 ## Troubleshooting
 
 ### Common Issues

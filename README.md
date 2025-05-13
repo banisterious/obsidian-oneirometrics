@@ -40,6 +40,7 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
 - [Metrics Guide](docs/METRICS.md) - Detailed descriptions of dream metrics and scoring guidelines
 - [Usage Guide](docs/USAGE.md) - Detailed instructions for using the plugin
+- [Logging Guide](LOGGING.md) - Information about the plugin's logging system and debugging capabilities
 
 ## Setup
 

@@ -74,6 +74,35 @@
   - Custom date range templates
   - Export/import date ranges
 
+## Potential Future Features
+
+These features are under consideration but not yet planned for implementation. They represent areas of potential expansion based on user needs and technical feasibility.
+
+### Dream Analysis Features
+- **Dream Sequence Visualization**
+  - Interactive timeline visualization of dream sequences
+  - Visual representation of dream transitions and scenes
+  - Support for multiple parallel timelines
+  - Color-coding based on emotional states or themes
+
+- **Temporal Analysis**
+  - Time-based pattern detection across dreams
+  - Analysis of dream frequency and timing
+  - Correlation with external events or activities
+  - Long-term trend visualization
+
+- **Pattern Recognition**
+  - Automated detection of recurring themes
+  - Symbol and motif tracking across dreams
+  - Emotional pattern analysis
+  - Location and setting correlations
+
+- **Statistical Analysis**
+  - Advanced metric correlation analysis
+  - Custom statistical visualizations
+  - Export capabilities for external analysis
+  - Comparative analysis tools
+
 ## Notes
 - Features are listed in approximate order of implementation
 - Priorities may shift based on user feedback

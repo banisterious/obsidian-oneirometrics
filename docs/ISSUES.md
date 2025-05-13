@@ -35,6 +35,8 @@
   - Content visibility toggling
   - Table updates
 
+For detailed information about the logging system and available log categories, see [LOGGING.md](LOGGING.md).
+
 ## Recent Changes
 - **New Optional Metrics Added:**
   - Dream Theme (Categorical/Keywords)
@@ -86,12 +88,69 @@
   - Keyboard navigation and high-contrast support
   - Picker only in metric editor, icons used everywhere
   - Store only icon name in settings
-  - For detailed technical specifications, see [Icon Picker Technical Implementation](docs/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md)
 
 - **Performance Optimization:**
   - Reduce excessive logging in future builds
   - Optimize calendar preview rendering
   - Improve time filter state management
+
+## Potential Future Features
+
+### Dream Analysis Features
+These features are under consideration and require further research and planning before implementation.
+
+#### Dream Sequence Visualization
+- **Technical Considerations:**
+  - Interactive timeline implementation
+  - Scene transition detection
+  - Parallel timeline support
+  - Theme-aware color coding
+  - Performance with large datasets
+  - Mobile responsiveness
+
+#### Temporal Analysis
+- **Technical Considerations:**
+  - Time series data processing
+  - Pattern detection algorithms
+  - External event correlation
+  - Long-term data storage
+  - Performance optimization
+  - Data visualization techniques
+
+#### Pattern Recognition
+- **Technical Considerations:**
+  - Natural language processing
+  - Theme detection algorithms
+  - Symbol tracking system
+  - Emotional state analysis
+  - Location correlation
+  - Performance with large datasets
+
+#### Statistical Analysis
+- **Technical Considerations:**
+  - Advanced metric correlation
+  - Custom visualization engine
+  - Data export formats
+  - Comparative analysis tools
+  - Performance optimization
+  - Mobile-friendly displays
+
+### Implementation Challenges
+- Data processing performance
+- Memory usage optimization
+- Mobile device compatibility
+- Theme integration
+- Accessibility requirements
+- User interface complexity
+- See [Linting Technical Implementation](LINTING_TECHNICAL_IMPLEMENTATION.md) for code quality standards
+- See [Icon Picker Technical Implementation](ICON_PICKER_TECHNICAL_IMPLEMENTATION.md) for UI component details
+- See [Metrics Descriptions](METRICS_DESCRIPTIONS.md) for metric implementation guidelines
+
+### Research Required
+- Pattern detection algorithms
+- Visualization techniques
+- Documentation standards (see [Documentation Style Guide](DOCUMENTATION_STYLE_GUIDE.md))
+- Code quality practices (see [Linting Guidelines](LINTING_GUIDELINES.md))
 
 ## Date Format Standardization (May 12, 2025)
 

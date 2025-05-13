@@ -220,3 +220,7 @@
 -   ESLint: \[Link to ESLint documentation]
 -   Prettier: \[Link to Prettier documentation]
 -   Stylelint: \[Link to Stylelint documentation]
+
+## Styling Guidelines
+
+For comprehensive styling guidelines and theme integration details, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md).

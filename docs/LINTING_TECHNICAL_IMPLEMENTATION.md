@@ -161,6 +161,10 @@ class LintingEngine {
 - Add structure configuration
 - Enable/disable features
 
+### 4.3 Technical Integration
+- For date and time handling implementation details, see [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md)
+- For styling and layout implementation details, see [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md)
+
 ## 5. User Interface Components
 
 ### 5.1 Settings UI

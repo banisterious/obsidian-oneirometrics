@@ -144,16 +144,26 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
    - Icon picker search/filter
    - Additional icon options
    - Advanced data visualization
+   - Dream sequence visualization
+   - Temporal analysis tools
+   - Pattern recognition capabilities
+   - Statistical analysis features
 
 2. **Technical Improvements**
    - Code optimization
    - Testing coverage
    - Performance monitoring
+   - Advanced visualization engine
+   - Pattern detection algorithms
+   - Statistical analysis framework
 
 3. **User Support**
    - Enhanced documentation
    - Tutorial content
    - Community resources
+   - Analysis guides
+   - Pattern recognition tutorials
+   - Statistical analysis examples
 
 ## Technical Architecture
 
@@ -165,35 +175,43 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
    - State management
 
 2. **Date Handling Strategy**
-   - **Primary Source: Block References**
-     - Uses Obsidian block references (^YYYYMMDD) as the authoritative date source
-     - Provides direct linking to source content
-     - Ensures accuracy through manual creation
-     - Maintains clear connection between metrics and source
-
-   - **Fallback Chain**
-     - YYYY-MM-DD format for standard journal entries
-     - Journal plugin date format compatibility
-     - Human-readable date formats for display
-     - Comprehensive date validation
-
-   - **Implementation**
-     - Prioritized date extraction process
-     - Detailed logging for debugging
-     - Clear user feedback
-     - Flexible format support
+   - See [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for detailed implementation
+   - Block references as primary date source
+   - Fallback date formats
+   - Time filter system
+   - Calendar integration
 
 3. **User Interface**
    - Table-based data display
    - Filter controls
    - Responsive design
    - Theme integration
+   - See [Icon Picker Technical Implementation](ICON_PICKER_TECHNICAL_IMPLEMENTATION.md) for icon selection details
 
-3. **Styling System**
+4. **Styling System**
+   - See [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for comprehensive styling details
    - Theme-aware CSS architecture
    - Custom properties for consistent theming
    - Responsive breakpoints
    - Mobile-first approach
+
+5. **Documentation Standards**
+   - See [Documentation Style Guide](DOCUMENTATION_STYLE_GUIDE.md) for documentation guidelines
+   - Consistent formatting and structure
+   - Image and screenshot standards
+   - Code example formatting
+
+6. **Code Quality**
+   - See [Linting Guidelines](LINTING_GUIDELINES.md) for code style and quality standards
+   - See [Linting Technical Implementation](LINTING_TECHNICAL_IMPLEMENTATION.md) for implementation details
+   - Automated code validation
+   - Consistent code style
+
+7. **Metrics System**
+   - See [Metrics Descriptions](METRICS_DESCRIPTIONS.md) for detailed metric documentation
+   - Metric validation rules
+   - Data collection standards
+   - Analysis guidelines
 
 ### CSS Architecture
 The plugin uses a sophisticated CSS architecture that:
@@ -366,6 +384,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - 📄 **Testing & Troubleshooting Guide:**  
   See [`TESTING.md`](TESTING.md) in the project root for a full checklist, performance tests, and troubleshooting steps.
 
+For information about the plugin's logging system and debugging capabilities, see [LOGGING.md](LOGGING.md).
+
 ---
 
 ## How to Use
@@ -411,6 +431,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Documentation
 For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](METRICS.md).
+
+For information about the plugin's logging system and debugging capabilities, see [LOGGING.md](LOGGING.md).
 
 - 🛠️ **Lucide icons now render correctly as SVGs in the Settings > Metrics section, providing clear visual indicators for each metric.**
 - 🛠️ **Metric range labels for 'Lost Segments' and 'Familiar People' now display 'Any whole number' instead of a fixed range.**
