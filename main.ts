@@ -1136,9 +1136,16 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<div class="oom-metrics-container">\n';
         content += '<div class="oom-metrics-content">\n';
 
+        // Generate summary table
+        content += this.generateSummaryTable(metrics);
+
+        // Generate detailed table
+        content += '<h2 class="oom-dream-entries-title">Dream Entries</h2>\n';
+        
         // Add filter controls
         content += '<div class="oom-filter-controls">\n';
-        content += '<div class="oom-date-filter">\n';
+        content += '<div class="oom-filter-group">\n';
+        content += '<button id="oom-time-filter-btn" class="mod-cta">Time Filters</button>\n';
         content += '<select id="oom-date-range-filter" class="oom-select">\n';
         content += '<option value="all">All Time</option>\n';
         content += '<option value="week">Last Week</option>\n';
@@ -1146,13 +1153,9 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<option value="year">Last Year</option>\n';
         content += '</select>\n';
         content += '</div>\n';
+        content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
         content += '</div>\n';
 
-        // Generate summary table
-        content += this.generateSummaryTable(metrics);
-
-        // Generate detailed table
-        content += '<h2 class="oom-dream-entries-title">Dream Entries</h2>\n';
         content += '<div class="oom-table-section">\n';
         content += '<table class="oom-table">\n';
         content += '<thead>\n<tr>\n';
@@ -1264,6 +1267,27 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         }
 
+        // Try journal entry format (e.g., "Monday, January 6")
+        const journalEntryMatch = dateStr.match(/(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})/);
+        if (journalEntryMatch) {
+            type MonthName = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December';
+            const monthNames: Record<MonthName, number> = {
+                'January': 0, 'February': 1, 'March': 2, 'April': 3,
+                'May': 4, 'June': 5, 'July': 6, 'August': 7,
+                'September': 8, 'October': 9, 'November': 10, 'December': 11
+            };
+            const parts = dateStr.split(',')[1].trim().split(' ');
+            const month = monthNames[parts[0] as MonthName];
+            const day = parseInt(parts[1]);
+            const year = 2025; // Since all entries are from 2025
+            const date = new Date(year, month, day);
+            if (this.validateDate(date)) {
+                this.logger.log('Date', `Parsed journal entry format: ${date.toISOString()}`);
+                this.logger.performance('Date', 'parseDate', startTime);
+                return date;
+            }
+        }
+
         // Try YYYY-MM-DD format
         const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (dateMatch) {
@@ -1274,37 +1298,6 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.logger.performance('Date', 'parseDate', startTime);
                 return date;
             }
-        }
-
-        // Try Month Day, YYYY format
-        const monthDayMatch = dateStr.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}/);
-        if (monthDayMatch) {
-            const date = new Date(monthDayMatch[0]);
-            if (this.validateDate(date)) {
-                this.logger.log('Date', `Parsed Month Day format: ${date.toISOString()}`);
-                this.logger.performance('Date', 'parseDate', startTime);
-                return date;
-            }
-        }
-
-        // Try general date format
-        const anyDateMatch = dateStr.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (anyDateMatch) {
-            const [_, year, month, day] = anyDateMatch;
-            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            if (this.validateDate(date)) {
-                this.logger.log('Date', `Parsed general format: ${date.toISOString()}`);
-                this.logger.performance('Date', 'parseDate', startTime);
-                return date;
-            }
-        }
-
-        // Try ISO string as last resort
-        const date = new Date(dateStr);
-        if (this.validateDate(date)) {
-            this.logger.log('Date', `Parsed ISO string: ${date.toISOString()}`);
-            this.logger.performance('Date', 'parseDate', startTime);
-            return date;
         }
 
         // If all parsing attempts fail, log error and return current date
@@ -1400,7 +1393,7 @@ export default class DreamMetricsPlugin extends Plugin {
         const cleanupFunctions: (() => void)[] = [];
 
         this.logger.log('Events', 'Attaching project note event listeners');
-        const previewEl = document.querySelector('.markdown-preview-view[data-type="oom-project-note"]');
+        const previewEl = document.querySelector('.markdown-preview-view');
         if (!previewEl) {
             this.logger.warn('Events', 'No project note preview element found');
             return;

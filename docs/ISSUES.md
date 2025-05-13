@@ -43,6 +43,25 @@
 - Improved event listener cleanup
 - Enhanced date parsing performance
 
+## Date Parsing Improvements
+- Fixed date parsing to handle multiple formats:
+  - Journal entry format (e.g., "Monday, January 6")
+  - Block reference format (e.g., "^20250106")
+  - YYYY-MM-DD format
+- Added proper type safety for month name mapping
+- Note: JavaScript's Date object uses zero-based month indexing (0-11) rather than one-based (1-12)
+  - January = 0
+  - February = 1
+  - etc.
+- Improved error handling and logging for date parsing failures
+
+## Recent Fixes
+- Fixed "Show More" button functionality and state persistence
+- Restored Time Filters functionality
+- Added proper event handling for filter changes
+- Improved filter feedback and visual indicators
+- Added proper cleanup of event listeners
+
 ## Current Issues Requiring Testing
 
 1. **State Persistence**
