@@ -1,5 +1,7 @@
 ## OneiroMetrics Testing Guide
 
+> **Note:** For detailed performance testing procedures using Chrome DevTools, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+
 ### Setup Testing
 
 - [x] Plugin installs correctly in Obsidian

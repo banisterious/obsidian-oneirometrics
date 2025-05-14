@@ -8,6 +8,8 @@
 ## Project Description
 OneiroMetrics is an Obsidian plugin designed to help users track and analyze their dreams. It provides tools for recording dream entries, analyzing dream patterns, and generating insights through various metrics and visualizations.
 
+> **Note:** For detailed performance testing and optimization guidelines, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+
 ## Core Features
 1. **Dream Entry Management**
    - Record and organize dream entries

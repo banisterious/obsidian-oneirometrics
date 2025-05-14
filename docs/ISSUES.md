@@ -1,5 +1,7 @@
 # Known Issues and Future Improvements
 
+> **Note:** For detailed instructions on using Chrome DevTools to diagnose performance issues, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+
 ## Recent Issues and Fixes
 
 ### Fixed Issues
