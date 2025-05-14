@@ -3,7 +3,107 @@
 </p>
 <p align="center"><em>"Barn at Sunrise" by Gary Armstrong, inspiration for OneiroMetrics</em></p>
 
-# OneiroMetrics Project Overview
+# OneiroMetrics Plugin Overview
+
+## Project Description
+OneiroMetrics is an Obsidian plugin designed to help users track and analyze their dreams. It provides tools for recording dream entries, analyzing dream patterns, and generating insights through various metrics and visualizations.
+
+## Core Features
+1. **Dream Entry Management**
+   - Record and organize dream entries
+   - Tag and categorize dreams
+   - Search and filter dream content
+
+2. **Metrics and Analysis**
+   - Track dream patterns and themes
+   - Generate insights from dream content
+   - Visualize dream data through tables and charts
+
+3. **Project Note Integration**
+   - Display dream entries in a structured table
+   - Show metrics summary
+   - Provide interactive content expansion
+
+4. **Settings and Customization**
+   - Configure custom metrics
+   - Customize display options
+   - Manage dream entry sources
+
+## Technical Architecture
+
+### Frontend Components
+1. **Modal System**
+   - Base modal structure
+   - Various modal variants (custom date, metrics, callout, etc.)
+   - Accessibility features
+   - Responsive design
+
+2. **Table Components**
+   - Dream entries table
+   - Metrics summary table
+   - Dream content display
+   - Interactive buttons and controls
+
+3. **Settings Interface**
+   - Metric configuration
+   - Icon selection
+   - Drag and drop reordering
+   - Custom date selection
+
+### CSS Architecture
+- Modular component-based structure
+- BEM-like naming conventions
+- CSS custom properties for theming
+- Mobile-first responsive design
+- Accessibility considerations
+
+### File Organization
+```
+styles/
+├── base/                  # Base styles and variables
+│   ├── variables.css     # CSS custom properties
+│   ├── reset.css         # CSS reset/normalization
+│   └── typography.css    # Typography styles
+├── components/           # Component-specific styles
+│   ├── modals.css                # Modal system styles
+│   ├── settings-metrics-drag-drop.css    # Metric reordering
+│   ├── settings-metrics-icon-picker.css  # Icon picker
+│   ├── tables-dream-content.css          # Dream content
+│   ├── tables-dream-entries.css          # Dream entries
+│   ├── tables-dream-entries-buttons.css  # Table buttons
+│   └── tables-metrics-summary.css        # Metrics summary
+└── styles.css            # Main stylesheet
+```
+
+## Development Status
+- [x] Core functionality implemented
+- [x] CSS refactoring completed
+- [x] Component organization improved
+- [ ] Performance optimization
+- [ ] Accessibility audit
+- [ ] Documentation updates
+
+## Future Enhancements
+1. **Performance Optimization**
+   - Optimize CSS selectors
+   - Reduce specificity conflicts
+   - Improve animation performance
+
+2. **Accessibility Improvements**
+   - Enhance keyboard navigation
+   - Improve screen reader support
+   - Add ARIA attributes
+
+3. **Documentation**
+   - Complete component documentation
+   - Add usage examples
+   - Document best practices
+
+## Contributing
+Please refer to `CONTRIBUTING.md` for guidelines on how to contribute to the project.
+
+## License
+This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Recent Updates
 - **Enhanced Filtering System:**
@@ -56,12 +156,6 @@
 - **Documentation:** Review and update documentation to reflect recent changes
 - **Feedback:** Gather user feedback on the new time filter UI and metrics
 
-## Contributing
-Contributions are welcome! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project.
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Recent Improvements and Lessons Learned (May 12, 2025)
 
 ### Event Handling Improvements
@@ -89,270 +183,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Test each change thoroughly before moving on
 - Document changes and fixes promptly
 
-## Project Description
-
-OneiroMetrics is an Obsidian plugin designed to transform dream journaling into structured data analysis. It allows users to track and analyze various metrics from their dream journal entries, providing insights into dream patterns and characteristics.
-
-### Key Features
-- **Metric Tracking**: Define and track custom metrics for dream analysis
-- **Data Visualization**: Generate comprehensive tables and summaries
-- **Smart File Selection**: Intelligent note selection with autocomplete
-- **Accessibility**: Full keyboard navigation and screen reader support
-- **Theme Integration**: Seamless integration with Obsidian themes
-- **Automatic Backups**: Reliable backup system with .bak extension
-
-### User Interface
-- Clean, modern interface with consistent styling
-- **Settings page features a bordered metrics section, clear section dividers, and helper text under section headers for improved clarity.**
-- Standardized button system with semantic variants:
-  - `.oom-button` base class for all buttons
-  - `.oom-button--primary` for primary actions
-  - `.oom-button--secondary` for secondary actions
-  - `.oom-button--expand` for expand/collapse buttons
-  - `.oom-button--batch` for batch action buttons
-- Responsive tables with virtual scrolling
-- Interactive filters and sorting
-- Expandable dream content previews
-- Theme-aware styling that adapts to light/dark modes
-
-### User Experience
-- **Intuitive Design**: Easy-to-use interface for metric management
-- **Section descriptions and visual grouping in Settings make configuration more approachable.**
-- **Real-time Feedback**: Immediate validation and error messages
-- **Smart Suggestions**: Intelligent file and path suggestions
-- **Responsive Tables**: Optimized for readability and interaction
-- **Theme Compatibility**: Consistent appearance across themes
-- **Keyboard Navigation**: Efficient keyboard-based interaction
-
-## Development Focus
-
-### Current Priorities
-1. **Performance Optimization**
-   - Table regeneration efficiency
-   - Memory usage optimization
-   - Icon rendering performance
-
-2. **User Experience**
-   - Modal feedback improvements
-   - Accessibility enhancements
-   - Theme compatibility
-
-3. **Documentation**
-   - Usage guidelines
-   - API documentation
-   - Testing procedures
-
-### Future Enhancements
-1. **Feature Expansion**
-   - Icon picker search/filter
-   - Additional icon options
-   - Advanced data visualization
-   - Dream sequence visualization
-   - Temporal analysis tools
-   - Pattern recognition capabilities
-   - Statistical analysis features
-
-2. **Technical Improvements**
-   - Code optimization
-   - Testing coverage
-   - Performance monitoring
-   - Advanced visualization engine
-   - Pattern detection algorithms
-   - Statistical analysis framework
-
-3. **User Support**
-   - Enhanced documentation
-   - Tutorial content
-   - Community resources
-   - Analysis guides
-   - Pattern recognition tutorials
-   - Statistical analysis examples
-
-## Technical Architecture
-
-### Core Components
-1. **Data Management**
-   - Dream entry parsing
-   - Metric extraction
-   - Data storage and retrieval
-   - State management
-
-2. **Date Handling Strategy**
-   - See [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for detailed implementation
-   - Block references as primary date source
-   - Fallback date formats
-   - Time filter system
-   - Calendar integration
-
-3. **User Interface**
-   - Table-based data display
-   - Filter controls
-   - Responsive design
-   - Theme integration
-   - See [Icon Picker Technical Implementation](ICON_PICKER_TECHNICAL_IMPLEMENTATION.md) for icon selection details
-
-4. **Styling System**
-   - See [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for comprehensive styling details
-   - Theme-aware CSS architecture
-   - Custom properties for consistent theming
-   - Responsive breakpoints
-   - Mobile-first approach
-
-5. **Documentation Standards**
-   - See [Documentation Style Guide](DOCUMENTATION_STYLE_GUIDE.md) for documentation guidelines
-   - Consistent formatting and structure
-   - Image and screenshot standards
-   - Code example formatting
-
-6. **Code Quality**
-   - See [Linting Guidelines](LINTING_GUIDELINES.md) for code style and quality standards
-   - See [Linting Technical Implementation](LINTING_TECHNICAL_IMPLEMENTATION.md) for implementation details
-   - Automated code validation
-   - Consistent code style
-
-7. **Metrics System**
-   - See [Metrics Descriptions](METRICS_DESCRIPTIONS.md) for detailed metric documentation
-   - Metric validation rules
-   - Data collection standards
-   - Analysis guidelines
-
-### CSS Architecture
-The plugin uses a modular CSS architecture that:
-- Organizes styles into focused components
-- Adapts to different themes
-- Provides consistent styling across different themes
-- Uses CSS custom properties for maintainability
-- Supports responsive design
-
-> **Note:** The CSS architecture has been recently refactored into 14 focused components. See [CSS_REFACTORING.md](../CSS_REFACTORING.md) for details.
-
-Key CSS features:
-- Component-based organization:
-  - `project-note-tables.css`: Table styles and print styles
-  - `project-note-content.css`: Content display rules
-  - `theme-overrides.css`: Theme-specific styles
-  - `buttons.css`: Button styles and variants
-  - `modals.css`: Modal dialog styles
-  - `filters.css`: Filter controls and display
-  - `settings.css`: Settings page layout
-  - `icon-picker.css`: Icon picker interface
-  - `drag-drop.css`: Drag and drop functionality
-  - `multiselect.css`: Multiselect component
-  - `metrics-summary.css`: Metrics display
-  - `utilities.css`: Helper classes
-  - `responsive.css`: Media queries and responsive design
-  - `accessibility.css`: High contrast mode and accessibility features
-- Theme override selectors for consistent behavior
-- Custom properties for centralized theming
-- Responsive breakpoints for different screen sizes
-- Touch device optimizations
-- Accessible color contrast
-- Flexible layout system
-- Print styles for better document output
-- High contrast mode support
-- Reduced motion preferences
-- Screen reader optimizations
-
-### Lucide Icon Mappings
-The plugin uses Lucide icons to provide visual indicators for different metrics. Here are the current mappings:
-
-| Metric | Icon | Description |
-|--------|------|-------------|
-| Lost Segments | `circle-minus` | Indicates missing or forgotten dream segments |
-| Lucidity | `sparkles` | Represents awareness within the dream |
-| Emotional Intensity | `heart` | Shows emotional impact of the dream |
-| Vividness | `eye` | Indicates visual clarity and detail |
-| Control | `wand-2` | Represents dream control and influence |
-| Bizarreness | `zap` | Shows unusual or surreal elements |
-| Clarity | `glasses` | Indicates overall dream clarity |
-| Coherence | `link` | Shows narrative connectedness |
-| Length | `ruler` | Represents dream duration/length |
-| Complexity | `layers` | Indicates narrative complexity |
-| Familiar People | `users-round` | Shows presence of known people |
-
-These icons are used consistently throughout the plugin's interface to provide quick visual recognition of different metrics. The icons are displayed:
-- In the settings page next to each metric name
-- In the metrics table header for each metric column
-- In tooltips when hovering over metric values
-- In the metric editor when configuring metrics
-
-The icons are implemented using the Lucide icon library, which provides a consistent and modern look across the plugin. Each icon is chosen to intuitively represent its associated metric, making it easier for users to quickly identify and understand different metrics at a glance.
-
-## Development Guidelines
-
-### CSS Best Practices
-1. **Theme Compatibility**
-   - Use CSS custom properties for theme values
-   - Avoid hard-coded colors
-   - Support both light and dark themes
-   - Maintain compatibility with Minimal theme
-
-2. **Responsive Design**
-   - Mobile-first approach
-   - Fluid layouts
-   - Touch-friendly interfaces
-   - Progressive enhancement
-
-3. **Performance**
-   - Minimize CSS specificity
-   - Reduce use of `!important`
-   - Optimize selectors
-   - Use efficient properties
-
-4. **Maintainability**
-   - Clear organization
-   - Consistent naming
-   - Comprehensive comments
-   - Modular structure
-
-### Code Organization
-- Separate concerns (data, UI, styling)
-- Modular component structure
-- Clear file organization
-- Comprehensive documentation
-
-## Testing Strategy
-1. **Theme Testing**
-   - Light theme
-   - Dark theme
-   - Minimal theme variants
-   - Custom themes
-
-2. **Responsive Testing**
-   - Desktop
-   - Tablet
-   - Mobile
-   - Different aspect ratios
-
-3. **Functionality Testing**
-   - Data parsing
-   - Metric calculations
-   - UI interactions
-   - Performance
-
-4. **Automated unit testing for core functions**
-5. **Manual integration testing for Obsidian API**
-6. **End-to-end testing for user workflows**
-7. **Performance testing for large datasets**
-8. **Cross-platform compatibility testing**
-9. **Theme compatibility testing**
-
-## Next Steps
-1. Complete CSS optimization
-2. Enhance theme compatibility
-3. Improve performance
-4. Add new features
-5. Update documentation
-6. Expand test coverage
-
-## Contributing
-We welcome contributions! Please see our contributing guidelines for more information.
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 ## Key Features
 
 - **Metrics Extraction:** Automatically scrapes dream metrics from selected notes using configurable callouts.
@@ -371,8 +201,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
   - Full-width sections for optimal space utilization.
 - **Safe Updates:** Project note is backed up before overwriting metrics tables.
 - **Testing & Troubleshooting:** Comprehensive testing checklist and troubleshooting guide included.
-
----
 
 ## Recent Fixes (May 2025)
 
@@ -416,8 +244,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For information about the plugin's logging system and debugging capabilities, see [docs/LOGGING.md](docs/LOGGING.md).
 
----
-
 ## How to Use
 
 1. **Install the plugin** in Obsidian.
@@ -433,8 +259,6 @@ For information about the plugin's logging system and debugging capabilities, se
    - Filter by date range or specific metrics
    - Expand dream content entries for more detail
    - **Toggle Readable Line Length** directly below the Dream Entries heading for instant table width control (also available in settings).
-
----
 
 ## Contributing & Feedback
 

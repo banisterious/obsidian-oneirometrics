@@ -357,26 +357,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated build script to use esbuild's context API.
 
 ### CSS Refactoring
-- Split `styles.css` into 14 focused component files:
-  - `project-note-tables.css`: Table styles and print styles
-  - `project-note-content.css`: Content display rules
-  - `theme-overrides.css`: Theme-specific styles
-  - `buttons.css`: Button styles and variants
-  - `modals.css`: Modal dialog styles
-  - `filters.css`: Filter controls and display
-  - `settings.css`: Settings page layout
-  - `icon-picker.css`: Icon picker interface
-  - `drag-drop.css`: Drag and drop functionality
-  - `multiselect.css`: Multiselect component
-  - `metrics-summary.css`: Metrics display
-  - `utilities.css`: Helper classes
-  - `responsive.css`: Media queries and responsive design
-  - `accessibility.css`: High contrast mode and accessibility features
-- Reduced main `styles.css` from 2493 lines to 34 lines
-- Improved code organization and maintainability
-- Enhanced documentation for each component
-- Better separation of concerns
-- Improved performance through focused loading
+- Reorganized component styles into focused files
+- Renamed files to better reflect their purpose:
+  - `project-note-buttons.css` → `tables-dream-entries-buttons.css`
+  - `drag-drop.css` → `settings-metrics-drag-drop.css`
+  - `icon-picker.css` → `settings-metrics-icon-picker.css`
+- Improved modal styles organization
+- Enhanced table component structure
+- Updated documentation to reflect new organization
+- Fixed import statement syntax in main stylesheet
 
 ---
 

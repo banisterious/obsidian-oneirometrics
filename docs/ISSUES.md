@@ -281,3 +281,108 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - UI and event handling for expand/collapse are under investigation.
 - Ongoing testing is focused on interactive elements, accessibility, and event delegation.
 - CSS refactoring is complete, with all styles organized into 14 focused components.
+
+# Current Issues and Status
+
+## CSS Refactoring
+- [x] Reorganize component styles into focused files
+- [x] Rename files to better reflect their purpose
+- [x] Update file structure documentation
+- [x] Remove old files
+- [ ] Complete component documentation
+- [ ] Performance testing
+- [ ] Accessibility audit
+
+### Recent Changes
+1. Renamed component files for clarity:
+   - `project-note-buttons.css` → `tables-dream-entries-buttons.css`
+   - `drag-drop.css` → `settings-metrics-drag-drop.css`
+   - `icon-picker.css` → `settings-metrics-icon-picker.css`
+
+2. Reorganized modal styles:
+   - Grouped related styles together
+   - Improved section organization
+   - Enhanced documentation
+
+3. Improved table component organization:
+   - Separated dream entries table styles
+   - Isolated dream content styles
+   - Created dedicated button styles
+
+## Performance Issues
+1. **Table Regeneration**
+   - [ ] Optimize table update logic
+   - [ ] Reduce unnecessary re-renders
+   - [ ] Improve memory usage
+
+2. **Icon Rendering**
+   - [ ] Optimize icon loading
+   - [ ] Reduce icon-related performance impact
+   - [ ] Improve icon caching
+
+## Accessibility
+1. **Keyboard Navigation**
+   - [ ] Enhance modal keyboard support
+   - [ ] Improve table navigation
+   - [ ] Add ARIA attributes
+
+2. **Screen Reader Support**
+   - [ ] Add descriptive labels
+   - [ ] Improve focus management
+   - [ ] Enhance announcements
+
+## Theme Compatibility
+1. **Color Contrast**
+   - [ ] Verify contrast ratios
+   - [ ] Test high contrast mode
+   - [ ] Ensure readability
+
+2. **Theme Integration**
+   - [ ] Test with popular themes
+   - [ ] Verify dark mode support
+   - [ ] Check minimal theme compatibility
+
+## Documentation
+1. **Component Documentation**
+   - [ ] Document CSS architecture
+   - [ ] Add usage examples
+   - [ ] Include best practices
+
+2. **User Guide**
+   - [ ] Update feature documentation
+   - [ ] Add troubleshooting guide
+   - [ ] Include examples
+
+## Testing
+1. **Automated Testing**
+   - [ ] Add unit tests
+   - [ ] Implement integration tests
+   - [ ] Set up CI/CD
+
+2. **Manual Testing**
+   - [ ] Create test scenarios
+   - [ ] Document test cases
+   - [ ] Establish testing procedures
+
+## Next Steps
+1. Complete performance optimization
+2. Finish accessibility improvements
+3. Update documentation
+4. Implement automated testing
+5. Conduct theme compatibility testing
+
+## Resolved Issues
+1. **CSS Organization**
+   - [x] Reorganized component styles
+   - [x] Improved file naming
+   - [x] Updated documentation
+
+2. **Modal System**
+   - [x] Improved organization
+   - [x] Enhanced documentation
+   - [x] Added accessibility features
+
+3. **Table Components**
+   - [x] Separated concerns
+   - [x] Improved maintainability
+   - [x] Enhanced documentation
