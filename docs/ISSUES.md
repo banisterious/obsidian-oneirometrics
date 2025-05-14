@@ -53,6 +53,11 @@
     - Fix: Centralized accessibility styles in dedicated component
     - Status: ✅ Fixed
 
+11. **CSS Consolidation and Section Organization**
+    - Issue: Component stylesheets were used for modularity during refactoring, but could not be used in production due to Obsidian's plugin system limitations.
+    - Fix: All component stylesheets were consolidated back into a single `styles.css` file, organized into clearly marked sections for each UI component or concern. CSS variables are used for theme compatibility and maintainability. This completes a two-phase CSS refactoring process.
+    - Status: ✅ Fixed
+
 ## Recent Changes
 
 ### Filter System
@@ -102,6 +107,8 @@
 - Improved state restoration
 - Added state cleanup on unload
 
+### Consolidated all component stylesheets back into `styles.css` for production, with section-based organization and extensive use of CSS variables. Component stylesheets were used temporarily during refactoring for clarity and modularity.
+
 ## Date Parsing Improvements
 - Fixed date parsing to handle multiple formats:
   - Journal entry format (e.g., "Monday, January 6")
@@ -140,6 +147,13 @@
    - Check state saving impact
    - Verify event listener efficiency
    - Test with large datasets
+
+4. **Expand/Collapse (Read more) Button Performance**
+   - Issue: Clicking "Read more" or "Show less" causes UI delays and unresponsiveness, especially in large tables.
+   - Investigation: Used DevTools Performance tab; observed major GC events and input delays of several seconds.
+   - Steps Taken: Implemented virtualization, tested with short content, disabled transitions, simplified handler.
+   - Results: Virtualization improved scrolling, but expand/collapse delay persists.
+   - Next Steps: Further isolate handler logic, explore alternative expand/collapse strategies.
 
 ## Future Features
 
@@ -199,6 +213,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
   - Paste into `oom-debug-log.txt`
   - Include relevant sections in your report
 - See [docs/LOGGING.md](docs/LOGGING.md) for more details about the logging system
+- For privacy and responsible disclosure guidelines, see [../SECURITY.md](../SECURITY.md)
 
 ### UI Improvements
 - [ ] Relocate Time Filters button

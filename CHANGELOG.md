@@ -376,6 +376,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **CSS Refactoring, Phase 2:** Following the initial reorganization and optimization of component styles (Phase 1), all component CSS files were concatenated back into a single `styles.css` for production use, improving compatibility and maintainability.
 
+### Planned
+- Migrate from bundling the Lucide icon set to using Obsidian's built-in icon API (`getIcon`, `getIconIds`).
+- Remove the Lucide dependency from the plugin unless newer or custom icons are required beyond what Obsidian provides.
+
+### Documentation
+- Reorganized and expanded `SPECIFICATION.md`: added a table of contents, clarified section order, and included new sections on CSS organization and expand/collapse ("Read more") functionality.
+- Added documentation of troubleshooting and DevTools performance testing for the Read more button performance issue (see new entries in `ISSUES.md` and `TESTING.md`).
+- Added SECURITY.md with privacy and data protection policy, and cross-referenced it in all major documentation files.
+
 ---
 
 For more details, see PROJECT_OVERVIEW.md and TESTING.md. 

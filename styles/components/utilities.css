@@ -8,15 +8,15 @@
 .oom-sr-only,
 .oom-live-region,
 .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+    position: var(--oom-utility-sr-position);
+    width: var(--oom-utility-sr-width);
+    height: var(--oom-utility-sr-height);
+    padding: var(--oom-utility-sr-padding);
+    margin: var(--oom-utility-sr-margin);
+    overflow: var(--oom-utility-sr-overflow);
+    clip: var(--oom-utility-sr-clip);
+    white-space: var(--oom-utility-sr-whitespace);
+    border: var(--oom-utility-sr-border);
 }
 
 /* Visibility Utilities */
@@ -25,8 +25,8 @@
 }
 
 .oom-metrics-compact {
-    padding: 0.5em 0.5em !important;
-    font-size: 0.92em !important;
+    padding: var(--oom-utility-compact-padding) !important;
+    font-size: var(--oom-utility-compact-font-size) !important;
 }
 
 /* Print Utilities */
@@ -37,5 +37,101 @@
 @media print {
     .oom-print-only {
         display: block;
+    }
+    
+    /* Hide elements that shouldn't be printed */
+    .oom-no-print {
+        display: none !important;
+    }
+    
+    /* Ensure content is visible in print */
+    .oom-print-content {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Layout Utilities */
+.oom-flex {
+    display: flex;
+}
+
+.oom-flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.oom-items-center {
+    align-items: center;
+}
+
+.oom-justify-between {
+    justify-content: space-between;
+}
+
+.oom-gap-sm {
+    gap: var(--oom-spacing-sm);
+}
+
+.oom-gap-md {
+    gap: var(--oom-spacing-md);
+}
+
+/* Text Utilities */
+.oom-text-muted {
+    color: var(--text-muted);
+}
+
+.oom-text-accent {
+    color: var(--text-accent);
+}
+
+.oom-text-center {
+    text-align: center;
+}
+
+.oom-text-sm {
+    font-size: var(--font-ui-smaller);
+}
+
+/* Spacing Utilities */
+.oom-mt-sm {
+    margin-top: var(--oom-spacing-sm);
+}
+
+.oom-mt-md {
+    margin-top: var(--oom-spacing-md);
+}
+
+.oom-mb-sm {
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-mb-md {
+    margin-bottom: var(--oom-spacing-md);
+}
+
+.oom-p-sm {
+    padding: var(--oom-spacing-sm);
+}
+
+.oom-p-md {
+    padding: var(--oom-spacing-md);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-sr-only,
+    .oom-live-region,
+    .visually-hidden {
+        border: 1px solid CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-metrics-compact {
+        transition: none;
     }
 } 

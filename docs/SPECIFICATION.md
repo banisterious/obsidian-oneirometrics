@@ -1,5 +1,20 @@
 # Dream Metrics Plugin Specification
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Core Components](#core-components)
+3. [Features](#features)
+4. [Technical Architecture](#technical-architecture)
+5. [Technical Requirements](#technical-requirements)
+6. [Security Considerations](#security-considerations)
+7. [CSS Organization and Approach](#6-css-organization-and-approach)
+8. [Expand/Collapse ("Read more") Functionality](#7-expandcollapse-read-more-functionality)
+9. [Performance Considerations](#performance-considerations)
+10. [Future Considerations](#future-considerations)
+11. [Testing Strategy](#testing-strategy)
+12. [Recent Fixes](#recent-fixes)
+
 ## Overview
 
 The Dream Metrics plugin is designed to help users track and analyze metrics from their dream journal entries in Obsidian. This document outlines the technical specifications and implementation details.
@@ -148,6 +163,14 @@ The project note is generated with two main sections:
 - Focus management
 - Keyboard shortcuts for common actions
 
+### 5. Table Virtualization for Performance
+
+- The Dream Entries table uses vanilla JavaScript virtualization to efficiently handle large datasets.
+- Only 25 rows are rendered in the DOM at any given time; as the user scrolls, the visible window of rows is updated.
+- Spacer rows are used above and below the visible rows to maintain correct scroll height and scrollbar behavior.
+- A scroll event handler recalculates and renders the visible rows as needed.
+- This approach significantly reduces DOM size and memory usage, improving responsiveness and scalability for large dream journals.
+
 ## Technical Architecture
 
 ### Core Components
@@ -201,6 +224,8 @@ The project note is generated with two main sections:
 
 ## Security Considerations
 
+*For full details on privacy, data protection, and user controls, see [SECURITY.md](../SECURITY.md).*
+
 1. **File Access**
    - Only access files specified by the user
    - Validate file paths
@@ -218,6 +243,28 @@ The project note is generated with two main sections:
    - User-friendly error messages
    - Logging for debugging
    - Backup restoration options
+
+## CSS Organization and Approach
+
+- The plugin uses CSS custom properties (variables) extensively for theme compatibility, spacing, colors, and sizing, enabling easy adaptation to Obsidian themes and user preferences.
+- The `styles.css` file is organized into clearly marked sections, each dedicated to a major UI component or concern (e.g., tables, buttons, modals, accessibility, responsive design).
+- Sections are ordered to reflect the structure of the UI: base/reset styles first, followed by layout, tables, buttons, content, modals, utilities, accessibility, and responsive overrides.
+- During the refactoring process, component stylesheets were used temporarily to aid modularity, clarity, and testing, but all styles are now consolidated in `styles.css` for production use.
+
+## Expand/Collapse ("Read more") Functionality
+
+- **Purpose:** Allows users to preview a truncated version of dream content in the table and expand to view the full entry, improving readability and reducing visual clutter.
+- **UI Behavior:**
+  - By default, only a preview (first N characters or lines) of the dream content is shown in the table.
+  - Clicking the "Read more" button expands the content to show the full entry and changes the button text to "Show less."
+  - Clicking "Show less" collapses the content back to the preview.
+- **Accessibility:**
+  - The expand/collapse button uses `aria-expanded` and descriptive `aria-label` attributes for screen reader compatibility.
+  - Keyboard navigation is supported; the button is focusable and can be toggled with Enter/Space.
+- **Implementation:**
+  - CSS classes are used to toggle the visibility of the preview and full content sections within each row.
+  - The expand/collapse state is managed per row, not globally, and is preserved as rows are re-rendered during virtualization.
+  - The logic is compatible with the table virtualization system, ensuring that expand/collapse works seamlessly as the user scrolls through large datasets.
 
 ## Performance Considerations
 

@@ -1,1 +1,236 @@
- 
+/* OneiroMetrics Modal Styles
+ * 
+ * Contains all modal-related styles for the OneiroMetrics plugin.
+ * Includes base modal styles, dialog variants, and accessibility features.
+ */
+
+/* ==========================================================================
+   Base Modal Structure
+   ========================================================================== */
+
+/* Modal Container */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: var(--oom-z-modal);
+    background: var(--background-primary);
+    border-radius: var(--oom-modal-border-radius);
+    box-shadow: var(--oom-modal-shadow);
+    padding: var(--oom-modal-padding);
+    max-width: var(--oom-modal-max-width);
+    width: var(--oom-modal-width);
+    transition: transform var(--oom-transition-normal),
+                opacity var(--oom-transition-normal);
+}
+
+/* Modal States */
+.modal.is-opening {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+}
+
+.modal.is-open {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+.modal.is-closing {
+    opacity: 0;
+    transform: translate(-50%, -52%);
+}
+
+/* ==========================================================================
+   Modal Content Structure
+   ========================================================================== */
+
+/* Title */
+.modal-title {
+    margin: 0 0 var(--oom-spacing-md) 0;
+    font-size: var(--oom-modal-title-size);
+    font-weight: var(--oom-modal-title-weight);
+    color: var(--text-normal);
+}
+
+/* Content Area */
+.modal-content {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+/* ==========================================================================
+   Modal Actions
+   ========================================================================== */
+
+/* Button Container */
+.modal-button-container {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--oom-spacing-lg);
+}
+
+/* Button Styles */
+.modal-button {
+    padding: var(--oom-button-padding);
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--oom-button-font-size);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.modal-button.mod-warning {
+    color: var(--text-normal);
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.modal-button.mod-warning:hover {
+    background: var(--background-modifier-hover);
+}
+
+.modal-button.mod-cta {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+    border: none;
+}
+
+.modal-button.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* ==========================================================================
+   Modal Variants
+   ========================================================================== */
+
+/* Custom Date Modal */
+.oneirometrics-custom-date-modal {
+    max-width: var(--oom-modal-width-sm);
+}
+
+/* Metrics Modal */
+.oom-metrics-modal {
+    max-width: var(--oom-modal-width-lg);
+}
+
+/* Callout Modal */
+.oom-callout-modal {
+    max-width: var(--oom-modal-width-md);
+}
+
+/* Icon Picker Modal */
+.oom-icon-picker-modal {
+    max-width: var(--oom-modal-width-lg);
+}
+
+/* Progress Modal */
+.oom-progress-modal {
+    max-width: var(--oom-modal-width-sm);
+}
+
+/* Progress Modal Content */
+.oom-progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+}
+
+.oom-status-text {
+    font-weight: var(--oom-modal-status-weight);
+    color: var(--text-normal);
+}
+
+.oom-progress-bar {
+    height: var(--oom-progress-bar-height);
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--oom-radius-md);
+    background-color: var(--background-secondary);
+}
+
+.oom-progress-bar-fill {
+    height: 100%;
+    background-color: var(--interactive-accent);
+    transition: width var(--oom-transition-normal);
+}
+
+.oom-details-text {
+    font-size: var(--oom-modal-details-size);
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Utility Features
+   ========================================================================== */
+
+/* Keyboard Shortcuts */
+.oom-keyboard-shortcuts {
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    font-size: var(--oom-modal-details-size);
+    color: var(--text-muted);
+}
+
+.oom-keyboard-shortcuts div {
+    margin: var(--oom-spacing-xs) 0;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .modal {
+        width: var(--oom-modal-mobile-width);
+        max-width: none;
+        padding: var(--oom-modal-mobile-padding);
+    }
+    
+    .modal-button-container {
+        flex-direction: column;
+    }
+    
+    .modal-button {
+        width: 100%;
+    }
+}
+
+/* Large Screen Adjustments */
+@media screen and (min-width: var(--oom-breakpoint-large)) {
+    .oom-metrics-modal,
+    .oom-callout-modal {
+        max-width: var(--oom-modal-width-lg);
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+    .modal {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .modal-button {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .modal-button.mod-cta {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .modal,
+    .modal-button,
+    .oom-progress-bar-fill {
+        transition: none;
+    }
+} 

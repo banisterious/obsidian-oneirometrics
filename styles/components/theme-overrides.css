@@ -9,10 +9,10 @@
  * These ensure consistent theming across different Obsidian themes
  */
 :root {
-    --oom-line-width: 100%;
-    --oom-max-width: none;
-    --oom-padding: 0;
-    --oom-margin: 0;
+    --oom-line-width: var(--oom-theme-line-width);
+    --oom-max-width: var(--oom-theme-max-width);
+    --oom-padding: var(--oom-theme-padding);
+    --oom-margin: var(--oom-theme-margin);
 }
 
 /* Theme-Specific Overrides
@@ -35,14 +35,58 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     margin-right: var(--oom-margin);
     padding-left: var(--oom-padding);
     padding-right: var(--oom-padding);
+    transition: var(--oom-theme-transition);
 }
 
-.markdown-preview-view[data-type="oom-project-note"],
-.markdown-preview-view[data-type="oom-project-note"] .markdown-preview-sizer {
-    max-width: var(--oom-max-width);
-    width: var(--oom-line-width);
-    margin: var(--oom-margin);
-    padding: var(--oom-padding);
+/* Light Theme Specific */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-light-bg);
+    color: var(--oom-theme-light-text);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-light-border);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-light-hover);
+}
+
+/* Dark Theme Specific */
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-dark-bg);
+    color: var(--oom-theme-dark-text);
+}
+
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-dark-border);
+}
+
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-dark-hover);
+}
+
+/* Minimal Theme Specific */
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
+.minimal-default .markdown-preview-view[data-type="oom-project-note"],
+.minimal-light .markdown-preview-view[data-type="oom-project-note"],
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-minimal-bg);
+    color: var(--oom-theme-minimal-text);
+}
+
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-default .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-minimal-border);
+}
+
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-default .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-minimal-hover);
 }
 
 /* Readable Line Width Overrides
@@ -62,8 +106,17 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     padding-right: var(--oom-padding);
 }
 
-.markdown-preview-view[data-type="oom-project-note"] {
-    --file-line-width: var(--oom-line-width);
-    padding-left: var(--oom-padding);
-    padding-right: var(--oom-padding);
+/* Debug Mode
+ * Add visual debugging helpers when needed
+ */
+.oom-debug-mode {
+    outline: var(--oom-theme-debug-grid);
+}
+
+.oom-debug-mode * {
+    outline: var(--oom-theme-debug-margin);
+}
+
+.oom-debug-mode * > * {
+    outline: var(--oom-theme-debug-padding);
 } 

@@ -15,6 +15,8 @@ release/
 .idea/
 .cursor/
 .cursorrules
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
@@ -33,4 +35,8 @@ logs/
 .env.*.local
 
 # User data
-Journals/ 
+Journals/
+
+# Testing
+css-analysis.md
+test-read-more.html 

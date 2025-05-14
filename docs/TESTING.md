@@ -1166,3 +1166,14 @@ If you find any issues or have suggestions for improvements, please open an issu
 - Debug expand/collapse feature (Read more button)
 - Review event delegation and DOM updates
 - Continue accessibility and interactive element testing
+
+## Performance Testing: Expand/Collapse (Read more) Button
+
+- Open DevTools (Ctrl+Shift+I), go to the Performance tab.
+- Record while clicking "Read more" and "Show less" in a large table.
+- Look for input delay, scripting, and GC (Garbage Collection) events.
+- Findings: Major GC events observed, causing several seconds of unresponsiveness. Input delay spikes during expand/collapse actions.
+- Steps Taken: Implemented virtualization, tested with short content, disabled CSS transitions, simplified event handler.
+- Results: Virtualization improved scrolling, but expand/collapse delay persists even with short content.
+- Next Steps: Further isolate expand/collapse handler logic, consider alternative strategies for content toggling.
+- See attached screenshots and logs for details.

@@ -219,4 +219,8 @@ A major refactoring is planned to improve the plugin's architecture and reliabil
 
 ### Troubleshooting
 
-- If you encounter the error `TypeError: esbuild.context is not a function`, ensure your esbuild version is at least 0.20.0. You can update it by running `npm install esbuild@latest`. 
+- If you encounter the error `TypeError: esbuild.context is not a function`, ensure your esbuild version is at least 0.20.0. You can update it by running `npm install esbuild@latest`.
+
+## Security & Privacy
+
+See [SECURITY.md](./SECURITY.md) for our full privacy and data protection policy. 
