@@ -1,7 +1,7 @@
 # Security Policy for OneiroMetrics
 
 ## Data Storage
-- All user data, including dream journal entries, metrics, and backups, is stored locally within the user's Obsidian vault.
+- All user data, including journal entries, dream content, metrics, and backups, is stored locally within the user's Obsidian vault.
 - No data is transmitted to external servers, cloud services, or third parties by the plugin.
 - Backups are created locally in a user-specified or default folder, using the `.bak` extension for easy identification.
 
