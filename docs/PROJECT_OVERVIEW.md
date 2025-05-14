@@ -217,20 +217,41 @@ OneiroMetrics is an Obsidian plugin designed to transform dream journaling into 
    - Analysis guidelines
 
 ### CSS Architecture
-The plugin uses a sophisticated CSS architecture that:
-- Maintains compatibility with Obsidian's theming system
+The plugin uses a modular CSS architecture that:
+- Organizes styles into focused components
+- Adapts to different themes
 - Provides consistent styling across different themes
-- Supports responsive design
 - Uses CSS custom properties for maintainability
-- Implements a mobile-first approach
+- Supports responsive design
+
+> **Note:** The CSS architecture has been recently refactored into 14 focused components. See [CSS_REFACTORING.md](../CSS_REFACTORING.md) for details.
 
 Key CSS features:
+- Component-based organization:
+  - `project-note-tables.css`: Table styles and print styles
+  - `project-note-content.css`: Content display rules
+  - `theme-overrides.css`: Theme-specific styles
+  - `buttons.css`: Button styles and variants
+  - `modals.css`: Modal dialog styles
+  - `filters.css`: Filter controls and display
+  - `settings.css`: Settings page layout
+  - `icon-picker.css`: Icon picker interface
+  - `drag-drop.css`: Drag and drop functionality
+  - `multiselect.css`: Multiselect component
+  - `metrics-summary.css`: Metrics display
+  - `utilities.css`: Helper classes
+  - `responsive.css`: Media queries and responsive design
+  - `accessibility.css`: High contrast mode and accessibility features
 - Theme override selectors for consistent behavior
 - Custom properties for centralized theming
 - Responsive breakpoints for different screen sizes
 - Touch device optimizations
 - Accessible color contrast
 - Flexible layout system
+- Print styles for better document output
+- High contrast mode support
+- Reduced motion preferences
+- Screen reader optimizations
 
 ### Lucide Icon Mappings
 The plugin uses Lucide icons to provide visual indicators for different metrics. Here are the current mappings:

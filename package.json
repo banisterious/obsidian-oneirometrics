@@ -1,6 +1,6 @@
 {
     "name": "dream-metrics",
-    "version": "1.0.0",
+    "version": "0.3.3",
     "description": "Track and analyze your dream journal entries with metrics and visualizations.",
     "main": "main.js",
     "scripts": {

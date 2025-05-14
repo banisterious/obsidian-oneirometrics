@@ -1,0 +1,122 @@
+/* OneiroMetrics Multiselect Styles
+ * 
+ * Styles for the multiselect component used in settings and filters.
+ * Includes container, dropdown, and selected items styles.
+ */
+
+/* Multiselect Container */
+.oom-multiselect-container {
+    position: relative;
+}
+
+/* Dropdown */
+.oom-multiselect-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    margin-top: 4px;
+    padding: 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+}
+
+/* Selected Items */
+.oom-multiselect-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    min-height: 32px;
+}
+
+.oom-multiselect-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary-alt);
+    font-size: 0.9em;
+}
+
+.oom-multiselect-item-remove {
+    padding: 0 2px;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+.oom-multiselect-item-remove:hover {
+    color: var(--text-normal);
+}
+
+/* Options List */
+.oom-multiselect-options {
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.oom-multiselect-option {
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.oom-multiselect-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-multiselect-option.selected {
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+/* Search Input */
+.oom-multiselect-search {
+    width: 100%;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.oom-multiselect-search:focus {
+    border-color: var(--text-accent);
+    outline: none;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-multiselect-dropdown {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-multiselect-item {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-multiselect-search:focus {
+        outline: 2px solid CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-multiselect-item {
+        transition: none;
+    }
+} 

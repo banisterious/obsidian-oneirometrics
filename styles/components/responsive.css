@@ -1,0 +1,254 @@
+/* OneiroMetrics Responsive Design Styles
+ * 
+ * Contains all responsive design styles for the OneiroMetrics plugin.
+ * Organized by breakpoint:
+ * - Tablet: max-width 768px
+ * - Mobile: max-width 480px
+ * - Small Mobile: max-width 360px
+ */
+
+/* Tablet Adjustments */
+@media screen and (max-width: 768px) {
+    .oom-table-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .oom-table {
+        font-size: 0.85em;
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: 6px 8px;
+    }
+
+    .oom-filter-controls {
+        flex-direction: column;
+        gap: 0.5em;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        flex-direction: column;
+        gap: 0.5em;
+        margin: 1em 0;
+        padding: 0.5em;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+    .markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+        width: 100%;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-select {
+        width: 100%;
+        max-width: none;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+        font-size: 0.85em;
+    }
+
+    .oom-table {
+        font-size: 0.8rem;
+    }
+
+    .oom-dream-content {
+        min-width: 200px;
+        max-width: 300px;
+    }
+
+    .oom-filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .oom-filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .oom-select,
+    .oom-button {
+        width: 100%;
+    }
+
+    .oom-date-range-container {
+        flex-direction: column;
+    }
+
+    .oom-date-input-container {
+        min-width: 100%;
+    }
+
+    .oom-quick-filters {
+        justify-content: stretch;
+    }
+}
+
+/* Mobile Adjustments */
+@media screen and (max-width: 480px) {
+    /* Container adjustments */
+    .oom-table-container {
+        margin: 0 -1em;
+        padding: 0 0.5em;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Table structure */
+    .oom-table {
+        display: block;
+        width: 100%;
+        font-size: 0.8em;
+    }
+
+    /* Filter controls */
+    .oom-filter-controls {
+        margin: 0.5em 0;
+        padding: 0.5em;
+    }
+
+    .oom-date-filter,
+    .oom-metric-filter {
+        width: 100%;
+    }
+
+    .oom-select {
+        width: 100%;
+        max-width: none;
+    }
+
+    /* Column adjustments */
+    .oom-table th:nth-child(1),
+    .oom-table td:nth-child(1) {  /* Date */
+        min-width: 70px;
+    }
+
+    .oom-table th:nth-child(2),
+    .oom-table td:nth-child(2) {  /* Dream Title */
+        min-width: 120px;
+    }
+
+    .oom-table th:nth-child(3),
+    .oom-table td:nth-child(3) {  /* Words */
+        min-width: 60px;
+    }
+
+    .oom-table th:nth-child(4),
+    .oom-table td:nth-child(4) {  /* Content */
+        min-width: 200px;
+    }
+
+    .oom-table th:nth-child(n+5),
+    .oom-table td:nth-child(n+5) {  /* Metrics */
+        min-width: 70px;
+    }
+
+    /* Content handling */
+    .oom-content-preview,
+    .oom-content-full {
+        font-size: 0.95em;
+        line-height: 1.3;
+    }
+}
+
+/* Small Mobile Adjustments */
+@media screen and (max-width: 360px) {
+    .oom-table-container {
+        margin: 0 -0.5em;
+        padding: 0 0.25em;
+    }
+
+    .oom-table {
+        font-size: 0.75em;
+    }
+
+    /* Minimal padding for very small screens */
+    .oom-table th,
+    .oom-table td {
+        padding: 4px 6px;
+    }
+
+    /* Further reduce minimum widths */
+    .oom-table th:nth-child(1),
+    .oom-table td:nth-child(1) {  /* Date */
+        min-width: 60px;
+    }
+
+    .oom-table th:nth-child(2),
+    .oom-table td:nth-child(2) {  /* Dream Title */
+        min-width: 100px;
+    }
+
+    .oom-table th:nth-child(3),
+    .oom-table td:nth-child(3) {  /* Words */
+        min-width: 50px;
+    }
+
+    .oom-table th:nth-child(4),
+    .oom-table td:nth-child(4) {  /* Content */
+        min-width: 180px;
+    }
+
+    .oom-table th:nth-child(n+5),
+    .oom-table td:nth-child(n+5) {  /* Metrics */
+        min-width: 60px;
+    }
+
+    /* Optimize filter controls */
+    .oom-filter-controls {
+        padding: 0.25em;
+    }
+
+    .oom-select {
+        padding: 2px 4px;
+        font-size: 0.9em;
+    }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .oom-select {
+        min-height: 36px;
+    }
+
+    /* Better touch scrolling */
+    .oom-table-container {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+
+    /* Prevent text selection while scrolling */
+    .oom-table {
+        user-select: none;
+    }
+}
+
+/* Large Screen Adjustments */
+@media (max-width: 1200px) {
+    .oom-metrics-modal, 
+    .oom-callout-modal {
+        max-width: 99vw;
+        width: 99vw;
+        min-width: 0;
+        padding: 1em;
+    }
+}
+
+/* Mobile Optimization */
+@media (max-width: 600px) {
+    .oneirometrics-time-filter-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .oneirometrics-date-range-details {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .oneirometrics-calendar-day {
+        font-size: 0.8rem;
+    }
+} 

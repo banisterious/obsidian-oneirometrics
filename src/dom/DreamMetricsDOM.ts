@@ -109,13 +109,15 @@ export class DreamMetricsDOM {
             // Add content cell
             const contentCell = row.createEl('td', { cls: 'oom-content-cell' });
             
+            // Create content wrapper
+            const contentWrapper = contentCell.createDiv('oom-content-wrapper');
+            
             // Create preview content
-            const preview = contentCell.createDiv('oom-content-preview');
+            const preview = contentWrapper.createDiv('oom-content-preview');
             preview.textContent = entry.content.substring(0, 100) + '...';
             
             // Create full content (initially hidden)
-            const fullContent = contentCell.createDiv('oom-content-full');
-            fullContent.style.display = 'none';
+            const fullContent = contentWrapper.createDiv('oom-content-full');
             fullContent.textContent = entry.content;
             
             // Create expand button
@@ -124,7 +126,9 @@ export class DreamMetricsDOM {
                 text: 'Read more',
                 attr: {
                     'data-content-id': entry.source,
-                    'data-expanded': 'false'
+                    'data-expanded': 'false',
+                    'aria-expanded': 'false',
+                    'aria-label': 'Toggle dream content visibility'
                 }
             });
         });
@@ -133,14 +137,20 @@ export class DreamMetricsDOM {
     public updateContentVisibility(id: string, isExpanded: boolean): void {
         const row = this.container.querySelector(`tr[data-source="${id}"]`);
         if (row) {
-            const preview = row.querySelector('.oom-content-preview') as HTMLElement;
-            const fullContent = row.querySelector('.oom-content-full') as HTMLElement;
-            const expandButton = row.querySelector('.oom-button--expand') as HTMLElement;
+            const contentWrapper = row.querySelector('.oom-content-wrapper');
+            const previewDiv = row.querySelector('.oom-content-preview');
+            const fullDiv = row.querySelector('.oom-content-full');
+            const expandButton = row.querySelector('.oom-button--expand');
 
-            if (preview && fullContent && expandButton) {
-                preview.style.display = isExpanded ? 'none' : 'block';
-                fullContent.style.display = isExpanded ? 'block' : 'none';
-                expandButton.textContent = isExpanded ? 'Collapse' : 'Expand';
+            if (contentWrapper && previewDiv && fullDiv && expandButton) {
+                if (isExpanded) {
+                    contentWrapper.classList.add('expanded');
+                } else {
+                    contentWrapper.classList.remove('expanded');
+                }
+                expandButton.textContent = isExpanded ? 'Show less' : 'Read more';
+                expandButton.setAttribute('data-expanded', isExpanded.toString());
+                expandButton.setAttribute('aria-expanded', isExpanded.toString());
             }
         }
     }

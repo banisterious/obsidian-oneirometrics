@@ -1,0 +1,44 @@
+/* OneiroMetrics Accessibility Styles
+ * 
+ * Contains all accessibility-related styles for the OneiroMetrics plugin.
+ * Includes high contrast mode, reduced motion, and focus states.
+ */
+
+/* High contrast mode overrides */
+@media (forced-colors: active) {
+    .oneirometrics-time-filter-button {
+        border: 1px solid CanvasText;
+    }
+    .oneirometrics-time-filter-button:hover {
+        border-color: Highlight;
+    }
+    .oneirometrics-time-filter-button:focus {
+        outline: 2px solid Highlight;
+    }
+    .oneirometrics-calendar-day.selected {
+        border: 2px solid Highlight;
+    }
+    .oneirometrics-calendar-day.today {
+        border: 2px solid CanvasText;
+    }
+}
+
+/* Ensure transitions are disabled for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-content-preview,
+    .oom-content-full,
+    .oneirometrics-time-filter-button,
+    .oneirometrics-calendar-day {
+        transition: none;
+    }
+}
+
+/* Focus states */
+.oom-expand-button {
+    outline: none;
+}
+
+.oom-expand-button:focus {
+    box-shadow: 0 0 0 2px var(--text-accent);
+    border-color: var(--text-accent);
+} 

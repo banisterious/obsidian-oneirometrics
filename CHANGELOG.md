@@ -312,11 +312,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved filter button states
   - Better accessibility for filter controls
 
+## [0.3.3] - 2025-05-14
+
+### Added
+- New CSS component files for better organization:
+  - project-note-tables.css
+  - buttons.css
+  - filters.css
+  - icon-picker.css
+  - project-note-content.css
+  - drag-drop.css
+  - multiselect.css
+  - metrics-summary.css
+  - utilities.css
+  - responsive.css
+  - accessibility.css
+  - settings.css
+  - metrics.css
+  - modals.css
+
+### Changed
+- Refactored CSS architecture into 14 focused components
+- Improved CSS maintainability and testability
+- Enhanced theme compatibility
+- Optimized CSS performance
+- Centralized accessibility features
+- Improved responsive design organization
+- Better organization of utility classes
+- Enhanced component-specific styles
+
+### Fixed
+- Removed redundant and conflicting CSS rules
+- Improved CSS specificity
+- Enhanced accessibility features
+- Optimized mobile responsiveness
+- Fixed theme compatibility issues
+- Improved print styles
+- Enhanced high contrast mode support
+
 ## [Unreleased]
 
 ### Changed
 - Upgraded TypeScript to 5.4+ and esbuild to 0.20+ for improved build process compatibility.
 - Updated build script to use esbuild's context API.
+
+### CSS Refactoring
+- Split `styles.css` into 14 focused component files:
+  - `project-note-tables.css`: Table styles and print styles
+  - `project-note-content.css`: Content display rules
+  - `theme-overrides.css`: Theme-specific styles
+  - `buttons.css`: Button styles and variants
+  - `modals.css`: Modal dialog styles
+  - `filters.css`: Filter controls and display
+  - `settings.css`: Settings page layout
+  - `icon-picker.css`: Icon picker interface
+  - `drag-drop.css`: Drag and drop functionality
+  - `multiselect.css`: Multiselect component
+  - `metrics-summary.css`: Metrics display
+  - `utilities.css`: Helper classes
+  - `responsive.css`: Media queries and responsive design
+  - `accessibility.css`: High contrast mode and accessibility features
+- Reduced main `styles.css` from 2493 lines to 34 lines
+- Improved code organization and maintainability
+- Enhanced documentation for each component
+- Better separation of concerns
+- Improved performance through focused loading
 
 ---
 

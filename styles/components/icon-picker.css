@@ -1,0 +1,184 @@
+/* OneiroMetrics Icon Picker Styles
+ * 
+ * Styles for the icon picker component used in settings and metric configuration.
+ * Includes container, search, tabs, grid, and button styles.
+ */
+
+/* Icon Picker Container */
+.oom-icon-picker-container {
+    margin: 1em 0;
+}
+
+/* Search Section */
+.oom-icon-picker-search {
+    margin-bottom: 1em;
+}
+
+.oom-icon-picker-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--text-normal);
+    background: var(--background-primary);
+}
+
+.oom-icon-picker-search-input:focus {
+    border-color: var(--text-accent);
+    outline: none;
+}
+
+/* Tabs */
+.oom-icon-picker-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1em;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 4px;
+}
+
+.oom-icon-picker-tab {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    background: none;
+}
+
+.oom-icon-picker-tab:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-tab.active {
+    font-weight: 500;
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+/* Icon Grid */
+.oom-icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 8px;
+    margin-bottom: 1em;
+}
+
+/* Icon Buttons */
+.oom-icon-picker-btn {
+    display: flex;
+    height: 40px;
+    width: 40px;
+    padding: 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    background: var(--background-primary-alt);
+}
+
+.oom-icon-picker-btn:hover {
+    border-color: var(--text-accent);
+    transform: translateY(-1px);
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-btn.selected {
+    border-color: var(--text-accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-btn svg {
+    height: 20px;
+    width: 20px;
+}
+
+/* Clear Button */
+.oom-icon-picker-clear {
+    padding: 4px 8px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    text-decoration: underline;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    background: none;
+}
+
+.oom-icon-picker-clear:hover {
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+/* Metric Icons */
+.oom-metric-icon,
+.oom-metric-icon-svg {
+    display: inline-flex;
+    height: 1.1em;
+    width: 1.1em;
+    margin-left: 6px;
+    margin-right: 0;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 1em;
+    opacity: 0.8;
+    color: var(--text-muted);
+    fill: var(--text-muted);
+    transition: color 0.2s, opacity 0.2s, fill 0.2s;
+}
+
+.oom-metric-icon--start {
+    margin-left: 0 !important;
+    margin-right: 6px !important;
+}
+
+.oom-metric-icon:hover,
+.oom-metric-icon-svg:hover {
+    opacity: 1;
+    color: var(--text-normal);
+    fill: var(--text-normal);
+}
+
+/* Ensure icons are properly aligned in tables */
+.oom-table th .oom-metric-icon,
+.oom-table td .oom-metric-icon {
+    vertical-align: middle;
+}
+
+/* Style icons in select dropdowns */
+.oom-select option .oom-metric-icon {
+    margin-right: 4px;
+}
+
+/* Ensure icons don't break table layout */
+.oom-table th,
+.oom-table td {
+    white-space: nowrap;
+}
+
+/* Add some spacing between icon and text */
+.oom-metric-icon {
+    margin-left: 6px;
+}
+
+/* Ensure icons are visible in both light and dark themes */
+.theme-light .oom-metric-icon,
+.theme-dark .oom-metric-icon {
+    color: var(--text-muted);
+}
+
+/* Hover effect for icons */
+.oom-metric-icon:hover {
+    color: var(--text-normal);
+} 

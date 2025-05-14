@@ -1,0 +1,445 @@
+/* OneiroMetrics Table Styles
+ * 
+ * Styles specific to tables in OneiroMetrics project notes.
+ * These styles handle table layout, headers, cells, and responsive behavior.
+ */
+
+/* Table sections
+   Maintain consistent spacing and layout */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 2em 0;
+    padding: var(--oom-padding);
+}
+
+/* Table Container
+ * Ensure tables can expand to full
+   width while maintaining scrollability */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: var(--oom-margin);
+    padding: var(--oom-padding);
+    overflow-x: auto;
+}
+
+/* Table Layout */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.9em;
+    border: 1px solid var(--background-modifier-border);
+    border-spacing: 0;
+    background: none;
+    width: 100%;
+    table-layout: auto;
+}
+
+/* Column Widths */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table th:nth-child(1),
+.markdown-preview-view[data-type="oom-project-note"] .oom-table td:nth-child(1) {
+    width: 8%;
+    min-width: 85px;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table th:nth-child(2),
+.markdown-preview-view[data-type="oom-project-note"] .oom-table td:nth-child(2) {
+    width: 15%;
+    min-width: 120px;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table th:nth-child(3),
+.markdown-preview-view[data-type="oom-project-note"] .oom-table td:nth-child(3) {
+    width: 7%;
+    min-width: 60px;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table th:nth-child(4),
+.markdown-preview-view[data-type="oom-project-note"] .oom-table td:nth-child(4) {
+    width: 30%;
+    min-width: 200px;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table th:nth-child(n+5),
+.markdown-preview-view[data-type="oom-project-note"] .oom-table td:nth-child(n+5) {
+    width: 8%;
+    min-width: 70px;
+}
+
+/* Theme-specific table styles */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table thead,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table thead,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table thead {
+    border-bottom: 2px solid var(--background-modifier-border);
+    background: var(--background-primary-alt);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 8px 12px;
+    white-space: nowrap;
+    border: 1px solid var(--background-modifier-border);
+    text-align: left;
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+    background: var(--background-primary-alt);
+}
+
+/* Header Hover Effects */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th:hover,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th:hover,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th:hover {
+    cursor: pointer;
+    background: var(--background-modifier-hover);
+}
+
+/* Sort Indicators */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th.sort-asc::after,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th.sort-asc::after,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th.sort-asc::after {
+    content: " ↑";
+    color: var(--text-muted);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th.sort-desc::after,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th.sort-desc::after,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th.sort-desc::after {
+    content: " ↓";
+    color: var(--text-muted);
+}
+
+/* Ensure proper text wrapping in all cells */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table td,
+.markdown-preview-view[data-type="oom-project-note"] .oom-table th {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Fix metric value alignment */
+.markdown-preview-view[data-type="oom-project-note"] .metric-value {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Table Title Styling */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table-title,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table-title,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table-title {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    padding: 0;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    letter-spacing: 0.01em;
+    color: var(--text-normal);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section > .oom-table-title {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+/* Dream Entries section header */
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-entries-title {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+/* Container styling - break out of standard width constraints */
+.oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+/* Cell styling overrides */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table td,
+div[data-type="markdown"][data-type="oom-project-note"] .oom-table td {
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: top;
+    white-space: normal;
+    background: none;
+}
+
+/* Hover effects */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+/* Table Links */
+.oom-table td a {
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.oom-table td a:hover {
+    text-decoration: underline;
+}
+
+/* Table Text Colors */
+.oom-table td,
+.oom-table th {
+    color: var(--text-normal);
+}
+
+.oom-table tr:hover td {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+/* No Metrics Message */
+.markdown-preview-view[data-type="oom-project-note"] .oom-no-metrics {
+    padding: 1em;
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+/* Override Obsidian's default table behavior */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] table,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] table,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] table {
+    table-layout: auto !important;
+    width: 100% !important;
+}
+
+/* Override Minimal's cell width behavior */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] td,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] td,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] td {
+    width: unset !important;
+    white-space: normal !important;
+}
+
+/* Header styling */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table thead tr,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table thead tr,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table thead tr {
+    border-bottom: 2px solid var(--background-modifier-border);
+    background: var(--background-primary-alt);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table th {
+    white-space: nowrap;
+    font-weight: 600;
+    background: var(--background-primary-alt);
+}
+
+/* Statistics Table Section */
+.oom-stats-section {
+    margin-bottom: 2em;
+}
+
+.oom-stats-title {
+    margin-bottom: 0.5em;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+.oom-stats-table {
+    width: 100% !important;
+    margin-bottom: 1em;
+    border-collapse: collapse;
+}
+
+.oom-stats-table th,
+.oom-stats-table td {
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    text-align: left;
+}
+
+.oom-stats-table th {
+    font-weight: 600;
+    background-color: var(--background-primary-alt);
+}
+
+.oom-stats-table td.metric-value {
+    text-align: right;
+    white-space: nowrap !important;
+}
+
+/* Ensure the statistics section is visible */
+.oom-table-section.oom-stats-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Sortable table headers */
+.oom-table th.oom-sortable {
+    cursor: pointer;
+}
+
+/* Metric icons in tables */
+.oom-table th .oom-metric-icon,
+.oom-table td .oom-metric-icon {
+    vertical-align: middle;
+}
+
+/* Ensure icons don't break table layout */
+.oom-table th,
+.oom-table td {
+    white-space: nowrap;
+}
+
+/* Add some spacing between icon and text */
+.oom-metric-icon {
+    margin-left: 6px;
+}
+
+/* Ensure icons are visible in both light and dark themes */
+.theme-light .oom-metric-icon,
+.theme-dark .oom-metric-icon {
+    color: var(--text-muted);
+}
+
+/* Hover effect for icons */
+.oom-metric-icon:hover {
+    color: var(--text-normal);
+}
+
+/* Dream Row Styles */
+.oom-dream-row {
+    transition: background-color 0.2s ease;
+}
+
+.oom-dream-title {
+    min-width: 200px;
+}
+
+.oom-dream-content {
+    min-width: 300px;
+    max-width: 500px;
+}
+
+/* Content Wrapper */
+.oom-content-wrapper {
+    position: relative;
+}
+
+/* Metric Value Styles */
+.metric-value {
+    text-align: right;
+    font-family: var(--font-monospace);
+}
+
+/* Sortable Columns */
+.oom-table th.oom-sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 24px;
+}
+
+.oom-table th.oom-sortable::after {
+    content: "↕";
+    position: absolute;
+    right: 8px;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.oom-table th.oom-sortable:hover::after {
+    opacity: 1;
+}
+
+.oom-table th.oom-sortable.oom-sort-asc::after {
+    content: "↑";
+    opacity: 1;
+}
+
+.oom-table th.oom-sortable.oom-sort-desc::after {
+    content: "↓";
+    opacity: 1;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table th.oom-sortable::after {
+        color: CanvasText;
+    }
+    
+    .oom-table th.oom-sortable:hover::after {
+        color: Highlight;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-dream-row {
+        transition: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls,
+    .markdown-preview-view[data-type="oom-project-note"] .oom-button--expand {
+        display: none;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+        border: 1px solid #000;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table th,
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table td {
+        border: 1px solid #000;
+        padding: 4px 8px;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+        max-height: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: 768px) {
+    .oom-table {
+        font-size: 0.85em;
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: 6px 8px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .oom-table {
+        font-size: 0.8em;
+    }
+
+    .oom-table th,
+    .oom-table td {
+        padding: 4px 6px;
+    }
+} 

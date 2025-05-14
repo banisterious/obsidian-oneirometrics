@@ -1,0 +1,115 @@
+/* OneiroMetrics Metrics Summary Styles
+ * 
+ * Styles for the metrics summary component used in project notes.
+ * Includes summary container, statistics table, and related styles.
+ */
+
+/* Metrics Summary Container */
+.oom-metrics-summary {
+    border: 2px dashed var(--text-accent);
+    background: var(--background-primary-alt);
+    padding: 1.5em;
+    margin: 1.5em 0;
+    border-radius: 8px;
+}
+
+/* Statistics Section */
+.oom-stats-section {
+    margin-bottom: 2em;
+}
+
+.oom-stats-title {
+    margin-bottom: 0.5em;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+/* Statistics Table */
+.oom-stats-table {
+    width: 100% !important;
+    margin-bottom: 1em;
+    border-collapse: collapse;
+}
+
+.oom-stats-table th,
+.oom-stats-table td {
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    text-align: left;
+}
+
+.oom-stats-table th {
+    font-weight: 600;
+    background-color: var(--background-primary-alt);
+}
+
+.oom-stats-table td.metric-value {
+    text-align: right;
+    white-space: nowrap !important;
+}
+
+/* Ensure the statistics section is visible */
+.oom-table-section.oom-stats-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-metrics-summary {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        border: 1px solid CanvasText;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-metrics-summary {
+        border: 2px dashed #000;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        border: 1px solid #000;
+        padding: 4px 8px;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: 768px) {
+    .oom-metrics-summary {
+        padding: 1em;
+        margin: 1em 0;
+    }
+    
+    .oom-stats-table {
+        font-size: 0.9em;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        padding: 6px 8px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .oom-metrics-summary {
+        padding: 0.75em;
+        margin: 0.75em 0;
+    }
+    
+    .oom-stats-table {
+        font-size: 0.85em;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        padding: 4px 6px;
+    }
+} 

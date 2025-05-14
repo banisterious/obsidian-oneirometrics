@@ -1,0 +1,69 @@
+/* Theme Overrides and Base Variables
+ * 
+ * This file contains the base theme variables and overrides that ensure
+ * consistent behavior across different Obsidian themes.
+ */
+
+/* Base Theme Variables
+ * Define our custom variables that will be used throughout the styles
+ * These ensure consistent theming across different Obsidian themes
+ */
+:root {
+    --oom-line-width: 100%;
+    --oom-max-width: none;
+    --oom-padding: 0;
+    --oom-margin: 0;
+}
+
+/* Theme-Specific Overrides
+ * Target specific theme variants to ensure consistent behavior
+ */
+.theme-light .markdown-preview-view[data-type="oom-project-note"],
+.theme-dark .markdown-preview-view[data-type="oom-project-note"],
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
+.minimal-default .markdown-preview-view[data-type="oom-project-note"],
+.minimal-light .markdown-preview-view[data-type="oom-project-note"],
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"],
+div[data-type="markdown"][data-type="oom-project-note"] {
+    --line-width-adaptive: var(--oom-line-width);
+    --line-width: var(--oom-line-width);
+    --max-width: var(--oom-max-width);
+    --file-line-width: var(--oom-line-width);
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin-left: var(--oom-margin);
+    margin-right: var(--oom-margin);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+}
+
+.markdown-preview-view[data-type="oom-project-note"],
+.markdown-preview-view[data-type="oom-project-note"] .markdown-preview-sizer {
+    max-width: var(--oom-max-width);
+    width: var(--oom-line-width);
+    margin: var(--oom-margin);
+    padding: var(--oom-padding);
+}
+
+/* Readable Line Width Overrides
+ * Ensure our styles work with Obsidian's readable line width setting
+ */
+.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
+.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
+    --line-width-adaptive: var(--oom-line-width);
+    --line-width: var(--oom-line-width);
+    --max-width: var(--oom-max-width);
+    --file-line-width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    width: var(--oom-line-width);
+    margin-left: var(--oom-margin);
+    margin-right: var(--oom-margin);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] {
+    --file-line-width: var(--oom-line-width);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+} 

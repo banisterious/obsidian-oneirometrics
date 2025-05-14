@@ -161,6 +161,7 @@ export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     private logger: Logger;
     private expandedStates: Set<string> = new Set();
+    private container: HTMLElement | null = null;
 
     // Add memoization for table calculations
     private memoizedTableData = new Map<string, any>();
@@ -170,6 +171,11 @@ export default class DreamMetricsPlugin extends Plugin {
 
     async onload() {
         this.logger = Logger.getInstance();
+        this.logger.configure('debug');
+        
+        // Initialize container
+        this.container = document.querySelector('.markdown-preview-view');
+        
         await this.loadSettings();
         
         // Load expanded states from settings
@@ -1931,6 +1937,30 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Update the message
         liveRegion.textContent = message;
+    }
+
+    // Update content visibility
+    private updateContentVisibility(id: string, isExpanded: boolean): void {
+        if (!this.container) return;
+        
+        const row = this.container.querySelector(`tr[data-source="${id}"]`);
+        if (row) {
+            const contentWrapper = row.querySelector('.oom-content-wrapper');
+            const previewDiv = row.querySelector('.oom-content-preview');
+            const fullDiv = row.querySelector('.oom-content-full');
+            const expandButton = row.querySelector('.oom-button--expand');
+
+            if (contentWrapper && previewDiv && fullDiv && expandButton) {
+                if (isExpanded) {
+                    contentWrapper.classList.add('expanded');
+                } else {
+                    contentWrapper.classList.remove('expanded');
+                }
+                expandButton.textContent = isExpanded ? 'Show less' : 'Read more';
+                expandButton.setAttribute('data-expanded', isExpanded.toString());
+                expandButton.setAttribute('aria-expanded', isExpanded.toString());
+            }
+        }
     }
 }
 

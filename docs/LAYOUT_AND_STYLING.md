@@ -1,5 +1,7 @@
 # Layout and Styling Technical Specification
 
+> **Note:** A comprehensive CSS refactoring plan is available in [CSS_REFACTORING.md](../CSS_REFACTORING.md). This document will be updated as the refactoring progresses.
+
 ## Overview
 
 This document outlines the layout and styling options available for OneiroMetrics, with a focus on compatibility with the [Modular CSS Layout (MCL)](https://efemkay.github.io/obsidian-modular-css-layout/) snippet collection.

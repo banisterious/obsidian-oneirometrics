@@ -134,6 +134,8 @@
 
 ###   3.2. CSS
 
+> **Note:** A comprehensive CSS refactoring plan is available in [CSS_REFACTORING.md](../CSS_REFACTORING.md) that will improve code organization and maintainability.
+
 ####   3.2.1. Formatting
 
 -   **Indentation:**

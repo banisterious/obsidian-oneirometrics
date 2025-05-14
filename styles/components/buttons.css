@@ -1,0 +1,249 @@
+/* OneiroMetrics Button Styles
+ * 
+ * Contains all button-related styles for the OneiroMetrics plugin.
+ * Includes base styles, variants, states, animations, and accessibility features.
+ */
+
+/* Base button styles */
+.oom-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 8px 16px;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    color: var(--text-normal);
+    background: var(--interactive-normal);
+}
+
+.oom-button:hover {
+    background: var(--interactive-hover);
+}
+
+.oom-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+}
+
+/* Button variants */
+.oom-button--primary {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+}
+
+.oom-button--primary:hover {
+    background: var(--interactive-accent-hover);
+}
+
+.oom-button--secondary {
+    border-color: var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.oom-button--secondary:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Expand button specific styles */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--expand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em 1em;
+    border: 1px solid var(--interactive-accent);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--expand:hover {
+    border-color: var(--interactive-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--interactive-accent-hover);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--expand:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--expand:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Button states */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--state-default {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--state-expanded {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-success);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--state-collapsed {
+    color: var(--text-normal);
+    background-color: var(--interactive-normal);
+}
+
+/* Button icon */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--state-expanded .oom-button-icon {
+    transform: rotate(180deg);
+}
+
+/* Loading state */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--loading {
+    position: relative;
+    color: transparent;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 1em;
+    width: 1em;
+    margin: -0.5em 0 0 -0.5em;
+    border: 2px solid var(--text-on-accent);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-spin 0.8s linear infinite;
+}
+
+@keyframes oom-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error state */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--error {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-error);
+}
+
+/* Success state */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--success {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-success);
+}
+
+/* Click animation */
+.markdown-preview-view[data-type="oom-project-note"] .oom-button--clicked {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+/* Disabled state */
+.oom-button--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Hidden state */
+.oom-button--hidden {
+    display: none;
+}
+
+/* Modal button styles */
+.oom-modal-btn {
+    margin-left: 0.5em;
+    padding: 4px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.15s, color 0.15s;
+    color: var(--text-normal, #222);
+    background: var(--background-secondary, #f5f5f5);
+}
+
+.oom-modal-btn:hover,
+.oom-modal-btn:focus {
+    background: var(--background-modifier-hover, #e0e7ef);
+}
+
+.oom-modal-btn--apply {
+    color: var(--text-on-accent, #fff);
+    background: var(--interactive-accent, #2563eb);
+}
+
+.oom-modal-btn--apply:hover,
+.oom-modal-btn--apply:focus {
+    color: var(--text-on-accent, #fff);
+    background: var(--interactive-accent-hover, #1749b1);
+}
+
+/* Dialog buttons container */
+.oom-dialog-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+/* Metric editor buttons */
+.oom-metric-editor-buttons {
+    display: flex;
+    margin-top: 1.5em;
+    gap: 1em;
+    justify-content: flex-end;
+}
+
+/* Expand button specific styles */
+.oom-expand-button {
+    outline: none;
+}
+
+.oom-expand-button:focus {
+    box-shadow: 0 0 0 2px var(--text-accent);
+    border-color: var(--text-accent);
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .oom-expand-button {
+        min-height: 32px;
+        margin: 4px 0;
+        line-height: 32px;
+    }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-button--expand:focus {
+        outline: 2px solid CanvasText;
+        outline-offset: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oom-button--expand,
+    .oom-button-icon {
+        transition: none;
+    }
+    .oom-button--clicked {
+        transform: none;
+    }
+} 
