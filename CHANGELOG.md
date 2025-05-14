@@ -350,6 +350,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved print styles
 - Enhanced high contrast mode support
 
+## [0.3.5] - 2025-05-14
+
+### Changed
+- **CSS Refactoring, Phase 2:** Following the initial reorganization and optimization of component styles (Phase 1), all component CSS files were concatenated back into a single `styles.css` for production use, improving compatibility and maintainability.
+
 ## [Unreleased]
 
 ### Changed
@@ -366,6 +371,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced table component structure
 - Updated documentation to reflect new organization
 - Fixed import statement syntax in main stylesheet
+
+- Reorganized, optimized, and improved all component CSS files before consolidating them back into a single `styles.css` for production use, improving compatibility and maintainability.
+
+- **CSS Refactoring, Phase 2:** Following the initial reorganization and optimization of component styles (Phase 1), all component CSS files were concatenated back into a single `styles.css` for production use, improving compatibility and maintainability.
 
 ---
 

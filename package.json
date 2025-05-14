@@ -1,11 +1,12 @@
 {
     "name": "dream-metrics",
-    "version": "0.3.4",
+    "version": "0.3.5",
     "description": "Track and analyze your dream journal entries with metrics and visualizations.",
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs",
-        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node build-css.js",
+        "build:css": "node build-css.js",
         "version": "node version-bump.mjs && git add manifest.json versions.json"
     },
     "keywords": [
