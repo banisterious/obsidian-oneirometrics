@@ -7,6 +7,116 @@
 3. Configure your metrics and project note path
 4. Add dream metrics to your notes using the callout format
 5. Use the ribbon icon or command palette to analyze your dreams
+6. **Important**: Always use Reading View mode when working with OneiroMetrics notes
+
+## View Mode Requirements
+
+OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies. The plugin will show a notice when you open a OneiroMetrics note in Live Preview mode.
+
+### Future Enhancements
+
+The following improvements are planned for the Reading View requirement:
+
+1. **Automatic View Mode Switching**
+   - Automatically switch to Reading View when opening OneiroMetrics notes
+   - Remember user's preferred view mode for other notes
+   - Provide a setting to enable/disable automatic switching
+
+2. **Enhanced Live Preview Support**
+   - Improve layout consistency in Live Preview mode
+   - Add specific styles for Live Preview compatibility
+   - Implement fallback behaviors for Live Preview features
+
+3. **View Mode Persistence**
+   - Remember the last used view mode per note
+   - Allow setting default view mode preferences
+   - Provide quick toggle between view modes
+
+4. **Accessibility Improvements**
+   - Add keyboard shortcuts for view mode switching
+   - Improve screen reader announcements for view mode changes
+   - Add visual indicators for current view mode
+
+### Reading View Requirement
+OneiroMetrics is designed to work exclusively with Reading View mode. This requirement is essential for several reasons:
+
+1. **Layout Consistency**
+   - Reading View provides a stable, predictable layout environment
+   - Tables and metrics are rendered consistently across different themes
+   - Content expansion/collapse animations work reliably
+   - Column widths and alignments remain stable
+
+2. **Performance**
+   - Reading View offers better performance for large tables
+   - Reduced DOM updates and reflows
+   - Smoother animations and transitions
+   - More efficient event handling
+
+3. **Accessibility**
+   - Better screen reader support
+   - Consistent keyboard navigation
+   - Reliable focus management
+   - Proper ARIA attribute handling
+
+### Live Preview Limitations
+Live Preview mode is not supported due to several technical limitations:
+
+1. **Layout Issues**
+   - Inconsistent table rendering
+   - Unreliable content expansion/collapse
+   - Column width instability
+   - Theme compatibility problems
+
+2. **Performance Problems**
+   - Frequent DOM updates causing lag
+   - Unreliable event handling
+   - Animation stuttering
+   - Memory usage spikes
+
+3. **Accessibility Challenges**
+   - Inconsistent screen reader behavior
+   - Unreliable keyboard navigation
+   - Focus management issues
+   - ARIA attribute conflicts
+
+### View Mode Detection
+The plugin automatically detects your current view mode and provides appropriate feedback:
+
+1. **Warning Notifications**
+   - A persistent warning banner appears in Live Preview mode
+   - Temporary notices inform you when switching to Live Preview
+   - Settings UI includes a prominent warning about the requirement
+
+2. **Automatic Detection**
+   - The plugin monitors view mode changes
+   - Warnings are displayed immediately when needed
+   - Notifications are cleared when switching to Reading View
+
+3. **User Experience**
+   - Clear, non-intrusive warnings
+   - Easy-to-understand instructions
+   - Smooth transition between modes
+   - Consistent behavior across themes
+
+### Best Practices
+To ensure the best experience with OneiroMetrics:
+
+1. **Always Use Reading View**
+   - Switch to Reading View before opening metrics notes
+   - Use the Reading View button in the top-right corner
+   - Enable "Default to Reading View" in Obsidian settings if desired
+
+2. **Theme Compatibility**
+   - Test your theme in Reading View mode
+   - Ensure proper contrast for metrics tables
+   - Verify that animations work smoothly
+   - Check accessibility features
+
+3. **Performance Optimization**
+   - Keep your metrics tables organized
+   - Use filters to manage large datasets
+   - Regular backups to maintain performance
+   - Monitor log file sizes
 
 ## Configuring Metrics
 

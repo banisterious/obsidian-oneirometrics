@@ -153,18 +153,47 @@ You can also manage the log file manually:
    - Use the "Backup Debug Log" command
    - Or manually copy the file with a timestamp
 
-### Debugging UI Event Attachment
+## Debugging UI Event Attachment
 
-A temporary debug button labeled **"Debug: Attach Show More Listeners"** appears at the top of the project note. This button can be used to manually trigger the attachment of event listeners for the Show more/Show less buttons in the Dream Entries table.
+A temporary debug button labeled **"Debug: Attach Show More Listeners"** appears at the top of the project note in development mode only. This button can be used to manually trigger the attachment of event listeners for the Show more/Show less buttons in the Dream Entries table.
 
-- **Purpose:**
-  - To help diagnose and resolve issues where the Show more/Show less buttons do not respond due to event listeners not being attached (often due to theme or timing issues).
-- **Where it appears:**
-  - At the top of the project note, next to the "Rescrape Metrics" button.
-- **When to use:**
-  - If you notice that the Show more/Show less buttons are not working, click this debug button to manually attach the listeners. This is especially useful during development or when testing with new themes or custom CSS snippets.
-- **Note:**
-  - This button is intended for debugging and may be removed or hidden in production releases once event attachment is fully robust.
+### Development Mode
+The debug button is only visible when the plugin is running in development mode (`NODE_ENV === 'development'`). This ensures that development tools are not exposed to end users in production builds.
+
+### Purpose
+- To help diagnose and resolve issues where the Show more/Show less buttons do not respond due to event listeners not being attached (often due to theme or timing issues).
+- Provides a way to manually reattach event listeners during development and testing.
+
+### Where it appears
+- At the top of the project note, next to the "Rescrape Metrics" button
+- Only visible in development mode
+- Automatically hidden in production builds
+
+### When to use
+- During development and testing
+- When debugging theme compatibility issues
+- When testing custom CSS snippets
+- When investigating event listener attachment problems
+
+### Implementation Details
+```typescript
+// Only show debug button in development mode
+if (process.env.NODE_ENV === 'development') {
+    const debugButton = buttonContainer.createEl('button', {
+        text: 'Debug: Attach Show More Listeners',
+        cls: 'mod-warning oom-debug-attach-listeners'
+    });
+    debugButton.addEventListener('click', () => {
+        new Notice('Manually attaching Show More listeners...');
+        this.attachProjectNoteEventListeners();
+    });
+}
+```
+
+### Note
+- This button is intended for development and testing purposes only
+- It will be automatically excluded from production builds
+- The functionality it provides is also available through the logging system when debug logging is enabled
 
 ## Best Practices
 1. Clear the log before starting a new testing session

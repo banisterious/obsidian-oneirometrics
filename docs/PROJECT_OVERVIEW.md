@@ -6,15 +6,22 @@
 # OneiroMetrics Project Overview
 
 ## Recent Updates
-- **Enhanced Time Filter UI:**
-  - Visual calendar preview for date range selection
-  - Duration and relative time indicators
-  - SVG icons for quick filter recognition
-  - Full keyboard navigation support
-  - Screen reader announcements
-  - High contrast mode support
-  - Reduced motion preferences
-  - Mobile-optimized layout
+- **Enhanced Filtering System:**
+  - Date range filter with calendar preview
+  - Time filter with hour/minute selection
+  - Quick filter buttons for common ranges
+  - Visual feedback for active filters
+  - Filter state persistence
+  - Responsive filter layout
+  - Theme-aware styling
+
+- **UI Improvements:**
+  - Filter container with consistent styling
+  - Quick filter buttons with icons
+  - Clear visual hierarchy
+  - Improved button states
+  - Better mobile responsiveness
+  - Enhanced accessibility features
 
 - **New Optional Metrics Added:**
   - Dream Theme (Categorical/Keywords)
@@ -33,16 +40,12 @@
   - **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.
   - **Settings Page Overhaul:** The Settings page now features a visually distinct bordered metrics section, clear section dividers, and helper text under key section headers for improved clarity and usability. Default and Optional Metrics are grouped and styled for easier navigation.
 
-## Current Status
-- The project is actively maintained and updated with new features and improvements.
-- Recent changes include:
-  - Enhanced time filter UI with calendar preview and accessibility features
-  - New optional metrics for more detailed dream analysis
-  - Improved UI/UX with better accessibility and mobile support
-  - Theme-aware styling and responsive design improvements
-  - Robust date parsing and display
-  - Improved expand/collapse functionality
-  - Enhanced logging throughout the codebase
+## Current Status (May 2025)
+- The filtering system and metrics scraping are functioning as expected.
+- The 'Read more' button arrow changes on click, but the content does not expand; this is under active investigation.
+- UI rendering and event handling for expand/collapse are being debugged.
+- Ongoing testing is focused on interactive elements and accessibility.
+- Next steps: Continue debugging the expand/collapse feature and review event delegation and DOM updates.
 
 ## Next Steps
 - **Testing:** 

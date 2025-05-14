@@ -3,19 +3,19 @@
 ## Recent Issues and Fixes
 
 ### Fixed Issues
-1. **Time Filter Integration**
-   - Issue: Time filter changes not properly updating table rows
+1. **Filter System Integration**
+   - Issue: Filter changes not properly updating table rows
    - Fix: Implemented debounced filter updates and improved event handling
    - Status: ✅ Fixed
 
-2. **Date Display**
-   - Issue: "Invalid Date" appearing in date column
-   - Fix: Enhanced date parsing with multiple format support and validation
+2. **Date and Time Filter UI**
+   - Issue: Inconsistent filter UI and state management
+   - Fix: Implemented unified filter container and improved state handling
    - Status: ✅ Fixed
 
-3. **Expand/Collapse Functionality**
-   - Issue: "Show more" button not working consistently
-   - Fix: Improved event listener management and added state persistence
+3. **Filter State Persistence**
+   - Issue: Filter states not persisting between sessions
+   - Fix: Added state persistence and improved state management
    - Status: ✅ Fixed
 
 4. **Performance Issues**
@@ -35,16 +35,17 @@
 
 ## Recent Changes
 
-### Logging System
-- Added structured logging with categories
-- Implemented performance tracking
-- Added detailed error logging
-- Improved debugging capabilities
-- Added configurable logging settings in UI
-- Implemented log rotation and backup
+### Filter System
+- Added unified filter container
+- Implemented date range and time filters
+- Added quick filter buttons
+- Improved filter state management
+- Enhanced filter UI/UX
+- Added filter persistence
+- Improved filter performance
 
-### State Persistence
-- Added expanded/collapsed state persistence
+### State Management
+- Added filter state persistence
 - Implemented efficient state storage
 - Added debounced state saving
 - Improved state restoration
@@ -59,12 +60,27 @@
 - Implemented efficient DOM updates
 
 ### UI Improvements
-- Enhanced button state management
-- Added aria-expanded and data-expanded attributes
-- Improved visibility toggling
-- Added logging for button interactions
+- Enhanced filter container styling
+- Added quick filter buttons with icons
+- Improved filter feedback
+- Added logging for filter interactions
 - Improved accessibility features
 - Enhanced mobile responsiveness
+
+### Logging System
+- Added structured logging with categories
+- Implemented performance tracking
+- Added detailed error logging
+- Improved debugging capabilities
+- Added configurable logging settings in UI
+- Implemented log rotation and backup
+
+### State Persistence
+- Added expanded/collapsed state persistence
+- Implemented efficient state storage
+- Added debounced state saving
+- Improved state restoration
+- Added state cleanup on unload
 
 ## Date Parsing Improvements
 - Fixed date parsing to handle multiple formats:
@@ -221,3 +237,9 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.
+
+## Current Issues (May 2025)
+- The 'Read more' button arrow changes but does not reveal content. This is the top priority for the next round of fixes and testing.
+- Filtering and metrics scraping are working as expected.
+- UI and event handling for expand/collapse are under investigation.
+- Ongoing testing is focused on interactive elements, accessibility, and event delegation.

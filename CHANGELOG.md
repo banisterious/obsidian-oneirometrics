@@ -312,6 +312,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved filter button states
   - Better accessibility for filter controls
 
+## [Unreleased]
+
+### Changed
+- Upgraded TypeScript to 5.4+ and esbuild to 0.20+ for improved build process compatibility.
+- Updated build script to use esbuild's context API.
+
 ---
 
 For more details, see PROJECT_OVERVIEW.md and TESTING.md. 

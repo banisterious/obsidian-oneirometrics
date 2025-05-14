@@ -215,10 +215,59 @@ export default class DreamMetricsPlugin extends Plugin {
             })
         );
 
+        // Add check for Live Preview mode
         this.registerEvent(
-            this.app.workspace.on('file-open', (file) => {
-                if (file && file.path === this.settings.projectNotePath) {
-                    this.updateProjectNoteView();
+            this.app.workspace.on('active-leaf-change', (leaf) => {
+                if (!leaf) return;
+                
+                const view = leaf.view;
+                if (!view || !(view instanceof MarkdownView)) return;
+
+                // Check if this is a OneiroMetrics note
+                const file = view.file;
+                if (!file) return;
+
+                if (file.path === this.settings.projectNotePath) {
+                    // Check if we're in Live Preview mode
+                    const isLivePreview = view.getMode() === 'source';
+                    if (isLivePreview) {
+                        // Show notice
+                        new Notice('OneiroMetrics requires Reading View. Please switch to Reading View for proper functionality.', 10000);
+                        
+                        // Add a warning banner
+                        const container = view.containerEl;
+                        const existingWarning = container.querySelector('.oom-live-preview-warning');
+                        if (!existingWarning) {
+                            const warning = container.createEl('div', {
+                                cls: 'oom-live-preview-warning',
+                                attr: {
+                                    style: `
+                                        position: fixed;
+                                        top: 0;
+                                        left: 0;
+                                        right: 0;
+                                        z-index: 1000;
+                                        background: var(--background-modifier-error);
+                                        color: var(--text-error);
+                                        padding: 1em;
+                                        text-align: center;
+                                        border-bottom: 1px solid var(--text-error);
+                                    `
+                                }
+                            });
+                            warning.createEl('strong', { text: 'Warning: ' });
+                            warning.createEl('span', { 
+                                text: 'OneiroMetrics requires Reading View. Please switch to Reading View for proper functionality.'
+                            });
+                        }
+                    } else {
+                        // Remove warning if it exists
+                        const container = view.containerEl;
+                        const warning = container.querySelector('.oom-live-preview-warning');
+                        if (warning) {
+                            warning.remove();
+                        }
+                    }
                 }
             })
         );
@@ -664,6 +713,7 @@ export default class DreamMetricsPlugin extends Plugin {
                             };
                             journals.push(currentJournal);
                             blockStack.push({ type: 'journal-entry', obj: currentJournal, level });
+                            calloutsFound++;
                         } else if (calloutType === 'dream-diary') {
                             currentDiary = {
                                 lines: [line],
@@ -676,6 +726,7 @@ export default class DreamMetricsPlugin extends Plugin {
                                 blockStack[blockStack.length - 1].obj.diaries.push(currentDiary);
                             }
                             blockStack.push({ type: 'dream-diary', obj: currentDiary, level });
+                            calloutsFound++;
                         } else if (calloutType === 'dream-metrics') {
                             currentMetrics = {
                                 lines: [line],
@@ -687,6 +738,7 @@ export default class DreamMetricsPlugin extends Plugin {
                                 blockStack[blockStack.length - 1].obj.metrics.push(currentMetrics);
                             }
                             blockStack.push({ type: 'dream-metrics', obj: currentMetrics, level });
+                            calloutsFound++;
                         } else if (blockStack.length > 0) {
                             // Add line to current block
                             blockStack[blockStack.length - 1].obj.lines.push(line);
@@ -1222,15 +1274,23 @@ export default class DreamMetricsPlugin extends Plugin {
                 const preview = dreamContent.substring(0, 200) + '...';
                 const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}`;
                 content += `<td class="oom-dream-content" id="${cellId}">
-                    <div class="oom-content-preview">${preview}</div>
-                    <div class="oom-content-full">${dreamContent}</div>
-                    <button type="button" class="oom-button oom-button--expand" aria-expanded="false" aria-controls="${cellId}" data-expanded="false">
-                        <span class="oom-button-text">Show more</span>
-                        <span class="visually-hidden"> full dream content</span>
-                    </button>
+                    <div class="oom-content-wrapper">
+                        <div class="oom-content-preview">${preview}</div>
+                        <div class="oom-content-full">${dreamContent}</div>
+                        <button type="button" class="oom-button oom-button--expand oom-button--state-default" 
+                                aria-expanded="false" 
+                                aria-controls="${cellId}" 
+                                data-expanded="false"
+                                data-content-id="${cellId}"
+                                data-parent-cell="${cellId}">
+                            <span class="oom-button-text">Show more</span>
+                            <span class="oom-button-icon">▼</span>
+                            <span class="visually-hidden"> full dream content</span>
+                        </button>
+                    </div>
                 </td>\n`;
             } else {
-                content += `<td class="oom-dream-content"><div class="oom-content-preview">${dreamContent}</div></td>\n`;
+                content += `<td class="oom-dream-content"><div class="oom-content-wrapper"><div class="oom-content-preview">${dreamContent}</div></div></td>\n`;
             }
 
             // Add metric values
@@ -1335,15 +1395,18 @@ export default class DreamMetricsPlugin extends Plugin {
                         rescrapeButton.addEventListener('click', () => {
                             this.scrapeMetrics();
                         });
-                        // Add a temporary debug button for manual event attachment
-                        const debugButton = buttonContainer.createEl('button', {
-                            text: 'Debug: Attach Show More Listeners',
-                            cls: 'mod-warning oom-debug-attach-listeners'
-                        });
-                        debugButton.addEventListener('click', () => {
-                            new Notice('Manually attaching Show More listeners...');
-                            this.attachProjectNoteEventListeners();
-                        });
+
+                        // Only show debug button in development mode
+                        if (process.env.NODE_ENV === 'development') {
+                            const debugButton = buttonContainer.createEl('button', {
+                                text: 'Debug: Attach Show More Listeners',
+                                cls: 'mod-warning oom-debug-attach-listeners'
+                            });
+                            debugButton.addEventListener('click', () => {
+                                new Notice('Manually attaching Show More listeners...');
+                                this.attachProjectNoteEventListeners();
+                            });
+                        }
                     }
                     // Update the view's content
                     if (view.getMode() === 'preview') {
@@ -1391,125 +1454,196 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private attachProjectNoteEventListeners() {
         const startTime = performance.now();
-        const container = this.app.workspace.containerEl;
         const cleanupFunctions: (() => void)[] = [];
-
-        this.logger.log('Events', 'Attaching project note event listeners (start)');
-        // Try to find the preview element robustly
-        let previewEl = container.querySelector('.markdown-preview-view');
-        if (!previewEl) {
-            // Try fallback selectors for Minimal or other themes
-            previewEl = container.querySelector('[data-type="oom-project-note"]');
-            this.logger.warn('Events', 'Fallback: No .markdown-preview-view found, using [data-type="oom-project-note"]');
-        }
-        if (!previewEl) {
-            this.logger.error('Events', 'No project note preview element found after all attempts');
-            return;
-        }
-
+        let isAttaching = false;
+        let attachmentTimeout: NodeJS.Timeout | null = null;
+        
         // Function to attach event listeners to expand buttons
-        const attachExpandButtonListeners = (container: Element) => {
-            const expandButtons = container.querySelectorAll('.oom-button--expand');
-            this.logger.log('Events', `Found ${expandButtons.length} expand buttons`);
-            if (expandButtons.length === 0) {
-                this.logger.warn('Events', 'No expand buttons found on first attempt, retrying in 500ms');
-                setTimeout(() => attachExpandButtonListeners(container), 500);
+        const attachExpandButtonListeners = () => {
+            if (isAttaching) return;
+            isAttaching = true;
+
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!view || view.getMode() !== 'preview') {
+                isAttaching = false;
                 return;
             }
-            expandButtons.forEach((button, index) => {
-                const buttonEl = button as HTMLElement;
-                const contentCell = buttonEl.closest('.oom-dream-content') as HTMLElement;
-                if (!contentCell) {
-                    this.logger.warn('Events', `Button ${index} has no content cell`);
-                    return;
-                }
 
-                const previewDiv = contentCell.querySelector('.oom-content-preview') as HTMLElement;
-                const fullDiv = contentCell.querySelector('.oom-content-full') as HTMLElement;
-                if (!previewDiv || !fullDiv) {
-                    this.logger.warn('Events', `Button ${index} missing preview or full content divs`);
-                    return;
-                }
+            const previewEl = view.previewMode?.containerEl;
+            if (!previewEl) {
+                isAttaching = false;
+                return;
+            }
 
-                // Get unique identifier for this content
-                const contentId = this.getContentStateId(contentCell);
-                const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
+            const buttons = previewEl.querySelectorAll('.oom-button--expand');
+            if (buttons.length === 0) {
+                isAttaching = false;
+                return;
+            }
 
-                // Check if this content was previously expanded
-                const wasExpanded = this.expandedStates.has(contentId);
-                if (wasExpanded) {
-                    contentCell.classList.add('expanded');
-                    buttonEl.setAttribute('data-expanded', 'true');
-                    buttonEl.setAttribute('aria-expanded', 'true');
-                    buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
-                    this.logger.debug('Events', `Restored expanded state for content`, {
-                        contentId,
-                        title
-                    });
-                }
-
-                const clickHandler = () => {
-                    const clickTime = performance.now();
-                    const isExpanded = buttonEl.getAttribute('data-expanded') === 'true';
-                    buttonEl.setAttribute('data-expanded', (!isExpanded).toString());
-                    buttonEl.setAttribute('aria-expanded', (!isExpanded).toString());
-                    buttonEl.classList.add('oom-button--clicked');
-                    setTimeout(() => buttonEl.classList.remove('oom-button--clicked'), 200);
-
-                    if (isExpanded) {
-                        contentCell.classList.remove('expanded');
-                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
-                        this.expandedStates.delete(contentId);
-                    } else {
-                        contentCell.classList.add('expanded');
-                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
-                        this.expandedStates.add(contentId);
-                    }
-
-                    // Save state immediately
-                    this.saveSettings();
-
-                    this.logger.log('Events', `Content ${isExpanded ? 'collapsed' : 'expanded'}`, {
-                        contentId,
-                        title,
-                        buttonId: buttonEl.id,
-                        contentCellId: contentCell.id,
-                        duration: performance.now() - clickTime,
-                        expandedStatesCount: this.expandedStates.size
-                    });
-                };
-
-                buttonEl.addEventListener('click', clickHandler);
-                this.logger.debug('Events', `Attached click handler to expand button ${index}`, {
-                    contentId,
-                    title
-                });
-            });
-        };
-
-        // Initial attachment
-        attachExpandButtonListeners(previewEl);
-
-        // Re-attach when content changes
-        const observer = new MutationObserver((mutations) => {
-            this.logger.debug('Events', 'Content changed, reattaching expand button listeners', {
-                mutationCount: mutations.length,
+            this.logger.debug('Events', 'Attaching listeners', {
+                buttonsFound: buttons.length,
                 timestamp: new Date().toISOString()
             });
-            attachExpandButtonListeners(previewEl);
+
+            buttons.forEach((button, index) => {
+                try {
+                    const buttonEl = button as HTMLElement;
+                    const contentCellId = buttonEl.getAttribute('data-parent-cell');
+                    const contentCell = contentCellId ? 
+                        previewEl.querySelector(`#${contentCellId}`) as HTMLElement :
+                        buttonEl.closest('.oom-dream-content') as HTMLElement;
+                    
+                    if (!contentCell) {
+                        this.logger.warn('Events', `No content cell found for button ${index + 1}`);
+                        return;
+                    }
+
+                    const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
+                    if (!contentWrapper) {
+                        this.logger.warn('Events', `No content wrapper found for button ${index + 1}`);
+                        return;
+                    }
+
+                    const previewDiv = contentWrapper.querySelector('.oom-content-preview') as HTMLElement;
+                    const fullDiv = contentWrapper.querySelector('.oom-content-full') as HTMLElement;
+                    
+                    if (!previewDiv || !fullDiv) {
+                        this.logger.warn('Events', `Missing content divs for button ${index + 1}`);
+                        return;
+                    }
+
+                    // Get unique identifier for this content
+                    const contentId = contentCell.id || this.getContentStateId(contentCell);
+                    const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
+                    const rowDate = contentCell.closest('.oom-dream-row')?.getAttribute('data-date');
+
+                    // Set up ARIA attributes
+                    buttonEl.setAttribute('role', 'button');
+                    buttonEl.setAttribute('aria-label', `Toggle dream content for ${title} on ${rowDate}`);
+                    buttonEl.setAttribute('aria-controls', contentId);
+                    buttonEl.setAttribute('tabindex', '0');
+                    buttonEl.setAttribute('data-parent-cell', contentId);
+
+                    // Ensure expanded state is properly set
+                    const wasExpanded = this.expandedStates.has(contentId);
+                    if (wasExpanded) {
+                        contentCell.classList.add('expanded');
+                        buttonEl.setAttribute('data-expanded', 'true');
+                        buttonEl.setAttribute('aria-expanded', 'true');
+                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
+                        buttonEl.classList.add('oom-button--state-expanded');
+                        previewDiv.style.display = 'none';
+                        fullDiv.style.display = 'block';
+                    } else {
+                        contentCell.classList.remove('expanded');
+                        buttonEl.setAttribute('data-expanded', 'false');
+                        buttonEl.setAttribute('aria-expanded', 'false');
+                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
+                        buttonEl.classList.add('oom-button--state-default');
+                        previewDiv.style.display = 'block';
+                        fullDiv.style.display = 'none';
+                    }
+
+                    // Add keyboard support
+                    const handleKeyPress = (e: KeyboardEvent) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            buttonEl.click();
+                        }
+                    };
+
+                    const clickHandler = () => {
+                        const isExpanded = buttonEl.getAttribute('data-expanded') === 'true';
+                        
+                        // Update ARIA attributes
+                        buttonEl.setAttribute('data-expanded', (!isExpanded).toString());
+                        buttonEl.setAttribute('aria-expanded', (!isExpanded).toString());
+                        
+                        // Update button state classes
+                        buttonEl.classList.remove('oom-button--state-default', 'oom-button--state-expanded', 'oom-button--state-collapsed');
+                        buttonEl.classList.add(isExpanded ? 'oom-button--state-collapsed' : 'oom-button--state-expanded');
+                        
+                        // Update button icon
+                        const icon = buttonEl.querySelector('.oom-button-icon');
+                        if (icon) {
+                            icon.textContent = isExpanded ? '▼' : '▲';
+                        }
+                        
+                        // Add click animation
+                        buttonEl.classList.add('oom-button--clicked');
+                        setTimeout(() => buttonEl.classList.remove('oom-button--clicked'), 200);
+
+                        // Update content visibility immediately
+                        if (isExpanded) {
+                            // Collapse content
+                            contentCell.classList.remove('expanded');
+                            previewDiv.style.display = 'block';
+                            fullDiv.style.display = 'none';
+                            buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
+                            this.expandedStates.delete(contentId);
+                            this.announceToScreenReader(`Collapsed dream content for ${title}`);
+                        } else {
+                            // Expand content
+                            contentCell.classList.add('expanded');
+                            previewDiv.style.display = 'none';
+                            fullDiv.style.display = 'block';
+                            buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
+                            this.expandedStates.add(contentId);
+                            this.announceToScreenReader(`Expanded dream content for ${title}`);
+                        }
+
+                        // Save state immediately
+                        this.saveSettings();
+                    };
+
+                    // Remove any existing listeners
+                    const newButton = buttonEl.cloneNode(true) as HTMLElement;
+                    Array.from(buttonEl.attributes).forEach(attr => {
+                        newButton.setAttribute(attr.name, attr.value);
+                    });
+
+                    // Add event listeners to the new button
+                    newButton.addEventListener('click', clickHandler);
+                    newButton.addEventListener('keydown', handleKeyPress);
+
+                    // Replace the old button with the new one
+                    buttonEl.parentNode?.replaceChild(newButton, buttonEl);
+                } catch (error) {
+                    this.logger.error('Events', `Error processing button ${index + 1}`, error as Error);
+                }
+            });
+
+            isAttaching = false;
+        };
+
+        // Debounced version of attachExpandButtonListeners
+        const debouncedAttach = this.debounce(attachExpandButtonListeners, 250);
+
+        // Initial attachment
+        debouncedAttach();
+
+        // Re-attach when content changes, but only if we're not already attaching
+        const observer = new MutationObserver(() => {
+            if (!isAttaching) {
+                debouncedAttach();
+            }
         });
 
-        observer.observe(previewEl, {
-            childList: true,
-            subtree: true
-        });
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (view?.previewMode?.containerEl) {
+            observer.observe(view.previewMode.containerEl, {
+                childList: true,
+                subtree: true
+            });
 
-        cleanupFunctions.push(() => observer.disconnect());
+            cleanupFunctions.push(() => {
+                observer.disconnect();
+            });
+        }
 
         // Store cleanup functions
         this.cleanupFunctions.push(...cleanupFunctions);
-
-        this.logger.performance('Events', 'attachProjectNoteEventListeners', startTime);
     }
 
     private applyFilters(previewEl: HTMLElement) {
@@ -1782,6 +1916,21 @@ export default class DreamMetricsPlugin extends Plugin {
 
     setLogConfig(level: LogLevel, maxLogSize: number, maxBackups: number) {
         this.logger.configure(level, maxLogSize, maxBackups);
+    }
+
+    private announceToScreenReader(message: string) {
+        // Create or get the live region
+        let liveRegion = document.querySelector('.oom-live-region');
+        if (!liveRegion) {
+            liveRegion = document.createElement('div');
+            liveRegion.className = 'oom-live-region';
+            liveRegion.setAttribute('aria-live', 'polite');
+            liveRegion.setAttribute('aria-atomic', 'true');
+            document.body.appendChild(liveRegion);
+        }
+        
+        // Update the message
+        liveRegion.textContent = message;
     }
 }
 

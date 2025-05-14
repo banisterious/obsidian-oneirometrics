@@ -410,6 +410,25 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         containerEl.createEl('h2', { text: 'OneiroMetrics Settings' });
 
+        // Add Reading View requirement notice with contextual styling
+        const noticeEl = containerEl.createEl('div', {
+            cls: 'oom-notice oom-notice--info',
+            attr: {
+                style: `
+                    margin: 1em 0;
+                    padding: 1em;
+                    background: var(--background-modifier-hover);
+                    border: 1px solid var(--text-muted);
+                    border-radius: 4px;
+                    color: var(--text-normal);
+                `
+            }
+        });
+        noticeEl.createEl('strong', { text: 'Note: ' });
+        noticeEl.createEl('span', { 
+            text: 'OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies.'
+        });
+
         // OneiroMetrics Path Setting
         new Setting(containerEl)
             .setName('OneiroMetrics Path')

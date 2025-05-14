@@ -5,7 +5,50 @@
 
 # OneiroMetrics
 
-A plugin for Obsidian that turns dreams into data by tracking and analyzing dream journal metrics.
+OneiroMetrics is an Obsidian plugin that helps you track and analyze metrics from your dream journal entries.
+
+## Features
+
+- Track various dream metrics (sensory detail, emotional recall, etc.)
+- Generate summary tables and visualizations
+- Export data for further analysis
+- Customizable metrics and settings
+
+## Requirements
+
+- Obsidian v1.0.0 or higher
+- Reading View mode (Live Preview is not supported)
+- Node.js 16+
+- TypeScript 5.4+
+- esbuild 0.20+
+
+## Installation
+
+1. Open Obsidian Settings
+2. Go to Community Plugins
+3. Search for "OneiroMetrics"
+4. Click Install
+5. Enable the plugin
+
+## Usage
+
+### Important Note About View Mode
+
+OneiroMetrics requires Reading View to function properly. Live Preview mode is not supported as it may cause layout issues and inconsistent behavior. When you open a OneiroMetrics note:
+
+- A warning will be displayed if you're in Live Preview mode
+- The plugin will automatically detect the view mode and show appropriate notifications
+- For the best experience, always use Reading View when working with OneiroMetrics notes
+
+### Setting Up Your Dream Journal
+
+1. Create a new note for your dream journal
+2. Add a callout block with the format:
+   ```markdown
+   > [!dream-metrics]
+   > Words: 343, Sensory Detail: 3, Emotional Recall: 3
+   ```
+3. Configure your metrics in the plugin settings
 
 ## Features
 
@@ -90,51 +133,6 @@ A plugin for Obsidian that turns dreams into data by tracking and analyzing drea
 - **Maximum Backups**: Configure number of backup log files
 - **Note**: Logging is set to "Off" by default. Enable logging only when needed for debugging issues.
 
-## Usage
-
-### Adding Dream Metrics
-Add metrics to your dream entries using either of these callout formats:
-
-Format 1 (one metric per line):
-```markdown
-> [!dream-metrics]
-> Sensory Detail: 4
-> Emotional Recall: 3
-> Lost Segments: 2
-> Descriptiveness: 4
-> Confidence Score: 5
-```
-
-Format 2 (all metrics on one line):
-```markdown
-> [!dream-metrics]
-> Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2, Descriptiveness: 4, Confidence Score: 5
-```
-
-You can also add metadata to the callout for custom styling:
-```markdown
-> [!dream-metrics|hide]  # Hides the metrics in the note view
-> Sensory Detail: 4
-> Emotional Recall: 3
-> Lost Segments: 2
-> Descriptiveness: 4
-> Confidence Score: 5
-```
-
-### Analyzing Dreams
-1. Open OneiroMetrics from the ribbon icon or command palette
-2. Select the notes you want to analyze
-3. Click "Scrape Metrics" to generate analysis
-4. View your metrics tables in the project note
-5. Use the Open Metrics Note button for quick access
-
-### Using Backups
-1. Enable backups in settings (enabled by default)
-2. Select an existing folder for storing backups
-3. Backups are automatically created before any changes
-4. Each backup includes a timestamp for easy reference
-5. Backup files use .bak extension for better organization
-
 ## Tips
 - Create a dedicated folder for backups to keep your vault organized
 - Regular backups are recommended when making significant changes
@@ -159,7 +157,66 @@ MIT License - see LICENSE file for details
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
 - Backup files now use the .bak extension instead of .md for better file management
 
+## Current State and Future Plans (May 2025)
+
+### Current Status
+- Metrics scraping is working correctly, processing entries and callouts as expected
+- Button functionality has been stabilized but requires architectural improvements
+- Debug logging has been optimized for better troubleshooting
+- Performance monitoring has been added for critical operations
+
+### Known Issues
+- Button state management needs improvement for better reliability
+- DOM manipulation could be more efficient
+- Event handling could be more robust
+- State management is currently scattered across multiple components
+
+### Planned Refactoring
+A major refactoring is planned to improve the plugin's architecture and reliability:
+
+1. **State Management Layer**
+   - Centralized state management
+   - Predictable state updates
+   - Better debugging capabilities
+
+2. **DOM Management Layer**
+   - Improved DOM manipulation
+   - Better lifecycle management
+   - Enhanced cleanup handling
+
+3. **Event Handling Layer**
+   - Centralized event handling
+   - Improved event delegation
+   - Better memory management
+
+4. **Metrics Processing Layer**
+   - Isolated metrics processing
+   - Better validation
+   - Improved error handling
+
+### Testing Status
+- Unit tests are being developed for core functionality
+- Integration tests are planned for the refactored architecture
+- Performance benchmarks will be established
+- Accessibility testing is ongoing
+
+### Next Steps
+1. Implement core infrastructure for the refactoring
+2. Migrate existing features to the new architecture
+3. Add comprehensive testing
+4. Improve performance and reliability
+
 ## New Features (May 2025)
 
 - **OneiroMetrics Path:** Path to the main note where your dream metrics are stored (previously called "Project Note").
-- **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics. 
+- **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics.
+
+## Development
+
+1. Clone the repository.
+2. Run `npm install` to install dependencies.
+3. Run `npm run dev` to start the development server.
+
+### Troubleshooting
+
+- If you encounter the error `TypeError: esbuild.context is not a function`, ensure your esbuild version is at least 0.20.0. You can update it by running `npm install esbuild@latest`. 
