@@ -38,8 +38,8 @@ export interface DreamMetricsSettings {
 
 // Default logging configuration
 export const DEFAULT_LOGGING = {
-    level: 'debug' as LogLevel,
-    maxLogSize: 1024 * 1024, // 1MB
+    level: 'off' as LogLevel,
+    maxLogSize: 10000,
     maxBackups: 5
 };
 

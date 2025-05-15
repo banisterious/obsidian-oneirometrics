@@ -166,9 +166,10 @@ The project note is generated with two main sections:
 ### 5. Table Virtualization for Performance
 
 - The Dream Entries table uses vanilla JavaScript virtualization to efficiently handle large datasets.
-- Only 25 rows are rendered in the DOM at any given time; as the user scrolls, the visible window of rows is updated.
+- Only **12 rows** are rendered in the DOM at any given time (reduced from 25 for better performance and responsiveness); as the user scrolls, the visible window of rows is updated.
 - Spacer rows are used above and below the visible rows to maintain correct scroll height and scrollbar behavior.
-- A scroll event handler recalculates and renders the visible rows as needed.
+- A debounced scroll event handler recalculates and renders the visible rows as needed.
+- **Scroll logic ensures that expanding/collapsing a row keeps the view stable and prevents jumping beneath the table.**
 - This approach significantly reduces DOM size and memory usage, improving responsiveness and scalability for large dream journals.
 
 ## Technical Architecture
@@ -265,6 +266,13 @@ The project note is generated with two main sections:
   - CSS classes are used to toggle the visibility of the preview and full content sections within each row.
   - The expand/collapse state is managed per row, not globally, and is preserved as rows are re-rendered during virtualization.
   - The logic is compatible with the table virtualization system, ensuring that expand/collapse works seamlessly as the user scrolls through large datasets.
+
+- Each row in the Dream Entries table includes a "Show more"/"Show less" button to expand or collapse the full dream content.
+- **Event handling is split:**
+  - In the virtualized table (settings modal and interactive UI), event listeners are attached only to the currently visible rows when they are rendered.
+  - In the static project note table (rendered as HTML in the main note), a minimal event handler attaches listeners to all expand/collapse buttons after the table is rendered or updated.
+- This ensures reliable expand/collapse behavior, prevents duplicate or lost listeners, and keeps performance high even with large tables.
+- The scroll logic is designed so that expanding a row scrolls it into view if needed, but never scrolls past the end of the table or causes the viewport to jump unexpectedly.
 
 ## Performance Considerations
 

@@ -89,6 +89,16 @@
 - [x] Debug button for show more listeners is available and functional
 - [x] Event listeners are properly attached and cleaned up
 
+### Expand/Collapse, Scroll, and Table Performance (May 2025)
+- [x] Clicking 'Show more' or 'Show less' in the Dream Entries table always expands/collapses content with no lag or unregistered clicks
+- [x] No duplicate or lost event listeners (check with DevTools and logs)
+- [x] Expanding/collapsing a row keeps the view stable (no scroll jump or overscroll)
+- [x] Only 12 rows are rendered at a time in the Dream Metrics table (verify with DOM inspection)
+- [x] Performance remains smooth with rapid expand/collapse and scrolling
+- [x] No '[Violation] setTimeout handler took XXms' warnings in the console during normal use
+- [x] Debug button for manual event listener attachment works as expected in development mode
+- [x] See [docs/ISSUES.md](ISSUES.md#fixed-issues) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md) for detailed diagnostics and troubleshooting steps
+
 ### Time Filter UI Testing
 
 - [ ] Calendar Preview

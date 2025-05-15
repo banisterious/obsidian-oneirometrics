@@ -60,6 +60,15 @@
     - Fix: All component stylesheets were consolidated back into a single `styles.css` file, organized into clearly marked sections for each UI component or concern. CSS variables are used for theme compatibility and maintainability. This completes a two-phase CSS refactoring process.
     - Status: ✅ Fixed
 
+12. **Expand/Collapse (Show more) Button, Scroll Jump, and Table Performance**
+   - Issue: In the OneiroMetrics note, clicking 'Show more' or 'Show less' in the Dream Entries table caused UI delays, unregistered clicks, and scroll jumps, especially in large tables. Event listeners were sometimes duplicated or lost, and too many rows were rendered at once.
+   - Fix: 
+     - Removed global event listener attachment logic; listeners are now attached only to visible rows in the virtualized table, and a minimal handler is used for the static project note table.
+     - Improved scroll logic to prevent jumping beneath the table and ensure the expanded row stays in view without overscrolling.
+     - Reduced the number of visible rows from 25 to 12 for better performance and responsiveness.
+     - Added detailed logging and used DevTools to diagnose and verify fixes (see [LOGGING.md](LOGGING.md) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md)).
+   - Status: ✅ Fixed
+
 ## Recent Changes
 
 ### Filter System
@@ -85,6 +94,10 @@
 - Enhanced date parsing performance
 - Added performance logging
 - Implemented efficient DOM updates
+- Optimized expand/collapse event handling (no more global listeners)
+- Improved scroll-to-row logic to prevent jumpiness
+- Reduced visible rows from 25 to 12 for better Dream Metrics table performance
+- Used targeted logging and DevTools profiling to verify fixes
 
 ### UI Improvements
 - Enhanced filter container styling
@@ -170,6 +183,9 @@
 - Add data caching for frequently accessed metrics
 - Optimize state compression
 - Improve filter performance
+
+### Icon Picker
+- [ ] TODO: Switch the Settings Icon Picker to use Obsidian's built-in icons instead of bundled lucide-static icons.
 
 ### Implementation Challenges
 - Handle large dream datasets efficiently

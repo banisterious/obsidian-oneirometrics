@@ -14,11 +14,15 @@ This guide provides step-by-step instructions for using Chrome DevTools to ident
 1. Open Obsidian
 2. Press `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Option+I` (Mac)
 3. Click on the "Performance" tab
-4. Ensure the following settings are enabled:
-   - [x] CPU: 4x slowdown
+4. Configure settings for baseline testing:
+   - [x] CPU: No throttling (default)
    - [x] Network: No throttling
    - [x] Screenshots: Enabled
    - [x] Memory: Enabled
+5. After baseline testing, configure for stress testing:
+   - [x] CPU: 4x slowdown
+   - [x] Keep other settings the same
+6. Document which settings were used for each test
 
 ### 2. Recording a Performance Profile
 1. Click the "Record" button (circle icon) or press `Ctrl+E`
@@ -57,29 +61,46 @@ This guide provides step-by-step instructions for using Chrome DevTools to ident
 ## Specific Test Cases
 
 ### 1. Expand/Collapse Performance
-1. Open a project note with 100+ dream entries
-2. Start recording
-3. Expand and collapse 5 different entries
-4. Stop recording
-5. Look for:
+- [x] Open a project note with 100+ dream entries
+- [x] Start recording
+- [x] Expand and collapse 5 different entries
+- [x] Stop recording
+- [x] Look for:
    - GC events during expand/collapse
    - Long JavaScript execution times
    - Memory allocation spikes
 
+#### Troubleshooting Expand/Collapse Performance
+- [x] Ensure DOM elements created during expansion are removed when collapsing
+- [ ] Remove any event listeners attached during expansion when collapsing
+- [ ] Use event delegation instead of attaching listeners to each entry, if possible
+- [ ] Profile DOM updates in DevTools to check for detached nodes or lingering listeners
+- [ ] Minimize and batch DOM updates to reduce reflows/repaints
+- [ ] If you see long "Recalculate style" events in the performance profile, review your code for DOM or style changes that affect many elements. Minimize the scope of changes and batch DOM updates to reduce style recalculation time.
+- [ ] After fixes, repeat the test and verify node/listener counts remain stable
+
 ### 2. Scrolling Performance
-1. Start recording
-2. Scroll through the entire table
-3. Stop recording
-4. Analyze:
+- [x] Start recording
+- [x] Scroll through the entire table
+- [x] Stop recording
+- [x] Analyze:
    - Frame rate consistency
    - Memory usage during scroll
    - Virtualization effectiveness
 
+#### Troubleshooting Scrolling Performance
+- [ ] Check that node and listener counts remain stable during scrolling
+- [ ] Investigate for memory leaks if JS heap baseline rises steadily
+- [ ] Watch for frequent or long GC events (red bars)
+- [ ] Ensure frame rate remains consistent and above 30 FPS
+- [ ] Optimize code to avoid expensive DOM operations during scroll
+- [ ] Use virtualization to minimize DOM nodes in memory
+
 ### 3. Filter Performance
-1. Start recording
-2. Apply various filters in sequence
-3. Stop recording
-4. Check for:
+- [ ] Start recording
+- [ ] Apply various filters in sequence
+- [ ] Stop recording
+- [ ] Check for:
    - Filter application delay
    - Table update performance
    - Memory usage during filtering
@@ -157,4 +178,28 @@ When reporting performance issues, include:
 ## Additional Resources
 - [Chrome DevTools Performance Documentation](https://developer.chrome.com/docs/devtools/performance/)
 - [Memory Management Best Practices](https://developer.chrome.com/docs/devtools/memory-problems/)
-- [Rendering Performance Guide](https://developer.chrome.com/docs/devtools/rendering-performance/) 
+- [Rendering Performance Guide](https://developer.chrome.com/docs/devtools/rendering-performance/)
+
+## Proposed Fixes and Experiments
+
+Use this section to track code changes and their impact on performance. Check off each fix as you try it, and record results below each item.
+
+- [ ] Minimize the scope of DOM/style changes
+  - Only update the entry being expanded/collapsed, not parent containers or the whole table.
+  - Result:
+    
+- [ ] Batch DOM updates
+  - Use DocumentFragment or hide the container before making multiple changes, then show it after.
+  - Result:
+    
+- [ ] Avoid layout thrashing
+  - Group all DOM reads before writes; avoid reading layout properties after writing to the DOM.
+  - Result:
+    
+- [ ] Optimize event listener management
+  - Use event delegation and remove listeners when entries are collapsed or destroyed.
+  - Result:
+    
+- [ ] Reduce logging during interactions
+  - Debounce or limit logs during expand/collapse actions.
+  - Result: 

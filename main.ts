@@ -1459,197 +1459,45 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private attachProjectNoteEventListeners() {
-        const startTime = performance.now();
-        const cleanupFunctions: (() => void)[] = [];
-        let isAttaching = false;
-        let attachmentTimeout: NodeJS.Timeout | null = null;
-        
-        // Function to attach event listeners to expand buttons
-        const attachExpandButtonListeners = () => {
-            if (isAttaching) return;
-            isAttaching = true;
-
-            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (!view || view.getMode() !== 'preview') {
-                isAttaching = false;
-                return;
-            }
-
-            const previewEl = view.previewMode?.containerEl;
-            if (!previewEl) {
-                isAttaching = false;
-                return;
-            }
-
-            const buttons = previewEl.querySelectorAll('.oom-button--expand');
-            if (buttons.length === 0) {
-                isAttaching = false;
-                return;
-            }
-
-            this.logger.debug('Events', 'Attaching listeners', {
-                buttonsFound: buttons.length,
-                timestamp: new Date().toISOString()
-            });
-
-            buttons.forEach((button, index) => {
-                try {
-                    const buttonEl = button as HTMLElement;
-                    const contentCellId = buttonEl.getAttribute('data-parent-cell');
-                    const contentCell = contentCellId ? 
-                        previewEl.querySelector(`#${contentCellId}`) as HTMLElement :
-                        buttonEl.closest('.oom-dream-content') as HTMLElement;
-                    
-                    if (!contentCell) {
-                        this.logger.warn('Events', `No content cell found for button ${index + 1}`);
-                        return;
-                    }
-
-                    const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
-                    if (!contentWrapper) {
-                        this.logger.warn('Events', `No content wrapper found for button ${index + 1}`);
-                        return;
-                    }
-
-                    const previewDiv = contentWrapper.querySelector('.oom-content-preview') as HTMLElement;
-                    const fullDiv = contentWrapper.querySelector('.oom-content-full') as HTMLElement;
-                    
-                    if (!previewDiv || !fullDiv) {
-                        this.logger.warn('Events', `Missing content divs for button ${index + 1}`);
-                        return;
-                    }
-
-                    // Get unique identifier for this content
-                    const contentId = contentCell.id || this.getContentStateId(contentCell);
-                    const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
-                    const rowDate = contentCell.closest('.oom-dream-row')?.getAttribute('data-date');
-
-                    // Set up ARIA attributes
-                    buttonEl.setAttribute('role', 'button');
-                    buttonEl.setAttribute('aria-label', `Toggle dream content for ${title} on ${rowDate}`);
-                    buttonEl.setAttribute('aria-controls', contentId);
-                    buttonEl.setAttribute('tabindex', '0');
-                    buttonEl.setAttribute('data-parent-cell', contentId);
-
-                    // Ensure expanded state is properly set
-                    const wasExpanded = this.expandedStates.has(contentId);
-                    if (wasExpanded) {
-                        contentCell.classList.add('expanded');
-                        buttonEl.setAttribute('data-expanded', 'true');
-                        buttonEl.setAttribute('aria-expanded', 'true');
-                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
-                        buttonEl.classList.add('oom-button--state-expanded');
-                        previewDiv.style.display = 'none';
-                        fullDiv.style.display = 'block';
-                    } else {
-                        contentCell.classList.remove('expanded');
-                        buttonEl.setAttribute('data-expanded', 'false');
-                        buttonEl.setAttribute('aria-expanded', 'false');
-                        buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
-                        buttonEl.classList.add('oom-button--state-default');
-                        previewDiv.style.display = 'block';
-                        fullDiv.style.display = 'none';
-                    }
-
-                    // Add keyboard support
-                    const handleKeyPress = (e: KeyboardEvent) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            buttonEl.click();
-                        }
-                    };
-
-                    const clickHandler = () => {
-                        const isExpanded = buttonEl.getAttribute('data-expanded') === 'true';
-                        
-                        // Update ARIA attributes
-                        buttonEl.setAttribute('data-expanded', (!isExpanded).toString());
-                        buttonEl.setAttribute('aria-expanded', (!isExpanded).toString());
-                        
-                        // Update button state classes
-                        buttonEl.classList.remove('oom-button--state-default', 'oom-button--state-expanded', 'oom-button--state-collapsed');
-                        buttonEl.classList.add(isExpanded ? 'oom-button--state-collapsed' : 'oom-button--state-expanded');
-                        
-                        // Update button icon
-                        const icon = buttonEl.querySelector('.oom-button-icon');
-                        if (icon) {
-                            icon.textContent = isExpanded ? '▼' : '▲';
-                        }
-                        
-                        // Add click animation
-                        buttonEl.classList.add('oom-button--clicked');
-                        setTimeout(() => buttonEl.classList.remove('oom-button--clicked'), 200);
-
-                        // Update content visibility immediately
-                        if (isExpanded) {
-                            // Collapse content
-                            contentCell.classList.remove('expanded');
-                            previewDiv.style.display = 'block';
-                            fullDiv.style.display = 'none';
-                            buttonEl.querySelector('.oom-button-text')!.textContent = 'Show more';
-                            this.expandedStates.delete(contentId);
-                            this.announceToScreenReader(`Collapsed dream content for ${title}`);
-                        } else {
-                            // Expand content
-                            contentCell.classList.add('expanded');
-                            previewDiv.style.display = 'none';
-                            fullDiv.style.display = 'block';
-                            buttonEl.querySelector('.oom-button-text')!.textContent = 'Show less';
-                            this.expandedStates.add(contentId);
-                            this.announceToScreenReader(`Expanded dream content for ${title}`);
-                        }
-
-                        // Save state immediately
-                        this.saveSettings();
-                    };
-
-                    // Remove any existing listeners
-                    const newButton = buttonEl.cloneNode(true) as HTMLElement;
-                    Array.from(buttonEl.attributes).forEach(attr => {
-                        newButton.setAttribute(attr.name, attr.value);
-                    });
-
-                    // Add event listeners to the new button
-                    newButton.addEventListener('click', clickHandler);
-                    newButton.addEventListener('keydown', handleKeyPress);
-
-                    // Replace the old button with the new one
-                    buttonEl.parentNode?.replaceChild(newButton, buttonEl);
-                } catch (error) {
-                    this.logger.error('Events', `Error processing button ${index + 1}`, error as Error);
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!view || view.getMode() !== 'preview') return;
+        const previewEl = view.previewMode?.containerEl;
+        if (!previewEl) return;
+        const buttons = previewEl.querySelectorAll('.oom-button--expand');
+        buttons.forEach((button) => {
+            // Remove any existing click listeners by replacing the node
+            const newButton = button.cloneNode(true) as HTMLElement;
+            newButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const contentCellId = newButton.getAttribute('data-parent-cell');
+                const contentCell = contentCellId ? 
+                    previewEl.querySelector(`#${contentCellId}`) as HTMLElement :
+                    newButton.closest('.oom-dream-content') as HTMLElement;
+                if (!contentCell) return;
+                const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
+                const previewDiv = contentWrapper?.querySelector('.oom-content-preview') as HTMLElement;
+                const fullDiv = contentWrapper?.querySelector('.oom-content-full') as HTMLElement;
+                if (!contentWrapper || !previewDiv || !fullDiv) return;
+                const isExpanded = newButton.getAttribute('data-expanded') === 'true';
+                if (isExpanded) {
+                    contentWrapper.classList.remove('expanded');
+                    previewDiv.style.display = 'block';
+                    fullDiv.style.display = 'none';
+                    newButton.querySelector('.oom-button-text')!.textContent = 'Show more';
+                    newButton.setAttribute('data-expanded', 'false');
+                    newButton.setAttribute('aria-expanded', 'false');
+                } else {
+                    contentWrapper.classList.add('expanded');
+                    previewDiv.style.display = 'none';
+                    fullDiv.style.display = 'block';
+                    newButton.querySelector('.oom-button-text')!.textContent = 'Show less';
+                    newButton.setAttribute('data-expanded', 'true');
+                    newButton.setAttribute('aria-expanded', 'true');
                 }
             });
-
-            isAttaching = false;
-        };
-
-        // Debounced version of attachExpandButtonListeners
-        const debouncedAttach = this.debounce(attachExpandButtonListeners, 250);
-
-        // Initial attachment
-        debouncedAttach();
-
-        // Re-attach when content changes, but only if we're not already attaching
-        const observer = new MutationObserver(() => {
-            if (!isAttaching) {
-                debouncedAttach();
-            }
+            button.parentNode?.replaceChild(newButton, button);
         });
-
-        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (view?.previewMode?.containerEl) {
-            observer.observe(view.previewMode.containerEl, {
-                childList: true,
-                subtree: true
-            });
-
-            cleanupFunctions.push(() => {
-                observer.disconnect();
-            });
-        }
-
-        // Store cleanup functions
-        this.cleanupFunctions.push(...cleanupFunctions);
     }
 
     private applyFilters(previewEl: HTMLElement) {

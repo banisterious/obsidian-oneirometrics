@@ -7,6 +7,7 @@ export class DreamMetricsEvents {
     private dom: DreamMetricsDOM;
     private isAttaching: boolean = false;
     private debounceTimeout: number | null = null;
+    private _delegatedExpandHandler: ((event: Event) => void) | null = null;
 
     constructor(state: DreamMetricsState, dom: DreamMetricsDOM) {
         this.state = state;
@@ -18,7 +19,7 @@ export class DreamMetricsEvents {
         this.isAttaching = true;
 
         try {
-            this.attachExpandButtonListeners();
+            this.attachExpandDelegationListener();
             this.attachFilterListeners();
             this.attachKeyboardListeners();
             this.setupMutationObserver();
@@ -27,28 +28,18 @@ export class DreamMetricsEvents {
         }
     }
 
-    private attachExpandButtonListeners(): void {
-        const buttons = document.querySelectorAll('.oom-button--expand');
-        
-        buttons.forEach(button => {
-            // Remove existing listeners
-            const newButton = button.cloneNode(true) as HTMLElement;
-            button.parentNode?.replaceChild(newButton, button);
-            
-            // Add click listener
-            newButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleExpandButtonClick(newButton);
-            });
-            
-            // Add keyboard listener
-            newButton.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this.handleExpandButtonClick(newButton);
-                }
-            });
-        });
+    private attachExpandDelegationListener(): void {
+        const container = document.querySelector('.oom-table-container');
+        if (!container) return;
+        container.removeEventListener('click', this._delegatedExpandHandler as any);
+        this._delegatedExpandHandler = (event: Event) => {
+            const target = event.target as HTMLElement;
+            const button = target.closest('.oom-button--expand') as HTMLElement;
+            if (!button || !container.contains(button)) return;
+            event.preventDefault();
+            this.handleExpandButtonClick(button);
+        };
+        container.addEventListener('click', this._delegatedExpandHandler);
     }
 
     private handleExpandButtonClick(button: HTMLElement): void {
@@ -142,12 +133,9 @@ export class DreamMetricsEvents {
         if (this.debounceTimeout) {
             window.clearTimeout(this.debounceTimeout);
         }
-        
-        // Remove all event listeners
-        const buttons = document.querySelectorAll('.oom-button--expand');
-        buttons.forEach(button => {
-            const newButton = button.cloneNode(true);
-            button.parentNode?.replaceChild(newButton, button);
-        });
+        const container = document.querySelector('.oom-table-container');
+        if (container && this._delegatedExpandHandler) {
+            container.removeEventListener('click', this._delegatedExpandHandler);
+        }
     }
 } 

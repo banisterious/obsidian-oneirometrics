@@ -235,6 +235,10 @@ The generated table includes two main sections:
 - Responsive design for all screen sizes
 - Theme-aware styling
 - Readable Line Length toggle for table width control
+- Fast and reliable expand/collapse functionality for dream content
+- Smooth scrolling that maintains your position when expanding entries
+- Optimized performance for large dream journals
+- Works consistently across all themes and with custom CSS
 
 ### Backup System
 - Automatic backups are created before each update
@@ -274,6 +278,27 @@ For comprehensive information about layout options, styling features, and theme 
 ## State Persistence
 
 The plugin maintains your preferences across sessions, including expanded/collapsed states for dream entries. For detailed information about state persistence features and implementation, see the [State Persistence](STATE_PERSISTENCE.md) documentation.
+
+## Tips & Troubleshooting
+
+### Performance Tips
+- Keep your metrics tables organized and use filters to manage large datasets
+- The Dream Entries table is optimized for large dream journals and will remain fast even with hundreds of entries
+- Regular backups help maintain performance
+- Monitor log file sizes to prevent disk space issues
+
+### Common Issues
+- **View Mode**: Always use Reading View mode for the best experience
+- **Theme Compatibility**: If you experience any display issues, try switching to a different theme
+- **Button Responsiveness**: If a "Show more" button ever stops responding, use the debug button at the top of the note to reset the table's event listeners
+- **Scroll Position**: The table maintains your scroll position when expanding/collapsing entries, even with large datasets
+
+### Debug Tools
+- Use the debug button (visible in development mode) to:
+  - Reset event listeners if buttons become unresponsive
+  - Force a table refresh
+  - View diagnostic information
+  - Clear any stuck states
 
 ## Troubleshooting
 

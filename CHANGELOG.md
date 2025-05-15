@@ -1,5 +1,25 @@
 # OneiroMetrics Changelog
 
+## [0.3.6] - 2025-05-14
+
+### Added
+- Debug button for troubleshooting event listeners
+- Enhanced logging system with configurable levels
+- Improved documentation for troubleshooting and performance
+
+### Changed
+- Optimized table performance with reduced visible rows (12 rows)
+- Improved scroll behavior when expanding/collapsing entries
+- Enhanced event listener management for better reliability
+- Updated documentation with new performance tips and troubleshooting guides
+
+### Fixed
+- Show more/Show less button reliability across all themes
+- Scroll position maintenance when expanding/collapsing entries
+- Event listener attachment and cleanup
+- Performance with large datasets
+- See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
+
 ## [0.3.2] - 2025-05-13
 
 ### Added
@@ -16,6 +36,7 @@
 - Show more button functionality across all themes
 - Event listener attachment and cleanup
 - Log file organization and management
+- See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
 
 ## Recent Changes and Fixes
 

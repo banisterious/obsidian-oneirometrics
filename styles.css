@@ -3603,3 +3603,39 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     --oom-theme-debug-margin: 1px solid rgba(0, 255, 0, 0.2);
     --oom-theme-debug-padding: 1px solid rgba(0, 0, 255, 0.2);
 }
+
+.oom-suggestion-container {
+    position: absolute;
+    z-index: 1000;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 220px;  /* Increased from 180px */
+    width: 120%;      /* Added to make it wider than the input */
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+    font-size: 0.95em; /* Slightly smaller font size */
+}
+
+/* Add styles for suggestion items */
+.oom-suggestion-container .suggestion-item {
+    padding: 6px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-suggestion-container .suggestion-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+/* Ensure the container doesn't overflow the viewport */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-suggestion-container {
+        width: 100%;
+        min-width: 180px;
+    }
+}

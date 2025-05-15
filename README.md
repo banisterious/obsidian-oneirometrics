@@ -153,6 +153,17 @@ MIT License - see LICENSE file for details
 ## Recent Fixes (May 2025)
 
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets
+- Scroll jump issues have been resolved; expanding/collapsing rows now keeps the view stable and predictable
+- The number of visible rows in the Dream Metrics table has been reduced from 25 to 12 for better performance and responsiveness
+- All debug and backup log files are now stored in the `logs/` folder and excluded from version control
+- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
+- Backup files now use the .bak extension instead of .md for better file management
+- **See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of these and other recent fixes.**
+
+> For previous updates, see the [Release Notes](#release-notes) section below.
+
+## Release Notes
+
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
 - Backup files now use the .bak extension instead of .md for better file management
