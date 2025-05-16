@@ -431,6 +431,7 @@ The Scraping Modal must follow this DOM structure and class naming. All f
 
 <summary>Example DOM structure for the OneiroMetrics Scraping Modal</summary>
 
+```html
 <div class="modal oom-modal" style="width: 600px; max-height: 80vh;">
   <div class="modal-close-button"></div>
   <div class="modal-header">
@@ -490,7 +491,7 @@ The Scraping Modal must follow this DOM structure and class naming. All f
     </div>
   </div>
 </div>
-
+```
 </details>
 
 ### Scraping Modal Overhaul (May 2025)
