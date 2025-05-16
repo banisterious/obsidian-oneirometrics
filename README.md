@@ -9,10 +9,29 @@ OneiroMetrics is an Obsidian plugin that helps you track and analyze metrics fro
 
 ## Features
 
-- Track various dream metrics (sensory detail, emotional recall, etc.)
-- Generate summary tables and visualizations
-- Export data for further analysis
-- Customizable metrics and settings
+- Track multiple customizable metrics for each dream entry
+- Automatically scrape metrics from dream journal entries
+- Generate detailed analysis tables with sortable columns
+- Enhanced time filter UI with:
+  - Visual calendar preview
+  - Duration and relative time indicators
+  - SVG icons for quick recognition
+  - Full keyboard navigation
+  - Screen reader support
+  - High contrast mode
+  - Mobile-optimized layout
+- Filter entries by date range and specific metrics
+- Backup system to protect your data
+- Customizable settings for metrics and data management
+- Multi-chip autocomplete for selecting notes to analyze
+- Metric Icon Picker for visual customization
+- Keyboard accessibility and screen reader support
+- 'This Week' filter with configurable week start day
+- Widget for Readable Line Length control
+- Enhanced Metrics Description section
+- Quick access to settings from multiple locations
+- Improved Scraping Modal with two-column layout
+- Settings buttons in Dream Scrape modal and OneiroMetrics note
 
 ## Requirements
 
@@ -72,7 +91,9 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
 - 'This Week' filter with configurable week start day
 - Widget for Readable Line Length control
 - Enhanced Metrics Description section
-- Open Metrics Note button for quick access
+- Quick access to settings from multiple locations
+- Improved Scraping Modal with two-column layout
+- Settings buttons in Dream Scrape modal and OneiroMetrics note
 
 ## Documentation
 
@@ -98,9 +119,10 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
 ## Settings
 
 ### Project Note
-- **OneiroMetrics Path:** Path to the main note where your dream metrics are stored (previously called "Project Note").
-- **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics.
+- **OneiroMetrics Path:** Path to the main note where your dream metrics are stored
+- **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics
 - **Open Metrics Note:** Quick access button to open your metrics note
+- **Settings Button:** Quick access to plugin settings from the metrics note
 
 ### Backup Settings
 - **Enable Backups**: Toggle to enable/disable automatic backups (enabled by default)
@@ -115,6 +137,7 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
   - Icon (customizable via icon picker)
   - Valid range (min/max)
   - Description
+- Metrics are organized into Enabled and Disabled sections
 - Default metrics provided:
   - Sensory Detail (1-5)
   - Emotional Recall (1-5)
@@ -136,10 +159,10 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
 ## Accessing Settings
 
 You can quickly access the OneiroMetrics settings in several ways:
-- **Dream Scrape modal:** Click the 'Settings' button next to 'Scrape Metrics'.
-- **OneiroMetrics note:** Click the 'Settings' button at the top of the metrics note.
-- **Command palette:** Press Ctrl/Cmd + P and type "OneiroMetrics Settings".
-- **Ribbon icon:** Right-click the wand icon in the sidebar and select settings.
+- **Dream Scrape modal:** Click the 'Settings' button next to 'Scrape Metrics'
+- **OneiroMetrics note:** Click the 'Settings' button at the top of the metrics note
+- **Command palette:** Press Ctrl/Cmd + P and type "OneiroMetrics Settings"
+- **Ribbon icon:** Right-click the wand icon in the sidebar and select settings
 
 ## Tips
 - Create a dedicated folder for backups to keep your vault organized
@@ -157,6 +180,32 @@ If you encounter any issues or have suggestions, please:
 
 ## License
 MIT License - see LICENSE file for details
+
+## Recent Updates (v0.4.0)
+
+### New Features
+- Added Settings button to the Dream Scrape modal for quick access to plugin settings
+- Added Settings button to the top of the OneiroMetrics note for quick access to plugin settings
+- Improved Settings page UI with a more intuitive layout and better organization
+- Enhanced documentation with comprehensive guides for all settings access methods
+
+### Improvements
+- Fixed Settings buttons to reliably open the OneiroMetrics settings tab
+- Improved Scraping Modal layout with a two-column design matching Obsidian Settings
+- Enhanced UI consistency across all modals and settings pages
+- Better organization of metrics in Settings with Enabled/Disabled sections
+- Improved accessibility with better keyboard navigation and screen reader support
+
+### Bug Fixes
+- Fixed horizontal scrolling issues in the Scraping Modal
+- Resolved Settings button click behavior across all access points
+- Fixed expand/collapse functionality in the Dream Entries table
+- Improved event handling for expand/collapse buttons
+
+### Documentation
+- Updated all documentation to reflect new Settings access methods
+- Added comprehensive guides for accessing settings via multiple methods
+- Improved technical documentation for developers
 
 ## Recent Fixes (May 2025)
 
