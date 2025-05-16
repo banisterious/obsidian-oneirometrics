@@ -1,7 +1,7 @@
-import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer } from "obsidian";
+import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon } from "obsidian";
 import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings, LogLevel } from "./types";
 import DreamMetricsPlugin from "./main";
-import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
+import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
 
 interface IconCategory {
     name: string;
@@ -387,6 +387,7 @@ function debounce<T extends (...args: any[]) => any>(
 }
 
 export class DreamMetricsSettingTab extends PluginSettingTab {
+    id = 'oneirometrics';
     plugin: DreamMetricsPlugin;
 
     constructor(app: App, plugin: DreamMetricsPlugin) {
@@ -431,6 +432,65 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             text: 'OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies.'
         });
 
+        // Add OneiroMetrics Buttons Section (move to top)
+        containerEl.createEl('h2', { text: 'OneiroMetrics Buttons' });
+
+        // Show Dream Scrape Button Setting
+        const wandLabelFrag = document.createDocumentFragment();
+        wandLabelFrag.append('Show Dream Scrape Button ');
+        const wandParen = document.createElement('span');
+        wandParen.classList.add('oom-example-button');
+        const wandSvg = getIcon('wand-2');
+        if (wandSvg) {
+            wandSvg.setAttribute('width', '16');
+            wandSvg.setAttribute('height', '16');
+            wandParen.append('(', wandSvg, ')');
+        } else {
+            wandParen.append('(?)');
+        }
+        wandLabelFrag.append(wandParen);
+        new Setting(containerEl)
+            .setName(wandLabelFrag)
+            .setDesc('Add a ribbon button to quickly open the Dream Scrape tool')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showScrapeButton ?? true)
+                .onChange(async (value) => {
+                    this.plugin.settings.showScrapeButton = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRibbonIcons();
+                }));
+
+        // Show Note Button Setting
+        const shellLabelFrag = document.createDocumentFragment();
+        shellLabelFrag.append('Show OneiroMetrics Note Button ');
+        const shellParen = document.createElement('span');
+        shellParen.classList.add('oom-example-button');
+        const shellSvg = getIcon('shell');
+        if (shellSvg) {
+            shellSvg.setAttribute('width', '16');
+            shellSvg.setAttribute('height', '16');
+            shellParen.append('(', shellSvg, ')');
+        } else {
+            shellParen.append('(?)');
+        }
+        shellLabelFrag.append(shellParen);
+        new Setting(containerEl)
+            .setName(shellLabelFrag)
+            .setDesc('Add a ribbon button to quickly open your metrics note')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showNoteButton)
+                .onChange(async (value) => {
+                    this.plugin.settings.showNoteButton = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRibbonIcons();
+                }));
+
+        // Add section border after button settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+
+        // New section: Metrics Note and Callout Name
+        containerEl.createEl('h2', { text: 'Metrics Note and Callout Name' });
+
         // OneiroMetrics Note Setting
         new Setting(containerEl)
             .setName('OneiroMetrics Note')
@@ -444,21 +504,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Show Note Button Setting
+        // Metrics Callout Name Setting
         new Setting(containerEl)
-            .setName('Show OneiroMetrics Note Button')
-            .setDesc('Add a ribbon button to quickly open your metrics note')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showNoteButton)
-                .onChange(async (value) => {
-                    this.plugin.settings.showNoteButton = value;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateRibbonIcons();
-                }));
-
-        // Callout Name Setting
-        new Setting(containerEl)
-            .setName('Callout Name')
+            .setName('Metrics Callout Name')
             .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
             .addText(text => text
                 .setPlaceholder('dream-metrics')
@@ -475,7 +523,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         containerEl.createEl('h2', { text: 'Select Notes/Folders' });
         
         new Setting(containerEl)
-            .setName('Selection Mode')
+            .setName('File or Folder Selection')
             .setDesc('Choose whether to select individual notes or a folder for metrics scraping')
             .addDropdown(drop => {
                 drop.addOption('notes', 'Notes');
@@ -490,6 +538,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         this.plugin.settings.selectedFolder = '';
                     }
                     await this.plugin.saveSettings();
+                    this.display();
                 });
             });
 
@@ -674,7 +723,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
         } else {
             // Multi-chip note autocomplete
-            selectionSetting.addExtraButton(button => { }); // No-op for layout
             const searchFieldContainer = containerEl.createEl('div', { cls: 'oom-multiselect-search-container' });
             const chipsContainer = containerEl.createEl('div', { cls: 'oom-multiselect-chips-container' });
             chipsContainer.style.display = (this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0) ? '' : 'none';
@@ -691,6 +739,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }
                 });
             });
+            // Fix: append the search field to the setting's control element
+            selectionSetting.controlEl.appendChild(searchFieldContainer);
         }
 
         // Add section border after selection settings
@@ -698,6 +748,17 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Add Metrics Settings Section
         containerEl.createEl('h2', { text: 'Metrics Settings' });
+
+        // Add button to view metrics descriptions
+        new Setting(containerEl)
+            .setName('View Metrics Descriptions')
+            .setDesc('View detailed descriptions of all available metrics')
+            .addButton(button => {
+                button.setButtonText('View Descriptions')
+                    .onClick(() => {
+                        new MetricsDescriptionsModal(this.app, this.plugin).open();
+                    });
+            });
 
         // Add Metrics List
         const metricsContainer = containerEl.createEl('div', { cls: 'oom-metrics-container' });
@@ -739,7 +800,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Display enabled metrics
         if (enabledMetrics.length > 0) {
-            metricsContainer.createEl('h3', { text: 'Enabled Metrics' });
+            metricsContainer.createEl('h2', { text: 'Enabled Metrics' });
             enabledMetrics.forEach(([key, metric]) => {
                 const metricSetting = new Setting(metricsContainer)
                     .setName(metric.name)
@@ -794,7 +855,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Display disabled metrics
         if (disabledMetrics.length > 0) {
-            metricsContainer.createEl('h3', { text: 'Disabled Metrics' });
+            metricsContainer.createEl('h2', { text: 'Disabled Metrics' });
             disabledMetrics.forEach(([key, metric]) => {
                 const metricSetting = new Setting(metricsContainer)
                     .setName(metric.name)

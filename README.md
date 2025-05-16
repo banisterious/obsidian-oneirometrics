@@ -133,6 +133,14 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
 - **Maximum Backups**: Configure number of backup log files
 - **Note**: Logging is set to "Off" by default. Enable logging only when needed for debugging issues.
 
+## Accessing Settings
+
+You can quickly access the OneiroMetrics settings in several ways:
+- **Dream Scrape modal:** Click the 'Settings' button next to 'Scrape Metrics'.
+- **OneiroMetrics note:** Click the 'Settings' button at the top of the metrics note.
+- **Command palette:** Press Ctrl/Cmd + P and type "OneiroMetrics Settings".
+- **Ribbon icon:** Right-click the wand icon in the sidebar and select settings.
+
 ## Tips
 - Create a dedicated folder for backups to keep your vault organized
 - Regular backups are recommended when making significant changes

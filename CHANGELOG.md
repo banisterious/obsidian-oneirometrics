@@ -1,11 +1,18 @@
 # OneiroMetrics Changelog
 
 ## [Unreleased]
+- Further filter system fixes and improvements are planned and will be included in a future release.
+
+## [0.4.0] - 2025-05-16
 
 ### Changed
 - Overhaul of Scraping Modal in progress: restoring advanced features (note/folder selection, folder/note autocomplete, progress bar, helper text, dismissible note, and two-column layout matching Obsidian Settings). UI and logic improvements ongoing; folder autocomplete and layout refinements still in progress.
 - Resolved horizontal scrolling issue in the OneiroMetrics Scraping modal. Layout improvements are in effect: the modal and its dropdowns now fit within the modal boundaries, improving usability and appearance.
 - Overhauled OneiroMetrics Scraping Modal: new two-column layout, left-aligned labels, right-aligned widgets, dismissible note, improved folder/note autocomplete, progress bar at bottom, responsive design, and UI/UX polish. Overhaul is now complete and modal is ready for release.
+- Added a Settings button to the Dream Scrape modal for quick access to plugin settings.
+- Added a Settings button to the top of the OneiroMetrics note for quick access to plugin settings.
+- Fixed Settings buttons so they reliably open the OneiroMetrics settings tab.
+- Improved documentation: all ways to access settings are now listed in the README and SPECIFICATION.
 
 ## [0.3.6] - 2025-05-14
 

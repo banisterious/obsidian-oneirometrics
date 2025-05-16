@@ -3232,10 +3232,29 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     margin: 0;
 }
 
+.oneirometrics-settings span.oom-example-button { /* Wand and Shell icon in Button settings */
+    display: inline;
+    margin-left: 0.2em;
+    vertical-align: middle;
+    font-size: inherit;
+    color: rgb(134, 134, 134);
+}
+
 /* Selected Notes Container */
 .oom-selected-notes-container {
     margin: 8px 0;
     position: relative;
+}
+
+.oneirometrics-settings .oom-multiselect-search-container {
+    position: relative;
+}
+
+.oneirometrics-settings .oom-suggestion-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 }
 
 /* Chip Components */
@@ -3778,4 +3797,27 @@ input.oom-folder-autocomplete-input {
 .modal-content.oom-modal {
     width:840px;
     padding: .75em !important;
+}
+
+/* Button Container */
+.oom-rescrape-container {
+    display: flex;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.oom-rescrape-button,
+.oom-settings-button {
+    min-width: 120px;
+}
+
+/* Modal Buttons */
+.oom-modal-col-right {
+    display: flex;
+    gap: var(--oom-spacing-md);
+}
+
+.oom-scrape-button,
+.oom-settings-button {
+    min-width: 120px;
 }

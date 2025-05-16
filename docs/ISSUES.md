@@ -184,6 +184,7 @@
 - Add sentiment analysis
 - Create dream theme categorization
 - Develop character relationship mapping
+- Further filter system fixes and improvements are planned for a future release.
 
 ### Performance Optimization
 - Implement virtual scrolling for large tables
@@ -410,6 +411,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
 3. Update documentation
 4. Implement automated testing
 5. Conduct theme compatibility testing
+6. Further filter system fixes and improvements
 
 ## Resolved Issues
 1. **CSS Organization**
@@ -452,3 +454,16 @@ If further UI changes are made, ensure that both the code and `SPECIFICATION.md`
 - Ensured the progress bar and scrape button are placed and labeled according to spec.
 - Updated CSS and modal logic to match the new UI/DOM requirements.
 - Updated `SPECIFICATION.md` to include a dedicated UI/DOM Structure section with a sample HTML block for the Scraping Modal, clarifying implementation details for future development.
+
+## TODOs from Settings Page Review
+
+- [ ] Add subtle borders or more spacing between major sections for even clearer separation (especially between "Metrics Settings" and "Enabled Metrics").
+- [ ] Consider aligning the "Add Metric" and "View Descriptions" buttons horizontally for a more compact look.
+- [ ] Optionally make some descriptions collapsible or only visible on hover to further reduce visual clutter.
+- [ ] Check and improve responsiveness of the settings page on smaller screens and in Obsidian's mobile app.
+
+## [Unreleased]
+- Settings button added to Dream Scrape modal (quick access to settings)
+- Settings button added to top of OneiroMetrics note (quick access to settings)
+- Fixed: Settings buttons now reliably open the OneiroMetrics settings tab
+- Documentation for accessing settings improved (see README and SPECIFICATION)

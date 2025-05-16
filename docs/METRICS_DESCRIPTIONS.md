@@ -144,51 +144,61 @@ This metric aims to identify the dominant subjects, ideas, or emotional undercur
 
 This metric tracks your degree of awareness that you are dreaming while the dream is in progress.
 
-* **1 (Non-Lucid):** You have no awareness that you are dreaming. You experience the dream as reality, no matter how bizarre or illogical it may be.
-* **2 (Faint Awareness):** You might have a fleeting thought or a vague feeling that something is unusual or dreamlike, but this awareness doesn't solidify into the certainty that you are dreaming.
-* **3 (Clear Awareness):** You become clearly aware that you are dreaming. However, your ability to control or influence the dream environment and events might be limited. You are an observer who knows it's a dream.
-* **4 (Moderate Control):** You are aware that you are dreaming and can actively influence some aspects of the dream, such as your own actions, the environment to a limited extent, or the course of the narrative.
-* **5 (High Lucidity):** You have a strong and stable awareness that you are dreaming and possess a significant degree of control over the dream environment, characters, and events. You can often perform specific actions or explore the dream world intentionally.
+| Score                | Description                                                                                                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Non-Lucid)        | You have no awareness that you are dreaming. You experience the dream as reality, no matter how bizarre or illogical it may be.                                                                                                               |
+| 2 (Faint Awareness)  | You might have a fleeting thought or a vague feeling that something is unusual or dreamlike, but this awareness doesn't solidify into the certainty that you are dreaming.                                                                    |
+| 3 (Clear Awareness)  | You become clearly aware that you are dreaming. However, your ability to control or influence the dream environment and events might be limited. You are an observer who knows it's a dream.                                                  |
+| 4 (Moderate Control) | You are aware that you are dreaming and can actively influence some aspects of the dream, such as your own actions, the environment to a limited extent, or the course of the narrative.                                                      |
+| 5 (High Lucidity)    | You have a strong and stable awareness that you are dreaming and possess a significant degree of control over the dream environment, characters, and events. You can often perform specific actions or explore the dream world intentionally. | 
 
 ### Dream Coherence (Score 1-5)
 
 This metric assesses the logical consistency and narrative flow of your dream.
 
-* **1 (Incoherent):** The dream is fragmented, disjointed, and nonsensical. Scenes shift abruptly without logical connection, characters and objects may change inexplicably, and the laws of reality are entirely suspended without any internal consistency.
-* **2 (Loosely Connected):** Some elements or scenes might have a vague or thematic relationship, but the overall narrative lacks a clear and logical progression. Time, space, and causality are often inconsistent.
-* **3 (Moderately Coherent):** The dream has a discernible narrative thread, but it may contain illogical elements, inconsistencies in character behavior or setting, or sudden, unexplained shifts in the storyline.
-* **4 (Mostly Coherent):** The dream generally follows a logical progression with a relatively consistent narrative, characters, and settings. Any illogical elements are minor or don't significantly disrupt the overall sense of a somewhat realistic (albeit dreamlike) experience.
-* **5 (Highly Coherent):** The dream feels like a consistent and logical experience, even if the content is surreal or fantastical. There is a clear flow of events, consistent character behavior (within the dream's rules), and a sense of internal consistency in the dream's reality.
+| Score                   | Description |
+| ----------------------- | ----------- |
+| 1 (Incoherent)          | The dream is fragmented, disjointed, and nonsensical. Scenes shift abruptly without logical connection, characters and objects may change inexplicably, and the laws of reality are entirely suspended without any internal consistency.            |
+| 2 (Loosely Connected)   | Some elements or scenes might have a vague or thematic relationship, but the overall narrative lacks a clear and logical progression. Time, space, and causality are often inconsistent.            |
+| 3 (Moderately Coherent) | The dream has a discernible narrative thread, but it may contain illogical elements, inconsistencies in character behavior or setting, or sudden, unexplained shifts in the storyline.            |
+| 4 (Mostly Coherent)     | The dream generally follows a logical progression with a relatively consistent narrative, characters, and settings. Any illogical elements are minor or don't significantly disrupt the overall sense of a somewhat realistic (albeit dreamlike) experience.            |
+| 5 (Highly Coherent)     | The dream feels like a consistent and logical experience, even if the content is surreal or fantastical. There is a clear flow of events, consistent character behavior (within the dream's rules), and a sense of internal consistency in the dream's reality.            |
 
 ### Setting Familiarity (Score 1-5)
 
 This metric tracks the degree to which the locations and environments in your dream are recognizable from your waking life.
 
-* **1 (Completely Unfamiliar):** All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.
-* **2 (Vaguely Familiar):** You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories.
-* **3 (Partially Familiar):** The dream settings are a blend of recognizable and unfamiliar elements. You might recognize the layout of a room but find it in a completely new building, or a familiar landscape might have strange, uncharacteristic features.
-* **4 (Mostly Familiar):** The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.
-* **5 (Completely Familiar):** All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.
+| Score                     | Description                                                                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Completely Unfamiliar) | All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.                                                 |
+| 2 (Vaguely Familiar)      | You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories. |
+| 3 (Partially Familiar)    | The dream settings are a blend of recognizable and unfamiliar elements. You might recognize the layout of a room but find it in a completely new building, or a familiar landscape might have strange, uncharacteristic features.                                                                                                                                                                                            |
+| 4 (Mostly Familiar)       | The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.                                                                                                                                                                                            |
+| 5 (Completely Familiar)   | All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.                                                                                                                                                                                            |
 
 ### Ease of Recall (Score 1-5)
 
 This metric assesses how readily and effortlessly you can remember the dream upon waking.
 
-* **1 (Very Difficult):** You wake up with little to no memory of having dreamed. Recalling even a single fragment requires significant mental effort and may only yield fleeting impressions.
-* **2 (Difficult):** You remember a few isolated images, emotions, or very brief snippets of the dream, but the overall narrative is elusive and hard to piece together.
-* **3 (Moderate):** You can recall the basic outline or a few key scenes of the dream with a reasonable amount of effort. Some details might be hazy or forgotten, but the core of the dream is accessible.
-* **4 (Easy):** You remember the dream relatively clearly and can recount a significant portion of the narrative and details without much difficulty. The recall feels relatively immediate and accessible.
-* **5 (Very Easy):** The dream is vividly and immediately present in your memory upon waking. You can recall intricate details and the flow of events with little to no effort, as if the experience just happened.
+| Score              | Description |
+| ------------------ | ----------- |
+| 1 (Very Difficult) | You wake up with little to no memory of having dreamed. Recalling even a single fragment requires significant mental effort and may only yield fleeting impressions.            |
+| 2 (Difficult)      | You remember a few isolated images, emotions, or very brief snippets of the dream, but the overall narrative is elusive and hard to piece together.            |
+| 3 (Moderate)       | You can recall the basic outline or a few key scenes of the dream with a reasonable amount of effort. Some details might be hazy or forgotten, but the core of the dream is accessible.            |
+| 4 (Easy)           | You remember the dream relatively clearly and can recount a significant portion of the narrative and details without much difficulty. The recall feels relatively immediate and accessible.            |
+| 5 (Very Easy)      | The dream is vividly and immediately present in your memory upon waking. You can recall intricate details and the flow of events with little to no effort, as if the experience just happened.            |
 
 ### Recall Stability (Score 1-5)
 
 This metric assesses how well your memory of the dream holds up in the minutes immediately following waking.
 
-* **1 (Rapidly Fading):** The dream memory begins to dissipate almost instantly upon waking. Details vanish quickly, and within a short time (e.g., a few minutes), only a faint impression or a single image might remain.
-* **2 (Significant Fading):** You can recall a fair amount initially, but key details and the overall narrative structure fade noticeably within the first 10-15 minutes after waking, making it difficult to reconstruct the full dream later.
-* **3 (Moderate Fading):** Some details and less significant parts of the dream might fade within the first 15-30 minutes, but the core narrative and key events remain relatively intact.
-* **4 (Mostly Stable):** Your recall of the dream remains largely consistent for at least 30 minutes after waking. Only minor details or less impactful elements might fade over time.
-* **5 (Very Stable):** The memory of the dream feels solid and enduring in the immediate post-waking period. You can recall details consistently even after a longer period without actively trying to remember it.
+| Score                  | Description                                                                                                                                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Rapidly Fading)     | The dream memory begins to dissipate almost instantly upon waking. Details vanish quickly, and within a short time (e.g., a few minutes), only a faint impression or a single image might remain.                 |
+| 2 (Significant Fading) | You can recall a fair amount initially, but key details and the overall narrative structure fade noticeably within the first 10-15 minutes after waking, making it difficult to reconstruct the full dream later. |
+| 3 (Moderate Fading)    | Some details and less significant parts of the dream might fade within the first 15-30 minutes, but the core narrative and key events remain relatively intact.                                                   |
+| 4 (Mostly Stable)      | Your recall of the dream remains largely consistent for at least 30 minutes after waking. Only minor details or less impactful elements might fade over time.                                                                                                                                                                                                                  |
+| 5 (Very Stable)        | The memory of the dream feels solid and enduring in the immediate post-waking period. You can recall details consistently even after a longer period without actively trying to remember it.                                                                                                                                                                                                                  |
 
 ## Using Metrics
 

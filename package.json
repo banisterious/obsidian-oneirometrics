@@ -1,6 +1,6 @@
 {
     "name": "oneirometrics",
-    "version": "0.3.7",
+    "version": "0.4.0",
     "description": "Track and analyze your dream journal entries with metrics and visualizations.",
     "main": "main.js",
     "scripts": {

@@ -44,7 +44,7 @@ class OneiroMetricsModal extends Modal {
         contentEl.className = 'modal-content oom-modal'; // Only these classes, per spec
 
         // Create title
-        contentEl.createEl('h2', { text: 'OneiroMetrics Dreamscrape', cls: 'oom-modal-title' });
+        contentEl.createEl('h2', { text: 'OneiroMetrics Dream Scrape', cls: 'oom-modal-title' });
 
         // Add dismissible note
         if (!this.noteDismissed) {
@@ -89,7 +89,7 @@ class OneiroMetricsModal extends Modal {
             import('./autocomplete').then(({ createFolderAutocomplete }) => {
                 createFolderAutocomplete({
                     app: this.app,
-                    plugin: this.plugin,
+                    plugin: this,
                     containerEl: folderAutocompleteContainer,
                     selectedFolder: this.selectedFolder,
                     onChange: async (folder) => {
@@ -105,7 +105,7 @@ class OneiroMetricsModal extends Modal {
             import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
                 createSelectedNotesAutocomplete({
                     app: this.app,
-                    plugin: this.plugin,
+                    plugin: this,
                     containerEl: notesAutocompleteContainer,
                     selectedNotes: this.selectedNotes,
                     onChange: async (selected) => {
@@ -133,6 +133,15 @@ class OneiroMetricsModal extends Modal {
                 this.scrapeButton.disabled = true;
                 this.plugin.scrapeMetrics();
             }
+        });
+
+        // Add Settings button
+        const settingsButton = scrapeRight.createEl('button', {
+            text: 'Settings',
+            cls: 'mod-cta oom-settings-button'
+        });
+        settingsButton.addEventListener('click', () => {
+            (this.app as any).setting.open('oneirometrics');
         });
 
         // --- Progress Section ---
@@ -165,7 +174,7 @@ class OneiroMetricsModal extends Modal {
                 import('./autocomplete').then(({ createFolderAutocomplete }) => {
                     createFolderAutocomplete({
                         app: this.app,
-                        plugin: this.plugin,
+                        plugin: this,
                         containerEl: folderAutocompleteContainer,
                         selectedFolder: this.selectedFolder,
                         onChange: async (folder) => {
@@ -183,7 +192,7 @@ class OneiroMetricsModal extends Modal {
                 import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
                     createSelectedNotesAutocomplete({
                         app: this.app,
-                        plugin: this.plugin,
+                        plugin: this,
                         containerEl: notesAutocompleteContainer,
                         selectedNotes: this.selectedNotes,
                         onChange: async (selected) => {
@@ -284,16 +293,32 @@ export default class DreamMetricsPlugin extends Plugin {
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
 
         // Add ribbon icon for modal
-        const ribbonIcon = this.addRibbonIcon('wand', 'OneiroMetrics', () => {
+        const ribbonIcon = this.addRibbonIcon('wand', 'Open OneiroMetrics Dream Scrape tool', () => {
             new OneiroMetricsModal(this.app, this).open();
+        });
+        ribbonIcon.addClass('oom-ribbon-scrape-button');
+
+        // Add right-click menu for settings
+        ribbonIcon.addEventListener('contextmenu', (evt) => {
+            evt.preventDefault();
+            (this.app as any).setting.open('oneirometrics');
         });
 
         // Add command to open modal
         this.addCommand({
             id: 'open-oneirometrics-modal',
-            name: 'Open OneiroMetrics',
+            name: 'Open OneiroMetrics Dream Scrape tool',
             callback: () => {
                 new OneiroMetricsModal(this.app, this).open();
+            }
+        });
+
+        // Add command to open settings
+        this.addCommand({
+            id: 'open-oneirometrics-settings',
+            name: 'Open OneiroMetrics Settings',
+            callback: () => {
+                (this.app as any).setting.open('oneirometrics');
             }
         });
 
@@ -527,6 +552,7 @@ export default class DreamMetricsPlugin extends Plugin {
         const defaultSettings: DreamMetricsSettings = {
             projectNote: 'Journals/Dream Diary/Metrics/Metrics.md',
             showNoteButton: true,
+            showScrapeButton: true,
             metrics: Object.fromEntries(DEFAULT_METRICS.map(metric => [
                 metric.name,
                 { ...metric }  // Preserve the original enabled state from DEFAULT_METRICS
@@ -1569,6 +1595,15 @@ export default class DreamMetricsPlugin extends Plugin {
                             this.scrapeMetrics();
                         });
 
+                        // Add Settings button
+                        const settingsButton = buttonContainer.createEl('button', {
+                            text: 'Settings',
+                            cls: 'mod-cta oom-settings-button'
+                        });
+                        settingsButton.addEventListener('click', () => {
+                            (this.app as any).setting.open('oneirometrics');
+                        });
+
                         // Only show debug button in development mode
                         if (process.env.NODE_ENV === 'development') {
                             const debugButton = buttonContainer.createEl('button', {
@@ -1984,6 +2019,25 @@ export default class DreamMetricsPlugin extends Plugin {
         const existingNoteButton = document.querySelector('.oom-ribbon-note-button');
         if (existingNoteButton) {
             existingNoteButton.remove();
+        }
+
+        // Remove existing scrape button if it exists
+        const existingScrapeButton = document.querySelector('.oom-ribbon-scrape-button');
+        if (existingScrapeButton) {
+            existingScrapeButton.remove();
+        }
+
+        // Add scrape button if enabled in settings
+        if (this.settings.showScrapeButton) {
+            const scrapeIcon = this.addRibbonIcon('wand', 'Open OneiroMetrics Dream Scrape tool', () => {
+                new OneiroMetricsModal(this.app, this).open();
+            });
+            scrapeIcon.addClass('oom-ribbon-scrape-button');
+            // Attach right-click handler to open settings
+            scrapeIcon.addEventListener('contextmenu', (evt) => {
+                evt.preventDefault();
+                (this.app as any).setting.open('oneirometrics');
+            });
         }
 
         // Add note button if enabled in settings

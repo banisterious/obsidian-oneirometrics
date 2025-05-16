@@ -125,6 +125,11 @@ The project note is generated with two main sections:
 - Metric icon picker with Lucide icons
 - Week start day configuration
 - Readable line length override toggle
+- Quick access to settings via:
+  - Command palette (Ctrl/Cmd + P, then type "OneiroMetrics Settings")
+  - Settings button in the Dream Scrape modal
+  - Settings button in the OneiroMetrics note
+  - Right-click on the ribbon icon
 
 ### 2. Metric Scraping
 - Regex-based callout detection
@@ -425,11 +430,11 @@ The Settings page provides a comprehensive interface for managing dream metrics 
 
 ### UI/DOM Structure for Scraping Modal
 
-The Scraping Modal must follow this DOM structure and class naming. All fields are organized in two-column rows, with left-aligned labels/helpers and right-aligned widgets. This ensures consistency with Obsidian’s settings UI and plugin conventions.
+The Scraping Modal must follow this DOM structure and class naming. All fields are organized in two-column rows, with left-aligned labels/helpers and right-aligned widgets. This ensures consistency with Obsidian's settings UI and plugin conventions.
 
 <details>
 
-<summary>Example DOM structure for the OneiroMetrics Scraping Modal</summary>
+<summary>Example DOM structure for the OneiroMetrics Scraping Modal</summary>
 
 <div class="modal oom-modal" style="width: 600px; max-height: 80vh;">
   <div class="modal-close-button"></div>
@@ -509,3 +514,11 @@ The Scraping Modal was overhauled to restore and improve its advanced features a
   - Modal height adapts to content, and dimensions are under review
 - **Status:**
   - Major UI and logic restoration is underway. Folder autocomplete and layout refinements are in progress. Progress bar and section order are being finalized. The overhaul aims to match Obsidian Settings UI conventions and improve usability for all users. 
+
+- The Scraping Modal now includes a **Settings** button next to the Scrape button for quick access to plugin settings.
+
+## OneiroMetrics Settings Page
+
+Below is a full screenshot of the OneiroMetrics settings page, showing all available options and layout:
+
+![OneiroMetrics Settings Page](images/oom-settings-page-01.png) 
