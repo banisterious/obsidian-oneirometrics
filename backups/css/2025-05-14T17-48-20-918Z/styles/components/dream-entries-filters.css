@@ -1,0 +1,335 @@
+/* OneiroMetrics Dream Entries Filter Styles
+ * 
+ * Contains styles for filter components used to control which rows are shown
+ * in the Dream Entries table. Includes date range filters, metric filters,
+ * quick filters, and filter status indicators.
+ */
+
+/* Filter Controls Container */
+.markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+    display: flex;
+    gap: var(--oom-spacing-xl);
+    margin: var(--oom-spacing-xl) 0 var(--oom-spacing-md) 0;
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--oom-filter-controls-bg);
+    transition: background-color var(--oom-transition-normal);
+}
+
+/* Filter Groups */
+.markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+.markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-filter-gap);
+    flex: 1;
+}
+
+.oom-filter-group {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    align-items: center;
+}
+
+/* Filter Select Elements */
+.markdown-preview-view[data-type="oom-project-note"] .oom-select {
+    flex: 1;
+    min-width: var(--oom-filter-min-width);
+    padding: var(--oom-filter-input-padding);
+    border: var(--oom-filter-input-border);
+    border-radius: var(--oom-filter-input-radius);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--oom-filter-input-bg);
+    transition: all var(--oom-transition-normal);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-select:hover {
+    border-color: var(--interactive-accent);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-select:focus {
+    border-color: var(--oom-filter-input-focus-border);
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Filter Display */
+.oom-filter-display {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+    min-height: 2rem;
+    padding: var(--oom-filter-padding);
+    align-items: center;
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+/* Date Range Filter */
+.oom-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    margin-bottom: var(--oom-spacing-md);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-date-range-container {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+}
+
+.oom-date-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    flex: 1;
+    min-width: 200px;
+}
+
+.oom-date-input-container label {
+    font-size: var(--oom-filter-label-size);
+    color: var(--oom-filter-label-color);
+    font-weight: var(--font-medium);
+}
+
+.oom-date-input-container input[type="date"] {
+    padding: var(--oom-filter-input-padding);
+    border: var(--oom-filter-input-border);
+    border-radius: var(--oom-filter-input-radius);
+    font-size: var(--oom-filter-label-size);
+    color: var(--text-normal);
+    background-color: var(--oom-filter-input-bg);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-date-input-container input[type="date"]:hover {
+    border-color: var(--interactive-accent);
+}
+
+.oom-date-input-container input[type="date"]:focus {
+    border-color: var(--oom-filter-input-focus-border);
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Quick Filters */
+.oom-quick-filters {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.oom-quick-filters .setting-item {
+    border: none;
+    padding: var(--oom-filter-gap) 0;
+}
+
+.oom-quick-filters .setting-item:first-child {
+    padding-top: 0;
+}
+
+.oom-quick-filters .setting-item:last-child {
+    padding-bottom: 0;
+}
+
+.oom-quick-filters .setting-item-name {
+    min-width: 100px;
+    font-weight: var(--font-medium);
+}
+
+.oom-quick-filters .setting-item-description {
+    color: var(--oom-filter-label-color);
+    font-size: var(--oom-filter-label-size);
+}
+
+/* Time Filter Dialog */
+.oom-time-filter-dialog {
+    padding: var(--oom-modal-padding);
+    max-width: 500px;
+}
+
+.oom-time-filter-dialog h2 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-lg);
+    color: var(--text-normal);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+}
+
+.oom-time-filter-dialog h3 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+    font-weight: var(--h3-weight, var(--font-bold));
+    color: var(--oom-filter-label-color);
+}
+
+.oom-time-input-container {
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-time-input-container .setting-item {
+    border: none;
+    padding: var(--oom-filter-gap) 0;
+}
+
+.oom-time-input-container .setting-item:first-child {
+    padding-top: 0;
+}
+
+.oom-time-input-container .setting-item:last-child {
+    padding-bottom: 0;
+}
+
+.oom-time-input-container .setting-item-name {
+    min-width: 80px;
+    font-weight: var(--font-medium);
+}
+
+/* Filter Status Indicators */
+.oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter--mostly-visible {
+    color: var(--text-normal);
+}
+
+.oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-hidden {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-select,
+    .oom-date-input-container input[type="date"] {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-select:focus,
+    .oom-date-input-container input[type="date"]:focus {
+        border-color: var(--oom-high-contrast-accent);
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+    
+    .oom-filter--all-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--mostly-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--partially-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--none-visible {
+        color: CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-select,
+    .oom-date-input-container input[type="date"],
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        transition: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+}
+
+/* Responsive Styles */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        flex-direction: column;
+        gap: var(--oom-filter-mobile-gap);
+        margin: var(--oom-filter-mobile-margin);
+        padding: var(--oom-filter-mobile-padding);
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+    .markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+        width: 100%;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-select {
+        width: 100%;
+        max-width: none;
+    }
+    
+    .oom-date-range-container {
+        flex-direction: column;
+    }
+    
+    .oom-date-input-container {
+        min-width: 100%;
+    }
+    
+    .oom-quick-filters {
+        flex-direction: column;
+    }
+    
+    .oom-filter-controls {
+        flex-direction: column;
+    }
+    
+    .oom-filter-group {
+        width: 100%;
+    }
+    
+    .oom-select,
+    .oom-date-input-container input[type="date"] {
+        font-size: var(--oom-filter-mobile-font-size);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oneirometrics-time-filter-buttons {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oneirometrics-date-range-details {
+        font-size: var(--oom-filter-mobile-font-size);
+    }
+    
+    .oom-time-filter-dialog {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-time-filter-dialog h2 {
+        font-size: var(--h3-size);
+    }
+    
+    .oom-time-filter-dialog h3 {
+        font-size: var(--h4-size);
+    }
+} 

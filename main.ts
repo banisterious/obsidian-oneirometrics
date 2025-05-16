@@ -2,110 +2,204 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile, ButtonComponent, TFolder, View, WorkspaceLeaf } from 'obsidian';
-import { DEFAULT_METRICS, DreamMetricData, DreamMetricsSettings, LogLevel, DEFAULT_LOGGING } from './types';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile, ButtonComponent, TFolder, View, WorkspaceLeaf, Menu } from 'obsidian';
+import { DEFAULT_METRICS, DreamMetricData, LogLevel, DEFAULT_LOGGING, DreamMetric, DreamMetricsSettings } from './types';
 import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
 import { TimeFilterView, TIME_FILTER_VIEW_TYPE } from './src/TimeFilterView';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
-
-class Logger {
-    private static instance: Logger;
-    private categories: Set<string> = new Set([
-        'Date',
-        'Events',
-        'Filter',
-        'Metrics',
-        'UI',
-        'Performance',
-        'Error'
-    ]);
-
-    private constructor() {}
-
-    static getInstance(): Logger {
-        if (!Logger.instance) {
-            Logger.instance = new Logger();
-        }
-        return Logger.instance;
-    }
-
-    private formatMessage(category: string, message: string, data?: any): string {
-        const timestamp = new Date().toISOString();
-        const dataStr = data ? `\nData: ${JSON.stringify(data, null, 2)}` : '';
-        return `[OneiroMetrics][${category}] ${message}${dataStr}`;
-    }
-
-    log(category: string, message: string, data?: any) {
-        if (!this.categories.has(category)) {
-            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
-            return;
-        }
-        console.log(this.formatMessage(category, message, data));
-    }
-
-    warn(category: string, message: string, data?: any) {
-        if (!this.categories.has(category)) {
-            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
-            return;
-        }
-        console.warn(this.formatMessage(category, message, data));
-    }
-
-    error(category: string, message: string, error?: Error, data?: any) {
-        if (!this.categories.has(category)) {
-            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
-            return;
-        }
-        const errorStr = error ? `\nError: ${error.message}\nStack: ${error.stack}` : '';
-        console.error(this.formatMessage(category, message, data) + errorStr);
-    }
-
-    debug(category: string, message: string, data?: any) {
-        if (!this.categories.has(category)) {
-            console.warn(`[OneiroMetrics] Unknown logging category: ${category}`);
-            return;
-        }
-        console.debug(this.formatMessage(category, message, data));
-    }
-
-    performance(category: string, operation: string, startTime: number) {
-        const duration = performance.now() - startTime;
-        this.log('Performance', `${operation} took ${duration.toFixed(2)}ms`, { category, operation, duration });
-    }
-
-    configure(level: LogLevel, maxLogSize?: number, maxBackups?: number) {
-        // Implementation of configure method
-    }
-}
+import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
 class OneiroMetricsModal extends Modal {
     private plugin: DreamMetricsPlugin;
+    private selectionMode: 'notes' | 'folder';
+    private selectedNotes: string[];
+    private selectedFolder: string;
+    private progressContent: HTMLElement;
+    private statusText: HTMLElement;
+    private progressBar: HTMLElement;
+    private progressFill: HTMLElement;
+    private detailsText: HTMLElement;
+    private scrapeButton: HTMLButtonElement;
+    private isScraping: boolean = false;
+    private noteDismissed: boolean = false;
 
     constructor(app: App, plugin: DreamMetricsPlugin) {
         super(app);
         this.plugin = plugin;
+        this.selectionMode = plugin.settings.selectionMode || 'notes';
+        this.selectedNotes = plugin.settings.selectedNotes || [];
+        this.selectedFolder = plugin.settings.selectedFolder || '';
     }
 
-    open(): void {
-        super.open();
-        this.contentEl.empty();
-        this.titleEl.setText('OneiroMetrics');
-        
-        // Add scrape button
-        const scrapeButton = this.contentEl.createEl('button', {
+    onOpen() {
+        const { contentEl } = this;
+        // Set modal dimensions and classes first
+        this.modalEl.style.width = '600px';
+        this.modalEl.style.maxHeight = '80vh';
+        this.modalEl.addClass('oom-modal');
+        // Clear and set up content container
+        contentEl.empty();
+        contentEl.className = 'modal-content oom-modal'; // Only these classes, per spec
+
+        // Create title
+        contentEl.createEl('h2', { text: 'OneiroMetrics Dreamscrape', cls: 'oom-modal-title' });
+
+        // Add dismissible note
+        if (!this.noteDismissed) {
+            const noteEl = contentEl.createEl('div', { cls: 'oom-modal-note' });
+            const closeBtn = noteEl.createEl('button', { cls: 'oom-modal-note-close' });
+            closeBtn.innerHTML = '×';
+            closeBtn.addEventListener('click', () => {
+                noteEl.remove();
+                this.noteDismissed = true;
+            });
+            noteEl.createEl('strong', { text: 'Note: ' });
+            noteEl.createEl('span', { 
+                text: 'This is where you kick off the "scraping" process, which searches your selected notes or folder and gathers up dream entries and metrics. Click the Scrape button to begin, or change your files/folder selection, below.'
+            });
+        }
+
+        // --- Selection Mode Row ---
+        const modeRow = contentEl.createEl('div', { cls: 'oom-modal-section oom-modal-row' });
+        const modeLeft = modeRow.createEl('div', { cls: 'oom-modal-col-left' });
+        modeLeft.createEl('label', { text: 'File or folder selection', cls: 'oom-modal-label' });
+        modeLeft.createEl('div', { text: 'Choose whether to select individual notes or a folder for metrics scraping', cls: 'oom-modal-helper' });
+        const modeRight = modeRow.createEl('div', { cls: 'oom-modal-col-right' });
+        const modeDropdown = modeRight.createEl('select', { cls: 'oom-dropdown' });
+        modeDropdown.createEl('option', { text: 'Notes', value: 'notes' });
+        modeDropdown.createEl('option', { text: 'Folder', value: 'folder' });
+        modeDropdown.value = this.selectionMode;
+
+        // --- File/Folder Selector Row ---
+        const selectorRow = contentEl.createEl('div', { cls: 'oom-modal-section oom-modal-row' });
+        const selectorLeft = selectorRow.createEl('div', { cls: 'oom-modal-col-left' });
+        if (this.selectionMode === 'folder') {
+            selectorLeft.createEl('label', { text: 'Selected Folder', cls: 'oom-modal-label' });
+            selectorLeft.createEl('div', { text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)', cls: 'oom-modal-helper' });
+        } else {
+            selectorLeft.createEl('label', { text: 'Selected Notes', cls: 'oom-modal-label' });
+            selectorLeft.createEl('div', { text: 'Notes to search for dream metrics (select one or more)', cls: 'oom-modal-helper' });
+        }
+        const selectorRight = selectorRow.createEl('div', { cls: 'oom-modal-col-right' });
+        if (this.selectionMode === 'folder') {
+            // Restore folder autocomplete
+            const folderAutocompleteContainer = selectorRight.createDiv('oom-folder-autocomplete-container');
+            import('./autocomplete').then(({ createFolderAutocomplete }) => {
+                createFolderAutocomplete({
+                    app: this.app,
+                    plugin: this.plugin,
+                    containerEl: folderAutocompleteContainer,
+                    selectedFolder: this.selectedFolder,
+                    onChange: async (folder) => {
+                        this.selectedFolder = folder;
+                        this.plugin.settings.selectedFolder = folder;
+                        await this.plugin.saveSettings();
+                    }
+                });
+            });
+        } else {
+            // Restore notes autocomplete
+            const notesAutocompleteContainer = selectorRight.createDiv('oom-notes-autocomplete-container');
+            import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
+                createSelectedNotesAutocomplete({
+                    app: this.app,
+                    plugin: this.plugin,
+                    containerEl: notesAutocompleteContainer,
+                    selectedNotes: this.selectedNotes,
+                    onChange: async (selected) => {
+                        this.selectedNotes = selected;
+                        this.plugin.settings.selectedNotes = selected;
+                        await this.plugin.saveSettings();
+                    }
+                });
+            });
+        }
+
+        // --- Scrape Button Row ---
+        const scrapeRow = contentEl.createEl('div', { cls: 'oom-modal-section oom-modal-row' });
+        const scrapeLeft = scrapeRow.createEl('div', { cls: 'oom-modal-col-left' });
+        scrapeLeft.createEl('label', { text: 'Scrape Files or Folder', cls: 'oom-modal-label' });
+        scrapeLeft.createEl('div', { text: 'Begin the scraping operation', cls: 'oom-modal-helper' });
+        const scrapeRight = scrapeRow.createEl('div', { cls: 'oom-modal-col-right' });
+        this.scrapeButton = scrapeRight.createEl('button', {
             text: 'Scrape Metrics',
-            cls: 'mod-cta'
+            cls: 'mod-cta oom-scrape-button'
         });
-        scrapeButton.addEventListener('click', () => {
-            this.plugin.scrapeMetrics();
-            this.close();
+        this.scrapeButton.addEventListener('click', () => {
+            if (!this.isScraping) {
+                this.isScraping = true;
+                this.scrapeButton.disabled = true;
+                this.plugin.scrapeMetrics();
+            }
+        });
+
+        // --- Progress Section ---
+        const progressSection = contentEl.createEl('div', { cls: 'oom-modal-section oom-modal-progress' });
+        this.progressContent = progressSection.createEl('div', { cls: 'oom-progress-content' });
+        this.statusText = this.progressContent.createEl('div', { cls: 'oom-status-text' });
+        this.progressBar = this.progressContent.createEl('div', { cls: 'oom-progress-bar' });
+        this.progressFill = this.progressBar.createEl('div', { cls: 'oom-progress-fill' });
+        this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
+
+        // --- Dropdown Change Handler ---
+        modeDropdown.addEventListener('change', async (e) => {
+            const value = (e.target as HTMLSelectElement).value as 'notes' | 'folder';
+            this.selectionMode = value;
+            this.plugin.settings.selectionMode = value;
+            if (value === 'folder') {
+                this.plugin.settings.selectedNotes = [];
+            } else {
+                this.plugin.settings.selectedFolder = '';
+            }
+            await this.plugin.saveSettings();
+            // Re-render selector row
+            selectorLeft.empty();
+            selectorRight.empty();
+            if (value === 'folder') {
+                selectorLeft.createEl('label', { text: 'Selected Folder', cls: 'oom-modal-label' });
+                selectorLeft.createEl('div', { text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)', cls: 'oom-modal-helper' });
+                // Restore folder autocomplete
+                const folderAutocompleteContainer = selectorRight.createDiv('oom-folder-autocomplete-container');
+                import('./autocomplete').then(({ createFolderAutocomplete }) => {
+                    createFolderAutocomplete({
+                        app: this.app,
+                        plugin: this.plugin,
+                        containerEl: folderAutocompleteContainer,
+                        selectedFolder: this.selectedFolder,
+                        onChange: async (folder) => {
+                            this.selectedFolder = folder;
+                            this.plugin.settings.selectedFolder = folder;
+                            await this.plugin.saveSettings();
+                        }
+                    });
+                });
+            } else {
+                selectorLeft.createEl('label', { text: 'Selected Notes', cls: 'oom-modal-label' });
+                selectorLeft.createEl('div', { text: 'Notes to search for dream metrics (select one or more)', cls: 'oom-modal-helper' });
+                // Restore notes autocomplete
+                const notesAutocompleteContainer = selectorRight.createDiv('oom-notes-autocomplete-container');
+                import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
+                    createSelectedNotesAutocomplete({
+                        app: this.app,
+                        plugin: this.plugin,
+                        containerEl: notesAutocompleteContainer,
+                        selectedNotes: this.selectedNotes,
+                        onChange: async (selected) => {
+                            this.selectedNotes = selected;
+                            this.plugin.settings.selectedNotes = selected;
+                            await this.plugin.saveSettings();
+                        }
+                    });
+                });
+            }
         });
     }
 
-    close(): void {
-        super.close();
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
     }
 }
 
@@ -130,7 +224,7 @@ class ConfirmModal extends Modal {
     open(): void {
         super.open();
         const buttonContainer = this.contentEl.createEl('div', {
-            cls: 'modal-button-container'
+            cls: 'oom-modal-button-container'
         });
 
         const cancelButton = buttonContainer.createEl('button', {
@@ -159,8 +253,9 @@ class ConfirmModal extends Modal {
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
-    private logger: Logger;
-    private expandedStates: Set<string> = new Set();
+    logger: LogManager;
+    expandedStates: Set<string>;
+    private ribbonIcons: HTMLElement[] = [];
     private container: HTMLElement | null = null;
 
     // Add memoization for table calculations
@@ -170,7 +265,8 @@ export default class DreamMetricsPlugin extends Plugin {
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
-        this.logger = Logger.getInstance();
+        console.log("PLUGIN LOADED: OneiroMetrics");
+        this.logger = LogManager.getInstance(this.app);
         this.logger.configure('debug');
         
         // Initialize container
@@ -180,15 +276,15 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Load expanded states from settings
         if (this.settings.expandedStates) {
-            this.expandedStates = new Set(this.settings.expandedStates);
-            this.logger.debug('UI', `Loaded ${this.expandedStates.size} expanded states`);
+            this.expandedStates = new Set(Object.keys(this.settings.expandedStates).filter(key => this.settings.expandedStates[key]));
+            this.logger.log('UI', `Loaded ${this.expandedStates.size} expanded states`);
         }
 
         // Add settings tab
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
 
-        // Add ribbon icon
-        this.addRibbonIcon('lucide-shell', 'OneiroMetrics', () => {
+        // Add ribbon icon for modal
+        const ribbonIcon = this.addRibbonIcon('wand', 'OneiroMetrics', () => {
             new OneiroMetricsModal(this.app, this).open();
         });
 
@@ -200,6 +296,25 @@ export default class DreamMetricsPlugin extends Plugin {
                 new OneiroMetricsModal(this.app, this).open();
             }
         });
+
+        // Add command to open metrics note
+        this.addCommand({
+            id: 'open-metrics-note',
+            name: 'Open Metrics Note',
+            callback: () => {
+                const file = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
+                if (file instanceof TFile) {
+                    this.app.workspace.openLinkText(this.settings.projectNote, '', true);
+                } else {
+                    new Notice('Metrics note not found. Please set the path in settings.');
+                    // Open settings to the OneiroMetrics tab
+                    (this.app as any).setting.open('oneirometrics');
+                }
+            }
+        });
+
+        // Update ribbon icons based on settings
+        this.updateRibbonIcons();
 
         this.addCommand({
             id: 'scrape-metrics',
@@ -233,7 +348,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 const file = view.file;
                 if (!file) return;
 
-                if (file.path === this.settings.projectNotePath) {
+                if (file.path === this.settings.projectNote) {
                     // Check if we're in Live Preview mode
                     const isLivePreview = view.getMode() === 'source';
                     if (isLivePreview) {
@@ -408,32 +523,86 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign({}, {
-            projectNotePath: 'Journals/Dream Diary/Metrics/Metrics.md',
-            metrics: [...DEFAULT_METRICS],
+        console.log('[OneiroMetrics] Starting loadSettings...');
+        const defaultSettings: DreamMetricsSettings = {
+            projectNote: 'Journals/Dream Diary/Metrics/Metrics.md',
+            showNoteButton: true,
+            metrics: Object.fromEntries(DEFAULT_METRICS.map(metric => [
+                metric.name,
+                { ...metric }  // Preserve the original enabled state from DEFAULT_METRICS
+            ])),
             selectedNotes: [],
             calloutName: 'dream-metrics',
-            backupEnabled: true,
-            backupFolderPath: 'Meta/Backups/OOM',
-            weekStartDay: 0,
-            readableLineLengthOverride: false,
-            logging: { ...DEFAULT_LOGGING }  // Initialize logging with default values
-        }, await this.loadData());
+            selectionMode: 'notes',
+            selectedFolder: '',
+            expandedStates: {},
+            backupEnabled: false,
+            backupFolderPath: '',
+            logging: { ...DEFAULT_LOGGING },
+            _persistentExclusions: {}
+        };
 
-        // Before accessing or assigning to _persistentExclusions, ensure it is defined
-        if (!this.settings._persistentExclusions) this.settings._persistentExclusions = {};
-        
+        console.log('[OneiroMetrics] Default metrics:', Object.keys(defaultSettings.metrics), 'Count:', Object.keys(defaultSettings.metrics).length);
+
+        // Load saved data
+        const savedData = await this.loadData();
+        if (savedData && savedData.metrics) {
+            console.log('[OneiroMetrics] Saved metrics:', Object.keys(savedData.metrics), 'Count:', Object.keys(savedData.metrics).length);
+        } else {
+            console.log('[OneiroMetrics] No saved metrics found.');
+        }
+
+        // Initialize settings with defaults
+        this.settings = { ...defaultSettings };
+        console.log('[OneiroMetrics] Defaults after init:', Object.entries(this.settings.metrics).map(([name, m]) => `${name}: ${m.enabled}`));
+
+        // Merge logic: always show all defaults (enabled), all customs (disabled unless user enabled them)
+        const mergedMetrics: Record<string, DreamMetric> = { ...defaultSettings.metrics };
+        if (savedData && typeof savedData.metrics === 'object' && savedData.metrics !== null) {
+            for (const [name, metricRaw] of Object.entries(savedData.metrics)) {
+                const metric = metricRaw as DreamMetric;
+                if (mergedMetrics[name]) {
+                    // If it's a default, preserve user's enabled state
+                    const source = `SAVED (overrides default: ${mergedMetrics[name].enabled} -> ${metric.enabled})`;
+                    mergedMetrics[name] = { ...mergedMetrics[name], ...metric };
+                    console.log(`[OneiroMetrics] Merging metric '${name}': enabled=${mergedMetrics[name].enabled} [${source}]`);
+                } else {
+                    // Custom metric: use saved value
+                    const source = `CUSTOM (saved: ${metric.enabled})`;
+                    mergedMetrics[name] = { ...metric, enabled: metric.enabled ?? false };
+                    console.log(`[OneiroMetrics] Merging metric '${name}': enabled=${mergedMetrics[name].enabled} [${source}]`);
+                }
+            }
+        }
+        this.settings.metrics = mergedMetrics;
+        console.log('[OneiroMetrics] Merged metrics:', Object.keys(mergedMetrics), 'Count:', Object.keys(mergedMetrics).length);
+
+        // Merge all other settings except metrics
+        if (savedData) {
+            Object.keys(savedData).forEach(key => {
+                if (key !== 'metrics' && key in this.settings) {
+                    (this.settings as any)[key] = savedData[key];
+                }
+            });
+        }
+
         // Ensure logging settings are properly initialized
         if (!this.settings.logging) {
             this.settings.logging = { ...DEFAULT_LOGGING };
         }
+
+        console.log('[OneiroMetrics] Final settings:', this.settings);
+        console.log('[OneiroMetrics] Final metrics:', Object.keys(this.settings.metrics), 'Count:', Object.keys(this.settings.metrics).length);
+        console.log('[OneiroMetrics] Enabled states:', Object.entries(this.settings.metrics).map(([name, m]) => `${name}: ${m.enabled}`));
     }
 
     async saveSettings() {
         // Save expanded states to settings
-        this.settings.expandedStates = Array.from(this.expandedStates);
+        this.settings.expandedStates = Object.fromEntries(
+            Array.from(this.expandedStates).map(key => [key, true])
+        );
         await this.saveData(this.settings);
-        this.logger.debug('UI', `Saved ${this.expandedStates.size} expanded states`);
+        this.logger.log('UI', `Saved ${this.expandedStates.size} expanded states`);
     }
 
     async scrapeMetrics() {
@@ -444,16 +613,17 @@ export default class DreamMetricsPlugin extends Plugin {
         const progressContent = progressModal.contentEl.createEl('div', { cls: 'oom-progress-content' });
         const statusText = progressContent.createEl('div', { cls: 'oom-status-text' });
         const progressBar = progressContent.createEl('div', { cls: 'oom-progress-bar' });
+        const progressFill = progressBar.createEl('div', { cls: 'oom-progress-fill' });
+        const detailsText = progressContent.createEl('div', { cls: 'oom-details-text' });
+        progressModal.open();
         progressBar.style.height = '8px';
         progressBar.style.background = '#eee';
         progressBar.style.borderRadius = '4px';
         progressBar.style.margin = '1em 0';
-        const progressFill = progressBar.createEl('div');
         progressFill.style.height = '100%';
         progressFill.style.background = 'var(--interactive-accent, #2563eb)';
         progressFill.style.width = '0%';
         progressFill.style.borderRadius = '4px';
-        const detailsText = progressContent.createEl('div', { cls: 'oom-details-text' });
         progressModal.open();
 
         const metrics: Record<string, number[]> = {};
@@ -916,11 +1086,7 @@ export default class DreamMetricsPlugin extends Plugin {
         for (const pair of metricPairs) {
             const [name, value] = pair.split(':').map(s => s.trim());
             if (name && value !== '—' && !isNaN(Number(value))) {
-                if (!metrics[name]) {
-                    metrics[name] = [];
-                }
                 const numValue = Number(value);
-                metrics[name].push(numValue);
                 dreamMetrics[name] = numValue;
             }
         }
@@ -929,13 +1095,13 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]) {
-        console.log('[OneiroMetrics][DEBUG] updateProjectNote called for:', this.settings.projectNotePath);
-        const projectFile = this.app.vault.getAbstractFileByPath(this.settings.projectNotePath);
-        new Notice(`[DEBUG] updateProjectNote called for: ${this.settings.projectNotePath}`);
-        console.log('[OneiroMetrics] updateProjectNote called for:', this.settings.projectNotePath);
+        console.log('[OneiroMetrics][DEBUG] updateProjectNote called for:', this.settings.projectNote);
+        const projectFile = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
+        new Notice(`[DEBUG] updateProjectNote called for: ${this.settings.projectNote}`);
+        console.log('[OneiroMetrics] updateProjectNote called for:', this.settings.projectNote);
         if (!(projectFile instanceof TFile)) {
             console.log('[OneiroMetrics][DEBUG] Early return: projectFile is not a TFile');
-            new Notice(`[DEBUG] Project note not found: ${this.settings.projectNotePath}`);
+            new Notice(`[DEBUG] Project note not found: ${this.settings.projectNote}`);
             return;
         }
         if (dreamEntries.length === 0) {
@@ -972,7 +1138,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 // Force reload of the project note in all open leaves
                 let reloaded = false;
                 this.app.workspace.iterateAllLeaves(leaf => {
-                    if (leaf.view instanceof MarkdownView && leaf.view.file && leaf.view.file.path === this.settings.projectNotePath) {
+                    if (leaf.view instanceof MarkdownView && leaf.view.file && leaf.view.file.path === this.settings.projectNote) {
                         leaf.openFile(projectFile, { active: leaf === this.app.workspace.activeLeaf });
                         reloaded = true;
                         console.log('[OneiroMetrics] Forced reload of project note in workspace leaf.');
@@ -1048,9 +1214,9 @@ export default class DreamMetricsPlugin extends Plugin {
             // Clean up old backups (keep last 5)
             try {
                 const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith(this.settings.backupFolderPath) && 
-                                f.basename.startsWith(fileName) && 
-                                f.basename.includes('.backup-'))
+                    .filter(f => f.path.startsWith(this.settings.backupFolderPath ?? '') && 
+                        f.basename.startsWith(fileName) && 
+                        f.basename.includes('.backup-'))
                     .sort((a, b) => b.stat.mtime - a.stat.mtime);
                 
                 // Delete backups older than the 5 most recent
@@ -1099,7 +1265,7 @@ export default class DreamMetricsPlugin extends Plugin {
             });
             
             const buttonContainer = modal.contentEl.createEl('div', {
-                cls: 'modal-button-container'
+                cls: 'oom-modal-button-container'
             });
             
             const cancelButton = buttonContainer.createEl('button', {
@@ -1144,7 +1310,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Only show metrics that are in the configured list (plus Words)
         const validMetricNames = [
             'Words',
-            ...this.settings.metrics.map(m => m.name)
+            ...Object.values(this.settings.metrics).map(m => m.name)
         ];
 
         let hasMetrics = false;
@@ -1162,7 +1328,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 const total = values.reduce((a, b) => a + b, 0);
                 label = `Words <span class="oom-words-total">(total: ${total})</span>`;
             } else {
-                const metric = this.settings.metrics.find(m => m.name === name);
+                const metric = Object.values(this.settings.metrics).find(m => m.name === name);
                 if (metric?.icon && lucideIconMap[metric.icon]) {
                     label = `<span class="oom-metric-icon-svg oom-metric-icon--start">${lucideIconMap[metric.icon]}</span> ${name}`;
                 }
@@ -1231,8 +1397,10 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<th>Content</th>\n';
         
         // Add metric columns
-        for (const metric of this.settings.metrics) {
-            content += `<th>${metric.name}</th>\n`;
+        for (const metric of Object.values(this.settings.metrics)) {
+            if (metric.enabled) {
+                content += `<th>${metric.name}</th>\n`;
+            }
         }
         
         content += '</tr>\n</thead>\n<tbody>\n';
@@ -1300,8 +1468,11 @@ export default class DreamMetricsPlugin extends Plugin {
             }
 
             // Add metric values
-            for (const name of this.settings.metrics.map(m => m.name)) {
-                content += `<td class="metric-value" data-metric="${name}">${entry.metrics[name] || ''}</td>\n`;
+            for (const metric of Object.values(this.settings.metrics)) {
+                if (metric.enabled) {
+                    const value = entry.metrics[metric.name];
+                    content += `<td class="metric-value" data-metric="${metric.name}">${value !== undefined ? value : ''}</td>\n`;
+                }
             }
             content += '</tr>\n';
         }
@@ -1323,7 +1494,7 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private parseDate(dateStr: string): Date {
         const startTime = performance.now();
-        this.logger.debug('Date', `Processing date: ${dateStr}`);
+        this.logger.log('Date', `Processing date: ${dateStr}`);
         
         if (!dateStr || dateStr.trim() === '') {
             this.logger.error('Date', 'Empty date string provided');
@@ -1340,7 +1511,6 @@ export default class DreamMetricsPlugin extends Plugin {
             const date = new Date(year, month, day);
             if (this.validateDate(date)) {
                 this.logger.log('Date', `Parsed block reference format: ${date.toISOString()}`);
-                this.logger.performance('Date', 'parseDate', startTime);
                 return date;
             }
         }
@@ -1352,7 +1522,6 @@ export default class DreamMetricsPlugin extends Plugin {
             const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             if (this.validateDate(date)) {
                 this.logger.log('Date', `Parsed YYYY-MM-DD format: ${date.toISOString()}`);
-                this.logger.performance('Date', 'parseDate', startTime);
                 return date;
             }
         }
@@ -1363,14 +1532,12 @@ export default class DreamMetricsPlugin extends Plugin {
             const dateObj = new Date(journalEntryMatch[0]);
             if (!isNaN(dateObj.getTime())) {
                 this.logger.log('Date', `Parsed journal entry format: ${dateObj.toISOString()}`);
-                this.logger.performance('Date', 'parseDate', startTime);
                 return dateObj;
             }
         }
 
         // If all parsing attempts fail, log error and return current date
         this.logger.error('Date', `Failed to parse date: ${dateStr}`, new Error('Date parsing failed'));
-        this.logger.performance('Date', 'parseDate', startTime);
         return new Date();
     }
 
@@ -1388,7 +1555,7 @@ export default class DreamMetricsPlugin extends Plugin {
             let updated = false;
             leaves.forEach(leaf => {
                 const view = leaf.view;
-                if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNotePath) {
+                if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNote) {
                     // Add rescraping button at the top of the note
                     const container = view.containerEl;
                     const existingButton = container.querySelector('.oom-rescrape-button');
@@ -1424,7 +1591,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             });
             if (!updated) {
-                this.logger.debug('UI', 'Project note was not open in any workspace leaf.');
+                this.logger.log('UI', 'Project note was not open in any workspace leaf.');
             }
             // Attach event listeners after table render
             setTimeout(() => this.attachProjectNoteEventListeners(), 500);
@@ -1503,7 +1670,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private applyFilters(previewEl: HTMLElement) {
         const rows = previewEl.querySelectorAll('.oom-dream-row');
         const dateRange = (previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement)?.value || 'all';
-        this.logger.debug('Filter', `Applying filter: ${dateRange}`, {
+        this.logger.log('Filter', `Applying filter: ${dateRange}`, {
             totalRows: rows.length
         });
 
@@ -1548,7 +1715,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 row.classList.add('oom-row--visible');
                 row.style.display = '';
                 visibleCount++;
-                this.logger.debug('Filter', `Row ${index} visible`, {
+                this.logger.log('Filter', `Row ${index} visible`, {
                     date: dreamDate.toISOString(),
                     title: row.querySelector('.oom-dream-title')?.textContent
                 });
@@ -1808,6 +1975,58 @@ export default class DreamMetricsPlugin extends Plugin {
                 expandButton.setAttribute('data-expanded', isExpanded.toString());
                 expandButton.setAttribute('aria-expanded', isExpanded.toString());
             }
+        }
+    }
+
+    // Method to update ribbon icons based on settings
+    updateRibbonIcons() {
+        // Remove existing note button if it exists
+        const existingNoteButton = document.querySelector('.oom-ribbon-note-button');
+        if (existingNoteButton) {
+            existingNoteButton.remove();
+        }
+
+        // Add note button if enabled in settings
+        if (this.settings.showNoteButton) {
+            const ribbonIcon = this.addRibbonIcon('shell', 'Open Metrics Note', () => {
+                const file = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
+                if (file instanceof TFile) {
+                    this.app.workspace.openLinkText(this.settings.projectNote, '', true);
+                } else {
+                    new Notice('Metrics note not found. Please set the path in settings.');
+                    // Open settings to the OneiroMetrics tab
+                    (this.app as any).setting.open('oneirometrics');
+                }
+            });
+            ribbonIcon.addClass('oom-ribbon-note-button');
+        }
+    }
+
+    private async cleanupOldBackups() {
+        if (!this.settings.backupEnabled || !this.settings.backupFolderPath) return;
+
+        try {
+            const backupFolder = this.app.vault.getAbstractFileByPath(this.settings.backupFolderPath);
+            if (!(backupFolder instanceof TFolder)) {
+                this.logger.warn('Backup', 'Backup folder not found');
+                return;
+            }
+
+            const files = backupFolder.children
+                .filter(f => f instanceof TFile && f.path.startsWith(this.settings.backupFolderPath ?? ''))
+                .sort((a, b) => {
+                    const aFile = a as TFile;
+                    const bFile = b as TFile;
+                    return bFile.stat.mtime - aFile.stat.mtime;
+                });
+
+            if (files.length > (this.settings.logging?.maxBackups ?? 5)) {
+                for (let i = (this.settings.logging?.maxBackups ?? 5); i < files.length; i++) {
+                    await this.app.vault.delete(files[i]);
+                }
+            }
+        } catch (error) {
+            this.logger.error('Backup', 'Error cleaning up old backups', error);
         }
     }
 }

@@ -1,5 +1,12 @@
 # OneiroMetrics Changelog
 
+## [Unreleased]
+
+### Changed
+- Overhaul of Scraping Modal in progress: restoring advanced features (note/folder selection, folder/note autocomplete, progress bar, helper text, dismissible note, and two-column layout matching Obsidian Settings). UI and logic improvements ongoing; folder autocomplete and layout refinements still in progress.
+- Resolved horizontal scrolling issue in the OneiroMetrics Scraping modal. Layout improvements are in effect: the modal and its dropdowns now fit within the modal boundaries, improving usability and appearance.
+- Overhauled OneiroMetrics Scraping Modal: new two-column layout, left-aligned labels, right-aligned widgets, dismissible note, improved folder/note autocomplete, progress bar at bottom, responsive design, and UI/UX polish. Overhaul is now complete and modal is ready for release.
+
 ## [0.3.6] - 2025-05-14
 
 ### Added
@@ -19,6 +26,7 @@
 - Event listener attachment and cleanup
 - Performance with large datasets
 - See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
+- Fixed unwanted animation in Obsidian Settings modal by properly scoping modal-related CSS selectors
 
 ## [0.3.2] - 2025-05-13
 
@@ -376,25 +384,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **CSS Refactoring, Phase 2:** Following the initial reorganization and optimization of component styles (Phase 1), all component CSS files were concatenated back into a single `styles.css` for production use, improving compatibility and maintainability.
 
-## [Unreleased]
+## [0.3.4] - 2025-05-14
 
 ### Changed
-- Upgraded TypeScript to 5.4+ and esbuild to 0.20+ for improved build process compatibility.
-- Updated build script to use esbuild's context API.
-
-### CSS Refactoring
-- Reorganized component styles into focused files
-- Renamed files to better reflect their purpose:
-  - `project-note-buttons.css` → `tables-dream-entries-buttons.css`
-  - `drag-drop.css` → `settings-metrics-drag-drop.css`
-  - `icon-picker.css` → `settings-metrics-icon-picker.css`
-- Improved modal styles organization
-- Enhanced table component structure
-- Updated documentation to reflect new organization
-- Fixed import statement syntax in main stylesheet
-
-- Reorganized, optimized, and improved all component CSS files before consolidating them back into a single `styles.css` for production use, improving compatibility and maintainability.
-
+- **CSS Refactoring, Phase 1:** Reorganized component styles into focused files
 - **CSS Refactoring, Phase 2:** Following the initial reorganization and optimization of component styles (Phase 1), all component CSS files were concatenated back into a single `styles.css` for production use, improving compatibility and maintainability.
 
 ### Planned
@@ -405,6 +398,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized and expanded `SPECIFICATION.md`: added a table of contents, clarified section order, and included new sections on CSS organization and expand/collapse ("Read more") functionality.
 - Added documentation of troubleshooting and DevTools performance testing for the Read more button performance issue (see new entries in `ISSUES.md` and `TESTING.md`).
 - Added SECURITY.md with privacy and data protection policy, and cross-referenced it in all major documentation files.
+
+## [0.3.7] - 2025-05-15
+### Changed
+- Overhauled the OneiroMetrics Scrape modal: restored two-column layout, fixed DOM structure, and ensured all labels, helpers, and widgets are aligned to spec.
+- Restored autocomplete for Selected Notes and Selected Folder fields in the Scrape modal.
+- Fixed issues with field duplication and misalignment when toggling selection mode.
+- Updated CSS and modal logic for improved consistency and maintainability.
+- Updated `SPECIFICATION.md` to include a dedicated UI/DOM Structure section with a sample HTML block for the Scraping Modal.
 
 ---
 

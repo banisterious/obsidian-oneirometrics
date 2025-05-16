@@ -234,4 +234,14 @@ A major refactoring is planned to improve the plugin's architecture and reliabil
 
 ## Security & Privacy
 
-See [SECURITY.md](./SECURITY.md) for our full privacy and data protection policy. 
+See [SECURITY.md](./SECURITY.md) for our full privacy and data protection policy.
+
+## Scraping Modal Overhaul (2025)
+
+The OneiroMetrics Scraping Modal has been completely overhauled:
+- New two-column layout with left-aligned labels and right-aligned widgets
+- Dismissible note at the top for user guidance
+- Improved folder and note autocomplete with wide, readable dropdowns
+- Progress bar now at the bottom of the modal
+- Responsive design and modern UI polish
+- All planned Scrape Modal UI/UX improvements are complete and the modal is ready for release. 

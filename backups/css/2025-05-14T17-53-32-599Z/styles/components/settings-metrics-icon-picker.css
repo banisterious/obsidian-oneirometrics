@@ -1,0 +1,277 @@
+/* OneiroMetrics Settings - Metrics Icon Picker Styles
+ * 
+ * Contains styles for the icon picker used in the Custom Metrics modal.
+ * Includes grid layout, search functionality, icon selection, and accessibility features.
+ */
+
+/* Icon Picker Container */
+.oom-icon-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+    position: relative;
+}
+
+/* Search Input */
+.oom-icon-picker-search {
+    position: relative;
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-icon-picker-search input {
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    padding-left: calc(var(--oom-spacing-md) * 2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+}
+
+.oom-icon-picker-search input:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-icon-picker-search::before {
+    content: "🔍";
+    position: absolute;
+    left: var(--oom-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Icon Grid */
+.oom-icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-grid-item-size), 1fr));
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    max-height: var(--oom-icon-grid-max-height);
+    overflow-y: auto;
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    scrollbar-width: thin;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-track {
+    background: var(--background-primary);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+/* Icon Button */
+.oom-icon-picker-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    position: relative;
+}
+
+.oom-icon-picker-btn:hover {
+    border-color: var(--text-accent);
+    transform: translateY(var(--oom-icon-hover-translate));
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+    z-index: 1;
+}
+
+.oom-icon-picker-btn:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-focus-ring);
+    z-index: 1;
+}
+
+.oom-icon-picker-btn.selected {
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-shadow-sm);
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-btn svg {
+    height: var(--oom-icon-svg-size);
+    width: var(--oom-icon-svg-size);
+    pointer-events: none;
+}
+
+/* Clear Button */
+.oom-icon-picker-clear {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: none;
+    cursor: pointer;
+    border-radius: var(--oom-radius-md);
+    font-size: var(--font-ui-smaller);
+    text-decoration: underline;
+    transition: all var(--oom-transition-normal);
+    color: var(--text-muted);
+    background: none;
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-icon-picker-clear:hover {
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-clear:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Metric Icons */
+.oom-metric-icon,
+.oom-metric-icon-svg {
+    display: inline-flex;
+    height: var(--oom-icon-size);
+    width: var(--oom-icon-size);
+    margin-left: var(--oom-spacing-sm);
+    margin-right: 0;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 1em;
+    opacity: var(--oom-icon-opacity);
+    color: var(--text-muted);
+    fill: var(--text-muted);
+    transition: color var(--oom-transition-normal),
+                opacity var(--oom-transition-normal),
+                fill var(--oom-transition-normal);
+    pointer-events: none;
+}
+
+.oom-metric-icon--start {
+    margin-left: 0 !important;
+    margin-right: var(--oom-spacing-sm) !important;
+}
+
+.oom-metric-icon:hover,
+.oom-metric-icon-svg:hover {
+    opacity: var(--oom-icon-opacity-hover);
+    color: var(--text-normal);
+    fill: var(--text-normal);
+}
+
+/* Table Icon Alignment */
+.oom-table th .oom-metric-icon,
+.oom-table td .oom-metric-icon {
+    vertical-align: middle;
+}
+
+/* Select Dropdown Icons */
+.oom-select option .oom-metric-icon {
+    margin-right: var(--oom-spacing-xs);
+}
+
+/* Empty State */
+.oom-icon-picker-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-icon-picker-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-icon-picker-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-icon-picker-spin 0.8s linear infinite;
+}
+
+@keyframes oom-icon-picker-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-icon-picker-btn {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-icon-picker-btn.selected {
+        border: 2px solid CanvasText;
+    }
+    
+    .oom-icon-picker-search input {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-icon-picker-search input:focus {
+        border: 2px solid CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-icon-picker-btn,
+    .oom-metric-icon,
+    .oom-metric-icon-svg,
+    .oom-icon-picker-clear,
+    .oom-icon-picker-loading::after {
+        transition: none;
+    }
+    
+    .oom-icon-picker-btn:hover {
+        transform: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-icon-picker-breakpoint)) {
+    .oom-icon-picker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-grid-item-mobile-size), 1fr));
+    }
+    
+    .oom-icon-picker-btn {
+        width: var(--oom-icon-grid-item-mobile-size);
+        height: var(--oom-icon-grid-item-mobile-size);
+    }
+    
+    .oom-icon-picker-btn svg {
+        height: var(--oom-icon-svg-mobile-size);
+        width: var(--oom-icon-svg-mobile-size);
+    }
+} 

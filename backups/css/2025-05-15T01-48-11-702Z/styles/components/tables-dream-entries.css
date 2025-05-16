@@ -1,0 +1,298 @@
+/* OneiroMetrics Tables - Dream Entries Styles
+ * 
+ * Contains styles specific to the Dream Entries table in project notes.
+ * Includes base table styles, column layouts, and specific features.
+ */
+
+/* Base Table Styles */
+.oom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: var(--oom-spacing-md) 0;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--background-primary);
+    table-layout: auto;
+}
+
+/* Table Header */
+.oom-table th {
+    position: sticky;
+    top: 0;
+    z-index: var(--oom-z-table-header);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--background-primary);
+    border-bottom: 2px solid var(--background-modifier-border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-table th:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-table th:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Sort Indicators */
+.oom-table th[data-sort]::after {
+    content: "↕";
+    margin-left: var(--oom-spacing-xs);
+    opacity: 0.5;
+}
+
+.oom-table th[data-sort="asc"]::after {
+    content: "↑";
+    opacity: 1;
+}
+
+.oom-table th[data-sort="desc"]::after {
+    content: "↓";
+    opacity: 1;
+}
+
+/* Table Body */
+.oom-table td {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Table Row */
+.oom-table tr {
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-table tr:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Column Widths */
+.oom-table .oom-date-column {
+    width: 8%;
+    min-width: 85px;
+    white-space: nowrap;
+}
+
+.oom-table .oom-title-column {
+    width: 15%;
+    min-width: 120px;
+}
+
+.oom-table .oom-words-column {
+    width: 7%;
+    min-width: 60px;
+}
+
+.oom-table .oom-content-column {
+    width: 30%;
+    min-width: 200px;
+}
+
+.oom-table .oom-metrics-column {
+    width: 8%;
+    min-width: 70px;
+    text-align: right;
+    white-space: nowrap;
+    font-family: var(--font-monospace);
+}
+
+/* Table Container */
+.oom-table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Table Wrapper */
+.oom-table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Project Note Specific Styles */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    padding: var(--oom-spacing-md);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+/* Table Title Styling */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-title {
+    margin-top: var(--oom-spacing-lg);
+    margin-bottom: var(--oom-spacing-sm);
+    padding: 0;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    letter-spacing: 0.01em;
+    color: var(--text-normal);
+}
+
+/* Dream Entries section header */
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-entries-title {
+    margin-top: var(--oom-spacing-lg);
+    margin-bottom: var(--oom-spacing-sm);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+/* Empty State */
+.oom-table-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-table-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-table-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-table-spin 0.8s linear infinite;
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table th,
+    .oom-table td {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-table th {
+        background: var(--oom-high-contrast-bg);
+        color: var(--oom-high-contrast-text);
+    }
+    
+    .oom-table th:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-table th,
+    .oom-table tr {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table {
+        font-size: var(--oom-table-tablet-font-size);
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: var(--oom-table-tablet-padding);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table {
+        font-size: var(--oom-table-mobile-font-size);
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: var(--oom-table-mobile-padding);
+    }
+    
+    .oom-table .oom-date-column {
+        min-width: 70px;
+    }
+    
+    .oom-table .oom-title-column {
+        min-width: 100px;
+    }
+    
+    .oom-table .oom-content-column {
+        min-width: 150px;
+    }
+    
+    .oom-table .oom-metrics-column {
+        min-width: 60px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .oom-table th {
+        background: #f0f0f0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .oom-table td {
+        border-bottom: 1px solid #000;
+    }
+    
+    .oom-table tr {
+        break-inside: avoid;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+    }
+} 

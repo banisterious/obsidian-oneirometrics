@@ -22,37 +22,6 @@
  * Please ensure you are in Reading View when working with OneiroMetrics notes.
  */
 
-/* OneiroMetrics Main Stylesheet
- * 
- * This is the main entry point for all OneiroMetrics styles.
- * It imports all component-specific stylesheets and variables.
- */
-
-/* Import variables first to ensure they're available to all components */
-
-
-/* Import component stylesheets */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
-
-
 /* ==========================================================================
    Dream Entries Filters Styles
    ========================================================================== */
@@ -1604,6 +1573,13 @@
     --oom-max-width: var(--oom-theme-max-width);
     --oom-padding: var(--oom-theme-padding);
     --oom-margin: var(--oom-theme-margin);
+    --oom-progress-bar-height: 8px;
+    --oom-progress-bar-bg: var(--background-modifier-border, #eee);
+    --oom-progress-bar-radius: 4px;
+    --oom-progress-bar-margin: 1em 0;
+    --oom-progress-fill-bg: var(--interactive-accent, #2563eb);
+    --oom-modal-width: 850px;
+    --oom-modal-max-width: 95vw;
 }
 
 /* Theme-Specific Overrides
@@ -1727,7 +1703,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
    ========================================================================== */
 
 /* Modal Container */
-.modal {
+.oom-modal {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -1737,24 +1713,26 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     border-radius: var(--oom-modal-border-radius);
     box-shadow: var(--oom-modal-shadow);
     padding: var(--oom-modal-padding);
-    max-width: var(--oom-modal-max-width);
-    width: var(--oom-modal-width);
+    /*max-width: var(--oom-modal-max-width);
+    width: var(--oom-modal-width);*/
     transition: transform var(--oom-transition-normal),
                 opacity var(--oom-transition-normal);
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Modal States */
-.modal.is-opening {
+.oom-modal.is-opening {
     opacity: 0;
     transform: translate(-50%, -48%);
 }
 
-.modal.is-open {
+.oom-modal.is-open {
     opacity: 1;
     transform: translate(-50%, -50%);
 }
 
-.modal.is-closing {
+.oom-modal.is-closing {
     opacity: 0;
     transform: translate(-50%, -52%);
 }
@@ -1764,7 +1742,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
    ========================================================================== */
 
 /* Title */
-.modal-title {
+.oom-modal-title {
     margin: 0 0 var(--oom-spacing-md) 0;
     font-size: var(--oom-modal-title-size);
     font-weight: var(--oom-modal-title-weight);
@@ -1772,7 +1750,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 }
 
 /* Content Area */
-.modal-content {
+.oom-modal-content {
     margin-bottom: var(--oom-spacing-lg);
 }
 
@@ -1781,7 +1759,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
    ========================================================================== */
 
 /* Button Container */
-.modal-button-container {
+.oom-modal-button-container {
     display: flex;
     gap: var(--oom-spacing-sm);
     justify-content: flex-end;
@@ -1789,7 +1767,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 }
 
 /* Button Styles */
-.modal-button {
+.oom-modal-button {
     padding: var(--oom-button-padding);
     border-radius: var(--oom-button-border-radius);
     font-size: var(--oom-button-font-size);
@@ -1797,23 +1775,23 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     transition: all var(--oom-transition-normal);
 }
 
-.modal-button.mod-warning {
+.oom-modal-button.mod-warning {
     color: var(--text-normal);
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
 }
 
-.modal-button.mod-warning:hover {
+.oom-modal-button.mod-warning:hover {
     background: var(--background-modifier-hover);
 }
 
-.modal-button.mod-cta {
+.oom-modal-button.mod-cta {
     color: var(--text-on-accent);
     background: var(--interactive-accent);
     border: none;
 }
 
-.modal-button.mod-cta:hover {
+.oom-modal-button.mod-cta:hover {
     background: var(--interactive-accent-hover);
 }
 
@@ -1860,16 +1838,20 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 
 .oom-progress-bar {
     height: var(--oom-progress-bar-height);
+    background: var(--oom-progress-bar-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    margin: var(--oom-progress-bar-margin);
     width: 100%;
+    position: relative;
     overflow: hidden;
-    border-radius: var(--oom-radius-md);
-    background-color: var(--background-secondary);
 }
 
-.oom-progress-bar-fill {
+.oom-progress-fill {
     height: 100%;
-    background-color: var(--interactive-accent);
-    transition: width var(--oom-transition-normal);
+    background: var(--oom-progress-fill-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    width: 0%;
+    transition: width 0.2s;
 }
 
 .oom-details-text {
@@ -1901,17 +1883,17 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 
 /* Mobile Optimization */
 @media screen and (max-width: var(--oom-breakpoint-mobile)) {
-    .modal {
+    .oom-modal {
         width: var(--oom-modal-mobile-width);
         max-width: none;
         padding: var(--oom-modal-mobile-padding);
     }
     
-    .modal-button-container {
+    .oom-modal-button-container {
         flex-direction: column;
     }
     
-    .modal-button {
+    .oom-modal-button {
         width: 100%;
     }
 }
@@ -1930,15 +1912,15 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 
 /* High Contrast Mode */
 @media (forced-colors: active) {
-    .modal {
+    .oom-modal {
         border: var(--oom-high-contrast-border);
     }
     
-    .modal-button {
+    .oom-modal-button {
         border: var(--oom-high-contrast-border);
     }
     
-    .modal-button.mod-cta {
+    .oom-modal-button.mod-cta {
         background: var(--oom-high-contrast-accent);
         color: var(--oom-high-contrast-bg);
     }
@@ -1946,8 +1928,8 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-    .modal,
-    .modal-button,
+    .oom-modal,
+    .oom-modal-button,
     .oom-progress-bar-fill {
         transition: none;
     }
@@ -3162,17 +3144,17 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     }
 
     /* Modal and Dialog Elements */
-    .modal {
+    .oom-modal {
         border: var(--oom-high-contrast-border);
         background: var(--oom-high-contrast-bg);
         color: var(--oom-high-contrast-text);
     }
 
-    .modal-button {
+    .oom-modal-button {
         border: var(--oom-high-contrast-border);
     }
 
-    .modal-button.mod-cta {
+    .oom-modal-button.mod-cta {
         background: var(--oom-high-contrast-accent);
         color: var(--oom-high-contrast-bg);
     }
@@ -3206,7 +3188,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     }
 
     /* Modal and Dialog Transitions */
-    .modal,
+    .oom-modal,
     .oom-dropdown,
     .oom-tooltip {
         transition: var(--oom-reduced-motion-transition);
@@ -3372,15 +3354,25 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 }
 
 .oom-progress-bar {
-    height: 8px;
+    height: var(--oom-progress-bar-height);
+    background: var(--oom-progress-bar-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    margin: var(--oom-progress-bar-margin);
     width: 100%;
+    position: relative;
     overflow: hidden;
-    border-radius: 4px;
-    background-color: var(--background-secondary);
+}
+
+.oom-progress-fill {
+    height: 100%;
+    background: var(--oom-progress-fill-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    width: 0%;
+    transition: width 0.2s;
 }
 
 .oom-details-text {
-    font-size: 0.9em;
+    font-size: var(--oom-modal-details-size);
     color: var(--text-muted);
 }
 
@@ -3437,8 +3429,8 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     --oom-button-border-radius: var(--oom-radius-md);
 
     /* Modal specific */
-    --oom-modal-width: 500px;
-    --oom-modal-max-width: 90vw;
+    --oom-modal-width: 600px;
+    --oom-modal-max-width: 95vw;
     --oom-modal-padding: var(--oom-spacing-lg);
     --oom-modal-border-radius: var(--oom-radius-lg);
     --oom-modal-shadow: var(--oom-shadow-lg);
@@ -3457,8 +3449,8 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     --oom-dropdown-mobile-max-height: 50vh;
 
     /* Modal typography */
-    --oom-modal-title-weight: var(--h2-weight, var(--font-bold));
-    --oom-modal-status-weight: 500;
+    --oom-modal-title-size: var(--h2-size, 1.5rem);
+    --oom-modal-title-weight: var(--h2-weight, 600);
 
     /* Multiselect specific */
     --oom-multiselect-min-height: 32px;
@@ -3613,9 +3605,10 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     max-height: 200px;
     overflow-y: auto;
     min-width: 220px;  /* Increased from 180px */
-    width: 120%;      /* Added to make it wider than the input */
+    max-width: 100%;
+    box-sizing: border-box;
     box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
-    font-size: 0.95em; /* Slightly smaller font size */
+    font-size: 0.9em; /* Slightly smaller font size */
 }
 
 /* Add styles for suggestion items */
@@ -3626,6 +3619,7 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     overflow: hidden;
     text-overflow: ellipsis;
     transition: background-color var(--oom-transition-normal);
+    font-size: 0.9em !important;
 }
 
 .oom-suggestion-container .suggestion-item:hover {
@@ -3638,4 +3632,150 @@ div[data-type="markdown"][data-type="oom-project-note"] {
         width: 100%;
         min-width: 180px;
     }
+}
+
+/* ==========================================================================
+   Modal Section Layout
+   ========================================================================== */
+
+/* Modal Section */
+.oom-modal-section {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+/* Modal Row - Two Column Layout */
+.oom-modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--oom-spacing-md);
+    align-items: start;
+    margin-bottom: var(--oom-spacing-md);
+}
+
+/* Left Column - Labels and Helper Text */
+.oom-modal-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-modal-label {
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
+}
+
+.oom-modal-helper {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+/* Right Column - Widgets */
+.oom-modal-col-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+/* Progress Section Specific */
+.oom-modal-progress {
+    margin-top: var(--oom-spacing-lg);
+    padding-top: var(--oom-spacing-md);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-modal-progress .oom-modal-row {
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-modal-progress .oom-modal-col-right {
+    width: 100%;
+}
+
+/* Dismissible Note */
+.oom-modal-note {
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    position: relative;
+}
+
+.oom-modal-note-close {
+    position: absolute;
+    top: var(--oom-spacing-sm);
+    right: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs);
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-radius: var(--oom-radius-sm);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-modal-note-close:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-notes-autocomplete-container,
+.oom-folder-autocomplete-container {
+    width: 300px;
+}
+
+input.oom-multiselect-input,
+input.oom-folder-autocomplete-input {
+    width: 300px;
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-modal-row {
+        grid-template-columns: 1fr;
+        gap: var(--oom-spacing-sm);
+    }
+
+    .oom-modal-col-right {
+        justify-content: flex-start;
+    }
+}
+
+/* ========================================================================== 
+   OneiroMetrics Dream Scrape Notice
+   ========================================================================== */
+
+.oom-notice {
+    margin: 1em 0;
+    padding: 1em;
+    border: 1px solid var(--text-muted);
+    border-radius: 4px;
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-notice--info {
+    border-color: var(--text-muted);
+    background: var(--background-modifier-hover);
+}
+
+.oom-notice strong {
+    font-weight: 600;
+}
+
+
+/* ========================================================================== 
+   OneiroMetrics Overrides & Fixes
+   ========================================================================== */
+
+/* Modal size override for OneiroMetrics modal: ensures our modal is not restricted by Obsidian's default modal sizing. */
+.modal:has(.oom-modal) {
+    width: 850px !important;
+    max-width: 95vw !important;
+    min-height: 600px !important;
+    box-sizing: border-box;
+}
+
+.modal-content.oom-modal {
+    width:840px;
+    padding: .75em !important;
 }

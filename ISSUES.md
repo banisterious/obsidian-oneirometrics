@@ -1,0 +1,2 @@
+- [x] Overhaul OneiroMetrics Scraping modal: new two-column layout, improved autocomplete, progress bar, and UI/UX polish. Overhaul complete and ready for release.
+- [ ] TODO: Move Maximum Backups setting in plugin settings to appear just beneath the Backup Folder setting. 

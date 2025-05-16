@@ -1,4 +1,4 @@
-# Dream Metrics Plugin Specification
+# OneiroMetrics Plugin Specification
 
 ## Table of Contents
 
@@ -8,16 +8,17 @@
 4. [Technical Architecture](#technical-architecture)
 5. [Technical Requirements](#technical-requirements)
 6. [Security Considerations](#security-considerations)
-7. [CSS Organization and Approach](#6-css-organization-and-approach)
-8. [Expand/Collapse ("Read more") Functionality](#7-expandcollapse-read-more-functionality)
+7. [CSS Organization and Approach](#css-organization-and-approach)
+8. [Expand/Collapse ("Read more") Functionality](#expandcollapse-read-more-functionality)
 9. [Performance Considerations](#performance-considerations)
 10. [Future Considerations](#future-considerations)
 11. [Testing Strategy](#testing-strategy)
 12. [Recent Fixes](#recent-fixes)
+13. [Scraping Modal ("OneiroMetrics Dreamscrape")](#scraping-modal-oneirometrics-dreamscrape)
 
 ## Overview
 
-The Dream Metrics plugin is designed to help users track and analyze metrics from their dream journal entries in Obsidian. This document outlines the technical specifications and implementation details.
+The OneiroMetrics plugin is designed to help users track and analyze metrics from their dream journal entries in Obsidian. This document outlines the technical specifications and implementation details.
 
 ## Core Components
 
@@ -171,6 +172,38 @@ The project note is generated with two main sections:
 - A debounced scroll event handler recalculates and renders the visible rows as needed.
 - **Scroll logic ensures that expanding/collapsing a row keeps the view stable and prevents jumping beneath the table.**
 - This approach significantly reduces DOM size and memory usage, improving responsiveness and scalability for large dream journals.
+
+### Settings UI and Metric Management
+
+The Settings page provides a comprehensive interface for managing dream metrics and plugin configuration. The following features are available:
+
+- **Metrics Grouping:**
+  - Metrics are displayed in two sections: **Enabled Metrics** and **Disabled Metrics**.
+  - Each section only appears if it contains metrics.
+  - Toggling a metric's enabled state will move it between sections in real time.
+
+- **Metric Editing:**
+  - Each metric row includes:
+    - A toggle to enable/disable the metric.
+    - An **Edit** button (pencil icon) that opens a modal for editing all properties of the metric (name, icon, range, description, enabled state, etc.).
+    - A **Delete** button (trash icon) to remove the metric.
+  - The **Edit Metric** modal provides:
+    - Real-time validation for all fields (name, range, description).
+    - A Lucide icon picker with search and category tabs.
+    - Range editing (with special handling for whole-number metrics).
+    - Live preview of how the metric will appear in the journal.
+    - Keyboard shortcuts for accessibility.
+
+- **Adding Metrics:**
+  - An **Add Metric** button opens the same modal in creation mode.
+  - New metrics are added to the appropriate group based on their enabled state.
+
+- **Other Features:**
+  - Drag handles are present for future reordering support (if not yet implemented).
+  - All changes are saved immediately and reflected in the UI.
+  - The UI is designed to match Obsidian's settings conventions for clarity and accessibility.
+
+**Note:** The Settings UI is kept in sync with the plugin's internal state and the default metrics specification. Any changes to the default metrics or user customizations are immediately reflected in the interface.
 
 ## Technical Architecture
 
@@ -386,4 +419,93 @@ The project note is generated with two main sections:
 ## Recent Fixes (May 2025)
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
-- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed. 
+- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.
+
+## Scraping Modal ("OneiroMetrics Dreamscrape")
+
+### UI/DOM Structure for Scraping Modal
+
+The Scraping Modal must follow this DOM structure and class naming. All fields are organized in two-column rows, with left-aligned labels/helpers and right-aligned widgets. This ensures consistency with Obsidian’s settings UI and plugin conventions.
+
+<details>
+
+<summary>Example DOM structure for the OneiroMetrics Scraping Modal</summary>
+
+<div class="modal oom-modal" style="width: 600px; max-height: 80vh;">
+  <div class="modal-close-button"></div>
+  <div class="modal-header">
+    <div class="modal-title"></div>
+  </div>
+  <div class="modal-content oom-modal">
+    <h2 class="oom-modal-title">OneiroMetrics Dreamscrape</h2>
+    <div class="oom-modal-note">
+      <button class="oom-modal-note-close">×</button>
+      <strong>Note: </strong>
+      <span>
+        This is where you kick off the "scraping" process, which searches your selected notes or folder and gathers up dream entries and metrics. Click the Scrape button to begin, or change your files/folder selection, below.
+      </span>
+    </div>
+    <div class="oom-modal-section oom-modal-row">
+      <div class="oom-modal-col-left">
+        <label class="oom-modal-label">File or folder selection</label>
+        <div class="oom-modal-helper">Choose whether to select individual notes or a folder for metrics scraping</div>
+      </div>
+      <div class="oom-modal-col-right">
+        <select class="oom-dropdown">
+          <option value="notes">Notes</option>
+          <option value="folder">Folder</option>
+        </select>
+      </div>
+    </div>
+    <div class="oom-modal-section oom-modal-row">
+      <div class="oom-modal-col-left">
+        <label class="oom-modal-label">Selected Notes</label>
+        <div class="oom-modal-helper">Notes to search for dream metrics (select one or more)</div>
+      </div>
+      <div class="oom-modal-col-right">
+        <div class="oom-notes-autocomplete-container">
+          <input class="oom-multiselect-input" placeholder="Type to search notes..." type="text">
+          <div class="oom-chips-container" style="border: none; background: none; padding: 0px; margin: 0px; box-shadow: none; display: none;"></div>
+          <div class="oom-suggestion-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="oom-modal-section oom-modal-row">
+      <div class="oom-modal-col-left">
+        <label class="oom-modal-label">Scrape Files or Folder</label>
+        <div class="oom-modal-helper">Begin the scraping operation</div>
+      </div>
+      <div class="oom-modal-col-right">
+        <button class="mod-cta oom-scrape-button">Scrape Metrics</button>
+      </div>
+    </div>
+    <div class="oom-modal-section oom-modal-progress">
+      <div class="oom-progress-content">
+        <div class="oom-status-text"></div>
+        <div class="oom-progress-bar">
+          <div class="oom-progress-fill"></div>
+        </div>
+        <div class="oom-details-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</details>
+
+### Scraping Modal Overhaul (May 2025)
+
+The Scraping Modal was overhauled to restore and improve its advanced features and user experience:
+
+- **Design:**
+  - Dismissible note at the top for user guidance
+  - Two-column layout for all sections: left-aligned labels and helper text, right-aligned widgets (fields/buttons)
+  - Section order matches Obsidian Settings conventions (Selected Notes/Folder above Scrape section)
+  - All helper text and labels are left-aligned for clarity
+  - Widgets (autocomplete fields, buttons) are right-aligned in the same row as their label/helper
+- **Features:**
+  - Folder and note selection fields use autocomplete widgets identical to those in Settings
+  - Progress bar appears at the bottom, with a left-aligned 'Scrape Progress' label
+  - Modal height adapts to content, and dimensions are under review
+- **Status:**
+  - Major UI and logic restoration is underway. Folder autocomplete and layout refinements are in progress. Progress bar and section order are being finalized. The overhaul aims to match Obsidian Settings UI conventions and improve usability for all users. 

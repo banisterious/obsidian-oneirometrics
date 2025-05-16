@@ -1,0 +1,225 @@
+/* OneiroMetrics Multiselect Styles
+ * 
+ * Contains all multiselect related styles for the OneiroMetrics plugin.
+ * Includes container, dropdown, selected items, and accessibility features.
+ */
+
+/* Multiselect Container */
+.oom-multiselect-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Dropdown */
+.oom-multiselect-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: var(--oom-z-dropdown);
+    margin-top: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-md);
+    transition: opacity var(--oom-transition-normal),
+                transform var(--oom-transition-normal);
+}
+
+.oom-multiselect-dropdown.is-opening {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+.oom-multiselect-dropdown.is-open {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.oom-multiselect-dropdown.is-closing {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+/* Selected Items */
+.oom-multiselect-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    min-height: var(--oom-multiselect-min-height);
+    transition: border-color var(--oom-transition-normal);
+}
+
+.oom-multiselect-selected:focus-within {
+    border-color: var(--interactive-accent);
+}
+
+/* Selected Item */
+.oom-multiselect-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary-alt);
+    font-size: var(--font-ui-smaller);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-multiselect-item:hover {
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+/* Remove Button */
+.oom-multiselect-item-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-multiselect-remove-size);
+    height: var(--oom-multiselect-remove-size);
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--oom-transition-normal);
+}
+
+.oom-multiselect-item-remove:hover {
+    color: var(--text-normal);
+}
+
+/* Options List */
+.oom-multiselect-options {
+    max-height: var(--oom-multiselect-options-max-height);
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-bg);
+}
+
+.oom-multiselect-options::-webkit-scrollbar {
+    width: 8px;
+}
+
+.oom-multiselect-options::-webkit-scrollbar-track {
+    background: var(--scrollbar-bg);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-multiselect-options::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: var(--oom-radius-md);
+}
+
+/* Option Item */
+.oom-multiselect-option {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    cursor: pointer;
+    border-radius: var(--oom-radius-md);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-multiselect-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-multiselect-option.selected {
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+/* Search Input */
+.oom-multiselect-search {
+    position: sticky;
+    top: 0;
+    padding: var(--oom-spacing-xs);
+    background: var(--background-primary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    z-index: 1;
+}
+
+.oom-multiselect-search-input {
+    width: 100%;
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--background-primary);
+    transition: border-color var(--oom-transition-normal);
+}
+
+.oom-multiselect-search-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+}
+
+/* Empty State */
+.oom-multiselect-empty {
+    padding: var(--oom-spacing-md);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-multiselect-selected,
+    .oom-multiselect-dropdown,
+    .oom-multiselect-item,
+    .oom-multiselect-search-input {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-multiselect-option.selected {
+        border: var(--oom-high-contrast-border);
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-multiselect-dropdown,
+    .oom-multiselect-item,
+    .oom-multiselect-search-input {
+        transition: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-multiselect-dropdown {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: var(--oom-radius-lg) var(--oom-radius-lg) 0 0;
+        max-height: var(--oom-dropdown-mobile-max-height);
+    }
+
+    .oom-multiselect-options {
+        max-height: calc(var(--oom-dropdown-mobile-max-height) - 60px);
+    }
+
+    .oom-multiselect-item {
+        min-height: var(--oom-touch-target-size);
+    }
+
+    .oom-multiselect-item-remove {
+        width: var(--oom-touch-target-size);
+        height: var(--oom-touch-target-size);
+    }
+} 

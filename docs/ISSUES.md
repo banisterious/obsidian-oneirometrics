@@ -170,6 +170,13 @@
    - Results: Virtualization improved scrolling, but expand/collapse delay persists.
    - Next Steps: Further isolate handler logic, explore alternative expand/collapse strategies.
 
+5. **Scraping Modal Overhaul**
+   - Issue: The Scraping Modal was simplified, losing its advanced features (note/folder selection, autocomplete, progress bar, helper text, and layout matching Obsidian Settings conventions).
+   - Progress: Major UI and logic restoration underway. Dismissible note, two-column layout, helper text, and progress bar have been added. Folder autocomplete and layout refinements are in progress.
+   - Remaining: Folder autocomplete not visible/working, section order/layout needs adjustment, progress bar label/placement, and two-column alignment. Modal dimensions under review.
+   - Next Steps: Complete layout fixes, ensure all autocompletes work, finalize progress bar, and polish for release.
+   - Status: 🚧 In Progress
+
 ## Future Features
 
 ### Dream Analysis
@@ -419,3 +426,29 @@ Please report any issues or suggest improvements through the GitHub repository. 
    - [x] Separated concerns
    - [x] Improved maintainability
    - [x] Enhanced documentation
+
+## [May 2025] Settings Page Regression and Resolution
+
+### Issue
+After a series of refactors and bug fixes, the Settings page for OneiroMetrics regressed:
+- Metrics were no longer grouped into Enabled and Disabled sections.
+- The ability to edit existing metrics was missing (no edit button/modal).
+- The enabled/disabled state of metrics was not preserved according to the spec; all metrics appeared enabled.
+
+### Resolution
+- The merging logic for metrics in `loadSettings()` was fixed to preserve the correct enabled/disabled state from defaults and user settings.
+- The Settings UI was updated to group metrics into Enabled and Disabled sections.
+- An Edit button (pencil icon) was added to each metric, opening a modal for editing all properties.
+- The documentation in `SPECIFICATION.md` was updated to accurately describe the new Settings UI and editing features.
+
+### Note
+If further UI changes are made, ensure that both the code and `SPECIFICATION.md` remain in sync.
+
+## OneiroMetrics Scrape Modal Fixes (v0.3.7)
+
+- Overhauled the Scrape modal to match the documented two-column layout and DOM structure, ensuring all labels and helper text are left-aligned and widgets are right-aligned.
+- Restored autocomplete functionality for both Selected Notes (multi-chip) and Selected Folder fields, using the same widgets as in Settings.
+- Fixed issues with duplicate or misaligned fields when toggling selection mode.
+- Ensured the progress bar and scrape button are placed and labeled according to spec.
+- Updated CSS and modal logic to match the new UI/DOM requirements.
+- Updated `SPECIFICATION.md` to include a dedicated UI/DOM Structure section with a sample HTML block for the Scraping Modal, clarifying implementation details for future development.

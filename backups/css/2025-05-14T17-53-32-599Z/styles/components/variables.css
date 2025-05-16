@@ -1,0 +1,215 @@
+/* OneiroMetrics CSS Variables
+ * 
+ * Centralized CSS custom properties for consistent theming and maintainability.
+ * These variables are used across all component stylesheets.
+ */
+
+:root {
+    /* Spacing */
+    --oom-spacing-xs: 4px;
+    --oom-spacing-sm: 8px;
+    --oom-spacing-md: 16px;
+    --oom-spacing-lg: 24px;
+    --oom-spacing-xl: 32px;
+
+    /* Border Radius */
+    --oom-radius-sm: 4px;
+    --oom-radius-md: 6px;
+    --oom-radius-lg: 8px;
+    --oom-radius-xl: 12px;
+
+    /* Transitions */
+    --oom-transition-fast: 0.1s ease;
+    --oom-transition-normal: 0.2s ease;
+    --oom-transition-slow: 0.3s ease;
+
+    /* Z-index layers */
+    --oom-z-base: 1;
+    --oom-z-dropdown: 100;
+    --oom-z-modal: 200;
+    --oom-z-tooltip: 300;
+
+    /* Shadows */
+    --oom-shadow-sm: 0 1px 2px var(--background-modifier-box-shadow);
+    --oom-shadow-md: 0 2px 8px var(--background-modifier-box-shadow);
+    --oom-shadow-lg: 0 4px 12px var(--background-modifier-box-shadow);
+
+    /* Table specific */
+    --oom-table-cell-padding: 8px 12px;
+    --oom-table-border: 1px solid var(--background-modifier-border);
+    --oom-table-header-bg: var(--background-primary-alt);
+    --oom-table-hover-bg: var(--background-modifier-hover);
+
+    /* Button specific */
+    --oom-button-padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    --oom-button-font-size: var(--font-ui-smaller);
+    --oom-button-gap: 0.5rem;
+    --oom-button-border-radius: var(--oom-radius-md);
+
+    /* Modal specific */
+    --oom-modal-width: 500px;
+    --oom-modal-max-width: 90vw;
+    --oom-modal-padding: var(--oom-spacing-lg);
+    --oom-modal-border-radius: var(--oom-radius-lg);
+    --oom-modal-shadow: var(--oom-shadow-lg);
+    --oom-modal-title-size: var(--h2-size);
+    --oom-modal-details-size: 0.9em;
+    --oom-progress-bar-height: 8px;
+    
+    /* Modal variant widths */
+    --oom-modal-width-sm: 400px;  /* Custom Date Range & Progress Modal */
+    --oom-modal-width-md: 500px;  /* Callout Modal */
+    --oom-modal-width-lg: 600px;  /* Metrics & Icon Picker Modal */
+
+    /* Modal mobile specific */
+    --oom-modal-mobile-width: 95vw;
+    --oom-modal-mobile-padding: var(--oom-spacing-md);
+    --oom-dropdown-mobile-max-height: 50vh;
+
+    /* Modal typography */
+    --oom-modal-title-weight: var(--h2-weight, var(--font-bold));
+    --oom-modal-status-weight: 500;
+
+    /* Multiselect specific */
+    --oom-multiselect-min-height: 32px;
+    --oom-multiselect-options-max-height: 200px;
+    --oom-multiselect-remove-size: 16px;
+    --oom-multiselect-breakpoint: 600px;
+
+    /* Drag and Drop specific */
+    --oom-drag-handle-size: 24px;
+    --oom-drag-handle-mobile-size: 32px;
+    --oom-drop-zone-min-height: 40px;
+    --oom-drop-zone-border: 2px dashed var(--background-modifier-border);
+    --oom-drop-preview-border: 2px dashed var(--interactive-accent);
+    --oom-drag-opacity: 0.8;
+    --oom-drag-scale: 1.02;
+    --oom-drag-hover-translate: -1px;
+    --oom-drag-drop-breakpoint: 600px;
+
+    /* Icon Picker specific */
+    --oom-icon-grid-item-size: 40px;
+    --oom-icon-grid-item-mobile-size: 36px;
+    --oom-icon-svg-size: 20px;
+    --oom-icon-svg-mobile-size: 18px;
+    --oom-icon-grid-max-height: 300px;
+    --oom-icon-size: 1.1em;
+    --oom-icon-opacity: 0.8;
+    --oom-icon-opacity-hover: 1;
+    --oom-icon-hover-translate: -1px;
+    --oom-icon-picker-breakpoint: 600px;
+
+    /* Filter specific */
+    --oom-filter-padding: var(--oom-spacing-md);
+    --oom-filter-gap: var(--oom-spacing-sm);
+    --oom-filter-border-radius: var(--oom-radius-md);
+    --oom-filter-min-width: 200px;
+    --oom-filter-input-padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    --oom-filter-input-border: 1px solid var(--background-modifier-border);
+    --oom-filter-input-radius: var(--oom-radius-md);
+    --oom-filter-input-bg: var(--background-primary);
+    --oom-filter-input-focus-border: var(--interactive-accent);
+    --oom-filter-container-bg: var(--background-primary);
+    --oom-filter-controls-bg: var(--background-secondary);
+    --oom-filter-label-color: var(--text-muted);
+    --oom-filter-label-size: var(--font-ui-smaller);
+
+    /* Utility specific */
+    --oom-utility-compact-padding: 0.5em;
+    --oom-utility-compact-font-size: 0.92em;
+    --oom-utility-sr-width: 1px;
+    --oom-utility-sr-height: 1px;
+    --oom-utility-sr-margin: -1px;
+    --oom-utility-sr-padding: 0;
+    --oom-utility-sr-border: 0;
+    --oom-utility-sr-position: absolute;
+    --oom-utility-sr-overflow: hidden;
+    --oom-utility-sr-clip: rect(0, 0, 0, 0);
+    --oom-utility-sr-whitespace: nowrap;
+
+    /* Accessibility specific */
+    --oom-focus-outline: 2px solid var(--interactive-accent);
+    --oom-focus-outline-offset: 2px;
+    --oom-focus-ring: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+    --oom-high-contrast-border: 1px solid CanvasText;
+    --oom-high-contrast-border-thick: 2px solid CanvasText;
+    --oom-high-contrast-border-dashed: 2px dashed CanvasText;
+    --oom-high-contrast-bg: Canvas;
+    --oom-high-contrast-text: CanvasText;
+    --oom-high-contrast-accent: Highlight;
+    --oom-reduced-motion-transition: none;
+
+    /* Responsive specific */
+    --oom-breakpoint-tablet: 768px;
+    --oom-breakpoint-mobile: 480px;
+    --oom-breakpoint-small-mobile: 360px;
+    --oom-breakpoint-large: 1200px;
+    
+    /* Table responsive */
+    --oom-table-mobile-font-size: 0.8em;
+    --oom-table-tablet-font-size: 0.85em;
+    --oom-table-mobile-padding: 4px 6px;
+    --oom-table-tablet-padding: 6px 8px;
+    
+    /* Content responsive */
+    --oom-content-mobile-font-size: 0.95em;
+    --oom-content-mobile-line-height: 1.3;
+    
+    /* Filter responsive */
+    --oom-filter-mobile-gap: 0.5em;
+    --oom-filter-mobile-margin: 0.5em 0;
+    --oom-filter-mobile-padding: 0.5em;
+    
+    /* Touch specific */
+    --oom-touch-target-size: 44px;
+    --oom-touch-opacity: 0.7;
+    
+    /* Column widths */
+    --oom-column-date-width: 8%;
+    --oom-column-date-min-width: 85px;
+    --oom-column-title-width: 15%;
+    --oom-column-title-min-width: 120px;
+    --oom-column-words-width: 7%;
+    --oom-column-words-min-width: 60px;
+    --oom-column-content-min-width: 200px;
+    --oom-column-metric-min-width: 70px;
+    
+    /* Mobile column widths */
+    --oom-column-date-mobile-min-width: 60px;
+    --oom-column-title-mobile-min-width: 100px;
+    --oom-column-words-mobile-min-width: 50px;
+    --oom-column-content-mobile-min-width: 180px;
+    --oom-column-metric-mobile-min-width: 60px;
+
+    /* Theme specific */
+    --oom-theme-line-width: 100%;
+    --oom-theme-max-width: none;
+    --oom-theme-padding: 0;
+    --oom-theme-margin: 0;
+    
+    /* Theme variants */
+    --oom-theme-light-bg: var(--background-primary);
+    --oom-theme-light-text: var(--text-normal);
+    --oom-theme-light-border: var(--background-modifier-border);
+    --oom-theme-light-hover: var(--background-modifier-hover);
+    
+    --oom-theme-dark-bg: var(--background-primary);
+    --oom-theme-dark-text: var(--text-normal);
+    --oom-theme-dark-border: var(--background-modifier-border);
+    --oom-theme-dark-hover: var(--background-modifier-hover);
+    
+    --oom-theme-minimal-bg: var(--background-primary);
+    --oom-theme-minimal-text: var(--text-normal);
+    --oom-theme-minimal-border: var(--background-modifier-border);
+    --oom-theme-minimal-hover: var(--background-modifier-hover);
+    
+    /* Theme transitions */
+    --oom-theme-transition: background-color var(--oom-transition-normal),
+                           color var(--oom-transition-normal),
+                           border-color var(--oom-transition-normal);
+    
+    /* Theme debug */
+    --oom-theme-debug-grid: 1px solid rgba(255, 0, 0, 0.2);
+    --oom-theme-debug-margin: 1px solid rgba(0, 255, 0, 0.2);
+    --oom-theme-debug-padding: 1px solid rgba(0, 0, 255, 0.2);
+} 

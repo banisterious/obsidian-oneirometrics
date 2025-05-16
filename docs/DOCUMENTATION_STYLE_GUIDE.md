@@ -98,13 +98,15 @@ The following CSS rules are intended for use in the plugin's `styles.css` file o
 
 .banner-fade .right {
     right: 0;
-}```
+}
+```
 
 ### 3.2. Lucide Icon Overlay (SVG Example)
 
 ```<svg width="32" height="32" style="position:absolute; top:40px; left:60px; opacity:0.3;">
     <use href="[https://unpkg.com/lucide-static/icons/eye.svg#icon](https://unpkg.com/lucide-static/icons/eye.svg#icon)" />
-</svg>```
+</svg>
+```
 
 3.3. Custom Callout Background Example
 
@@ -114,7 +116,8 @@ The following CSS rules are intended for use in the plugin's `styles.css` file o
     background-size: cover;
     background-blend-mode: lighten;
     color: #222;
-}```
+}
+```
 
 4. Color Palette
 Use the following color palettes, derived from the project's imagery, for headings, callouts, or accents in documentation and plugin UI:
@@ -141,3 +144,44 @@ Use the following color palettes, derived from the project's imagery, for headin
     [ ] Overlay Lucide icons on banner (optional)
     [ ] Add first annotated screenshot of a complete dream journal entry to docs/USAGE.md
     [ ] Add additional annotated screenshots for advanced features (e.g., metrics table, modal UI)
+
+## 4. Modal and Leaf Design Standards
+
+### 4.1. Standard Modal Layout
+
+The following layout standards apply to all modals and leaves in the plugin, ensuring consistency with Obsidian's UI conventions:
+
+1. **Overall Structure**
+   - Dismissible note at the very top (if needed)
+   - Sections ordered logically from top to bottom
+   - Progress/status section at the very bottom
+
+2. **Section Layout**
+   - Two-column layout for each section:
+     - Left column: Label and helper text (left-aligned)
+     - Right column: Widget (right-aligned)
+   - Label and widget appear on the same row
+   - Helper text appears below the label (still in left column)
+
+3. **Progress Section**
+   - Left-aligned label (e.g., "Scrape Progress")
+   - Progress bar and status text on their own row below the label
+   - Centered within the modal
+
+4. **Widgets**
+   - Autocomplete fields: Right-aligned in their section
+   - Buttons: Right-aligned in their section
+   - Multi-select fields: Right-aligned with appropriate width
+
+5. **Spacing**
+   - Consistent vertical spacing between sections
+   - No thick horizontal lines or unnecessary dividers
+   - Modal height adapts to content
+
+### 4.2. Implementation Notes
+
+- Use CSS Grid or Flexbox for the two-column layout
+- Ensure proper spacing using CSS variables
+- Match Obsidian's Settings page conventions for consistency
+- Support both light and dark themes
+- Ensure accessibility with proper ARIA labels and keyboard navigation

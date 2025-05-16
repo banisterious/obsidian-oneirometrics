@@ -1,10 +1,30 @@
-# Metric Descriptions
+## OneiroMetrics Metrics Guide
 
-This document provides detailed descriptions of all metrics used in the OneiroMetrics plugin. For information about metric styling and layout, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md). For details about temporal aspects of metrics, see the [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md).
+This document provides detailed descriptions of the metrics used in OneiroMetrics for dream journal analysis. For information about metric styling and layout, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md). For details about temporal aspects of metrics, see the [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md).
 
-# OneiroMetrics Metrics Guide
+## Table of Contents
 
-This document provides detailed descriptions of the metrics used in OneiroMetrics for dream journal analysis.
+1. [Default Metric Descriptions](#default-metric-descriptions)
+	1. [Sensory Detail](#sensory-detail-score-1-5)
+	2. [Emotional Recall](#emotional-recall-score-1-5)
+	3. [Descriptiveness](#descriptiveness-score-1-5)
+	4. [Lost Segments](#lost-segments-number)
+	5. [Characters Role](#characters-role-score-1-5)
+	6. [Confidence Score](#confidence-score-score-1-5)
+2. [Optional Metric Descriptions](#optional-metric-descriptions)
+	1. [Characters Count](#characters-count)
+	2. [Familiar Count](#familiar-count)
+	3. [Unfamiliar Count](#unfamiliar-count)
+	4. [Characters List](#characters-list)
+	5. [Dream Theme](#dream-theme)
+	6. [Lucidity Level](#lucidity-level-score-1-5)
+	7. [Dream Coherence](#dream-coherence-score-1-5)
+	8. [Setting Familiarity](#setting-familiarity-score-1-5)
+	9. [Ease of Recall](#ease-of-recall-score-1-5)
+	10. [Recall Stability](#recall-stability-score-1-5)
+3. [Using Metrics](#using-metrics)
+	1. [Metadata Support](#metadata-support)
+4. [Tips for Accurate Scoring](#tips-for-accurate-scoring)
 
 ## Default Metric Descriptions
 

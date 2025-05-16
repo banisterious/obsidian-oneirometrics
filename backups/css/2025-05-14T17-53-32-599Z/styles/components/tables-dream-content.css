@@ -1,0 +1,134 @@
+/* OneiroMetrics Dream Content Table Styles
+ * 
+ * Styles specific to dream content display in OneiroMetrics tables.
+ * Includes content preview, expansion, and related animations.
+ */
+
+/* Content Cell */
+.oom-content-cell {
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Content Preview */
+.oom-content-preview {
+    display: block;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+    font-family: var(--font-text);
+    color: var(--text-normal);
+    width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Full Content */
+.oom-content-full {
+    display: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+    font-family: var(--font-text);
+    color: var(--text-normal);
+    width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Expanded State */
+.oom-dream-content.expanded .oom-content-preview {
+    display: none !important;
+}
+
+.oom-dream-content.expanded .oom-content-full {
+    display: block !important;
+}
+
+/* Expand/Collapse Button */
+.oom-dream-content .oom-expand-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.25em 0.5em;
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-dream-content .oom-expand-button:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-dream-content .oom-expand-button:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* No Metrics Message */
+.oom-no-metrics {
+    padding: var(--oom-spacing-md);
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-dream-content .oom-expand-button {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-dream-content .oom-expand-button:focus {
+        outline: 2px solid CanvasText;
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-content-preview,
+    .oom-dream-content .oom-expand-button {
+        transition: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-content-preview,
+    .oom-content-full {
+        font-size: 0.95em;
+        line-height: 1.3;
+    }
+    
+    .oom-dream-content .oom-expand-button {
+        padding: 0.5em 0.75em;
+        font-size: 1em;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-content-full {
+        display: block !important;
+        max-height: none !important;
+    }
+    
+    .oom-content-preview {
+        display: none !important;
+    }
+    
+    .oom-dream-content .oom-expand-button {
+        display: none !important;
+    }
+} 

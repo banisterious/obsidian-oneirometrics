@@ -1,0 +1,236 @@
+/* OneiroMetrics Settings - Metrics Drag and Drop Styles
+ * 
+ * Contains styles for drag and drop functionality in the metrics settings page.
+ * Used for reordering metrics in the settings interface.
+ */
+
+/* Drag Handle */
+.oom-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-drag-handle-size);
+    height: var(--oom-drag-handle-size);
+    padding: var(--oom-spacing-xs);
+    cursor: grab;
+    color: var(--text-muted);
+    transition: color var(--oom-transition-normal),
+                background-color var(--oom-transition-normal);
+    border-radius: var(--oom-radius-sm);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-drag-handle:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-drag-handle:active {
+    cursor: grabbing;
+    background: var(--background-modifier-active);
+}
+
+.oom-drag-handle:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Draggable Item */
+.oom-draggable {
+    position: relative;
+    cursor: grab;
+    transition: transform var(--oom-transition-normal),
+                box-shadow var(--oom-transition-normal),
+                background-color var(--oom-transition-normal);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-draggable:hover {
+    transform: translateY(var(--oom-drag-hover-translate));
+    box-shadow: var(--oom-shadow-sm);
+    background: var(--background-modifier-hover);
+}
+
+.oom-draggable.dragging {
+    cursor: grabbing;
+    opacity: var(--oom-drag-opacity);
+    transform: scale(var(--oom-drag-scale));
+    box-shadow: var(--oom-shadow-md);
+    z-index: var(--oom-z-base);
+    background: var(--background-modifier-hover);
+}
+
+.oom-draggable:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Zone */
+.oom-drop-zone {
+    position: relative;
+    min-height: var(--oom-drop-zone-min-height);
+    padding: var(--oom-spacing-md);
+    border: var(--oom-drop-zone-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-drop-zone.drag-over {
+    border-color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+.oom-drop-zone:focus-within {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Zone Placeholder */
+.oom-drop-zone::before {
+    content: 'Drop here';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+    transition: opacity var(--oom-transition-normal);
+}
+
+.oom-drop-zone:not(:empty)::before {
+    opacity: 0;
+}
+
+/* Sortable List */
+.oom-sortable-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs);
+}
+
+.oom-sortable-item {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    transition: all var(--oom-transition-normal);
+    position: relative;
+}
+
+.oom-sortable-item:hover {
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-sortable-item.dragging {
+    background: var(--background-modifier-hover);
+    box-shadow: var(--oom-shadow-md);
+    opacity: var(--oom-drag-opacity);
+    z-index: var(--oom-z-base);
+}
+
+.oom-sortable-item:focus-within {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Preview */
+.oom-drop-preview {
+    position: absolute;
+    pointer-events: none;
+    background: var(--background-modifier-hover);
+    border: var(--oom-drop-preview-border);
+    border-radius: var(--oom-radius-md);
+    opacity: var(--oom-drag-opacity);
+    z-index: var(--oom-z-base);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Drop Indicator */
+.oom-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--interactive-accent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--oom-transition-normal);
+}
+
+.oom-drop-indicator.visible {
+    opacity: 1;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-drag-handle {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-drop-zone {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-drop-zone.drag-over {
+        border: 2px solid CanvasText;
+    }
+    
+    .oom-sortable-item {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-drop-preview {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-drop-indicator {
+        background: CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-draggable,
+    .oom-drop-zone,
+    .oom-sortable-item,
+    .oom-drop-zone::before,
+    .oom-drop-indicator {
+        transition: none;
+    }
+    
+    .oom-draggable:hover,
+    .oom-sortable-item:hover {
+        transform: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-drag-drop-breakpoint)) {
+    .oom-drag-handle {
+        width: var(--oom-drag-handle-mobile-size);
+        height: var(--oom-drag-handle-mobile-size);
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-sortable-item {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-drop-zone {
+        padding: var(--oom-spacing-lg);
+    }
+    
+    .oom-drop-zone::before {
+        font-size: var(--font-ui-medium);
+    }
+} 

@@ -1,0 +1,160 @@
+/* OneiroMetrics Tables - Utilities
+ * 
+ * Contains shared table utilities used across different table components.
+ * Includes container styles, loading states, accessibility features, and responsive design.
+ */
+
+/* Table Container */
+.oom-table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Table Wrapper */
+.oom-table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Empty State */
+.oom-table-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-table-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-table-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-table-spin 0.8s linear infinite;
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Project Note Table Layout */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    padding: var(--oom-spacing-md);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table-container {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-table th {
+        background: var(--oom-high-contrast-bg);
+        color: var(--oom-high-contrast-text);
+    }
+    
+    .oom-table th:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-table th,
+    .oom-table tr {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table-container {
+        margin: var(--oom-spacing-sm) 0;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table-container {
+        margin: var(--oom-spacing-xs) 0;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+        padding: var(--oom-spacing-xs);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+    
+    .oom-table th {
+        background: #f0f0f0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .oom-table td {
+        border-bottom: 1px solid #000;
+    }
+    
+    .oom-table tr {
+        break-inside: avoid;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+    }
+} 

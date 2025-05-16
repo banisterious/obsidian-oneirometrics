@@ -1,0 +1,44 @@
+/* OneiroMetrics Plugin Styles
+ * 
+ * OneiroMetrics (Turning dreams into data)
+ * A plugin for Obsidian to track and analyze dream journal metrics.
+ * Provides a structured way to define, extract, and visualize dream-related data.
+ * 
+ * Author: John Banister
+ * GitHub: https://github.com/banisterious
+ *
+ * NOTE: These styles are designed to be compatible with the Minimal theme and other popular Obsidian themes.
+ * - Uses max-width: 100vw and width: 100% for containers and tables
+ * - Uses box-sizing: border-box for all table elements
+ * - Avoids hard min-widths to allow for theme constraints
+ * 
+ * IMPORTANT: This plugin requires Reading View to function properly.
+ * Live Preview mode is not supported as it may cause layout issues and inconsistent behavior.
+ * Please ensure you are in Reading View when working with OneiroMetrics notes.
+ */
+
+/* OneiroMetrics Main Stylesheet
+ * 
+ * This is the main entry point for all OneiroMetrics styles.
+ * It imports all component-specific stylesheets and variables.
+ */
+
+/* Import variables first to ensure they're available to all components */
+@import 'components/variables.css';
+
+/* Import component stylesheets */
+@import 'components/dream-entries-filters.css';
+@import 'components/buttons.css';
+@import 'components/tables-utilities.css';
+@import 'components/tables-metrics-summary.css';
+@import 'components/tables-dream-entries.css';
+@import 'components/tables-dream-content.css';
+@import 'components/tables-dream-entries-buttons.css';
+@import 'components/theme-overrides.css';
+@import 'components/modals.css';
+@import 'components/multiselect.css';
+@import 'components/settings-metrics-drag-drop.css';
+@import 'components/settings-metrics-icon-picker.css';
+@import 'components/utilities.css';
+@import 'components/responsive.css';
+@import 'components/accessibility.css';

@@ -1,5 +1,5 @@
 // Shared autocomplete utility for OneiroMetrics Selected Notes
-import { App, TFile, Plugin } from 'obsidian';
+import { App, TFile, TFolder, Plugin } from 'obsidian';
 
 interface AutocompleteOptions {
     app: App;
@@ -37,7 +37,7 @@ export function createSelectedNotesAutocomplete({
     document.head.appendChild(style);
 
     const suggestionContainer = containerEl.createEl('div', {
-        cls: 'suggestion-container oom-suggestion-container'
+        cls: 'oom-suggestion-container'
     });
 
     function renderChips() {
@@ -192,6 +192,138 @@ export function createSelectedNotesAutocomplete({
     return {
         input,
         chipsContainer,
+        suggestionContainer
+    };
+}
+
+interface FolderAutocompleteOptions {
+    app: App;
+    plugin: any;
+    containerEl: HTMLElement;
+    selectedFolder: string;
+    onChange: (selected: string) => void;
+}
+
+export function createFolderAutocomplete({
+    app,
+    plugin,
+    containerEl,
+    selectedFolder,
+    onChange
+}: FolderAutocompleteOptions) {
+    const input = containerEl.createEl('input', {
+        type: 'text',
+        cls: 'oom-folder-autocomplete-input',
+        attr: { placeholder: 'Choose folder...' }
+    });
+    input.value = selectedFolder || '';
+    const suggestionContainer = containerEl.createEl('div', {
+        cls: 'oom-suggestion-container'
+    });
+
+    function getFolders(): string[] {
+        const folders: string[] = [];
+        const files = app.vault.getAllLoadedFiles();
+        files.forEach(file => {
+            if (file instanceof TFolder) {
+                folders.push(file.path);
+            }
+        });
+        return folders.sort((a, b) => a.localeCompare(b));
+    }
+
+    function hideSuggestions() {
+        suggestionContainer.classList.remove('visible');
+        suggestionContainer.empty();
+    }
+
+    function showSuggestions(query: string) {
+        const folders = getFolders();
+        const normalizedQuery = query.toLowerCase();
+        const filteredFolders = folders
+            .filter(folder => folder.toLowerCase().includes(normalizedQuery))
+            .slice(0, 10);
+        suggestionContainer.empty();
+        if (filteredFolders.length > 0) {
+            filteredFolders.forEach(folder => {
+                const item = suggestionContainer.createEl('div', {
+                    cls: 'suggestion-item',
+                    attr: { title: folder }
+                });
+                item.textContent = folder;
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    input.value = folder;
+                    onChange(folder);
+                    hideSuggestions();
+                });
+            });
+            suggestionContainer.classList.add('visible');
+            const inputRect = input.getBoundingClientRect();
+            const containerRect = containerEl.getBoundingClientRect();
+            suggestionContainer.style.position = 'absolute';
+            suggestionContainer.style.top = `${input.offsetTop + input.offsetHeight}px`;
+            suggestionContainer.style.left = `${input.offsetLeft}px`;
+            suggestionContainer.style.width = `${input.offsetWidth}px`;
+            suggestionContainer.style.display = 'block';
+        } else {
+            hideSuggestions();
+        }
+    }
+
+    input.addEventListener('input', () => {
+        showSuggestions(input.value);
+        onChange(input.value);
+    });
+    input.addEventListener('focus', () => {
+        showSuggestions(input.value);
+    });
+    input.addEventListener('blur', () => {
+        setTimeout(() => hideSuggestions(), 200);
+    });
+    input.addEventListener('keydown', (e) => {
+        const items = suggestionContainer.querySelectorAll('.suggestion-item');
+        const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                if (currentIndex < items.length - 1) {
+                    items[currentIndex]?.classList.remove('is-selected');
+                    items[currentIndex + 1].classList.add('is-selected');
+                    (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                } else if (items.length > 0 && currentIndex === -1) {
+                    items[0].classList.add('is-selected');
+                    (items[0] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                }
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    items[currentIndex]?.classList.remove('is-selected');
+                    items[currentIndex - 1].classList.add('is-selected');
+                    (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
+                }
+                break;
+            case 'Enter':
+                e.preventDefault();
+                const selectedItem = suggestionContainer.querySelector('.is-selected');
+                if (selectedItem) {
+                    const folder = selectedItem.textContent;
+                    if (folder) {
+                        input.value = folder;
+                        onChange(folder);
+                        hideSuggestions();
+                    }
+                }
+                break;
+            case 'Escape':
+                hideSuggestions();
+                break;
+        }
+    });
+
+    return {
+        input,
         suggestionContainer
     };
 } 

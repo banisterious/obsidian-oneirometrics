@@ -1,47 +1,41 @@
+export type LogLevel = 'off' | 'errors' | 'warn' | 'info' | 'debug' | 'trace';
+
 export interface DreamMetric {
     name: string;
+    icon: string;
     range: {
         min: number;
         max: number;
     };
     description: string;
-    icon?: string;  // Optional Lucide icon name
-    enabled: boolean;  // Whether the metric is enabled by default
+    enabled: boolean;
+    type: string;
+    category: string;
+    format: string;
+    options: string[];
+    min: number;
+    max: number;
+    step: number;
 }
 
-export type LogLevel = 'off' | 'errors' | 'debug';
-
 export interface DreamMetricsSettings {
-    projectNotePath: string;
-    metrics: DreamMetric[];
+    projectNote: string;
+    showNoteButton: boolean;
+    metrics: Record<string, DreamMetric>;
     selectedNotes: string[];
     calloutName: string;
+    selectionMode: 'notes' | 'folder';
+    selectedFolder: string;
+    expandedStates: Record<string, boolean>;
     backupEnabled: boolean;
     backupFolderPath: string;
-    weekStartDay: number; // 0 = Sunday, 1 = Monday
-    readableLineLengthOverride: boolean; // true = full width, false = Obsidian default
-    defaultCalloutMetadata?: string;
-    // Flexible Note/Folder Selection
-    selectionMode?: "notes" | "folder"; // 'notes' (default) or 'folder'
-    selectedFolder?: string; // path to selected folder if in folder mode
-    // Persistent file exclusions per folder
-    _persistentExclusions?: { [folderPath: string]: string[] };
-    // Enabled metrics configuration
-    enabledMetrics: { [metricName: string]: boolean };
-    expandedStates?: string[]; // Array of content IDs that are expanded
+    _persistentExclusions: Record<string, boolean>;
     logging: {
         level: LogLevel;
-        maxLogSize: number;  // in bytes
+        maxLogSize: number;
         maxBackups: number;
     };
 }
-
-// Default logging configuration
-export const DEFAULT_LOGGING = {
-    level: 'off' as LogLevel,
-    maxLogSize: 10000,
-    maxBackups: 5
-};
 
 export interface DreamMetricData {
     date: string;
@@ -51,116 +45,240 @@ export interface DreamMetricData {
         file: string;
         id: string;
     };
-    metrics: {
-        [key: string]: number;
-    };
+    metrics: { [key: string]: number | string };
     calloutMetadata?: string[];
 }
 
 export const DEFAULT_METRICS: DreamMetric[] = [
     {
         name: "Sensory Detail",
-        range: { min: 1, max: 5 },
         description: "Level of sensory information recalled from the dream",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: true,
         icon: "eye",
-        enabled: true
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Emotional Recall",
-        range: { min: 1, max: 5 },
         description: "Level of emotional detail recalled from the dream",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: true,
         icon: "heart",
-        enabled: true
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
+    },
+    {
+        name: "Lost Segments",
+        description: "Number of distinct instances where parts of the dream are missing or forgotten",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: true,
+        icon: "circle-minus",
+        range: { min: 0, max: 10 },
+        options: [],
+        min: 0,
+        max: 10,
+        step: 1
     },
     {
         name: "Descriptiveness",
-        range: { min: 1, max: 5 },
         description: "Level of detail in the dream description",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: true,
         icon: "pen-tool",
-        enabled: true
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Confidence Score",
-        range: { min: 1, max: 5 },
         description: "Confidence level in the completeness of dream recall",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: true,
         icon: "check-circle",
-        enabled: true
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Characters Role",
-        range: { min: 1, max: 5 },
         description: "Significance of familiar characters in the dream narrative",
+        type: "number",
+        category: "character",
+        format: "number",
+        enabled: true,
         icon: "user-cog",
-        enabled: true
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Characters Count",
-        range: { min: 0, max: 0 },
         description: "Total number of characters in the dream",
+        type: "number",
+        category: "character",
+        format: "number",
+        enabled: false,
         icon: "users",
-        enabled: false
+        range: { min: 0, max: 20 },
+        options: [],
+        min: 0,
+        max: 20,
+        step: 1
     },
     {
         name: "Familiar Count",
-        range: { min: 0, max: 0 },
         description: "Number of familiar characters in the dream",
+        type: "number",
+        category: "character",
+        format: "number",
+        enabled: false,
         icon: "user-check",
-        enabled: false
+        range: { min: 0, max: 20 },
+        options: [],
+        min: 0,
+        max: 20,
+        step: 1
     },
     {
         name: "Unfamiliar Count",
-        range: { min: 0, max: 0 },
         description: "Number of unfamiliar characters in the dream",
+        type: "number",
+        category: "character",
+        format: "number",
+        enabled: false,
         icon: "user-x",
-        enabled: false
+        range: { min: 0, max: 20 },
+        options: [],
+        min: 0,
+        max: 20,
+        step: 1
     },
     {
         name: "Characters List",
-        range: { min: 0, max: 0 },
         description: "List of all characters that appeared in the dream",
+        type: "string",
+        category: "character",
+        format: "string",
+        enabled: false,
         icon: "users-round",
-        enabled: false
+        range: { min: 0, max: 0 },
+        options: [],
+        min: 0,
+        max: 0,
+        step: 1
     },
     {
         name: "Dream Theme",
-        range: { min: 0, max: 0 },
         description: "Dominant themes or subjects in the dream",
+        type: "string",
+        category: "theme",
+        format: "string",
+        enabled: false,
         icon: "sparkles",
-        enabled: false
+        range: { min: 0, max: 0 },
+        options: [],
+        min: 0,
+        max: 0,
+        step: 1
     },
     {
         name: "Lucidity Level",
-        range: { min: 1, max: 5 },
         description: "Level of awareness that you are dreaming",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: false,
         icon: "wand-2",
-        enabled: false
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Dream Coherence",
-        range: { min: 1, max: 5 },
         description: "How well-connected and logical the dream narrative is",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: false,
         icon: "link",
-        enabled: false
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Setting Familiarity",
-        range: { min: 1, max: 5 },
         description: "How familiar the dream setting is to you",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: false,
         icon: "glasses",
-        enabled: false
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Ease of Recall",
-        range: { min: 1, max: 5 },
         description: "How easily the dream came to mind upon waking",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: false,
         icon: "zap",
-        enabled: false
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     },
     {
         name: "Recall Stability",
-        range: { min: 1, max: 5 },
         description: "How well the dream memory has held up over time",
+        type: "number",
+        category: "dream",
+        format: "number",
+        enabled: false,
         icon: "layers",
-        enabled: false
+        range: { min: 1, max: 5 },
+        options: [],
+        min: 1,
+        max: 5,
+        step: 1
     }
-]; 
+];
+console.log('[OneiroMetrics] DEFAULT_METRICS at definition:', DEFAULT_METRICS.map(m => `${m.name}: ${m.enabled}`));
+
+export const DEFAULT_LOGGING = {
+    level: 'info' as LogLevel,
+    maxLogSize: 5 * 1024 * 1024, // 5MB
+    maxBackups: 5
+}; 

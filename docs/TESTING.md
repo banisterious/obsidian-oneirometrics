@@ -1189,3 +1189,8 @@ If you find any issues or have suggestions for improvements, please open an issu
 - Results: Virtualization improved scrolling, but expand/collapse delay persists even with short content.
 - Next Steps: Further isolate expand/collapse handler logic, consider alternative strategies for content toggling.
 - See attached screenshots and logs for details.
+
+## [May 2025] Settings Page Regression
+- Regression found: metrics not grouped, not editable, enabled state not preserved.
+- Fix verified: grouping, editing, and enabled state now work as intended.
+- SPECIFICATION.md updated to reflect the new UI and features.
