@@ -1,9 +1,8 @@
 import { App } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../types';
 import { DateRangeFilter } from '../filters/DateRangeFilter';
-import { TimeFilterDialog } from '../filters/TimeFilterDialog';
-import { TimeFilterState } from '../filters/TimeFilterState';
+import { OneiroMetricsEvents } from '../events';
+import { DreamMetricData } from '../types';
 
 export class DreamMetricsDOM {
     private container: HTMLElement;
@@ -11,23 +10,18 @@ export class DreamMetricsDOM {
     private app: App;
     private cleanupFunctions: (() => void)[] = [];
     private dateRangeFilter: DateRangeFilter;
-    private timeFilterState: TimeFilterState;
-    private VISIBLE_ROWS = 12;
-    private ROW_HEIGHT = 40; // px
+    private VISIBLE_ROWS = 20;
+    private ROW_HEIGHT = 50; // px
     private scrollToRowId: string | null = null;
     private expandedRows: Set<string> = new Set();
+    private events: OneiroMetricsEvents;
 
-    constructor(container: HTMLElement, state: DreamMetricsState, app: App) {
-        this.app.workspace.trigger('oneirometrics:debug', {
-            event: 'DreamMetricsDOM constructor called',
-            timestamp: new Date().toISOString(),
-            stack: new Error().stack
-        });
+    constructor(app: App, container: HTMLElement, state: DreamMetricsState) {
+        this.app = app;
         this.container = container;
         this.state = state;
-        this.app = app;
         this.dateRangeFilter = new DateRangeFilter(state);
-        this.timeFilterState = new TimeFilterState(state);
+        this.events = OneiroMetricsEvents.getInstance();
     }
 
     public render(): void {
@@ -45,12 +39,6 @@ export class DreamMetricsDOM {
 
         // Render metrics table
         this.renderMetricsTable();
-
-        // Subscribe to state changes
-        // this.state.subscribe(() => {
-        //     this.renderMetricsTable();
-        // });
-        // (Commented out for diagnostics: prevents automatic table re-renders on state changes)
     }
 
     private renderFilters(): void {
@@ -58,17 +46,6 @@ export class DreamMetricsDOM {
         
         // Render date range filter
         this.dateRangeFilter.render(filterContainer);
-        
-        // Add time filter button
-        const timeFilterButton = filterContainer.createEl('button', {
-            text: 'Time Filter',
-            cls: 'oom-button oom-button--secondary'
-        });
-        
-        timeFilterButton.addEventListener('click', () => {
-            const dialog = new TimeFilterDialog(this.app, this.timeFilterState);
-            dialog.open();
-        });
     }
 
     private renderMetricsTable(): void {
@@ -77,14 +54,18 @@ export class DreamMetricsDOM {
             timestamp: new Date().toISOString(),
             stack: new Error().stack
         });
-        const tableContainer = this.container.createDiv('oom-table-container');
-        const table = tableContainer.createEl('table', { cls: 'oom-table' });
-        
-        // Render table header
-        this.renderTableHeader(table);
-        
-        // Render table body
-        this.renderTableBody(table);
+
+        // Use requestAnimationFrame to batch DOM updates
+        requestAnimationFrame(() => {
+            const tableContainer = this.container.createDiv('oom-table-container');
+            const table = tableContainer.createEl('table', { cls: 'oom-table' });
+            
+            // Render table header
+            this.renderTableHeader(table);
+            
+            // Render table body
+            this.renderTableBody(table);
+        });
     }
 
     private renderTableHeader(table: HTMLElement): void {
@@ -117,87 +98,111 @@ export class DreamMetricsDOM {
         const oldTbody = table.querySelector('tbody');
         if (oldTbody) oldTbody.remove();
 
+        // Create new tbody
         const tbody = table.createEl('tbody');
         const entries = this.state.getDreamEntries();
         const totalRows = entries.length;
 
-        // Spacer rows
-        const spacerTop = document.createElement('tr');
-        const spacerBottom = document.createElement('tr');
+        // Create a single container for all rows
+        const rowsContainer = document.createElement('div');
+        rowsContainer.style.position = 'relative';
+        rowsContainer.style.height = `${totalRows * this.ROW_HEIGHT}px`;
+        tbody.appendChild(rowsContainer);
 
-        // Debounce scroll handler
+        // Create a single row template
+        const rowTemplate = document.createElement('tr');
+        rowTemplate.className = 'oom-dream-row';
+        rowTemplate.style.position = 'absolute';
+        rowTemplate.style.width = '100%';
+        rowTemplate.style.height = `${this.ROW_HEIGHT}px`;
+        rowTemplate.style.display = 'none';
+        rowsContainer.appendChild(rowTemplate);
+
+        // Debounce scroll handler with RAF
         let scrollTimeout: number | null = null;
+        let isScrolling = false;
+        let lastScrollTop = 0;
+        let currentStartIdx = 0;
+
         const debouncedScroll = () => {
-            this.app.workspace.trigger('oneirometrics:debug', {
-                event: 'Scroll event fired',
-                timestamp: new Date().toISOString(),
-                scrollTimeout: scrollTimeout !== null,
-                stack: new Error().stack
-            });
             if (scrollTimeout) {
-                window.clearTimeout(scrollTimeout);
+                window.cancelAnimationFrame(scrollTimeout);
             }
-            scrollTimeout = window.setTimeout(() => {
-                renderVisibleRows();
-                scrollTimeout = null;
-            }, 16); // ~60fps
+            if (!isScrolling) {
+                isScrolling = true;
+                scrollTimeout = window.requestAnimationFrame(() => {
+                    const container = table.parentElement as HTMLElement;
+                    if (container) {
+                        const scrollTop = container.scrollTop;
+                        const newStartIdx = Math.floor(scrollTop / this.ROW_HEIGHT);
+                        
+                        // Only update if we've scrolled at least one row
+                        if (newStartIdx !== currentStartIdx) {
+                            currentStartIdx = newStartIdx;
+                            updateVisibleRows();
+                        }
+                    }
+                    isScrolling = false;
+                    scrollTimeout = null;
+                });
+            }
         };
 
-        // Helper to render visible rows
-        const renderVisibleRows = () => {
-            this.app.workspace.trigger('oneirometrics:debug', {
-                event: 'renderVisibleRows called',
-                timestamp: new Date().toISOString(),
-                scrollToRowId: this.scrollToRowId,
-                stack: new Error().stack
-            });
+        // Helper to update visible rows
+        const updateVisibleRows = () => {
+            const endIdx = Math.min(currentStartIdx + this.VISIBLE_ROWS, totalRows);
+            const fragment = document.createDocumentFragment();
 
-            tbody.innerHTML = '';
-            const container = table.parentElement as HTMLElement;
-            const scrollTop = container ? container.scrollTop : 0;
-            const startIdx = Math.floor(scrollTop / this.ROW_HEIGHT);
-            const endIdx = Math.min(startIdx + this.VISIBLE_ROWS, totalRows);
-
-            // Spacer above
-            spacerTop.style.height = `${startIdx * this.ROW_HEIGHT}px`;
-            tbody.appendChild(spacerTop);
-
-            // Only process visible rows (startIdx to endIdx)
-            for (let i = startIdx; i < endIdx; i++) {
+            // Create visible rows
+            for (let i = currentStartIdx; i < endIdx; i++) {
                 const entry = entries[i];
-                const row = tbody.createEl('tr', { 
-                    cls: 'oom-dream-row',
-                    attr: { 'data-source': entry.source }
-                });
+                const row = rowTemplate.cloneNode(true) as HTMLElement;
+                row.style.display = 'table-row';
+                row.style.top = `${i * this.ROW_HEIGHT}px`;
+                row.setAttribute('data-source', entry.source);
+
                 // Add date cell
-                const dateCell = row.createEl('td');
+                const dateCell = document.createElement('td');
                 dateCell.textContent = new Date(entry.date).toLocaleDateString();
+                row.appendChild(dateCell);
+
                 // Add metric cells
                 const metrics = this.state.getMetrics();
                 Object.entries(metrics).forEach(([key, metric]) => {
-                    const cell = row.createEl('td');
+                    const cell = document.createElement('td');
                     const value = entry.metrics[key];
                     cell.textContent = value !== undefined ? value.toString() : '-';
-                });
-                // Add content cell
-                const contentCell = row.createEl('td', { cls: 'oom-content-cell' });
-                const contentWrapper = contentCell.createDiv('oom-content-wrapper');
-                const preview = contentWrapper.createDiv('oom-content-preview');
-                preview.textContent = entry.content.substring(0, 100) + '...';
-                const fullContent = contentWrapper.createDiv('oom-content-full');
-                fullContent.textContent = entry.content;
-                const expandButton = contentCell.createEl('button', {
-                    cls: 'oom-button oom-button--expand',
-                    text: this.expandedRows.has(entry.source) ? 'Show less' : 'Read more',
-                    attr: {
-                        'data-content-id': entry.source,
-                        'data-expanded': this.expandedRows.has(entry.source) ? 'true' : 'false',
-                        'aria-expanded': this.expandedRows.has(entry.source) ? 'true' : 'false',
-                        'aria-label': 'Toggle dream content visibility'
-                    }
+                    row.appendChild(cell);
                 });
 
-                // Attach expand/collapse event listener ONLY to this new button
+                // Add content cell
+                const contentCell = document.createElement('td');
+                contentCell.className = 'oom-content-cell';
+                
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'oom-content-wrapper';
+                
+                const preview = document.createElement('div');
+                preview.className = 'oom-content-preview';
+                preview.textContent = entry.content.substring(0, 100) + '...';
+                contentWrapper.appendChild(preview);
+                
+                const fullContent = document.createElement('div');
+                fullContent.className = 'oom-content-full';
+                fullContent.textContent = entry.content;
+                contentWrapper.appendChild(fullContent);
+                
+                contentCell.appendChild(contentWrapper);
+
+                const expandButton = document.createElement('button');
+                expandButton.className = 'oom-button oom-button--expand';
+                expandButton.textContent = this.expandedRows.has(entry.source) ? 'Show less' : 'Read more';
+                expandButton.setAttribute('data-content-id', entry.source);
+                expandButton.setAttribute('data-expanded', this.expandedRows.has(entry.source) ? 'true' : 'false');
+                expandButton.setAttribute('aria-expanded', this.expandedRows.has(entry.source) ? 'true' : 'false');
+                expandButton.setAttribute('aria-label', 'Toggle dream content visibility');
+
+                // Attach expand/collapse event listener
                 expandButton.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -205,48 +210,46 @@ export class DreamMetricsDOM {
                     this.updateContentVisibility(entry.source, !isExpanded);
                 });
 
+                contentCell.appendChild(expandButton);
+                row.appendChild(contentCell);
+
                 if (this.expandedRows.has(entry.source)) {
                     contentWrapper.classList.add('expanded');
                 }
-            }
-            // Spacer below
-            spacerBottom.style.height = `${(totalRows - endIdx) * this.ROW_HEIGHT}px`;
-            tbody.appendChild(spacerBottom);
 
-            // --- PATCH: Scroll to row if requested ---
+                fragment.appendChild(row);
+            }
+
+            // Update DOM in a single operation
+            rowsContainer.innerHTML = '';
+            rowsContainer.appendChild(fragment);
+
+            // Handle scroll to row if needed
             if (this.scrollToRowId) {
-                const row = tbody.querySelector(`tr[data-source="${this.scrollToRowId}"]`);
+                const row = rowsContainer.querySelector(`tr[data-source="${this.scrollToRowId}"]`);
                 const container = table.parentElement as HTMLElement;
                 if (row instanceof HTMLElement && container) {
-                    const rowRect = row.getBoundingClientRect();
-                    const containerRect = container.getBoundingClientRect();
-                    if (rowRect.bottom > containerRect.bottom) {
-                        const scrollDelta = rowRect.bottom - containerRect.bottom;
-                        const maxScroll = container.scrollHeight - container.clientHeight;
-                        let newScrollTop = container.scrollTop + scrollDelta;
-                        if (newScrollTop > maxScroll) newScrollTop = maxScroll;
-                        container.scrollTo({ top: newScrollTop, behavior: 'smooth' });
-                    } else if (rowRect.top < containerRect.top) {
-                        container.scrollTo({ top: container.scrollTop + (rowRect.top - containerRect.top), behavior: 'smooth' });
+                    const idx = entries.findIndex(e => e.source === this.scrollToRowId);
+                    if (idx !== -1) {
+                        const containerHeight = container.clientHeight;
+                        const scrollTop = Math.max(0, idx * this.ROW_HEIGHT - containerHeight / 2);
+                        container.scrollTo({ top: scrollTop, behavior: 'smooth' });
                     }
                 }
                 this.scrollToRowId = null;
             }
-            // --- END PATCH ---
         };
 
         // Attach scroll handler to the table's container
         const container = table.parentElement as HTMLElement;
         if (container) {
             container.onscroll = debouncedScroll;
-            // Ensure container is scrollable and has fixed height
             container.style.overflowY = 'auto';
             container.style.maxHeight = `${this.ROW_HEIGHT * this.VISIBLE_ROWS}px`;
         }
 
         // Initial render
-        renderVisibleRows();
-        // NOTE: No global event listener attachment outside of renderVisibleRows.
+        updateVisibleRows();
     }
 
     public updateContentVisibility(id: string, isExpanded: boolean): void {
@@ -284,7 +287,6 @@ export class DreamMetricsDOM {
                 expandButton.setAttribute('aria-expanded', isExpanded.toString());
             }
         }
-        // Do NOT trigger a full table re-render here
     }
 
     public cleanup(): void {

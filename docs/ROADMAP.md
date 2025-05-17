@@ -109,6 +109,8 @@ These features are under consideration but not yet planned for implementation. T
 - Some features may be combined or split during development
 - All features are subject to change
 
+For details and open questions about the custom date range picker, see [DATE_RANGE_PICKER_PLAN.md](DATE_RANGE_PICKER_PLAN.md).
+
 ---
 
 *Last updated: May 2024* 

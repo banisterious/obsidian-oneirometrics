@@ -57,8 +57,8 @@ export default class DreamMetricsPlugin extends Plugin {
         const container = document.createElement('div');
         container.addClass('dream-metrics-container');
 
-        // Initialize DOM and Events
-        this.dom = new DreamMetricsDOM(container, this.state, this.app);
+        // Initialize DOM
+        this.dom = new DreamMetricsDOM(this.app, container, this.state);
         this.events = new DreamMetricsEvents(this.state, this.dom);
 
         // Process and display metrics

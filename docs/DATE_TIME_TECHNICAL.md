@@ -496,30 +496,6 @@ function isValidDate(date: Date): boolean {
 }
 ```
 
-### Time Filter System
-
-1. **Filter Types**
-   - All Time
-   - Last Month
-   - Last Week
-   - Today
-   - Yesterday
-   - This Week
-   - Custom Range
-
-2. **Calendar Preview**
-   - Visual calendar for date selection
-   - Current month display
-   - Selected dates highlighting
-   - Today's date marking
-   - Multi-month view (planned)
-
-3. **Accessibility Features**
-   - Keyboard navigation
-   - Screen reader support
-   - High contrast mode
-   - Reduced motion preferences
-
 ## Planned Improvements
 
 ### 1. Enhanced Date Parsing

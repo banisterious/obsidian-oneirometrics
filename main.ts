@@ -6,7 +6,6 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 import { DEFAULT_METRICS, DreamMetricData, LogLevel, DEFAULT_LOGGING, DreamMetric, DreamMetricsSettings } from './types';
 import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
-import { TimeFilterView, TIME_FILTER_VIEW_TYPE } from './src/TimeFilterView';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
@@ -419,107 +418,6 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             })
         );
-
-        // Register the time filter view
-        this.registerView(
-            TIME_FILTER_VIEW_TYPE,
-            (leaf) => new TimeFilterView(leaf)
-        );
-
-        // Add ribbon icon for time filter
-        this.addRibbonIcon('calendar', 'Time Filter', () => {
-            this.activateView();
-        });
-
-        // Add command to open time filter
-        this.addCommand({
-            id: 'open-time-filter',
-            name: 'Open Time Filter',
-            callback: () => {
-                this.activateView();
-            }
-        });
-
-        // Register time filter commands
-        this.addCommand({
-            id: 'set-today-filter',
-            name: 'Set filter to Today',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    view.getFilterManager().setFilter('today');
-                }
-            }
-        });
-
-        this.addCommand({
-            id: 'set-yesterday-filter',
-            name: 'Set filter to Yesterday',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    view.getFilterManager().setFilter('yesterday');
-                }
-            }
-        });
-
-        this.addCommand({
-            id: 'set-this-week-filter',
-            name: 'Set filter to This Week',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    view.getFilterManager().setFilter('thisWeek');
-                }
-            }
-        });
-
-        this.addCommand({
-            id: 'set-last-week-filter',
-            name: 'Set filter to Last Week',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    view.getFilterManager().setFilter('lastWeek');
-                }
-            }
-        });
-
-        this.addCommand({
-            id: 'set-this-month-filter',
-            name: 'Set filter to This Month',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    view.getFilterManager().setFilter('thisMonth');
-                }
-            }
-        });
-
-        this.addCommand({
-            id: 'set-last-month-filter',
-            name: 'Set filter to Last Month',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    view.getFilterManager().setFilter('lastMonth');
-                }
-            }
-        });
-
-        this.addCommand({
-            id: 'open-custom-date-range',
-            name: 'Open Custom Date Range',
-            callback: () => {
-                const view = this.app.workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0]?.view as TimeFilterView;
-                if (view) {
-                    new CustomDateRangeModal(this.app, (start, end) => {
-                        const filter = view.getFilterManager().addCustomFilter(start, end);
-                        view.getFilterManager().setFilter(filter.id);
-                    }).open();
-                }
-            }
-        });
 
         // Add commands for log management
         this.addCommand({
@@ -1112,14 +1010,30 @@ export default class DreamMetricsPlugin extends Plugin {
         const dreamMetrics: Record<string, number> = {};
         const metricPairs = metricsText.split(',').map(pair => pair.trim());
         
+        console.log('[OneiroMetrics] Processing metrics text:', metricsText);
+        
         for (const pair of metricPairs) {
             const [name, value] = pair.split(':').map(s => s.trim());
             if (name && value !== '—' && !isNaN(Number(value))) {
                 const numValue = Number(value);
-                dreamMetrics[name] = numValue;
+                // Find the matching metric name from settings (case-insensitive)
+                const metricName = Object.values(this.settings.metrics).find(
+                    m => m.name.toLowerCase() === name.toLowerCase()
+                )?.name || name;
+                
+                dreamMetrics[metricName] = numValue;
+                
+                // Update global metrics record
+                if (!metrics[metricName]) {
+                    metrics[metricName] = [];
+                }
+                metrics[metricName].push(numValue);
+                
+                console.log(`[OneiroMetrics] Processed metric: ${metricName} = ${numValue}`);
             }
         }
         
+        console.log('[OneiroMetrics] Final dream metrics:', dreamMetrics);
         return dreamMetrics;
     }
 
@@ -1418,26 +1332,23 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<option value="thisYear">This Year</option>\n';
         content += '<option value="last12months">Last 12 Months</option>\n';
         content += '</select>\n';
-        content += '<button id="oom-time-filter-btn" class="oom-button">Time Filters</button>\n';
-        content += '</div>\n';
         content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
         content += '</div>\n';
 
         content += '<div class="oom-table-section">\n';
         content += '<table class="oom-table">\n';
         content += '<thead>\n<tr>\n';
-        content += '<th>Date</th>\n';
-        content += '<th>Dream Title</th>\n';
-        content += '<th>Words</th>\n';
-        content += '<th>Content</th>\n';
-        
+        content += '<th class="column-date">Date</th>\n';
+        content += '<th class="column-dream-title">Dream Title</th>\n';
+        content += '<th class="column-words">Words</th>\n';
+        content += '<th class="column-content">Content</th>\n';
         // Add metric columns
         for (const metric of Object.values(this.settings.metrics)) {
             if (metric.enabled) {
-                content += `<th>${metric.name}</th>\n`;
+                const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, '-')}`;
+                content += `<th class=\"${metricClass}\">${metric.name}</th>\n`;
             }
         }
-        
         content += '</tr>\n</thead>\n<tbody>\n';
 
         // Sort entries by date
@@ -1448,65 +1359,40 @@ export default class DreamMetricsPlugin extends Plugin {
         });
 
         for (const entry of dreamEntries) {
-            content += `<tr class="oom-dream-row" data-date="${entry.date}">\n`;
-            
-            // Format date
-            let formattedDate = 'Invalid Date';
-            try {
-                const parsedDate = this.parseDate(entry.date);
-                if (!isNaN(parsedDate.getTime())) {
-                    formattedDate = parsedDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                }
-            } catch (e) {
-                console.error(`[OneiroMetrics] Error formatting date ${entry.date}:`, e);
-            }
-            content += `<td>${formattedDate}</td>\n`;
-            
-            // Create note link with block reference
-            const noteLink = entry.source.file.replace(/\.md$/, '');
-            const blockRef = entry.source.id ? `#^${entry.source.id}` : '';
-            const fullLink = `${noteLink}${blockRef}`;
-            content += `<td class="oom-dream-title"><a href="${fullLink}" data-href="${fullLink}" class="internal-link" data-link-type="block" data-link-path="${noteLink}" data-link-hash="${blockRef}" title="${entry.title}">${entry.title}</a></td>\n`;
-            content += `<td class="metric-value">${entry.metrics['Words'] || 0}</td>\n`;
-
-            // Process dream content for display
+            content += `<tr class=\"oom-dream-row\" data-date=\"${entry.date}\">\n`;
+            // Date
+            content += `<td class=\"column-date\">${this.formatDate(this.parseDate(entry.date))}</td>\n`;
+            // Dream Title
+            content += `<td class=\"oom-dream-title column-dream-title\"><a href=\"${entry.source.file.replace(/\.md$/, '')}#${entry.source.id}\" data-href=\"${entry.source.file.replace(/\.md$/, '')}#${entry.source.id}\" class=\"internal-link\" data-link-type=\"block\" data-link-path=\"${entry.source.file.replace(/\.md$/, '')}\" data-link-hash=\"${entry.source.id}\" title=\"${entry.title}\">${entry.title}</a></td>\n`;
+            // Words
+            content += `<td class=\"column-words\">${entry.metrics['Words'] || 0}</td>\n`;
+            // Content
             let dreamContent = this.processDreamContent(entry.content);
             if (!dreamContent || !dreamContent.trim()) {
                 dreamContent = '';
             }
-
+            const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}`;
+            const preview = dreamContent.length > 200 ? dreamContent.substring(0, 200) + '...' : dreamContent;
             if (dreamContent.length > 200) {
-                const preview = dreamContent.substring(0, 200) + '...';
-                const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, '')}`;
-                content += `<td class="oom-dream-content" id="${cellId}">
-                    <div class="oom-content-wrapper">
-                        <div class="oom-content-preview">${preview}</div>
-                        <div class="oom-content-full">${dreamContent}</div>
-                        <button type="button" class="oom-button oom-button--expand oom-button--state-default" 
-                                aria-expanded="false" 
-                                aria-controls="${cellId}" 
-                                data-expanded="false"
-                                data-content-id="${cellId}"
-                                data-parent-cell="${cellId}">
-                            <span class="oom-button-text">Show more</span>
-                            <span class="oom-button-icon">▼</span>
-                            <span class="visually-hidden"> full dream content</span>
-                        </button>
-                    </div>
-                </td>\n`;
+                content += `<td class=\"oom-dream-content column-content\" id=\"${cellId}\">` +
+                    `<div class=\"oom-content-wrapper\">` +
+                    `<div class=\"oom-content-preview\">${preview}</div>` +
+                    `<div class=\"oom-content-full\">${dreamContent}</div>` +
+                    `<button type=\"button\" class=\"oom-button oom-button--expand oom-button--state-default\" aria-expanded=\"false\" aria-controls=\"${cellId}\" data-expanded=\"false\" data-content-id=\"${cellId}\" data-parent-cell=\"${cellId}\">` +
+                    `<span class=\"oom-button-text\">Show more</span>` +
+                    `<span class=\"oom-button-icon\">▼</span>` +
+                    `<span class=\"visually-hidden\"> full dream content</span>` +
+                    `</button>` +
+                    `</div></td>\n`;
             } else {
-                content += `<td class="oom-dream-content"><div class="oom-content-wrapper"><div class="oom-content-preview">${dreamContent}</div></div></td>\n`;
+                content += `<td class=\"oom-dream-content column-content\"><div class=\"oom-content-wrapper\"><div class=\"oom-content-preview\">${dreamContent}</div></div></td>\n`;
             }
-
-            // Add metric values
+            // Metric values
             for (const metric of Object.values(this.settings.metrics)) {
                 if (metric.enabled) {
+                    const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, '-')}`;
                     const value = entry.metrics[metric.name];
-                    content += `<td class="metric-value" data-metric="${metric.name}">${value !== undefined ? value : ''}</td>\n`;
+                    content += `<td class=\"metric-value ${metricClass}\" data-metric=\"${metric.name}\">${value !== undefined ? value : ''}</td>\n`;
                 }
             }
             content += '</tr>\n';
@@ -1850,27 +1736,6 @@ export default class DreamMetricsPlugin extends Plugin {
             filterDisplay.setAttribute('title', `Total Entries: ${totalEntries}\nVisible: ${visibleCount}\nHidden: ${hiddenCount}\nInvalid Dates: ${invalidDates}\nOut of Range: ${outOfRangeDates}\nFilter Type: ${dateRange}\nApplied: ${new Date().toLocaleTimeString()}`);
             filterDisplay.classList.add('oom-filter-display--updated');
             setTimeout(() => filterDisplay.classList.remove('oom-filter-display--updated'), 500);
-        }
-    }
-
-    async activateView() {
-        const { workspace } = this.app;
-        
-        let leaf = workspace.getLeavesOfType(TIME_FILTER_VIEW_TYPE)[0];
-        
-        if (!leaf) {
-            const newLeaf = workspace.getRightLeaf(false);
-            if (newLeaf) {
-                await newLeaf.setViewState({
-                    type: TIME_FILTER_VIEW_TYPE,
-                    active: true,
-                });
-                leaf = newLeaf;
-            }
-        }
-        
-        if (leaf) {
-            workspace.revealLeaf(leaf);
         }
     }
 

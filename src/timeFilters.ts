@@ -90,6 +90,7 @@ export class TimeFilterManager {
     private currentFilter: TimeFilter | null = null;
     private customFilters: Map<string, TimeFilter> = new Map();
     private readonly storageKey = 'oneirometrics-time-filter';
+    public onFilterChange: ((filter: TimeFilter) => void) | null = null;
 
     constructor() {
         this.loadCurrentFilter();
@@ -185,6 +186,9 @@ export class TimeFilterManager {
         if (filter) {
             this.currentFilter = filter;
             this.saveCurrentFilter();
+            if (this.onFilterChange) {
+                this.onFilterChange(filter);
+            }
         }
     }
 
@@ -207,6 +211,9 @@ export class TimeFilterManager {
         this.customFilters.set(id, filter);
         this.currentFilter = filter;
         this.saveCurrentFilter();
+        if (this.onFilterChange) {
+            this.onFilterChange(filter);
+        }
         return filter;
     }
 
@@ -240,6 +247,9 @@ export class TimeFilterManager {
         this.customFilters.set(customFilter.id, customFilter);
         this.currentFilter = customFilter;
         this.saveCurrentFilter();
+        if (this.onFilterChange) {
+            this.onFilterChange(customFilter);
+        }
     }
 }
 
