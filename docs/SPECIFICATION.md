@@ -18,11 +18,14 @@
 
 ## Overview
 
-The OneiroMetrics plugin is designed to help users track and analyze metrics from their dream journal entries in Obsidian. This document outlines the technical specifications and implementation details.
+OneiroMetrics is an Obsidian plugin designed to analyze dream journal entries and provide detailed metrics and insights. This document outlines the technical specifications, requirements, and implementation details.
 
 ## Core Components
 
-### 1. Plugin Structure
+### 1. View Mode Requirements
+OneiroMetrics is designed to work exclusively with Reading View mode in Obsidian. For detailed information about view mode requirements, limitations, and future enhancements, please refer to the [View Mode Requirements](VIEW_MODE.md) document.
+
+### 2. Plugin Structure
 
 ```
 dream-metrics/
@@ -36,7 +39,7 @@ dream-metrics/
 └── docs/              # Documentation
 ```
 
-### 2. Data Structures
+### 3. Data Structures
 
 #### DreamMetric Interface
 ```typescript
@@ -76,7 +79,7 @@ interface DreamMetricData {
 }
 ```
 
-### 3. Callout Format
+### 4. Callout Format
 
 Dream metrics are stored in Obsidian callout blocks with the following format:
 
@@ -91,7 +94,7 @@ Example:
 > Words: 343, Sensory Detail: 3, Emotional Recall: 3, Lost Segments: 3, Descriptiveness: 4, Confidence Score: 4
 ```
 
-### 4. Project Note Format
+### 5. Project Note Format
 
 The project note is generated with two main sections:
 
@@ -501,6 +504,8 @@ The Scraping Modal must follow this DOM structure and class naming. All fields a
 
 ### Scraping Modal Overhaul (May 2025)
 
+> **For user instructions on using the Scraping Modal and accessing settings, see [USAGE.md](USAGE.md).**
+
 The Scraping Modal was overhauled to restore and improve its advanced features and user experience:
 
 - **Design:**
@@ -522,3 +527,42 @@ The Scraping Modal was overhauled to restore and improve its advanced features a
 Below is a full screenshot of the OneiroMetrics settings page, showing all available options and layout:
 
 ![OneiroMetrics Settings Page](images/oom-settings-page-01.png)
+
+### 1. Settings Management (Technical)
+
+The settings system in OneiroMetrics is designed for flexibility, extensibility, and robust validation. This section covers the technical structure and implementation of settings.
+
+#### Data Structures
+- All settings are stored in a single `DreamMetricsSettings` object (see types.ts for the full interface).
+- Key properties include:
+  - `projectNotePath`: Path to the metrics note
+  - `metrics`: Array of metric definitions (see below)
+  - `selectedNotes`: Array of note paths for scraping
+  - `calloutName`: Custom callout name for metrics
+  - `weekStartDay`: Integer (0-6) for week start
+  - `overrideReadableLineLength`: Boolean for table width
+  - UI toggles for ribbon buttons
+- Each metric is an object with:
+  - `name`, `icon`, `range`, `description`, `enabled`
+
+#### UI Architecture
+- Settings UI is built using Obsidian's `Setting` API
+- Sections are grouped for clarity: Buttons, Note/Callout, File/Folder, Metrics, Advanced
+- Metrics are grouped into Enabled/Disabled for real-time management
+- Icon picker uses Lucide icons and supports search
+- All changes are persisted immediately
+- Settings UI is synchronized with plugin state
+
+#### Persistence & Validation
+- Settings are saved to Obsidian's plugin data store
+- Real-time validation for all fields (paths, metric names, ranges)
+- Invalid input is highlighted and rejected
+- Backups are created before overwriting project notes
+- Import/export options use JSON for portability
+
+#### Extensibility
+- New settings can be added by extending the `DreamMetricsSettings` interface
+- UI sections are modular for easy addition of new features
+- Validation logic is centralized for maintainability
+
+> **User-facing instructions for configuring settings are in [USAGE.md](USAGE.md).**

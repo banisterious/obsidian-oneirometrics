@@ -2,16 +2,31 @@
 
 ## Quick Start
 
-1. Install the plugin from the Obsidian Community Plugins
-2. Open Settings > Community Plugins > OneiroMetrics
-3. Configure your metrics and project note path
-4. Add dream metrics to your notes using the callout format
-5. Use the ribbon icon or command palette to analyze your dreams
-6. **Important**: Always use Reading View mode when working with OneiroMetrics notes
+1. **Enable the Plugin**
+   - Open Obsidian Settings
+   - Go to Community Plugins
+   - Enable OneiroMetrics
+
+2. **View Mode Requirements**
+   - OneiroMetrics requires Reading View mode
+   - See [View Mode Requirements](VIEW_MODE.md) for detailed information
+   - Switch to Reading View using the button in the top-right corner
+
+3. **Add Dream Metrics**
+   - Open a dream journal entry
+   - Click the "Add Dream Metrics" button in the ribbon
+   - Select metrics to add
+   - Click "Add Selected Metrics"
 
 ## View Mode Requirements
 
-OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies. The plugin will show a notice when you open a OneiroMetrics note in Live Preview mode.
+OneiroMetrics is designed to work exclusively with Reading View mode in Obsidian. For detailed information about view mode requirements, limitations, and future enhancements, please refer to the [View Mode Requirements](VIEW_MODE.md) document.
+
+### Quick Reference
+- Always use Reading View mode for optimal functionality
+- Switch to Reading View using the button in the top-right corner
+- Enable "Default to Reading View" in Obsidian settings if desired
+- See [View Mode Requirements](VIEW_MODE.md) for best practices and technical details
 
 ### Future Enhancements
 
@@ -205,6 +220,8 @@ date: 2025-05-06
    - Update the metrics table
    - Preserve any content before/after the table
 
+> **Tip:** The Dream Scrape modal includes a **Settings** button next to the Scrape button for quick access to plugin settings.
+
 ### Metrics Table
 The generated table includes two main sections:
 
@@ -328,4 +345,42 @@ The plugin maintains your preferences across sessions, including expanded/collap
 - Check the plugin settings for configuration options
 - Review the validation messages for specific issues
 - Visit the GitHub repository for updates and support
-- Check the console for detailed error messages 
+- Check the console for detailed error messages
+
+## Settings
+
+OneiroMetrics provides a comprehensive settings page for configuring how your dream metrics are tracked, displayed, and analyzed.
+
+### Accessing Settings
+You can access the OneiroMetrics settings in several ways:
+- **Dream Scrape modal:** Click the 'Settings' button next to 'Scrape Metrics'.
+- **OneiroMetrics note:** Click the 'Settings' button at the top of the metrics note.
+- **Command palette:** Press Ctrl/Cmd + P and type "OneiroMetrics Settings".
+- **Ribbon icon:** Right-click the wand icon in the sidebar and select settings.
+
+### Settings Sections
+
+#### 1. OneiroMetrics Buttons
+- Toggle the visibility of the Dream Scrape and Note buttons in the ribbon.
+- Each toggle is labeled with an icon for clarity.
+
+#### 2. Metrics Note and Callout Name
+- **OneiroMetrics Note:** Set the path to the note where your metrics table will be written.
+- **Metrics Callout Name:** Customize the callout name used for dream metrics in your journal entries.
+
+#### 3. File or Folder Selection
+- Choose whether to select individual notes or a folder for metrics scraping.
+- Configure which notes or folder are included in metrics analysis.
+
+#### 4. Metrics Settings
+- Add, edit, enable, or disable dream metrics.
+- Metrics are grouped into **Enabled Metrics** and **Disabled Metrics** for easy management.
+- Use the icon picker to customize metric icons.
+- View detailed metric descriptions.
+
+#### 5. Advanced Options
+- Configure week start day for the 'This Week' filter.
+- Toggle readable line length override for tables.
+- Access import/export options for metrics configuration.
+
+> **Note:** For technical details about settings structure and implementation, see [SPECIFICATION.md](SPECIFICATION.md). 
