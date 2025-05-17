@@ -2,17 +2,33 @@
 
 ## [Unreleased]
 - Further filter system fixes and improvements are planned and will be included in a future release.
+- Improved documentation consistency, terminology, and cross-references for settings and the Dream Scrape modal.
 
 ## [0.4.0] - 2025-05-16
 
+### Added
+- Added Settings buttons to the Dream Scrape modal and OneiroMetrics note for quick access to plugin settings.
+
 ### Changed
-- Overhaul of Scraping Modal in progress: restoring advanced features (note/folder selection, folder/note autocomplete, progress bar, helper text, dismissible note, and two-column layout matching Obsidian Settings). UI and logic improvements ongoing; folder autocomplete and layout refinements still in progress.
-- Resolved horizontal scrolling issue in the OneiroMetrics Scraping modal. Layout improvements are in effect: the modal and its dropdowns now fit within the modal boundaries, improving usability and appearance.
-- Overhauled OneiroMetrics Scraping Modal: new two-column layout, left-aligned labels, right-aligned widgets, dismissible note, improved folder/note autocomplete, progress bar at bottom, responsive design, and UI/UX polish. Overhaul is now complete and modal is ready for release.
-- Added a Settings button to the Dream Scrape modal for quick access to plugin settings.
-- Added a Settings button to the top of the OneiroMetrics note for quick access to plugin settings.
+- Overhauled the Dream Scrape modal: restored two-column layout, fixed DOM structure, and ensured all labels, helpers, and widgets are aligned to spec.
+- Improved Scraping Modal layout with a two-column design matching Obsidian Settings.
+- Resolved horizontal scrolling issue in the Dream Scrape modal. Layout improvements are in effect: the modal and its dropdowns now fit within the modal boundaries, improving usability and appearance.
+- Enhanced UI consistency across all modals and settings pages.
+- Better organization of metrics in Settings with Enabled/Disabled sections.
+- Improved accessibility with better keyboard navigation and screen reader support.
+
+### Fixed
 - Fixed Settings buttons so they reliably open the OneiroMetrics settings tab.
-- Improved documentation: all ways to access settings are now listed in the README and SPECIFICATION.
+- Fixed horizontal scrolling issues in the Dream Scrape modal.
+- Resolved Settings button click behavior across all access points.
+- Fixed expand/collapse functionality in the Dream Entries table.
+- Improved event handling for expand/collapse buttons.
+
+### Documentation
+- Updated all documentation to reflect new Settings access methods.
+- Added comprehensive guides for accessing settings via multiple methods.
+- Improved technical documentation for developers.
+- Improved documentation consistency, terminology, and cross-references for settings and the Dream Scrape modal.
 
 ## [0.3.6] - 2025-05-14
 
