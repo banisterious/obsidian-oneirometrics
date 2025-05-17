@@ -206,6 +206,7 @@ MIT License - see LICENSE file for details
 - Updated all documentation to reflect new Settings access methods
 - Added comprehensive guides for accessing settings via multiple methods
 - Improved technical documentation for developers
+- Improved documentation consistency, terminology, and cross-references for settings and the Scraping Modal
 
 ## Recent Fixes (May 2025)
 
