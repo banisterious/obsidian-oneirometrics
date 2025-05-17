@@ -15,6 +15,9 @@ export class DreamMetricsEvents {
     }
 
     attachEventListeners(): void {
+        console.log('[DEBUG] attachEventListeners called');
+        const allDropdowns = document.querySelectorAll('#oom-date-range-filter');
+        console.log('[DEBUG] Number of oom-date-range-filter elements in DOM:', allDropdowns.length, allDropdowns);
         if (this.isAttaching) return;
         this.isAttaching = true;
 
@@ -59,9 +62,12 @@ export class DreamMetricsEvents {
     private attachFilterListeners(): void {
         // Date range filter
         const dateRangeFilter = document.getElementById('oom-date-range-filter');
+        console.log('[DEBUG] attachFilterListeners: dateRangeFilter', dateRangeFilter);
         if (dateRangeFilter) {
+            console.log('[DEBUG] Attaching change event to oom-date-range-filter');
             dateRangeFilter.addEventListener('change', (e) => {
                 const target = e.target as HTMLSelectElement;
+                console.log('[DEBUG] Dropdown change event fired. Selected value:', target.value);
                 this.handleDateRangeChange(target.value);
             });
         }
@@ -76,8 +82,13 @@ export class DreamMetricsEvents {
     }
 
     private handleDateRangeChange(range: string): void {
-        // TODO: Implement date range filtering
-        console.log('Date range changed:', range);
+        console.log('[DEBUG] handleDateRangeChange called with:', range);
+        const previewEl = document.querySelector('.oom-metrics-container') as HTMLElement;
+        if (previewEl) {
+            this.dom.applyFilters(previewEl);
+        } else {
+            console.log('[DEBUG] handleDateRangeChange: .oom-metrics-container not found');
+        }
     }
 
     private handleTimeFilterClick(): void {
