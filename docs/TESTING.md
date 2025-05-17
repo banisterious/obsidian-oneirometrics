@@ -1,8 +1,43 @@
-## OneiroMetrics Testing Guide
+# OneiroMetrics Testing Guide
 
-> **Note:** For detailed performance testing procedures using Chrome DevTools, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+## Overview
 
-### Setup Testing
+This document outlines the testing procedures and requirements for the OneiroMetrics plugin. For UI and accessibility testing, see:
+- [UI Testing Guide](UI_TESTING.md)
+- [Accessibility Testing Guide](ACCESSIBILITY_TESTING.md)
+
+## Testing Categories
+
+- View Mode Testing
+- Setup Testing
+- Settings Testing
+- Metrics Scraping
+- Metrics Table
+- Content Display
+- Expand/Collapse, Scroll, and Table Performance
+- Time Filter UI Testing
+- Filtering and Sorting
+- Styling and UI (see [UI_TESTING.md](UI_TESTING.md))
+- Accessibility (see [ACCESSIBILITY_TESTING.md](ACCESSIBILITY_TESTING.md))
+- Error Handling
+- Performance
+- Theme Compatibility
+- Backup System Testing
+
+For detailed UI and accessibility test checklists, refer to the dedicated guides linked above.
+
+## Testing Categories
+
+### 1. View Mode Testing
+- [ ] Verify Reading View requirement warnings
+- [ ] Test Live Preview mode limitations
+- [ ] Check view mode switching behavior
+- [ ] Validate warning notifications
+- [ ] Test theme compatibility in both modes
+
+See [View Mode Requirements](VIEW_MODE.md) for detailed testing procedures and best practices.
+
+### 2. Setup Testing
 
 - [x] Plugin installs correctly in Obsidian
 - [ ] Plugin appears in the community plugins list
@@ -11,6 +46,8 @@
 - [x] Plugin icon appears in the ribbon
 
 ### Settings Testing
+
+> This section covers only the test cases for settings. For user instructions, see [USAGE.md](USAGE.md). For technical details, see [SPECIFICATION.md](SPECIFICATION.md).
 
 - [x] OneiroMetrics Note path can be set and saved
 - [x] Selected notes can be added and removed using multi-chip autocomplete in both Settings and the modal
