@@ -3,7 +3,8 @@
 ## [0.4.1] - 2024-05-14
 
 ### Changed
-- Updated filter dropdown: options now display as “Yesterday”, “This Week”, “Last 12 Months”, etc., making selection clearer and more user-friendly.
+- The date filter dropdown is now fully functional for the first time, with user-friendly labels (e.g., "Yesterday", "This Week", "Last 12 Months") and color-coded icons for each filter state.
+- Updated filter dropdown: options now display as "Yesterday", "This Week", "Last 12 Months", etc., making selection clearer and more user-friendly.
 - The filter icon now uses the Lucide `calendar-range` icon and dynamically matches the filter status color (success, warning, error) for improved clarity and accessibility.
 - Filter text now displays human-friendly labels (e.g., "Last 12 Months" instead of "last12months").
 - Minor CSS improvements for spacing and responsive layout.
@@ -49,6 +50,7 @@ Thanks to everyone who provided feedback and suggestions!
 - Performance with large datasets
 - See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
 - Fixed unwanted animation in Obsidian Settings modal by properly scoping modal-related CSS selectors
+- The metrics table in the OneiroMetrics note now correctly displays all enabled metrics from dream entries, not just the word count. This was fixed by updating the metrics parsing logic to handle case-insensitive metric names and ensure all metrics are added to the global metrics record.
 
 ## [0.3.2] - 2025-05-13
 
@@ -84,15 +86,6 @@ Thanks to everyone who provided feedback and suggestions!
 - Added debounced state saving
 - Improved state restoration
 - Added state cleanup on unload
-
-### Time Filter Integration
-- Fixed event handling by replacing non-existent `file-change` event with correct `modify` event from vault
-- Added proper event subscriptions for:
-  - Layout changes
-  - Workspace resizing
-  - Active leaf changes
-  - File modifications
-- Enhanced logging for filter updates and changes
 
 ### Date Handling
 - Added robust date parsing for multiple formats:
@@ -431,4 +424,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-For more details, see PROJECT_OVERVIEW.md and TESTING.md. 
+For more details, see PROJECT_OVERVIEW.md and TESTING.md.
+
+- Both <th> and <td> elements in the detailed dream entries table now use column-specific classes (e.g., .column-date, .column-content, .column-metric-<metricname>) for easier and more precise CSS targeting. This is not yet implemented for the summary table. 

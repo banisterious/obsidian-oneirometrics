@@ -247,6 +247,7 @@ The generated table includes two main sections:
 - Full-width layout (overrides readable line length)
 - Center-aligned numeric metrics
 - Sortable columns
+- **Date filter dropdown:** Quickly view entries from specific time ranges (Yesterday, This Week, Last 12 Months, etc.). The filter now works as intended and uses clear, human-friendly labels and color-coded icons for each filter state.
 - Date range and metric filtering
 - 'This Week' filter with configurable week start day
 - Responsive design for all screen sizes
@@ -383,4 +384,5 @@ You can access the OneiroMetrics settings in several ways:
 - Toggle readable line length override for tables.
 - Access import/export options for metrics configuration.
 
-> **Note:** For technical details about settings structure and implementation, see [SPECIFICATION.md](SPECIFICATION.md). 
+> **Note:** For technical details about settings structure and implementation, see [SPECIFICATION.md](SPECIFICATION.md).
+> **Note:** For information about the upcoming custom date range picker feature, see [DATE_RANGE_PICKER_PLAN.md](DATE_RANGE_PICKER_PLAN.md). 

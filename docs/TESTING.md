@@ -1106,15 +1106,6 @@ If you find any issues or have suggestions for improvements, please open an issu
 
 ### Recent Fixes Testing (May 12, 2025)
 
-#### Time Filter Integration
-- [ ] Event Handling
-  - [ ] Filter updates when file is modified
-  - [ ] Filter updates on layout changes
-  - [ ] Filter updates on workspace resize
-  - [ ] Filter updates on active leaf change
-  - [ ] Filter state persists between tab switches
-  - [ ] Console shows proper event logging
-
 #### Date Display
 - [ ] Date Parsing
   - [ ] YYYY-MM-DD format displays correctly

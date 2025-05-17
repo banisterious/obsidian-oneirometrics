@@ -69,6 +69,11 @@
      - Added detailed logging and used DevTools to diagnose and verify fixes (see [LOGGING.md](LOGGING.md) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md)).
    - Status: ✅ Fixed
 
+13. **Metrics Table Only Showing Word Count**
+   - Issue: The metrics table in the OneiroMetrics note only displayed the word count and not other metrics.
+   - Fix: Updated the metrics parsing logic to handle case-insensitive metric names and ensure all metrics are added to the global metrics record.
+   - Status: ✅ Fixed
+
 ## Recent Changes
 
 ### Filter System
@@ -106,6 +111,7 @@
 - Added logging for filter interactions
 - Improved accessibility features
 - Enhanced mobile responsiveness
+- Added column-specific classes to both <th> and <td> elements in the detailed dream entries table for precise CSS targeting (e.g., .column-date, .column-content, .column-metric-<metricname>). This is not yet implemented for the summary table.
 
 ### Logging System
 - Added structured logging with categories

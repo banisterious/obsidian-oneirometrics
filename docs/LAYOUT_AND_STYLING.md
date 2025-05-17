@@ -1482,3 +1482,57 @@ This layout system is designed to support and enhance several key features of th
       - Verify container spacing
       - Test with different content
    ```
+
+## Metrics Table Column Class Naming Convention
+
+To enable precise CSS targeting for each column in the OneiroMetrics metrics table, both <th> and <td> elements in the detailed dream entries table are assigned specific classes based on their column name.
+
+> **Note:** As of May 2025, this convention is implemented only for the detailed dream entries table, not the summary table.
+
+### Naming Convention
+- All classes are prefixed with `column-` followed by a lowercase, hyphenated version of the column name.
+- For metric columns, use the metric name (lowercased, spaces replaced with hyphens).
+
+### Standard Columns
+| Column Name   | <th> Class             | <td> Class             |
+|---------------|--------------------------|--------------------------|
+| Date          | column-date            | column-date            |
+| Dream Title   | column-dream-title     | column-dream-title     |
+| Words         | column-words           | column-words           |
+| Content       | column-content         | column-content         |
+
+### Metric Columns
+For each enabled metric (e.g., "Confidence Score", "Lucidity"):
+| Column Name         | <th> Class                       | <td> Class                       |
+|---------------------|------------------------------------|------------------------------------|
+| Confidence Score    | column-metric-confidence-score   | column-metric-confidence-score   |
+| Lucidity            | column-metric-lucidity           | column-metric-lucidity           |
+| (etc.)              | ...                              | ...                              |
+
+*Metric names should be lowercased and spaces replaced with hyphens.*
+
+### Example Table Row
+```html
+<tr>
+  <td class="column-date">2025-05-15</td>
+  <td class="column-dream-title">Flying Over Mountains</td>
+  <td class="column-words">123</td>
+  <td class="column-content">We were making toys in the outdoors...</td>
+  <td class="column-metric-confidence-score">5</td>
+  <td class="column-metric-lucidity">3</td>
+  <!-- ...other metrics -->
+</tr>
+```
+
+And the corresponding header:
+```html
+<tr>
+  <th class="column-date">Date</th>
+  <th class="column-dream-title">Dream Title</th>
+  <th class="column-words">Words</th>
+  <th class="column-content">Content</th>
+  <th class="column-metric-confidence-score">Confidence Score</th>
+  <th class="column-metric-lucidity">Lucidity</th>
+  <!-- ...other metrics -->
+</tr>
+```

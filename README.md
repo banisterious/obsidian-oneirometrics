@@ -13,6 +13,7 @@ OneiroMetrics is an Obsidian plugin that helps you track and analyze metrics fro
 - Generate summary tables and visualizations
 - Export data for further analysis
 - Customizable metrics and settings
+- **Filter dream entries by date:** Use the intuitive dropdown to quickly view entries from "Yesterday", "This Week", "Last 12 Months", and more. The filter now works reliably and uses clear, human-friendly labels and color-coded icons.
 
 ## Requirements
 
@@ -84,6 +85,7 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
 - [Metrics Guide](docs/METRICS.md) - Detailed descriptions of dream metrics and scoring guidelines
 - [Usage Guide](docs/USAGE.md) - Detailed instructions for using the plugin
 - [Logging Guide](docs/LOGGING.md) - Information about the plugin's logging system and debugging capabilities
+- [Date Range Picker Plan](docs/DATE_RANGE_PICKER_PLAN.md): Design, accessibility, and open questions for the upcoming custom date range picker feature.
 
 ## Setup
 
@@ -166,6 +168,7 @@ MIT License - see LICENSE file for details
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
 - Backup files now use the .bak extension instead of .md for better file management
+- The date filter dropdown and status display now work as intended, with user-friendly labels and color-coded icons for each filter state.
 - **See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of these and other recent fixes.**
 
 > For previous updates, see the [Release Notes](#release-notes) section below.

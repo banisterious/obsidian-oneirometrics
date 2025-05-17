@@ -1390,6 +1390,14 @@ div#oom-time-filter-display {
     hyphens: auto;
 }
 
+.markdown-rendered table.oom-table td {
+    /*line-height:.1em !important;*/
+}
+
+.markdown-rendered table.oom-table tbody > tr > td.column-content {
+    white-space:normal;
+}
+
 /* Expanded State */
 .oom-dream-content.expanded .oom-content-preview {
     display: none !important;
