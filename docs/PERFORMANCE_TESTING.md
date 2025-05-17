@@ -203,3 +203,43 @@ Use this section to track code changes and their impact on performance. Check of
 - [ ] Reduce logging during interactions
   - Debounce or limit logs during expand/collapse actions.
   - Result: 
+
+## Remaining Performance Optimization Tasks
+
+The following tasks are being tracked in their respective documentation files:
+
+### Event Handling Optimizations
+- [ ] Remove any event listeners attached during expansion when collapsing
+- [ ] Use event delegation instead of attaching listeners to each entry
+- [ ] Profile DOM updates in DevTools to check for detached nodes or lingering listeners
+- [ ] Optimize event listener management
+- [ ] Reduce logging during interactions
+
+See [REFACTORING.md](REFACTORING.md) for implementation details.
+
+### DOM Optimization Tasks
+- [ ] Minimize and batch DOM updates to reduce reflows/repaints
+- [ ] Minimize the scope of DOM/style changes
+- [ ] Batch DOM updates
+- [ ] Avoid layout thrashing
+
+See [CSS_REFACTORING.md](CSS_REFACTORING.md) for styling optimization details.
+
+### Scrolling Performance
+- [ ] Check that node and listener counts remain stable during scrolling
+- [ ] Investigate for memory leaks if JS heap baseline rises steadily
+- [ ] Watch for frequent or long GC events (red bars)
+- [ ] Ensure frame rate remains consistent and above 30 FPS
+- [ ] Optimize code to avoid expensive DOM operations during scroll
+- [ ] Use virtualization to minimize DOM nodes in memory
+
+See [VIRTUALIZATION_PLAN.md](VIRTUALIZATION_PLAN.md) for implementation details.
+
+### Filter Performance
+- [ ] Start recording
+- [ ] Apply various filters in sequence
+- [ ] Stop recording
+- [ ] Check for:
+  - Filter application delay
+  - Table update performance
+  - Memory usage during filtering
