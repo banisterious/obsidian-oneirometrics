@@ -274,7 +274,9 @@ export default class DreamMetricsPlugin extends Plugin {
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
+        console.log('[DEBUG] Plugin loaded');
         console.log("PLUGIN LOADED: OneiroMetrics");
+        (window as any).oneiroMetricsPlugin = this;
         this.logger = LogManager.getInstance(this.app);
         this.logger.configure('debug');
         
@@ -623,12 +625,13 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async saveSettings() {
-        // Save expanded states to settings
-        this.settings.expandedStates = Object.fromEntries(
-            Array.from(this.expandedStates).map(key => [key, true])
-        );
         await this.saveData(this.settings);
-        this.logger.log('UI', `Saved ${this.expandedStates.size} expanded states`);
+    }
+
+    public async showMetrics() {
+        // Get the active leaf
+        const leaf = this.app.workspace.activeLeaf;
+        // ... existing code ...
     }
 
     async scrapeMetrics() {
@@ -1381,6 +1384,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
+        console.log('[DEBUG] generateMetricsTable called');
         console.log(`[OneiroMetrics] Generating table with ${dreamEntries.length} entries`);
         let content = '';
         const cacheKey = JSON.stringify({ metrics, dreamEntries });
@@ -1405,9 +1409,14 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<div class="oom-filter-group">\n';
         content += '<select id="oom-date-range-filter" class="oom-select">\n';
         content += '<option value="all">All Time</option>\n';
-        content += '<option value="week">Last Week</option>\n';
-        content += '<option value="month">Last Month</option>\n';
-        content += '<option value="year">Last Year</option>\n';
+        content += '<option value="today">Today</option>\n';
+        content += '<option value="yesterday">Yesterday</option>\n';
+        content += '<option value="thisWeek">This Week</option>\n';
+        content += '<option value="thisMonth">This Month</option>\n';
+        content += '<option value="last30">Last 30 Days</option>\n';
+        content += '<option value="last6months">Last 6 Months</option>\n';
+        content += '<option value="thisYear">This Year</option>\n';
+        content += '<option value="last12months">Last 12 Months</option>\n';
         content += '</select>\n';
         content += '<button id="oom-time-filter-btn" class="oom-button">Time Filters</button>\n';
         content += '</div>\n';
@@ -1665,6 +1674,17 @@ export default class DreamMetricsPlugin extends Plugin {
         if (!view || view.getMode() !== 'preview') return;
         const previewEl = view.previewMode?.containerEl;
         if (!previewEl) return;
+
+        // Add date range filter event listener
+        const dateRangeFilter = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+        if (dateRangeFilter) {
+            dateRangeFilter.addEventListener('change', () => {
+                console.log('[DEBUG] Date range filter changed:', dateRangeFilter.value);
+                this.applyFilters(previewEl);
+            });
+        }
+
+        // Existing show more/less button handlers
         const buttons = previewEl.querySelectorAll('.oom-button--expand');
         buttons.forEach((button) => {
             // Remove any existing click listeners by replacing the node
@@ -1703,6 +1723,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private applyFilters(previewEl: HTMLElement) {
+        console.log('[DEBUG] main.ts applyFilters called', previewEl);
         const rows = previewEl.querySelectorAll('.oom-dream-row');
         const dateRange = (previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement)?.value || 'all';
         this.logger.log('Filter', `Applying filter: ${dateRange}`, {
@@ -1714,11 +1735,19 @@ export default class DreamMetricsPlugin extends Plugin {
         let outOfRangeDates = 0;
 
         const now = new Date();
-        const ranges = {
-            week: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-            month: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-            year: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-        };
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        const last30 = new Date(today);
+        last30.setDate(today.getDate() - 30);
+        const last6months = new Date(today);
+        last6months.setMonth(today.getMonth() - 6);
+        const last12months = new Date(today);
+        last12months.setFullYear(today.getFullYear() - 1);
 
         rows.forEach((rowEl, index) => {
             const row = rowEl as HTMLElement;
@@ -1740,10 +1769,36 @@ export default class DreamMetricsPlugin extends Plugin {
             }
 
             let isVisible = true;
-            if (dateRange !== 'all') {
-                const rangeStart = ranges[dateRange as keyof typeof ranges];
-                isVisible = dreamDate >= rangeStart && dreamDate <= now;
-                if (!isVisible) outOfRangeDates++;
+            switch (dateRange) {
+                case 'all':
+                    isVisible = true;
+                    break;
+                case 'today':
+                    isVisible = dreamDate >= today && dreamDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
+                    break;
+                case 'yesterday':
+                    isVisible = dreamDate >= yesterday && dreamDate < today;
+                    break;
+                case 'thisWeek':
+                    isVisible = dreamDate >= startOfWeek && dreamDate <= now;
+                    break;
+                case 'thisMonth':
+                    isVisible = dreamDate >= startOfMonth && dreamDate <= now;
+                    break;
+                case 'last30':
+                    isVisible = dreamDate >= last30 && dreamDate <= now;
+                    break;
+                case 'last6months':
+                    isVisible = dreamDate >= last6months && dreamDate <= now;
+                    break;
+                case 'thisYear':
+                    isVisible = dreamDate >= startOfYear && dreamDate <= now;
+                    break;
+                case 'last12months':
+                    isVisible = dreamDate >= last12months && dreamDate <= now;
+                    break;
+                default:
+                    isVisible = true;
             }
 
             if (isVisible) {
@@ -1757,6 +1812,7 @@ export default class DreamMetricsPlugin extends Plugin {
             } else {
                 row.classList.remove('oom-row--visible');
                 row.style.display = 'none';
+                outOfRangeDates++;
             }
         });
 
@@ -1765,52 +1821,33 @@ export default class DreamMetricsPlugin extends Plugin {
         if (filterDisplay) {
             const totalEntries = rows.length;
             const hiddenCount = totalEntries - visibleCount;
-            
-            // Get icon based on filter type
-            const getFilterIcon = (type: string) => {
-                switch (type) {
-                    case 'all': return '📅';
-                    case 'week': return '📆';
-                    case 'month': return '📊';
-                    case 'year': return '📈';
-                    default: return '🔍';
-                }
+            const colorClass = visibleCount === totalEntries ? 'oom-filter--all-visible' : visibleCount > 0 ? 'oom-filter--partially-visible' : 'oom-filter--none-visible';
+            // Map filter keys to human-friendly labels
+            const filterLabels: Record<string, string> = {
+                all: 'All Time',
+                today: 'Today',
+                yesterday: 'Yesterday',
+                thisWeek: 'This Week',
+                thisMonth: 'This Month',
+                last30: 'Last 30 Days',
+                last6months: 'Last 6 Months',
+                thisYear: 'This Year',
+                last12months: 'Last 12 Months',
             };
-
-            // Get color class based on filter state
-            const getColorClass = (visible: number, total: number) => {
-                const ratio = visible / total;
-                if (ratio === 1) return 'oom-filter--all-visible';
-                if (ratio > 0.5) return 'oom-filter--mostly-visible';
-                if (ratio > 0) return 'oom-filter--partially-visible';
-                return 'oom-filter--none-visible';
-            };
-
-            const icon = getFilterIcon(dateRange);
-            const colorClass = getColorClass(visibleCount, totalEntries);
-            
-            // Create detailed tooltip content
-            const tooltipContent = `
-                Total Entries: ${totalEntries}
-                Visible: ${visibleCount}
-                Hidden: ${hiddenCount}
-                Invalid Dates: ${invalidDates}
-                Out of Range: ${outOfRangeDates}
-                Filter Type: ${dateRange}
-                Applied: ${new Date().toLocaleTimeString()}
-            `.trim();
-
-            // Update display with enhanced content
+            const displayLabel = filterLabels[dateRange] || dateRange;
             filterDisplay.innerHTML = `
-                <span class="oom-filter-icon">${icon}</span>
+                <span class="oom-filter-icon"></span>
                 <span class="oom-filter-text ${colorClass}">
-                    ${dateRange === 'all' ? 'All Time' : dateRange} (${visibleCount} entries)
+                    ${displayLabel} (${visibleCount} entries)
                     ${hiddenCount > 0 ? `<span class="oom-filter-hidden">- ${hiddenCount} hidden</span>` : ''}
                 </span>
             `;
-            
-            // Add tooltip
-            filterDisplay.setAttribute('title', tooltipContent);
+            // Set Lucide icon using Obsidian's setIcon utility
+            // @ts-ignore
+            const { setIcon } = require('obsidian');
+            const iconSpan = filterDisplay.querySelector('.oom-filter-icon');
+            if (iconSpan && setIcon) setIcon(iconSpan, 'calendar-range');
+            filterDisplay.setAttribute('title', `Total Entries: ${totalEntries}\nVisible: ${visibleCount}\nHidden: ${hiddenCount}\nInvalid Dates: ${invalidDates}\nOut of Range: ${outOfRangeDates}\nFilter Type: ${dateRange}\nApplied: ${new Date().toLocaleTimeString()}`);
             filterDisplay.classList.add('oom-filter-display--updated');
             setTimeout(() => filterDisplay.classList.remove('oom-filter-display--updated'), 500);
         }
@@ -2043,14 +2080,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add note button if enabled in settings
         if (this.settings.showNoteButton) {
             const ribbonIcon = this.addRibbonIcon('shell', 'Open Metrics Note', () => {
-                const file = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
-                if (file instanceof TFile) {
-                    this.app.workspace.openLinkText(this.settings.projectNote, '', true);
-                } else {
-                    new Notice('Metrics note not found. Please set the path in settings.');
-                    // Open settings to the OneiroMetrics tab
-                    (this.app as any).setting.open('oneirometrics');
-                }
+                this.showMetrics();
             });
             ribbonIcon.addClass('oom-ribbon-note-button');
         }

@@ -86,14 +86,39 @@
 
 /* Filter Display */
 .oom-filter-display {
+    color: var(--text-normal); /* default */
     display: flex;
-    gap: var(--oom-filter-gap);
-    flex-wrap: wrap;
-    min-height: 2rem;
-    padding: var(--oom-filter-padding);
     align-items: center;
-    border-radius: var(--oom-filter-border-radius);
-    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-filter-display .oom-filter-icon {
+    margin-right: 0.25em;
+    /* The icon will inherit color from .oom-filter-text */
+    color: inherit;
+}
+
+.oom-filter-display .oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter-display .oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter-display .oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--all-visible) .oom-filter-icon {
+    color: var(--text-success);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--partially-visible) .oom-filter-icon {
+    color: var(--text-warning);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--none-visible) .oom-filter-icon {
+    color: var(--text-error);
 }
 
 /* Date Range Filter */
@@ -245,6 +270,10 @@
 .oom-filter-hidden {
     font-size: 0.9em;
     opacity: 0.8;
+}
+
+div#oom-time-filter-display {
+    margin-top: .5em;
 }
 
 /* Accessibility */

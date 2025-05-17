@@ -1231,3 +1231,43 @@ If you find any issues or have suggestions for improvements, please open an issu
 - Regression found: metrics not grouped, not editable, enabled state not preserved.
 - Fix verified: grouping, editing, and enabled state now work as intended.
 - SPECIFICATION.md updated to reflect the new UI and features.
+
+## TODO: Add Granular Debug Logging Controls in Settings
+- [ ] Add checkboxes or toggles in the plugin settings for:
+    - Filter change events
+    - Table rendering events
+    - Expand/collapse events
+    - Metrics scraping events
+    - (Any other event types you want)
+- [ ] Update the logging system to respect these settings.
+- [ ] Document how to use these options for targeted troubleshooting.
+
+### Code Sketch for Granular Debug Logging Controls
+```typescript
+// In your settings interface:
+interface DebugLoggingSettings {
+    filterEvents: boolean;
+    tableRenderEvents: boolean;
+    expandCollapseEvents: boolean;
+    metricsScrapeEvents: boolean;
+    // ...add more as needed
+}
+
+// In your settings tab UI:
+new Setting(containerEl)
+    .setName('Debug: Filter Events')
+    .setDesc('Enable debug logging for filter change events')
+    .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.debugLogging.filterEvents)
+        .onChange(async (value) => {
+            this.plugin.settings.debugLogging.filterEvents = value;
+            await this.plugin.saveSettings();
+        })
+    );
+// Repeat for each event type
+
+// In your logging code:
+if (this.settings.debugLogging.filterEvents) {
+    this.logger.log('Filter', 'Filter event triggered', details);
+}
+```

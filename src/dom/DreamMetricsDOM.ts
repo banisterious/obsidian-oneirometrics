@@ -31,6 +31,7 @@ export class DreamMetricsDOM {
     }
 
     public render(): void {
+        console.log('[DEBUG] DreamMetricsDOM.render called');
         this.app.workspace.trigger('oneirometrics:debug', {
             event: 'DreamMetricsDOM render called',
             timestamp: new Date().toISOString(),
@@ -294,5 +295,14 @@ export class DreamMetricsDOM {
         });
         this.cleanupFunctions.forEach(cleanup => cleanup());
         this.cleanupFunctions = [];
+    }
+
+    public applyFilters(previewEl: HTMLElement): void {
+        console.log('[DEBUG] DreamMetricsDOM.applyFilters called', previewEl);
+        if ((window as any).oneiroMetricsPlugin && typeof (window as any).oneiroMetricsPlugin.applyFilters === 'function') {
+            (window as any).oneiroMetricsPlugin.applyFilters(previewEl);
+        } else {
+            console.warn('applyFilters: Could not find main plugin filtering logic.');
+        }
     }
 } 
