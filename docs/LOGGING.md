@@ -159,30 +159,30 @@ You can also manage the log file manually:
 
 ## Debugging UI Event Attachment
 
-A temporary debug button labeled **"Debug: Attach Show More Listeners"** appears at the top of the project note in development mode only. This button can be used to manually trigger the attachment of event listeners for the Show more/Show less buttons in the Dream Entries table.
+A debug button labeled **"Debug: Attach Show More Listeners"** appears at the top of the project note when logging is set to **Debug** in the plugin settings. This button can be used to manually trigger the attachment of event listeners for the Show more/Show less buttons in the Dream Entries table.
 
-### Development Mode
-The debug button is only visible when the plugin is running in development mode (`NODE_ENV === 'development'`). This ensures that development tools are not exposed to end users in production builds.
+### When is the Debug Button Visible?
+- The debug button is **only visible when logging is set to Debug** in the OneiroMetrics settings.
+- This allows end users to access troubleshooting tools when needed, not just in development mode.
 
 ### Purpose
 - To help diagnose and resolve issues where the Show more/Show less buttons do not respond due to event listeners not being attached (often due to theme or timing issues).
-- Provides a way to manually reattach event listeners during development and testing.
+- Provides a way to manually reattach event listeners during troubleshooting.
 
 ### Where it appears
-- At the top of the project note, next to the "Rescrape Metrics" button
-- Only visible in development mode
-- Automatically hidden in production builds
+- At the top of the project note, next to the "Rescrape Metrics" and "Settings" buttons.
+- Only visible when logging is set to Debug in settings.
 
 ### When to use
-- During development and testing
 - When debugging theme compatibility issues
 - When testing custom CSS snippets
 - When investigating event listener attachment problems
+- When troubleshooting expand/collapse issues in the Dream Entries table
 
 ### Implementation Details
 ```typescript
-// Only show debug button in development mode
-if (process.env.NODE_ENV === 'development') {
+// Only show debug button when logging is set to Debug
+if (this.settings.logging.level === 'debug') {
     const debugButton = buttonContainer.createEl('button', {
         text: 'Debug: Attach Show More Listeners',
         cls: 'mod-warning oom-debug-attach-listeners'
@@ -195,9 +195,9 @@ if (process.env.NODE_ENV === 'development') {
 ```
 
 ### Note
-- This button is intended for development and testing purposes only
-- It will be automatically excluded from production builds
-- The functionality it provides is also available through the logging system when debug logging is enabled
+- This button is intended for troubleshooting and advanced user support.
+- It is not visible unless logging is set to Debug in settings.
+- The functionality it provides is also available through the logging system when debug logging is enabled.
 
 ## Best Practices
 1. Clear the log before starting a new testing session

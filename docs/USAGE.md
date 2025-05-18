@@ -312,11 +312,13 @@ The plugin maintains your preferences across sessions, including expanded/collap
 - **Scroll Position**: The table maintains your scroll position when expanding/collapsing entries, even with large datasets
 
 ### Debug Tools
-- Use the debug button (visible in development mode) to:
+- Use the debug button (visible when logging is set to Debug) to:
   - Reset event listeners if buttons become unresponsive
   - Force a table refresh
   - View diagnostic information
   - Clear any stuck states
+
+> **Tip:** To access the debug button, set Logging Level to **Debug** in OneiroMetrics settings.
 
 ## Troubleshooting
 

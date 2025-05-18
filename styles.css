@@ -4085,3 +4085,12 @@ input.oom-folder-autocomplete-input {
     flex: 0 0 auto;
     white-space: nowrap;
 }
+
+/* Debug button visibility */
+.oom-debug-attach-listeners {
+    display: none;
+}
+
+.oom-debug-mode .oom-debug-attach-listeners {
+    display: inline-block;
+}

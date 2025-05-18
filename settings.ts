@@ -1119,8 +1119,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .addDropdown(dropdown => dropdown
                 .addOption('off', 'Off')
                 .addOption('errors', 'Errors Only')
+                .addOption('warn', 'Warnings')
+                .addOption('info', 'Info')
                 .addOption('debug', 'Debug')
-                .setValue(this.plugin.settings.logging.level)
+                .addOption('trace', 'Trace')
+                .setValue(this.plugin.settings.logging.level || 'off')
                 .onChange(async (value: LogLevel) => {
                     this.plugin.settings.logging.level = value;
                     await this.plugin.saveSettings();

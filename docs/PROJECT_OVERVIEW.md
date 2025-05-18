@@ -210,7 +210,9 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
-- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.
+- The debug button ("Debug: Attach Show More Listeners") is now visible at the top of the project note when logging is set to **Debug** in settings. This allows users to manually reattach event listeners for expand/collapse buttons if needed.
+- Both Settings buttons (in the Dream Scrape modal and at the top of the metrics note) now reliably open the OneiroMetrics settings tab.
+- To access the debug button for troubleshooting, set Logging Level to **Debug** in OneiroMetrics settings.
 - The root-level LOGGING.md has been removed; all logging documentation is now in `docs/LOGGING.md`.
 
 ## Current Status (as of May 2025)

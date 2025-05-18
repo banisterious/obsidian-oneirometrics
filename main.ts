@@ -143,7 +143,8 @@ class OneiroMetricsModal extends Modal {
             cls: 'mod-cta oom-settings-button'
         });
         settingsButton.addEventListener('click', () => {
-            (this.app as any).setting.open('oneirometrics');
+            (this.app as any).setting.open();
+            (this.app as any).setting.openTabById('oneirometrics');
         });
 
         // --- Progress Section ---
@@ -280,12 +281,14 @@ export default class DreamMetricsPlugin extends Plugin {
         console.log("PLUGIN LOADED: OneiroMetrics");
         (window as any).oneiroMetricsPlugin = this;
         this.logger = LogManager.getInstance(this.app);
-        this.logger.configure('debug');
         
         // Initialize container
         this.container = document.querySelector('.markdown-preview-view');
         
         await this.loadSettings();
+        
+        // Configure logger with settings
+        this.logger.configure(this.settings.logging.level);
         
         // Load expanded states from settings
         if (this.settings.expandedStates) {
@@ -322,7 +325,8 @@ export default class DreamMetricsPlugin extends Plugin {
             id: 'open-oneirometrics-settings',
             name: 'Open OneiroMetrics Settings',
             callback: () => {
-                (this.app as any).setting.open('oneirometrics');
+                (this.app as any).setting.open();
+                (this.app as any).setting.openTabById('oneirometrics');
             }
         });
 
@@ -1474,7 +1478,8 @@ export default class DreamMetricsPlugin extends Plugin {
         });
     }
 
-    private updateProjectNoteView() {
+    private updateProjectNoteView(currentLogLevel?: LogLevel) {
+        console.log('updateProjectNoteView called');
         try {
             const leaves = this.app.workspace.getLeavesOfType('markdown');
             let updated = false;
@@ -1483,9 +1488,9 @@ export default class DreamMetricsPlugin extends Plugin {
                 if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNote) {
                     // Add rescraping button at the top of the note
                     const container = view.containerEl;
-                    const existingButton = container.querySelector('.oom-rescrape-button');
-                    if (!existingButton) {
-                        const buttonContainer = container.createDiv('oom-rescrape-container');
+                    let buttonContainer = container.querySelector('.oom-rescrape-container');
+                    if (!buttonContainer) {
+                        buttonContainer = container.createDiv('oom-rescrape-container');
                         const rescrapeButton = buttonContainer.createEl('button', {
                             text: 'Rescrape Metrics',
                             cls: 'mod-cta oom-rescrape-button'
@@ -1500,21 +1505,37 @@ export default class DreamMetricsPlugin extends Plugin {
                             cls: 'mod-cta oom-settings-button'
                         });
                         settingsButton.addEventListener('click', () => {
-                            (this.app as any).setting.open('oneirometrics');
+                            (this.app as any).setting.open();
+                            (this.app as any).setting.openTabById('oneirometrics');
                         });
 
-                        // Only show debug button in development mode
-                        if (process.env.NODE_ENV === 'development') {
-                            const debugButton = buttonContainer.createEl('button', {
-                                text: 'Debug: Attach Show More Listeners',
-                                cls: 'mod-warning oom-debug-attach-listeners'
-                            });
-                            debugButton.addEventListener('click', () => {
-                                new Notice('Manually attaching Show More listeners...');
-                                this.attachProjectNoteEventListeners();
-                            });
-                        }
+                        // Add debug button (always created, visibility controlled by CSS)
+                        const debugButton = buttonContainer.createEl('button', {
+                            text: 'Debug: Attach Show More Listeners',
+                            cls: 'mod-warning oom-debug-attach-listeners'
+                        });
+                        debugButton.addEventListener('click', () => {
+                            new Notice('Manually attaching Show More listeners...');
+                            this.attachProjectNoteEventListeners();
+                        });
                     }
+                    // Always update the debug mode class based on the provided log level
+                    const logLevel = currentLogLevel ?? this.settings.logging.level;
+                    if (buttonContainer) {
+                        console.log('Updating buttonContainer:', buttonContainer, 'logLevel:', logLevel);
+                        console.log('Before:', buttonContainer.className);
+                        if (logLevel === 'debug') {
+                            buttonContainer.classList.add('oom-debug-mode');
+                        } else {
+                            // Forced class removal
+                            buttonContainer.className = buttonContainer.className.replace(/\boom-debug-mode\b/g, '').trim();
+                            console.log('Forced removal, After:', buttonContainer.className);
+                        }
+                        console.log('After:', buttonContainer.className);
+                    } else {
+                        console.log('No buttonContainer found in updateProjectNoteView');
+                    }
+
                     // Update the view's content
                     if (view.getMode() === 'preview') {
                         view.previewMode?.rerender();
@@ -1881,7 +1902,9 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     setLogLevel(level: LogLevel) {
+        console.log('setLogLevel called with:', level);
         this.logger.configure(level);
+        this.updateProjectNoteView(level);
     }
 
     setLogConfig(level: LogLevel, maxLogSize: number, maxBackups: number) {
