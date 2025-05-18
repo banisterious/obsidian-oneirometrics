@@ -279,7 +279,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
 console.log('[OneiroMetrics] DEFAULT_METRICS at definition:', DEFAULT_METRICS.map(m => `${m.name}: ${m.enabled}`));
 
 export const DEFAULT_LOGGING = {
-    level: 'info' as LogLevel,
+    level: 'off' as LogLevel,
     maxLogSize: 5 * 1024 * 1024, // 5MB
     maxBackups: 5
 }; 

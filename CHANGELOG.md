@@ -39,7 +39,11 @@ Thanks to everyone who provided feedback and suggestions!
   - Advanced filtering and analytics features
 
 ## [Unreleased]
-- Further filter system fixes and improvements are planned and will be included in a future release.
+
+### Changed
+- The debug button ("Debug: Attach Show More Listeners") is now visible when logging is set to **Debug** in settings, not just in development mode. This allows users to access troubleshooting tools as needed.
+- Both OneiroMetrics Settings buttons (in the Dream Scrape modal and at the top of the metrics note) now reliably open the OneiroMetrics settings tab.
+- Documentation updated to reflect these changes in logging, debug tools, and settings access.
 
 ## [0.4.0] - 2025-05-16
 

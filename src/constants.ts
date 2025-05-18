@@ -19,6 +19,6 @@ export const DEFAULT_METRICS: DreamMetric[] = [
 
 export const DEFAULT_LOGGING = {
     level: 'off' as LogLevel,
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxLogSize: 5 * 1024 * 1024, // 5MB
     maxBackups: 3
 }; 
