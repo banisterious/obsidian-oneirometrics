@@ -491,3 +491,21 @@ If further UI changes are made, ensure that both the code and `SPECIFICATION.md`
 - Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
 - Additional accessibility enhancements
 - Advanced filtering and analytics features
+
+## UI/UX TODOs
+
+### OneiroMetrics Note Improvements
+1. Force title for OneiroMetrics page to "OneiroMetrics" (currently shows as "Metrics")
+2. Change `<div class="oom-table-title oom-stats-title">` to an `<h2>` with the same classes
+3. Move `<div class="oom-rescrape-container">` to the top of the note, above the Statistics title
+
+### Dream Scrape Modal Enhancements
+1. Add an "Open OneiroMetrics Note" button that:
+   - Only appears after a Scrape operation is run
+   - Disappears each time the modal is opened
+   - Reappears whenever a new scrape is run from within the modal
+   - Should be placed between Scrape Metrics and Settings buttons
+2. Add class `oom-modal-btn-muted` to `<button class="mod-cta oom-settings-button">`
+
+### Ribbon Button Behavior
+1. Update the "Open OneiroMetrics Note" ribbon button to use the command instead of directly opening the note
