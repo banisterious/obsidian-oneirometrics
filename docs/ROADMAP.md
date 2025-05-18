@@ -73,6 +73,7 @@
   - Trend analysis
   - Custom date range templates
   - Export/import date ranges
+  - **Possible TODO:** Allow user-defined custom presets to appear in the dropdown alongside built-in presets
 
 ## Potential Future Features
 

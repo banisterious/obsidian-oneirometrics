@@ -473,3 +473,19 @@ If further UI changes are made, ensure that both the code and `SPECIFICATION.md`
 - Settings button added to top of OneiroMetrics note (quick access to settings)
 - Fixed: Settings buttons now reliably open the OneiroMetrics settings tab
 - Documentation for accessing settings improved (see README and SPECIFICATION)
+
+## Filters Expansion Progress
+
+### Phase 1 (Complete)
+- Custom Date Range modal for selecting start/end dates
+- Favorites system: save, select, and delete custom date ranges
+- UI/UX improvements: visual hierarchy, compact favorites list, Lucide icons, improved modal layout, and button prominence
+- Accessibility and keyboard navigation improvements
+- Responsive modal width and layout
+
+### Phase 2 (Planned)
+- User-defined custom presets in the dropdown
+- Calendar improvements (multi-month view, week numbers, preview optimization)
+- Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
+- Additional accessibility enhancements
+- Advanced filtering and analytics features
