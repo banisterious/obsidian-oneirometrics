@@ -160,7 +160,7 @@ You can quickly access the OneiroMetrics settings in several ways:
 - **Ribbon icon:** Right-click the wand icon in the sidebar and select settings.
 
 ## Tips
-- Create a dedicated folder for backups to keep your vault organized
+- Create a dedicated folder for metrics backups
 - Regular backups are recommended when making significant changes
 - Use the date range and metric filters to focus on specific aspects of your dreams
 - Sort table columns to identify patterns in your dream journal
@@ -180,10 +180,7 @@ MIT License - see LICENSE file for details
 
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets
 - Scroll jump issues have been resolved; expanding/collapsing rows now keeps the view stable and predictable
-- The number of visible rows in the Dream Metrics table has been reduced from 25 to 12 for better performance and responsiveness
-- All debug and backup log files are now stored in the `logs/` folder and excluded from version control
-- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
-- Backup files now use the .bak extension instead of .md for better file management
+- Improved table performance: The Dream Metrics table now displays entries more efficiently, making even larger tables faster and more responsive.
 - The date filter dropdown and status display now work as intended, with user-friendly labels and color-coded icons for each filter state.
 - **See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of these and other recent fixes.**
 
@@ -191,46 +188,41 @@ MIT License - see LICENSE file for details
 
 ## Release Notes
 
-- All debug and backup log files are now stored in the `logs/` folder and excluded from version control
-- A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed
-- Backup files now use the .bak extension instead of .md for better file management
+### 0.4.2 – Filters Expansion Phase 1
 
-## Current State and Future Plans (May 2025)
+- Added a Custom Date Range modal for flexible date filtering
+- Introduced a Favorites system for saving and managing custom date ranges
+- Improved the filter modal’s layout, visual hierarchy, and accessibility
+- Enhanced performance and responsiveness of the Dream Metrics table
+- All filter and modal controls are now fully keyboard accessible
+- Numerous UI/UX improvements for a more intuitive experience
 
-### Current Status
-- Metrics scraping is working correctly, processing entries and callouts as expected
-- Button functionality has been stabilized but requires architectural improvements
-- Debug logging has been optimized for better troubleshooting
-- Performance monitoring has been added for critical operations
+## Current State and Future Plans
 
-### Known Issues
-- Button state management needs improvement for better reliability
-- DOM manipulation could be more efficient
-- Event handling could be more robust
-- State management is currently scattered across multiple components
+### Current Status (May 2025)
+
+- ✅ Phase 1 of the Filters Expansion is complete:
+  - Custom Date Range modal for selecting start/end dates
+  - Favorites system: save, select, and delete custom date ranges
+  - UI/UX improvements: visual hierarchy, compact favorites list, Lucide icons, improved modal layout, and button prominence
+  - Accessibility and keyboard navigation improvements
+  - Responsive modal width and layout
+- ✅ Filtering system and metrics scraping are functioning as expected
+- ✅ All major UI/UX issues with the filter modal and favorites have been resolved
+- ⏳ Phase 2 (planned): user-defined custom presets in the dropdown, calendar improvements, further UI/UX polish, and advanced filtering features
+
+### Known Issues (May 2025)
+
+- Performance with very large datasets may need further optimization
+- Accessibility testing is ongoing; please report any issues with keyboard navigation or screen readers
+- Some advanced features (e.g., user-defined dropdown presets) are planned for Phase 2
+- If you encounter any bugs or have suggestions, please open an issue on GitHub
 
 ### Planned Refactoring
-A major refactoring is planned to improve the plugin's architecture and reliability:
 
-1. **State Management Layer**
-   - Centralized state management
-   - Predictable state updates
-   - Better debugging capabilities
-
-2. **DOM Management Layer**
-   - Improved DOM manipulation
-   - Better lifecycle management
-   - Enhanced cleanup handling
-
-3. **Event Handling Layer**
-   - Centralized event handling
-   - Improved event delegation
-   - Better memory management
-
-4. **Metrics Processing Layer**
-   - Isolated metrics processing
-   - Better validation
-   - Improved error handling
+- The current architecture is stable and supports all core features.
+- Incremental improvements to state management, event handling, and modularity will continue as needed, especially as new features are added in Phase 2.
+- Major refactoring will be considered if required for performance, maintainability, or advanced features.
 
 ### Testing Status
 - Unit tests are being developed for core functionality
@@ -246,7 +238,7 @@ A major refactoring is planned to improve the plugin's architecture and reliabil
 
 ## New Features (May 2025)
 
-- **OneiroMetrics Path:** Path to the main note where your dream metrics are stored (previously called "Project Note").
+- **OneiroMetrics Note:** Path to the main note where your dream metrics are stored (previously called "Project Note").
 - **Selected Notes/Folders:** Choose individual notes or entire folders to analyze for dream metrics.
 
 ## Development
