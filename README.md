@@ -75,6 +75,22 @@ OneiroMetrics requires Reading View to function properly. Live Preview mode is n
 - Enhanced Metrics Description section
 - Open Metrics Note button for quick access
 
+## Filters Expansion Progress
+
+### Phase 1 (Complete)
+- Custom Date Range modal for selecting start/end dates
+- Favorites system: save, select, and delete custom date ranges
+- UI/UX improvements: visual hierarchy, compact favorites list, Lucide icons, improved modal layout, and button prominence
+- Accessibility and keyboard navigation improvements
+- Responsive modal width and layout
+
+### Phase 2 (Planned)
+- User-defined custom presets in the dropdown
+- Calendar improvements (multi-month view, week numbers, preview optimization)
+- Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
+- Additional accessibility enhancements
+- Advanced filtering and analytics features
+
 ## Documentation
 
 - [Project Overview](docs/PROJECT_OVERVIEW.md) - Detailed project status, architecture, and development guidelines

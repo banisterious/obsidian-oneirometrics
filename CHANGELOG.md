@@ -16,6 +16,28 @@
 ### Thanks
 Thanks to everyone who provided feedback and suggestions!
 
+## [0.4.2] - 2025-05-17
+
+### Added
+- Phase 1 of the Filters Expansion is complete:
+  - Custom Date Range modal with calendar input for start/end dates
+  - Favorites system: save, select, and delete custom date ranges
+  - UI/UX improvements: visual hierarchy, compact favorites list, Lucide icons, improved modal layout, and button prominence
+  - Accessibility and keyboard navigation improvements
+  - Responsive modal width and layout
+
+### Changed
+- The "Save as Favorite" workflow is now more intuitive and visually integrated
+- The modal and filter system are more compact and visually organized
+
+### Next Steps (Phase 2 Planned)
+- Phase 2 will include:
+  - User-defined custom presets in the dropdown
+  - Calendar improvements (multi-month view, week numbers, preview optimization)
+  - Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
+  - Additional accessibility enhancements
+  - Advanced filtering and analytics features
+
 ## [Unreleased]
 - Further filter system fixes and improvements are planned and will be included in a future release.
 

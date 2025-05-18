@@ -3858,3 +3858,230 @@ input.oom-folder-autocomplete-input {
 .oom-settings-button {
     min-width: 120px;
 }
+
+/* Date Range Modal Styles */
+.oneirometrics-custom-date-modal {
+    padding: 1em;
+}
+
+.oom-favorites-container {
+    margin-bottom: 1em;
+}
+
+.oom-favorites-list {
+    margin: 0.5em 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.oom-favorite-item {
+    padding: 0.25em 0.5em;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-favorite-item:last-child {
+    border-bottom: none;
+}
+
+.oom-favorite-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.oom-favorite-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 0; /* Allows text truncation to work */
+}
+
+.oom-favorite-name {
+    font-weight: 600;
+    color: var(--text-normal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.oom-favorite-range {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.oom-favorite-delete {
+    background: none;
+    border: none;
+    color: var(--text-error);
+    font-size: 1.1em;
+    padding: 0.15em 0.3em;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.oom-favorite-delete:hover {
+    background-color: var(--background-modifier-error-hover);
+}
+
+.oom-favorite-delete:focus {
+    outline: 2px solid var(--text-error);
+    outline-offset: 2px;
+}
+
+.oom-fav-save-container {
+    display: flex;
+    gap: 0.5em;
+    margin: 1em 0;
+}
+
+.oom-fav-save-container input {
+    flex: 1;
+}
+
+.oneirometrics-modal-buttons {
+    display: flex;
+    gap: 0.5em;
+    justify-content: center;
+    margin-top: 1em;
+}
+
+/* Filter Display Styles */
+.oom-filter-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-left: 0.5em;
+    padding: 0.25em 0.5em;
+    border-radius: 4px;
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-filter--custom-range {
+    color: var(--text-accent);
+}
+
+.oom-filter-clear {
+    cursor: pointer;
+    padding: 0.25em;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.oom-filter-clear:hover {
+    background-color: var(--background-modifier-error-hover);
+}
+
+.oom-filter-clear:focus {
+    outline: 2px solid var(--text-error);
+    outline-offset: 2px;
+}
+
+/* Animation for filter updates */
+.oom-filter-display--updated {
+    animation: filter-update 0.5s ease;
+}
+
+@keyframes filter-update {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Custom Date Modal Section Enhancements */
+
+.modal:has(.oneirometrics-custom-date-modal) {
+    width: 400px;
+    min-width: 0 !important;
+    max-width: 95vw;
+}
+
+.oneirometrics-custom-date-modal .oom-modal-section {
+    background: var(--background-secondary);
+    border: 1px solid #bebebe;
+    border-radius: 6px;
+    padding: 1em;
+    margin-bottom: 1.25em;
+}
+
+.oneirometrics-custom-date-modal hr {
+    border: none;
+    border-top: 1px solid var(--background-modifier-border);
+    margin: 1em 0;
+}
+
+.oneirometrics-custom-date-modal .oom-modal-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.5em 1em;
+    align-items: center;
+    margin-bottom: 0.5em;
+}
+
+.oneirometrics-custom-date-modal label {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.oneirometrics-custom-date-modal .oom-modal-btn-muted {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oneirometrics-custom-date-modal .oom-modal-btn-muted:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.oneirometrics-custom-date-modal .oom-modal-grid input[type='text'] {
+    max-width: 180px;
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Lucide icon styles for modal */
+.oom-lucide-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    width: 1.1em;
+    height: 1.1em;
+    margin-right: 0.25em;
+    color: var(--text-accent);
+}
+.oom-favorite-delete .oom-lucide-icon {
+    color: var(--text-error);
+    margin-right: 0;
+}
+
+.oom-fav-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.5em;
+    width: 100%;
+}
+.oom-fav-name-row label {
+    margin-right: 0.25em;
+    flex: 0 0 auto;
+}
+.oom-fav-name-row input[type='text'] {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+}
+.oom-fav-name-row button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}

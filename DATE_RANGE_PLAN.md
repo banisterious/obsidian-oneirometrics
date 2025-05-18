@@ -52,39 +52,44 @@ Enhance the existing date range filtering in OneiroMetrics by adding a "Custom R
 ### Fallbacks & Edge Cases
 - If the user cancels the modal, do not change the filter.
 - If the user clears the custom range, revert to the dropdown's selected value.
+- **Error Handling:**
+  - Show clear error messages if refresh or filtering fails.
+  - Allow users to retry failed operations.
+  - Handle invalid date ranges gracefully with clear user guidance.
 
 ---
 
 ## Accessibility
 - Ensure the new button and modal are keyboard accessible.
-- Tab order should be logical and intuitive.
-- All controls should be reachable by keyboard.
-- Button and modal have visible focus indicators.
-- ESC closes the picker.
-- Modal traps focus while open and returns focus to the triggering button when closed.
 - Modal should have proper focus management and ARIA labels.
-- All interactive elements have descriptive labels (e.g., aria-label, aria-labelledby).
-- Screen reader announces calendar and selected dates.
-- Announce errors or invalid input to screen readers.
-- Ensure color contrast meets WCAG AA standards for all UI elements.
+- **User Experience:**
+  - Keep the interface simple and intuitive.
+  - Provide clear feedback about changes (e.g., notifications when corrections are made).
+  - Make it easy to access affected source notes (if relevant).
+  - Support multiple date display formats while maintaining consistent storage format.
+  - Persist user preferences for display format and custom ranges.
 
 ---
 
 ## Testing
-- Manual testing checklist:
+- **Unit Tests:**
+  - Test date format conversions
+  - Test date range calculations
+  - Test refresh functionality
+- **Integration Tests:**
+  - Test interaction with existing UI components
+  - Test data flow through the system
+  - Test error handling scenarios
+- **Performance Tests:**
+  - Test with large datasets
+  - Test refresh operations
+  - Test UI responsiveness
+- **Manual testing checklist:**
   - Button appears and is clickable.
   - Modal opens and closes as expected.
   - Table updates correctly for custom and dropdown ranges.
   - Accessibility features work (keyboard, screen reader).
-  - Focus is returned to the button after modal closes.
-  - Error handling for invalid or out-of-range dates.
-  - Test with different date formats and locales (if supported).
-  - Test persistence and clearing of custom range selection.
-  - Test responsiveness on different screen sizes (desktop, tablet, mobile).
 - (Optional) Automated tests for modal logic and filtering.
-- Test with various themes and in both light/dark modes.
-- Test with screen readers (NVDA, VoiceOver, etc.).
-- Test ESC, Tab, and arrow key navigation.
 
 ---
 
@@ -92,24 +97,14 @@ Enhance the existing date range filtering in OneiroMetrics by adding a "Custom R
 - Persist custom ranges between sessions.
 - Allow saving favorite custom ranges.
 - Additional accessibility or UX improvements.
-
-## Phase 1 Completion (May 2025)
-- Phase 1 of the Filters Expansion is complete:
-  - Custom Date Range modal for selecting start/end dates
-  - Favorites system: save, select, and delete custom date ranges
-  - UI/UX improvements: visual hierarchy, compact favorites list, Lucide icons, improved modal layout, and button prominence
-  - Accessibility and keyboard navigation improvements
-  - Responsive modal width and layout
-- See CHANGELOG.md for details.
-
-## Phase 2 (Planned Future Enhancements)
-- User-defined custom presets in the dropdown
-- Calendar improvements (multi-month view, week numbers, preview optimization)
-- Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
-- Additional accessibility enhancements
-- Advanced filtering and analytics features
+- **Possible TODO:** Allow user-defined custom presets to appear in the dropdown alongside built-in presets.
+- **Risk Assessment & Mitigations:**
+  - Data processing: Maintain backward compatibility with existing date formats.
+  - UI components: Isolate new features to avoid conflicts.
+  - Performance: Implement efficient date range filtering.
+  - Data consistency: Use atomic updates for refresh operations.
 
 ---
 
 ## Changelog
-- (Track major changes to the plan or implementation here.)
+- (Track major changes to the plan or implementation here.) 

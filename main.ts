@@ -10,6 +10,9 @@ import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
+// Move this to the top of the file, before any functions that use it
+let customDateRange: { start: string, end: string } | null = null;
+
 class OneiroMetricsModal extends Modal {
     private plugin: DreamMetricsPlugin;
     private selectionMode: 'notes' | 'folder';
@@ -1332,6 +1335,7 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<option value="thisYear">This Year</option>\n';
         content += '<option value="last12months">Last 12 Months</option>\n';
         content += '</select>\n';
+        content += '<button id="oom-custom-range-btn" class="oom-button">Custom Range</button>\n';
         content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
         content += '</div>\n';
 
@@ -1606,6 +1610,14 @@ export default class DreamMetricsPlugin extends Plugin {
             });
             button.parentNode?.replaceChild(newButton, button);
         });
+
+        // Add custom range button event listener
+        const customRangeBtn = document.getElementById('oom-custom-range-btn');
+        if (customRangeBtn) {
+            customRangeBtn.addEventListener('click', () => {
+                openCustomRangeModal(this.app);
+            });
+        }
     }
 
     private applyFilters(previewEl: HTMLElement) {
@@ -2023,4 +2035,154 @@ function getDreamEntryDate(journalLines: string[], filePath: string, fileContent
     }
     // 6. Current date
     return new Date().toISOString().split('T')[0];
+}
+
+// Persist last-used custom range in localStorage
+const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
+const SAVED_RANGES_KEY = 'oneirometrics-saved-custom-ranges';
+
+function saveLastCustomRange(range: { start: string, end: string }) {
+    localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(range));
+}
+
+function loadLastCustomRange(): { start: string, end: string } | null {
+    const data = localStorage.getItem(CUSTOM_RANGE_KEY);
+    if (!data) return null;
+    try {
+        return JSON.parse(data);
+    } catch {
+        return null;
+    }
+}
+
+function saveFavoriteRange(name: string, range: { start: string, end: string }) {
+    const saved = loadFavoriteRanges();
+    saved[name] = range;
+    localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
+    console.log('[DEBUG] Saved favorite range:', name, range);
+}
+
+function loadFavoriteRanges(): Record<string, { start: string, end: string }> {
+    const data = localStorage.getItem(SAVED_RANGES_KEY);
+    if (!data) return {};
+    try {
+        return JSON.parse(data);
+    } catch {
+        return {};
+    }
+}
+
+function deleteFavoriteRange(name: string) {
+    const saved = loadFavoriteRanges();
+    delete saved[name];
+    localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
+    console.log('[DEBUG] Deleted favorite range:', name);
+    new Notice(`Deleted favorite: ${name}`);
+}
+
+// On plugin load, check for a saved custom range and auto-apply it
+const lastRange = loadLastCustomRange();
+if (lastRange && lastRange.start && lastRange.end) {
+    customDateRange = lastRange;
+    // Optionally, auto-apply filter on load
+    document.addEventListener('DOMContentLoaded', () => {
+        applyCustomDateRangeFilter();
+        const btn = document.getElementById('oom-custom-range-btn');
+        if (btn) btn.classList.add('active');
+    });
+}
+
+function openCustomRangeModal(app: App) {
+    const favorites = loadFavoriteRanges();
+    console.log('[DEBUG] Opening modal with favorites:', favorites);
+    new CustomDateRangeModal(app, (start: string, end: string, saveName?: string) => {
+        if (start && end) {
+            customDateRange = { start, end };
+            saveLastCustomRange(customDateRange);
+            if (saveName) {
+                saveFavoriteRange(saveName, customDateRange);
+                new Notice(`Saved favorite: ${saveName}`);
+            }
+            applyCustomDateRangeFilter();
+            const btn = document.getElementById('oom-custom-range-btn');
+            if (btn) btn.classList.add('active');
+        } else {
+            customDateRange = null;
+            const btn = document.getElementById('oom-custom-range-btn');
+            if (btn) btn.classList.remove('active');
+            const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+            if (dropdown) dropdown.dispatchEvent(new Event('change'));
+        }
+    }, favorites, deleteFavoriteRange).open();
+}
+
+function applyCustomDateRangeFilter() {
+    if (!customDateRange) return;
+    const previewEl = document.querySelector('.oom-metrics-container') as HTMLElement;
+    if (!previewEl) return;
+    const rows = previewEl.querySelectorAll('.oom-dream-row');
+    const startDate = new Date(customDateRange.start);
+    const endDate = new Date(customDateRange.end);
+    let visibleCount = 0;
+    rows.forEach((rowEl) => {
+        const row = rowEl as HTMLElement;
+        const dateAttr = row.getAttribute('data-date');
+        if (!dateAttr) return row.style.display = 'none';
+        const rowDate = new Date(dateAttr);
+        if (rowDate >= startDate && rowDate <= endDate) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    updateFilterDisplay(visibleCount);
+}
+
+function updateFilterDisplay(entryCount: number) {
+    const filterDisplay = document.getElementById('oom-time-filter-display');
+    if (!filterDisplay) return;
+    filterDisplay.innerHTML = '';
+
+    // Add icon
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'oom-filter-icon';
+    iconSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>`;
+    filterDisplay.appendChild(iconSpan);
+
+    // Add text
+    const textSpan = document.createElement('span');
+    textSpan.className = 'oom-filter-text';
+    if (customDateRange) {
+        textSpan.classList.add('oom-filter--custom-range');
+        textSpan.textContent = ` Custom Range: ${customDateRange.start} to ${customDateRange.end} (${entryCount} entries) `;
+        // Add clear button
+        const clearBtn = document.createElement('span');
+        clearBtn.className = 'oom-filter-clear';
+        clearBtn.setAttribute('title', 'Clear custom range');
+        clearBtn.setAttribute('tabindex', '0');
+        clearBtn.setAttribute('role', 'button');
+        clearBtn.textContent = '×';
+        clearBtn.addEventListener('click', () => {
+            customDateRange = null;
+            const btn = document.getElementById('oom-custom-range-btn');
+            if (btn) btn.classList.remove('active');
+            const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+            if (dropdown) dropdown.dispatchEvent(new Event('change'));
+        });
+        clearBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                clearBtn.click();
+            }
+        });
+        textSpan.appendChild(clearBtn);
+    } else {
+        // Show dropdown label as before
+        const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+        const label = dropdown ? dropdown.options[dropdown.selectedIndex].text : 'All Time';
+        textSpan.classList.add('oom-filter--all-visible');
+        textSpan.textContent = ` ${label} (${entryCount} entries) `;
+    }
+    filterDisplay.appendChild(textSpan);
 } 
