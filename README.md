@@ -98,7 +98,7 @@
 - Date filter dropdown and status display now work as intended.
 - **Settings button** in both the Dream Scraper modal and metrics note now always opens the correct OneiroMetrics settings tab.
 
-See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for more.
+See [ISSUES.md](ISSUES.md#fixed-issues) for more.
 
 ---
 
@@ -107,7 +107,7 @@ See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for more.
 - [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [Usage Guide](docs/USAGE.md)
 - [Logging Guide](docs/LOGGING.md)
-- [Known Issues](docs/ISSUES.md)
+- [Known Issues](ISSUES.md)
 - [Release Notes](CHANGELOG.md)
 - [Metrics Guide](docs/METRICS.md)
 - [Testing Guide](docs/TESTING.md)
