@@ -111,7 +111,7 @@ See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for more.
 - [Release Notes](CHANGELOG.md)
 - [Metrics Guide](docs/METRICS.md)
 - [Testing Guide](docs/TESTING.md)
-- [Date Range Picker Plan](docs/DATE_RANGE_PLAN.md)
+- [Date Tools Plan](docs/DATE_TOOLS_PLAN.md)
 
 ---
 

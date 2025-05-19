@@ -15,7 +15,7 @@ This document outlines the testing procedures and requirements for the OneiroMet
 - Metrics Table
 - Content Display
 - Expand/Collapse, Scroll, and Table Performance
-- Time Filter UI Testing
+- Custom Date Filter UI Testing
 - Filtering and Sorting
 - Styling and UI (see [UI_TESTING.md](UI_TESTING.md))
 - Accessibility (see [ACCESSIBILITY_TESTING.md](ACCESSIBILITY_TESTING.md))
@@ -136,7 +136,7 @@ See [View Mode Requirements](VIEW_MODE.md) for detailed testing procedures and b
 - [x] Debug button for manual event listener attachment works as expected in development mode
 - [x] See [docs/ISSUES.md](ISSUES.md#fixed-issues) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md) for detailed diagnostics and troubleshooting steps
 
-### Time Filter UI Testing
+### Custom Date Filter UI Testing
 
 - [ ] Calendar Preview
   - [ ] Calendar renders correctly
@@ -197,7 +197,7 @@ See [View Mode Requirements](VIEW_MODE.md) for detailed testing procedures and b
   - [x] Yesterday option
   - [x] This Week option
   - [x] Custom range via calendar
-- [x] Time filter works
+- [x] Custom Date Filter works
   - [x] Hour selection (0-23)
   - [x] Minute selection (0-59)
   - [x] Quick filters (Morning, Afternoon, Evening, Night)
@@ -1262,3 +1262,47 @@ if (this.settings.debugLogging.filterEvents) {
     this.logger.log('Filter', 'Filter event triggered', details);
 }
 ```
+
+## Date Tools Testing
+
+### Date Filter Testing
+- Custom date range selection
+- Quick filter presets
+- Favorites system
+- Filter state persistence
+- Edge cases (year boundaries, invalid dates)
+
+### Multi-month Calendar Testing
+- Calendar grid rendering
+- Month navigation
+- Range selection
+- Week number display
+- Responsive layout
+
+### Date Comparison Testing
+- Period comparison
+- Pattern detection
+- Metric analysis
+- Visualization tools
+- Export functionality
+
+### Pattern Analysis Testing
+- Theme recurrence
+- Emotional patterns
+- Temporal patterns
+- Statistical analysis
+- Performance with large datasets
+
+### Accessibility Testing
+- Keyboard navigation
+- Screen reader support
+- High contrast mode
+- Reduced motion
+- Touch interface
+
+### Performance Testing
+- Large date range handling
+- Multiple month rendering
+- Comparison calculations
+- Pattern analysis speed
+- Memory usage

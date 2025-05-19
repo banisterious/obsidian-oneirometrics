@@ -10,7 +10,7 @@
    - Fix: Implemented debounced filter updates and improved event handling
    - Status: ✅ Fixed
 
-2. **Date and Time Filter UI**
+2. **Date and Custom Date Filter UI**
    - Issue: Inconsistent filter UI and state management
    - Fix: Implemented unified filter container and improved state handling
    - Status: ✅ Fixed
@@ -78,7 +78,7 @@
 
 ### Filter System
 - Added unified filter container
-- Implemented date range and time filters
+- Implemented date range and Custom Date Filter
 - Added quick filter buttons
 - Improved filter state management
 - Enhanced filter UI/UX
@@ -144,7 +144,7 @@
 
 ## Recent Fixes
 - Fixed "Show More" button functionality and state persistence
-- Restored Time Filters functionality
+- Restored Custom Date Filter functionality
 - Added proper event handling for filter changes
 - Improved filter feedback and visual indicators
 - Added proper cleanup of event listeners
@@ -248,7 +248,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - For privacy and responsible disclosure guidelines, see [../SECURITY.md](../SECURITY.md)
 
 ### UI Improvements
-- [ ] Relocate Time Filters button
+- [x] Relocate Custom Date Filter button
   - Remove from ribbon to reduce UI clutter
   - Keep access through OneiroMetrics note only
   - Consider adding keyboard shortcut for quick access
@@ -493,19 +493,6 @@ If further UI changes are made, ensure that both the code and `SPECIFICATION.md`
 - Advanced filtering and analytics features
 
 ## UI/UX TODOs
-
-### OneiroMetrics Note Improvements
-1. Force title for OneiroMetrics page to "OneiroMetrics" (currently shows as "Metrics")
-2. Change `<div class="oom-table-title oom-stats-title">` to an `<h2>` with the same classes
-3. Move `<div class="oom-rescrape-container">` to the top of the note, above the Statistics title
-
-### Dream Scrape Modal Enhancements
-1. Add an "Open OneiroMetrics Note" button that:
-   - Only appears after a Scrape operation is run
-   - Disappears each time the modal is opened
-   - Reappears whenever a new scrape is run from within the modal
-   - Should be placed between Scrape Metrics and Settings buttons
-2. Add class `oom-modal-btn-muted` to `<button class="mod-cta oom-settings-button">`
 
 ### Ribbon Button Behavior
 1. Update the "Open OneiroMetrics Note" ribbon button to use the command instead of directly opening the note

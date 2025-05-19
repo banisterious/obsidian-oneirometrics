@@ -285,9 +285,61 @@ The generated table includes two main sections:
 - Real-time validation and feedback
 - Easy navigation through suggestions
 
-## Date and Time Features
+## Date Tools
 
-For detailed information about date and time handling, including block references, time filters, and calendar integration, see the [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md).
+### Overview
+The Date Tools feature provides comprehensive capabilities for analyzing dream entries across different time periods:
+
+1. **Date Filter**
+   - Custom date range selection
+   - Quick filter presets (Today, Yesterday, This Week, etc.)
+   - Favorites system for saved ranges
+   - Filter state persistence
+
+2. **Multi-month Calendar**
+   - View multiple months simultaneously
+   - Select date ranges across months
+   - Week number display
+   - Intuitive navigation
+
+3. **Date Comparison**
+   - Compare different time periods
+   - Analyze patterns and trends
+   - Compare metrics across periods
+   - Visual comparison tools
+
+4. **Pattern Analysis**
+   - Theme recurrence analysis
+   - Emotional pattern detection
+   - Temporal pattern recognition
+   - Statistical analysis
+
+### Using Date Tools
+
+1. **Accessing Date Tools**
+   - Click the Date Tools button in the metrics table
+   - Use the command palette (Ctrl/Cmd + P)
+   - Access through the OneiroMetrics note
+
+2. **Date Filter Usage**
+   - Select from quick filter presets
+   - Choose custom date range
+   - Save favorite ranges
+   - Clear active filter
+
+3. **Calendar Features**
+   - Navigate between months
+   - Select date ranges
+   - View week numbers
+   - Compare periods
+
+4. **Analysis Tools**
+   - Compare different time periods
+   - View pattern analysis
+   - Export comparison data
+   - Save analysis results
+
+For detailed technical information about date handling implementation, see the [Date Tools Plan](DATE_TOOLS_PLAN.md).
 
 ## Layout and Styling
 

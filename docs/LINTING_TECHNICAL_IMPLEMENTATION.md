@@ -2592,3 +2592,37 @@ class LintingSettingsTab extends PluginSettingTab {
 ---
 
 **For further enhancements, consider adding AI-powered suggestions, advanced rule creation, or integration with other Obsidian plugins.** 
+
+## TODO: Enhanced Structure Validation
+
+### Nested Structure Support
+- [ ] Implement robust validation for both flat and nested journal structures
+- [ ] Add specific validation rules for each nesting level
+- [ ] Improve error reporting for nested structure issues
+- [ ] Add support for validating multiple dreams within a single journal entry
+- [ ] Implement proper indentation validation
+- [ ] Add validation for date consistency across nested levels
+
+### Current Implementation
+The current implementation in `main.ts` handles basic structure validation but needs enhancement to fully support the nested structure patterns documented in `LINTING_GUIDELINES.md`.
+
+### Planned Improvements
+1. **Structure Validation**
+   - Add explicit validation for both flat and nested structures
+   - Implement proper nesting level tracking
+   - Add validation for parent-child relationships between callouts
+
+2. **Date Handling**
+   - Improve date extraction from nested structures
+   - Add validation for date consistency across nested levels
+   - Implement better fallback mechanisms for date extraction
+
+3. **Error Reporting**
+   - Add specific error messages for nested structure issues
+   - Implement better context in error messages
+   - Add suggestions for fixing common nesting issues
+
+4. **Performance**
+   - Optimize validation for deeply nested structures
+   - Implement caching for structure validation results
+   - Add batch processing for multiple entries
