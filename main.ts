@@ -26,6 +26,9 @@ class OneiroMetricsModal extends Modal {
     private scrapeButton: HTMLButtonElement;
     private isScraping: boolean = false;
     private noteDismissed: boolean = false;
+    public hasScraped: boolean = false;
+    public openNoteButton: HTMLButtonElement;
+    public static activeModal: OneiroMetricsModal | null = null;
 
     constructor(app: App, plugin: DreamMetricsPlugin) {
         super(app);
@@ -36,7 +39,15 @@ class OneiroMetricsModal extends Modal {
     }
 
     onOpen() {
+        OneiroMetricsModal.activeModal = this;
         const { contentEl } = this;
+        // Reset scrape state when modal is opened
+        this.hasScraped = false;
+        if (this.openNoteButton) {
+            this.openNoteButton.disabled = true;
+            this.openNoteButton.title = 'Run a scrape to enable this';
+            this.openNoteButton.classList.remove('enabled');
+        }
         // Set modal dimensions and classes first
         this.modalEl.style.width = '600px';
         this.modalEl.style.maxHeight = '80vh';
@@ -51,12 +62,6 @@ class OneiroMetricsModal extends Modal {
         // Add dismissible note
         if (!this.noteDismissed) {
             const noteEl = contentEl.createEl('div', { cls: 'oom-modal-note' });
-            const closeBtn = noteEl.createEl('button', { cls: 'oom-modal-note-close' });
-            closeBtn.innerHTML = '×';
-            closeBtn.addEventListener('click', () => {
-                noteEl.remove();
-                this.noteDismissed = true;
-            });
             noteEl.createEl('strong', { text: 'Note: ' });
             noteEl.createEl('span', { 
                 text: 'This is where you kick off the "scraping" process, which searches your selected notes or folder and gathers up dream entries and metrics. Click the Scrape button to begin, or change your files/folder selection, below.'
@@ -126,8 +131,8 @@ class OneiroMetricsModal extends Modal {
         scrapeLeft.createEl('div', { text: 'Begin the scraping operation', cls: 'oom-modal-helper' });
         const scrapeRight = scrapeRow.createEl('div', { cls: 'oom-modal-col-right' });
         this.scrapeButton = scrapeRight.createEl('button', {
-            text: 'Scrape Metrics',
-            cls: 'mod-cta oom-scrape-button'
+            text: 'Scrape Notes',
+            cls: 'mod-cta oom-modal-button oom-scrape-button'
         });
         this.scrapeButton.addEventListener('click', () => {
             if (!this.isScraping) {
@@ -137,14 +142,33 @@ class OneiroMetricsModal extends Modal {
             }
         });
 
-        // Add Settings button
+        // Add Settings button directly after Scrape Metrics
         const settingsButton = scrapeRight.createEl('button', {
-            text: 'Settings',
-            cls: 'mod-cta oom-settings-button'
+            text: 'Open Settings',
+            cls: 'mod-cta oom-modal-button oom-settings-button'
         });
         settingsButton.addEventListener('click', () => {
             (this.app as any).setting.open();
             (this.app as any).setting.openTabById('oneirometrics');
+        });
+
+        // Add Open OneiroMetrics button directly after Settings
+        this.openNoteButton = scrapeRight.createEl('button', {
+            text: 'Open OneiroMetrics',
+            cls: 'mod-cta oom-modal-button oom-open-note-button',
+            attr: { title: 'Run a scrape to enable this' }
+        });
+        this.openNoteButton.disabled = true;
+        this.openNoteButton.classList.remove('enabled');
+        this.openNoteButton.addEventListener('click', () => {
+            if (this.openNoteButton.disabled) return;
+            const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.projectNote);
+            if (file instanceof TFile) {
+                this.app.workspace.openLinkText(this.plugin.settings.projectNote, '', true);
+            } else {
+                new Notice('Metrics note not found. Please set the path in settings.');
+                (this.app as any).setting.open('oneirometrics');
+            }
         });
 
         // --- Progress Section ---
@@ -212,6 +236,9 @@ class OneiroMetricsModal extends Modal {
     onClose() {
         const { contentEl } = this;
         contentEl.empty();
+        if (OneiroMetricsModal.activeModal === this) {
+            OneiroMetricsModal.activeModal = null;
+        }
     }
 }
 
@@ -300,7 +327,7 @@ export default class DreamMetricsPlugin extends Plugin {
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
 
         // Add ribbon icon for modal
-        const ribbonIcon = this.addRibbonIcon('wand', 'Open OneiroMetrics Dream Scrape tool', () => {
+        const ribbonIcon = this.addRibbonIcon('wand', 'Dream Scrape Tool', () => {
             new OneiroMetricsModal(this.app, this).open();
         });
         ribbonIcon.addClass('oom-ribbon-scrape-button');
@@ -314,7 +341,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add command to open modal
         this.addCommand({
             id: 'open-oneirometrics-modal',
-            name: 'Open OneiroMetrics Dream Scrape tool',
+            name: 'Dream Scrape Tool',
             callback: () => {
                 new OneiroMetricsModal(this.app, this).open();
             }
@@ -989,11 +1016,17 @@ export default class DreamMetricsPlugin extends Plugin {
         console.log(`[OneiroMetrics] Updating project note with ${dreamEntries.length} entries`);
         this.updateProjectNote(metrics, dreamEntries);
         progressModal.close();
-        new Notice('Metrics scraped successfully!');
 
-        // After scraping, clear exclusion list
-        const pluginAny = this as any;
-        if (pluginAny._excludedFilesForNextScrape) pluginAny._excludedFilesForNextScrape = [];
+        // Show the Open OneiroMetrics Note button in the modal
+        if (OneiroMetricsModal.activeModal) {
+            OneiroMetricsModal.activeModal.hasScraped = true;
+            if (OneiroMetricsModal.activeModal.openNoteButton) {
+                const btn = OneiroMetricsModal.activeModal.openNoteButton;
+                btn.disabled = false;
+                btn.title = 'Open OneiroMetrics';
+                btn.classList.add('enabled');
+            }
+        }
     }
 
     private processDreamContent(content: string): string {
@@ -1243,7 +1276,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private generateSummaryTable(metrics: Record<string, number[]>): string {
         let content = '';
         content += `<div class="oom-table-section oom-stats-section">`;
-        content += '<div class="oom-table-title oom-stats-title">Statistics</div>';
+        content += '<h2 class="oom-table-title oom-stats-title">Statistics</h2>';
         content += '<div class="oom-table-container">\n';
         content += '<table class="oom-table oom-stats-table">\n';
         content += '<thead>\n';
@@ -1314,6 +1347,15 @@ export default class DreamMetricsPlugin extends Plugin {
             console.log('[OneiroMetrics] Using cached table data');
             return this.memoizedTableData.get(cacheKey);
         }
+
+        // Add H1 title above the button bar
+        content += '<h1 class="oneirometrics-title">OneiroMetrics (Dream Metrics)</h1>';
+        // Add rescrape/settings/debug buttons at the top
+        content += '<div class="oom-rescrape-container">';
+        content += '<button class="mod-cta oom-rescrape-button">Rescrape Metrics</button>';
+        content += '<button class="mod-cta oom-settings-button">Settings</button>';
+        content += '<button class="mod-warning oom-debug-attach-listeners">Debug: Attach Show More Listeners</button>';
+        content += '</div>';
 
         content += '<!-- OOM METRICS START -->\n';
         content += '<div class="oom-metrics-container">\n';
@@ -1486,56 +1528,10 @@ export default class DreamMetricsPlugin extends Plugin {
             leaves.forEach(leaf => {
                 const view = leaf.view;
                 if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNote) {
-                    // Add rescraping button at the top of the note
+                    // Remove old .oom-rescrape-container if present
                     const container = view.containerEl;
-                    let buttonContainer = container.querySelector('.oom-rescrape-container');
-                    if (!buttonContainer) {
-                        buttonContainer = container.createDiv('oom-rescrape-container');
-                        const rescrapeButton = buttonContainer.createEl('button', {
-                            text: 'Rescrape Metrics',
-                            cls: 'mod-cta oom-rescrape-button'
-                        });
-                        rescrapeButton.addEventListener('click', () => {
-                            this.scrapeMetrics();
-                        });
-
-                        // Add Settings button
-                        const settingsButton = buttonContainer.createEl('button', {
-                            text: 'Settings',
-                            cls: 'mod-cta oom-settings-button'
-                        });
-                        settingsButton.addEventListener('click', () => {
-                            (this.app as any).setting.open();
-                            (this.app as any).setting.openTabById('oneirometrics');
-                        });
-
-                        // Add debug button (always created, visibility controlled by CSS)
-                        const debugButton = buttonContainer.createEl('button', {
-                            text: 'Debug: Attach Show More Listeners',
-                            cls: 'mod-warning oom-debug-attach-listeners'
-                        });
-                        debugButton.addEventListener('click', () => {
-                            new Notice('Manually attaching Show More listeners...');
-                            this.attachProjectNoteEventListeners();
-                        });
-                    }
-                    // Always update the debug mode class based on the provided log level
-                    const logLevel = currentLogLevel ?? this.settings.logging.level;
-                    if (buttonContainer) {
-                        console.log('Updating buttonContainer:', buttonContainer, 'logLevel:', logLevel);
-                        console.log('Before:', buttonContainer.className);
-                        if (logLevel === 'debug') {
-                            buttonContainer.classList.add('oom-debug-mode');
-                        } else {
-                            // Forced class removal
-                            buttonContainer.className = buttonContainer.className.replace(/\boom-debug-mode\b/g, '').trim();
-                            console.log('Forced removal, After:', buttonContainer.className);
-                        }
-                        console.log('After:', buttonContainer.className);
-                    } else {
-                        console.log('No buttonContainer found in updateProjectNoteView');
-                    }
-
+                    const oldButtonContainer = container.querySelector('.oom-rescrape-container');
+                    if (oldButtonContainer) oldButtonContainer.remove();
                     // Update the view's content
                     if (view.getMode() === 'preview') {
                         view.previewMode?.rerender();
@@ -1585,6 +1581,28 @@ export default class DreamMetricsPlugin extends Plugin {
         if (!view || view.getMode() !== 'preview') return;
         const previewEl = view.previewMode?.containerEl;
         if (!previewEl) return;
+
+        // Add event listeners for new rescrape/settings/debug buttons
+        const rescrapeBtn = previewEl.querySelector('.oom-rescrape-button');
+        if (rescrapeBtn) {
+            rescrapeBtn.addEventListener('click', () => {
+                this.scrapeMetrics();
+            });
+        }
+        const settingsBtn = previewEl.querySelector('.oom-settings-button');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', () => {
+                (this.app as any).setting.open();
+                (this.app as any).setting.openTabById('oneirometrics');
+            });
+        }
+        const debugBtn = previewEl.querySelector('.oom-debug-attach-listeners');
+        if (debugBtn) {
+            debugBtn.addEventListener('click', () => {
+                new Notice('Manually attaching Show More listeners...');
+                this.attachProjectNoteEventListeners();
+            });
+        }
 
         // Add date range filter event listener
         const dateRangeFilter = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
@@ -1966,7 +1984,7 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Add scrape button if enabled in settings
         if (this.settings.showScrapeButton) {
-            const scrapeIcon = this.addRibbonIcon('wand', 'Open OneiroMetrics Dream Scrape tool', () => {
+            const scrapeIcon = this.addRibbonIcon('wand', 'Dream Scrape Tool', () => {
                 new OneiroMetricsModal(this.app, this).open();
             });
             scrapeIcon.addClass('oom-ribbon-scrape-button');
