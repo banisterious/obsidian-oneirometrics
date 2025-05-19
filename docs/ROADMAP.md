@@ -1,7 +1,29 @@
 # OneiroMetrics Development Roadmap
 
+## Table of Contents
+- [Current Focus](#current-focus)
+  - [Custom Date Tools UI Enhancements](#custom-date-tools-ui-enhancements)
+- [Planned Features](#planned-features)
+  - [Custom Date Tools System](#custom-date-tools-system)
+  - [Journal Structure Check](#journal-structure-check)
+  - [Metrics System](#metrics-system)
+  - [User Experience](#user-experience)
+    - [UI/UX Improvements](#uiux-improvements)
+  - [Performance](#performance)
+  - [Integration](#integration)
+- [Future Considerations](#future-considerations)
+  - [Advanced Time Filter Features](#advanced-time-filter-features)
+- [Potential Future Features](#potential-future-features)
+  - [Dream Analysis Features](#dream-analysis-features)
+    - [Dream Sequence Visualization](#dream-sequence-visualization)
+    - [Temporal Analysis](#temporal-analysis)
+    - [Pattern Recognition](#pattern-recognition)
+    - [Statistical Analysis](#statistical-analysis)
+- [Notes](#notes)
+- [Custom Date Filter Improvements](#custom-date-filter-improvements)
+
 ## Current Focus
-- Time Filter UI Enhancements
+- Custom Date Tools UI Enhancements
   - Calendar preview optimization
   - Accessibility improvements
   - Mobile responsiveness
@@ -10,17 +32,18 @@
 
 ## Planned Features
 
-### Time Filter System
-- [x] Basic time filter UI
-- [x] Calendar preview
-- [x] Accessibility features
-- [x] Mobile optimization
+### Custom Date Tools System
+- [x] Basic date range UI
+- [ ] Calendar preview
+- [ ] Accessibility features
+- [ ] Mobile optimization
 - [ ] Custom date range presets
 - [ ] Multi-month calendar view
 - [ ] Week numbers in calendar
 - [ ] Date range comparison
-- [ ] Relative time indicators
 - [ ] Advanced filtering options
+
+See [Date Tools Plan](DATE_TOOLS_PLAN.md) for detailed implementation specifications.
 
 ### Journal Structure Check
 - [ ] Basic structure validation
@@ -30,12 +53,16 @@
 - [ ] Settings UI
 - [ ] Linter plugin integration
 
+See [Linting Guidelines](LINTING_GUIDELINES.md) for structure rules and best practices, and [Linting Technical Implementation](LINTING_TECHNICAL_IMPLEMENTATION.md) for implementation details.
+
 ### Metrics System
 - [ ] Enhanced metrics visualization
 - [ ] Custom metric types
 - [ ] Metric templates
 - [ ] Batch operations
 - [ ] Lucide Icon Picker integration
+
+See [Metrics Enhancements Plan](METRICS_ENHANCEMENTS_PLAN.md) for detailed implementation specifications.
 
 ### User Experience
 - [ ] Improved settings organization
@@ -110,8 +137,16 @@ These features are under consideration but not yet planned for implementation. T
 - Some features may be combined or split during development
 - All features are subject to change
 
-For details and open questions about the custom date range picker, see [DATE_RANGE_PICKER_PLAN.md](DATE_RANGE_PICKER_PLAN.md).
+For details about the date tools implementation, see [Date Tools Plan](DATE_TOOLS_PLAN.md).
+
+### Custom Date Filter Improvements
+- [ ] Multi-month view
+- [ ] Week numbers
+- [ ] Preview optimization
+- [ ] Favorites editing
+- [ ] Tooltips
+- [ ] Empty state
 
 ---
 
-*Last updated: May 2024* 
+*Last updated: May 2025* 

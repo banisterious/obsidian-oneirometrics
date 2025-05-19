@@ -25,7 +25,7 @@ OneiroMetrics is an Obsidian plugin designed to help users track and analyze the
    - Display dream entries in a structured table
    - Show metrics summary
    - Provide interactive content expansion
-   - **Date Filtering:** Instantly filter dream entries by common ranges (Today, Yesterday, This Week, Last 12 Months, etc.) using a dropdown with clear, human-friendly labels and color-coded status icons.
+   - **Date Tools:** Comprehensive suite for analyzing dream entries across time periods, including custom date filtering, multi-month calendar views, date range comparison, and pattern analysis.
 
 4. **Settings and Customization**
    - Configure custom metrics
@@ -111,7 +111,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 ## Recent Updates
 - **Enhanced Filtering System:**
   - Date range filter with calendar preview
-  - Time filter with hour/minute selection
+  - Custom Date Filter with date range selection
   - Quick filter buttons for common ranges
   - Visual feedback for active filters
   - Filter state persistence
@@ -153,12 +153,12 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 
 ## Next Steps
 - **Testing:** 
-  - Verify time filter UI accessibility features
+  - Verify Custom Date Filter UI accessibility features
   - Test calendar preview responsiveness
   - Validate keyboard navigation
   - Check high contrast mode compatibility
 - **Documentation:** Review and update documentation to reflect recent changes
-- **Feedback:** Gather user feedback on the new time filter UI and metrics
+- **Feedback:** Gather user feedback on the new Custom Date Filter UI and metrics
 
 ## Recent Improvements and Lessons Learned (May 12, 2025)
 

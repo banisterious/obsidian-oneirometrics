@@ -1,131 +1,174 @@
-# Custom Date Filter Plan
+# Date Tools Plan
 
 ## Table of Contents
 - [Overview](#overview)
-- [Current State](#current-state)
-- [Objectives](#objectives)
+- [Core Features](#core-features)
+- [Technical Architecture](#technical-architecture)
 - [Implementation Plan](#implementation-plan)
-  - [UI Changes](#ui-changes)
-  - [Event Handling](#event-handling)
-  - [State Management](#state-management)
-  - [Fallbacks & Edge Cases](#fallbacks--edge-cases)
+  - [Date Filter](#date-filter)
+  - [Multi-month Calendar](#multi-month-calendar)
+  - [Date Comparison](#date-comparison)
+  - [Pattern Analysis](#pattern-analysis)
+- [UI/UX Design](#uiux-design)
 - [Accessibility](#accessibility)
 - [Testing](#testing)
 - [Future Enhancements](#future-enhancements)
 - [Changelog](#changelog)
-- [Multi-month Calendar View Specification](#multi-month-calendar-view-specification)
-- [Date Range Comparison Specification](#date-range-comparison-specification)
-- [Comparison User Flow](#comparison-user-flow)
 
 ---
 
 ## Overview
-Enhance the existing date range filtering in OneiroMetrics by adding a "Custom Date Filter" feature, while preserving the current dropdown and table UI.
+Date Tools is a comprehensive suite of features for analyzing dream entries across different time periods. It includes date filtering, multi-month calendar views, date range comparison, and pattern analysis capabilities.
 
----
+## Core Features
 
-## Current State
-- Static HTML/markdown table and dropdown for quick date ranges.
-- Filtering logic based on dropdown selection.
+### 1. Date Filter
+- Custom date range selection
+- Quick filter presets
+- Favorites system
+- Filter state persistence
 
----
+### 2. Multi-month Calendar
+- Simultaneous month display
+- Range selection
+- Week numbers
+- Navigation controls
 
-## Objectives
-- Add a "Custom Date Filter" button next to the existing dropdown.
-- Open a modal for selecting a custom date range.
-- Filter the table dynamically based on the selected custom range.
-- Maintain all existing functionality and UX.
+### 3. Date Comparison
+- Compare different time periods
+- Pattern recognition
+- Metric analysis
+- Visual comparison tools
 
----
+### 4. Pattern Analysis
+- Theme recurrence
+- Emotional patterns
+- Temporal patterns
+- Statistical analysis
+
+## Technical Architecture
+
+### Core Components
+```typescript
+interface DateTools {
+    filter: DateFilter;
+    calendar: MultiMonthCalendar;
+    comparison: DateComparison;
+    analysis: PatternAnalysis;
+}
+
+interface DateFilter {
+    range: DateRange;
+    presets: FilterPreset[];
+    favorites: FavoriteRange[];
+}
+
+interface MultiMonthCalendar {
+    months: Month[];
+    selectedRange: DateRange;
+    navigation: CalendarNavigation;
+}
+
+interface DateComparison {
+    primaryRange: DateRange;
+    comparisonRanges: DateRange[];
+    metrics: ComparisonMetrics;
+    patterns: ComparisonPatterns;
+}
+
+interface PatternAnalysis {
+    themes: ThemeAnalysis;
+    emotions: EmotionalAnalysis;
+    temporal: TemporalAnalysis;
+    statistics: StatisticalAnalysis;
+}
+```
 
 ## Implementation Plan
 
-### UI Changes
-- Add a new button: "Custom Date Filter" (or "Select Range") next to the dropdown.
-- Modal dialog for selecting start and end dates.
+### Phase 1: Date Filter
+1. Basic date range selection
+2. Quick filter presets
+3. Favorites system
+4. Filter state management
 
-### Event Handling
-- Button click opens the modal.
-- On modal confirmation, update the table to show only entries within the selected range.
+### Phase 2: Multi-month Calendar
+1. Calendar grid implementation
+2. Range selection
+3. Navigation controls
+4. Week numbers
 
-### State Management
-- Store the selected custom range in memory (not persisted).
-- When a custom range is active, visually indicate it (e.g., highlight the button or show a label).
+### Phase 3: Date Comparison
+1. Comparison interface
+2. Metric analysis
+3. Pattern detection
+4. Visualization tools
 
-### Fallbacks & Edge Cases
-- If the user cancels the modal, do not change the filter.
-- If the user clears the custom range, revert to the dropdown's selected value.
+### Phase 4: Pattern Analysis
+1. Theme analysis
+2. Emotional patterns
+3. Temporal patterns
+4. Statistical tools
 
----
+## UI/UX Design
+
+### Date Filter UI
+- Modal dialog for date selection
+- Quick filter dropdown
+- Favorites management
+- Clear visual feedback
+
+### Calendar UI
+- Responsive grid layout
+- Intuitive navigation
+- Clear date selection
+- Pattern highlighting
+
+### Comparison UI
+- Side-by-side views
+- Metric comparison
+- Pattern visualization
+- Export options
 
 ## Accessibility
+
 ### Keyboard Navigation
-- Full keyboard support for all interactive elements
-- Logical tab order through the filter interface
-- Arrow keys for date selection in the calendar
-- Enter/Space key support for button activation
-- Clear focus indicators with custom styling
-- ESC closes the picker
-- Modal traps focus while open and returns focus to the triggering button when closed
+- Full keyboard support
+- Logical tab order
+- Clear focus indicators
+- Screen reader support
 
-### ARIA Implementation
-- Proper ARIA labels for date inputs (e.g., "Start date for dream entries")
-- Button roles correctly assigned
-- Live regions for dynamic content updates
-- Screen reader announcements for calendar and selected dates
-- Error announcements for invalid inputs
-- All interactive elements have descriptive labels (e.g., aria-label, aria-labelledby)
+### Visual Design
+- High contrast support
+- Reduced motion
+- Clear visual feedback
+- Responsive layout
 
-### High Contrast Mode Support
-- Special styles for forced-colors mode
-- Enhanced border visibility
-- Improved focus indicators
-- Text color adjustments for better contrast
-- Custom outline styles for focus states
-- Ensure color contrast meets WCAG AA standards for all UI elements
+## Testing
 
-### Reduced Motion
-- Respects user's motion preferences
-- Disables transitions when `prefers-reduced-motion` is active
-- Smooth fallbacks for animations
-- No essential information conveyed through motion
+### Unit Tests
+- Date calculations
+- Range selection
+- Comparison logic
+- Pattern analysis
 
-### Focus Management
-- Modal focus trapping when open
-- Focus returns to triggering button when closed
-- Clear focus indicators with custom styling
-- Logical focus order through the interface
+### Integration Tests
+- UI components
+- State management
+- Theme compatibility
+- Performance metrics
 
-### Screen Reader Support
-- Descriptive labels for all interactive elements
-- Proper heading structure
-- Announcements for dynamic content
-- Clear button and control descriptions
-- Status updates for filter changes
+### User Testing
+- Usability testing
+- Accessibility testing
+- Performance testing
+- Edge case testing
 
-### Touch Accessibility
-- Large touch targets (minimum 44x44px)
-- Adequate spacing between interactive elements
-- Clear visual feedback for touch interactions
-- Optimized for both touch and mouse input
-
-### Color and Contrast
-- WCAG AA compliant color contrast
-- Theme-aware color schemes
-- High contrast mode support
-- Clear visual indicators for states
-
-### Responsive Design
-- Mobile-friendly layouts
-- Touch-optimized controls
-- Readable text sizes
-- Adequate spacing for touch targets
-
-### Error Handling
-- Clear error messages
-- Screen reader announcements for errors
-- Visual error indicators
-- Keyboard-accessible error recovery
+## Future Enhancements
+- Advanced pattern recognition
+- Machine learning integration
+- Custom visualization tools
+- Extended export options
 
 ## Multi-month Calendar View Specification
 
@@ -657,48 +700,5 @@ After clicking "Compare", a new view appears showing:
 - Reduced motion
 - Clear focus indicators
 
----
-
-## Testing
-- Manual testing checklist:
-  - Button appears and is clickable.
-  - Modal opens and closes as expected.
-  - Table updates correctly for custom and dropdown ranges.
-  - Accessibility features work (keyboard, screen reader).
-  - Focus is returned to the button after modal closes.
-  - Error handling for invalid or out-of-range dates.
-  - Test with different date formats and locales (if supported).
-  - Test persistence and clearing of custom range selection.
-  - Test responsiveness on different screen sizes (desktop, tablet, mobile).
-- (Optional) Automated tests for modal logic and filtering.
-- Test with various themes and in both light/dark modes.
-- Test with screen readers (NVDA, VoiceOver, etc.).
-- Test ESC, Tab, and arrow key navigation.
-
----
-
-## Future Enhancements
-- Persist custom ranges between sessions.
-- Allow saving favorite custom ranges.
-- Additional accessibility or UX improvements.
-
-## Phase 1 Completion (May 2025)
-- Phase 1 of the Filters Expansion is complete:
-  - Custom Date Filter modal for selecting start/end dates
-  - Favorites system: save, select, and delete custom date ranges
-  - UI/UX improvements: visual hierarchy, compact favorites list, Lucide icons, improved modal layout, and button prominence
-  - Accessibility and keyboard navigation improvements
-  - Responsive modal width and layout
-- See CHANGELOG.md for details.
-
-## Phase 2 (Planned Future Enhancements)
-- User-defined custom presets in the dropdown
-- Calendar improvements (multi-month view, week numbers, preview optimization)
-- Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
-- Additional accessibility enhancements
-- Advanced filtering and analytics features
-
----
-
 ## Changelog
-- (Track major changes to the plan or implementation here.)
+- (Track major changes to the plan or implementation here.) 

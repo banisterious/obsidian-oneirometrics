@@ -223,12 +223,14 @@ The Settings page provides a comprehensive interface for managing dream metrics 
    - State management
    - See [State Persistence](STATE_PERSISTENCE.md) for user preference management
 
-2. **Date Handling Strategy**
-   - See [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for detailed implementation
+2. **Date Tools Strategy**
+   - See [Date Tools Plan](DATE_TOOLS_PLAN.md) for detailed implementation
    - Block references as primary date source
    - Fallback date formats
-   - Time filter system
-   - Calendar integration
+   - Date filtering system
+   - Multi-month calendar
+   - Date comparison tools
+   - Pattern analysis
 
 ## Technical Requirements
 
