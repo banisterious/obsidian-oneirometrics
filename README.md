@@ -35,6 +35,9 @@
 - Backup system for your data
 - Powerful logging and debug tools
 
+### Ribbon Button Visibility
+- The plugin now uses a single toggle to control both ribbon buttons (Dream Scrape Tool and Open Metrics Note) due to an Obsidian API limitation. See the archived investigation: [docs/issue-archive/RIBBON_BUTTON_BUG_PLAN.md].
+
 ---
 
 ## Quick Start
