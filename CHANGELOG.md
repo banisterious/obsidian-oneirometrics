@@ -37,6 +37,7 @@
 - Added a new H1 title (`<h1 class="oneirometrics-title">OneiroMetrics (Dream Metrics)</h1>`) at the top of the metrics section for clearer identification.
 - The default Obsidian inline title is now hidden when the metrics view is active, preventing redundancy with the new H1 title.
 - Both `<th>` and `<td>` elements in the detailed dream entries table now use column-specific classes (e.g., `.column-date`, `.column-content`, `.column-metric-<metricname>`) for easier and more precise CSS targeting. This is not yet implemented for the summary table.
+- Ribbon Button Visibility Bug resolved: Due to an Obsidian API limitation, independent toggling of two ribbon buttons was not possible. The plugin now uses a single toggle for both buttons. See the archived plan: [docs/issue-archive/RIBBON_BUTTON_BUG_PLAN.md].
 ### Fixed
 - (List bug fixes here)
 ### Removed

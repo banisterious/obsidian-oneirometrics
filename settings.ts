@@ -435,52 +435,35 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add OneiroMetrics Buttons Section (move to top)
         containerEl.createEl('h2', { text: 'OneiroMetrics Buttons' });
 
-        // Show Dream Scrape Button Setting
-        const wandLabelFrag = document.createDocumentFragment();
-        wandLabelFrag.append('Show Dream Scrape Button ');
-        const wandParen = document.createElement('span');
-        wandParen.classList.add('oom-example-button');
-        const wandSvg = getIcon('wand-2');
+        // Show Ribbon Buttons Setting
+        const ribbonLabelFrag = document.createDocumentFragment();
+        ribbonLabelFrag.append('Show OneiroMetrics Ribbon Buttons ');
+        const wandSvg = getIcon('wand-sparkles');
+        const shellSvg = getIcon('shell');
+        const iconsSpan = document.createElement('span');
+        iconsSpan.classList.add('oom-example-button');
         if (wandSvg) {
             wandSvg.setAttribute('width', '16');
             wandSvg.setAttribute('height', '16');
-            wandParen.append('(', wandSvg, ')');
+            iconsSpan.append(wandSvg);
         } else {
-            wandParen.append('(?)');
+            iconsSpan.append('(?)');
         }
-        wandLabelFrag.append(wandParen);
-        new Setting(containerEl)
-            .setName(wandLabelFrag)
-            .setDesc('Add a ribbon button to quickly open the Dream Scrape tool')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showScrapeButton ?? true)
-                .onChange(async (value) => {
-                    this.plugin.settings.showScrapeButton = value;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateRibbonIcons();
-                }));
-
-        // Show Note Button Setting
-        const shellLabelFrag = document.createDocumentFragment();
-        shellLabelFrag.append('Show OneiroMetrics Note Button ');
-        const shellParen = document.createElement('span');
-        shellParen.classList.add('oom-example-button');
-        const shellSvg = getIcon('shell');
         if (shellSvg) {
             shellSvg.setAttribute('width', '16');
             shellSvg.setAttribute('height', '16');
-            shellParen.append('(', shellSvg, ')');
+            iconsSpan.append(shellSvg);
         } else {
-            shellParen.append('(?)');
+            iconsSpan.append('(?)');
         }
-        shellLabelFrag.append(shellParen);
+        ribbonLabelFrag.append(iconsSpan);
         new Setting(containerEl)
-            .setName(shellLabelFrag)
-            .setDesc('Add a ribbon button to quickly open your metrics note')
+            .setName(ribbonLabelFrag)
+            .setDesc('Add ribbon buttons to quickly open the Dream Scrape tool or your metrics note')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showNoteButton)
+                .setValue(this.plugin.settings.showRibbonButtons ?? true)
                 .onChange(async (value) => {
-                    this.plugin.settings.showNoteButton = value;
+                    this.plugin.settings.showRibbonButtons = value;
                     await this.plugin.saveSettings();
                     this.plugin.updateRibbonIcons();
                 }));

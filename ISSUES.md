@@ -2,7 +2,7 @@
 
 > **Note:** For detailed instructions on using Chrome DevTools to diagnose performance issues, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
 
-> **Ribbon Button Visibility Bug:** There is a bug where the Dream Scrape Tool and Open Metrics Note ribbon buttons do not respect their individual visibility toggles in settings. When both toggles are off, both buttons are hidden as expected, but when only one is off, both buttons remain visible. For the current plan and progress on this issue, see [RIBBON_BUTTON_BUG_PLAN.md](RIBBON_BUTTON_BUG_PLAN.md).
+> **Ribbon Button Visibility Bug:** [RESOLVED, May 2025] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/issue-archive/RIBBON_BUTTON_BUG_PLAN.md].
 
 ## Recent Issues and Fixes
 

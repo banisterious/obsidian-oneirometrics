@@ -20,8 +20,7 @@ export interface DreamMetric {
 
 export interface DreamMetricsSettings {
     projectNote: string;
-    showNoteButton: boolean;
-    showScrapeButton: boolean;
+    showRibbonButtons: boolean;
     metrics: Record<string, DreamMetric>;
     selectedNotes: string[];
     calloutName: string;

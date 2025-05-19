@@ -303,9 +303,10 @@ export default class DreamMetricsPlugin extends Plugin {
 
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
+    private scrapeRibbonEl: HTMLElement | null = null;
+    private noteRibbonEl: HTMLElement | null = null;
+
     async onload() {
-        console.log('[DEBUG] Plugin loaded');
-        console.log("PLUGIN LOADED: OneiroMetrics");
         (window as any).oneiroMetricsPlugin = this;
         this.logger = LogManager.getInstance(this.app);
         
@@ -326,17 +327,8 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add settings tab
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
 
-        // Add ribbon icon for modal
-        const ribbonIcon = this.addRibbonIcon('wand', 'Dream Scrape Tool', () => {
-            new OneiroMetricsModal(this.app, this).open();
-        });
-        ribbonIcon.addClass('oom-ribbon-scrape-button');
-
-        // Add right-click menu for settings
-        ribbonIcon.addEventListener('contextmenu', (evt) => {
-            evt.preventDefault();
-            (this.app as any).setting.open('oneirometrics');
-        });
+        // --- Only manage ribbon icons through updateRibbonIcons() ---
+        this.updateRibbonIcons();
 
         // Add command to open modal
         this.addCommand({
@@ -470,6 +462,11 @@ export default class DreamMetricsPlugin extends Plugin {
         this.registerInterval(
             window.setInterval(() => this.checkLogFileSize(), 5 * 60 * 1000) // Check every 5 minutes
         );
+
+        // Add to onload (after other settings loaded):
+        // this.updateTestRibbon();
+
+        this.updateTestRibbon(); // Call after settings loaded
     }
 
     onunload() {
@@ -482,60 +479,47 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async loadSettings() {
-        console.log('[OneiroMetrics] Starting loadSettings...');
+        const now = new Date().toISOString();
         const defaultSettings: DreamMetricsSettings = {
-            projectNote: 'Journals/Dream Diary/Metrics/Metrics.md',
-            showNoteButton: true,
-            showScrapeButton: true,
-            metrics: Object.fromEntries(DEFAULT_METRICS.map(metric => [
-                metric.name,
-                { ...metric }  // Preserve the original enabled state from DEFAULT_METRICS
-            ])),
+            projectNote: '',
+            showRibbonButtons: true,
+            metrics: Object.fromEntries(DEFAULT_METRICS.map(m => [m.name, m])),
             selectedNotes: [],
-            calloutName: 'dream-metrics',
+            calloutName: '',
             selectionMode: 'notes',
             selectedFolder: '',
             expandedStates: {},
             backupEnabled: false,
             backupFolderPath: '',
-            logging: { ...DEFAULT_LOGGING },
-            _persistentExclusions: {}
+            _persistentExclusions: {},
+            logging: {
+                level: 'off',
+                maxLogSize: 5242880,
+                maxBackups: 5,
+            },
         };
-
-        console.log('[OneiroMetrics] Default metrics:', Object.keys(defaultSettings.metrics), 'Count:', Object.keys(defaultSettings.metrics).length);
-
-        // Load saved data
         const savedData = await this.loadData();
-        if (savedData && savedData.metrics) {
-            console.log('[OneiroMetrics] Saved metrics:', Object.keys(savedData.metrics), 'Count:', Object.keys(savedData.metrics).length);
-        } else {
-            console.log('[OneiroMetrics] No saved metrics found.');
-        }
 
         // Initialize settings with defaults
         this.settings = { ...defaultSettings };
-        console.log('[OneiroMetrics] Defaults after init:', Object.entries(this.settings.metrics).map(([name, m]) => `${name}: ${m.enabled}`));
 
         // Merge logic: always show all defaults (enabled), all customs (disabled unless user enabled them)
-        const mergedMetrics: Record<string, DreamMetric> = { ...defaultSettings.metrics };
+        let mergedMetrics: Record<string, DreamMetric> = { ...defaultSettings.metrics };
         if (savedData && typeof savedData.metrics === 'object' && savedData.metrics !== null) {
             for (const [name, metricRaw] of Object.entries(savedData.metrics)) {
                 const metric = metricRaw as DreamMetric;
                 if (mergedMetrics[name]) {
-                    // If it's a default, preserve user's enabled state
-                    const source = `SAVED (overrides default: ${mergedMetrics[name].enabled} -> ${metric.enabled})`;
                     mergedMetrics[name] = { ...mergedMetrics[name], ...metric };
-                    console.log(`[OneiroMetrics] Merging metric '${name}': enabled=${mergedMetrics[name].enabled} [${source}]`);
                 } else {
-                    // Custom metric: use saved value
-                    const source = `CUSTOM (saved: ${metric.enabled})`;
                     mergedMetrics[name] = { ...metric, enabled: metric.enabled ?? false };
-                    console.log(`[OneiroMetrics] Merging metric '${name}': enabled=${mergedMetrics[name].enabled} [${source}]`);
                 }
             }
         }
+        // If no metrics found, repopulate with defaults
+        if (!savedData || !savedData.metrics || Object.keys(savedData.metrics).length === 0) {
+            mergedMetrics = { ...defaultSettings.metrics };
+        }
         this.settings.metrics = mergedMetrics;
-        console.log('[OneiroMetrics] Merged metrics:', Object.keys(mergedMetrics), 'Count:', Object.keys(mergedMetrics).length);
 
         // Merge all other settings except metrics
         if (savedData) {
@@ -551,13 +535,15 @@ export default class DreamMetricsPlugin extends Plugin {
             this.settings.logging = { ...DEFAULT_LOGGING };
         }
 
-        console.log('[OneiroMetrics] Final settings:', this.settings);
-        console.log('[OneiroMetrics] Final metrics:', Object.keys(this.settings.metrics), 'Count:', Object.keys(this.settings.metrics).length);
-        console.log('[OneiroMetrics] Enabled states:', Object.entries(this.settings.metrics).map(([name, m]) => `${name}: ${m.enabled}`));
+        // --- In onload() of DreamMetricsPlugin, after loading settings ---
+        console.log(`[OOM][Settings][DEBUG][${now}] loadSettings completed. Loaded settings:`, JSON.stringify(this.settings, null, 2));
     }
 
     async saveSettings() {
+        const now = new Date().toISOString();
+        console.log(`[OOM][Settings][DEBUG][${now}] saveSettings called. Current settings:`, JSON.stringify(this.settings, null, 2));
         await this.saveData(this.settings);
+        console.log(`[OOM][Settings][DEBUG][${now}] saveSettings completed.`);
     }
 
     public async showMetrics() {
@@ -1970,37 +1956,44 @@ export default class DreamMetricsPlugin extends Plugin {
 
     // Method to update ribbon icons based on settings
     updateRibbonIcons() {
-        // Remove existing note button if it exists
-        const existingNoteButton = document.querySelector('.oom-ribbon-note-button');
-        if (existingNoteButton) {
-            existingNoteButton.remove();
+        // Remove tracked note button if it exists
+        if (this.noteRibbonEl) {
+            this.noteRibbonEl.remove();
+            this.noteRibbonEl = null;
+        }
+        // Remove tracked scrape button if it exists
+        if (this.scrapeRibbonEl) {
+            this.scrapeRibbonEl.remove();
+            this.scrapeRibbonEl = null;
         }
 
-        // Remove existing scrape button if it exists
-        const existingScrapeButton = document.querySelector('.oom-ribbon-scrape-button');
-        if (existingScrapeButton) {
-            existingScrapeButton.remove();
-        }
+        // Fallback: Remove any orphaned note/scrape buttons
+        document.querySelectorAll('.oom-ribbon-note-button').forEach(btn => btn.remove());
+        document.querySelectorAll('.oom-ribbon-scrape-button').forEach(btn => btn.remove());
 
-        // Add scrape button if enabled in settings
-        if (this.settings.showScrapeButton) {
-            const scrapeIcon = this.addRibbonIcon('wand', 'Dream Scrape Tool', () => {
+        // Add both buttons if enabled in settings
+        if (this.settings.showRibbonButtons) {
+            this.scrapeRibbonEl = this.addRibbonIcon('wand-sparkles', 'Dream Scrape Tool', () => {
                 new OneiroMetricsModal(this.app, this).open();
             });
-            scrapeIcon.addClass('oom-ribbon-scrape-button');
-            // Attach right-click handler to open settings
-            scrapeIcon.addEventListener('contextmenu', (evt) => {
+            this.scrapeRibbonEl.addClass('oom-ribbon-scrape-button');
+            this.scrapeRibbonEl.addEventListener('contextmenu', (evt) => {
                 evt.preventDefault();
                 (this.app as any).setting.open('oneirometrics');
             });
-        }
 
-        // Add note button if enabled in settings
-        if (this.settings.showNoteButton) {
-            const ribbonIcon = this.addRibbonIcon('shell', 'Open Metrics Note', () => {
+            this.noteRibbonEl = this.addRibbonIcon('shell', 'Open Metrics Note', () => {
                 this.showMetrics();
             });
-            ribbonIcon.addClass('oom-ribbon-note-button');
+            this.noteRibbonEl.addClass('oom-ribbon-note-button');
+        } else {
+            this.scrapeRibbonEl = null;
+            this.noteRibbonEl = null;
+        }
+
+        // If both buttons are hidden, show a Notice
+        if (!this.settings.showRibbonButtons) {
+            new Notice('Both OneiroMetrics ribbon buttons are hidden. Enable them in settings to restore.');
         }
     }
 
@@ -2029,6 +2022,17 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         } catch (error) {
             this.logger.error('Backup', 'Error cleaning up old backups', error);
+        }
+    }
+
+    updateTestRibbon() {
+        // Remove all test buttons
+        document.querySelectorAll('.oom-ribbon-test-btn').forEach(btn => btn.remove());
+        if ((this.settings as any).showTestRibbonButton) {
+            const btn = this.addRibbonIcon('wand', 'Test Ribbon Button', () => {
+                new Notice('Test button clicked!');
+            });
+            btn.addClass('oom-ribbon-test-btn');
         }
     }
 }
