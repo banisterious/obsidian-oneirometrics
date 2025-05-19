@@ -22,6 +22,12 @@
  * Please ensure you are in Reading View when working with OneiroMetrics notes.
  */
 
+/* Hide inline title in oom-prefixed containers */
+[class^="oom-"] .inline-title,
+[class*=" oom-"] .inline-title {
+    display: none !important;
+}
+
 /* ==========================================================================
    Dream Entries Filters Styles
    ========================================================================== */
@@ -662,6 +668,15 @@ div#oom-time-filter-display {
     .oom-button--text {
         padding: var(--oom-spacing-sm);
     }
+}
+
+/* ==========================================================================
+   OneiroMetrics Note
+   ========================================================================== */
+
+/* Hide inline title */
+.markdown-preview-view:has(.oom-metrics-container) .inline-title {
+    display: none !important;
 }
 
 /* ==========================================================================
@@ -1781,9 +1796,6 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 /* Title */
 .oom-modal-title {
     margin: 0 0 var(--oom-spacing-md) 0;
-    font-size: var(--oom-modal-title-size);
-    font-weight: var(--oom-modal-title-weight);
-    color: var(--text-normal);
 }
 
 /* Content Area */
@@ -1799,37 +1811,53 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 .oom-modal-button-container {
     display: flex;
     gap: var(--oom-spacing-sm);
-    justify-content: flex-end;
-    margin-top: var(--oom-spacing-lg);
+    margin-top: var(--oom-spacing-md);
 }
 
 /* Button Styles */
 .oom-modal-button {
-    padding: var(--oom-button-padding);
-    border-radius: var(--oom-button-border-radius);
-    font-size: var(--oom-button-font-size);
-    cursor: pointer;
-    transition: all var(--oom-transition-normal);
+    flex: 1;
+    transition: all 0.2s ease;
 }
 
-.oom-modal-button.mod-warning {
-    color: var(--text-normal);
-    background: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-}
-
-.oom-modal-button.mod-warning:hover {
-    background: var(--background-modifier-hover);
+.oom-modal-button:hover {
 }
 
 .oom-modal-button.mod-cta {
-    color: var(--text-on-accent);
-    background: var(--interactive-accent);
-    border: none;
 }
 
 .oom-modal-button.mod-cta:hover {
-    background: var(--interactive-accent-hover);
+}
+
+.oom-modal-button.mod-warning {
+    border-color: var(--text-error);
+    color: var(--text-on-accent);
+    background: var(--text-error);
+}
+
+.oom-modal-button.mod-warning:hover {
+    background: var(--text-error-hover);
+}
+
+/* Open Note Button */
+.oom-open-note-button {
+    margin-left: var(--oom-spacing-sm);
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-modal-button-container {
+        flex-direction: column;
+    }
+    
+    .oom-modal-button {
+        width: 100%;
+    }
+    
+    .oom-open-note-button {
+        margin-left: 0;
+        margin-top: var(--oom-spacing-sm);
+    }
 }
 
 /* ==========================================================================
@@ -3728,8 +3756,9 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 /* Right Column - Widgets */
 .oom-modal-col-right {
     display: flex;
+    gap: var(--oom-spacing-md);
     justify-content: flex-end;
-    align-items: flex-start;
+    align-items: center;
 }
 
 /* Progress Section Specific */
@@ -3845,7 +3874,7 @@ input.oom-folder-autocomplete-input {
 
 .oom-rescrape-button,
 .oom-settings-button {
-    min-width: 120px;
+    /*min-width: 120px;*/
 }
 
 /* Modal Buttons */
@@ -3856,7 +3885,7 @@ input.oom-folder-autocomplete-input {
 
 .oom-scrape-button,
 .oom-settings-button {
-    min-width: 120px;
+    /*min-width: 120px;*/
 }
 
 /* Date Range Modal Styles */
@@ -4093,4 +4122,23 @@ input.oom-folder-autocomplete-input {
 
 .oom-debug-mode .oom-debug-attach-listeners {
     display: inline-block;
+}
+
+/* Open Note Button Animation and Disabled State */
+.oom-open-note-button {
+    opacity: 0.5;
+    transition: opacity 0.4s;
+}
+.oom-open-note-button.enabled {
+    opacity: 1;
+    animation: oom-fade-in 0.5s;
+}
+.oom-open-note-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    filter: grayscale(0.2);
+}
+@keyframes oom-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
