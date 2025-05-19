@@ -1,6 +1,6 @@
 {
     "name": "oneirometrics",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "description": "Turns dreams into data by tracking and analyzing dream journal metrics.",
     "main": "main.js",
     "scripts": {
