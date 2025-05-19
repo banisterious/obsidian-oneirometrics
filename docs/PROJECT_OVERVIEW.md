@@ -341,7 +341,7 @@ This approach helps pinpoint where the update process may be breaking down and e
 - [State Persistence](STATE_PERSISTENCE.md) for user preference management
 
 ## Future Features and Planning
-- See [DATE_RANGE_PICKER_PLAN.md](DATE_RANGE_PICKER_PLAN.md) for the current plan and open questions regarding the custom date range picker feature.
+- See [DATE_TOOLS_PLAN.md](DATE_TOOLS_PLAN.md) for the current plan and open questions regarding the custom date range picker feature.
 
 ## Filters Expansion Progress
 

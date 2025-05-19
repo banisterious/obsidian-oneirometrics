@@ -439,4 +439,4 @@ You can access the OneiroMetrics settings in several ways:
 - Access import/export options for metrics configuration.
 
 > **Note:** For technical details about settings structure and implementation, see [SPECIFICATION.md](SPECIFICATION.md).
-> **Note:** For information about the upcoming custom date range picker feature, see [DATE_RANGE_PICKER_PLAN.md](DATE_RANGE_PICKER_PLAN.md). 
+> **Note:** For information about the upcoming custom date range picker feature, see [DATE_TOOLS_PLAN.md](DATE_TOOLS_PLAN.md). 
