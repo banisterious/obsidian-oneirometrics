@@ -1,23 +1,5 @@
 # Journal Structure Check - Implementation Plan
 
-## Executive Summary
-
-This document outlines a comprehensive plan for implementing the Journal Structure Check feature in the OneiroMetrics plugin. The feature will help users maintain consistent dream journal structures and validate their entries against predefined patterns.
-
-Key deliverables include:
-- Core validation engine for checking journal structures
-- Template system with Templater integration
-- Visual editor interface with guided setup wizard
-- Dedicated modal interface for all journal structure features
-- Integration with Linter plugin for enhanced validation
-
-The implementation follows five sequential phases:
-1. **Foundation**: Core engine and basic validation
-2. **Advanced Validation**: Templates and Templater integration
-3. **User Experience**: Visual tools and guided setup
-4. **UI Reorganization**: Dedicated modal and simplified settings
-5. **Integration & Polish**: Linter plugin integration and refinements
-
 ## Table of Contents
 
 - [Executive Summary](#executive-summary)
@@ -58,6 +40,24 @@ The implementation follows five sequential phases:
   - [9.3 User Testing](#93-user-testing)
   - [9.4 Documentation](#94-documentation)
 - [10. Conclusion](#10-conclusion)
+
+## Executive Summary
+
+This document outlines a comprehensive plan for implementing the Journal Structure Check feature in the OneiroMetrics plugin. The feature will help users maintain consistent dream journal structures and validate their entries against predefined patterns.
+
+Key deliverables include:
+- Core validation engine for checking journal structures
+- Template system with Templater integration
+- Visual editor interface with guided setup wizard
+- Dedicated modal interface for all journal structure features
+- Integration with Linter plugin for enhanced validation
+
+The implementation follows five sequential phases:
+1. **Foundation**: Core engine and basic validation
+2. **Advanced Validation**: Templates and Templater integration
+3. **User Experience**: Visual tools and guided setup
+4. **UI Reorganization**: Dedicated modal and simplified settings
+5. **Integration & Polish**: Linter plugin integration and refinements
 
 ## Overview
 
