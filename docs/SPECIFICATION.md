@@ -570,4 +570,4 @@ The settings system in OneiroMetrics is designed for flexibility, extensibility,
 > **User-facing instructions for configuring settings are in [USAGE.md](USAGE.md).**
 
 ### Ribbon Button Visibility Bug (Resolved)
-- Independent toggling of the Dream Scrape Tool and Open Metrics Note ribbon buttons is not supported due to an Obsidian API limitation. The plugin now uses a single toggle for both buttons. See the archived plan: [docs/issue-archive/RIBBON_BUTTON_BUG_PLAN.md].
+- Independent toggling of the Dream Scrape Tool and Open Metrics Note ribbon buttons is not supported due to an Obsidian API limitation. The plugin now uses a single toggle for both buttons. For more information about the ribbon button implementation, see the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].

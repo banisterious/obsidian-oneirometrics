@@ -2,6 +2,9 @@ import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, 
 import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings, LogLevel } from "./types";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
+import { LintingSettings } from "./src/linting/types";
+import { TestModal } from "./src/linting/ui/TestModal";
+import { TemplateWizard } from "./src/linting/ui/TemplateWizard";
 
 interface IconCategory {
     name: string;
@@ -45,6 +48,38 @@ export const iconCategories: IconCategory[] = [
 export const lucideIconMap: Record<string, string> = Object.assign({}, 
     ...iconCategories.map(category => category.icons)
 );
+
+// Define DEFAULT_LINTING_SETTINGS for the settings tab to use
+const DEFAULT_LINTING_SETTINGS: LintingSettings = {
+    enabled: true,
+    rules: [],
+    structures: [],
+    templates: [],
+    templaterIntegration: {
+        enabled: false,
+        folderPath: 'templates/dreams',
+        defaultTemplate: 'templates/dreams/default.md'
+    },
+    contentIsolation: {
+        ignoreImages: true,
+        ignoreLinks: false,
+        ignoreFormatting: true,
+        ignoreHeadings: false,
+        ignoreCodeBlocks: true,
+        ignoreFrontmatter: true,
+        ignoreComments: true,
+        customIgnorePatterns: []
+    },
+    userInterface: {
+        showInlineValidation: true,
+        severityIndicators: {
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        },
+        quickFixesEnabled: true
+    }
+};
 
 // Validation functions
 function validateMetricName(name: string, existingMetrics: DreamMetric[]): string | null {
@@ -415,17 +450,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Add Reading View requirement notice with contextual styling
         const noticeEl = containerEl.createEl('div', {
-            cls: 'oom-notice oom-notice--info',
-            attr: {
-                style: `
-                    margin: 1em 0;
-                    padding: 1em;
-                    background: var(--background-modifier-hover);
-                    border: 1px solid var(--text-muted);
-                    border-radius: 4px;
-                    color: var(--text-normal);
-                `
-            }
+            cls: 'oom-notice oom-notice--info'
         });
         noticeEl.createEl('strong', { text: 'Note: ' });
         noticeEl.createEl('span', { 
@@ -500,6 +525,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 }));
 
         // Add section border after basic settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+
+        // Add Journal Structure Check settings
+        this.addJournalStructureSettings(containerEl);
+        
+        // Add section border after journal structure settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
         // Add Select Notes/Folders Section
@@ -1157,6 +1188,417 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             const toFocus = containerEl.querySelector(focusSelector) as HTMLElement;
             if (toFocus) toFocus.focus();
         }
+    }
+
+    private addJournalStructureSettings(containerEl: HTMLElement) {
+        containerEl.createEl('h2', { text: 'Journal Structure Check' });
+        
+        // Enable/disable linting
+        new Setting(containerEl)
+            .setName('Enable Structure Validation')
+            .setDesc('Validate journal entries against defined structures')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.linting?.enabled ?? true)
+                .onChange(async (value) => {
+                    if (!this.plugin.settings.linting) {
+                        this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
+                    }
+                    this.plugin.settings.linting.enabled = value;
+                    await this.plugin.saveSettings();
+                }));
+        
+        // Structure rules button
+        new Setting(containerEl)
+            .setName('Structure Rules')
+            .setDesc('Configure validation rules for journal structures')
+            .addButton(button => button
+                .setButtonText('Edit Rules')
+                .onClick(() => {
+                    // This would open a modal to manage rules
+                    new Notice('Rule management will be implemented soon');
+                }));
+        
+        // Journal templates button
+        new Setting(containerEl)
+            .setName('Journal Templates')
+            .setDesc('Manage templates for dream journal entries')
+            .addButton(button => button
+                .setButtonText('Create Template')
+                .onClick(() => {
+                    if (this.plugin.templaterIntegration) {
+                        new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
+                    } else {
+                        new Notice('Template management is not available');
+                    }
+                }))
+            .addButton(button => button
+                .setButtonText('Manage Templates')
+                .onClick(() => {
+                    this.displayTemplateManager(containerEl);
+                }));
+        
+        // Template list container
+        const templateListContainer = containerEl.createDiv({ cls: 'oom-template-list-container' });
+        templateListContainer.style.display = 'none';
+        
+        // Templater integration settings
+        if (this.plugin.templaterIntegration?.isTemplaterInstalled()) {
+            containerEl.createEl('h3', { text: 'Templater Integration' });
+            
+            new Setting(containerEl)
+                .setName('Enable Templater Integration')
+                .setDesc('Use Templater templates for journal structures')
+                .addToggle(toggle => toggle
+                    .setValue(this.plugin.settings.linting?.templaterIntegration?.enabled ?? false)
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.linting) {
+                            this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
+                        }
+                        if (!this.plugin.settings.linting.templaterIntegration) {
+                            this.plugin.settings.linting.templaterIntegration = {
+                                enabled: false,
+                                folderPath: 'templates/dreams',
+                                defaultTemplate: 'templates/dreams/default.md'
+                            };
+                        }
+                        this.plugin.settings.linting.templaterIntegration.enabled = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh to show/hide dependent settings
+                    }));
+            
+            if (this.plugin.settings.linting?.templaterIntegration?.enabled) {
+                new Setting(containerEl)
+                    .setName('Template Folder')
+                    .setDesc('Folder containing Templater templates to use')
+                    .addText(text => text
+                        .setValue(this.plugin.settings.linting?.templaterIntegration?.folderPath ?? 'templates/dreams')
+                        .setPlaceholder('templates/dreams')
+                        .onChange(async (value) => {
+                            if (!this.plugin.settings.linting) {
+                                this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
+                            }
+                            if (!this.plugin.settings.linting.templaterIntegration) {
+                                this.plugin.settings.linting.templaterIntegration = {
+                                    enabled: true,
+                                    folderPath: 'templates/dreams',
+                                    defaultTemplate: 'templates/dreams/default.md'
+                                };
+                            }
+                            this.plugin.settings.linting.templaterIntegration.folderPath = value;
+                            await this.plugin.saveSettings();
+                        }));
+                
+                new Setting(containerEl)
+                    .setName('Default Template')
+                    .setDesc('Default Templater template to use for new journal entries')
+                    .addText(text => text
+                        .setValue(this.plugin.settings.linting?.templaterIntegration?.defaultTemplate ?? 'templates/dreams/default.md')
+                        .setPlaceholder('templates/dreams/default.md')
+                        .onChange(async (value) => {
+                            if (!this.plugin.settings.linting) {
+                                this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
+                            }
+                            if (!this.plugin.settings.linting.templaterIntegration) {
+                                this.plugin.settings.linting.templaterIntegration = {
+                                    enabled: true,
+                                    folderPath: 'templates/dreams',
+                                    defaultTemplate: 'templates/dreams/default.md'
+                                };
+                            }
+                            this.plugin.settings.linting.templaterIntegration.defaultTemplate = value;
+                            await this.plugin.saveSettings();
+                        }));
+            }
+        }
+        
+        // Test button
+        new Setting(containerEl)
+            .setName('Test Structure Validation')
+            .setDesc('Open the test modal to try out structure validation')
+            .addButton(button => button
+                .setButtonText('Open Test Modal')
+                .onClick(() => {
+                    new TestModal(this.app, this.plugin).open();
+                }));
+    }
+
+    /**
+     * Display template manager UI
+     */
+    private displayTemplateManager(containerEl: HTMLElement) {
+        // Find or create template list container
+        let templateListContainer = containerEl.querySelector('.oom-template-list-container');
+        if (!templateListContainer) {
+            templateListContainer = containerEl.createDiv({ cls: 'oom-template-list-container' });
+        }
+        
+        // Clear and reset the container
+        templateListContainer.empty();
+        (templateListContainer as HTMLElement).style.display = 'block';
+        
+        // Create header
+        const header = templateListContainer.createEl('h3', { text: 'Manage Templates' });
+        
+        // Add close button to header
+        const closeButton = header.createEl('button', { 
+            cls: 'oom-template-close-button',
+            text: '×'
+        });
+        closeButton.style.float = 'right';
+        closeButton.style.border = 'none';
+        closeButton.style.background = 'none';
+        closeButton.style.fontSize = '1.5em';
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.padding = '0 0.5em';
+        
+        closeButton.addEventListener('click', () => {
+            (templateListContainer as HTMLElement).style.display = 'none';
+        });
+        
+        // Get templates from settings
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        if (templates.length === 0) {
+            templateListContainer.createEl('p', { 
+                text: 'No templates found. Create a template to get started.' 
+            });
+            return;
+        }
+        
+        // Create template list
+        const templateList = templateListContainer.createEl('div', { cls: 'oom-template-list' });
+        
+        for (const template of templates) {
+            const templateItem = templateList.createEl('div', { cls: 'oom-template-item' });
+            
+            // Template header with name
+            const templateHeader = templateItem.createEl('div', { cls: 'oom-template-header' });
+            templateHeader.createEl('h4', { text: template.name });
+            
+            // Template actions
+            const actionsContainer = templateHeader.createEl('div', { cls: 'oom-template-actions' });
+            
+            // Edit button
+            const editButton = actionsContainer.createEl('button', {
+                text: 'Edit',
+                cls: 'oom-template-edit-button'
+            });
+            editButton.addEventListener('click', () => {
+                new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration, template).open();
+                
+                // Close the template manager (will be refreshed when reopened)
+                (templateListContainer as HTMLElement).style.display = 'none';
+            });
+            
+            // Delete button
+            const deleteButton = actionsContainer.createEl('button', {
+                text: 'Delete',
+                cls: 'oom-template-delete-button'
+            });
+            deleteButton.addEventListener('click', () => {
+                // Confirm before deleting
+                const modal = new Modal(this.app);
+                modal.titleEl.setText('Delete Template');
+                modal.contentEl.createEl('p', { 
+                    text: `Are you sure you want to delete the template "${template.name}"?` 
+                });
+                
+                // Add buttons
+                const buttonContainer = modal.contentEl.createDiv({ cls: 'oom-modal-buttons' });
+                
+                const cancelButton = buttonContainer.createEl('button', {
+                    text: 'Cancel',
+                    cls: 'oom-button-cancel'
+                });
+                cancelButton.addEventListener('click', () => {
+                    modal.close();
+                });
+                
+                const confirmButton = buttonContainer.createEl('button', {
+                    text: 'Delete',
+                    cls: 'oom-button-delete'
+                });
+                confirmButton.addEventListener('click', async () => {
+                    // Remove template from array
+                    const templates = this.plugin.settings.linting?.templates || [];
+                    const index = templates.findIndex(t => t.id === template.id);
+                    if (index >= 0) {
+                        templates.splice(index, 1);
+                        await this.plugin.saveSettings();
+                        
+                        // Refresh template list
+                        this.displayTemplateManager(containerEl);
+                        new Notice(`Deleted template: ${template.name}`);
+                    }
+                    
+                    modal.close();
+                });
+                
+                modal.open();
+            });
+            
+            // Template details
+            if (template.description) {
+                templateItem.createEl('p', { 
+                    text: template.description, 
+                    cls: 'oom-template-description' 
+                });
+            }
+            
+            // Show structure name
+            const structure = this.plugin.settings.linting?.structures?.find(s => s.id === template.structure);
+            if (structure) {
+                templateItem.createEl('p', { 
+                    text: `Structure: ${structure.name} (${structure.type === 'nested' ? 'Nested' : 'Flat'})`, 
+                    cls: 'oom-template-structure' 
+                });
+            }
+            
+            // Preview toggle
+            const previewButton = templateItem.createEl('button', {
+                text: 'Show Preview',
+                cls: 'oom-template-preview-toggle'
+            });
+            
+            const previewContainer = templateItem.createEl('div', { 
+                cls: 'oom-template-preview-container' 
+            });
+            previewContainer.style.display = 'none';
+            
+            const previewContent = previewContainer.createEl('pre', { 
+                cls: 'oom-template-preview-content' 
+            });
+            previewContent.textContent = template.content.substring(0, 300) + 
+                (template.content.length > 300 ? '...' : '');
+            
+            previewButton.addEventListener('click', () => {
+                const isHidden = previewContainer.style.display === 'none';
+                previewContainer.style.display = isHidden ? 'block' : 'none';
+                previewButton.textContent = isHidden ? 'Hide Preview' : 'Show Preview';
+            });
+        }
+        
+        // Add styles
+        this.addTemplateManagerStyles();
+    }
+
+    /**
+     * Add styles for template manager
+     */
+    private addTemplateManagerStyles() {
+        // Remove existing styles
+        const existingStyles = document.getElementById('oom-template-manager-styles');
+        if (existingStyles) {
+            existingStyles.remove();
+        }
+        
+        // Add styles
+        const styleEl = document.createElement('style');
+        styleEl.id = 'oom-template-manager-styles';
+        styleEl.textContent = `
+            .oom-template-list-container {
+                margin-top: 1em;
+                padding: 1em;
+                border-radius: 5px;
+                background-color: var(--background-secondary);
+            }
+            
+            .oom-template-item {
+                margin-bottom: 1em;
+                padding: 1em;
+                border-radius: 5px;
+                background-color: var(--background-primary);
+            }
+            
+            .oom-template-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .oom-template-header h4 {
+                margin: 0;
+            }
+            
+            .oom-template-actions {
+                display: flex;
+                gap: 0.5em;
+            }
+            
+            .oom-template-edit-button, 
+            .oom-template-delete-button,
+            .oom-template-preview-toggle {
+                padding: 0.25em 0.5em;
+                border: none;
+                border-radius: 3px;
+                cursor: pointer;
+            }
+            
+            .oom-template-edit-button {
+                background-color: var(--interactive-accent);
+                color: var(--text-on-accent);
+            }
+            
+            .oom-template-delete-button {
+                background-color: var(--text-error);
+                color: var(--background-primary);
+            }
+            
+            .oom-template-preview-toggle {
+                background-color: var(--background-modifier-border);
+                margin-top: 0.5em;
+            }
+            
+            .oom-template-preview-container {
+                margin-top: 0.5em;
+                padding: 0.5em;
+                background-color: var(--background-secondary);
+                border-radius: 3px;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            
+            .oom-template-preview-content {
+                white-space: pre-wrap;
+                margin: 0;
+            }
+            
+            .oom-template-description {
+                margin: 0.5em 0;
+                font-style: italic;
+            }
+            
+            .oom-template-structure {
+                margin: 0.5em 0;
+                font-size: 0.9em;
+                color: var(--text-muted);
+            }
+            
+            .oom-modal-buttons {
+                display: flex;
+                justify-content: flex-end;
+                gap: 1em;
+                margin-top: 1em;
+            }
+            
+            .oom-button-cancel,
+            .oom-button-delete {
+                padding: 0.25em 1em;
+                border-radius: 3px;
+                cursor: pointer;
+            }
+            
+            .oom-button-cancel {
+                background-color: var(--background-modifier-border);
+            }
+            
+            .oom-button-delete {
+                background-color: var(--text-error);
+                color: var(--background-primary);
+            }
+        `;
+        
+        document.head.appendChild(styleEl);
     }
 }
 
