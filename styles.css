@@ -3840,7 +3840,7 @@ input.oom-folder-autocomplete-input {
 
 .oom-notice--info {
     border-color: var(--text-muted);
-    background: var(--background-modifier-hover);
+    background: var(--background-secondary);
 }
 
 .oom-notice strong {
@@ -3854,14 +3854,14 @@ input.oom-folder-autocomplete-input {
 
 /* Modal size override for OneiroMetrics modal: ensures our modal is not restricted by Obsidian's default modal sizing. */
 .modal:has(.oom-modal) {
-    width: 850px !important;
+    width: 780px !important;
     max-width: 95vw !important;
     min-height: 600px !important;
     box-sizing: border-box;
 }
 
 .modal-content.oom-modal {
-    width:840px;
+    width:770px;
     padding: .75em !important;
 }
 

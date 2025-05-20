@@ -2,7 +2,7 @@
 
 > **Note:** For detailed instructions on using Chrome DevTools to diagnose performance issues, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
 
-> **Ribbon Button Visibility Bug:** [RESOLVED, May 2025] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/issue-archive/RIBBON_BUTTON_BUG_PLAN.md].
+> **Ribbon Button Visibility Bug:** [RESOLVED, May 2025] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
 
 ## Recent Issues and Fixes
 

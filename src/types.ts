@@ -1,3 +1,5 @@
+import { LintingSettings } from './linting/types';
+
 export interface DreamMetricData {
     date: string;
     title: string;
@@ -30,6 +32,7 @@ export interface DreamMetricsSettings {
         maxSize?: number;
         maxBackups?: number;
     };
+    linting: LintingSettings;
 }
 
 export interface DreamMetric {

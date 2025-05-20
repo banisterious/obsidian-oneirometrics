@@ -2604,7 +2604,7 @@ class LintingSettingsTab extends PluginSettingTab {
 - [ ] Add validation for date consistency across nested levels
 
 ### Current Implementation
-The current implementation in `main.ts` handles basic structure validation but needs enhancement to fully support the nested structure patterns documented in `LINTING_GUIDELINES.md`.
+The current implementation in `main.ts` handles basic structure validation but needs enhancement to fully support the nested structure patterns documented in `JOURNAL_STRUCTURE_GUIDELINES.md`.
 
 ### Planned Improvements
 1. **Structure Validation**

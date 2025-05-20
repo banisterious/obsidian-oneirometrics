@@ -5,7 +5,7 @@
 This document outlines the technical implementation of date and time handling in OneiroMetrics, including the current architecture, planned improvements, and best practices for developers.
 
 For documentation standards and guidelines, see [Documentation Style Guide](DOCUMENTATION_STYLE_GUIDE.md).
-For code quality standards, see [Linting Guidelines](LINTING_GUIDELINES.md) and [Linting Technical Implementation](LINTING_TECHNICAL_IMPLEMENTATION.md).
+For code quality standards, see [Journal Structure Guidelines](JOURNAL_STRUCTURE_GUIDELINES.md) and [Journal Structure Check Implementation Plan](JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md).
 For icon implementation details, see [Icon Picker Technical Implementation](ICON_PICKER_TECHNICAL_IMPLEMENTATION.md).
 For metric descriptions and styling, see [Metrics Descriptions](METRICS_DESCRIPTIONS.md).
 

@@ -10,8 +10,109 @@ import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
+// Import linting modules
+import { LintingEngine } from './src/linting/LintingEngine';
+import { TemplaterIntegration } from './src/linting/TemplaterIntegration';
+import { TestModal } from './src/linting/ui/TestModal';
+import { TemplateWizard } from './src/linting/ui/TemplateWizard';
+import { LintingSettings, CalloutStructure, JournalTemplate } from './src/linting/types';
+
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
+
+// Default settings for linting functionality
+const DEFAULT_LINTING_SETTINGS: LintingSettings = {
+    enabled: true,
+    rules: [
+        {
+            id: 'dream-callout-required',
+            name: 'Dream Callout Required',
+            description: 'Requires the dream callout in journal entries',
+            type: 'structure',
+            severity: 'error',
+            enabled: true,
+            pattern: '> \\[!dream\\]',
+            message: 'Dream journal entries must include a dream callout',
+            priority: 10
+        }
+    ],
+    structures: [
+        {
+            id: 'default-dream-structure',
+            name: 'Default Dream Structure',
+            description: 'Standard dream journal structure with required callouts',
+            type: 'flat',
+            rootCallout: 'dream',
+            childCallouts: ['symbols', 'reflections', 'interpretation'],
+            metricsCallout: 'metrics',
+            dateFormat: ['YYYY-MM-DD'],
+            requiredFields: ['dream'],
+            optionalFields: ['symbols', 'reflections', 'interpretation', 'metrics']
+        },
+        {
+            id: 'nested-dream-structure',
+            name: 'Nested Dream Structure',
+            description: 'Nested dream journal structure with all callouts inside the root callout',
+            type: 'nested',
+            rootCallout: 'dream',
+            childCallouts: ['symbols', 'reflections', 'interpretation', 'metrics'],
+            metricsCallout: 'metrics',
+            dateFormat: ['YYYY-MM-DD'],
+            requiredFields: ['dream', 'reflections'],
+            optionalFields: ['symbols', 'interpretation', 'metrics']
+        }
+    ],
+    templates: [
+        {
+            id: 'default-template',
+            name: 'Standard Dream Journal',
+            description: 'Default template for dream journal entries',
+            structure: 'default-dream-structure',
+            content: `# Dream Journal Entry
+
+> [!dream]
+> Enter your dream here.
+
+> [!symbols]
+> - Symbol 1: Meaning
+> - Symbol 2: Meaning
+
+> [!reflections]
+> Add your reflections here.
+
+> [!metrics]
+> Clarity: 7
+> Vividness: 8
+> Coherence: 6
+`,
+            isTemplaterTemplate: false
+        }
+    ],
+    templaterIntegration: {
+        enabled: false,
+        folderPath: 'templates/dreams',
+        defaultTemplate: 'templates/dreams/default.md'
+    },
+    contentIsolation: {
+        ignoreImages: true,
+        ignoreLinks: false,
+        ignoreFormatting: true,
+        ignoreHeadings: false,
+        ignoreCodeBlocks: true,
+        ignoreFrontmatter: true,
+        ignoreComments: true,
+        customIgnorePatterns: []
+    },
+    userInterface: {
+        showInlineValidation: true,
+        severityIndicators: {
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        },
+        quickFixesEnabled: true
+    }
+};
 
 class OneiroMetricsModal extends Modal {
     private plugin: DreamMetricsPlugin;
@@ -292,19 +393,24 @@ class ConfirmModal extends Modal {
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
+    loadedSettings: boolean = false;
+    ribbons: Map<string, HTMLElement> = new Map();
+    onlyActiveFile: boolean = false;
+    lintingEngine: LintingEngine;
+    templaterIntegration: TemplaterIntegration;
+    startPage: boolean = true;
     logger: LogManager;
     expandedStates: Set<string>;
     private ribbonIcons: HTMLElement[] = [];
     private container: HTMLElement | null = null;
+    private scrapeRibbonEl: HTMLElement | null = null;
+    private noteRibbonEl: HTMLElement | null = null;
 
     // Add memoization for table calculations
     private memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
 
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
-
-    private scrapeRibbonEl: HTMLElement | null = null;
-    private noteRibbonEl: HTMLElement | null = null;
 
     async onload() {
         (window as any).oneiroMetricsPlugin = this;
@@ -317,6 +423,62 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Configure logger with settings
         this.logger.configure(this.settings.logging.level);
+        
+        // Create wrapper object with only the properties needed by the linting engine
+        const pluginWrapper = {
+            app: this.app,
+            settings: this.settings,
+            getDreamEntries: () => [],
+            loadStyles: () => {
+                // Load CSS for linting UI components
+                const styleElement = document.createElement('style');
+                styleElement.id = 'oom-linting-styles';
+                styleElement.textContent = `
+                    .oom-validation-result {
+                        margin: 8px 0;
+                        padding: 8px;
+                        border-radius: 4px;
+                    }
+                    .oom-validation-error {
+                        background-color: rgba(255, 0, 0, 0.1);
+                        border-left: 3px solid #ff5555;
+                    }
+                    .oom-validation-warning {
+                        background-color: rgba(255, 165, 0, 0.1);
+                        border-left: 3px solid #ffaa55;
+                    }
+                    .oom-validation-info {
+                        background-color: rgba(0, 0, 255, 0.1);
+                        border-left: 3px solid #5555ff;
+                    }
+                    .oom-quick-fix-button {
+                        margin-top: 4px;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        background-color: var(--interactive-accent);
+                        color: var(--text-on-accent);
+                        font-size: 12px;
+                        cursor: pointer;
+                    }
+                    .oom-test-content {
+                        white-space: pre-wrap;
+                        font-family: monospace;
+                        margin: 10px 0;
+                        padding: 8px;
+                        border-radius: 4px;
+                        background-color: var(--background-secondary);
+                    }
+                `;
+                document.head.appendChild(styleElement);
+            }
+        };
+        
+        // Initialize linting components with the wrapper
+        this.templaterIntegration = new TemplaterIntegration(pluginWrapper as any);
+        this.lintingEngine = new LintingEngine(pluginWrapper as any, this.settings.linting || DEFAULT_LINTING_SETTINGS);
+        
+        // Load linting styles
+        pluginWrapper.loadStyles();
         
         // Load expanded states from settings
         if (this.settings.expandedStates) {
@@ -458,6 +620,25 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => this.backupDebugLog()
         });
 
+        // Add journal structure validation commands
+        this.addCommand({
+            id: 'validate-dream-journal',
+            name: 'Validate Dream Journal Structure',
+            callback: () => this.validateCurrentFile()
+        });
+        
+        this.addCommand({
+            id: 'open-validation-test',
+            name: 'Open Validation Test Modal',
+            callback: () => new TestModal(this.app, this).open()
+        });
+        
+        this.addCommand({
+            id: 'create-journal-template',
+            name: 'Create Journal Template',
+            callback: () => new TemplateWizard(this.app, this, this.templaterIntegration).open()
+        });
+
         // Check log file size periodically
         this.registerInterval(
             window.setInterval(() => this.checkLogFileSize(), 5 * 60 * 1000) // Check every 5 minutes
@@ -467,6 +648,30 @@ export default class DreamMetricsPlugin extends Plugin {
         // this.updateTestRibbon();
 
         this.updateTestRibbon(); // Call after settings loaded
+
+        // After the validation commands in onload() method
+        this.addCommand({
+            id: 'insert-journal-template',
+            name: 'Insert Journal Template',
+            editorCallback: (editor: Editor, view: MarkdownView) => {
+                this.insertTemplate(editor);
+            }
+        });
+
+        // Add to the onload method, before the "Check log file size periodically" code
+        // Register editor menu for template insertion
+        this.registerEvent(
+            this.app.workspace.on('editor-menu', (menu: Menu, editor: Editor) => {
+                // Add template insertion option
+                menu.addItem((item) => {
+                    item.setTitle('Insert Dream Journal Template')
+                        .setIcon('templates')
+                        .onClick(() => {
+                            this.insertTemplate(editor);
+                        });
+                });
+            })
+        );
     }
 
     onunload() {
@@ -535,17 +740,59 @@ export default class DreamMetricsPlugin extends Plugin {
             this.settings.logging = { ...DEFAULT_LOGGING };
         }
 
+        // Ensure linting settings are properly initialized
+        if (!this.settings.linting) {
+            this.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
+        } else {
+            // Ensure all linting fields are present by merging with defaults
+            this.settings.linting = { ...DEFAULT_LINTING_SETTINGS, ...this.settings.linting };
+        }
+
         // --- In onload() of DreamMetricsPlugin, after loading settings ---
         console.log(`[OOM][Settings][DEBUG][${now}] loadSettings completed. Loaded settings:`, JSON.stringify(this.settings, null, 2));
     }
 
     async saveSettings() {
-        const now = new Date().toISOString();
-        console.log(`[OOM][Settings][DEBUG][${now}] saveSettings called. Current settings:`, JSON.stringify(this.settings, null, 2));
-        await this.saveData(this.settings);
-        console.log(`[OOM][Settings][DEBUG][${now}] saveSettings completed.`);
+        console.log('Saving settings...');
+        
+        try {
+            await this.saveData(this.settings);
+            console.log('Settings saved successfully');
+            return true;
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            new Notice('Failed to save settings. Please try again.');
+            return false;
+        }
     }
-
+    
+    /**
+     * Validate the structure of the current file
+     */
+    private async validateCurrentFile() {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) {
+            new Notice('No file is active');
+            return;
+        }
+        
+        // Get the content of the file
+        const content = await this.app.vault.read(activeFile);
+        
+        // Validate content
+        const results = this.lintingEngine.validate(content);
+        
+        // If no issues, show a success notice
+        if (results.length === 0) {
+            new Notice('No structure issues found! 🎉');
+            return;
+        }
+        
+        // Otherwise, show the validation modal with the results
+        const modal = new TestModal(this.app, this);
+        modal.open();
+    }
+    
     public async showMetrics() {
         // Get the active leaf
         const leaf = this.app.workspace.activeLeaf;
@@ -1986,6 +2233,119 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.showMetrics();
             });
             this.noteRibbonEl.addClass('oom-ribbon-note-button');
+            
+            // Add right-click handler for templates
+            if (this.settings.linting?.templates?.length) {
+                this.noteRibbonEl.addEventListener('contextmenu', (evt) => {
+                    evt.preventDefault();
+                    const menu = new Menu();
+                    
+                    // Add template insertion menu item
+                    menu.addItem((item) => {
+                        item.setTitle('Insert Template')
+                            .setIcon('template-glyph')
+                            .onClick(() => {
+                                const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+                                if (view) {
+                                    const editor = view.editor;
+                                    
+                                    // Get templates from settings
+                                    const templates = this.settings.linting?.templates || [];
+                                    if (templates.length === 0) {
+                                        new Notice('No templates available. Create templates in settings.');
+                                        return;
+                                    }
+                                    
+                                    // If only one template, insert it directly
+                                    if (templates.length === 1) {
+                                        const template = templates[0];
+                                        editor.replaceSelection(template.content);
+                                        
+                                        // Show structure type in notice
+                                        const structures = this.settings.linting?.structures || [];
+                                        const structure = structures.find(s => s.id === template.structure);
+                                        
+                                        if (structure) {
+                                            new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
+                                        } else {
+                                            new Notice(`Template "${template.name}" inserted`);
+                                        }
+                                    } else {
+                                        // If multiple templates, show selection modal with structure types
+                                        const modal = new Modal(this.app);
+                                        modal.titleEl.setText('Select Template');
+                                        modal.contentEl.addClass('oom-template-selection-modal');
+                                        
+                                        for (const template of templates) {
+                                            const container = modal.contentEl.createDiv({cls: 'oom-template-item'});
+                                            
+                                            // Create header with template name
+                                            const headerEl = container.createDiv({cls: 'oom-template-header'});
+                                            headerEl.createEl('span', {text: template.name, cls: 'oom-template-name'});
+                                            
+                                            // Show structure type if available
+                                            const structures = this.settings.linting?.structures || [];
+                                            const structure = structures.find(s => s.id === template.structure);
+                                            
+                                            if (structure) {
+                                                const typeIndicator = headerEl.createEl('span', { 
+                                                    cls: `oom-template-type oom-${structure.type}-type`,
+                                                    attr: { title: structure.type === 'nested' ? 'Nested Structure' : 'Flat Structure' }
+                                                });
+                                                const typeIcon = structure.type === 'nested' ? '📦' : '📄';
+                                                typeIndicator.setText(`${typeIcon}`);
+                                            }
+                                            
+                                            // Add buttons
+                                            const buttonContainer = container.createDiv({cls: 'oom-template-buttons'});
+                                            
+                                            // Preview button
+                                            const previewBtn = buttonContainer.createEl('button', {
+                                                text: 'Preview',
+                                                cls: 'oom-preview-button'
+                                            });
+                                            
+                                            previewBtn.addEventListener('click', () => {
+                                                // Toggle preview
+                                                const previewEl = container.querySelector('.oom-template-preview');
+                                                if (previewEl) {
+                                                    previewEl.remove();
+                                                    previewBtn.setText('Preview');
+                                                } else {
+                                                    const newPreviewEl = container.createDiv({cls: 'oom-template-preview'});
+                                                    newPreviewEl.createEl('pre', {text: template.content});
+                                                    previewBtn.setText('Hide');
+                                                }
+                                            });
+                                            
+                                            // Insert button
+                                            const insertBtn = buttonContainer.createEl('button', {
+                                                text: 'Insert',
+                                                cls: 'mod-cta'
+                                            });
+                                            
+                                            insertBtn.addEventListener('click', () => {
+                                                editor.replaceSelection(template.content);
+                                                
+                                                // Show structure type in notice
+                                                if (structure) {
+                                                    new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
+                                                } else {
+                                                    new Notice(`Template "${template.name}" inserted`);
+                                                }
+                                                modal.close();
+                                            });
+                                        }
+                                        
+                                        modal.open();
+                                    }
+                                }
+                            });
+                    });
+                    
+                    menu.showAtMouseEvent(evt);
+                });
+            }
         } else {
             this.scrapeRibbonEl = null;
             this.noteRibbonEl = null;
@@ -1997,35 +2357,110 @@ export default class DreamMetricsPlugin extends Plugin {
         }
     }
 
-    private async cleanupOldBackups() {
-        if (!this.settings.backupEnabled || !this.settings.backupFolderPath) return;
-
-        try {
-            const backupFolder = this.app.vault.getAbstractFileByPath(this.settings.backupFolderPath);
-            if (!(backupFolder instanceof TFolder)) {
-                this.logger.warn('Backup', 'Backup folder not found');
-                return;
-            }
-
-            const files = backupFolder.children
-                .filter(f => f instanceof TFile && f.path.startsWith(this.settings.backupFolderPath ?? ''))
-                .sort((a, b) => {
-                    const aFile = a as TFile;
-                    const bFile = b as TFile;
-                    return bFile.stat.mtime - aFile.stat.mtime;
-                });
-
-            if (files.length > (this.settings.logging?.maxBackups ?? 5)) {
-                for (let i = (this.settings.logging?.maxBackups ?? 5); i < files.length; i++) {
-                    await this.app.vault.delete(files[i]);
-                }
-            }
-        } catch (error) {
-            this.logger.error('Backup', 'Error cleaning up old backups', error);
+    /**
+     * Insert a template into the current editor
+     */
+    async insertTemplate(editor: Editor) {
+        // Get templates from settings
+        const templates = this.settings.linting?.templates || [];
+        if (templates.length === 0) {
+            new Notice('No templates available. Create templates in the OneiroMetrics settings.');
+            return;
         }
+
+        // Open template selection modal
+        const modal = new Modal(this.app);
+        modal.titleEl.setText('Insert Journal Template');
+        modal.contentEl.addClass('oom-template-selection-modal');
+        
+        // Create template list
+        for (const template of templates) {
+            const templateItem = modal.contentEl.createDiv({ cls: 'oom-template-item' });
+            
+            // Create template header with name
+            const headerEl = templateItem.createDiv({ cls: 'oom-template-header' });
+            headerEl.createEl('h3', { text: template.name });
+            
+            // Get structure info to display structure type
+            const structures = this.settings.linting?.structures || [];
+            const structure = structures.find(s => s.id === template.structure);
+            
+            if (structure) {
+                // Add structure type indicator with visual cue
+                const typeIndicator = headerEl.createEl('span', { 
+                    cls: `oom-template-type oom-${structure.type}-type`,
+                    attr: { title: structure.type === 'nested' ? 'Nested Structure' : 'Flat Structure' }
+                });
+                const typeIcon = structure.type === 'nested' ? '📦' : '📄';
+                typeIndicator.setText(`${typeIcon} ${structure.type}`);
+            }
+            
+            // Add description if available
+            if (template.description) {
+                templateItem.createEl('p', { text: template.description, cls: 'oom-template-description' });
+            }
+            
+            // Preview button and insert button in a button container
+            const buttonContainer = templateItem.createDiv({ cls: 'oom-template-buttons' });
+            
+            // Preview button
+            const previewButton = buttonContainer.createEl('button', {
+                text: 'Preview',
+                cls: 'oom-preview-button'
+            });
+            
+            previewButton.addEventListener('click', () => {
+                // Toggle preview visibility
+                const previewEl = templateItem.querySelector('.oom-template-preview');
+                if (previewEl) {
+                    previewEl.remove();
+                    previewButton.setText('Preview');
+                } else {
+                    const newPreviewEl = templateItem.createDiv({ cls: 'oom-template-preview' });
+                    newPreviewEl.createEl('pre', { text: template.content });
+                    previewButton.setText('Hide Preview');
+                }
+            });
+            
+            // Insert button
+            const insertButton = buttonContainer.createEl('button', { 
+                text: 'Insert',
+                cls: 'mod-cta'
+            });
+            
+            insertButton.addEventListener('click', async () => {
+                modal.close();
+                
+                // Get template content
+                let content = template.content;
+                
+                // If it's a Templater template, process it
+                if (template.isTemplaterTemplate && template.templaterFile && this.templaterIntegration) {
+                    try {
+                        content = await this.templaterIntegration.processTemplaterTemplate(template.templaterFile);
+                    } catch (error) {
+                        console.error('Error processing Templater template:', error);
+                        new Notice('Error processing Templater template');
+                    }
+                }
+                
+                // Insert content at cursor position
+                editor.replaceSelection(content);
+                
+                // Show confirmation with structure type
+                if (structure) {
+                    new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
+                } else {
+                    new Notice(`Template "${template.name}" inserted`);
+                }
+            });
+        }
+        
+        modal.open();
     }
 
-    updateTestRibbon() {
+    // Add the updateTestRibbon method
+    private updateTestRibbon() {
         // Remove all test buttons
         document.querySelectorAll('.oom-ribbon-test-btn').forEach(btn => btn.remove());
         if ((this.settings as any).showTestRibbonButton) {
@@ -2035,7 +2470,7 @@ export default class DreamMetricsPlugin extends Plugin {
             btn.addClass('oom-ribbon-test-btn');
         }
     }
-}
+} 
 
 // Helper to extract date for a dream entry
 function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {
@@ -2053,8 +2488,8 @@ function getDreamEntryDate(journalLines: string[], filePath: string, fileContent
     const longDateRegex = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})/;
     const longDateMatch = calloutLine.match(longDateRegex);
     if (longDateMatch) {
-        const [_, month, day, year] = longDateMatch;
-        const dateObj = new Date(`${month} ${day}, ${year}`);
+        const [_, day, year] = longDateMatch;
+        const dateObj = new Date(`${longDateMatch[0]}`);
         if (!isNaN(dateObj.getTime())) {
             return dateObj.toISOString().split('T')[0];
         }
@@ -2082,7 +2517,32 @@ function getDreamEntryDate(journalLines: string[], filePath: string, fileContent
     return new Date().toISOString().split('T')[0];
 }
 
-// Persist last-used custom range in localStorage
+// Function to open the custom date range modal
+function openCustomRangeModal(app: App) {
+    const favorites = loadFavoriteRanges();
+    console.log('[DEBUG] Opening modal with favorites:', favorites);
+    new CustomDateRangeModal(app, (start: string, end: string, saveName?: string) => {
+        if (start && end) {
+            customDateRange = { start, end };
+            saveLastCustomRange(customDateRange);
+            if (saveName) {
+                saveFavoriteRange(saveName, customDateRange);
+                new Notice(`Saved favorite: ${saveName}`);
+            }
+            applyCustomDateRangeFilter();
+            const btn = document.getElementById('oom-custom-range-btn');
+            if (btn) btn.classList.add('active');
+        } else {
+            customDateRange = null;
+            const btn = document.getElementById('oom-custom-range-btn');
+            if (btn) btn.classList.remove('active');
+            const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+            if (dropdown) dropdown.dispatchEvent(new Event('change'));
+        }
+    }, favorites, deleteFavoriteRange).open();
+}
+
+// Helper functions for range management
 const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
 const SAVED_RANGES_KEY = 'oneirometrics-saved-custom-ranges';
 
@@ -2123,42 +2583,6 @@ function deleteFavoriteRange(name: string) {
     localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
     console.log('[DEBUG] Deleted favorite range:', name);
     new Notice(`Deleted favorite: ${name}`);
-}
-
-// On plugin load, check for a saved custom range and auto-apply it
-const lastRange = loadLastCustomRange();
-if (lastRange && lastRange.start && lastRange.end) {
-    customDateRange = lastRange;
-    // Optionally, auto-apply filter on load
-    document.addEventListener('DOMContentLoaded', () => {
-        applyCustomDateRangeFilter();
-        const btn = document.getElementById('oom-custom-range-btn');
-        if (btn) btn.classList.add('active');
-    });
-}
-
-function openCustomRangeModal(app: App) {
-    const favorites = loadFavoriteRanges();
-    console.log('[DEBUG] Opening modal with favorites:', favorites);
-    new CustomDateRangeModal(app, (start: string, end: string, saveName?: string) => {
-        if (start && end) {
-            customDateRange = { start, end };
-            saveLastCustomRange(customDateRange);
-            if (saveName) {
-                saveFavoriteRange(saveName, customDateRange);
-                new Notice(`Saved favorite: ${saveName}`);
-            }
-            applyCustomDateRangeFilter();
-            const btn = document.getElementById('oom-custom-range-btn');
-            if (btn) btn.classList.add('active');
-        } else {
-            customDateRange = null;
-            const btn = document.getElementById('oom-custom-range-btn');
-            if (btn) btn.classList.remove('active');
-            const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-            if (dropdown) dropdown.dispatchEvent(new Event('change'));
-        }
-    }, favorites, deleteFavoriteRange).open();
 }
 
 function applyCustomDateRangeFilter() {
@@ -2230,4 +2654,4 @@ function updateFilterDisplay(entryCount: number) {
         textSpan.textContent = ` ${label} (${entryCount} entries) `;
     }
     filterDisplay.appendChild(textSpan);
-} 
+}

@@ -36,7 +36,42 @@
 - Powerful logging and debug tools
 
 ### Ribbon Button Visibility
-- The plugin now uses a single toggle to control both ribbon buttons (Dream Scrape Tool and Open Metrics Note) due to an Obsidian API limitation. See the archived investigation: [docs/issue-archive/RIBBON_BUTTON_BUG_PLAN.md].
+- The plugin now uses a single toggle to control both ribbon buttons (Dream Scrape Tool and Open Metrics Note) due to an Obsidian API limitation. See the archived investigation: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
+
+## Journal Structure Check
+
+OneiroMetrics now includes a powerful journal structure validation system to help maintain consistent dream journal entries:
+
+### Key Features
+
+- **Structure Validation**: Validate your dream journal entries against defined structures
+- **Template System**: Create and use templates for consistent journal entries
+- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries
+- **Quick Fixes**: Apply automatic fixes for common structure issues
+- **Visual Validation**: Identify structure issues within the editor
+- **Nested Structures**: Support for both flat and nested callout structures
+
+### Using Journal Structure Check
+
+1. Enable the feature in settings
+2. Create or use the default journal structures
+3. Validate your entries with the `Validate Dream Journal Structure` command
+4. Create templates with the template wizard
+5. Apply templates to new journal entries
+
+### Templater Integration
+
+If you have the Templater plugin installed, you can use Templater templates for your dream journal entries. This allows you to use dynamic content such as:
+
+- Date variables
+- System information
+- User prompts
+- Custom scripts
+
+To use Templater integration:
+1. Enable Templater integration in the settings
+2. Select your template folder
+3. Choose templates in the template wizard
 
 ---
 

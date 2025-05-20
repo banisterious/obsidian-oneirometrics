@@ -1,3 +1,5 @@
+import { LintingSettings } from './src/linting/types';
+
 export type LogLevel = 'off' | 'errors' | 'warn' | 'info' | 'debug' | 'trace';
 
 export interface DreamMetric {
@@ -35,6 +37,7 @@ export interface DreamMetricsSettings {
         maxLogSize: number;
         maxBackups: number;
     };
+    linting?: LintingSettings;
 }
 
 export interface DreamMetricData {
