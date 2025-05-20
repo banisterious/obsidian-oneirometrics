@@ -1,4 +1,4 @@
-import { LintingSettings } from './src/linting/types';
+import { LintingSettings } from './src/journal_check/types';
 
 export type LogLevel = 'off' | 'errors' | 'warn' | 'info' | 'debug' | 'trace';
 

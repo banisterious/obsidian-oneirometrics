@@ -358,3 +358,16 @@ This approach helps pinpoint where the update process may be breaking down and e
 - Further UI/UX polish (favorites editing, tooltips, empty state, etc.)
 - Additional accessibility enhancements
 - Advanced filtering and analytics features
+
+## Feature Documentation
+
+The following features are documented in detail in separate files:
+
+- **Core Plugin**: The main plugin functionality is documented in the source code and `main.ts`.
+- **Settings**: Settings are documented in `settings.ts` and the sources code.
+- **Metrics**: The metrics system is documented in `docs/METRICS_DESCRIPTIONS.md` and `docs/METRICS_ENHANCEMENTS_PLAN.md`.
+- **Journal Structure Check**: The journal structure validation system (formerly known as "Linting") is documented in `docs/JOURNAL_STRUCTURE_GUIDELINES.md` and `docs/JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md`.
+- **Templates**: Template functionality including the new Templater integration is documented in `docs/TEMPLATER_INTEGRATION_PLAN.md`.
+- **CSS**: The CSS architecture is documented in `docs/CSS_REFACTORING.md`. All plugin-specific CSS classes now use the "oom-" prefix to avoid conflicts.
+- **Testing**: Testing procedures are documented in `docs/TESTING.md`.
+- **Development**: Development workflows are documented in `docs/CONTRIBUTING.md`.

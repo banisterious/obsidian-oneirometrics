@@ -1,4 +1,5 @@
 import { App, Modal, Setting, MarkdownRenderer, TextAreaComponent, DropdownComponent, ButtonComponent, Notice } from 'obsidian';
+import DreamMetricsPlugin from '../../../main';
 import { LintingEngine } from '../LintingEngine';
 import { JournalTemplate, ValidationResult } from '../types';
 
@@ -24,7 +25,7 @@ export class TestModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         
-        contentEl.addClass('dream-journal-test-modal');
+        contentEl.addClass('oom-dream-journal-test-modal');
         
         // Create header
         contentEl.createEl('h2', { text: 'Journal Structure Test' });
@@ -35,12 +36,12 @@ export class TestModal extends Modal {
         });
         
         // Create layout
-        const container = contentEl.createDiv({ cls: 'test-modal-container' });
-        const leftPane = container.createDiv({ cls: 'test-modal-content-pane' });
-        const rightPane = container.createDiv({ cls: 'test-modal-results-pane' });
+        const container = contentEl.createDiv({ cls: 'oom-test-modal-container' });
+        const leftPane = container.createDiv({ cls: 'oom-test-modal-content-pane' });
+        const rightPane = container.createDiv({ cls: 'oom-test-modal-results-pane' });
         
         // Template selector
-        const templateSection = leftPane.createDiv({ cls: 'test-modal-template-section' });
+        const templateSection = leftPane.createDiv({ cls: 'oom-test-modal-template-section' });
         new Setting(templateSection)
             .setName('Template')
             .setDesc('Select a journal template to validate against')
@@ -59,7 +60,7 @@ export class TestModal extends Modal {
             });
         
         // Create text area for content
-        const contentSection = leftPane.createDiv({ cls: 'test-modal-editor-section' });
+        const contentSection = leftPane.createDiv({ cls: 'oom-test-modal-editor-section' });
         contentSection.createEl('h3', { text: 'Journal Content' });
         
         this.textArea = new TextAreaComponent(contentSection)
@@ -96,7 +97,7 @@ export class TestModal extends Modal {
             });
         
         // Test actions
-        const actionsSection = leftPane.createDiv({ cls: 'test-modal-actions-section' });
+        const actionsSection = leftPane.createDiv({ cls: 'oom-test-modal-actions-section' });
         
         new Setting(actionsSection)
             .addButton(button => {
@@ -110,7 +111,7 @@ export class TestModal extends Modal {
         
         // Results section
         rightPane.createEl('h3', { text: 'Validation Results' });
-        this.resultsEl = rightPane.createDiv({ cls: 'test-modal-results' });
+        this.resultsEl = rightPane.createDiv({ cls: 'oom-test-modal-results' });
         
         // Initial validation
         this.validate();
@@ -132,15 +133,15 @@ export class TestModal extends Modal {
         }
         
         // Add visual feedback when validating
-        const validateButton = document.querySelector('.test-modal-actions-section button') as HTMLElement;
+        const validateButton = document.querySelector('.oom-test-modal-actions-section button') as HTMLElement;
         if (validateButton) {
             // Add a temporary class for animation
-            validateButton.classList.add('validating');
+            validateButton.classList.add('oom-validating');
             validateButton.textContent = 'Validating...';
             
             // Remove the class after a short delay
             setTimeout(() => {
-                validateButton.classList.remove('validating');
+                validateButton.classList.remove('oom-validating');
                 validateButton.textContent = 'Validate';
             }, 500);
         }
@@ -152,11 +153,11 @@ export class TestModal extends Modal {
         new Notice(`Validation complete: ${this.results.length === 0 ? 'No issues found!' : `${this.results.length} issues found`}`);
         
         // Highlight the results pane
-        const resultsPane = document.querySelector('.test-modal-results-pane') as HTMLElement;
+        const resultsPane = document.querySelector('.oom-test-modal-results-pane') as HTMLElement;
         if (resultsPane) {
-            resultsPane.classList.add('highlight-pane');
+            resultsPane.classList.add('oom-highlight-pane');
             setTimeout(() => {
-                resultsPane.classList.remove('highlight-pane');
+                resultsPane.classList.remove('oom-highlight-pane');
             }, 1000);
         }
     }
@@ -180,31 +181,31 @@ export class TestModal extends Modal {
         const infoCount = this.results.filter(r => r.severity === 'info').length;
         
         // Create summary
-        const summaryEl = this.resultsEl.createDiv({ cls: 'validation-summary' });
+        const summaryEl = this.resultsEl.createDiv({ cls: 'oom-validation-summary' });
         summaryEl.createEl('h4', { text: 'Summary' });
         
         const summaryList = summaryEl.createEl('ul');
         if (errorCount > 0) {
             summaryList.createEl('li', { 
                 text: `Errors: ${errorCount}`,
-                cls: 'validation-error'
+                cls: 'oom-validation-error'
             });
         }
         if (warningCount > 0) {
             summaryList.createEl('li', { 
                 text: `Warnings: ${warningCount}`,
-                cls: 'validation-warning'
+                cls: 'oom-validation-warning'
             });
         }
         if (infoCount > 0) {
             summaryList.createEl('li', { 
                 text: `Info: ${infoCount}`,
-                cls: 'validation-info'
+                cls: 'oom-validation-info'
             });
         }
         
         // Create detailed results
-        const detailsEl = this.resultsEl.createDiv({ cls: 'validation-details' });
+        const detailsEl = this.resultsEl.createDiv({ cls: 'oom-validation-details' });
         detailsEl.createEl('h4', { text: 'Details' });
         
         // Group results by severity
@@ -222,13 +223,13 @@ export class TestModal extends Modal {
      * Create a result item in the UI
      */
     private createResultItem(container: HTMLElement, result: ValidationResult) {
-        const itemEl = container.createDiv({ cls: `validation-item validation-${result.severity}` });
+        const itemEl = container.createDiv({ cls: `oom-validation-item oom-validation-${result.severity}` });
         
         // Create header with message and severity
-        const headerEl = itemEl.createDiv({ cls: 'validation-item-header' });
+        const headerEl = itemEl.createDiv({ cls: 'oom-validation-item-header' });
         
         // Add severity indicator
-        const severityIndicator = headerEl.createSpan({ cls: `validation-item-severity validation-${result.severity}` });
+        const severityIndicator = headerEl.createSpan({ cls: `oom-validation-item-severity oom-validation-${result.severity}` });
         severityIndicator.innerHTML = result.severity === 'error' 
             ? '❌' 
             : result.severity === 'warning' 
@@ -238,76 +239,77 @@ export class TestModal extends Modal {
         // Add message
         headerEl.createSpan({ 
             text: result.message,
-            cls: 'validation-item-message'
+            cls: 'oom-validation-item-message'
         });
         
         // Add location if available
         const locationString = `Line ${result.position.start.line}`;
         headerEl.createSpan({ 
             text: locationString,
-            cls: 'validation-item-location'
+            cls: 'oom-validation-item-location'
         });
+        
+        // Add rule description if available
+        if (result.rule?.description) {
+            itemEl.createDiv({
+                text: result.rule.description
+            });
+        }
         
         // Add quick fixes if available
         if (result.quickFixes && result.quickFixes.length > 0) {
-            const fixesEl = itemEl.createDiv({ cls: 'validation-item-fixes' });
+            const fixesContainer = itemEl.createDiv({ cls: 'oom-validation-item-fixes' });
             
             for (const fix of result.quickFixes) {
-                new ButtonComponent(fixesEl)
-                    .setButtonText(`🔧 ${fix.title}`)
-                    .onClick(() => {
-                        // Apply the quick fix
-                        const fixedContent = fix.action(this.content);
-                        
-                        // Update content
-                        this.content = fixedContent;
-                        this.textArea.setValue(fixedContent);
-                        
-                        // Re-validate
-                        this.validate();
-                    });
+                const fixButton = fixesContainer.createEl('button', {
+                    text: fix.title,
+                    cls: 'mod-cta'
+                });
+                
+                fixButton.addEventListener('click', () => {
+                    // Apply the fix
+                    this.content = fix.action(this.content);
+                    
+                    // Update the text area
+                    this.textArea.setValue(this.content);
+                    
+                    // Validate again
+                    this.validate();
+                    
+                    // Show a notice
+                    new Notice(`Applied fix: ${fix.title}`);
+                });
             }
         }
     }
     
     /**
-     * Get sample content for testing
+     * Get sample content for the test modal
      */
     private getSampleContent(): string {
-        // If template is selected, use that
-        if (this.selectedTemplateId) {
-            const template = this.templates.find(t => t.id === this.selectedTemplateId);
-            if (template) {
-                return template.content;
-            }
-        }
-        
-        // Otherwise use a generic sample with nested formatting
         return `# Dream Journal Entry
 
 > [!dream]
-> Last night I dreamed I was flying over a vast city. The buildings were made of crystal and glowed with an inner light. I could feel the wind rushing past me as I soared between towers. 
+> I was flying through a vast, colorful world filled with floating islands. Each island had its own unique environment, from lush forests to crystalline caves. I could control my flight with just a thought, soaring higher or diving down at will.
 > 
-> It felt incredibly liberating and joyful.
->
->> [!symbols]
->> - Flying: Freedom, overcoming limitations
->> - Crystal buildings: Clarity, transparency
->> - Wind: Change, movement
->
->> [!reflections]
->> This dream came after a day where I felt stuck on a problem at work. The feeling of freedom in the dream contrasts with my waking feelings of being trapped.
->
->> [!interpretation]
->> What might this dream mean?
->
->> [!metrics]
->> Sensory Detail: 1-5
->> Emotional Recall: 1-5
->> Lost Segments: 0-10
->> Descriptiveness: 1-5
->> Confidence Score: 1-5
->> Characters Role: 1-5
-`;
+> At one point, I landed on an island with a strange tower made of books. Inside, I found a library where the books would speak to me when touched. They were telling stories of other dreamers who had visited before.
+
+> [!symbols]
+> - Flying: Freedom, transcending limitations
+> - Islands: Isolated aspects of myself
+> - Library of speaking books: Collective unconscious, ancestral memory
+
+> [!reflections]
+> This dream felt incredibly vivid and liberating. The sensation of flight was so realistic that I could feel the wind rushing past. The speaking books seemed to be trying to tell me something important about connecting with others through shared experiences.
+
+> [!interpretation]
+> I think this dream reflects my current desire for freedom from daily constraints and a longing to connect with something larger than myself. The islands might represent different facets of my personality that I'm exploring.
+
+> [!metrics]
+> Clarity: 9
+> Vividness: 10
+> Coherence: 7
+> Emotional Intensity: 8
+> Recall Detail: 9`;
     }
 } 

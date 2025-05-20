@@ -1,22 +1,25 @@
-#   Linting and Code Style Guide
+#   Journal Structure Check and Code Style Guide
 
 ##   1.  Introduction
 
 ###   1.1. Purpose
 
--   This document establishes guidelines for code formatting, naming conventions, and best practices to ensure a consistent, readable, and maintainable codebase for the OneiroMetrics Obsidian plugin.
+-   This document establishes guidelines for dream journal structure, code formatting, naming conventions, and best practices to ensure a consistent, readable, and maintainable codebase for the OneiroMetrics Obsidian plugin.
 -   Adhering to these guidelines will improve collaboration, reduce errors, and streamline development.
 
 ###   1.2. Scope
 
 -   These guidelines apply to:
+    -   Dream journal entries and structure
     -   TypeScript (`.ts` files)
     -   JavaScript (`.js` files)
     -   CSS (`.css` files)
 
-###   1.3. Linting Tools
+###   1.3. Tools and Frameworks
 
 -   While the specific configuration is handled by Cursor, the project utilizes ESLint for JavaScript and TypeScript, and Stylelint for CSS.
+-   The Journal Structure Check feature helps maintain consistent dream journal entries.
+-   The CSS uses "oom-" prefix for all plugin-specific classes to avoid conflicts.
 
 ##   2.  General Linting Principles
 

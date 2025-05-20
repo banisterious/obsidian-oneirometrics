@@ -4142,3 +4142,295 @@ input.oom-folder-autocomplete-input {
     from { opacity: 0; }
     to   { opacity: 1; }
 }
+
+/* ==========================================================================
+   Journal Structure Check Styles
+   ========================================================================== */
+
+/* OneiroMetrics Journal Structure Check Styles
+ * 
+ * Contains styles for the journal structure check components, including:
+ * - Test modal for validating journal entries against structure rules
+ * - Template wizard for creating and editing journal templates
+ * - Validation results and indicators
+ */
+
+/* Test Modal */
+.oom-dream-journal-test-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.oom-test-modal-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    min-height: 400px;
+}
+
+.oom-test-modal-content-pane {
+    flex: 1;
+    padding: 10px;
+    border-right: 1px solid var(--background-modifier-border);
+    overflow-y: auto;
+}
+
+.oom-test-modal-results-pane {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    transition: background-color 0.3s ease;
+}
+
+.oom-test-modal-results-pane.oom-highlight-pane {
+    background-color: var(--background-modifier-success-hover);
+}
+
+.oom-test-modal-editor-section {
+    margin-bottom: 20px;
+}
+
+.oom-test-modal-actions-section {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.oom-test-modal-actions-section button {
+    transition: background-color 0.3s ease;
+}
+
+.oom-test-modal-actions-section button.oom-validating {
+    background-color: var(--interactive-success);
+}
+
+/* Template Wizard */
+.oom-template-wizard-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    min-height: 400px;
+}
+
+.oom-template-wizard-steps {
+    flex: 2;
+    padding: 10px;
+    border-right: 1px solid var(--background-modifier-border);
+    overflow-y: auto;
+}
+
+.oom-template-wizard-preview {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.oom-template-wizard-navigation {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 10px;
+}
+
+.oom-template-wizard-navigation .oom-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.oom-step-indicator {
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.oom-structure-guidance {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: var(--background-secondary);
+    border-radius: 5px;
+}
+
+.oom-structure-selected-info {
+    font-weight: bold;
+    color: var(--text-accent);
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: var(--background-secondary);
+    border-radius: 3px;
+}
+
+.oom-structure-details li {
+    margin-bottom: 5px;
+}
+
+.oom-templater-warning {
+    color: var(--text-error);
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+/* Validation Results */
+.oom-validation-summary {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: var(--background-secondary);
+    border-radius: 5px;
+}
+
+.oom-validation-details {
+    margin-top: 10px;
+}
+
+.oom-validation-item {
+    margin-bottom: 10px;
+    border-left: 3px solid var(--background-modifier-border);
+    padding-left: 10px;
+}
+
+.oom-validation-error {
+    border-left-color: var(--text-error);
+}
+
+.oom-validation-warning {
+    border-left-color: var(--text-warning);
+}
+
+.oom-validation-info {
+    border-left-color: var(--text-accent);
+}
+
+.oom-validation-item-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.oom-validation-item-severity {
+    margin-right: 8px;
+}
+
+.oom-validation-item-message {
+    flex: 1;
+    font-weight: 500;
+}
+
+.oom-validation-item-location {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-left: 8px;
+}
+
+.oom-validation-item-fixes {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* Preview panel */
+.oom-template-preview {
+    background-color: var(--background-secondary);
+    border-radius: 5px;
+    padding: 10px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.oom-preview-structure {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 10px;
+}
+
+.oom-preview-content {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Editor Validation Markers */
+.oom-cm-validation-error {
+    text-decoration: red wavy underline;
+}
+
+.oom-cm-validation-warning {
+    text-decoration: orange wavy underline;
+}
+
+.oom-cm-validation-info {
+    text-decoration: blue wavy underline;
+}
+
+/* Tooltips */
+.oom-validation-tooltip {
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+    padding: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+}
+
+.oom-validation-tooltip-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.oom-validation-tooltip-message {
+    margin-bottom: 5px;
+}
+
+.oom-validation-tooltip-fixes {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Media queries for responsive design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-test-modal-container,
+    .oom-template-wizard-container {
+        flex-direction: column;
+    }
+    
+    .oom-test-modal-content-pane,
+    .oom-test-modal-results-pane,
+    .oom-template-wizard-steps,
+    .oom-template-wizard-preview {
+        flex: none;
+        width: 100%;
+        border-right: none;
+        max-height: 400px;
+    }
+    
+    .oom-test-modal-results-pane,
+    .oom-template-wizard-preview {
+        margin-top: 20px;
+        border-top: 1px solid var(--background-modifier-border);
+        padding-top: 20px;
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-template-wizard-navigation .oom-button-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .oom-validation-item-header {
+        flex-wrap: wrap;
+    }
+    
+    .oom-validation-item-location {
+        margin-left: 0;
+        margin-top: 5px;
+        width: 100%;
+    }
+}

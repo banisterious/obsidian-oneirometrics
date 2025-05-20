@@ -29,10 +29,21 @@
   - Template preview functionality
   - Multiple ways to insert templates (commands, ribbon, context menu)
   - Proper handling of callouts in both structure types
+- **Templater Integration Plan:** Created a comprehensive plan for standardizing on Templater for templates with fallback options for users without Templater installed
+
 ### Changed
 - Renamed "Linting" feature to "Journal Structure Check" for clarity
 - Reorganized documentation structure to better reflect feature naming
 - Updated all feature references throughout the codebase
+- Improved UI for dream scrape modal: the old plugin-generated `<div class="oom-rescrape-container">` was removed and is now generated as part of the metrics HTML
+- Merged CSS files: Successfully combined journal_check styles into main styles.css with proper "oom-" prefix, removing the need for separate CSS files
+- Refactored CSS class naming convention to consistently use "oom-" prefix for all plugin-specific classes
+- Updated and fixed main.ts to properly handle the loadStyles method (which is now just a stub for backwards compatibility)
+
+### Removed
+- Removed src/journal_check/styles.css after merging into main styles.css
+- Removed test files that were no longer needed: test-dream-entries.md, test-read-more.html, and testProcessDreamContent.js
+- Archived completed CSS refactoring plan to docs/archive/
 
 ## [0.4.3] - 2025-05-19
 ### Added
