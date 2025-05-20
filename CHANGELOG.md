@@ -20,6 +20,20 @@
 - [0.1.1] - 2025-05-09
 - [0.1.0] - 2025-05-08
 
+## [Unreleased]
+### Added
+- **Journal Structure Check Feature:** Implemented first phase of the Journal Structure Check system
+  - Template creation and management for consistent journal entries
+  - Support for both flat and nested journal structures
+  - Template wizard with step-by-step interface
+  - Template preview functionality
+  - Multiple ways to insert templates (commands, ribbon, context menu)
+  - Proper handling of callouts in both structure types
+### Changed
+- Renamed "Linting" feature to "Journal Structure Check" for clarity
+- Reorganized documentation structure to better reflect feature naming
+- Updated all feature references throughout the codebase
+
 ## [0.4.3] - 2025-05-19
 ### Added
 - (List new features here)
