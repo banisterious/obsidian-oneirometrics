@@ -87,14 +87,181 @@ This document outlines the implementation plan for the Journal Structure Check f
 - Create documentation and examples
 
 ### Phase 4: UI Reorganization
-- Create a new dedicated Journal Structure modal
-- Move Journal Structure Check settings from Settings tab to the new modal
-- Rename "Templater Integration" section to "Journal Structure" in Settings
-- Add a "Journal Structure" button in Settings to open the dedicated modal
-- Consolidate Create Template and Manage Template modals into the new Journal Structure modal
-- Implement collapsible sections for template management and other features
-- Update documentation to reflect UI changes
-- Update command palette with direct access to the new modal
+
+#### 4.1 Overview
+The UI Reorganization phase addresses the growing complexity of the Settings tab by creating a dedicated Journal Structure modal. This modal will serve as a central hub for all journal structure features, providing a more organized and scalable user interface.
+
+#### 4.2 UI Mockups
+
+##### 4.2.1 Simplified Settings Tab
+```
++--------------------------------------+
+| Journal Structure                    |
++--------------------------------------+
+| Enable Structure Validation  [✓]     |
+|                                      |
+| Test Structure Validation   [Button] |
+|                                      |
+| Journal Structure           [Button] |
+|                                      |
+| Templater Status: Installed          |
++--------------------------------------+
+```
+
+##### 4.2.2 Journal Structure Modal
+```
++------------------------------------------------------+
+| Journal Structure                                    |
++------------------------------------------------------+
+| Structure Settings (Expanded)                     v  |
+| +--------------------------------------------------+ |
+| | Enable Structure Validation  [✓]                 | |
+| | Default Structure:  [Dropdown]                   | |
+| | Apply Structure to New Notes  [✓]                | |
+| | Structure Indicator in Status Bar  [✓]           | |
+| +--------------------------------------------------+ |
+|                                                      |
+| Template Management (Expanded)                    v  |
+| +--------------------------------------------------+ |
+| | Available Templates:                             | |
+| | - Default Dream Journal       [Edit] [Delete]    | |
+| | - Lucid Dream Journal        [Edit] [Delete]     | |
+| | - Dream Analysis Template    [Edit] [Delete]     | |
+| |                                                  | |
+| | Create New Template                    [Button]  | |
+| | Import Template                        [Button]  | |
+| +--------------------------------------------------+ |
+|                                                      |
+| Validation Rules (Collapsed)                      >  |
+|                                                      |
+| Templater Integration (Collapsed)                 >  |
++------------------------------------------------------+
+```
+
+#### 4.3 Component Specifications
+
+##### 4.3.1 Simplified Settings Tab
+- **Section Header**: "Journal Structure" heading
+- **Toggle Component**: Enable/disable structure validation checkbox
+- **Button Component**: "Test Structure Validation" button that opens the test modal
+- **Button Component**: "Journal Structure" button that opens the new Journal Structure modal
+- **Status Component**: Templater detection status indicator with appropriate styling
+
+##### 4.3.2 Journal Structure Modal
+- **Modal Container**: Full-width modal with responsive layout
+- **Section Components**: Four collapsible sections with expand/collapse controls
+  - Structure Settings
+  - Template Management
+  - Validation Rules
+  - Templater Integration
+- **Template List Component**: Sortable list of templates with edit/delete actions
+- **Action Buttons**: Create/Import buttons for template management
+- **Form Elements**: Various inputs, dropdowns, and toggles for configuration
+
+#### 4.4 Settings Migration Plan
+
+| Current Location | New Location | Setting |
+|------------------|--------------|---------|
+| Settings Tab → Linting | Journal Structure Modal → Structure Settings | Enable Structure Validation |
+| Settings Tab → Linting | Journal Structure Modal → Structure Settings | Default Structure |
+| Settings Tab → Linting | Journal Structure Modal → Structure Settings | Apply to New Notes |
+| Settings Tab → Linting | Journal Structure Modal → Structure Settings | Show Indicators |
+| Settings Tab → Templates | Journal Structure Modal → Template Management | Template List |
+| Settings Tab → Templates | Journal Structure Modal → Template Management | Create/Import Actions |
+| Settings Tab → Validation | Journal Structure Modal → Validation Rules | Rule Configuration |
+| Settings Tab → Templater | Journal Structure Modal → Templater Integration | Templater Settings |
+
+Only these controls will remain in the Settings tab:
+- Enable Structure Validation toggle
+- Test Structure Validation button
+- Journal Structure button
+- Templater status indicator
+
+#### 4.5 User Flow Diagrams
+
+##### 4.5.1 Accessing Journal Structure Features
+```
+             +---------------+
+             | Settings Tab  |
+             +---------------+
+                    |
+          +---------+---------+          
+          |                   |          
++---------v----------+  +-----v------+
+| Test Validation    |  | Journal    |
+| Modal              |  | Structure  |
++---------+----------+  | Modal      |
+          |             +-----+------+
+          |                   |
+          |    +------------+ |
+          +----+ Template   +-+
+          |    | Management | |
+          |    +------------+ |
+          |    +------------+ |
+          +----+ Validation +-+
+          |    | Rules      | |
+          |    +------------+ |
+          |    +------------+ |
+          +----+ Templater  | |
+               | Integration| |
+               +------------+ |
+                              v
+                        +-----------+
+                        | Command   |
+                        | Palette   |
+                        +-----------+
+```
+
+#### 4.6 Command Integration Details
+
+##### 4.6.1 New Commands
+- **Open Journal Structure**: Opens the main Journal Structure modal
+- **Create New Template**: Opens the modal directly to template creation
+- **Validate Current Note**: Runs validation on the current note
+- **Apply Template to Note**: Opens template selector for current note
+
+#### 4.7 Implementation Tasks
+
+1. **Create Modal Framework**
+   - Create basic modal structure with sections
+   - Implement collapsible section component
+   - Add navigation between sections
+
+2. **Simplify Settings Tab**
+   - Update settings tab to remove detailed settings
+   - Add Journal Structure button
+   - Create simplified Templater status indicator
+
+3. **Migrate Settings**
+   - Move settings from main tab to modal sections
+   - Ensure settings persistence
+   - Add migration code for existing settings
+
+4. **Implement Template Management**
+   - Create template list component
+   - Integrate template creation/editing
+   - Add template import/export functionality
+
+5. **Add Command Integration**
+   - Create new commands for direct access
+   - Update existing commands to work with new modal
+   - Add keyboard shortcuts for common actions
+
+6. **Documentation Updates**
+   - Update user documentation
+   - Create visual guides for new UI
+   - Update developer documentation
+
+#### 4.8 Acceptance Criteria
+
+- The Settings tab contains only the simplified Journal Structure section
+- All journal structure settings are accessible through the modal
+- Templates can be created, edited, and managed within the modal
+- The modal sections expand and collapse properly
+- Commands provide direct access to all key functionality
+- All existing settings are preserved during migration
+- The UI is responsive and works on all device sizes
+- Keyboard navigation works properly throughout the modal
 
 ### Phase 5: Integration & Polish
 - Integrate with Linter plugin
