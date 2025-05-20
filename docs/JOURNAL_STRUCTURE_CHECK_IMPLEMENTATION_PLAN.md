@@ -1,42 +1,151 @@
 # Journal Structure Check - Implementation Plan
 
+## Executive Summary
+
+This document outlines a comprehensive plan for implementing the Journal Structure Check feature in the OneiroMetrics plugin. The feature will help users maintain consistent dream journal structures and validate their entries against predefined patterns.
+
+Key deliverables include:
+- Core validation engine for checking journal structures
+- Template system with Templater integration
+- Visual editor interface with guided setup wizard
+- Dedicated modal interface for all journal structure features
+- Integration with Linter plugin for enhanced validation
+
+The implementation follows five sequential phases:
+1. **Foundation**: Core engine and basic validation
+2. **Advanced Validation**: Templates and Templater integration
+3. **User Experience**: Visual tools and guided setup
+4. **UI Reorganization**: Dedicated modal and simplified settings
+5. **Integration & Polish**: Linter plugin integration and refinements
+
+## Table of Contents
+
+- [Executive Summary](#executive-summary)
+- [Overview](#overview)
+- [1. Phased Implementation Framework](#1-phased-implementation-framework)
+  - [Phase 1: Foundation](#phase-1-foundation)
+  - [Phase 2: Advanced Validation](#phase-2-advanced-validation)
+  - [Phase 3: User Experience](#phase-3-user-experience)
+  - [Phase 4: UI Reorganization](#phase-4-ui-reorganization)
+  - [Phase 5: Integration & Polish](#phase-5-integration--polish)
+- [2. Implementation Schedule](#2-implementation-schedule)
+- [3. Technical Implementation](#3-technical-implementation)
+  - [3.1 Core Components](#31-core-components)
+  - [3.2 Settings Structure](#32-settings-structure)
+  - [3.3 UI Components](#33-ui-components)
+- [4. Templater Integration](#4-templater-integration)
+  - [4.1 Functionality](#41-functionality)
+  - [4.2 Implementation Details](#42-implementation-details)
+- [5. User Experience Enhancements](#5-user-experience-enhancements)
+  - [5.1 Visual Structure Validator](#51-visual-structure-validator)
+  - [5.2 Structure Templates](#52-structure-templates)
+  - [5.3 Guided Setup Wizard](#53-guided-setup-wizard)
+  - [5.4 Visual Examples](#54-visual-examples)
+  - [5.5 UI Reorganization](#55-ui-reorganization)
+  - [5.6 Linter Plugin Integration](#56-linter-plugin-integration)
+- [6. Testing Framework](#6-testing-framework)
+  - [6.1 Automated Tests](#61-automated-tests)
+  - [6.2 Test Cases](#62-test-cases)
+  - [6.3 Test UI](#63-test-ui)
+- [7. File Structure](#7-file-structure)
+- [8. Integration with Existing Code](#8-integration-with-existing-code)
+  - [8.1 Plugin Integration](#81-plugin-integration)
+  - [8.2 Settings Tab Integration](#82-settings-tab-integration)
+  - [8.3 Journal Structure Modal Implementation](#83-journal-structure-modal-implementation)
+- [9. Testing and Quality Assurance](#9-testing-and-quality-assurance)
+  - [9.1 Unit Tests](#91-unit-tests)
+  - [9.2 Integration Tests](#92-integration-tests)
+  - [9.3 User Testing](#93-user-testing)
+  - [9.4 Documentation](#94-documentation)
+- [10. Conclusion](#10-conclusion)
+
 ## Overview
 
 This document outlines the implementation plan for the Journal Structure Check feature, which will help users maintain consistent dream journal structures and validate their entries against predefined patterns. The implementation will follow a phased approach and include integration with Templater for advanced template support.
 
 ## 1. Phased Implementation Framework
 
-### Phase 1: Foundation (1-2 weeks)
+### Phase 1: Foundation
 - Create core linting engine
 - Implement basic structure validation (flat structures)
 - Add settings UI for enabling/disabling feature
 - Create validation test modal
 - Implement basic rule management
 
-### Phase 2: Advanced Validation (2-3 weeks)
+### Phase 2: Advanced Validation
 - Add nested structure validation
 - Implement metrics list validation
 - Add structure templates
 - Create template management UI
 - Implement Templater integration
 
-### Phase 3: User Experience (2-3 weeks)
+### Phase 3: User Experience
 - Add quick fixes
 - Create visual validator in editor
 - Implement guided setup wizard
 - Add comprehensive testing framework
 - Create documentation and examples
 
-### Phase 4: Integration & Polish (1-2 weeks)
+### Phase 4: UI Reorganization
+- Create a new dedicated Journal Structure modal
+- Move Journal Structure Check settings from Settings tab to the new modal
+- Rename "Templater Integration" section to "Journal Structure" in Settings
+- Add a "Journal Structure" button in Settings to open the dedicated modal
+- Consolidate Create Template and Manage Template modals into the new Journal Structure modal
+- Implement collapsible sections for template management and other features
+- Update documentation to reflect UI changes
+- Update command palette with direct access to the new modal
+
+### Phase 5: Integration & Polish
 - Integrate with Linter plugin
 - Optimize performance
 - Add advanced features (rule priority, rule persistence)
 - Conduct usability testing
 - Refine based on user feedback
 
-## 2. Technical Implementation
+## 2. Implementation Schedule
 
-### 2.1 Core Components
+### Phase 1 - Foundation
+- Set up basic file structure
+- Implement core LintingEngine
+- Create ContentParser
+- Add basic Settings UI
+- Implement Test Modal
+
+### Phase 2 - Advanced Validation
+- Implement nested structure validation
+- Add metrics list validation
+- Create template system
+- Implement Templater integration
+- Add template management UI
+
+### Phase 3 - User Experience
+- Implement visual validator
+- Create guided setup wizard
+- Add quick fixes
+- Develop testing framework
+- Create documentation and examples
+
+### Phase 4 - UI Reorganization
+- Create a new dedicated Journal Structure modal
+- Move Journal Structure Check settings from Settings tab to the new modal
+- Rename "Templater Integration" section to "Journal Structure" in Settings
+- Add a "Journal Structure" button in Settings to open the dedicated modal
+- Consolidate Create Template and Manage Template modals into the new Journal Structure modal
+- Implement collapsible sections for template management and other features
+- Update documentation to reflect UI changes
+- Update command palette with direct access to the new modal
+
+### Phase 5 - Integration & Polish
+- Integrate with Linter plugin
+- Optimize performance
+- Add advanced features
+- Conduct usability testing
+- Refine based on feedback
+
+## 3. Technical Implementation
+
+### 3.1 Core Components
 
 #### LintingEngine
 ```typescript
@@ -108,7 +217,7 @@ interface QuickFix {
 }
 ```
 
-### 2.2 Settings Structure
+### 3.2 Settings Structure
 
 ```typescript
 interface LintingSettings {
@@ -182,7 +291,7 @@ interface ContentIsolationSettings {
 }
 ```
 
-### 2.3 UI Components
+### 3.3 UI Components
 
 #### Settings Tab
 - Enable/disable linting
@@ -212,15 +321,15 @@ interface ContentIsolationSettings {
 - Template selection and customization
 - Templater integration options
 
-## 3. Templater Integration
+## 4. Templater Integration
 
-### 3.1 Functionality
+### 4.1 Functionality
 - Detect Templater plugin and enable integration if available
 - Allow selection of Templater templates for journal structures
 - Support Templater variables in structure validation
 - Provide special validation rules for Templater syntax
 
-### 3.2 Implementation Details
+### 4.2 Implementation Details
 
 #### Templater Detection
 ```typescript
@@ -276,22 +385,22 @@ interface TemplaterVariable {
 - Optional validation of prompt variables
 - Ignoring Templater system commands during validation
 
-## 4. User Experience Enhancements
+## 5. User Experience Enhancements
 
-### 4.1 Visual Structure Validator
+### 5.1 Visual Structure Validator
 - Highlight callout blocks with different colors based on type
 - Show inline indicators for structural issues
 - Provide hover tooltips with context-specific guidance
 - Add quick-action buttons for fixing common issues
 
-### 4.2 Structure Templates
+### 5.2 Structure Templates
 - Predefined templates for common journal structures
 - User-defined custom templates
 - Template marketplace/sharing
 - One-click template application
 - Template variables for customization
 
-### 4.3 Guided Setup Wizard
+### 5.3 Guided Setup Wizard
 - Welcome screen with overview
 - Structure selection step
 - Customization step
@@ -299,15 +408,72 @@ interface TemplaterVariable {
 - Validation rules configuration
 - Final setup and examples
 
-### 4.4 Visual Examples
+### 5.4 Visual Examples
 - Interactive examples of valid structures
 - Before/after examples for common fixes
 - Animated demonstrations of structure concepts
 - Copy-paste example templates
 
-## 5. Testing Framework
+### 5.5 UI Reorganization
+- **Dedicated Journal Structure Modal**: A comprehensive interface separate from the Settings tab, providing more space and focused organization for journal structure features
+- **Simplified Settings**: The main Settings tab will be streamlined, with a single "Journal Structure" section containing a button to access the dedicated modal
+- **Consolidated Template Management**: Template creation and management features will be combined into collapsible sections within the new modal
+- **Improved Navigation**: Direct access through command palette and settings provides multiple paths to the feature
+- **Visual Organization**: Collapsible sections allow for better organization of related features while maintaining a clear overview
+- **Scalability**: The new structure provides room for future feature expansion without further cluttering the Settings tab
+- **Consistent Experience**: Template creation, structure validation, and management all accessible from a single, cohesive interface
 
-### 5.1 Automated Tests
+### 5.6 Linter Plugin Integration
+
+#### 5.6.1 Dream Journal Structure Rules
+- **Callout Format Validation**
+  - Integrate with Linter to enforce consistent callout syntax
+  - Validate nested callout hierarchy using Linter's document traversal
+  - Provide custom error messages specific to dream journal structures
+- **Metrics Consistency**
+  - Use Linter's rule engine to check metric name standardization
+  - Validate that metric values fall within defined ranges
+  - Flag duplicate metrics in the same entry
+- **Date Format Standardization**
+  - Enforce consistent date formatting across journal entries
+  - Leverage Linter's quick fixes to auto-correct variant date formats
+
+#### 5.6.2 Content Processing Integration
+- **Automated Tag Extraction**
+  - Parse dream content to suggest and standardize tags for recurring themes
+  - Create consistent hashtag formatting for dream categories
+- **Dream Character Normalization**
+  - Identify and standardize recurring character names in dreams
+  - Create a consistent reference system for dream personas
+- **Citation Formatting**
+  - Standardize references to other dreams or notes
+  - Ensure proper linking format for cross-referencing related dreams
+
+#### 5.6.3 Template Validation
+- **Template Application Checks**
+  - Use Linter to verify that new entries follow selected template formats
+  - Flag entries missing required sections from templates
+- **Placeholder Completion Validation**
+  - Integrate with Linter to identify unfilled template placeholders
+  - Provide quick fixes to suggest content for empty required fields
+
+#### 5.6.4 Document Organization Rules
+- **Structure Validation**
+  - Use Linter's heading level validation for dream entries
+  - Check for required sections using Linter's document structure analysis
+- **Metadata Standardization**
+  - Leverage Linter's YAML frontmatter validation
+  - Create custom rules for dream-specific metadata properties
+
+#### 5.6.5 Implementation Approach
+- **API Integration**: Use Linter's rule engine while maintaining specialized dream journal validation
+- **Rule Sharing**: Export Journal Structure validation rules to Linter
+- **Complementary Workflows**: Define boundaries where Linter handles general formatting while Journal Structure Check focuses on dream-specific validation
+- **Quick Fix Integration**: Offer OneiroMetrics' template insertion and structure fixes through Linter's interface
+
+## 6. Testing Framework
+
+### 6.1 Automated Tests
 ```typescript
 interface LintingTest {
     name: string;
@@ -339,7 +505,7 @@ class LintingTestSuite {
 }
 ```
 
-### 5.2 Test Cases
+### 6.2 Test Cases
 - Valid flat structures
 - Valid nested structures
 - Invalid structures (various error types)
@@ -349,14 +515,14 @@ class LintingTestSuite {
 - Templater integration tests
 - Quick fix tests
 
-### 5.3 Test UI
+### 6.3 Test UI
 - Test runner in settings
 - Visual test results
 - Performance metrics
 - Export/import test cases
 - Custom test creation
 
-## 6. File Structure
+## 7. File Structure
 
 ```
 src/
@@ -380,9 +546,9 @@ src/
       TestCases.ts           # Test case definitions
 ```
 
-## 7. Integration with Existing Code
+## 8. Integration with Existing Code
 
-### 7.1 Plugin Integration
+### 8.1 Plugin Integration
 ```typescript
 export default class DreamMetricsPlugin extends Plugin {
     private lintingEngine: LintingEngine;
@@ -422,14 +588,14 @@ export default class DreamMetricsPlugin extends Plugin {
 }
 ```
 
-### 7.2 Settings Tab Integration
+### 8.2 Settings Tab Integration
 ```typescript
 class DreamMetricsSettingTab extends PluginSettingTab {
     display(): void {
         // Existing code...
         
-        // Add linting section
-        containerEl.createEl('h3', { text: 'Journal Structure Check' });
+        // Add Journal Structure section
+        containerEl.createEl('h3', { text: 'Journal Structure' });
         
         new Setting(containerEl)
             .setName('Enable Structure Validation')
@@ -442,68 +608,127 @@ class DreamMetricsSettingTab extends PluginSettingTab {
                 }));
         
         new Setting(containerEl)
-            .setName('Structure Rules')
-            .setDesc('Configure validation rules for journal structures')
+            .setName('Test Structure Validation')
+            .setDesc('Test validation rules on sample content')
             .addButton(button => button
-                .setButtonText('Edit Rules')
-                .onClick(() => new RuleManagerModal(this.plugin.app, this.plugin).open()));
-        
+                .setButtonText('Open Test Modal')
+                .onClick(() => new TestModal(this.app, this.plugin).open()));
+                
         new Setting(containerEl)
-            .setName('Journal Templates')
-            .setDesc('Manage templates for dream journal entries')
+            .setName('Journal Structure')
+            .setDesc('Configure templates, validation rules, and structure options')
             .addButton(button => button
-                .setButtonText('Manage Templates')
-                .onClick(() => new TemplateManagerModal(this.plugin.app, this.plugin).open()));
+                .setButtonText('Open Journal Structure')
+                .onClick(() => new JournalStructureModal(this.app, this.plugin).open()));
         
-        // Templater integration
+        // Templater detection information
         if (this.plugin.templaterIntegration.isTemplaterInstalled()) {
-            containerEl.createEl('h4', { text: 'Templater Integration' });
-            
             new Setting(containerEl)
-                .setName('Enable Templater Integration')
-                .setDesc('Use Templater templates for journal structures')
-                .addToggle(toggle => toggle
-                    .setValue(this.plugin.settings.linting.templaterIntegration.enabled)
-                    .onChange(async (value) => {
-                        this.plugin.settings.linting.templaterIntegration.enabled = value;
-                        await this.plugin.saveSettings();
-                    }));
-            
-            // More Templater settings...
+                .setName('Templater Status')
+                .setDesc('Templater plugin is installed and will be used for templates')
+                .setClass('oom-templater-status-success');
+        } else {
+            new Setting(containerEl)
+                .setName('Templater Status')
+                .setDesc('Templater plugin is not installed. Templates will use static placeholders instead.')
+                .setClass('oom-templater-status-warning');
         }
     }
 }
 ```
 
-## 8. Implementation Schedule
-
-### Week 1-2: Phase 1 - Foundation
-- Set up basic file structure
-- Implement core LintingEngine
-- Create ContentParser
-- Add basic Settings UI
-- Implement Test Modal
-
-### Week 3-5: Phase 2 - Advanced Validation
-- Implement nested structure validation
-- Add metrics list validation
-- Create template system
-- Implement Templater integration
-- Add template management UI
-
-### Week 6-8: Phase 3 - User Experience
-- Implement visual validator
-- Create guided setup wizard
-- Add quick fixes
-- Develop testing framework
-- Create documentation and examples
-
-### Week 9-10: Phase 4 - Integration & Polish
-- Integrate with Linter plugin
-- Optimize performance
-- Add advanced features
-- Conduct usability testing
-- Refine based on feedback
+### 8.3 Journal Structure Modal Implementation
+```typescript
+class JournalStructureModal extends Modal {
+    constructor(app: App, private plugin: DreamMetricsPlugin) {
+        super(app);
+    }
+    
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        
+        contentEl.createEl('h2', { text: 'Journal Structure' });
+        
+        // Create tabbed interface or sections
+        const container = contentEl.createDiv({ cls: 'oom-journal-structure-container' });
+        
+        // Section: Structure Settings
+        const settingsSection = this.createSection(container, 'Structure Settings', true);
+        this.buildSettingsSection(settingsSection);
+        
+        // Section: Template Management
+        const templatesSection = this.createSection(container, 'Template Management', true);
+        this.buildTemplatesSection(templatesSection);
+        
+        // Section: Validation Rules
+        const rulesSection = this.createSection(container, 'Validation Rules', false);
+        this.buildRulesSection(rulesSection);
+        
+        // Section: Templater Integration
+        const templaterSection = this.createSection(container, 'Templater Integration', false);
+        this.buildTemplaterSection(templaterSection);
+    }
+    
+    private createSection(container: HTMLElement, title: string, expanded: boolean): HTMLElement {
+        const section = container.createDiv({ cls: 'oom-journal-structure-section' });
+        const header = section.createDiv({ cls: 'oom-journal-structure-section-header' });
+        
+        const expandIcon = header.createSpan({ 
+            cls: `oom-journal-structure-section-icon ${expanded ? 'expanded' : 'collapsed'}` 
+        });
+        
+        header.createEl('h3', { text: title });
+        
+        const content = section.createDiv({ 
+            cls: 'oom-journal-structure-section-content'
+        });
+        
+        if (!expanded) {
+            content.style.display = 'none';
+        }
+        
+        // Toggle expansion when header is clicked
+        header.addEventListener('click', () => {
+            const isExpanded = expandIcon.classList.contains('expanded');
+            
+            if (isExpanded) {
+                expandIcon.classList.remove('expanded');
+                expandIcon.classList.add('collapsed');
+                content.style.display = 'none';
+            } else {
+                expandIcon.classList.remove('collapsed');
+                expandIcon.classList.add('expanded');
+                content.style.display = 'block';
+            }
+        });
+        
+        return content;
+    }
+    
+    // Implementation of section builders...
+    private buildSettingsSection(container: HTMLElement) {
+        // Structure validation settings
+    }
+    
+    private buildTemplatesSection(container: HTMLElement) {
+        // Template management UI
+    }
+    
+    private buildRulesSection(container: HTMLElement) {
+        // Validation rules configuration
+    }
+    
+    private buildTemplaterSection(container: HTMLElement) {
+        // Templater integration options
+    }
+    
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
+}
+```
 
 ## 9. Testing and Quality Assurance
 
