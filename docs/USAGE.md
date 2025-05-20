@@ -175,6 +175,66 @@ Use the following format in your dream journal entries:
 > Sensory Detail: 4, Emotional Recall: 3, Lost Segments: 2, Descriptiveness: 3, Confidence Score: 5
 ```
 
+### Using Templates
+
+OneiroMetrics now provides a powerful template system with Templater integration for creating consistent dream journal entries.
+
+#### Template Wizard
+
+1. Open the Template Wizard using one of these methods:
+   - Command palette: "Create Journal Template"
+   - Settings page: Templates section
+   
+2. Follow the step-by-step wizard:
+   - Step 1: Enter basic template information (name, description)
+   - Step 2: Select a journal structure (flat or nested)
+   - Step 3: Configure Templater integration
+   - Step 4: Add template content
+
+#### Inserting Templates
+
+Insert templates into your journal entries using:
+- Command palette: "Insert Journal Template"
+- Editor context menu: "Insert Dream Journal Template"
+- Right-click on the OneiroMetrics ribbon icon
+
+#### Templater Integration
+
+For dynamic templates with automatic date insertion, user prompts, and conditional content:
+
+1. **With Templater installed (recommended):**
+   - Templates will use Templater's dynamic functionality
+   - Date fields will automatically fill with the current date
+   - Prompts will ask for information as you insert the template
+   - Conditional content will adapt based on your inputs
+
+2. **Without Templater installed (fallback):**
+   - Templates will use a static version with placeholders
+   - You'll see placeholders like `[[DATE: YYYY-MM-DD]]` instead of dynamic content
+   - Tab through placeholders to fill them in manually
+   - All essential functionality works, just without automation
+
+#### Template Examples
+
+**Basic Dream Journal Template:**
+```markdown
+# Dream Journal: <% tp.date.now("YYYY-MM-DD") %>
+
+> [!dream]
+> <% tp.system.prompt("Describe your dream", "") %>
+
+> [!symbols]
+> - <% tp.system.prompt("Symbol 1", "") %>: <% tp.system.prompt("Meaning", "") %>
+> - <% tp.system.prompt("Symbol 2", "") %>: <% tp.system.prompt("Meaning", "") %>
+
+> [!metrics]
+> Clarity: <% tp.system.prompt("Rate clarity (1-10)", "7") %>
+> Vividness: <% tp.system.prompt("Rate vividness (1-10)", "6") %>
+> Coherence: <% tp.system.prompt("Rate coherence (1-10)", "5") %>
+```
+
+For more detailed information and advanced template techniques, see the [Templater Integration documentation](./TEMPLATER_INTEGRATION.md).
+
 #### Complete Sample Journal Entry
 
 ```markdown

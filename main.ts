@@ -16,6 +16,9 @@ import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
 import { TestModal } from './src/journal_check/ui/TestModal';
 import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
 import { LintingSettings, CalloutStructure, JournalTemplate } from './src/journal_check/types';
+import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
+// Import the new DreamJournalManager class
+import { DreamJournalManager } from './src/journal_check/ui/DreamJournalManager';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -441,9 +444,27 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add command to open modal
         this.addCommand({
             id: 'open-oneirometrics-modal',
-            name: 'Dream Scrape Tool',
+            name: 'Open Dream Journal Manager',
             callback: () => {
-                new OneiroMetricsModal(this.app, this).open();
+                new DreamJournalManager(this.app, this).open();
+            }
+        });
+
+        // Add command to open dream scrape tab
+        this.addCommand({
+            id: 'open-dream-scrape',
+            name: 'Open Dream Scrape Tool',
+            callback: () => {
+                new DreamJournalManager(this.app, this, 'dream-scrape').open();
+            }
+        });
+
+        // Add command for journal structure
+        this.addCommand({
+            id: 'open-journal-structure',
+            name: 'Open Journal Structure Settings',
+            callback: () => {
+                new DreamJournalManager(this.app, this, 'journal-structure').open();
             }
         });
 
@@ -584,7 +605,7 @@ export default class DreamMetricsPlugin extends Plugin {
             name: 'Create Journal Template',
             callback: () => new TemplateWizard(this.app, this, this.templaterIntegration).open()
         });
-
+        
         // Check log file size periodically
         this.registerInterval(
             window.setInterval(() => this.checkLogFileSize(), 5 * 60 * 1000) // Check every 5 minutes
@@ -2156,8 +2177,8 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Add both buttons if enabled in settings
         if (this.settings.showRibbonButtons) {
-            this.scrapeRibbonEl = this.addRibbonIcon('wand-sparkles', 'Dream Scrape Tool', () => {
-                new OneiroMetricsModal(this.app, this).open();
+            this.scrapeRibbonEl = this.addRibbonIcon('wand-sparkles', 'Dream Journal Manager', () => {
+                new DreamJournalManager(this.app, this, 'dream-scrape').open();
             });
             this.scrapeRibbonEl.addClass('oom-ribbon-scrape-button');
             this.scrapeRibbonEl.addEventListener('contextmenu', (evt) => {
@@ -2294,7 +2315,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     /**
-     * Insert a template into the current editor
+     * Insert a journal template into the current editor
      */
     async insertTemplate(editor: Editor) {
         // Get templates from settings
@@ -2331,6 +2352,15 @@ export default class DreamMetricsPlugin extends Plugin {
                 typeIndicator.setText(`${typeIcon} ${structure.type}`);
             }
             
+            // Add templater badge if applicable
+            if (template.isTemplaterTemplate) {
+                const templaterBadge = headerEl.createEl('span', {
+                    cls: 'oom-templater-badge',
+                    attr: { title: 'Uses Templater for dynamic content' }
+                });
+                templaterBadge.setText('⚡ Templater');
+            }
+            
             // Add description if available
             if (template.description) {
                 templateItem.createEl('p', { text: template.description, cls: 'oom-template-description' });
@@ -2353,7 +2383,40 @@ export default class DreamMetricsPlugin extends Plugin {
                     previewButton.setText('Preview');
                 } else {
                     const newPreviewEl = templateItem.createDiv({ cls: 'oom-template-preview' });
-                    newPreviewEl.createEl('pre', { text: template.content });
+                    
+                    // Dynamic/static toggle if it's a Templater template
+                    if (template.isTemplaterTemplate && template.staticContent) {
+                        const toggleContainer = newPreviewEl.createDiv({ cls: 'oom-preview-toggle-container' });
+                        const dynamicToggle = toggleContainer.createEl('button', {
+                            text: 'Dynamic (Templater)',
+                            cls: 'oom-preview-toggle oom-preview-toggle-active'
+                        });
+                        const staticToggle = toggleContainer.createEl('button', {
+                            text: 'Static (Fallback)',
+                            cls: 'oom-preview-toggle'
+                        });
+                        
+                        const previewContent = newPreviewEl.createDiv({ cls: 'oom-preview-content' });
+                        previewContent.createEl('pre', { text: template.content });
+                        
+                        dynamicToggle.addEventListener('click', () => {
+                            dynamicToggle.addClass('oom-preview-toggle-active');
+                            staticToggle.removeClass('oom-preview-toggle-active');
+                            previewContent.empty();
+                            previewContent.createEl('pre', { text: template.content });
+                        });
+                        
+                        staticToggle.addEventListener('click', () => {
+                            staticToggle.addClass('oom-preview-toggle-active');
+                            dynamicToggle.removeClass('oom-preview-toggle-active');
+                            previewContent.empty();
+                            previewContent.createEl('pre', { text: template.staticContent });
+                        });
+                    } else {
+                        // Regular preview for non-Templater templates
+                        newPreviewEl.createEl('pre', { text: template.content });
+                    }
+                    
                     previewButton.setText('Hide Preview');
                 }
             });
@@ -2368,24 +2431,87 @@ export default class DreamMetricsPlugin extends Plugin {
                 modal.close();
                 
                 // Get template content
-                let content = template.content;
+                let content = '';
+                let usingFallback = false;
                 
                 // If it's a Templater template, process it
-                if (template.isTemplaterTemplate && template.templaterFile && this.templaterIntegration) {
-                    try {
-                        content = await this.templaterIntegration.processTemplaterTemplate(template.templaterFile);
-                    } catch (error) {
-                        console.error('Error processing Templater template:', error);
-                        new Notice('Error processing Templater template');
+                if (template.isTemplaterTemplate && template.templaterFile) {
+                    if (this.templaterIntegration && this.templaterIntegration.isTemplaterInstalled()) {
+                        try {
+                            content = await this.templaterIntegration.processTemplaterTemplate(template.templaterFile);
+                        } catch (error) {
+                            console.error('Error processing Templater template:', error);
+                            new Notice('Error processing Templater template');
+                            
+                            // Fallback to static content if available
+                            if (template.staticContent) {
+                                content = template.staticContent;
+                                usingFallback = true;
+                            } else {
+                                content = template.content;
+                            }
+                        }
+                    } else {
+                        // Templater not installed, use static version
+                        if (template.staticContent) {
+                            content = template.staticContent;
+                        } else {
+                            // Generate static content on the fly if not available
+                            if (this.templaterIntegration) {
+                                content = this.templaterIntegration.convertToStaticTemplate(template.content);
+                            } else {
+                                content = template.content;
+                            }
+                        }
+                        usingFallback = true;
+                        new Notice('Templater plugin is not installed. Using static template with placeholders.');
                     }
+                } else {
+                    // Regular non-Templater template
+                    content = template.content;
                 }
                 
                 // Insert content at cursor position
+                const initialCursorPosition = editor.getCursor();
                 editor.replaceSelection(content);
+                
+                // Handle placeholder navigation if using static version
+                if (usingFallback && this.templaterIntegration) {
+                    // Find placeholders
+                    const placeholders = this.templaterIntegration.findPlaceholders(content);
+                    
+                    if (placeholders.length > 0) {
+                        // Navigate to first placeholder
+                        const firstPlaceholder = placeholders[0];
+                        const lines = content.substring(0, firstPlaceholder.position.start).split('\n');
+                        
+                        const position = {
+                            line: initialCursorPosition.line + lines.length - 1,
+                            ch: lines.length > 1 ? lines[lines.length - 1].length : initialCursorPosition.ch + firstPlaceholder.position.start
+                        };
+                        
+                        editor.setCursor(position);
+                        
+                        // Select the placeholder
+                        const endPosition = {
+                            line: position.line,
+                            ch: position.ch + (firstPlaceholder.position.end - firstPlaceholder.position.start)
+                        };
+                        
+                        editor.setSelection(position, endPosition);
+                        
+                        // Show instructional notice
+                        new Notice(`Fill in the ${placeholders.length} placeholder(s). Press Tab to navigate between them.`);
+                    }
+                }
                 
                 // Show confirmation with structure type
                 if (structure) {
-                    new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
+                    if (usingFallback) {
+                        new Notice(`Inserted "${template.name}" (${structure.type} structure) using static placeholders.`);
+                    } else {
+                        new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
+                    }
                 } else {
                     new Notice(`Template "${template.name}" inserted`);
                 }

@@ -56,16 +56,20 @@ OneiroMetrics now includes a powerful journal structure validation system to hel
 5. Apply templates to new journal entries
 
 ### Templater Integration
-If you have the Templater plugin installed, you can use Templater templates for your dream journal entries. This allows you to use dynamic content such as:
-- Automatic dates and timestamps
-- User prompts for metrics data
-- Conditional content based on previous entries
-- Custom Templater functions
+OneiroMetrics now standardizes on Templater as the recommended template engine for dream journals, offering:
+
+- **Dynamic Content:** Automatic dates, user prompts, and conditional content
+- **Fallback System:** Templates still work even without Templater installed
+- **User-Friendly:** Visual placeholder system for easy template filling
+- **Template Wizard:** Create and edit templates with dual preview (Templater and static versions)
+- **Backward Compatible:** All existing templates continue to work
+
+For comprehensive details, see our [Templater Integration documentation](docs/TEMPLATER_INTEGRATION.md).
 
 To use Templater integration:
-1. Enable Templater integration in the settings
-2. Select your template folder
-3. Choose templates in the template wizard
+1. Install the [Templater plugin](https://github.com/SilentVoid13/Templater) (recommended but optional)
+2. Create templates using the Template Wizard
+3. Insert templates in your dream journal entries
 
 ---
 

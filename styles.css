@@ -1870,8 +1870,12 @@ div[data-type="markdown"][data-type="oom-project-note"] {
 }
 
 /* Metrics Modal */
+.modal:has(.oom-metrics-modal) {
+    width:800px;
+}
+
 .oom-metrics-modal {
-    max-width: var(--oom-modal-width-lg);
+    width: 750px;;
 }
 
 /* Callout Modal */
@@ -4205,32 +4209,164 @@ input.oom-folder-autocomplete-input {
 }
 
 /* Template Wizard */
-.oom-template-wizard-container {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-    min-height: 400px;
+
+.modal:has(.oom-dream-journal-template-wizard) {
+    width: 850px !important;
+    max-width: 95vw !important;
 }
 
-.oom-template-wizard-steps {
-    flex: 2;
-    padding: 10px;
-    border-right: 1px solid var(--background-modifier-border);
-    overflow-y: auto;
-}
-
-.oom-template-wizard-preview {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-}
-
-.oom-template-wizard-navigation {
+.oom-template-wizard-container-single {
     display: flex;
     flex-direction: column;
-    margin-top: 20px;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    /* Add padding at bottom to ensure content isn't hidden behind sticky footer */
+    padding-bottom: 70px;
+}
+
+.oom-template-wizard-step {
+    margin-bottom: 20px;
+}
+
+/* Sticky Navigation Footer */
+.oom-template-wizard-navigation {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--background-primary);
+    padding: 12px 0;
+    margin-top: 24px;
     border-top: 1px solid var(--background-modifier-border);
-    padding-top: 10px;
+    z-index: 10;
+    /* Add subtle shadow for depth */
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Collapsible Preview */
+.oom-template-preview-container {
+    margin: 20px 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background-color: var(--background-secondary);
+    transition: all 0.3s ease;
+}
+
+.oom-template-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary-alt);
+    border-radius: 7px 7px 0 0;
+}
+
+.oom-template-preview-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.oom-preview-toggle {
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.oom-preview-toggle svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.oom-preview-toggle.collapsed svg {
+    transform: rotate(180deg);
+}
+
+.oom-template-preview {
+    padding: 16px;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    overflow: hidden;
+    max-height: 500px;
+}
+
+.oom-template-preview-container.collapsed .oom-template-preview {
+    max-height: 0;
+    padding: 0 16px;
+    overflow: hidden;
+    border-top: none;
+}
+
+/* Preview Content Styling */
+.oom-preview-title {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-preview-structure-info {
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: var(--background-primary);
+    border-radius: 6px;
+}
+
+.oom-preview-structure-details {
+    font-size: 0.9em;
+}
+
+.oom-preview-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.oom-preview-structure-type {
+    font-weight: 500;
+}
+
+.oom-preview-nested {
+    color: var(--text-accent);
+}
+
+.oom-preview-flat {
+    color: var(--text-normal);
+}
+
+.oom-preview-required-fields {
+    border-top: 1px dashed var(--background-modifier-border);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.oom-preview-content {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: var(--background-primary);
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.oom-markdown-preview {
+    white-space: pre-wrap;
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+}
+
+/* Navigation Buttons */
+.oom-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.oom-step-indicator {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
 }
 
 .oom-template-wizard-navigation .oom-button-container {
@@ -4248,17 +4384,17 @@ input.oom-folder-autocomplete-input {
 .oom-structure-guidance {
     margin-top: 10px;
     padding: 10px;
-    background-color: var(--background-secondary);
     border-radius: 5px;
+    background-color: var(--background-secondary);
 }
 
 .oom-structure-selected-info {
-    font-weight: bold;
-    color: var(--text-accent);
     margin-bottom: 10px;
     padding: 5px;
-    background-color: var(--background-secondary);
     border-radius: 3px;
+    font-weight: bold;
+    color: var(--text-accent);
+    background-color: var(--background-secondary);
 }
 
 .oom-structure-details li {
@@ -4266,17 +4402,17 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-templater-warning {
-    color: var(--text-error);
     margin-top: 5px;
     font-size: 12px;
+    color: var(--text-error);
 }
 
 /* Validation Results */
 .oom-validation-summary {
     margin-bottom: 15px;
     padding: 10px;
-    background-color: var(--background-secondary);
     border-radius: 5px;
+    background-color: var(--background-secondary);
 }
 
 .oom-validation-details {
@@ -4285,8 +4421,8 @@ input.oom-folder-autocomplete-input {
 
 .oom-validation-item {
     margin-bottom: 10px;
-    border-left: 3px solid var(--background-modifier-border);
     padding-left: 10px;
+    border-left: 3px solid var(--background-modifier-border);
 }
 
 .oom-validation-error {
@@ -4303,8 +4439,8 @@ input.oom-folder-autocomplete-input {
 
 .oom-validation-item-header {
     display: flex;
-    align-items: center;
     margin-bottom: 5px;
+    align-items: center;
 }
 
 .oom-validation-item-severity {
@@ -4317,9 +4453,9 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-validation-item-location {
+    margin-left: 8px;
     font-size: 12px;
     opacity: 0.7;
-    margin-left: 8px;
 }
 
 .oom-validation-item-fixes {
@@ -4332,23 +4468,23 @@ input.oom-folder-autocomplete-input {
 
 /* Preview panel */
 .oom-template-preview {
-    background-color: var(--background-secondary);
-    border-radius: 5px;
-    padding: 10px;
     height: 100%;
+    padding: 10px;
+    border-radius: 5px;
     overflow-y: auto;
+    background-color: var(--background-secondary);
 }
 
 .oom-preview-structure {
+    margin-bottom: 10px;
     font-size: 12px;
     opacity: 0.7;
-    margin-bottom: 10px;
 }
 
 .oom-preview-content {
-    border-top: 1px solid var(--background-modifier-border);
-    padding-top: 10px;
     max-height: 300px;
+    padding-top: 10px;
+    border-top: 1px solid var(--background-modifier-border);
     overflow-y: auto;
 }
 
@@ -4367,12 +4503,12 @@ input.oom-folder-autocomplete-input {
 
 /* Tooltips */
 .oom-validation-tooltip {
-    background-color: var(--background-primary);
+    max-width: 300px;
+    padding: 8px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 5px;
-    padding: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    max-width: 300px;
+    background-color: var(--background-primary);
 }
 
 .oom-validation-tooltip-header {
@@ -4434,3 +4570,754 @@ input.oom-folder-autocomplete-input {
         width: 100%;
     }
 }
+
+/* Add these styles for Templater integration */
+
+/* Templater info note */
+.oom-templater-info-note {
+    margin: 10px 0;
+    padding: 10px;
+    border-left: 4px solid var(--interactive-accent);
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+.oom-info-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Warning styles */
+.oom-templater-warning {
+    margin: 10px 0;
+    padding: 10px;
+    border-left: 4px solid #ffb400;
+    border-radius: 4px;
+    background-color: rgba(255, 180, 0, 0.1);
+}
+
+/* Fallback info */
+.oom-templater-fallback-info {
+    margin: 10px 0;
+    padding: 10px;
+    border-left: 4px solid var(--text-accent);
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+/* Static preview section */
+.oom-static-preview-section {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-static-preview-heading {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.oom-static-preview-content {
+    max-height: 200px;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-y: auto;
+    background-color: var(--background-secondary);
+}
+
+.oom-static-preview-code {
+    margin: 0;
+    white-space: pre-wrap;
+    font-family: var(--font-monospace);
+    font-size: 12px;
+}
+
+/* Templater badge */
+.oom-templater-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 6px;
+    font-size: 12px;
+    border-radius: 4px;
+    vertical-align: middle;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+/* Preview toggle buttons */
+.oom-preview-toggle-container {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.oom-preview-toggle {
+    padding: 4px 8px;
+    border: 1px solid var(--background-modifier-border);
+    font-size: 12px;
+    cursor: pointer;
+    background-color: var(--background-secondary);
+}
+
+.oom-preview-toggle:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.oom-preview-toggle:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.oom-preview-toggle-active {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-preview-content {
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Journal Structure Modal */
+.modal:has(.oom-journal-structure-modal) {
+    width: 880px;
+    max-width: 900px;
+    max-height: 700px;
+}
+
+.oom-journal-structure-modal {
+    width: 830px;
+    height: 80%;
+    max-width: 900px;
+    max-height: 700px;
+}
+
+.oom-journal-structure-container {
+    display: flex;
+    height: calc(100% - 60px);
+    overflow: hidden;
+}
+
+.oom-journal-structure-sidebar {
+    width: 200px;
+    border-right: 1px solid var(--background-modifier-border);
+    padding: 20px 0;
+    overflow-y: auto;
+    background-color: var(--background-secondary);
+}
+
+.oom-journal-structure-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Navigation Sidebar */
+.oom-nav-item {
+    display: flex;
+    padding: 8px 16px;
+    align-items: center;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    color: var(--text-muted);
+}
+
+.oom-nav-item:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-nav-item.active {
+    border-left-color: var(--interactive-accent);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-nav-icon {
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.oom-nav-item.active .oom-nav-icon,
+.oom-nav-item:hover .oom-nav-icon {
+    color: var(--text-normal);
+}
+
+/* Collapsible Sections */
+.oom-collapsible-section {
+    margin-bottom: 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.oom-collapsible-header {
+    display: flex;
+    padding: 8px 12px;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background-color: var(--background-secondary);
+}
+
+.oom-collapsible-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.oom-collapsible-toggle {
+    color: var(--text-muted);
+}
+
+.oom-collapsible-content {
+    padding: 12px;
+    background-color: var(--background-primary);
+}
+
+/* Structures list */
+.oom-structures-list,
+.oom-templates-list {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.oom-structure-item,
+.oom-template-item {
+    position: relative;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.oom-structure-meta,
+.oom-template-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.oom-meta-item {
+    padding: 2px 8px;
+    border-radius: 10px;
+    background-color: var(--background-secondary);
+}
+
+.oom-structure-actions,
+.oom-template-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.oom-action-btn {
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.oom-action-btn:hover {
+    color: var(--text-normal);
+}
+
+/* Overview stats */
+.oom-structure-stats {
+    margin: 16px 0;
+    border-radius: 4px;
+    padding: 12px 16px;
+    background-color: var(--background-secondary);
+}
+
+.oom-stat-item {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+/* Quick actions */
+.oom-quick-actions {
+    margin: 20px 0;
+}
+
+.oom-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.oom-action-button {
+    padding: 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: var(--background-secondary);
+}
+
+.oom-action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-action-icon {
+    margin-bottom: 8px;
+    font-size: 24px;
+    color: var(--interactive-accent);
+}
+
+.oom-action-label {
+    font-weight: 500;
+}
+
+/* Pattern list */
+.oom-patterns-list {
+    margin: 12px 0;
+}
+
+.oom-pattern-item {
+    display: flex;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+.oom-pattern-delete {
+    cursor: pointer;
+    color: var(--text-error);
+}
+
+.oom-pattern-delete:hover {
+    color: var(--text-error-hover);
+}
+
+/* Empty states */
+.oom-empty-state {
+    text-align: center;
+    padding: 20px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    background-color: var(--background-secondary);
+}
+
+/* Notices */
+.oom-notice {
+    display: flex;
+    margin: 12px 0;
+    padding: 10px 16px;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.oom-notice-icon {
+    margin-right: 12px;
+}
+
+.oom-notice-warning {
+    border: 1px solid rgba(var(--color-yellow-rgb), 0.3);
+    background-color: rgba(var(--color-yellow-rgb), 0.1);
+}
+
+.oom-status-warning {
+    color: var(--color-yellow);
+}
+
+.oom-status-success {
+    color: var(--color-green);
+}
+
+.oom-status-neutral {
+    color: var(--text-muted);
+}
+
+/* Dream Journal Manager Styles
+--------------------------------------------- */
+
+.modal:has(.oom-journal-manager-modal) {
+    
+}
+
+.oom-journal-manager-modal {
+    flex-direction: column;
+    max-width: 900px;
+    height: 80vh;
+    display: flex;
+    width: 800px !important; /* Replace inline style */
+    height: 600px !important; /* Replace inline style */
+}
+
+.oom-journal-manager-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: calc(80vh - 60px); /* Accounting for header */
+}
+
+.oom-journal-manager-container {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    overflow: hidden;
+    height: calc(80vh - 110px); /* Accounting for header and padding */
+}
+
+.oom-journal-manager-sidebar {
+    width: 180px;
+    min-width: 180px;
+    padding: 20px 0;
+    border-right: 1px solid var(--background-modifier-border);
+    overflow-y: auto;
+    background-color: var(--background-secondary);
+}
+
+.oom-journal-manager-main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Collapsible Sections - Remove Inline Style */
+.oom-collapsible-content.collapsed,
+.oom-collapsible-content[data-expanded="false"] {
+    display: none;
+}
+
+.oom-collapsible-content {
+    display: block;
+}
+
+/* Make sure modal doesn't exceed screen size */
+.modal:has(.oom-journal-manager-modal) {
+    width: 900px !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+}
+
+/* Sidebar Navigation */
+.oom-nav-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.oom-nav-item:hover {
+    background-color: var(--background-secondary-alt);
+}
+
+.oom-nav-item.active {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-nav-icon {
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-nav-label {
+    font-size: 14px;
+}
+
+/* Dashboard Section */
+.oom-dashboard-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: var(--background-secondary);
+}
+
+.oom-dashboard-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    font-size: 16px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.oom-quick-action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    background-color: var(--background-primary);
+}
+
+.oom-quick-action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-quick-action-icon {
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+.oom-recent-activity-list,
+.oom-status-list {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+.oom-recent-activity-list li,
+.oom-status-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-recent-activity-list li:last-child,
+.oom-status-list li:last-child {
+    border-bottom: none;
+}
+
+/* Modal Sections */
+.oom-modal-section {
+    margin-bottom: 20px;
+}
+
+.oom-modal-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.oom-section-helper {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.oom-input-row,
+.oom-actions-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.oom-button {
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    font-size: 14px;
+    transition: all 0.2s ease;
+    color: var(--text-normal);
+    background-color: var(--interactive-normal);
+}
+
+.oom-button:hover {
+    background-color: var(--interactive-hover);
+}
+
+.oom-button.mod-cta {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-button.mod-cta:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.oom-open-note-button.enabled {
+    animation: fadeIn 0.5s;
+}
+
+/* Progress Bar */
+.oom-progress-section {
+    margin-top: 20px;
+    display: none; /* Hide initially */
+}
+
+.oom-progress-content.active + .oom-progress-section {
+    display: block;
+}
+
+.oom-status-text {
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.oom-progress-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: var(--background-secondary);
+}
+
+.oom-progress-fill {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease;
+    background-color: var(--interactive-accent);
+}
+
+.oom-details-text {
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Collapsible Sections */
+.oom-collapsible-section {
+    margin-bottom: 15px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.oom-collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: var(--background-secondary);
+}
+
+.oom-collapsible-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.oom-collapsible-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-collapsible-content {
+    padding: 15px;
+    background-color: var(--background-primary);
+}
+
+/* Templates List */
+.oom-templates-list {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Sticky Footer for Dream Scrape Section
+--------------------------------------------- */
+.oom-dream-scrape-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--background-primary);
+    padding: 16px 0;
+    margin-top: 16px;
+    border-top: 1px solid var(--background-modifier-border);
+    z-index: 10;
+    /* Softer shadow for depth */
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* Add better spacing for buttons in scrape footer */
+.oom-dream-scrape-footer .oom-actions-row {
+    padding: 0 16px;
+    gap: 12px;
+}
+
+.oom-dream-scrape-footer .oom-button {
+    padding: 8px 16px;
+}
+
+/* Ensure content doesn't get hidden behind sticky footer */
+.oom-journal-manager-modal [data-section="dream-scrape"] {
+    /*padding-bottom: 70px;*/ /* Match the height of the sticky footer */
+}
+
+/* Enhanced Nav Item - Make active state more distinctive
+--------------------------------------------- */
+.oom-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.oom-nav-item:hover {
+    background-color: var(--background-secondary-alt);
+}
+
+.oom-nav-item.active {
+    --background-modifier-hover: var(--interactive-accent);
+    --icon-color: var(--text-on-accent);
+    border-left: 2px solid var(--interactive-accent);
+    font-weight: 500;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-nav-icon {
+    display: flex;
+    margin-right: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-nav-label {
+    font-size: 14px;
+}
+
+.oom-journal-manager-sidebar {
+    width: 180px;
+    min-width: 180px;
+    padding: 20px 0;
+    border: 1px solid var(--background-modifier-border);
+    overflow-y: auto;
+    background-color: var(--background-secondary);
+}
+
+/* ... existing code ... */
