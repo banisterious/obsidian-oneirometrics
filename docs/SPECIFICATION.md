@@ -6,15 +6,16 @@
 2. [Core Components](#core-components)
 3. [Features](#features)
 4. [Technical Architecture](#technical-architecture)
-5. [Technical Requirements](#technical-requirements)
-6. [Security Considerations](#security-considerations)
-7. [CSS Organization and Approach](#css-organization-and-approach)
-8. [Expand/Collapse ("Read more") Functionality](#expandcollapse-read-more-functionality)
-9. [Performance Considerations](#performance-considerations)
-10. [Future Considerations](#future-considerations)
-11. [Testing Strategy](#testing-strategy)
-12. [Recent Fixes](#recent-fixes)
-13. [Scraping Modal ("OneiroMetrics Dreamscrape")](#scraping-modal-oneirometrics-dreamscrape)
+5. [Templater Integration](#templater-integration)
+6. [Technical Requirements](#technical-requirements)
+7. [Security Considerations](#security-considerations)
+8. [CSS Organization and Approach](#css-organization-and-approach)
+9. [Expand/Collapse ("Read more") Functionality](#expandcollapse-read-more-functionality)
+10. [Performance Considerations](#performance-considerations)
+11. [Future Considerations](#future-considerations)
+12. [Testing Strategy](#testing-strategy)
+13. [Recent Fixes](#recent-fixes)
+14. [Scraping Modal ("OneiroMetrics Dream Scrape")](#scraping-modal-oneirometrics-dream-scrape)
 
 ## Overview
 
@@ -431,7 +432,7 @@ The Settings page provides a comprehensive interface for managing dream metrics 
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.
 
-## Scraping Modal ("OneiroMetrics Dreamscrape")
+## Scraping Modal ("OneiroMetrics Dream Scrape")
 
 ### UI/DOM Structure for Scraping Modal
 
@@ -571,3 +572,253 @@ The settings system in OneiroMetrics is designed for flexibility, extensibility,
 
 ### Ribbon Button Visibility Bug (Resolved)
 - Independent toggling of the Dream Scrape Tool and Open Metrics Note ribbon buttons is not supported due to an Obsidian API limitation. The plugin now uses a single toggle for both buttons. For more information about the ribbon button implementation, see the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
+
+## Templater Integration
+
+The OneiroMetrics plugin now standardizes on Templater as its primary template engine, while maintaining backward compatibility through a sophisticated fallback mechanism.
+
+### 1. Data Model
+
+#### JournalTemplate Interface
+```typescript
+export interface JournalTemplate {
+    id: string;
+    name: string;
+    description: string;
+    structure: string; // References a CalloutStructure.id
+    content: string;
+    isTemplaterTemplate: boolean;
+    templaterFile?: string;
+    staticContent?: string; // Static version with placeholders for when Templater is not available
+}
+```
+
+#### TemplaterIntegration Class
+
+The `TemplaterIntegration` class serves as the bridge between OneiroMetrics and the Templater plugin:
+
+```typescript
+export class TemplaterIntegration {
+    constructor(private plugin: DreamMetricsPlugin) {}
+
+    // Check if Templater is installed and available
+    isTemplaterInstalled(): boolean {
+        return this.plugin.app.plugins.plugins['templater-obsidian'] !== undefined;
+    }
+
+    // Get available Templater templates
+    getTemplaterTemplates(): string[] {
+        // Implementation details for finding templates
+    }
+
+    // Get the content of a Templater template
+    getTemplateContent(templatePath: string): string {
+        // Implementation for reading template content
+    }
+
+    // Process a Templater template with provided data
+    async processTemplaterTemplate(templatePath: string, data?: any): Promise<string> {
+        // Implementation for processing templates with Templater
+    }
+
+    // Convert Templater template to static version with placeholders
+    convertToStaticTemplate(content: string): string {
+        // Implementation of conversion logic
+    }
+
+    // Find placeholders in static template for navigation
+    findPlaceholders(staticContent: string): Array<{
+        type: string;
+        name: string;
+        defaultValue?: string;
+        position: { start: number; end: number; }
+    }> {
+        // Implementation of placeholder detection
+    }
+}
+```
+
+### 2. Template Conversion System
+
+#### Conversion Patterns
+
+The plugin uses regex pattern matching to identify and convert Templater syntax to static placeholders:
+
+| Templater Pattern | Regex for Detection | Static Placeholder |
+|-------------------|---------------------|-------------------|
+| `<% tp.date.now("FORMAT") %>` | `<%\\s*tp\\.date\\.now\\(["'](.+?)["']\\)\\s*%>` | `[[DATE: FORMAT]]` |
+| `<% tp.system.prompt("TEXT", "DEFAULT") %>` | `<%\\s*tp\\.system\\.prompt\\(["'](.+?)["'](?:,\\s*["'](.+?)["'])?\\)\\s*%>` | `[[PROMPT: TEXT (default: DEFAULT)]]` |
+| `<% tp.file.title %>` | `<%\\s*tp\\.file\\.title\\s*%>` | `[[FILENAME]]` |
+
+#### Conversion Logic
+
+```typescript
+convertToStaticTemplate(content: string): string {
+    // Replace date patterns
+    content = content.replace(/<%\s*tp\.date\.now\(["'](.+?)["']\)\s*%>/g, 
+        (_, format) => `[[DATE: ${format}]]`);
+    
+    // Replace prompt patterns
+    content = content.replace(/<%\s*tp\.system\.prompt\(["'](.+?)["'](?:,\s*["'](.+?)["'])?\)\s*%>/g, 
+        (_, text, defaultVal) => `[[PROMPT: ${text}${defaultVal ? ` (default: ${defaultVal})` : ''}]]`);
+    
+    // Replace file title
+    content = content.replace(/<%\s*tp\.file\.title\s*%>/g, '[[FILENAME]]');
+    
+    // Additional pattern handling...
+    
+    return content;
+}
+```
+
+### 3. Template Wizard Enhancement
+
+The `TemplateWizard` class has been enhanced to support both Templater and static template creation:
+
+```typescript
+export class TemplateWizard extends Modal {
+    // Existing properties...
+    private useTemplater: boolean = false;
+    private templaterFile: string = '';
+    private staticContent: string = '';
+    
+    // Constructor and basic setup...
+    
+    /**
+     * Build Step 3: Templater Integration
+     */
+    private buildStep3() {
+        // Implementation of Templater integration UI
+        // - Templater availability check
+        // - Template file selection
+        // - Dual preview (Templater and static)
+    }
+    
+    /**
+     * Update static preview with converted template content
+     */
+    private updateStaticPreview(content: string) {
+        // Implementation of static preview generation
+    }
+    
+    /**
+     * Finish wizard and save template
+     */
+    private finishWizard() {
+        // Save both dynamic and static versions
+    }
+}
+```
+
+### 4. Template Insertion Implementation
+
+The template insertion function has been enhanced to handle both Templater and static templates:
+
+```typescript
+async insertTemplate(editor: Editor) {
+    // Get templates from settings
+    const templates = this.settings.linting?.templates || [];
+    
+    // Template selection logic...
+    
+    // Template processing logic
+    let content = '';
+    let usingFallback = false;
+    
+    // If it's a Templater template, process it
+    if (template.isTemplaterTemplate && template.templaterFile) {
+        if (this.templaterIntegration && this.templaterIntegration.isTemplaterInstalled()) {
+            try {
+                content = await this.templaterIntegration.processTemplaterTemplate(template.templaterFile);
+            } catch (error) {
+                // Fallback to static content if available
+                if (template.staticContent) {
+                    content = template.staticContent;
+                    usingFallback = true;
+                } else {
+                    content = template.content;
+                }
+            }
+        } else {
+            // Templater not installed, use static version
+            if (template.staticContent) {
+                content = template.staticContent;
+            } else {
+                // Generate static content on the fly if not available
+                content = this.templaterIntegration.convertToStaticTemplate(template.content);
+            }
+            usingFallback = true;
+        }
+    } else {
+        // Regular non-Templater template
+        content = template.content;
+    }
+    
+    // Insert content at cursor position
+    editor.replaceSelection(content);
+    
+    // Handle placeholder navigation if using fallback
+    if (usingFallback) {
+        // Implementation of placeholder navigation
+    }
+}
+```
+
+### 5. Placeholder Navigation System
+
+When using static templates with placeholders, the plugin provides a navigation system to help users fill in the placeholders:
+
+```typescript
+// Find placeholders in static template
+findPlaceholders(staticContent: string): Array<PlaceholderInfo> {
+    const placeholders = [];
+    const placeholderRegex = /\[\[([A-Z]+):\s*([^(\\]]+)(?:\s*\(default:\s*([^)]+)\))?\]\]/g;
+    let match;
+    
+    while ((match = placeholderRegex.exec(staticContent)) !== null) {
+        placeholders.push({
+            type: match[1],
+            name: match[2].trim(),
+            defaultValue: match[3]?.trim(),
+            position: {
+                start: match.index,
+                end: match.index + match[0].length
+            }
+        });
+    }
+    
+    return placeholders;
+}
+
+// Navigate to first placeholder
+navigateToFirstPlaceholder(editor: Editor, content: string, initialPosition: EditorPosition) {
+    const placeholders = this.findPlaceholders(content);
+    
+    if (placeholders.length > 0) {
+        // Calculate cursor position based on first placeholder
+        const firstPlaceholder = placeholders[0];
+        // Set cursor and selection
+        // ...
+    }
+}
+```
+
+### 6. UI/UX Considerations
+
+The implementation includes several UI/UX enhancements to provide a seamless experience:
+
+1. **Visual Distinction:** Placeholders are visually distinct in the editor
+2. **Keyboard Navigation:** Tab key navigates between placeholders
+3. **Clear Notifications:** When using fallback mode, users receive a clear notification
+4. **Dual Preview:** Template creation shows both dynamic and static versions side by side
+5. **Adaptive Interface:** UI adapts based on whether Templater is installed or not
+
+### 7. Performance Optimizations
+
+To maintain high performance even with the added complexity:
+
+1. **Lazy Loading:** Template processing is done only when needed
+2. **Efficient Regex:** Optimized regex patterns for conversion
+3. **Caching:** Template content is cached to avoid repeated file reads
+4. **Minimal DOM Updates:** UI updates are batched for better performance
+5. **Error Boundaries:** Proper error handling to prevent cascading failures

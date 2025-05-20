@@ -27,7 +27,14 @@ OneiroMetrics is an Obsidian plugin designed to help users track and analyze the
    - Provide interactive content expansion
    - **Date Tools:** Comprehensive suite for analyzing dream entries across time periods, including custom date filtering, multi-month calendar views, date range comparison, and pattern analysis.
 
-4. **Settings and Customization**
+4. **Templater Integration**
+   - Standardized templates using Templater for dynamic content
+   - Automatic static fallback for users without Templater installed
+   - Interactive template creation with placeholders
+   - Template wizard with dual preview (dynamic and static versions)
+   - Smart placeholder navigation for template filling
+
+5. **Settings and Customization**
    - Configure custom metrics
    - Customize display options
    - Manage dream entry sources
@@ -109,6 +116,14 @@ Please refer to `CONTRIBUTING.md` for guidelines on how to contribute to the pro
 This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Recent Updates
+- **Templater Integration:**
+  - Standardized templates with Templater as the recommended engine
+  - Automatic fallback mechanism for users without Templater
+  - Template wizard with dual preview (Templater and static versions)
+  - Placeholder system for easy template filling
+  - Backward compatibility with existing templates
+  - Improved template UI with clearer guidance
+
 - **Enhanced Filtering System:**
   - Date range filter with calendar preview
   - Custom Date Filter with date range selection

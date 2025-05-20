@@ -65,6 +65,7 @@ export interface JournalTemplate {
     content: string;
     isTemplaterTemplate: boolean;
     templaterFile?: string;
+    staticContent?: string; // Static version of the template with placeholders for when Templater is not available
 }
 
 export interface ContentIsolationSettings {

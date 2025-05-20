@@ -15,6 +15,7 @@ This document outlines the testing procedures and requirements for the OneiroMet
 - Metrics Table
 - Content Display
 - Expand/Collapse, Scroll, and Table Performance
+- Templater Integration Testing
 - Custom Date Filter UI Testing
 - Filtering and Sorting
 - Styling and UI (see [UI_TESTING.md](UI_TESTING.md))
@@ -135,6 +136,88 @@ See [View Mode Requirements](VIEW_MODE.md) for detailed testing procedures and b
 - [x] No '[Violation] setTimeout handler took XXms' warnings in the console during normal use
 - [x] Debug button for manual event listener attachment works as expected in development mode
 - [x] See [docs/ISSUES.md](ISSUES.md#fixed-issues) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md) for detailed diagnostics and troubleshooting steps
+
+### Templater Integration Testing
+
+#### Template Wizard UI
+- [ ] Template wizard opens correctly from command palette
+- [ ] UI elements are properly aligned and styled
+- [ ] Step indicators work correctly (1 of 4, 2 of 4, etc.)
+- [ ] Navigation between steps works as expected
+- [ ] Cancel button closes the wizard without saving
+- [ ] All form elements render correctly in various themes
+- [ ] Wizard closes properly after template creation
+
+#### Templater Detection
+- [ ] Plugin correctly detects if Templater is installed
+- [ ] Appropriate UI elements are shown/hidden based on Templater availability
+- [ ] Warning is shown when Templater is not installed
+- [ ] Link to install Templater works correctly
+- [ ] UI adapts when Templater is installed/uninstalled without requiring restart
+
+#### Template Creation
+- [ ] Basic information (name, description) is saved correctly
+- [ ] Structure selection works and updates preview
+- [ ] Templater toggle enables/disables template selection
+- [ ] Template file dropdown is populated with available templates
+- [ ] Template content is loaded correctly when selected
+- [ ] Static preview is generated and displays correctly
+- [ ] Template wizard saves both dynamic and static versions
+
+#### Template Conversion
+- [ ] Date patterns are correctly converted to placeholders
+- [ ] Prompt patterns are correctly converted with default values
+- [ ] File properties patterns are correctly converted
+- [ ] Complex patterns with conditionals are handled gracefully
+- [ ] Error feedback is provided for unconvertible patterns
+- [ ] Preview updates in real-time during template editing
+
+#### Template Insertion
+- [ ] Template modal opens correctly
+- [ ] Template list shows all available templates
+- [ ] Preview button shows template content
+- [ ] Insert button adds template to editor
+- [ ] Templates with Templater syntax process correctly when Templater is installed
+- [ ] Fallback to static content works when Templater is not installed
+- [ ] Notification is shown when using fallback mechanism
+- [ ] Cursor position is correctly set after insertion
+
+#### Placeholder Navigation
+- [ ] Cursor automatically moves to first placeholder after insertion
+- [ ] Tab key navigates between placeholders
+- [ ] Placeholders are visually distinct in the editor
+- [ ] Default values are selected for easy replacement
+- [ ] Instructions are provided for placeholder navigation
+
+#### Compatibility Testing
+- [ ] Testing with Templater installed
+  - [ ] Dynamic content resolves correctly
+  - [ ] User prompts appear and work
+  - [ ] Date formatting works as expected
+  - [ ] Conditional content displays correctly
+  - [ ] System information is correctly accessed
+  - [ ] File properties are correctly included
+
+- [ ] Testing without Templater installed
+  - [ ] Static content with placeholders is used
+  - [ ] Placeholders are correctly formatted
+  - [ ] Placeholder navigation works as expected
+  - [ ] Instructions are clear and helpful
+  - [ ] Warning notification appears
+  - [ ] User can still navigate through placeholders using Tab
+
+- [ ] Testing with existing templates
+  - [ ] Legacy templates continue to work
+  - [ ] Templates can be edited in the wizard
+  - [ ] Conversion to Templater format works
+  - [ ] Backward compatibility is maintained
+
+#### Error Handling
+- [ ] Invalid Templater syntax is gracefully handled
+- [ ] Missing template files are reported with clear errors
+- [ ] Template processing failures fall back to static content
+- [ ] User is notified of any issues during processing
+- [ ] System recovers from errors without crashing
 
 ### Custom Date Filter UI Testing
 

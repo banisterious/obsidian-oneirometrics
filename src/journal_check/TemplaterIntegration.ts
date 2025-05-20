@@ -179,8 +179,11 @@ export class TemplaterIntegration {
      */
     async processTemplaterTemplate(templatePath: string, data?: any): Promise<string> {
         if (!this.isTemplaterInstalled()) {
-            new Notice('Templater plugin is not installed or enabled');
-            return '';
+            const content = this.getTemplateContent(templatePath);
+            const staticContent = this.convertToStaticTemplate(content);
+            
+            new Notice('Templater plugin is not installed. Using static template with placeholders.');
+            return staticContent;
         }
         
         try {
@@ -226,5 +229,140 @@ export class TemplaterIntegration {
         }
         
         return { compatible: true };
+    }
+    
+    /**
+     * Converts Templater template content to a static version with placeholders
+     * This is used when Templater is not installed
+     */
+    convertToStaticTemplate(content: string): string {
+        if (!content) return '';
+        
+        let staticContent = content;
+        
+        // Convert date variables: <% tp.date.now("YYYY-MM-DD") %> → [[DATE: YYYY-MM-DD]]
+        staticContent = staticContent.replace(
+            /<%[\s\*]*tp\.date\.now\(['"]([^'"]+)['"]\)[\s\*]*%>/g,
+            '[[DATE: $1]]'
+        );
+        
+        // Convert prompt variables: <% tp.system.prompt("Enter mood", "neutral") %> → [[PROMPT: Enter mood (default: neutral)]]
+        staticContent = staticContent.replace(
+            /<%[\s\*]*tp\.system\.prompt\(['"]([^'"]+)['"](?:,\s*['"]([^'"]+)['"])?\)[\s\*]*%>/g,
+            (match, prompt, defaultVal) => {
+                if (defaultVal) {
+                    return `[[PROMPT: ${prompt} (default: ${defaultVal})]]`;
+                }
+                return `[[PROMPT: ${prompt}]]`;
+            }
+        );
+        
+        // Convert system variables: <% tp.system.clipboard() %> → [[SYSTEM: clipboard]]
+        staticContent = staticContent.replace(
+            /<%[\s\*]*tp\.system\.([a-zA-Z0-9_]+)\(\)[\s\*]*%>/g,
+            '[[SYSTEM: $1]]'
+        );
+        
+        // Convert file variables: <% tp.file.title %> → [[FILE: title]]
+        staticContent = staticContent.replace(
+            /<%[\s\*]*tp\.file\.([a-zA-Z0-9_]+)[\s\*]*%>/g,
+            '[[FILE: $1]]'
+        );
+        
+        // Handle remaining Templater code blocks with a generic placeholder
+        staticContent = staticContent.replace(
+            /<%[\s\*]*([\s\S]*?)[\s\*]*%>/g,
+            (match, code) => {
+                // Try to extract a meaningful name from the code
+                const variableName = code.trim().match(/(?:let|const|var)\s+([a-zA-Z0-9_]+)/) || 
+                                     code.trim().match(/([a-zA-Z0-9_]+)\s*=/) ||
+                                     ['', 'templater_code'];
+                
+                return `[[CODE: ${variableName[1]}]]`;
+            }
+        );
+        
+        return staticContent;
+    }
+    
+    /**
+     * Generate both dynamic and static versions of a template
+     * Returns an object with both versions
+     */
+    generateTemplateVersions(templatePath: string): { 
+        content: string; 
+        staticContent: string;
+    } {
+        const content = this.getTemplateContent(templatePath);
+        const staticContent = this.convertToStaticTemplate(content);
+        
+        return {
+            content,
+            staticContent
+        };
+    }
+    
+    /**
+     * Check if a template contains Templater syntax
+     */
+    hasTemplaterSyntax(content: string): boolean {
+        return /<%[\s\*]*.*?[\s\*]*%>/g.test(content);
+    }
+    
+    /**
+     * Find all placeholders in a static template
+     * Useful for navigation and replacing placeholders
+     */
+    findPlaceholders(staticContent: string): Array<{
+        type: string;
+        name: string;
+        defaultValue?: string;
+        position: { start: number; end: number; }
+    }> {
+        const placeholders = [];
+        
+        // Match all [[TYPE: name (default: value)]] placeholders
+        const placeholderRegex = /\[\[([A-Z]+):\s*([^(\]]+)(?:\s*\(default:\s*([^)]+)\))?\]\]/g;
+        let match;
+        
+        while ((match = placeholderRegex.exec(staticContent)) !== null) {
+            placeholders.push({
+                type: match[1],
+                name: match[2].trim(),
+                defaultValue: match[3]?.trim(),
+                position: {
+                    start: match.index,
+                    end: match.index + match[0].length
+                }
+            });
+        }
+        
+        return placeholders;
+    }
+    
+    /**
+     * Test method to demonstrate template conversion
+     * Shows both the original Templater content and the static version
+     */
+    testTemplateConversion(templateContent: string): void {
+        if (!templateContent) {
+            new Notice('No template content provided');
+            return;
+        }
+        
+        const staticContent = this.convertToStaticTemplate(templateContent);
+        const placeholders = this.findPlaceholders(staticContent);
+        
+        console.log('Original Templater Content:');
+        console.log(templateContent);
+        console.log('\nStatic Content with Placeholders:');
+        console.log(staticContent);
+        console.log('\nDetected Placeholders:');
+        console.log(placeholders);
+        
+        const hasTemplaterSyntax = this.hasTemplaterSyntax(templateContent);
+        console.log(`\nHas Templater Syntax: ${hasTemplaterSyntax}`);
+        
+        new Notice(`Template converted: ${placeholders.length} placeholders found`);
     }
 } 

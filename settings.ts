@@ -5,6 +5,7 @@ import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Use
 import { LintingSettings } from "./src/journal_check/types";
 import { TestModal } from "./src/journal_check/ui/TestModal";
 import { TemplateWizard } from "./src/journal_check/ui/TemplateWizard";
+import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
 
 interface IconCategory {
     name: string;
@@ -763,6 +764,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add Metrics Settings Section
         containerEl.createEl('h2', { text: 'Metrics Settings' });
 
+        // Add explanatory note about metrics
+        const metricsInfoEl = containerEl.createEl('div', {
+            cls: 'oom-notice oom-notice--info'
+        });
+        metricsInfoEl.createEl('span', { 
+            text: 'Metrics allow you to track and analyze various aspects of your dreams over time. Enable the metrics you want to track, and customize them to suit your needs.'
+        });
+
         // Add button to view metrics descriptions
         new Setting(containerEl)
             .setName('View Metrics Descriptions')
@@ -774,40 +783,45 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     });
             });
 
+        // Create a dedicated "Add Metric" section
+        const addMetricSection = new Setting(containerEl)
+            .setName('Add Metric')
+            .setDesc('Create a custom metric to track additional aspects of your dreams');
+        
+        // Add the button to the right side of the section
+        addMetricSection.addButton(button => {
+            button
+                .setButtonText('Add Metric')
+                .onClick(() => {
+                    new MetricEditorModal(
+                        this.app,
+                        {
+                            name: '',
+                            icon: '',
+                            range: { min: 0, max: 10 },
+                            description: '',
+                            enabled: true,
+                            type: 'number',
+                            category: 'dream',
+                            format: 'number',
+                            options: [],
+                            min: 0,
+                            max: 10,
+                            step: 1
+                        },
+                        Object.values(this.plugin.settings.metrics),
+                        async (metric) => {
+                            this.plugin.settings.metrics[metric.name] = metric;
+                            await this.plugin.saveSettings();
+                            this.display();
+                        }
+                    ).open();
+                });
+        });
+
         // Add Metrics List
         const metricsContainer = containerEl.createEl('div', { cls: 'oom-metrics-container' });
         
-        // Add button to add new metric
-        const addMetricButton = metricsContainer.createEl('button', {
-            text: 'Add Metric',
-            cls: 'mod-cta'
-        });
-        addMetricButton.addEventListener('click', () => {
-            new MetricEditorModal(
-                this.app,
-                {
-                    name: '',
-                    icon: '',
-                    range: { min: 0, max: 10 },
-                    description: '',
-                    enabled: true,
-                    type: 'number',
-                    category: 'dream',
-                    format: 'number',
-                    options: [],
-                    min: 0,
-                    max: 10,
-                    step: 1
-                },
-                Object.values(this.plugin.settings.metrics),
-                async (metric) => {
-                    this.plugin.settings.metrics[metric.name] = metric;
-                    await this.plugin.saveSettings();
-                    this.display();
-                }
-            ).open();
-        });
-
         // Group metrics by enabled state
         const enabledMetrics = Object.entries(this.plugin.settings.metrics).filter(([_, metric]) => metric.enabled);
         const disabledMetrics = Object.entries(this.plugin.settings.metrics).filter(([_, metric]) => !metric.enabled);
@@ -1191,7 +1205,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     }
 
     private addJournalStructureSettings(containerEl: HTMLElement) {
-        containerEl.createEl('h2', { text: 'Journal Structure Check' });
+        containerEl.createEl('h2', { text: 'Journal Structure' });
         
         // Enable/disable linting
         new Setting(containerEl)
@@ -1207,119 +1221,46 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
         
-        // Structure rules button
+        // Journal Structure settings button
         new Setting(containerEl)
-            .setName('Structure Rules')
-            .setDesc('Configure validation rules for journal structures')
+            .setName('Journal Structure Settings')
+            .setDesc('Configure and manage all journal structure settings')
             .addButton(button => button
-                .setButtonText('Edit Rules')
+                .setButtonText('Open Settings')
                 .onClick(() => {
-                    // This would open a modal to manage rules
-                    new Notice('Rule management will be implemented soon');
+                    new JournalStructureModal(this.app, this.plugin).open();
                 }));
-        
-        // Journal templates button
-        new Setting(containerEl)
-            .setName('Journal Templates')
-            .setDesc('Manage templates for dream journal entries')
-            .addButton(button => button
-                .setButtonText('Create Template')
-                .onClick(() => {
-                    if (this.plugin.templaterIntegration) {
-                        new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
-                    } else {
-                        new Notice('Template management is not available');
-                    }
-                }))
-            .addButton(button => button
-                .setButtonText('Manage Templates')
-                .onClick(() => {
-                    this.displayTemplateManager(containerEl);
-                }));
-        
-        // Template list container
-        const templateListContainer = containerEl.createDiv({ cls: 'oom-template-list-container' });
-        templateListContainer.style.display = 'none';
-        
-        // Templater integration settings
-        if (this.plugin.templaterIntegration?.isTemplaterInstalled()) {
-            containerEl.createEl('h3', { text: 'Templater Integration' });
+
+        // Templater status indicator
+        if (this.plugin.templaterIntegration) {
+            const isTemplaterInstalled = this.plugin.templaterIntegration.isTemplaterInstalled();
+            const isEnabled = this.plugin.settings.linting?.templaterIntegration?.enabled ?? false;
+            
+            let status = '';
+            let statusClass = '';
+            
+            if (!isTemplaterInstalled) {
+                status = 'Templater plugin not installed';
+                statusClass = 'oom-status-warning';
+            } else if (!isEnabled) {
+                status = 'Templater integration disabled';
+                statusClass = 'oom-status-neutral';
+            } else {
+                status = 'Templater integration active';
+                statusClass = 'oom-status-success';
+            }
             
             new Setting(containerEl)
-                .setName('Enable Templater Integration')
-                .setDesc('Use Templater templates for journal structures')
-                .addToggle(toggle => toggle
-                    .setValue(this.plugin.settings.linting?.templaterIntegration?.enabled ?? false)
-                    .onChange(async (value) => {
-                        if (!this.plugin.settings.linting) {
-                            this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
-                        }
-                        if (!this.plugin.settings.linting.templaterIntegration) {
-                            this.plugin.settings.linting.templaterIntegration = {
-                                enabled: false,
-                                folderPath: 'templates/dreams',
-                                defaultTemplate: 'templates/dreams/default.md'
-                            };
-                        }
-                        this.plugin.settings.linting.templaterIntegration.enabled = value;
-                        await this.plugin.saveSettings();
-                        this.display(); // Refresh to show/hide dependent settings
-                    }));
-            
-            if (this.plugin.settings.linting?.templaterIntegration?.enabled) {
-                new Setting(containerEl)
-                    .setName('Template Folder')
-                    .setDesc('Folder containing Templater templates to use')
-                    .addText(text => text
-                        .setValue(this.plugin.settings.linting?.templaterIntegration?.folderPath ?? 'templates/dreams')
-                        .setPlaceholder('templates/dreams')
-                        .onChange(async (value) => {
-                            if (!this.plugin.settings.linting) {
-                                this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
-                            }
-                            if (!this.plugin.settings.linting.templaterIntegration) {
-                                this.plugin.settings.linting.templaterIntegration = {
-                                    enabled: true,
-                                    folderPath: 'templates/dreams',
-                                    defaultTemplate: 'templates/dreams/default.md'
-                                };
-                            }
-                            this.plugin.settings.linting.templaterIntegration.folderPath = value;
-                            await this.plugin.saveSettings();
-                        }));
-                
-                new Setting(containerEl)
-                    .setName('Default Template')
-                    .setDesc('Default Templater template to use for new journal entries')
-                    .addText(text => text
-                        .setValue(this.plugin.settings.linting?.templaterIntegration?.defaultTemplate ?? 'templates/dreams/default.md')
-                        .setPlaceholder('templates/dreams/default.md')
-                        .onChange(async (value) => {
-                            if (!this.plugin.settings.linting) {
-                                this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
-                            }
-                            if (!this.plugin.settings.linting.templaterIntegration) {
-                                this.plugin.settings.linting.templaterIntegration = {
-                                    enabled: true,
-                                    folderPath: 'templates/dreams',
-                                    defaultTemplate: 'templates/dreams/default.md'
-                                };
-                            }
-                            this.plugin.settings.linting.templaterIntegration.defaultTemplate = value;
-                            await this.plugin.saveSettings();
-                        }));
-            }
+                .setName('Templater Status')
+                .setDesc('Status of Templater integration')
+                .addExtraButton(button => {
+                    button.setIcon(isTemplaterInstalled ? (isEnabled ? 'checkmark-circle' : 'alert-circle') : 'x-circle');
+                    button.setTooltip(status);
+                    button.extraSettingsEl.addClass(statusClass);
+                    return button;
+                })
+                .infoEl.setText(status);
         }
-        
-        // Test button
-        new Setting(containerEl)
-            .setName('Test Structure Validation')
-            .setDesc('Open the test modal to try out structure validation')
-            .addButton(button => button
-                .setButtonText('Open Test Modal')
-                .onClick(() => {
-                    new TestModal(this.app, this.plugin).open();
-                }));
     }
 
     /**

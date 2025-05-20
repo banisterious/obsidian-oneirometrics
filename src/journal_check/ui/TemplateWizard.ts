@@ -22,6 +22,7 @@ export class TemplateWizard extends Modal {
     private useTemplater: boolean = false;
     private templaterFile: string = '';
     private content: string = '';
+    private staticContent: string = '';
     
     // Components
     private nameInput: TextComponent;
@@ -65,14 +66,12 @@ export class TemplateWizard extends Modal {
                 : 'Create Journal Template' 
         });
         
-        // Create layout with steps panel and preview panel
-        const container = contentEl.createDiv({ cls: 'oom-template-wizard-container' });
-        const stepsPanel = container.createDiv({ cls: 'oom-template-wizard-steps' });
-        const previewPanel = container.createDiv({ cls: 'oom-template-wizard-preview' });
+        // Create single column layout
+        const container = contentEl.createDiv({ cls: 'oom-template-wizard-container-single' });
         
         // Create step containers
         for (let i = 1; i <= this.totalSteps; i++) {
-            const stepContainer = stepsPanel.createDiv({ 
+            const stepContainer = container.createDiv({ 
                 cls: `oom-template-wizard-step step-${i}`,
                 attr: { 'data-step': i.toString() }
             });
@@ -90,14 +89,30 @@ export class TemplateWizard extends Modal {
         this.buildStep3();
         this.buildStep4();
         
-        // Create navigation buttons
-        this.navigationEl = stepsPanel.createDiv({ cls: 'oom-template-wizard-navigation' });
-        this.updateNavigation();
+        // Create collapsible preview section
+        const previewContainer = container.createDiv({ cls: 'oom-template-preview-container' });
         
-        // Create preview panel
-        previewPanel.createEl('h3', { text: 'Preview' });
-        this.previewEl = previewPanel.createDiv({ cls: 'oom-template-preview' });
+        const previewHeader = previewContainer.createDiv({ cls: 'oom-template-preview-header' });
+        previewHeader.createEl('h3', { text: 'Preview' });
+        
+        // Add toggle button
+        const toggleButton = previewHeader.createDiv({ cls: 'oom-preview-toggle' });
+        toggleButton.innerHTML = '<svg viewBox="0 0 100 100" class="oom-chevron-down"><path fill="none" stroke="currentColor" stroke-width="15" d="M10,30 L50,70 L90,30"/></svg>';
+        
+        // Preview content (initially expanded)
+        this.previewEl = previewContainer.createDiv({ cls: 'oom-template-preview' });
         this.updatePreview();
+        
+        // Toggle preview when clicking header
+        previewHeader.addEventListener('click', () => {
+            const isCollapsed = previewContainer.hasClass('collapsed');
+            previewContainer.toggleClass('collapsed', !isCollapsed);
+            toggleButton.toggleClass('collapsed', !isCollapsed);
+        });
+        
+        // Create navigation buttons
+        this.navigationEl = container.createDiv({ cls: 'oom-template-wizard-navigation' });
+        this.updateNavigation();
     }
     
     onClose() {
@@ -222,20 +237,25 @@ export class TemplateWizard extends Modal {
         
         container.createEl('h3', { text: 'Step 3: Templater Integration' });
         container.createEl('p', { 
-            text: 'Choose whether to use Templater for dynamic content.' 
+            text: 'Templater provides powerful dynamic content capabilities for your templates.' 
         });
         
+        // Information icon with note about Templater
+        const infoEl = container.createDiv({ cls: 'oom-templater-info-note' });
+        infoEl.innerHTML = `<span class="oom-info-icon">ℹ️</span> Templater is recommended for creating dynamic templates with date formatting, user prompts, and conditional content.`;
+        
         // Check if Templater plugin is available
-        const templaterEnabled = this.templaterIntegration && this.templaterIntegration.isTemplaterAvailable();
+        const templaterEnabled = this.templaterIntegration && this.templaterIntegration.isTemplaterInstalled();
         
         new Setting(container)
-            .setName('Use Templater')
-            .setDesc('Enable dynamic content with Templater plugin')
+            .setName('Template Source')
+            .setDesc('Choose whether to use existing Templater template or create a new one')
             .addToggle(toggle => {
                 toggle.setValue(this.useTemplater)
                     .onChange(value => {
                         this.useTemplater = value;
                         this.updateTemplaterSection(value);
+                        this.updatePreview();
                     });
                 
                 // Disable toggle if Templater is not available
@@ -253,17 +273,23 @@ export class TemplateWizard extends Modal {
             templaterSection.style.display = 'none';
             
             const warningEl = container.createEl('div', {
-                text: 'Templater plugin is not installed or enabled. Install Templater to use this feature.',
                 cls: 'oom-templater-warning'
             });
-        } else {
-            // Check Templater compatibility
-            const compatibility = this.templaterIntegration.checkCompatibility();
+            warningEl.innerHTML = '⚠️ Templater plugin is not installed or enabled. <a href="https://github.com/SilentVoid13/Templater">Install Templater</a> to use this feature.';
             
-            if (!compatibility.compatible) {
+            // Add explanation about fallback mechanism
+            const fallbackEl = container.createEl('div', {
+                cls: 'oom-templater-fallback-info'
+            });
+            fallbackEl.innerHTML = 'Your templates will use a static version with placeholders when Templater is not available.';
+        } else {
+            // Assume compatible and perform simple check
+            const hasTemplaterSupport = this.templaterIntegration.isTemplaterInstalled();
+            
+            if (!hasTemplaterSupport) {
                 templaterSection.style.display = 'none';
                 templaterSection.createEl('div', {
-                    text: `Warning: ${compatibility.reason}`,
+                    text: `Warning: Templater plugin is not properly configured.`,
                     cls: 'oom-templater-warning'
                 });
             } else {
@@ -280,13 +306,13 @@ export class TemplateWizard extends Modal {
                         this.templaterDropdown = dropdown;
                         
                         for (const template of templates) {
-                            dropdown.addOption(template.path, template.name);
+                            dropdown.addOption(template, template.split('/').pop() || template);
                         }
                         
                         if (this.templaterFile) {
                             dropdown.setValue(this.templaterFile);
                         } else if (templates.length > 0) {
-                            this.templaterFile = templates[0].path;
+                            this.templaterFile = templates[0];
                             dropdown.setValue(this.templaterFile);
                         }
                         
@@ -294,16 +320,78 @@ export class TemplateWizard extends Modal {
                             this.templaterFile = value;
                             
                             // Load the template content
-                            this.templaterIntegration.getTemplateContent(value).then(content => {
-                                if (content) {
-                                    this.content = content;
-                                    this.updatePreview();
-                                }
-                            });
+                            const content = this.templaterIntegration.getTemplateContent(value);
+                            if (content) {
+                                this.content = content;
+                                this.updatePreview();
+                                
+                                // Also update the static preview
+                                this.updateStaticPreview(content);
+                            }
                         });
                     });
+                    
+                // Add a button to refresh the templates list
+                new Setting(templaterSection)
+                    .setName('Refresh Templates')
+                    .setDesc('Refresh the list of Templater templates')
+                    .addButton(button => {
+                        button.setButtonText('Refresh')
+                            .onClick(() => {
+                                const templates = this.templaterIntegration.getTemplaterTemplates();
+                                
+                                // Clear and rebuild dropdown options
+                                const dropdown = this.templaterDropdown;
+                                const selectEl = dropdown.selectEl;
+                                selectEl.innerHTML = ''; // Clear options
+                                
+                                for (const template of templates) {
+                                    dropdown.addOption(template, template.split('/').pop() || template);
+                                }
+                                new Notice('Template list refreshed');
+                            });
+                    });
+                
+                // Add preview section for static version
+                const staticPreviewSection = container.createDiv({ cls: 'oom-static-preview-section' });
+                staticPreviewSection.createEl('h4', { 
+                    text: 'Static Fallback Preview (when Templater is not installed):',
+                    cls: 'oom-static-preview-heading'
+                });
+                
+                // Add static preview container
+                staticPreviewSection.createDiv({ 
+                    cls: 'oom-static-preview-content',
+                    attr: { id: 'static-preview-content' }
+                });
+                
+                // Initially update the static preview if content exists
+                if (this.content) {
+                    this.updateStaticPreview(this.content);
+                }
             }
         }
+    }
+    
+    /**
+     * Update the static preview with converted template content
+     */
+    private updateStaticPreview(content: string) {
+        if (!content) return;
+        
+        const staticContent = this.templaterIntegration.convertToStaticTemplate(content);
+        const previewEl = document.getElementById('static-preview-content');
+        
+        if (previewEl) {
+            previewEl.innerHTML = '';
+            previewEl.createEl('pre', { 
+                text: staticContent,
+                cls: 'oom-static-preview-code'
+            });
+        }
+        
+        // Store static content for the template
+        this.staticContent = staticContent;
     }
     
     /**
@@ -463,27 +551,31 @@ export class TemplateWizard extends Modal {
             // Add a structure info container 
             const structureInfo = this.previewEl.createDiv({ cls: 'oom-preview-structure-info' });
             
-            // Show structure name
-            structureInfo.createEl('p', { 
+            const structureDetails = structureInfo.createDiv({ cls: 'oom-preview-structure-details' });
+            
+            // Show structure name and type in a row
+            const typeRow = structureDetails.createDiv({ cls: 'oom-preview-row' });
+            typeRow.createSpan({ 
                 text: `Structure: ${structure.name}`,
                 cls: 'oom-preview-structure'
             });
             
-            // Show structure type with icon or visual indicator
-            const typeEl = structureInfo.createEl('p', {
+            typeRow.createSpan({
+                text: `Type: ${structure.type === 'nested' ? 'Nested' : 'Flat'}`,
                 cls: `oom-preview-structure-type oom-preview-${structure.type}`
             });
             
-            typeEl.innerHTML = `Type: <strong>${structure.type === 'nested' ? 'Nested' : 'Flat'}</strong>`;
-            
             // Show required fields
             if (structure.requiredFields.length > 0) {
-                structureInfo.createEl('p', { 
+                structureDetails.createDiv({ 
                     text: `Required callouts: ${structure.requiredFields.join(', ')}`,
                     cls: 'oom-preview-required-fields'
                 });
             }
         }
+        
+        // Add divider
+        this.previewEl.createEl('hr');
         
         // Show sample content
         const previewContent = this.previewEl.createDiv({ cls: 'oom-preview-content' });
@@ -717,6 +809,11 @@ export class TemplateWizard extends Modal {
             return;
         }
         
+        // Ensure we have static content
+        if (!this.staticContent && this.useTemplater) {
+            this.staticContent = this.templaterIntegration.convertToStaticTemplate(this.content);
+        }
+        
         // Create template object
         const template: JournalTemplate = {
             id: this.templateId,
@@ -725,7 +822,8 @@ export class TemplateWizard extends Modal {
             structure: this.structureId,
             content: this.content,
             isTemplaterTemplate: this.useTemplater,
-            templaterFile: this.useTemplater ? this.templaterFile : undefined
+            templaterFile: this.useTemplater ? this.templaterFile : undefined,
+            staticContent: this.staticContent || undefined
         };
         
         // Ensure templates array exists in settings

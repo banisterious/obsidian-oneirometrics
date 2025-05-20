@@ -69,11 +69,17 @@ See [Metrics Enhancements Plan](METRICS_ENHANCEMENTS_PLAN.md) for detailed imple
 - [ ] Better error messages
 - [ ] More keyboard shortcuts
 - [ ] Enhanced documentation
+- [ ] Unified Dream Journal Manager modal with tabbed interface
+  - [ ] Consolidate Dream Scrape and Journal Structure Settings modals
+  - [ ] Implement Dashboard with quick actions
+  - [ ] Add Usage & Help modal system for in-app documentation
 - [ ] UI/UX improvements
   - [ ] Modern interface elements
   - [ ] Better visual hierarchy
   - [ ] Improved navigation
   - [ ] Enhanced feedback
+
+See [Dream Journal Manager Plan](DREAM_JOURNAL_MANAGER_PLAN.md) for detailed implementation specifications of the unified modal system.
 
 ### Performance
 - [ ] Optimize validation engine
