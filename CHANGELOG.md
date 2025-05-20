@@ -2,6 +2,7 @@
 
 ## Table of Contents
 - [Unreleased](#unreleased)
+- [0.5.0] - 2025-05-20
 - [0.4.3] - 2025-05-19
 - [0.4.1] - 2024-05-14
 - [0.4.0] - 2025-05-16
@@ -29,7 +30,13 @@
   - Template preview functionality
   - Multiple ways to insert templates (commands, ribbon, context menu)
   - Proper handling of callouts in both structure types
-- **Templater Integration Plan:** Created a comprehensive plan for standardizing on Templater for templates with fallback options for users without Templater installed
+- **Templater Integration:** Implemented standardization on Templater for templates
+  - Added fallback mechanism for users without Templater installed
+  - Enhanced template wizard with dual preview (Templater and static versions)
+  - Automatic conversion of Templater syntax to static placeholders
+  - Smart placeholder navigation for template filling
+  - Full backward compatibility with existing templates
+  - Comprehensive documentation in new `docs/TEMPLATER_INTEGRATION.md`
 
 ### Changed
 - Renamed "Linting" feature to "Journal Structure Check" for clarity
@@ -44,6 +51,22 @@
 - Removed src/journal_check/styles.css after merging into main styles.css
 - Removed test files that were no longer needed: test-dream-entries.md, test-read-more.html, and testProcessDreamContent.js
 - Archived completed CSS refactoring plan to docs/archive/
+
+## [0.5.0] - 2025-05-20
+### Added
+- **Dream Journal Manager:** Implemented a comprehensive unified interface for managing all aspects of dream journaling
+  - Integrated the existing Dream Scraper functionality into a dedicated tab
+  - Incorporated the Journal Structure features previously available only in Settings
+  - Created a tabbed interface with intuitive navigation between different journal management features
+  - Designed consistent UI that matches Obsidian's native Settings interface
+
+### Changed
+- **UI Improvements:**
+  - Migrated Dream Scraper into the new Dream Journal Manager interface
+  - Added a sticky footer in the Dream Scrape section for persistent access to action buttons
+  - Enhanced navigation with proper active state highlighting using Obsidian's accent color
+  - Improved overall styling consistency with Obsidian's native UI
+  - Fixed various CSS issues for better theme compatibility and user experience
 
 ## [0.4.3] - 2025-05-19
 ### Added
