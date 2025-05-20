@@ -1,4 +1,5 @@
-import { App, Modal, Setting, TextAreaComponent, TextComponent, ButtonComponent, DropdownComponent, Notice } from 'obsidian';
+import { App, Modal, Setting, MarkdownRenderer, ToggleComponent, TextComponent, TextAreaComponent, DropdownComponent, ButtonComponent, Notice } from 'obsidian';
+import DreamMetricsPlugin from '../../../main';
 import { CalloutStructure, JournalTemplate } from '../types';
 import { TemplaterIntegration } from '../TemplaterIntegration';
 import { DreamMetric } from '../../types';
@@ -55,7 +56,7 @@ export class TemplateWizard extends Modal {
     onOpen() {
         const { contentEl } = this;
         
-        contentEl.addClass('dream-journal-template-wizard');
+        contentEl.addClass('oom-dream-journal-template-wizard');
         
         // Create header
         contentEl.createEl('h2', { 
@@ -65,14 +66,14 @@ export class TemplateWizard extends Modal {
         });
         
         // Create layout with steps panel and preview panel
-        const container = contentEl.createDiv({ cls: 'template-wizard-container' });
-        const stepsPanel = container.createDiv({ cls: 'template-wizard-steps' });
-        const previewPanel = container.createDiv({ cls: 'template-wizard-preview' });
+        const container = contentEl.createDiv({ cls: 'oom-template-wizard-container' });
+        const stepsPanel = container.createDiv({ cls: 'oom-template-wizard-steps' });
+        const previewPanel = container.createDiv({ cls: 'oom-template-wizard-preview' });
         
         // Create step containers
         for (let i = 1; i <= this.totalSteps; i++) {
             const stepContainer = stepsPanel.createDiv({ 
-                cls: `template-wizard-step step-${i}`,
+                cls: `oom-template-wizard-step step-${i}`,
                 attr: { 'data-step': i.toString() }
             });
             
@@ -90,12 +91,12 @@ export class TemplateWizard extends Modal {
         this.buildStep4();
         
         // Create navigation buttons
-        this.navigationEl = stepsPanel.createDiv({ cls: 'template-wizard-navigation' });
+        this.navigationEl = stepsPanel.createDiv({ cls: 'oom-template-wizard-navigation' });
         this.updateNavigation();
         
         // Create preview panel
         previewPanel.createEl('h3', { text: 'Preview' });
-        this.previewEl = previewPanel.createDiv({ cls: 'template-preview' });
+        this.previewEl = previewPanel.createDiv({ cls: 'oom-template-preview' });
         this.updatePreview();
     }
     
@@ -195,7 +196,7 @@ export class TemplateWizard extends Modal {
             });
         
         // Placeholder for structure guidance
-        container.createDiv({ cls: 'structure-guidance' });
+        container.createDiv({ cls: 'oom-structure-guidance' });
         
         // Add button to create a new structure if one doesn't exist
         new Setting(container)
@@ -214,155 +215,173 @@ export class TemplateWizard extends Modal {
     }
     
     /**
-     * Step 3: Template Source
+     * Step 3: Templater integration
      */
     private buildStep3() {
         const container = this.stepContainers[2];
         
-        container.createEl('h3', { text: 'Step 3: Template Source' });
+        container.createEl('h3', { text: 'Step 3: Templater Integration' });
         container.createEl('p', { 
-            text: 'Choose how to create your template content.' 
+            text: 'Choose whether to use Templater for dynamic content.' 
         });
         
-        // Option to use Templater
-        const templaterEnabled = this.templaterIntegration.isTemplaterInstalled();
+        // Check if Templater plugin is available
+        const templaterEnabled = this.templaterIntegration && this.templaterIntegration.isTemplaterAvailable();
         
         new Setting(container)
             .setName('Use Templater')
-            .setDesc(templaterEnabled 
-                ? 'Use a Templater template for dynamic content'
-                : 'Templater plugin is not installed or enabled')
+            .setDesc('Enable dynamic content with Templater plugin')
             .addToggle(toggle => {
-                toggle
-                    .setValue(this.useTemplater)
-                    .setDisabled(!templaterEnabled)
+                toggle.setValue(this.useTemplater)
                     .onChange(value => {
                         this.useTemplater = value;
                         this.updateTemplaterSection(value);
                     });
+                
+                // Disable toggle if Templater is not available
+                if (!templaterEnabled) {
+                    toggle.setDisabled(true);
+                    toggle.setValue(false);
+                    this.useTemplater = false;
+                }
             });
         
         // Templater template selection section
-        const templaterSection = container.createDiv({ cls: 'templater-section' });
+        const templaterSection = container.createDiv({ cls: 'oom-templater-section' });
         
         if (!templaterEnabled) {
             templaterSection.style.display = 'none';
-        }
-        
-        new Setting(templaterSection)
-            .setName('Templater Template')
-            .setDesc('Select a Templater template to use')
-            .addDropdown(dropdown => {
-                this.templaterDropdown = dropdown;
+            
+            const warningEl = container.createEl('div', {
+                text: 'Templater plugin is not installed or enabled. Install Templater to use this feature.',
+                cls: 'oom-templater-warning'
+            });
+        } else {
+            // Check Templater compatibility
+            const compatibility = this.templaterIntegration.checkCompatibility();
+            
+            if (!compatibility.compatible) {
+                templaterSection.style.display = 'none';
+                templaterSection.createEl('div', {
+                    text: `Warning: ${compatibility.reason}`,
+                    cls: 'oom-templater-warning'
+                });
+            } else {
+                // Hide by default if not using Templater
+                templaterSection.style.display = this.useTemplater ? 'block' : 'none';
                 
                 // Get available Templater templates
-                const templaterTemplates = this.templaterIntegration.getTemplaterTemplates();
+                const templates = this.templaterIntegration.getTemplaterTemplates();
                 
-                for (const template of templaterTemplates) {
-                    dropdown.addOption(template, template);
-                }
-                
-                if (this.templaterFile) {
-                    dropdown.setValue(this.templaterFile);
-                } else if (templaterTemplates.length > 0) {
-                    this.templaterFile = templaterTemplates[0];
-                    dropdown.setValue(this.templaterFile);
-                }
-                
-                dropdown.onChange(value => {
-                    this.templaterFile = value;
-                    
-                    // Load the template content
-                    const content = this.templaterIntegration.getTemplateContent(value);
-                    if (content) {
-                        this.content = content;
+                new Setting(templaterSection)
+                    .setName('Templater Template')
+                    .setDesc('Select a Templater template to use')
+                    .addDropdown(dropdown => {
+                        this.templaterDropdown = dropdown;
                         
-                        // Check template compatibility
-                        const compatibility = this.templaterIntegration.isTemplateCompatible(value);
-                        if (!compatibility.compatible) {
-                            templaterSection.createEl('div', {
-                                text: `Warning: ${compatibility.reason}`,
-                                cls: 'templater-warning'
-                            });
+                        for (const template of templates) {
+                            dropdown.addOption(template.path, template.name);
                         }
                         
-                        this.updatePreview();
-                    }
-                });
-            });
-        
-        // Update visibility based on current setting
-        this.updateTemplaterSection(this.useTemplater && templaterEnabled);
+                        if (this.templaterFile) {
+                            dropdown.setValue(this.templaterFile);
+                        } else if (templates.length > 0) {
+                            this.templaterFile = templates[0].path;
+                            dropdown.setValue(this.templaterFile);
+                        }
+                        
+                        dropdown.onChange(value => {
+                            this.templaterFile = value;
+                            
+                            // Load the template content
+                            this.templaterIntegration.getTemplateContent(value).then(content => {
+                                if (content) {
+                                    this.content = content;
+                                    this.updatePreview();
+                                }
+                            });
+                        });
+                    });
+            }
+        }
     }
     
     /**
-     * Step 4: Content Editing
+     * Step 4: Template content
      */
     private buildStep4() {
         const container = this.stepContainers[3];
         
         container.createEl('h3', { text: 'Step 4: Template Content' });
-        
-        // Show selected structure information
-        const structures = this.plugin.settings.linting.structures;
-        const structure = structures.find((s: CalloutStructure) => s.id === this.structureId);
-        
-        if (structure) {
-            // Improve the description to be clearer about structure type
-            container.createEl('p', { 
-                text: `Creating template for: ${structure.name}`, 
-                cls: 'structure-selected-info'
-            });
-            
-            // Add a more descriptive explanation of the structure type
-            container.createEl('p', { 
-                text: structure.type === 'nested' 
-                    ? 'This is a NESTED structure where child callouts will be created inside the root callout.'
-                    : 'This is a FLAT structure where all callouts will be at the same level.',
-                cls: 'structure-type-info'
-            });
-        }
-        
         container.createEl('p', { 
-            text: 'Edit the content of your template.' 
+            text: 'Enter the template content based on the selected structure.' 
         });
         
-        // Create text area for content
-        this.contentArea = new TextAreaComponent(container)
-            .setValue(this.content)
-            .setPlaceholder('Enter your template content here...')
-            .onChange(value => {
-                this.content = value;
-                this.updatePreview();
+        // Get the structure details for guidance
+        if (this.structureId) {
+            const structure = this.plugin.settings.linting.structures.find((s: CalloutStructure) => s.id === this.structureId);
+            
+            if (structure) {
+                container.createEl('p', { 
+                    text: `Creating template for: ${structure.name}`, 
+                    cls: 'oom-structure-selected-info'
+                });
+                
+                container.createEl('p', { 
+                    text: structure.type === 'nested' 
+                        ? 'This is a NESTED structure where child callouts will be created inside the root callout.'
+                        : 'This is a FLAT structure where all callouts will be at the same level.',
+                    cls: 'oom-structure-type-info'
+                });
+            }
+        }
+        
+        // Only show the content editor if not using Templater
+        if (!this.useTemplater) {
+            const editorContainer = container.createDiv({ cls: 'oom-template-editor-container' });
+            
+            // Add a button to generate default content
+            new Setting(editorContainer)
+                .setName('Template Content')
+                .setDesc('Enter the content for your template or click to generate based on structure')
+                .addButton(button => {
+                    button
+                        .setButtonText('Generate Default Content')
+                        .onClick(() => {
+                            const defaultContent = this.getDefaultContent();
+                            this.content = defaultContent;
+                            this.contentArea.setValue(defaultContent);
+                            this.updatePreview();
+                        });
+                });
+            
+            // Text area for manual editing
+            this.contentArea = new TextAreaComponent(editorContainer)
+                .setValue(this.content)
+                .setPlaceholder('Enter template content here...')
+                .onChange(value => {
+                    this.content = value;
+                    this.updatePreview();
+                });
+            
+            // Make the text area larger
+            this.contentArea.inputEl.style.height = '300px';
+            this.contentArea.inputEl.style.width = '100%';
+        } else {
+            container.createEl('p', { 
+                text: 'Using Templater template. Content will be dynamically generated.',
+                cls: 'oom-templater-info'
             });
-        
-        // Make the text area larger
-        this.contentArea.inputEl.style.height = '300px';
-        this.contentArea.inputEl.style.width = '100%';
-        
-        // Add a button to insert a default structure if content is empty
-        if (!this.content) {
-            new Setting(container)
-                .setName('Insert Default Content')
-                .setDesc('Insert default content based on the selected structure')
-                .addButton(button => button
-                    .setButtonText('Insert Default Content')
-                    .onClick(() => {
-                        const content = this.getDefaultContent();
-                        this.contentArea.setValue(content);
-                        this.content = content;
-                        this.updatePreview();
-                    }));
         }
     }
     
     /**
-     * Update navigation buttons based on current step
+     * Update navigation buttons
      */
     private updateNavigation() {
         this.navigationEl.empty();
         
-        const buttonContainer = this.navigationEl.createDiv({ cls: 'button-container' });
+        const buttonContainer = this.navigationEl.createDiv({ cls: 'oom-button-container' });
         
         // Back button (if not on first step)
         if (this.currentStep > 1) {
@@ -375,7 +394,6 @@ export class TemplateWizard extends Modal {
         
         // Next/Finish button
         const isLastStep = this.currentStep === this.totalSteps;
-        
         new ButtonComponent(buttonContainer)
             .setButtonText(isLastStep ? 'Finish' : 'Next')
             .setCta()
@@ -394,10 +412,10 @@ export class TemplateWizard extends Modal {
                 this.close();
             });
         
-        // Add step indicator
+        // Step indicator
         this.navigationEl.createEl('div', { 
             text: `Step ${this.currentStep} of ${this.totalSteps}`,
-            cls: 'step-indicator'
+            cls: 'oom-step-indicator'
         });
     }
     
@@ -410,116 +428,145 @@ export class TemplateWizard extends Modal {
         }
         
         // Hide current step
-        this.stepContainers[this.currentStep - 1].style.display = 'none';
+        if (this.stepContainers[this.currentStep - 1]) {
+            this.stepContainers[this.currentStep - 1].style.display = 'none';
+        }
         
         // Show new step
         this.currentStep = step;
-        this.stepContainers[this.currentStep - 1].style.display = 'block';
+        if (this.stepContainers[this.currentStep - 1]) {
+            this.stepContainers[this.currentStep - 1].style.display = 'block';
+        }
         
         // Update navigation
         this.updateNavigation();
-        
-        // Update preview
-        this.updatePreview();
     }
     
     /**
-     * Update the preview panel
+     * Update preview based on current settings
      */
     private updatePreview() {
         this.previewEl.empty();
         
-        // Show template name
+        // Add template name as title
         this.previewEl.createEl('h4', { 
-            text: this.templateName || 'Untitled Template' 
+            text: this.templateName || 'Untitled Template',
+            cls: 'oom-preview-title'
         });
         
-        // Show selected structure
-        const structures = this.plugin.settings.linting.structures;
-        const structure = structures.find((s: CalloutStructure) => s.id === this.structureId);
-        
+        // Show structure details if available
+        const structure = this.structureId 
+            ? this.plugin.settings.linting.structures.find((s: CalloutStructure) => s.id === this.structureId)
+            : null;
+            
         if (structure) {
             // Add a structure info container 
-            const structureInfo = this.previewEl.createDiv({ cls: 'preview-structure-info' });
+            const structureInfo = this.previewEl.createDiv({ cls: 'oom-preview-structure-info' });
             
             // Show structure name
             structureInfo.createEl('p', { 
                 text: `Structure: ${structure.name}`,
-                cls: 'preview-structure'
+                cls: 'oom-preview-structure'
             });
             
             // Show structure type with icon or visual indicator
             const typeEl = structureInfo.createEl('p', {
-                cls: `preview-structure-type preview-${structure.type}`
+                cls: `oom-preview-structure-type oom-preview-${structure.type}`
             });
             
-            // Use emoji as visual indicator
-            const typeIcon = structure.type === 'nested' ? '📦' : '📄';
-            typeEl.setText(`${typeIcon} ${structure.type.charAt(0).toUpperCase() + structure.type.slice(1)} Structure`);
+            typeEl.innerHTML = `Type: <strong>${structure.type === 'nested' ? 'Nested' : 'Flat'}</strong>`;
+            
+            // Show required fields
+            if (structure.requiredFields.length > 0) {
+                structureInfo.createEl('p', { 
+                    text: `Required callouts: ${structure.requiredFields.join(', ')}`,
+                    cls: 'oom-preview-required-fields'
+                });
+            }
         }
         
         // Show sample content
-        const previewContent = this.previewEl.createDiv({ cls: 'preview-content' });
+        const previewContent = this.previewEl.createDiv({ cls: 'oom-preview-content' });
         
         if (this.content) {
             // Create a "read-only" version for preview
-            const contentEl = previewContent.createDiv({ cls: 'markdown-preview' });
+            const contentEl = previewContent.createDiv({ cls: 'oom-markdown-preview' });
             contentEl.setText(this.content);
         } else {
             previewContent.createEl('p', { 
-                text: 'No content yet. Select a Templater template or enter custom content.'
+                text: 'No content yet. Complete the wizard to generate content.',
+                cls: 'oom-preview-empty'
             });
         }
     }
     
     /**
-     * Update templater section visibility
+     * Update visibility of Templater section
      */
     private updateTemplaterSection(visible: boolean) {
-        const templaterSection = document.querySelector('.templater-section') as HTMLElement;
+        const templaterSection = document.querySelector('.oom-templater-section') as HTMLElement;
         if (templaterSection) {
             templaterSection.style.display = visible ? 'block' : 'none';
         }
     }
     
     /**
-     * Update structure guidance based on selected structure
+     * Update structure guidance
      */
     private updateStructureGuidance(structure: CalloutStructure) {
-        const guidanceEl = document.querySelector('.structure-guidance') as HTMLElement;
+        const guidanceEl = document.querySelector('.oom-structure-guidance') as HTMLElement;
         if (!guidanceEl) return;
         
         guidanceEl.empty();
         
         guidanceEl.createEl('h4', { text: 'Structure Details' });
         
-        const structureDetails = guidanceEl.createEl('ul', { cls: 'structure-details' });
+        const structureDetails = guidanceEl.createEl('ul', { cls: 'oom-structure-details' });
         
         structureDetails.createEl('li', { 
-            text: `Type: ${structure.type === 'flat' ? 'Flat' : 'Nested'}`
+            text: `Type: ${structure.type === 'nested' ? 'Nested' : 'Flat'}`
         });
         
         structureDetails.createEl('li', { 
             text: `Root Callout: ${structure.rootCallout}`
         });
         
-        if (structure.childCallouts.length > 0) {
-            const childList = structureDetails.createEl('li');
-            childList.createSpan({ text: 'Child Callouts: ' });
-            const childUl = childList.createEl('ul');
-            
-            for (const callout of structure.childCallouts) {
-                childUl.createEl('li', { 
-                    text: callout + (structure.requiredFields.includes(callout) ? ' (Required)' : ' (Optional)')
-                });
-            }
+        structureDetails.createEl('li', { 
+            text: `Child Callouts: ${structure.childCallouts.join(', ')}`
+        });
+        
+        structureDetails.createEl('li', { 
+            text: `Required Fields: ${structure.requiredFields.length > 0 ? structure.requiredFields.join(', ') : 'None'}`
+        });
+        
+        // Show guidance based on structure type
+        let guidance = '';
+        if (structure.type === 'nested') {
+            guidance = `
+                For nested structures, use multiple > characters to create nested callouts:
+                
+                > [!${structure.rootCallout}]
+                > Root callout content
+                >
+                >> [!${structure.childCallouts[0] || 'child'}]
+                >> Child callout content
+            `;
+        } else {
+            guidance = `
+                For flat structures, all callouts should be at the same level:
+                
+                > [!${structure.rootCallout}]
+                > Root callout content
+                
+                > [!${structure.childCallouts[0] || 'child'}]
+                > Child callout content
+            `;
         }
         
-        if (structure.metricsCallout) {
-            structureDetails.createEl('li', { 
-                text: `Metrics Callout: ${structure.metricsCallout}`
-            });
-        }
+        guidanceEl.createEl('pre', { 
+            text: guidance.trim(),
+            cls: 'oom-structure-guidance-example'
+        });
     }
     
     /**

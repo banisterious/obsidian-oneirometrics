@@ -10,12 +10,12 @@ import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
-// Import linting modules
-import { LintingEngine } from './src/linting/LintingEngine';
-import { TemplaterIntegration } from './src/linting/TemplaterIntegration';
-import { TestModal } from './src/linting/ui/TestModal';
-import { TemplateWizard } from './src/linting/ui/TemplateWizard';
-import { LintingSettings, CalloutStructure, JournalTemplate } from './src/linting/types';
+// Import journal structure check modules
+import { LintingEngine } from './src/journal_check/LintingEngine';
+import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
+import { TestModal } from './src/journal_check/ui/TestModal';
+import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
+import { LintingSettings, CalloutStructure, JournalTemplate } from './src/journal_check/types';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -413,77 +413,23 @@ export default class DreamMetricsPlugin extends Plugin {
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
-        (window as any).oneiroMetricsPlugin = this;
+        await this.loadSettings();
         this.logger = LogManager.getInstance(this.app);
         
-        // Initialize container
-        this.container = document.querySelector('.markdown-preview-view');
-        
-        await this.loadSettings();
-        
-        // Configure logger with settings
-        this.logger.configure(this.settings.logging.level);
-        
-        // Create wrapper object with only the properties needed by the linting engine
-        const pluginWrapper = {
-            app: this.app,
-            settings: this.settings,
-            getDreamEntries: () => [],
-            loadStyles: () => {
-                // Load CSS for linting UI components
-                const styleElement = document.createElement('style');
-                styleElement.id = 'oom-linting-styles';
-                styleElement.textContent = `
-                    .oom-validation-result {
-                        margin: 8px 0;
-                        padding: 8px;
-                        border-radius: 4px;
-                    }
-                    .oom-validation-error {
-                        background-color: rgba(255, 0, 0, 0.1);
-                        border-left: 3px solid #ff5555;
-                    }
-                    .oom-validation-warning {
-                        background-color: rgba(255, 165, 0, 0.1);
-                        border-left: 3px solid #ffaa55;
-                    }
-                    .oom-validation-info {
-                        background-color: rgba(0, 0, 255, 0.1);
-                        border-left: 3px solid #5555ff;
-                    }
-                    .oom-quick-fix-button {
-                        margin-top: 4px;
-                        padding: 2px 6px;
-                        border-radius: 4px;
-                        background-color: var(--interactive-accent);
-                        color: var(--text-on-accent);
-                        font-size: 12px;
-                        cursor: pointer;
-                    }
-                    .oom-test-content {
-                        white-space: pre-wrap;
-                        font-family: monospace;
-                        margin: 10px 0;
-                        padding: 8px;
-                        border-radius: 4px;
-                        background-color: var(--background-secondary);
-                    }
-                `;
-                document.head.appendChild(styleElement);
-            }
-        };
-        
-        // Initialize linting components with the wrapper
-        this.templaterIntegration = new TemplaterIntegration(pluginWrapper as any);
-        this.lintingEngine = new LintingEngine(pluginWrapper as any, this.settings.linting || DEFAULT_LINTING_SETTINGS);
+        // Initialize components
+        this.templaterIntegration = new TemplaterIntegration(this);
+        this.lintingEngine = new LintingEngine(this, this.settings.linting || DEFAULT_LINTING_SETTINGS);
         
         // Load linting styles
-        pluginWrapper.loadStyles();
+        this.loadStyles();
         
-        // Load expanded states from settings
-        if (this.settings.expandedStates) {
+        // Restore expanded states
+        try {
             this.expandedStates = new Set(Object.keys(this.settings.expandedStates).filter(key => this.settings.expandedStates[key]));
             this.logger.log('UI', `Loaded ${this.expandedStates.size} expanded states`);
+        } catch (error) {
+            console.error('Error restoring expanded states:', error);
+            this.expandedStates = new Set();
         }
 
         // Add settings tab
@@ -1761,10 +1707,6 @@ export default class DreamMetricsPlugin extends Plugin {
             leaves.forEach(leaf => {
                 const view = leaf.view;
                 if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNote) {
-                    // Remove old .oom-rescrape-container if present
-                    const container = view.containerEl;
-                    const oldButtonContainer = container.querySelector('.oom-rescrape-container');
-                    if (oldButtonContainer) oldButtonContainer.remove();
                     // Update the view's content
                     if (view.getMode() === 'preview') {
                         view.previewMode?.rerender();
@@ -2163,18 +2105,12 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private announceToScreenReader(message: string) {
-        // Create or get the live region
-        let liveRegion = document.querySelector('.oom-live-region');
-        if (!liveRegion) {
-            liveRegion = document.createElement('div');
-            liveRegion.className = 'oom-live-region';
-            liveRegion.setAttribute('aria-live', 'polite');
-            liveRegion.setAttribute('aria-atomic', 'true');
-            document.body.appendChild(liveRegion);
-        }
-        
-        // Update the message
-        liveRegion.textContent = message;
+        const ariaLive = document.createElement('div');
+        ariaLive.setAttribute('aria-live', 'polite');
+        ariaLive.classList.add('sr-only');
+        document.body.append(ariaLive);
+        ariaLive.textContent = message;
+        setTimeout(() => ariaLive.remove(), 1000);
     }
 
     // Update content visibility
@@ -2470,7 +2406,16 @@ export default class DreamMetricsPlugin extends Plugin {
             btn.addClass('oom-ribbon-test-btn');
         }
     }
-} 
+
+    /**
+     * Loads the CSS styles for the journal structure check feature
+     * Note: The CSS styles have been moved to styles.css
+     */
+    private loadStyles() {
+        // Journal structure check styles are now in styles.css
+        // This method is kept for backwards compatibility
+    }
+}
 
 // Helper to extract date for a dream entry
 function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {

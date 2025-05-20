@@ -42,17 +42,13 @@
 
 OneiroMetrics now includes a powerful journal structure validation system to help maintain consistent dream journal entries:
 
-### Key Features
-
-- **Structure Validation**: Validate your dream journal entries against defined structures
+- **Validation**: Check your journal entries against predefined structures
+- **Flexibility**: Support for both flat and nested journal structures
 - **Template System**: Create and use templates for consistent journal entries
-- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries
-- **Quick Fixes**: Apply automatic fixes for common structure issues
-- **Visual Validation**: Identify structure issues within the editor
-- **Nested Structures**: Support for both flat and nested callout structures
+- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries (see our [Templater Integration Plan](docs/TEMPLATER_INTEGRATION_PLAN.md) for details)
+- **Quick Fixes**: Get suggestions for fixing common issues
 
 ### Using Journal Structure Check
-
 1. Enable the feature in settings
 2. Create or use the default journal structures
 3. Validate your entries with the `Validate Dream Journal Structure` command
@@ -60,13 +56,11 @@ OneiroMetrics now includes a powerful journal structure validation system to hel
 5. Apply templates to new journal entries
 
 ### Templater Integration
-
 If you have the Templater plugin installed, you can use Templater templates for your dream journal entries. This allows you to use dynamic content such as:
-
-- Date variables
-- System information
-- User prompts
-- Custom scripts
+- Automatic dates and timestamps
+- User prompts for metrics data
+- Conditional content based on previous entries
+- Custom Templater functions
 
 To use Templater integration:
 1. Enable Templater integration in the settings

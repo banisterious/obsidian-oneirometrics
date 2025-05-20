@@ -2,9 +2,9 @@ import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, 
 import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings, LogLevel } from "./types";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
-import { LintingSettings } from "./src/linting/types";
-import { TestModal } from "./src/linting/ui/TestModal";
-import { TemplateWizard } from "./src/linting/ui/TemplateWizard";
+import { LintingSettings } from "./src/journal_check/types";
+import { TestModal } from "./src/journal_check/ui/TestModal";
+import { TemplateWizard } from "./src/journal_check/ui/TemplateWizard";
 
 interface IconCategory {
     name: string;

@@ -1,4 +1,4 @@
-import { LintingSettings } from './linting/types';
+import { LintingSettings } from './journal_check/types';
 
 export interface DreamMetricData {
     date: string;

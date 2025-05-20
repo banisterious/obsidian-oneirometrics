@@ -2,6 +2,8 @@
  * Types for the journal structure validation system
  */
 
+import { DreamMetricsSettings } from '../types';
+
 export interface LintingSettings {
     enabled: boolean;
     rules: LintingRule[];
