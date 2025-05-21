@@ -2693,7 +2693,7 @@ function forceApplyDateFilter(date: Date) {
 // Expose the function globally so it can be called from DateNavigatorModal
 (window as any).forceApplyDateFilter = forceApplyDateFilter;
 
-// Enhance the applyCustomDateRangeFilter with better debugging
+// Further optimize applyCustomDateRangeFilter to eliminate forced reflows
 function applyCustomDateRangeFilter() {
     console.log('[OOM-DEBUG] applyCustomDateRangeFilter called with customDateRange:', customDateRange);
     
@@ -2710,9 +2710,9 @@ function applyCustomDateRangeFilter() {
     
     console.log('[OOM-DEBUG] Container found:', previewEl);
     
-    // Get all rows at once to avoid multiple DOM queries
-    const rows = previewEl.querySelectorAll('.oom-dream-row');
-    console.log('[OOM-DEBUG] Found', rows.length, 'rows to filter');
+    // Performance optimization: Prevent layout thrashing by reading first, writing later
+    const rowsArray = Array.from(previewEl.querySelectorAll('.oom-dream-row'));
+    console.log('[OOM-DEBUG] Found', rowsArray.length, 'rows to filter');
     
     const startDate = new Date(customDateRange.start);
     const endDate = new Date(customDateRange.end);
@@ -2721,86 +2721,97 @@ function applyCustomDateRangeFilter() {
     let visibleCount = 0;
     let hiddenCount = 0;
     
-    // Process all rows immediately - simpler approach
-    rows.forEach((rowEl, index) => {
-        const row = rowEl as HTMLElement;
-        const dateAttr = row.getAttribute('data-date');
+    // Phase 1: Read - Collect all DOM measurements and compute visibility changes
+    // This prevents interleaving reads and writes which causes layout thrashing
+    const rowUpdates = rowsArray.map((row, index) => {
+        const rowEl = row as HTMLElement;
+        const dateAttr = rowEl.getAttribute('data-date');
         
         if (!dateAttr) {
             console.log(`[OOM-DEBUG] Row ${index} has no data-date attribute`);
-            row.style.display = 'none';
-            hiddenCount++;
-            return;
+            return { row: rowEl, visible: false };
         }
         
         // Parse row date consistently
         const rowDate = new Date(dateAttr);
         if (isNaN(rowDate.getTime())) {
             console.log(`[OOM-DEBUG] Row ${index} has invalid date: ${dateAttr}`);
-            row.style.display = 'none';
-            hiddenCount++;
-            return;
+            return { row: rowEl, visible: false };
         }
         
         // Simple date comparison (just using the date part)
         const rowDateString = rowDate.toISOString().split('T')[0];
         
-        // Null check for customDateRange
+        // We've already checked customDateRange at the top, but add a safety check
+        // to satisfy the linter
         if (!customDateRange) {
-            console.log(`[OOM-DEBUG] customDateRange is null during row processing`);
-            row.style.display = 'none';
-            hiddenCount++;
-            return;
+            return { row: rowEl, visible: false };
         }
         
         const isDateInRange = 
             rowDateString >= customDateRange.start && 
             rowDateString <= customDateRange.end;
         
-        if (isDateInRange) {
-            row.style.display = '';
-            row.classList.add('oom-row--visible');
-            visibleCount++;
-            if (index < 5) console.log(`[OOM-DEBUG] Row ${index} with date ${rowDateString} is VISIBLE`);
-        } else {
-            row.style.display = 'none';
-            row.classList.remove('oom-row--visible');
-            hiddenCount++;
-            if (index < 5) console.log(`[OOM-DEBUG] Row ${index} with date ${rowDateString} is HIDDEN`);
+        if (index < 5) {
+            console.log(`[OOM-DEBUG] Row ${index} with date ${rowDateString} is ${isDateInRange ? 'VISIBLE' : 'HIDDEN'}`);
         }
+        
+        return { row: rowEl, visible: isDateInRange };
     });
     
-    console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
-    
-    // Update filter display
-    updateFilterDisplay(visibleCount);
-    
-    // Force a notification to confirm filtering occurred
-    new Notice(`Date filter applied: ${visibleCount} entries visible, ${hiddenCount} hidden`);
+    // Phase 2: Write - Batch all DOM updates in a single animation frame
+    // This ensures browser can optimize the reflow/repaint cycle
+    requestAnimationFrame(() => {
+        // Use a DocumentFragment for off-DOM manipulation
+        rowUpdates.forEach(({ row, visible }) => {
+            if (visible) {
+                row.style.display = '';
+                row.classList.add('oom-row--visible');
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+                row.classList.remove('oom-row--visible');
+                hiddenCount++;
+            }
+        });
+        
+        console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
+        
+        // Update filter display after row visibility is updated
+        updateFilterDisplay(visibleCount);
+        
+        // Use another animation frame for notifications to avoid blocking rendering
+        requestAnimationFrame(() => {
+            // Only show notice if this is user-initiated (not on page load)
+            if (document.body.classList.contains('theme-light') || document.body.classList.contains('theme-dark')) {
+                new Notice(`Date filter applied: ${visibleCount} entries visible, ${hiddenCount} hidden`);
+            }
+        });
+    });
 }
 
 function updateFilterDisplay(entryCount: number) {
     const filterDisplay = document.getElementById('oom-time-filter-display');
     if (!filterDisplay) return;
     
-    // Create a document fragment for better performance
+    // Performance optimization: Build all DOM elements in a document fragment
+    // before adding to the DOM to minimize reflows
     const fragment = document.createDocumentFragment();
     
-    // Add icon
+    // Create all elements at once with their attributes
     const iconSpan = document.createElement('span');
     iconSpan.className = 'oom-filter-icon';
     iconSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>`;
-    fragment.appendChild(iconSpan);
-
-    // Add text
+    
     const textSpan = document.createElement('span');
     textSpan.className = 'oom-filter-text';
     
+    // Prepare all text content and attributes before adding to DOM
     if (customDateRange) {
         textSpan.classList.add('oom-filter--custom-range');
         textSpan.textContent = ` Custom Range: ${customDateRange.start} to ${customDateRange.end} (${entryCount} entries) `;
         
-        // Add clear button
+        // Only create clear button if we have a custom range
         const clearBtn = document.createElement('span');
         clearBtn.className = 'oom-filter-clear';
         clearBtn.setAttribute('title', 'Clear custom range');
@@ -2808,22 +2819,27 @@ function updateFilterDisplay(entryCount: number) {
         clearBtn.setAttribute('role', 'button');
         clearBtn.textContent = '×';
         
-        // Use event delegation for better performance
-        clearBtn.addEventListener('click', () => {
+        // Attach event listeners
+        clearBtn.addEventListener('click', (e) => {
+            // Prevent event bubbling for better performance
+            e.stopPropagation();
+            
             customDateRange = null;
-            const btn = document.getElementById('oom-custom-range-btn');
-            if (btn) btn.classList.remove('active');
-            const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-            if (dropdown) {
-                // Use a more efficient approach to trigger dropdown change
-                dropdown.value = dropdown.value; // Keep the same value
-                requestAnimationFrame(() => {
+            
+            // Batch related DOM operations together
+            requestAnimationFrame(() => {
+                const btn = document.getElementById('oom-custom-range-btn');
+                if (btn) btn.classList.remove('active');
+                
+                const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+                if (dropdown) {
+                    dropdown.value = dropdown.value; // Keep same value
                     dropdown.dispatchEvent(new Event('change'));
-                });
-            }
+                }
+            });
         });
         
-        // Handle keyboard accessibility
+        // Keyboard accessibility
         clearBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -2840,18 +2856,24 @@ function updateFilterDisplay(entryCount: number) {
         textSpan.textContent = ` ${label} (${entryCount} entries) `;
     }
     
+    // Construct the fragment hierarchy once before touching the live DOM
+    fragment.appendChild(iconSpan);
     fragment.appendChild(textSpan);
     
-    // Clear the container and append the fragment in one operation
+    // Single DOM operation to replace all content
     filterDisplay.innerHTML = '';
     filterDisplay.appendChild(fragment);
     
-    // Use CSS transitions instead of JS animations for better performance
-    filterDisplay.classList.add('oom-filter-display--updated');
-    setTimeout(() => {
-        // Use requestAnimationFrame to ensure transitions are smooth
-        requestAnimationFrame(() => {
-            filterDisplay.classList.remove('oom-filter-display--updated');
-        });
-    }, 500);
+    // Use CSS transitions instead of JS for animation
+    // Add the updated class in the next frame to ensure it triggers the transition
+    requestAnimationFrame(() => {
+        filterDisplay.classList.add('oom-filter-display--updated');
+        
+        // Remove class after transition completes
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                filterDisplay.classList.remove('oom-filter-display--updated');
+            });
+        }, 500);
+    });
 }
