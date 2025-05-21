@@ -83,7 +83,6 @@ export class DreamJournalManager extends Modal {
         this.buildDreamScrapeSection();
         this.buildJournalStructureSection();
         this.buildTemplatesSection();
-        this.buildTemplaterSection();
         this.buildContentIsolationSection();
         this.buildInterfaceSection();
         
@@ -106,7 +105,6 @@ export class DreamJournalManager extends Modal {
             { id: 'dream-scrape', label: 'Dream Scrape', icon: 'sparkles' },
             { id: 'journal-structure', label: 'Journal Structure', icon: 'layout' },
             { id: 'templates', label: 'Templates', icon: 'file-text' },
-            { id: 'templater', label: 'Templater', icon: 'code' },
             { id: 'content-isolation', label: 'Content Isolation', icon: 'filter' },
             { id: 'interface', label: 'Interface', icon: 'sliders' }
         ];
@@ -130,6 +128,11 @@ export class DreamJournalManager extends Modal {
      * Shows the specified section and hides all others
      */
     private showSection(sectionId: string) {
+        // For backward compatibility, redirect 'templater' tab to 'templates'
+        if (sectionId === 'templater') {
+            sectionId = 'templates';
+        }
+        
         // Hide all sections
         for (const id in this.sections) {
             this.sections[id].hide();
@@ -616,27 +619,14 @@ export class DreamJournalManager extends Modal {
                 });
             }
         }
-    }
-    
-    /**
-     * Builds the templater section
-     */
-    private buildTemplaterSection() {
-        const sectionEl = this.mainContentEl.createDiv();
-        this.sections['templater'] = sectionEl;
         
-        sectionEl.createEl('h3', { text: 'Templater Integration' });
+        // Add Templater Settings section
+        const templaterSettingsSection = sectionEl.createDiv({ cls: 'oom-templater-settings-section' });
+        const templaterSettingsContent = this.createCollapsibleSection(templaterSettingsSection, 'Templater Settings');
         
         const templaterInstalled = (this.app as any).plugins?.plugins?.['templater-obsidian'] !== undefined;
         
         if (templaterInstalled) {
-            sectionEl.createEl('p', { 
-                text: 'Configure integration with the Templater plugin for dynamic templates.' 
-            });
-            
-            // Templater Settings Section
-            const templaterSettingsContent = this.createCollapsibleSection(sectionEl, 'Templater Settings');
-            
             new Setting(templaterSettingsContent)
                 .setName('Enable Templater Integration')
                 .setDesc('Use Templater for dynamic template content')
@@ -678,11 +668,11 @@ export class DreamJournalManager extends Modal {
                         await this.plugin.saveSettings();
                     }));
         } else {
-            sectionEl.createEl('p', { 
+            templaterSettingsContent.createEl('p', { 
                 text: 'Templater plugin is not installed. Install Templater for enhanced template functionality.' 
             });
             
-            const installRow = sectionEl.createDiv({ cls: 'oom-actions-row' });
+            const installRow = templaterSettingsContent.createDiv({ cls: 'oom-actions-row' });
             
             const installButton = installRow.createEl('button', {
                 text: 'Install Templater',

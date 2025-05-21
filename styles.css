@@ -1,11 +1,9 @@
 /* ==========================================================================
-   OneiroMetrics Combined Stylesheet
+   OneiroMetrics Plugin Stylesheet
    Built: 2025-05-14T17:53:32.637Z
    ========================================================================== */
 
-/* OneiroMetrics Plugin Styles
- * 
- * OneiroMetrics (Turning dreams into data)
+/* OneiroMetrics (Turning dreams into data)
  * A plugin for Obsidian to track and analyze dream journal metrics.
  * Provides a structured way to define, extract, and visualize dream-related data.
  * 
@@ -26,16 +24,6 @@
 [class^="oom-"] .inline-title,
 [class*=" oom-"] .inline-title {
     display: none !important;
-}
-
-/* Dream Journal Manager Title */
-.oom-journal-manager-title {
-    margin-bottom: 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--background-modifier-border);
-    font-size: 1.8em;
-    text-align: center;
-    color: var(--text-normal);
 }
 
 /* ==========================================================================
@@ -3924,6 +3912,36 @@ input.oom-folder-autocomplete-input {
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
+/* Styles for clickable favorites */
+.oom-favorite-item.oom-clickable {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+    position: relative;
+}
+
+.oom-favorite-item.oom-clickable:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-favorite-item.oom-favorite-active {
+    background-color: var(--background-secondary-alt);
+    border-left: 3px solid var(--text-accent);
+    padding-left: calc(0.5em - 3px);
+}
+
+.oom-favorites-heading {
+    margin: 0 0 0.5em 0;
+    font-size: 1.1em;
+    color: var(--text-normal);
+}
+
+.oom-favorites-helper {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin: 0 0 0.75em 0;
+}
+
 .oom-favorite-item:last-child {
     border-bottom: none;
 }
@@ -4956,6 +4974,16 @@ input.oom-folder-autocomplete-input {
 /* Dream Journal Manager Styles
 --------------------------------------------- */
 
+/* Dream Journal Manager Title */
+.oom-journal-manager-title {
+    margin-bottom: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: 1.8em;
+    text-align: center;
+    color: var(--text-normal);
+}
+
 /* Make sure modal doesn't exceed screen size */
 .modal:has(.oom-journal-manager-modal) {
     width: 900px !important;
@@ -4964,12 +4992,12 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-journal-manager-modal {
+    display: flex;
     flex-direction: column;
     max-width: 900px;
     width: 800px !important; /* Replace inline style */
     height: 600px !important; /* Replace inline style */
     padding: 0;
-    display: flex;
 }
 
 .oom-journal-manager-content {
@@ -5015,9 +5043,9 @@ input.oom-folder-autocomplete-input {
 /* Sidebar Navigation */
 .oom-nav-item {
     display: flex;
-    align-items: center;
     margin-bottom: 4px;
     padding: 8px 15px;
+    align-items: center;
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.2s ease;
@@ -5087,19 +5115,19 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-quick-action-icon {
+    height: 28px;
     margin-bottom: 8px;
     font-size: 24px;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 28px;
 }
 
 .oom-recent-activity-list,
 .oom-status-list {
-    padding: 0;
     margin: 0;
+    padding: 0;
     list-style-type: none;
 }
 
@@ -5174,8 +5202,8 @@ input.oom-folder-autocomplete-input {
 
 /* Progress Bar */
 .oom-progress-section {
-    margin-top: 20px;
     display: none; /* Hide initially */
+    margin-top: 20px;
 }
 
 .oom-progress-content.active + .oom-progress-section {
@@ -5218,9 +5246,9 @@ input.oom-folder-autocomplete-input {
 
 .oom-collapsible-header {
     display: flex;
+    padding: 10px 15px;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 15px;
     cursor: pointer;
     background-color: var(--background-secondary);
 }
@@ -5328,3 +5356,449 @@ input.oom-folder-autocomplete-input {
 }
 
 /* ... existing code ... */
+
+/* ==========================================================================
+   Date Navigator Styles
+   ========================================================================== */
+
+/* Date Navigator component styles for the calendar-style visualization
+ * of dream journal entries. Used for filtering and exploring dream data
+ * by date in an interactive calendar interface.
+ */
+
+
+.oom-date-navigator {
+    --month-bg: var(--background-primary);
+    --month-border: var(--background-modifier-border);
+    --month-text: var(--text-normal);
+    --month-header: var(--text-accent);
+    --day-bg: var(--background-primary);
+    --day-border: var(--background-modifier-border);
+    --day-text: var(--text-normal);
+    --day-today: var(--interactive-accent);
+    --day-selected: var(--interactive-accent-hover);
+    --day-dream: var(--text-accent);
+    --day-no-dream: var(--text-muted);
+    --day-other-month: var(--background-secondary);
+    --day-hover: var(--background-modifier-hover);
+    --day-with-entry-bg: rgba(var(--interactive-accent-rgb), 0.1);
+    
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--month-border);
+    border-radius: 4px;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Month header styles */
+.oom-month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--background-secondary-alt);
+    border-bottom: 1px solid var(--month-border);
+}
+
+.oom-month-title {
+    font-weight: var(--font-bold);
+    font-size: 1.1em;
+    color: var(--month-header);
+    flex: 1;
+    text-align: center;
+}
+
+.oom-month-button {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-normal);
+    cursor: pointer;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 2px;
+}
+
+.oom-month-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-month-button:focus {
+    box-shadow: 0 0 0 2px var(--background-modifier-border);
+    outline: none;
+}
+
+.oom-today-button {
+    font-size: 0.85em;
+    padding: 2px 6px;
+}
+
+/* Month grid styles */
+.oom-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: var(--month-bg);
+    border-bottom: 1px solid var(--month-border);
+    gap: 1px;
+}
+
+.oom-day-header {
+    text-align: center;
+    padding: 6px 0;
+    font-weight: var(--font-bold);
+    font-size: 0.8em;
+    color: var(--text-muted);
+    background-color: var(--background-secondary-alt);
+    border-bottom: 1px solid var(--month-border);
+}
+
+/* Day cell styles */
+.oom-day-cell {
+    min-height: 80px;
+    padding: 4px;
+    background-color: var(--day-bg);
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.oom-day-cell:hover {
+    background-color: var(--day-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.oom-day-cell:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+    z-index: 2;
+}
+
+/* Day number */
+.oom-day-number {
+    font-weight: var(--font-bold);
+    margin-bottom: 4px;
+}
+
+/* Dream indicators */
+.oom-dream-indicators {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.oom-dream-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--day-dream);
+}
+
+/* State styling */
+.oom-day-cell.is-today {
+    border: 2px solid var(--day-today);
+}
+
+.oom-day-cell.is-selected {
+    background-color: var(--day-selected);
+    color: var(--text-on-accent);
+}
+
+.oom-day-cell.other-month {
+    background-color: var(--day-other-month);
+    color: var(--day-no-dream);
+}
+
+.oom-day-cell.has-entries {
+    background-color: var(--day-with-entry-bg);
+}
+
+/* Animation for highlighting today */
+.oom-day-cell.highlight-pulse {
+    animation: pulse 1s 2;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(var(--interactive-accent-rgb), 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(var(--interactive-accent-rgb), 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(var(--interactive-accent-rgb), 0);
+    }
+}
+
+/* Dream preview tooltip */
+.oom-day-preview {
+    position: absolute;
+    display: none;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 8px;
+    width: 220px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    max-height: 150px;
+    overflow-y: auto;
+    color: var(--text-normal);
+    font-size: 0.85em;
+}
+
+.oom-day-cell:hover .oom-day-preview {
+    display: block;
+}
+
+.oom-preview-content {
+    white-space: pre-line;
+}
+
+/* Metric visualization */
+.oom-day-metrics {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    font-size: 0.8em;
+    color: var(--day-dream);
+    padding-top: 4px;
+}
+
+/* Filter indicator */
+.oom-filter-indicator {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    margin-left: 8px;
+}
+
+/* Filter integration section */
+.oom-filter-section {
+    padding: 8px;
+    background-color: var(--background-secondary-alt);
+    border-top: 1px solid var(--month-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.oom-filter-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-filter-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-filter-info {
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.oom-filter-info.active {
+    color: var(--text-accent);
+    font-weight: var(--font-bold);
+}
+
+/* Year context navigation strip */
+.oom-year-context {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    padding: 4px;
+    font-size: 0.8em;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-month-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0 2px;
+    background-color: var(--text-muted);
+}
+
+.oom-month-dot.active {
+    background-color: var(--text-accent);
+    width: 8px;
+    height: 8px;
+}
+
+.oom-month-dot.has-entries {
+    background-color: var(--day-dream);
+}
+
+/* Date Navigator outer Modal dimensions
+   Keep this here for now and expand later */
+.modal:has(.oom-date-navigator-modal) {
+    max-width: 600px;
+    width: 90vw;
+    max-height: 80vh;
+}
+
+/* Date Navigator inner content dimensions and grid */
+.oom-date-navigator-modal {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    max-height: 80vh;
+}
+
+.oom-date-navigator-modal .oom-date-navigator {
+    flex: 1;
+    overflow: auto;
+    max-height: calc(80vh - 120px);
+}
+
+.oom-date-navigator-modal .oom-modal-title {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: 1.5em;
+    text-align: center;
+}
+
+/* Reduce the size of day cells in the modal */
+.oom-date-navigator-modal .oom-day-cell {
+    min-height: 50px;
+    padding: 3px;
+}
+
+/* Style for the modal buttons */
+.oom-modal-button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1rem;
+    padding: 0.5rem;
+}
+
+.oom-modal-button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 14px;
+    border: none;
+    min-width: 100px;
+}
+
+.oom-apply-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 500;
+    padding: 8px 16px; /* Slightly larger padding */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
+    transition: all 0.2s ease;
+}
+
+.oom-apply-button:hover {
+    background-color: var(--interactive-accent-hover);
+    transform: translateY(-1px); /* Slight elevation on hover */
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+.oom-today-button:hover,
+.oom-clear-button:hover,
+.oom-close-button:hover {
+    background: var(--interactive-hover);
+}
+
+/* Day selection styles to fix appearance */
+.oom-date-navigator-modal .oom-day-cell.is-selected {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    position: relative;
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-selected::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--text-on-accent);
+}
+
+/* Responsive adjustments for Date Navigator */
+@media (max-width: 768px) {
+    .oom-date-navigator-modal {
+        width: 95vw;
+    }
+    
+    .oom-day-cell {
+        min-height: 40px;
+        padding: 2px;
+    }
+    
+    .oom-dream-dot {
+        width: 4px;
+        height: 4px;
+    }
+    
+    .oom-day-preview {
+        width: 180px;
+        left: 0;
+        transform: none;
+    }
+    
+    .oom-modal-button-container {
+        flex-wrap: wrap;
+    }
+    
+    .oom-modal-button {
+        flex: 1 0 auto;
+        min-width: 80px;
+    }
+}
+
+/* Day selection styles to fix appearance */
+.oom-date-navigator-modal .oom-day-cell.is-selected {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    position: relative;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+    z-index: 2;
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-today {
+    border: 2px solid var(--interactive-accent-hover);
+    background-color: rgba(var(--interactive-accent-rgb), 0.1);
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-today.is-selected {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--text-on-accent);
+}

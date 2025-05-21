@@ -458,34 +458,26 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             text: 'OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies.'
         });
 
-        // Add OneiroMetrics Buttons Section (move to top)
-        containerEl.createEl('h2', { text: 'OneiroMetrics Buttons' });
+        // Add Ribbon Button Section (move to top)
+        containerEl.createEl('h2', { text: 'Ribbon Button' });
 
-        // Show Ribbon Buttons Setting
+        // Show Ribbon Button Setting
         const ribbonLabelFrag = document.createDocumentFragment();
-        ribbonLabelFrag.append('Show OneiroMetrics Ribbon Buttons ');
-        const wandSvg = getIcon('wand-sparkles');
-        const shellSvg = getIcon('shell');
+        ribbonLabelFrag.append('Show Ribbon Button ');
+        const bookOpenCheckSvg = getIcon('book-open-check');
         const iconsSpan = document.createElement('span');
         iconsSpan.classList.add('oom-example-button');
-        if (wandSvg) {
-            wandSvg.setAttribute('width', '16');
-            wandSvg.setAttribute('height', '16');
-            iconsSpan.append(wandSvg);
-        } else {
-            iconsSpan.append('(?)');
-        }
-        if (shellSvg) {
-            shellSvg.setAttribute('width', '16');
-            shellSvg.setAttribute('height', '16');
-            iconsSpan.append(shellSvg);
+        if (bookOpenCheckSvg) {
+            bookOpenCheckSvg.setAttribute('width', '16');
+            bookOpenCheckSvg.setAttribute('height', '16');
+            iconsSpan.append(bookOpenCheckSvg);
         } else {
             iconsSpan.append('(?)');
         }
         ribbonLabelFrag.append(iconsSpan);
         new Setting(containerEl)
             .setName(ribbonLabelFrag)
-            .setDesc('Add ribbon buttons to quickly open the Dream Scrape tool or your metrics note')
+            .setDesc('Add ribbon button for opening the Dream Journal Manager')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.showRibbonButtons ?? true)
                 .onChange(async (value) => {
