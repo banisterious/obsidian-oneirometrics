@@ -267,7 +267,7 @@
   - Keyboard navigation and high-contrast support
   - Picker only in metric editor, icons used everywhere
   - Store only icon name in settings
-  - For detailed technical specifications, see [Icon Picker Technical Implementation](docs/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md)
+  - For detailed technical specifications, see [Icon Picker Technical Implementation](docs/developer/implementation/icon-picker.md)
 - Add a Test Modal for Markdown processing
 - Reduce excessive logging in future builds
 

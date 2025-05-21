@@ -254,7 +254,7 @@ See [CSS Refactoring](../../archive/plans/CSS_REFACTORING.md) for styling optimi
 - [ ] Optimize code to avoid expensive DOM operations during scroll
 - [ ] Use virtualization to minimize DOM nodes in memory
 
-See [Virtualization Plan](../../archive/plans/VIRTUALIZATION_PLAN.md) for implementation details.
+See [Virtualization Plan](../../planning/features/virtualization.md) for implementation details.
 
 ### Filter Performance
 - [ ] Start recording
