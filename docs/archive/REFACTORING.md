@@ -60,8 +60,8 @@ The following features are planned for future development and are tracked in [RO
    - Mobile optimization
 
 > **Note:** All planned refactoring tasks have been completed. Future enhancements and ongoing work are tracked in their respective documentation files:
-> - Testing: [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md)
-> - Accessibility: [ACCESSIBILITY_TESTING.md](ACCESSIBILITY_TESTING.md)
+> - Testing: [Performance Testing](../developer/testing/performance-testing.md)
+> - Accessibility: [Accessibility Testing](../developer/testing/accessibility-testing.md)
 > - Future Features: [ROADMAP.md](ROADMAP.md)
 
 ## Architecture Changes

@@ -1,6 +1,6 @@
 # Known Issues and Future Improvements
 
-> **Note:** For detailed instructions on using Chrome DevTools to diagnose performance issues, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+> **Note:** For detailed instructions on using Chrome DevTools to diagnose performance issues, see [Performance Testing](docs/developer/testing/performance-testing.md).
 
 > **Ribbon Button Visibility Bug:** [RESOLVED, May 2025] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
 
@@ -68,7 +68,7 @@
      - Removed global event listener attachment logic; listeners are now attached only to visible rows in the virtualized table, and a minimal handler is used for the static project note table.
      - Improved scroll logic to prevent jumping beneath the table and ensure the expanded row stays in view without overscrolling.
      - Reduced the number of visible rows from 25 to 12 for better performance and responsiveness.
-     - Added detailed logging and used DevTools to diagnose and verify fixes (see [LOGGING.md](LOGGING.md) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md)).
+     - Added detailed logging and used DevTools to diagnose and verify fixes (see [Logging](docs/developer/implementation/logging.md) and [Performance Testing](docs/developer/testing/performance-testing.md)).
    - Status: ✅ Fixed
 
 13. **Metrics Table Only Showing Word Count**
@@ -246,7 +246,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
   - Copy logs from Obsidian Developer Tools (Ctrl+Shift+I)
   - Paste into `oom-debug-log.txt`
   - Include relevant sections in your report
-- See [docs/LOGGING.md](docs/LOGGING.md) for more details about the logging system
+- See [docs/developer/implementation/logging.md](docs/developer/implementation/logging.md) for more details about the logging system
 - For privacy and responsible disclosure guidelines, see [../SECURITY.md](../SECURITY.md)
 
 ### UI Improvements
@@ -317,7 +317,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - Future Change: After issues stabilize, logging will be set back to "Off" by default
 - Users can still manually adjust logging level in settings if needed for troubleshooting
 
-**Note:** The root-level LOGGING.md has been removed; all logging documentation is now in `docs/LOGGING.md`.
+**Note:** The root-level LOGGING.md has been removed; all logging documentation is now in `docs/developer/implementation/logging.md`.
 
 ## Recent Fixes (May 2025)
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.

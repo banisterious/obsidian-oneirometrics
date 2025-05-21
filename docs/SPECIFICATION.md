@@ -222,10 +222,10 @@ The Settings page provides a comprehensive interface for managing dream metrics 
    - Metric extraction
    - Data storage and retrieval
    - State management
-   - See [State Persistence](STATE_PERSISTENCE.md) for user preference management
+   - See [State Persistence](developer/implementation/state.md) for user preference management
 
 2. **Date Handling Strategy**
-   - See [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for detailed implementation
+   - See [Date and Time Technical Specification](developer/implementation/date-time.md) for detailed implementation
    - Block references as primary date source
    - Fallback date formats
    - Date filtering system
@@ -260,12 +260,12 @@ The Settings page provides a comprehensive interface for managing dream metrics 
 - Source map generation
 
 ### 4. Documentation Requirements
-- [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for date handling implementation
+- [Date and Time Technical Specification](developer/implementation/date-time.md) for date handling implementation
 - [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for UI/UX implementation
-- [Testing Guide](TESTING.md) for testing procedures
-- [Project Overview](PROJECT_OVERVIEW.md) for high-level architecture
+- [Testing Guide](developer/testing/testing-overview.md) for testing procedures
+- [Project Overview](developer/architecture/overview.md) for high-level architecture
 - [Issues and Future Improvements](ISSUES.md) for known issues and planned features
-- [Logging System](docs/LOGGING.md) for debugging and monitoring capabilities
+- [Logging System](developer/implementation/logging.md) for debugging and monitoring capabilities
 
 ## Security Considerations
 

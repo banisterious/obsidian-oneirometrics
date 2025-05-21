@@ -1,6 +1,6 @@
 ## OneiroMetrics Metrics Guide
 
-This document provides detailed descriptions of the metrics used in OneiroMetrics for dream journal analysis. For information about metric styling and layout, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md). For details about temporal aspects of metrics, see the [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md).
+This document provides detailed descriptions of the metrics used in OneiroMetrics for dream journal analysis. For information about metric styling and layout, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md). For details about temporal aspects of metrics, see the [Date and Time Technical Specification](developer/implementation/date-time.md).
 
 ## Table of Contents
 
