@@ -43,7 +43,7 @@
 - [ ] Date range comparison
 - [ ] Advanced filtering options
 
-See [Date Tools Plan](features/date-tools.md) for detailed implementation specifications.
+See [Date Tools Plan](./features/date-tools.md) for detailed implementation specifications.
 
 ### Journal Structure Check
 - [ ] Basic structure validation
@@ -53,7 +53,7 @@ See [Date Tools Plan](features/date-tools.md) for detailed implementation specif
 - [ ] Settings UI
 - [ ] Linter plugin integration
 
-See [Journal Structure Guidelines](../developer/implementation/journal-structure.md) for structure rules and best practices, and [Journal Structure Check Implementation Plan](features/journal-structure-check.md) for implementation details.
+See [Journal Structure Guidelines](../user/guides/journal-structure.md) for structure rules and best practices, and [Journal Structure Check Implementation Plan](./features/journal-structure-check.md) for implementation details.
 
 ### Metrics System
 - [ ] Enhanced metrics visualization
@@ -62,7 +62,7 @@ See [Journal Structure Guidelines](../developer/implementation/journal-structure
 - [ ] Batch operations
 - [ ] Lucide Icon Picker integration
 
-See [Metrics Enhancements Plan](features/metrics-enhancements.md) for detailed implementation specifications.
+See [Metrics Enhancements Plan](./features/metrics-enhancements.md) for detailed implementation specifications.
 
 ### User Experience
 - [ ] Improved settings organization
@@ -79,7 +79,7 @@ See [Metrics Enhancements Plan](features/metrics-enhancements.md) for detailed i
   - [ ] Improved navigation
   - [ ] Enhanced feedback
 
-See [Dream Journal Manager Plan](features/dream-journal-manager.md) for detailed implementation specifications of the unified modal system.
+See [Dream Journal Manager Plan](./features/dream-journal-manager.md) for detailed implementation specifications of the unified modal system.
 
 ### Performance
 - [ ] Optimize validation engine
@@ -143,7 +143,9 @@ These features are under consideration but not yet planned for implementation. T
 - Some features may be combined or split during development
 - All features are subject to change
 
-## Custom Date Filter Improvements
+For details about the date tools implementation, see [Date Tools Plan](./features/date-tools.md).
+
+### Custom Date Filter Improvements
 - [ ] Multi-month view
 - [ ] Week numbers
 - [ ] Preview optimization

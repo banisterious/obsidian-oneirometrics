@@ -1,16 +1,7 @@
 # OneiroMetrics Usage Guide
 
-## Overview
-OneiroMetrics is an Obsidian plugin designed to help you track and analyze your dreams. It offers tools for structured dream journaling, dream pattern analysis, and metrics visualization to provide insights into your dream life.
-
-The plugin enables you to:
-- Create structured dream journal entries with consistent formatting
-- Track various metrics about your dreams (clarity, emotion, etc.)
-- Analyze patterns and trends in your dream experiences
-- Generate statistics and visualizations from your dream data
-
 ## Table of Contents
-- [Overview](#overview)
+- [Introduction](#introduction)
 - [Quick Start Guide](#quick-start-guide)
   - [Installation](#installation)
   - [Initial Setup](#initial-setup)
@@ -45,6 +36,16 @@ The plugin enables you to:
   - [Layout and Styling](#layout-and-styling)
   - [State Persistence](#state-persistence)
 
+## Introduction
+
+OneiroMetrics is an Obsidian plugin designed to help you track and analyze your dreams. It offers tools for structured dream journaling, dream pattern analysis, and metrics visualization to provide insights into your dream life.
+
+The plugin enables you to:
+- Create structured dream journal entries with consistent formatting
+- Track various metrics about your dreams (clarity, emotion, etc.)
+- Analyze patterns and trends in your dream experiences
+- Generate statistics and visualizations from your dream data
+
 ## Quick Start Guide
 
 ### Installation
@@ -72,7 +73,6 @@ The plugin enables you to:
 1. **Switch to Reading View**
    - OneiroMetrics requires Reading View mode for optimal functionality
    - Use the Reading View button in the top-right corner of Obsidian
-   - For more details on view mode requirements, see [View Mode Requirements](./view-mode.md)
 
 2. **Create Your First Dream Entry**
    - Open or create a dream journal note
@@ -234,7 +234,7 @@ You can add metrics:
 
 ### Templater Integration
 
-OneiroMetrics now standardizes on Templater for dynamic templates while providing fallbacks for users without Templater. For detailed Templater integration instructions, see the [Templater Integration Guide](./templater.md).
+OneiroMetrics now standardizes on Templater for dynamic templates while providing fallbacks for users without Templater.
 
 #### With Templater (Recommended)
 
@@ -248,154 +248,286 @@ Example template with Templater:
 ```markdown
 # Dream Journal: <% tp.date.now("YYYY-MM-DD") %>
 
-> [!dream-diary] <% tp.system.prompt("Dream Title", "Untitled Dream") %>
-> <% tp.system.prompt("Dream Description", "Enter your dream here...") %>
->
+> [!dream]
+> <% tp.system.prompt("Describe your dream", "") %>
+
 > [!dream-metrics]
-> Clarity: <% tp.system.prompt("Clarity (1-5)", "3") %>, Emotion: <% tp.system.prompt("Emotion (1-5)", "3") %>
+> Clarity: <% tp.system.prompt("Rate clarity (1-10)", "7") %>
+> Vividness: <% tp.system.prompt("Rate vividness (1-10)", "6") %>
 ```
 
-#### Without Templater (Basic Support)
+#### Without Templater (Fallback)
 
-Without Templater, you'll get:
-- Static templates with placeholder text
-- Manual replacements needed
-- Date tokens replaced with current date
+If Templater isn't installed, templates will:
+- Use static placeholders instead of dynamic content
+- Show placeholders like `[[DATE: YYYY-MM-DD]]`
+- Allow you to tab through placeholders for manual filling
+- Provide the same structure but without automation
 
-Example template without Templater:
+Example of the same template without Templater:
 ```markdown
-# Dream Journal: {{date}}
+# Dream Journal: [[DATE: YYYY-MM-DD]]
 
-> [!dream-diary] {{title}}
-> {{description}}
->
+> [!dream]
+> [[PROMPT: Describe your dream]]
+
 > [!dream-metrics]
-> Clarity: {{clarity}}, Emotion: {{emotion}}
+> Clarity: [[PROMPT: Rate clarity (1-10) (default: 7)]]
+> Vividness: [[PROMPT: Rate vividness (1-10) (default: 6)]]
 ```
+
+For more detailed information and advanced template techniques, see the [Templater Integration documentation](./templater.md).
 
 ## Analyzing Dreams
 
 ### Scraping Metrics
 
-To extract metrics from your dream entries:
+To analyze your dream entries:
 
-1. Open the Dream Journal Manager
-2. Go to the Dream Scraper tab
-3. Select the notes or folders to analyze
-4. Click "Scrape Metrics"
-5. Wait for the process to complete
-6. View the metrics in your project note
+1. **Access the Dream Scraper:**
+   - Through the Dream Journal Manager
+   - Via the ribbon icon or command palette
+   - Select "Scrape Metrics"
 
-For more detailed metric information, see the [Metrics Reference](../reference/metrics.md).
+2. **Select Source:**
+   - Choose individual notes or a folder
+   - Use multi-chip autocomplete for selecting specific notes
+   - Preview selected sources before scraping
+
+3. **Run Analysis:**
+   - Click "Scrape Metrics" to begin analysis
+   - The plugin will:
+     - Create a backup of your project note
+     - Show a confirmation dialog
+     - Update the metrics table
+     - Preserve any content before/after the table
+
+> **Tip:** The Dream Scrape interface includes a **Settings** button for quick access to plugin settings.
 
 ### Metrics Table
 
-The metrics table shows all your dream metrics in a structured format:
+The generated metrics table includes two main sections:
 
-- **Date Column**: The date of each dream entry
-- **Metric Columns**: Each selected metric
-- **Expandable Rows**: Click to show the dream content
-- **Sortable Columns**: Click column headers to sort
-- **Searchable**: Use the search bar to filter entries
+#### Summary Section
+- Average values for each metric
+- Minimum and maximum values
+- Number of entries analyzed
+- Total word count statistics
+
+#### Detailed Section
+- Date and title (with clickable links)
+- Word count for each entry
+- Expandable/collapsible content preview
+- All configured metrics
+- Optimized column widths for readability
 
 ### Table Features
 
-- **Filtering**: Use the date filter to show dreams from specific time periods
-- **Sorting**: Click column headers to sort by date or metrics
-- **Expanding**: Click the "+" icon to view dream content
-- **Search**: Type in the search bar to filter by content or metrics
-- **Statistics**: View averages at the bottom of the table
+The metrics table offers several powerful features:
+
+- **Sortable Columns:** Click column headers to sort
+- **Content Expansion:** Show more/less for dream content
+- **Filtering Options:**
+  - Date filter dropdown with human-friendly labels (Today, This Week, etc.)
+  - Metric-based filtering
+  - Combined filtering options
+- **Layout Controls:**
+  - Full-width layout (overrides readable line length)
+  - Toggle to control table width
+  - Responsive design for all screen sizes
+- **Performance Optimizations:**
+  - Smooth scrolling that maintains position
+  - Fast expand/collapse functionality
+  - Optimized for large dream journals
 
 ### Date Tools
 
-- **Quick Filters**: Show dreams from last week, month, year
-- **Custom Range**: Select a specific date range
-- **Date Comparison**: Compare metrics across different time periods
-- **Calendar View**: Visual calendar showing dream frequency
+The Date Tools feature helps analyze dream entries across different time periods:
+
+#### Date Filtering
+
+- **Quick Filters:**
+  - Today, Yesterday, This Week, Last Week
+  - This Month, Last Month, This Year, Last Year
+  - Custom date range
+
+- **Custom Date Range:**
+  - Calendar interface for selecting dates
+  - Save favorite date ranges
+  - Configurable week start day
+
+#### Date Analysis
+
+- **Pattern Recognition:**
+  - Compare metrics across time periods
+  - Identify trends and patterns
+  - Track changes in dream characteristics
+
+For detailed information on date handling, see the [Date Tools Plan](../../planning/features/date-tools.md).
 
 ## Customizing the Plugin
 
 ### Accessing Settings
 
-Access OneiroMetrics settings through:
-- Obsidian Settings → OneiroMetrics
-- The gear icon in the Dream Journal Manager
-- The OneiroMetrics ribbon icon → Settings
+Access OneiroMetrics settings in several ways:
+- **Dream Scrape modal:** Click 'Settings' button
+- **OneiroMetrics note:** Click 'Settings' button at the top
+- **Command palette:** Search for "OneiroMetrics Settings"
+- **Ribbon icon:** Right-click the wand icon and select settings
 
 ### Configuring Metrics
 
-In the settings menu, you can:
-- Add, edit, or remove metrics
-- Set default metric values
-- Change metric display order
-- Set required vs. optional metrics
+#### Project Note Path
+- Set the path where your metrics table will be stored
+- Use the smart file suggestion system
+- The file will be created if it doesn't exist
+- Backups are created automatically before changes
+
+#### Metric Editor
+- Add, edit, or remove metrics with real-time validation
+- Configure validation rules for each metric
+- Use keyboard shortcuts for efficient editing
+- Customize metric icons using the icon picker
+
+#### Managing Metrics
+- Drag and drop to reorder metrics
+- Group metrics as Enabled or Disabled
+- Reset to defaults while preserving custom metrics
+- Import/export your metric configurations
 
 ### Multi-Note Selection
 
-Configure which notes are included in your dream analysis:
-- Select specific notes
-- Choose entire folders
-- Use tags to filter notes
-- Set up automatic inclusion rules
+#### Note Selection
+- Use the multi-chip autocomplete field to select notes
+- Add or remove notes easily
+- Support for multiple note paths
+- Smart path matching and suggestions
+
+#### Smart File Suggestions
+- Case-insensitive matching
+- Year-based path suggestions
+- Real-time validation feedback
+- Support for spaces and special characters
 
 ### View Mode Settings
 
-See the [View Mode Guide](./view-mode.md) for detailed information on:
-- Reading view requirements
-- Customizing the view experience
-- Compatibility with other plugins
-- Troubleshooting view mode issues
+OneiroMetrics is designed to work best in Reading View mode:
+
+#### Reading View Benefits
+- Stable, predictable layout environment
+- Consistent table rendering across themes
+- Better performance for large tables
+- Improved accessibility features
+
+#### View Mode Detection
+- The plugin detects your current view mode
+- Provides clear notifications when needed
+- Settings include warnings about view mode requirements
+
+For detailed information about view mode requirements and limitations, please refer to the [View Mode Requirements](./view-mode.md) document.
 
 ### Backup System
 
-OneiroMetrics automatically backs up your data:
-- Before major operations (scraping, template changes)
-- On a configurable schedule
-- With configurable backup locations
-- With a backup restoration system
+OneiroMetrics includes an automatic backup system:
+
+- **Automatic Backups:**
+  - Created before each metrics update
+  - Use .bak extension for better organization
+  - Include timestamps for versioning
+  - Stored in the same directory as your project note
+
+- **Backup Management:**
+  - Visual indicators in file explorer
+  - Easy restoration if needed
+  - Safe to delete old backups
 
 ## Troubleshooting & Tips
 
 ### Common Issues
 
-- **Table not showing**: Ensure you're in Reading View, not Editing View
-- **Metrics not found**: Check that you're using the correct callout format
-- **Performance issues**: See [Performance Tips](#performance-tips)
-- **Template errors**: Check Templater installation and configuration
+1. **View Mode Issues**
+   - **Problem:** Tables don't render correctly
+   - **Solution:** Switch to Reading View mode using the button in the top-right corner
+   - **Why:** OneiroMetrics requires Reading View for stable table rendering
+
+2. **Missing Metrics**
+   - **Problem:** Metrics aren't appearing in the table
+   - **Solution:** 
+     - Verify callout name matches your settings
+     - Check for typos in metric names
+     - Ensure proper callout formatting
+   - **Example:** `> [!dream-metrics]` must match exactly
+
+3. **Invalid Metric Values**
+   - **Problem:** Validation errors for metrics
+   - **Solution:**
+     - Check the validation rules in settings
+     - Ensure values are within the specified range
+     - Use the correct format in callouts
+   - **Tip:** Hover over metrics for validation feedback
+
+4. **Table Display Issues**
+   - **Problem:** Table width or formatting issues
+   - **Solution:**
+     - Use the Readable Line Length toggle
+     - Check theme compatibility
+     - Verify that CSS snippets aren't interfering
+
+5. **Button Responsiveness**
+   - **Problem:** "Show more" button not working
+   - **Solution:** Use the debug button to reset event listeners
+   - **Access:** Set Logging Level to **Debug** in settings
 
 ### Performance Tips
 
-For large journals with many entries:
-- Use the "Limit entries" option in settings
-- Enable the "Load on demand" feature
-- Consider splitting journals into yearly or monthly files
-- Use the performance mode in settings (fewer features but faster)
+- **Large Datasets:**
+  - Use filters to focus on specific time periods
+  - Limit visible rows when working with hundreds of entries
+  - Consider splitting journals by year for very large collections
+
+- **Regular Maintenance:**
+  - Clean up old backup files occasionally
+  - Monitor log file sizes in the logs folder
+  - Use consistent formatting in dream entries
+
+- **Optimization Settings:**
+  - Enable performance optimization options
+  - Set appropriate week start day for filters
+  - Configure logging level based on needs
 
 ### Debug Tools
 
-If you encounter issues:
-1. Enable debug mode in settings
-2. Check the developer console (Ctrl+Shift+I)
-3. Look for error messages in the console
-4. Use the debug tools in the Advanced section of settings
+Access debugging features by setting Logging Level to **Debug** in settings:
+
+- **Debug Button:**
+  - Reset event listeners if buttons become unresponsive
+  - Force table refresh
+  - View diagnostic information
+  - Clear stuck UI states
+
+- **Console Logging:**
+  - Open Developer Tools (Ctrl+Shift+I)
+  - Check Console tab for detailed logs
+  - Filter for "OOM" to see plugin-specific messages
 
 ### Getting Help
 
-If you need assistance:
-- Check the [Troubleshooting Guide](../reference/troubleshooting.md)
-- Visit the GitHub repository to report issues
-- Search for similar problems in the Issues section
-- Join the Discord community for support
+- **Documentation:**
+  - Check detailed documentation files
+  - Review the [README.md](../../../README.md) for overview
+  - See [SPECIFICATION.md](../../SPECIFICATION.md) for technical details
+
+- **Support:**
+  - Visit the GitHub repository for updates
+  - Check for known issues in [ISSUES.md](../../../ISSUES.md)
+  - Review validation messages for specific problems
 
 ## Advanced Topics
 
 ### Layout and Styling
 
-- Customize the appearance of metrics tables
-- Change colors and styles using CSS snippets
-- Create custom themes for the Dream Journal Manager
-- Design your own template layouts
+For comprehensive information about layout options, styling features, and theme integration, see the [Layout and Styling Technical Specification](../../archive/LAYOUT_AND_STYLING.md).
 
 ### State Persistence
 
-For information about how the plugin saves state, see [State Persistence](../../developer/implementation/state.md). 
+The plugin maintains your preferences across sessions, including expanded/collapsed states for dream entries. For detailed information about state persistence features and implementation, see the [State Persistence](../../developer/implementation/state.md) documentation. 
