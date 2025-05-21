@@ -248,9 +248,7 @@ export class DreamJournalManager extends Modal {
             }
         });
         
-        this.createQuickActionButton(quickActionsGrid, 'Help & Docs', 'help-circle', () => {
-            window.open('https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/user/guides/usage.md', '_blank');
-        });
+                this.createQuickActionButton(quickActionsGrid, 'Help & Docs', 'help-circle', () => {            window.open('https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/user/guides/usage.md', '_blank');        });
         
         // Recent Activity Section
         const recentActivitySection = sectionEl.createDiv({ cls: 'oom-dashboard-section' });

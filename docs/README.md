@@ -66,8 +66,8 @@ Welcome to the OneiroMetrics documentation. This index will help you find the in
 - [User Guide Template](assets/templates/user-guide-template.md)
 
 ## Documentation Process
-- [Documentation Inventory](DOCUMENTATION_INVENTORY.md)
-- [Documentation Reorganization Plan](DOCUMENTATION_REORGANIZATION_PLAN.md)
+- [Documentation Inventory](documentation-inventory.md)
+- [Documentation Reorganization Plan](documentation-reorganization-plan.md)
 
 ---
 

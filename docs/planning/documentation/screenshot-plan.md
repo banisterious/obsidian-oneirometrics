@@ -109,7 +109,7 @@ This document outlines the plan for creating and maintaining consistent, high-qu
 - [ ] Set up tools for consistent screenshot capture
 - [ ] Create annotation templates
 - [ ] Complete Phase 1 (High Priority) screenshots
-- [ ] Update USAGE.md with new screenshot references
+- [ ] Update docs/user/guides/usage.md with new screenshot references
 - [ ] Complete Phase 2 screenshots
 - [ ] Complete Phase 3 screenshots
 - [ ] Establish regular screenshot review process 
