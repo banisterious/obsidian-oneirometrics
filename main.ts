@@ -2693,7 +2693,7 @@ function forceApplyDateFilter(date: Date) {
 // Expose the function globally so it can be called from DateNavigatorModal
 (window as any).forceApplyDateFilter = forceApplyDateFilter;
 
-// Further optimize applyCustomDateRangeFilter to eliminate forced reflows
+// Further optimize applyCustomDateRangeFilter with chunking to eliminate requestAnimationFrame warnings
 function applyCustomDateRangeFilter() {
     console.log('[OOM-DEBUG] applyCustomDateRangeFilter called with customDateRange:', customDateRange);
     
@@ -2708,86 +2708,108 @@ function applyCustomDateRangeFilter() {
         return;
     }
     
-    console.log('[OOM-DEBUG] Container found:', previewEl);
-    
-    // Performance optimization: Prevent layout thrashing by reading first, writing later
+    // Performance optimization: Prevent layout thrashing by reading all data at once
     const rowsArray = Array.from(previewEl.querySelectorAll('.oom-dream-row'));
-    console.log('[OOM-DEBUG] Found', rowsArray.length, 'rows to filter');
+    const totalRows = rowsArray.length;
+    console.log('[OOM-DEBUG] Found', totalRows, 'rows to filter');
+    
+    // Show a loading indicator for large tables (over 50 rows)
+    let loadingIndicator: HTMLElement | null = null;
+    if (totalRows > 50) {
+        loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'oom-loading-indicator';
+        loadingIndicator.textContent = 'Filtering entries...';
+        loadingIndicator.style.position = 'fixed';
+        loadingIndicator.style.top = '10px';
+        loadingIndicator.style.right = '10px';
+        loadingIndicator.style.background = 'var(--background-primary)';
+        loadingIndicator.style.color = 'var(--text-normal)';
+        loadingIndicator.style.padding = '8px 12px';
+        loadingIndicator.style.borderRadius = '4px';
+        loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
+        loadingIndicator.style.zIndex = '1000';
+        document.body.appendChild(loadingIndicator);
+    }
     
     const startDate = new Date(customDateRange.start);
     const endDate = new Date(customDateRange.end);
     console.log('[OOM-DEBUG] Filtering dates between', startDate.toLocaleDateString(), 'and', endDate.toLocaleDateString());
     
+    // Pre-compute date strings for comparison to avoid repeated parsing
+    const startDateString = customDateRange.start;
+    const endDateString = customDateRange.end;
+    
     let visibleCount = 0;
     let hiddenCount = 0;
     
-    // Phase 1: Read - Collect all DOM measurements and compute visibility changes
-    // This prevents interleaving reads and writes which causes layout thrashing
-    const rowUpdates = rowsArray.map((row, index) => {
-        const rowEl = row as HTMLElement;
-        const dateAttr = rowEl.getAttribute('data-date');
-        
-        if (!dateAttr) {
-            console.log(`[OOM-DEBUG] Row ${index} has no data-date attribute`);
-            return { row: rowEl, visible: false };
-        }
-        
-        // Parse row date consistently
-        const rowDate = new Date(dateAttr);
-        if (isNaN(rowDate.getTime())) {
-            console.log(`[OOM-DEBUG] Row ${index} has invalid date: ${dateAttr}`);
-            return { row: rowEl, visible: false };
-        }
-        
-        // Simple date comparison (just using the date part)
-        const rowDateString = rowDate.toISOString().split('T')[0];
-        
-        // We've already checked customDateRange at the top, but add a safety check
-        // to satisfy the linter
-        if (!customDateRange) {
-            return { row: rowEl, visible: false };
-        }
-        
-        const isDateInRange = 
-            rowDateString >= customDateRange.start && 
-            rowDateString <= customDateRange.end;
-        
-        if (index < 5) {
-            console.log(`[OOM-DEBUG] Row ${index} with date ${rowDateString} is ${isDateInRange ? 'VISIBLE' : 'HIDDEN'}`);
-        }
-        
-        return { row: rowEl, visible: isDateInRange };
-    });
+    // Process rows in chunks to avoid blocking the UI
+    const CHUNK_SIZE = 20; // Process 20 rows per frame
+    let currentChunk = 0;
     
-    // Phase 2: Write - Batch all DOM updates in a single animation frame
-    // This ensures browser can optimize the reflow/repaint cycle
-    requestAnimationFrame(() => {
-        // Use a DocumentFragment for off-DOM manipulation
-        rowUpdates.forEach(({ row, visible }) => {
-            if (visible) {
-                row.style.display = '';
-                row.classList.add('oom-row--visible');
+    // Create a processing function that will handle a chunk of rows
+    const processNextChunk = () => {
+        const start = currentChunk * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, totalRows);
+        
+        // Update loading indicator if present
+        if (loadingIndicator) {
+            const percent = Math.floor((start / totalRows) * 100);
+            loadingIndicator.textContent = `Filtering entries... ${percent}%`;
+        }
+        
+        // Process this chunk
+        for (let i = start; i < end; i++) {
+            const rowEl = rowsArray[i] as HTMLElement;
+            const dateAttr = rowEl.getAttribute('data-date');
+            
+            if (!dateAttr) {
+                rowEl.style.display = 'none';
+                hiddenCount++;
+                continue;
+            }
+            
+            // Most efficient date comparison - string comparison instead of Date objects
+            // Format is already YYYY-MM-DD so lexicographical comparison works
+            const isInRange = dateAttr >= startDateString && dateAttr <= endDateString;
+            
+            if (isInRange) {
+                rowEl.style.display = '';
+                rowEl.classList.add('oom-row--visible');
                 visibleCount++;
             } else {
-                row.style.display = 'none';
-                row.classList.remove('oom-row--visible');
+                rowEl.style.display = 'none';
+                rowEl.classList.remove('oom-row--visible');
                 hiddenCount++;
             }
-        });
+        }
         
-        console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
+        // Move to next chunk or finish
+        currentChunk++;
         
-        // Update filter display after row visibility is updated
-        updateFilterDisplay(visibleCount);
-        
-        // Use another animation frame for notifications to avoid blocking rendering
-        requestAnimationFrame(() => {
-            // Only show notice if this is user-initiated (not on page load)
-            if (document.body.classList.contains('theme-light') || document.body.classList.contains('theme-dark')) {
-                new Notice(`Date filter applied: ${visibleCount} entries visible, ${hiddenCount} hidden`);
+        if (currentChunk * CHUNK_SIZE < totalRows) {
+            // Schedule next chunk in the next animation frame
+            requestAnimationFrame(processNextChunk);
+        } else {
+            // All chunks processed, finalize
+            console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
+            
+            // Remove loading indicator if present
+            if (loadingIndicator) {
+                document.body.removeChild(loadingIndicator);
             }
-        });
-    });
+            
+            // Update filter display after all rows are processed
+            updateFilterDisplay(visibleCount);
+            
+            // Show notification after UI is updated
+            requestAnimationFrame(() => {
+                new Notice(`Date filter applied: ${visibleCount} entries visible, ${hiddenCount} hidden`);
+            });
+        }
+    };
+    
+    // Start processing the first chunk
+    requestAnimationFrame(processNextChunk);
 }
 
 function updateFilterDisplay(entryCount: number) {
