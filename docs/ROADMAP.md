@@ -53,7 +53,7 @@ See [Date Tools Plan](planning/features/date-tools.md) for detailed implementati
 - [ ] Settings UI
 - [ ] Linter plugin integration
 
-See [Journal Structure Guidelines](user/guides/journal-structure.md) for structure rules and best practices, and [Journal Structure Check Implementation Plan](JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md) for implementation details.
+See [Journal Structure Guidelines](user/guides/journal-structure.md) for structure rules and best practices, and [Journal Structure Check Implementation Plan](planning/features/journal-structure-check.md) for implementation details.
 
 ### Metrics System
 - [ ] Enhanced metrics visualization

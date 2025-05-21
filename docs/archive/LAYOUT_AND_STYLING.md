@@ -7,7 +7,7 @@
 This document outlines the layout and styling options available for OneiroMetrics, with a focus on compatibility with the [Modular CSS Layout (MCL)](https://efemkay.github.io/obsidian-modular-css-layout/) snippet collection.
 
 For documentation standards and guidelines, see [Documentation Style Guide](DOCUMENTATION_STYLE_GUIDE.md).
-For code quality standards, see [Journal Structure Guidelines](JOURNAL_STRUCTURE_GUIDELINES.md) and [Journal Structure Check Implementation Plan](JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md).
+For code quality standards, see [Journal Structure Guidelines](../user/guides/journal-structure.md) and [Journal Structure Check Implementation Plan](../planning/features/journal-structure-check.md).
 For icon implementation details, see [Icon Picker Technical Implementation](ICON_PICKER_TECHNICAL_IMPLEMENTATION.md).
 For metric descriptions and styling, see [Metrics Reference](../user/reference/metrics.md).
 
