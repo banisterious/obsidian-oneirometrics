@@ -17,8 +17,8 @@ We follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (MAJOR.MINO
 1. **Update Documentation**
    - Update CHANGELOG.md with new changes
    - Update README.md if needed
-   - Update docs/SPECIFICATION.md if needed
-   - Update docs/USAGE.md if needed
+   - Update docs/developer/architecture/specification.md if needed
+   - Update docs/user/guides/usage.md if needed
 
 2. **Code Review**
    - Ensure all tests pass
