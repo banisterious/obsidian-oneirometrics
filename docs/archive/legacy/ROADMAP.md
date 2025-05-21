@@ -62,7 +62,7 @@ See [Journal Structure Guidelines](user/guides/journal-structure.md) for structu
 - [ ] Batch operations
 - [ ] Lucide Icon Picker integration
 
-See [Metrics Enhancements Plan](METRICS_ENHANCEMENTS_PLAN.md) for detailed implementation specifications.
+See [Metrics Enhancements Plan](planning/features/metrics-enhancements.md) for detailed implementation specifications.
 
 ### User Experience
 - [ ] Improved settings organization

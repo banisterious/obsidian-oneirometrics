@@ -515,7 +515,7 @@ Access debugging features by setting Logging Level to **Debug** in settings:
 - **Documentation:**
   - Check detailed documentation files
   - Review the [README.md](../../../README.md) for overview
-  - See [SPECIFICATION.md](../../SPECIFICATION.md) for technical details
+  - See [Technical Specification](../../developer/architecture/specification.md) for technical details
 
 - **Support:**
   - Visit the GitHub repository for updates
