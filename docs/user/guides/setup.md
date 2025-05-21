@@ -1,7 +1,7 @@
 # OneiroMetrics Setup Guide
 
 > **Applies to:** OneiroMetrics v1.0.0 and above  
-> **Last Updated:** 2025-05-20
+> **Last Updated:** 2025-05-21
 
 ## Overview
 

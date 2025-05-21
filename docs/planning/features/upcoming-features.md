@@ -1,6 +1,6 @@
 # Upcoming Features
 
-> **Last Updated:** 2025-05-20  
+> **Last Updated:** 2025-05-21  
 > This document outlines features planned for future releases of OneiroMetrics.
 
 ## Feature Roadmap

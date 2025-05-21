@@ -140,13 +140,13 @@ See [ISSUES.md](ISSUES.md#fixed-issues) for more.
 
 ## Documentation
 
-- [Project Overview](docs/PROJECT_OVERVIEW.md)
-- [Usage Guide](docs/USAGE.md)
+- [Project Overview](docs/developer/architecture/overview.md)
+- [Usage Guide](docs/user/guides/usage.md)
 - [Logging Guide](docs/developer/implementation/logging.md)
 - [Known Issues](ISSUES.md)
 - [Release Notes](CHANGELOG.md)
-- [Metrics Guide](docs/METRICS.md)
-- [Testing Guide](docs/TESTING.md)
+- [Metrics Guide](docs/user/reference/metrics.md)
+- [Testing Guide](docs/developer/testing/testing-overview.md)
 - [Date Tools Plan](docs/planning/features/date-tools.md)
 
 ---

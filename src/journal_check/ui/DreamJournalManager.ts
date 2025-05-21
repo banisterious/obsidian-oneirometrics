@@ -68,7 +68,7 @@ export class DreamJournalManager extends Modal {
         contentEl.addClass('oom-journal-manager-content');
         
         // Create header
-        contentEl.createEl('h2', { text: 'Dream Journal Manager' });
+        contentEl.createEl('h2', { text: 'Dream Journal Manager', cls: 'oom-journal-manager-title' });
         
         // Create main content container with navigation sidebar and content area
         const container = contentEl.createDiv({ cls: 'oom-journal-manager-container' });
@@ -249,7 +249,7 @@ export class DreamJournalManager extends Modal {
         });
         
         this.createQuickActionButton(quickActionsGrid, 'Help & Docs', 'help-circle', () => {
-            window.open('https://github.com/yourusername/oneirometrics/tree/main/docs', '_blank');
+            window.open('https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/USAGE.md', '_blank');
         });
         
         // Recent Activity Section
