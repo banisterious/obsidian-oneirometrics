@@ -380,8 +380,8 @@ The following features are documented in detail in separate files:
 
 - **Core Plugin**: The main plugin functionality is documented in the source code and `main.ts`.
 - **Settings**: Settings are documented in `settings.ts` and the sources code.
-- **Metrics**: The metrics system is documented in `docs/METRICS_DESCRIPTIONS.md` and `docs/METRICS_ENHANCEMENTS_PLAN.md`.
-- **Journal Structure Check**: The journal structure validation system (formerly known as "Linting") is documented in `docs/JOURNAL_STRUCTURE_GUIDELINES.md` and `docs/JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md`.
+- **Metrics**: The metrics system is documented in [Metrics Reference](user/reference/metrics.md) and `docs/METRICS_ENHANCEMENTS_PLAN.md`.
+- **Journal Structure Check**: The journal structure validation system (formerly known as "Linting") is documented in [Journal Structure Guidelines](user/guides/journal-structure.md) (for users) and [Code Standards](developer/contributing/code-standards.md) (for developers). Implementation details can be found in `docs/JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md`.
 - **Templates**: Template functionality including the new Templater integration is documented in `docs/TEMPLATER_INTEGRATION_PLAN.md`.
 - **CSS**: The CSS architecture is documented in `docs/CSS_REFACTORING.md`. All plugin-specific CSS classes now use the "oom-" prefix to avoid conflicts.
 - **Testing**: Testing procedures are documented in `docs/TESTING.md`.
