@@ -64,7 +64,7 @@ OneiroMetrics now standardizes on Templater as the recommended template engine f
 - **Template Wizard:** Create and edit templates with dual preview (Templater and static versions)
 - **Backward Compatible:** All existing templates continue to work
 
-For comprehensive details, see our [Templater Integration documentation](docs/TEMPLATER_INTEGRATION.md).
+For comprehensive details, see our [Templater Integration documentation](docs/user/guides/templater.md).
 
 To use Templater integration:
 1. Install the [Templater plugin](https://github.com/SilentVoid13/Templater) (recommended but optional)

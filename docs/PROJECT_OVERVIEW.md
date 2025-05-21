@@ -348,12 +348,12 @@ This approach helps pinpoint where the update process may be breaking down and e
 
 ## Documentation Requirements
 - [Date and Time Technical Specification](developer/implementation/date-time.md) for date handling implementation
-- [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for UI/UX implementation
+- [Layout and Styling Technical Specification](archive/LAYOUT_AND_STYLING.md) for UI/UX implementation
 - [Testing Guide](TESTING.md) for testing procedures
 - [Project Overview](PROJECT_OVERVIEW.md) for high-level architecture
 - [Issues and Future Improvements](ISSUES.md) for known issues and planned features
 - [Logging System](developer/implementation/logging.md) for debugging and monitoring capabilities
-- [State Persistence](STATE_PERSISTENCE.md) for user preference management
+- [State Persistence](developer/implementation/state.md) for user preference management
 
 ## Future Features and Planning
 - See [Date Tools Plan](planning/features/date-tools.md) for the current plan and open questions regarding the custom date range picker feature.
@@ -380,7 +380,7 @@ The following features are documented in detail in separate files:
 
 - **Core Plugin**: The main plugin functionality is documented in the source code and `main.ts`.
 - **Settings**: Settings are documented in `settings.ts` and the sources code.
-- **Metrics**: The metrics system is documented in [Metrics Reference](user/reference/metrics.md) and `docs/METRICS_ENHANCEMENTS_PLAN.md`.
+- **Metrics**: The metrics system is documented in [Metrics Reference](user/reference/metrics.md) and [Metrics Enhancements Plan](planning/features/metrics-enhancements.md).
 - **Journal Structure Check**: The journal structure validation system (formerly known as "Linting") is documented in [Journal Structure Guidelines](user/guides/journal-structure.md) (for users) and [Code Standards](developer/contributing/code-standards.md) (for developers). Implementation details can be found in [Journal Structure Check Implementation Plan](planning/features/journal-structure-check.md).
 - **Templates**: Template functionality including the new Templater integration is documented in `docs/planning/features/templater-integration.md`.
 - **CSS**: The CSS architecture is documented in `docs/CSS_REFACTORING.md`. All plugin-specific CSS classes now use the "oom-" prefix to avoid conflicts.
