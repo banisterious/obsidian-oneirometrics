@@ -33,7 +33,7 @@ To improve performance and responsiveness with large datasets, we will render on
 - In the virtualized table (settings modal and interactive UI), event listeners are attached only to the currently visible rows when they are rendered.
 - In the static project note table (rendered as HTML in the main note), a minimal event handler attaches listeners to all expand/collapse buttons after the table is rendered or updated.
 - This approach ensures reliable expand/collapse behavior, prevents duplicate or lost listeners, and keeps performance high even with large tables.
-- See [SPECIFICATION.md](SPECIFICATION.md#expandcollapse-read-more-functionality) for further technical details.
+- See [Technical Specification](../../developer/architecture/specification.md#expandcollapse-read-more-functionality) for further technical details.
 
 ### 7. Accessibility Considerations
 - Ensure keyboard navigation (Tab, Arrow keys) works across all rows, not just visible ones.

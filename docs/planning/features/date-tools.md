@@ -1,24 +1,29 @@
 # Date Tools Plan
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Core Features](#core-features)
+  - [Date Filter](#1-date-filter)
+  - [Multi-month Calendar](#2-multi-month-calendar)
+  - [Date Comparison](#3-date-comparison)
+  - [Pattern Analysis](#4-pattern-analysis)
 - [Technical Architecture](#technical-architecture)
 - [Implementation Plan](#implementation-plan)
-  - [Date Filter](#date-filter)
-  - [Multi-month Calendar](#multi-month-calendar)
-  - [Date Comparison](#date-comparison)
-  - [Pattern Analysis](#pattern-analysis)
 - [UI/UX Design](#uiux-design)
 - [Accessibility](#accessibility)
 - [Testing](#testing)
 - [Future Enhancements](#future-enhancements)
+- [Multi-month Calendar View Specification](#multi-month-calendar-view-specification)
+- [Date Range Comparison Specification](#date-range-comparison-specification)
+- [Comparison User Flow](#comparison-user-flow)
 - [Changelog](#changelog)
 
----
-
 ## Overview
-Date Tools is a comprehensive suite of features for analyzing dream entries across different time periods. It includes date filtering, multi-month calendar views, date range comparison, and pattern analysis capabilities.
+
+Date Tools is a comprehensive suite of features for analyzing dream entries across different time periods. It provides users with powerful tools to filter, visualize, and compare dream journal data based on dates. The system includes date filtering, multi-month calendar views, date range comparison, and pattern analysis capabilities designed to help users gain deeper insights into their dream patterns over time.
+
+This document outlines the technical specifications, implementation plan, and user experience considerations for the Date Tools feature set within the OneiroMetrics plugin.
 
 ## Core Features
 
