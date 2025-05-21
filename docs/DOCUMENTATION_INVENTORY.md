@@ -17,11 +17,11 @@ This inventory tracks all documentation files in the OneiroMetrics project, orga
 | README.md | (Root) | ✅ | Updated with new links |
 | DOCUMENTATION_REORGANIZATION_PLAN.md | docs/DOCUMENTATION_REORGANIZATION_PLAN.md | ✅ | Kept in original location as reference |
 | DOCUMENTATION_STYLE_GUIDE.md | docs/assets/templates/documentation-style-guide.md | ✅ | Migrated and archived |
-| USAGE.md | docs/USAGE.md | 🔄 | Still in original location, references updated |
-| SPECIFICATION.md | docs/SPECIFICATION.md | 🔄 | Still in original location, references updated |
-| PROJECT_OVERVIEW.md | docs/PROJECT_OVERVIEW.md | 🔄 | Still in original location, references updated |
-| TESTING.md | docs/TESTING.md | 🔄 | Still in original location, references updated |
-| ROADMAP.md | docs/ROADMAP.md | 🔄 | Still in original location, references updated |
+| USAGE.md | docs/user/guides/usage.md | ✅ | Migrated and archived |
+| SPECIFICATION.md | docs/developer/architecture/specification.md | ✅ | Migrated and archived |
+| PROJECT_OVERVIEW.md | docs/developer/architecture/overview.md | ✅ | Migrated and archived |
+| TESTING.md | docs/developer/testing/testing-overview.md | ✅ | Migrated and archived |
+| ROADMAP.md | docs/planning/roadmap.md | ✅ | Migrated and archived |
 
 ## Developer Documentation
 
@@ -29,8 +29,8 @@ This inventory tracks all documentation files in the OneiroMetrics project, orga
 
 | Original File | New Location | Status | Notes |
 |---------------|--------------|--------|-------|
-| (New) | docs/developer/architecture/overview.md | 🆕 | Created as part of reorganization |
-| (New) | docs/developer/architecture/specification.md | 🆕 | Created as part of reorganization |
+| PROJECT_OVERVIEW.md | docs/developer/architecture/overview.md | ✅ | Migrated and archived |
+| SPECIFICATION.md | docs/developer/architecture/specification.md | ✅ | Migrated and archived |
 
 ### Implementation
 
@@ -46,10 +46,10 @@ This inventory tracks all documentation files in the OneiroMetrics project, orga
 
 | Original File | New Location | Status | Notes |
 |---------------|--------------|--------|-------|
+| TESTING.md | docs/developer/testing/testing-overview.md | ✅ | Migrated and archived |
 | PERFORMANCE_TESTING.md | docs/developer/testing/performance-testing.md | ✅ | Migrated and archived |
 | UI_TESTING.md | docs/developer/testing/ui-testing.md | ✅ | Migrated and archived |
 | ACCESSIBILITY_TESTING.md | docs/developer/testing/accessibility-testing.md | ✅ | Migrated and archived |
-| (New) | docs/developer/testing/testing-overview.md | 🆕 | Created as part of reorganization |
 
 ### Contributing
 
@@ -63,6 +63,7 @@ This inventory tracks all documentation files in the OneiroMetrics project, orga
 
 | Original File | New Location | Status | Notes |
 |---------------|--------------|--------|-------|
+| ROADMAP.md | docs/planning/roadmap.md | ✅ | Migrated and archived |
 | VIRTUALIZATION_PLAN.md | docs/planning/features/virtualization.md | ✅ | Migrated and archived |
 | TEMPLATER_INTEGRATION_PLAN.md | docs/planning/features/templater-integration.md | ✅ | Migrated and archived |
 | DREAM_JOURNAL_MANAGER_PLAN.md | docs/planning/features/dream-journal-manager.md | ✅ | Migrated and archived |
@@ -94,10 +95,10 @@ This inventory tracks all documentation files in the OneiroMetrics project, orga
 
 | Original File | New Location | Status | Notes |
 |---------------|--------------|--------|-------|
+| USAGE.md | docs/user/guides/usage.md | ✅ | Migrated and archived |
 | JOURNAL_STRUCTURE_GUIDELINES.md | docs/user/guides/journal-structure.md | ✅ | Migrated and archived |
 | TEMPLATER_INTEGRATION.md | docs/user/guides/templater.md | ✅ | Migrated and archived |
 | VIEW_MODE.md | docs/user/guides/view-mode.md | ✅ | Migrated and archived |
-| (New) | docs/user/guides/usage.md | 🆕 | Created as part of reorganization |
 
 ### Reference
 
@@ -120,8 +121,8 @@ All migrated documents have been archived in `docs/archive/legacy/` as part of P
 
 ## Next Steps
 
-1. Complete migration of remaining documents in original location (those marked 🔄)
-2. Update all cross-references to use new file paths
+1. ✅ Complete migration of remaining documents in original location (those marked 🔄)
+2. ✅ Update all cross-references to use new file paths
 3. Create any missing documents according to the reorganization plan
 4. Final verification that all links work properly
 5. Consider deleting archived documents in a future phase after thorough testing 
