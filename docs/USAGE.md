@@ -12,12 +12,6 @@
    - See [View Mode Requirements](VIEW_MODE.md) for detailed information
    - Switch to Reading View using the button in the top-right corner
 
-3. **Add Dream Metrics**
-   - Open a dream journal entry
-   - Click the "Add Dream Metrics" button in the ribbon
-   - Select metrics to add
-   - Click "Add Selected Metrics"
-
 ## View Mode Requirements
 
 OneiroMetrics is designed to work exclusively with Reading View mode in Obsidian. For detailed information about view mode requirements, limitations, and future enhancements, please refer to the [View Mode Requirements](VIEW_MODE.md) document.
