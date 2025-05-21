@@ -5,6 +5,20 @@ The OneiroMetrics plugin implements a comprehensive logging system to aid in deb
 
 > **Update (2025-05-15):** Logging is now set to 'info' by default. Debug/verbose logging must be enabled manually in settings. This reduces log noise and improves performance for most users.
 
+## Table of Contents
+- [Overview](#overview)
+- [Configuration](#configuration)
+- [Log Categories](#log-categories)
+- [Log Levels](#log-levels)
+- [Usage Examples](#usage-examples)
+- [State Persistence Logging](#state-persistence-logging)
+- [Best Practices](#best-practices)
+- [Log Format](#log-format)
+- [Performance Considerations](#performance-considerations)
+- [Debug Log File](#debug-log-file)
+- [Log File Management](#log-file-management)
+- [Debugging UI Event Attachment](#debugging-ui-event-attachment)
+
 ## Configuration
 The logging system can be configured through the plugin settings:
 

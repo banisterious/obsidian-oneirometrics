@@ -9,6 +9,28 @@ For code quality standards, see [Journal Structure Guidelines](../../archive/leg
 For icon implementation details, see [Icon Picker Technical Implementation](../../archive/legacy/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md).
 For metric descriptions and styling, see [Metrics Descriptions](../../user/reference/metrics.md).
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Current Implementation](#current-implementation)
+  - [Date Sources and Priority](#date-sources-and-priority)
+  - [Alternative Date Sources](#alternative-date-sources)
+  - [Date Source Selection](#date-source-selection)
+  - [Use Case Examples](#use-case-examples)
+- [Date Range Filter Implementation](#date-range-filter-implementation)
+  - [Quick Filters](#quick-filters)
+  - [Custom Date Range](#custom-date-range)
+  - [Filter UI Components](#filter-ui-components)
+- [Time-Based Pattern Analysis](#time-based-pattern-analysis)
+  - [Dream Time Analysis](#dream-time-analysis)
+  - [Metadata Extraction](#metadata-extraction)
+  - [Correlation Analysis](#correlation-analysis)
+- [Best Practices](#best-practices)
+  - [Date Parsing](#date-parsing)
+  - [Date Formatting](#date-formatting)
+  - [Time Zone Handling](#time-zone-handling)
+- [Future Improvements](#future-improvements)
+
 ## Current Implementation
 
 ### Date Sources and Priority
