@@ -2,7 +2,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TAbstractFile, ButtonComponent, TFolder, View, WorkspaceLeaf, Menu } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, TFolder, Vault, parseYaml, ButtonComponent, Menu, View, WorkspaceLeaf } from 'obsidian';
+import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks, format } from 'date-fns';
 import { DEFAULT_METRICS, DreamMetricData, LogLevel, DEFAULT_LOGGING, DreamMetric, DreamMetricsSettings } from './types';
 import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
@@ -19,6 +20,11 @@ import { LintingSettings, CalloutStructure, JournalTemplate } from './src/journa
 import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
 // Import the new DreamJournalManager class
 import { DreamJournalManager } from './src/journal_check/ui/DreamJournalManager';
+import { DateNavigatorIntegration } from './src/dom/DateNavigatorIntegration';
+import { TimeFilterManager } from './src/timeFilters';
+import { DreamMetricsState } from './src/state/DreamMetricsState';
+import { DateNavigatorView, DATE_NAVIGATOR_VIEW_TYPE } from './src/dom/DateNavigatorView';
+import { DateNavigatorModal } from './src/dom/DateNavigatorModal';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -406,13 +412,11 @@ export default class DreamMetricsPlugin extends Plugin {
     expandedStates: Set<string>;
     private ribbonIcons: HTMLElement[] = [];
     private container: HTMLElement | null = null;
-    private scrapeRibbonEl: HTMLElement | null = null;
-    private noteRibbonEl: HTMLElement | null = null;
-
-    // Add memoization for table calculations
+        private journalManagerRibbonEl: HTMLElement | null = null;
     private memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
-
+    private timeFilterManager: TimeFilterManager = new TimeFilterManager();
+    private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
@@ -434,6 +438,35 @@ export default class DreamMetricsPlugin extends Plugin {
             console.error('Error restoring expanded states:', error);
             this.expandedStates = new Set();
         }
+
+        // Set up TimeFilterManager's onFilterChange callback with performance optimizations
+        this.timeFilterManager.onFilterChange = (filter) => {
+            const range = filter.getDateRange();
+            
+            // Use requestAnimationFrame to avoid layout thrashing
+            requestAnimationFrame(() => {
+                // Set the customDateRange global variable to trigger filtering
+                customDateRange = {
+                    start: format(range.start, 'yyyy-MM-dd'),
+                    end: format(range.end, 'yyyy-MM-dd')
+                };
+                
+                // Save the custom range to localStorage for persistence
+                localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
+                
+                // Log before applying filter for better performance tracking
+                this.logger.log('Filter', `Applied date filter from TimeFilterManager: ${format(range.start, 'yyyy-MM-dd')} to ${format(range.end, 'yyyy-MM-dd')}`);
+                
+                // Apply filter with improved performance
+                applyCustomDateRangeFilter();
+                
+                // Add visual feedback for the custom range button
+                const btn = document.getElementById('oom-custom-range-btn');
+                if (btn && !btn.classList.contains('active')) {
+                    btn.classList.add('active');
+                }
+            });
+        };
 
         // Add settings tab
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
@@ -639,9 +672,43 @@ export default class DreamMetricsPlugin extends Plugin {
                 });
             })
         );
+
+        // Initialize TimeFilterManager
+        this.timeFilterManager = new TimeFilterManager();
+        
+        // Register the DateNavigatorView
+        this.registerView(
+            DATE_NAVIGATOR_VIEW_TYPE,
+            (leaf) => new DateNavigatorView(leaf)
+        );
+        
+                // Date Navigator is now integrated into the Journal Manager
+        
+        this.registerEvent(
+            this.app.workspace.on('layout-change', () => {
+                this.updateRibbonIcons();
+            })
+        );
+
+        // Register DateNavigator command
+        this.addCommand({
+            id: 'open-date-navigator',
+            name: 'Open Date Navigator',
+            callback: () => {
+                this.showDateNavigator();
+            }
+        });
     }
 
     onunload() {
+        console.log('Unloading OneiroMetrics plugin');
+        
+        // Clean up DateNavigator
+        if (this.dateNavigatorIntegration) {
+            this.dateNavigatorIntegration.destroy();
+            this.dateNavigatorIntegration = null;
+        }
+        
         // Execute all cleanup functions
         this.cleanupFunctions.forEach(cleanup => cleanup());
         this.cleanupFunctions = [];
@@ -2158,159 +2225,38 @@ export default class DreamMetricsPlugin extends Plugin {
         }
     }
 
-    // Method to update ribbon icons based on settings
+    // Method to update ribbon icon based on settings
     updateRibbonIcons() {
-        // Remove tracked note button if it exists
-        if (this.noteRibbonEl) {
-            this.noteRibbonEl.remove();
-            this.noteRibbonEl = null;
-        }
-        // Remove tracked scrape button if it exists
-        if (this.scrapeRibbonEl) {
-            this.scrapeRibbonEl.remove();
-            this.scrapeRibbonEl = null;
+        // Remove tracked journal manager button if it exists
+        if (this.journalManagerRibbonEl) {
+            this.journalManagerRibbonEl.remove();
+            this.journalManagerRibbonEl = null;
         }
 
-        // Fallback: Remove any orphaned note/scrape buttons
+        // Fallback: Remove any orphaned ribbon buttons
+        document.querySelectorAll('.oom-journal-manager-button').forEach(btn => btn.remove());
+        
+        // Legacy cleanup - remove old button classes
         document.querySelectorAll('.oom-ribbon-note-button').forEach(btn => btn.remove());
         document.querySelectorAll('.oom-ribbon-scrape-button').forEach(btn => btn.remove());
 
-        // Add both buttons if enabled in settings
+        // Add journal manager button if enabled in settings
         if (this.settings.showRibbonButtons) {
-            this.scrapeRibbonEl = this.addRibbonIcon('wand-sparkles', 'Dream Journal Manager', () => {
-                new DreamJournalManager(this.app, this, 'dream-scrape').open();
+            this.journalManagerRibbonEl = this.addRibbonIcon('book-open-check', 'Dream Journal Manager', () => {
+                new DreamJournalManager(this.app, this, 'dashboard').open();
             });
-            this.scrapeRibbonEl.addClass('oom-ribbon-scrape-button');
-            this.scrapeRibbonEl.addEventListener('contextmenu', (evt) => {
+            this.journalManagerRibbonEl.addClass('oom-journal-manager-button');
+            this.journalManagerRibbonEl.addEventListener('contextmenu', (evt: MouseEvent) => {
                 evt.preventDefault();
                 (this.app as any).setting.open('oneirometrics');
             });
-
-            this.noteRibbonEl = this.addRibbonIcon('shell', 'Open Metrics Note', () => {
-                this.showMetrics();
-            });
-            this.noteRibbonEl.addClass('oom-ribbon-note-button');
-            
-            // Add right-click handler for templates
-            if (this.settings.linting?.templates?.length) {
-                this.noteRibbonEl.addEventListener('contextmenu', (evt) => {
-                    evt.preventDefault();
-                    const menu = new Menu();
-                    
-                    // Add template insertion menu item
-                    menu.addItem((item) => {
-                        item.setTitle('Insert Template')
-                            .setIcon('template-glyph')
-                            .onClick(() => {
-                                const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-                                if (view) {
-                                    const editor = view.editor;
-                                    
-                                    // Get templates from settings
-                                    const templates = this.settings.linting?.templates || [];
-                                    if (templates.length === 0) {
-                                        new Notice('No templates available. Create templates in settings.');
-                                        return;
-                                    }
-                                    
-                                    // If only one template, insert it directly
-                                    if (templates.length === 1) {
-                                        const template = templates[0];
-                                        editor.replaceSelection(template.content);
-                                        
-                                        // Show structure type in notice
-                                        const structures = this.settings.linting?.structures || [];
-                                        const structure = structures.find(s => s.id === template.structure);
-                                        
-                                        if (structure) {
-                                            new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
-                                        } else {
-                                            new Notice(`Template "${template.name}" inserted`);
-                                        }
-                                    } else {
-                                        // If multiple templates, show selection modal with structure types
-                                        const modal = new Modal(this.app);
-                                        modal.titleEl.setText('Select Template');
-                                        modal.contentEl.addClass('oom-template-selection-modal');
-                                        
-                                        for (const template of templates) {
-                                            const container = modal.contentEl.createDiv({cls: 'oom-template-item'});
-                                            
-                                            // Create header with template name
-                                            const headerEl = container.createDiv({cls: 'oom-template-header'});
-                                            headerEl.createEl('span', {text: template.name, cls: 'oom-template-name'});
-                                            
-                                            // Show structure type if available
-                                            const structures = this.settings.linting?.structures || [];
-                                            const structure = structures.find(s => s.id === template.structure);
-                                            
-                                            if (structure) {
-                                                const typeIndicator = headerEl.createEl('span', { 
-                                                    cls: `oom-template-type oom-${structure.type}-type`,
-                                                    attr: { title: structure.type === 'nested' ? 'Nested Structure' : 'Flat Structure' }
-                                                });
-                                                const typeIcon = structure.type === 'nested' ? '📦' : '📄';
-                                                typeIndicator.setText(`${typeIcon}`);
-                                            }
-                                            
-                                            // Add buttons
-                                            const buttonContainer = container.createDiv({cls: 'oom-template-buttons'});
-                                            
-                                            // Preview button
-                                            const previewBtn = buttonContainer.createEl('button', {
-                                                text: 'Preview',
-                                                cls: 'oom-preview-button'
-                                            });
-                                            
-                                            previewBtn.addEventListener('click', () => {
-                                                // Toggle preview
-                                                const previewEl = container.querySelector('.oom-template-preview');
-                                                if (previewEl) {
-                                                    previewEl.remove();
-                                                    previewBtn.setText('Preview');
-                                                } else {
-                                                    const newPreviewEl = container.createDiv({cls: 'oom-template-preview'});
-                                                    newPreviewEl.createEl('pre', {text: template.content});
-                                                    previewBtn.setText('Hide');
-                                                }
-                                            });
-                                            
-                                            // Insert button
-                                            const insertBtn = buttonContainer.createEl('button', {
-                                                text: 'Insert',
-                                                cls: 'mod-cta'
-                                            });
-                                            
-                                            insertBtn.addEventListener('click', () => {
-                                                editor.replaceSelection(template.content);
-                                                
-                                                // Show structure type in notice
-                                                if (structure) {
-                                                    new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
-                                                } else {
-                                                    new Notice(`Template "${template.name}" inserted`);
-                                                }
-                                                modal.close();
-                                            });
-                                        }
-                                        
-                                        modal.open();
-                                    }
-                                }
-                            });
-                    });
-                    
-                    menu.showAtMouseEvent(evt);
-                });
-            }
         } else {
-            this.scrapeRibbonEl = null;
-            this.noteRibbonEl = null;
+            this.journalManagerRibbonEl = null;
         }
 
-        // If both buttons are hidden, show a Notice
+        // If button is hidden, show a Notice
         if (!this.settings.showRibbonButtons) {
-            new Notice('Both OneiroMetrics ribbon buttons are hidden. Enable them in settings to restore.');
+            new Notice('OneiroMetrics ribbon button is hidden. Enable it in settings to restore.');
         }
     }
 
@@ -2541,6 +2487,61 @@ export default class DreamMetricsPlugin extends Plugin {
         // Journal structure check styles are now in styles.css
         // This method is kept for backwards compatibility
     }
+
+    /**
+     * Show the Date Navigator UI
+     */
+    async showDateNavigator() {
+        // Create a standalone state for the Date Navigator
+        const state = new DreamMetricsState({
+            metrics: {},
+            projectNotePath: '',
+            selectedNotes: [],
+            folderOptions: { enabled: false, path: '' },
+            selectionMode: 'manual',
+            calloutName: 'dream',
+            backup: { enabled: false, maxBackups: 3 },
+            logging: { level: 'info' },
+            linting: {
+                enabled: false,
+                rules: [],
+                structures: [],
+                templates: [],
+                templaterIntegration: {
+                    enabled: false,
+                    folderPath: '',
+                    defaultTemplate: ''
+                },
+                contentIsolation: {
+                    ignoreImages: true,
+                    ignoreLinks: false,
+                    ignoreFormatting: true,
+                    ignoreHeadings: false,
+                    ignoreCodeBlocks: true,
+                    ignoreFrontmatter: true,
+                    ignoreComments: true,
+                    customIgnorePatterns: []
+                },
+                userInterface: {
+                    showInlineValidation: false,
+                    severityIndicators: {
+                        error: '❌',
+                        warning: '⚠️',
+                        info: 'ℹ️'
+                    },
+                    quickFixesEnabled: false
+                }
+            }
+        });
+        
+        // Open the modal
+        const modal = new DateNavigatorModal(
+            this.app,
+            state,
+            this.timeFilterManager
+        );
+        modal.open();
+    }
 }
 
 // Helper to extract date for a dream entry
@@ -2656,46 +2657,149 @@ function deleteFavoriteRange(name: string) {
     new Notice(`Deleted favorite: ${name}`);
 }
 
+// Find the DateNavigatorModal's Apply button click handler
+// In src/dom/DateNavigatorModal.ts, replace with this direct implementation in main.ts
+
+// Utility function to force filtering - called directly from DateNavigatorModal
+function forceApplyDateFilter(date: Date) {
+    console.log('[OOM-DEBUG] forceApplyDateFilter called with date:', date);
+    
+    // Create start and end dates for the entire day (midnight to midnight)
+    const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+    const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+    
+    // Directly set customDateRange to trigger filtering
+    customDateRange = {
+        start: startDate.toISOString().split('T')[0],
+        end: endDate.toISOString().split('T')[0]
+    };
+    
+    console.log('[OOM-DEBUG] Setting customDateRange to:', customDateRange);
+    
+    // Save to localStorage
+    localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
+    
+    // Directly apply the filter to the table
+    console.log('[OOM-DEBUG] Calling applyCustomDateRangeFilter');
+    applyCustomDateRangeFilter();
+    
+    // Update UI to show filter is active
+    const btn = document.getElementById('oom-custom-range-btn');
+    if (btn) btn.classList.add('active');
+    
+    console.log('[OOM-DEBUG] Filter applied for date:', date.toLocaleDateString());
+}
+
+// Expose the function globally so it can be called from DateNavigatorModal
+(window as any).forceApplyDateFilter = forceApplyDateFilter;
+
+// Enhance the applyCustomDateRangeFilter with better debugging
 function applyCustomDateRangeFilter() {
-    if (!customDateRange) return;
+    console.log('[OOM-DEBUG] applyCustomDateRangeFilter called with customDateRange:', customDateRange);
+    
+    if (!customDateRange) {
+        console.log('[OOM-DEBUG] No customDateRange found, returning early');
+        return;
+    }
+    
     const previewEl = document.querySelector('.oom-metrics-container') as HTMLElement;
-    if (!previewEl) return;
+    if (!previewEl) {
+        console.log('[OOM-DEBUG] No .oom-metrics-container found, returning early');
+        return;
+    }
+    
+    console.log('[OOM-DEBUG] Container found:', previewEl);
+    
+    // Get all rows at once to avoid multiple DOM queries
     const rows = previewEl.querySelectorAll('.oom-dream-row');
+    console.log('[OOM-DEBUG] Found', rows.length, 'rows to filter');
+    
     const startDate = new Date(customDateRange.start);
     const endDate = new Date(customDateRange.end);
+    console.log('[OOM-DEBUG] Filtering dates between', startDate.toLocaleDateString(), 'and', endDate.toLocaleDateString());
+    
     let visibleCount = 0;
-    rows.forEach((rowEl) => {
+    let hiddenCount = 0;
+    
+    // Process all rows immediately - simpler approach
+    rows.forEach((rowEl, index) => {
         const row = rowEl as HTMLElement;
         const dateAttr = row.getAttribute('data-date');
-        if (!dateAttr) return row.style.display = 'none';
+        
+        if (!dateAttr) {
+            console.log(`[OOM-DEBUG] Row ${index} has no data-date attribute`);
+            row.style.display = 'none';
+            hiddenCount++;
+            return;
+        }
+        
+        // Parse row date consistently
         const rowDate = new Date(dateAttr);
-        if (rowDate >= startDate && rowDate <= endDate) {
+        if (isNaN(rowDate.getTime())) {
+            console.log(`[OOM-DEBUG] Row ${index} has invalid date: ${dateAttr}`);
+            row.style.display = 'none';
+            hiddenCount++;
+            return;
+        }
+        
+        // Simple date comparison (just using the date part)
+        const rowDateString = rowDate.toISOString().split('T')[0];
+        
+        // Null check for customDateRange
+        if (!customDateRange) {
+            console.log(`[OOM-DEBUG] customDateRange is null during row processing`);
+            row.style.display = 'none';
+            hiddenCount++;
+            return;
+        }
+        
+        const isDateInRange = 
+            rowDateString >= customDateRange.start && 
+            rowDateString <= customDateRange.end;
+        
+        if (isDateInRange) {
             row.style.display = '';
+            row.classList.add('oom-row--visible');
             visibleCount++;
+            if (index < 5) console.log(`[OOM-DEBUG] Row ${index} with date ${rowDateString} is VISIBLE`);
         } else {
             row.style.display = 'none';
+            row.classList.remove('oom-row--visible');
+            hiddenCount++;
+            if (index < 5) console.log(`[OOM-DEBUG] Row ${index} with date ${rowDateString} is HIDDEN`);
         }
     });
+    
+    console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
+    
+    // Update filter display
     updateFilterDisplay(visibleCount);
+    
+    // Force a notification to confirm filtering occurred
+    new Notice(`Date filter applied: ${visibleCount} entries visible, ${hiddenCount} hidden`);
 }
 
 function updateFilterDisplay(entryCount: number) {
     const filterDisplay = document.getElementById('oom-time-filter-display');
     if (!filterDisplay) return;
-    filterDisplay.innerHTML = '';
-
+    
+    // Create a document fragment for better performance
+    const fragment = document.createDocumentFragment();
+    
     // Add icon
     const iconSpan = document.createElement('span');
     iconSpan.className = 'oom-filter-icon';
     iconSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>`;
-    filterDisplay.appendChild(iconSpan);
+    fragment.appendChild(iconSpan);
 
     // Add text
     const textSpan = document.createElement('span');
     textSpan.className = 'oom-filter-text';
+    
     if (customDateRange) {
         textSpan.classList.add('oom-filter--custom-range');
         textSpan.textContent = ` Custom Range: ${customDateRange.start} to ${customDateRange.end} (${entryCount} entries) `;
+        
         // Add clear button
         const clearBtn = document.createElement('span');
         clearBtn.className = 'oom-filter-clear';
@@ -2703,26 +2807,51 @@ function updateFilterDisplay(entryCount: number) {
         clearBtn.setAttribute('tabindex', '0');
         clearBtn.setAttribute('role', 'button');
         clearBtn.textContent = '×';
+        
+        // Use event delegation for better performance
         clearBtn.addEventListener('click', () => {
             customDateRange = null;
             const btn = document.getElementById('oom-custom-range-btn');
             if (btn) btn.classList.remove('active');
             const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-            if (dropdown) dropdown.dispatchEvent(new Event('change'));
+            if (dropdown) {
+                // Use a more efficient approach to trigger dropdown change
+                dropdown.value = dropdown.value; // Keep the same value
+                requestAnimationFrame(() => {
+                    dropdown.dispatchEvent(new Event('change'));
+                });
+            }
         });
+        
+        // Handle keyboard accessibility
         clearBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 clearBtn.click();
             }
         });
+        
         textSpan.appendChild(clearBtn);
     } else {
-        // Show dropdown label as before
+        // Show dropdown label
         const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
         const label = dropdown ? dropdown.options[dropdown.selectedIndex].text : 'All Time';
         textSpan.classList.add('oom-filter--all-visible');
         textSpan.textContent = ` ${label} (${entryCount} entries) `;
     }
-    filterDisplay.appendChild(textSpan);
+    
+    fragment.appendChild(textSpan);
+    
+    // Clear the container and append the fragment in one operation
+    filterDisplay.innerHTML = '';
+    filterDisplay.appendChild(fragment);
+    
+    // Use CSS transitions instead of JS animations for better performance
+    filterDisplay.classList.add('oom-filter-display--updated');
+    setTimeout(() => {
+        // Use requestAnimationFrame to ensure transitions are smooth
+        requestAnimationFrame(() => {
+            filterDisplay.classList.remove('oom-filter-display--updated');
+        });
+    }, 500);
 }
