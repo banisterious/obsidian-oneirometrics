@@ -3,6 +3,27 @@
 ## Overview
 This guide provides step-by-step instructions for using Chrome DevTools to identify and diagnose performance issues in OneiroMetrics, particularly focusing on the Dream Entries table and expand/collapse functionality.
 
+## Table of Contents
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Basic Performance Testing Setup](#basic-performance-testing-setup)
+  - [Opening DevTools](#1-opening-devtools)
+  - [Recording a Performance Profile](#2-recording-a-performance-profile)
+- [Detailed Performance Analysis](#detailed-performance-analysis)
+  - [Memory Analysis](#1-memory-analysis)
+  - [Frame Rate Analysis](#2-frame-rate-analysis)
+  - [Memory Heap Analysis](#3-memory-heap-analysis)
+- [Specific Test Cases](#specific-test-cases)
+  - [Expand/Collapse Performance](#1-expandcollapse-performance)
+  - [Scrolling Performance](#2-scrolling-performance)
+  - [Filter Performance](#3-filter-performance)
+- [Interpreting Results](#interpreting-results)
+- [Best Practices](#best-practices)
+- [Troubleshooting Common Problems](#troubleshooting-common-problems)
+- [Reporting Issues](#reporting-issues)
+- [Additional Resources](#additional-resources)
+- [Proposed Fixes and Experiments](#proposed-fixes-and-experiments)
+
 ## Prerequisites
 1. Chrome or Edge browser (both use Chromium DevTools)
 2. Obsidian running in desktop mode

@@ -2,6 +2,19 @@
 
 This document covers all user interface (UI) testing for the OneiroMetrics plugin, including tables, modals, buttons, theme compatibility, and responsive design. For general setup and other testing categories, see [Testing Overview](./testing-overview.md).
 
+## Overview
+UI testing ensures that all visual components of the OneiroMetrics plugin display correctly, respond appropriately to user interactions, and maintain consistent styling across different themes. This guide outlines the key areas to test, provides checklists for thorough validation, and links to related documentation.
+
+## Table of Contents
+- [Overview](#overview)
+- [Table Testing](#table-testing)
+- [Modal Testing](#modal-testing)
+- [Button System Testing](#button-system-testing)
+- [Theme Compatibility](#theme-compatibility)
+- [Responsive Design](#responsive-design)
+- [UI Test Checklist](#ui-test-checklist)
+- [Related Documentation](#related-documentation)
+
 ## Table Testing
 - Table layout and structure
 - Column sizing and alignment
