@@ -276,7 +276,7 @@ Example of the same template without Templater:
 > Vividness: [[PROMPT: Rate vividness (1-10) (default: 6)]]
 ```
 
-For more detailed information and advanced template techniques, see the [Templater Integration documentation](./TEMPLATER_INTEGRATION.md).
+For more detailed information and advanced template techniques, see the [Templater Integration documentation](user/guides/templater.md).
 
 ## Analyzing Dreams
 

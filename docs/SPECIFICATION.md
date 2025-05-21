@@ -24,7 +24,7 @@ OneiroMetrics is an Obsidian plugin designed to analyze dream journal entries an
 ## Core Components
 
 ### 1. View Mode Requirements
-OneiroMetrics is designed to work exclusively with Reading View mode in Obsidian. For detailed information about view mode requirements, limitations, and future enhancements, please refer to the [View Mode Requirements](VIEW_MODE.md) document.
+OneiroMetrics is designed to work exclusively with Reading View mode in Obsidian. For detailed information about view mode requirements, limitations, and future enhancements, please refer to the [View Mode Requirements](user/guides/view-mode.md) document.
 
 ### 2. Plugin Structure
 
@@ -261,7 +261,7 @@ The Settings page provides a comprehensive interface for managing dream metrics 
 
 ### 4. Documentation Requirements
 - [Date and Time Technical Specification](developer/implementation/date-time.md) for date handling implementation
-- [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for UI/UX implementation
+- [Layout and Styling Technical Specification](archive/LAYOUT_AND_STYLING.md) for UI/UX implementation
 - [Testing Guide](developer/testing/testing-overview.md) for testing procedures
 - [Project Overview](developer/architecture/overview.md) for high-level architecture
 - [Issues and Future Improvements](ISSUES.md) for known issues and planned features
