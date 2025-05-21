@@ -8,7 +8,7 @@
 ## Project Description
 OneiroMetrics is an Obsidian plugin designed to help users track and analyze their dreams. It provides tools for recording dream entries, analyzing dream patterns, and generating insights through various metrics and visualizations.
 
-> **Note:** For detailed performance testing and optimization guidelines, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+> **Note:** For detailed performance testing and optimization guidelines, see [Performance Testing](developer/testing/performance-testing.md).
 
 ## Core Features
 1. **Dream Entry Management**
@@ -263,7 +263,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - 📄 **Testing & Troubleshooting Guide:**  
   See [`TESTING.md`](TESTING.md) in the project root for a full checklist, performance tests, and troubleshooting steps.
 
-For information about the plugin's logging system and debugging capabilities, see [docs/LOGGING.md](docs/LOGGING.md).
+For information about the plugin's logging system and debugging capabilities, see [Logging System](developer/implementation/logging.md).
 
 ## How to Use
 
@@ -307,7 +307,7 @@ For information about the plugin's logging system and debugging capabilities, se
 ## Documentation
 For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](METRICS.md).
 
-For information about the plugin's logging system and debugging capabilities, see [docs/LOGGING.md](docs/LOGGING.md).
+For information about the plugin's logging system and debugging capabilities, see [Logging System](developer/implementation/logging.md).
 
 - 🛠️ **Lucide icons now render correctly as SVGs in the Settings > Metrics section, providing clear visual indicators for each metric.**
 - 🛠️ **Metric range labels for 'Lost Segments' and 'Familiar People' now display 'Any whole number' instead of a fixed range.**
@@ -347,12 +347,12 @@ This approach helps pinpoint where the update process may be breaking down and e
 - Future code changes should ensure only essential logs remain, and debug output should be temporary and well-scoped.
 
 ## Documentation Requirements
-- [Date and Time Technical Specification](DATE_TIME_TECHNICAL.md) for date handling implementation
+- [Date and Time Technical Specification](developer/implementation/date-time.md) for date handling implementation
 - [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md) for UI/UX implementation
 - [Testing Guide](TESTING.md) for testing procedures
 - [Project Overview](PROJECT_OVERVIEW.md) for high-level architecture
 - [Issues and Future Improvements](ISSUES.md) for known issues and planned features
-- [Logging System](docs/LOGGING.md) for debugging and monitoring capabilities
+- [Logging System](developer/implementation/logging.md) for debugging and monitoring capabilities
 - [State Persistence](STATE_PERSISTENCE.md) for user preference management
 
 ## Future Features and Planning

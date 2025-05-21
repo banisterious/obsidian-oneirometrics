@@ -3,8 +3,8 @@
 ## Overview
 
 This document outlines the testing procedures and requirements for the OneiroMetrics plugin. For UI and accessibility testing, see:
-- [UI Testing Guide](UI_TESTING.md)
-- [Accessibility Testing Guide](ACCESSIBILITY_TESTING.md)
+- [UI Testing Guide](developer/testing/ui-testing.md)
+- [Accessibility Testing Guide](developer/testing/accessibility-testing.md)
 
 ## Testing Categories
 
@@ -18,8 +18,8 @@ This document outlines the testing procedures and requirements for the OneiroMet
 - Templater Integration Testing
 - Custom Date Filter UI Testing
 - Filtering and Sorting
-- Styling and UI (see [UI_TESTING.md](UI_TESTING.md))
-- Accessibility (see [ACCESSIBILITY_TESTING.md](ACCESSIBILITY_TESTING.md))
+- Styling and UI (see [UI Testing](developer/testing/ui-testing.md))
+- Accessibility (see [Accessibility Testing](developer/testing/accessibility-testing.md))
 - Error Handling
 - Performance
 - Theme Compatibility
@@ -135,7 +135,7 @@ See [View Mode Requirements](VIEW_MODE.md) for detailed testing procedures and b
 - [x] Performance remains smooth with rapid expand/collapse and scrolling
 - [x] No '[Violation] setTimeout handler took XXms' warnings in the console during normal use
 - [x] Debug button for manual event listener attachment works as expected in development mode
-- [x] See [docs/ISSUES.md](ISSUES.md#fixed-issues) and [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md) for detailed diagnostics and troubleshooting steps
+- [x] See [docs/ISSUES.md](ISSUES.md#fixed-issues) and [Performance Testing](developer/testing/performance-testing.md) for detailed diagnostics and troubleshooting steps
 
 ### Templater Integration Testing
 
@@ -962,7 +962,7 @@ const filteredResult = await exportToCSV({
 
 ### Debug Logging & Note Update Troubleshooting
 
-For detailed information about the logging system and available log categories, see [docs/LOGGING.md](docs/LOGGING.md).
+For detailed information about the logging system and available log categories, see [Logging](developer/implementation/logging.md).
 
 - [ ] Check for debug Notices in Obsidian (e.g., [DEBUG] updateProjectNote called for: ...)
 - [ ] Confirm the OneiroMetrics Note Path in settings matches the file you are viewing

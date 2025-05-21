@@ -122,7 +122,7 @@ To use Templater integration:
   - Use it to reset event listeners, refresh tables, and view diagnostics.
 - **How to Enable:**  
   - Go to OneiroMetrics settings → Logging → set Logging Level to **Debug**.
-- See [Logging Guide](docs/LOGGING.md) for advanced usage.
+- See [Logging Guide](docs/developer/implementation/logging.md) for advanced usage.
 
 ---
 
@@ -142,7 +142,7 @@ See [ISSUES.md](ISSUES.md#fixed-issues) for more.
 
 - [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [Usage Guide](docs/USAGE.md)
-- [Logging Guide](docs/LOGGING.md)
+- [Logging Guide](docs/developer/implementation/logging.md)
 - [Known Issues](ISSUES.md)
 - [Release Notes](CHANGELOG.md)
 - [Metrics Guide](docs/METRICS.md)

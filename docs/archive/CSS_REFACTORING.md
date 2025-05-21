@@ -76,7 +76,7 @@ styles/
 
 ## Performance Considerations
 
-> **Note:** For detailed performance testing procedures and optimization guidelines, see [PERFORMANCE_TESTING.md](PERFORMANCE_TESTING.md).
+> **Note:** For detailed performance testing procedures and optimization guidelines, see [Performance Testing](../developer/testing/performance-testing.md).
 
 ### CSS Performance Optimization
 - Minimize selector specificity
@@ -110,8 +110,8 @@ styles/
 - [x] Test changes
 - [x] Remove old files
 - [x] Document all components (see DOCUMENTATION_STYLE_GUIDE.md)
-- [x] Performance testing (see PERFORMANCE_TESTING.md)
-- [x] Accessibility audit (see ACCESSIBILITY_TESTING.md)
+- [x] Performance testing (see [Performance Testing](../developer/testing/performance-testing.md))
+- [x] Accessibility audit (see [Accessibility Testing](../developer/testing/accessibility-testing.md))
 
 ## Completed Work
 
