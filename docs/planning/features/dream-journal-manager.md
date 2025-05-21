@@ -210,9 +210,7 @@ const helpDocsButton = quickActionsContainer.createEl('button', {
     cls: 'oom-dashboard-button'
 });
 helpDocsButton.addEventListener('click', () => {
-    // Open the USAGE.md documentation on GitHub
-    const helpDocsUrl = "https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/USAGE.md";
-    window.open(helpDocsUrl, "_blank");
+        // Open the usage.md documentation on GitHub    const helpDocsUrl = "https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/user/guides/usage.md";    window.open(helpDocsUrl, "_blank");
 });
 ```
 

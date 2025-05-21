@@ -562,16 +562,20 @@ Before submitting documentation changes, ensure the following:
 - [ ] Code examples are complete and properly formatted
 - [ ] Spell-checked and grammar-checked
 - [ ] Mobile-friendly
+- [ ] Passes document validation checks (run `node docs/validate-docs.js`)
 
 ### 12.2. Workflow
 
 1. **Create**: Draft new documentation following the style guide
-2. **Review**: Self-review using the checklist above
-3. **Submit**: Create a pull request with the documentation changes
-4. **Peer Review**: Another team member reviews the changes
-5. **Revise**: Make any necessary revisions based on feedback
-6. **Merge**: Once approved, merge the changes
-7. **Monitor**: Watch for user feedback on the documentation
+2. **Validate**: Run document validation script (`node docs/validate-docs.js`) to check for compliance
+3. **Review**: Self-review using the checklist above
+4. **Submit**: Create a pull request with the documentation changes
+5. **Peer Review**: Another team member reviews the changes
+6. **Revise**: Make any necessary revisions based on feedback
+7. **Merge**: Once approved, merge the changes
+8. **Monitor**: Watch for user feedback on the documentation
+
+For detailed information on document validation, see [Document Validation](../../developer/implementation/document-validation.md).
 
 ## 13. Version Control Guidelines
 

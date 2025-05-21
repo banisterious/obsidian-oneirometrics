@@ -47,6 +47,7 @@ This file tracks the status of documentation files during the reorganization pro
 |---------------|--------------|--------|-------|
 | INTEGRATION_APIs.md | docs/developer/implementation/integration-apis.md | ✅ | Migrated and archived |
 | LOGGING.md | docs/developer/implementation/logging.md | ✅ | Migrated and archived |
+| (New) | docs/developer/implementation/document-validation.md | ✅ | Created as part of documentation clean-up |
 
 ### Testing
 

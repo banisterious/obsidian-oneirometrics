@@ -211,9 +211,9 @@ Key UI elements:
      - Create new `docs/TEMPLATER_INTEGRATION.md` detailing how the integration works
      - Update `docs/PROJECT_OVERVIEW.md` to mention Templater integration as a key feature
      - Update `docs/TESTING.md` with a section on testing templates
-     - Update `docs/SPECIFICATION.md` with the technical details of the implementation
+     - Update `docs/developer/architecture/specification.md` with the technical details of the implementation
      - Update `README.md` to mention Templater support in the features list
-     - Update `USAGE.md` with comprehensive guidance on working with templates
+     - Update `docs/user/guides/usage.md` with comprehensive guidance on working with templates
      - Update `CHANGELOG.md` with details about the Templater integration feature
      - Include screenshots of the updated UI in documentation
 
