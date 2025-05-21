@@ -140,6 +140,8 @@ See [ISSUES.md](ISSUES.md#fixed-issues) for more.
 
 ## Documentation
 
+The documentation has been completely reorganized into a user-friendly, structured hierarchy. Visit the [Documentation Index](docs/README.md) for a comprehensive guide to all available resources.
+
 - [Project Overview](docs/developer/architecture/overview.md)
 - [Usage Guide](docs/user/guides/usage.md)
 - [Logging Guide](docs/developer/implementation/logging.md)
