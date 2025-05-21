@@ -43,7 +43,7 @@
 - [ ] Date range comparison
 - [ ] Advanced filtering options
 
-See [Date Tools Plan](DATE_TOOLS_PLAN.md) for detailed implementation specifications.
+See [Date Tools Plan](planning/features/date-tools.md) for detailed implementation specifications.
 
 ### Journal Structure Check
 - [ ] Basic structure validation
@@ -53,7 +53,7 @@ See [Date Tools Plan](DATE_TOOLS_PLAN.md) for detailed implementation specificat
 - [ ] Settings UI
 - [ ] Linter plugin integration
 
-See [Journal Structure Guidelines](JOURNAL_STRUCTURE_GUIDELINES.md) for structure rules and best practices, and [Journal Structure Check Implementation Plan](JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md) for implementation details.
+See [Journal Structure Guidelines](user/guides/journal-structure.md) for structure rules and best practices, and [Journal Structure Check Implementation Plan](JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md) for implementation details.
 
 ### Metrics System
 - [ ] Enhanced metrics visualization
@@ -143,7 +143,7 @@ These features are under consideration but not yet planned for implementation. T
 - Some features may be combined or split during development
 - All features are subject to change
 
-For details about the date tools implementation, see [Date Tools Plan](DATE_TOOLS_PLAN.md).
+For details about the date tools implementation, see [Date Tools Plan](planning/features/date-tools.md).
 
 ### Custom Date Filter Improvements
 - [ ] Multi-month view

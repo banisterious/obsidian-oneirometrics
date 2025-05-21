@@ -147,7 +147,7 @@ See [ISSUES.md](ISSUES.md#fixed-issues) for more.
 - [Release Notes](CHANGELOG.md)
 - [Metrics Guide](docs/METRICS.md)
 - [Testing Guide](docs/TESTING.md)
-- [Date Tools Plan](docs/DATE_TOOLS_PLAN.md)
+- [Date Tools Plan](docs/planning/features/date-tools.md)
 
 ---
 
