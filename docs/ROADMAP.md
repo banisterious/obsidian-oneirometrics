@@ -79,7 +79,7 @@ See [Metrics Enhancements Plan](METRICS_ENHANCEMENTS_PLAN.md) for detailed imple
   - [ ] Improved navigation
   - [ ] Enhanced feedback
 
-See [Dream Journal Manager Plan](DREAM_JOURNAL_MANAGER_PLAN.md) for detailed implementation specifications of the unified modal system.
+See [Dream Journal Manager Plan](planning/features/dream-journal-manager.md) for detailed implementation specifications of the unified modal system.
 
 ### Performance
 - [ ] Optimize validation engine

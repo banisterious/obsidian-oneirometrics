@@ -6,7 +6,7 @@ This document outlines the technical implementation of date and time handling in
 
 For documentation standards and guidelines, see [Documentation Style Guide](../../archive/legacy/DOCUMENTATION_STYLE_GUIDE.md).
 For code quality standards, see [Code Standards](../contributing/code-standards.md) and [Journal Structure Check Implementation Plan](../../planning/features/journal-structure-check.md).
-For icon implementation details, see [Icon Picker Technical Implementation](../../archive/legacy/ICON_PICKER_TECHNICAL_IMPLEMENTATION.md).
+For icon implementation details, see [Icon Picker Technical Implementation](./icon-picker.md).
 For metric descriptions and styling, see [Metrics Descriptions](../../user/reference/metrics.md).
 
 ## Table of Contents

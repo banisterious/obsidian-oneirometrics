@@ -45,7 +45,7 @@ OneiroMetrics now includes a powerful journal structure validation system to hel
 - **Validation**: Check your journal entries against predefined structures
 - **Flexibility**: Support for both flat and nested journal structures
 - **Template System**: Create and use templates for consistent journal entries
-- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries (see our [Templater Integration Plan](docs/TEMPLATER_INTEGRATION_PLAN.md) for details)
+- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries (see our [Templater Integration Plan](docs/planning/features/templater-integration.md) for details)
 - **Quick Fixes**: Get suggestions for fixing common issues
 
 ### Using Journal Structure Check
