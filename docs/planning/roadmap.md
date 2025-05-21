@@ -13,6 +13,7 @@
   - [Integration](#integration)
 - [Future Considerations](#future-considerations)
   - [Advanced Time Filter Features](#advanced-time-filter-features)
+  - [Documentation Maintenance](#documentation-maintenance)
 - [Potential Future Features](#potential-future-features)
   - [Dream Analysis Features](#dream-analysis-features)
     - [Dream Sequence Visualization](#dream-sequence-visualization)
@@ -107,6 +108,13 @@ See [Dream Journal Manager Plan](./features/dream-journal-manager.md) for detail
   - Custom date range templates
   - Export/import date ranges
   - **Possible TODO:** Allow user-defined custom presets to appear in the dropdown alongside built-in presets
+
+### Documentation Maintenance
+- Consider deleting archived documentation files from `docs/archive/legacy/` after thorough testing period
+  - Verify all content has been properly migrated
+  - Ensure no important historical context or information has been lost
+  - Confirm users and contributors have adapted to the new documentation structure
+  - Target timeframe: 3-6 months after documentation reorganization completion
 
 ## Potential Future Features
 

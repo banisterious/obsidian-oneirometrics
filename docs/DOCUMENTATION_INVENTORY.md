@@ -110,4 +110,4 @@ All migrated documents have been archived in `docs/archive/legacy/` as part of P
 3. ✅ Create key missing documents according to the reorganization plan
 4. ✅ Final verification that all links work properly
 5. ✅ Create remaining specialized documents as needed
-6. Consider deleting archived documents in a future phase after thorough testing 
+6. 🔄 Consider deleting archived documents in a future phase after thorough testing (added to roadmap with 3-6 month timeframe) 
