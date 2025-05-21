@@ -36,7 +36,7 @@
   - Automatic conversion of Templater syntax to static placeholders
   - Smart placeholder navigation for template filling
   - Full backward compatibility with existing templates
-  - Comprehensive documentation in new `docs/TEMPLATER_INTEGRATION.md`
+  - Comprehensive documentation in new `docs/user/guides/templater.md`
 
 ### Changed
 - Renamed "Linting" feature to "Journal Structure Check" for clarity
@@ -135,7 +135,7 @@
 - Scroll position maintenance when expanding/collapsing entries
 - Event listener attachment and cleanup
 - Performance with large datasets
-- See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
+- See [docs/user/reference/troubleshooting.md](docs/user/reference/troubleshooting.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
 - Fixed unwanted animation in Obsidian Settings modal by properly scoping modal-related CSS selectors
 - The metrics table in the OneiroMetrics note now correctly displays all enabled metrics from dream entries, not just the word count. This was fixed by updating the metrics parsing logic to handle case-insensitive metric names and ensure all metrics are added to the global metrics record.
 
@@ -203,7 +203,7 @@
 - Show more button functionality across all themes
 - Event listener attachment and cleanup
 - Log file organization and management
-- See [docs/ISSUES.md](docs/ISSUES.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
+- See [docs/user/reference/troubleshooting.md](docs/user/reference/troubleshooting.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
 
 ## [0.3.1] - 2025-05-12
 ### Added

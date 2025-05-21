@@ -5,7 +5,7 @@
 <p align="center">
   <img src="docs/images/gsa-barn.jpg" alt="A country barn painting, representing the foundation of dream journaling." width="600"/>
 </p>
-<p align="center"><em>“Barn at Sunrise” by Gary Armstrong, inspiration for OneiroMetrics</em></p>
+<p align="center"><em>"Barn at Sunrise" by Gary Armstrong, inspiration for OneiroMetrics</em></p>
 
 ---
 
@@ -45,7 +45,7 @@ OneiroMetrics now includes a powerful journal structure validation system to hel
 - **Validation**: Check your journal entries against predefined structures
 - **Flexibility**: Support for both flat and nested journal structures
 - **Template System**: Create and use templates for consistent journal entries
-- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries (see our [Templater Integration Plan](docs/planning/features/templater-integration.md) for details)
+- **Templater Integration**: Use [Templater](https://github.com/SilentVoid13/Templater) templates for dynamic journal entries (see our [Templater Integration Guide](docs/user/guides/templater.md) for details)
 - **Quick Fixes**: Get suggestions for fixing common issues
 
 ### Using Journal Structure Check
@@ -64,7 +64,7 @@ OneiroMetrics now standardizes on Templater as the recommended template engine f
 - **Template Wizard:** Create and edit templates with dual preview (Templater and static versions)
 - **Backward Compatible:** All existing templates continue to work
 
-For comprehensive details, see our [Templater Integration documentation](docs/user/guides/templater.md).
+For comprehensive details, see our [Templater Integration Guide](docs/user/guides/templater.md).
 
 To use Templater integration:
 1. Install the [Templater plugin](https://github.com/SilentVoid13/Templater) (recommended but optional)
