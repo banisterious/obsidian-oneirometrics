@@ -37,6 +37,14 @@
   - Smart placeholder navigation for template filling
   - Full backward compatibility with existing templates
   - Comprehensive documentation in new `docs/user/guides/templater.md`
+- **Documentation Reorganization Project:** Completed comprehensive documentation overhaul
+  - Transformed flat collection of 28+ files into structured, hierarchical system
+  - Created dedicated sections for users, developers, and planning
+  - Migrated existing documentation to appropriate locations with consistent naming
+  - Created new documents to fill knowledge gaps and improve user experience
+  - Established templates and standards for future documentation
+  - Added documentation validation tools and workflow guidance
+  - Updated all cross-references throughout the codebase
 
 ### Changed
 - Renamed "Linting" feature to "Journal Structure Check" for clarity
@@ -46,11 +54,13 @@
 - Merged CSS files: Successfully combined journal_check styles into main styles.css with proper "oom-" prefix, removing the need for separate CSS files
 - Refactored CSS class naming convention to consistently use "oom-" prefix for all plugin-specific classes
 - Updated and fixed main.ts to properly handle the loadStyles method (which is now just a stub for backwards compatibility)
+- Standardized documentation file naming to lowercase-with-hyphens convention
 
 ### Removed
 - Removed src/journal_check/styles.css after merging into main styles.css
 - Removed test files that were no longer needed: test-dream-entries.md, test-read-more.html, and testProcessDreamContent.js
 - Archived completed CSS refactoring plan to docs/archive/
+- Removed unnecessary documentation redirect files after migrating content
 
 ## [0.5.0] - 2025-05-20
 ### Added
