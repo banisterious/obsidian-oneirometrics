@@ -36,7 +36,7 @@ For detailed UI and accessibility test checklists, refer to the dedicated guides
 - [ ] Validate warning notifications
 - [ ] Test theme compatibility in both modes
 
-See [View Mode Requirements](VIEW_MODE.md) for detailed testing procedures and best practices.
+See [View Mode Requirements](user/guides/view-mode.md) for detailed testing procedures and best practices.
 
 ### 2. Setup Testing
 
@@ -650,7 +650,7 @@ These tests require Obsidian and manual verification.
 - [ ] Settings persistence
 - [ ] Plugin lifecycle
 - [ ] Event handling
-- [ ] State persistence (see [State Persistence](STATE_PERSISTENCE.md) for details)
+- [ ] State persistence (see [State Persistence](developer/implementation/state.md) for details)
   - [ ] Expanded/collapsed state restoration
   - [ ] State persistence across sessions
   - [ ] Performance with large datasets
