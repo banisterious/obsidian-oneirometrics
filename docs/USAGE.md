@@ -424,7 +424,7 @@ OneiroMetrics is designed to work best in Reading View mode:
 - Provides clear notifications when needed
 - Settings include warnings about view mode requirements
 
-For detailed information about view mode requirements and limitations, please refer to the [View Mode Requirements](VIEW_MODE.md) document.
+For detailed information about view mode requirements and limitations, please refer to the [View Mode Requirements](user/guides/view-mode.md) document.
 
 ### Backup System
 
@@ -526,8 +526,8 @@ Access debugging features by setting Logging Level to **Debug** in settings:
 
 ### Layout and Styling
 
-For comprehensive information about layout options, styling features, and theme integration, see the [Layout and Styling Technical Specification](LAYOUT_AND_STYLING.md).
+For comprehensive information about layout options, styling features, and theme integration, see the [Layout and Styling Technical Specification](archive/LAYOUT_AND_STYLING.md).
 
 ### State Persistence
 
-The plugin maintains your preferences across sessions, including expanded/collapsed states for dream entries. For detailed information about state persistence features and implementation, see the [State Persistence](STATE_PERSISTENCE.md) documentation. 
+The plugin maintains your preferences across sessions, including expanded/collapsed states for dream entries. For detailed information about state persistence features and implementation, see the [State Persistence](developer/implementation/state.md) documentation. 
