@@ -28,6 +28,16 @@
     display: none !important;
 }
 
+/* Dream Journal Manager Title */
+.oom-journal-manager-title {
+    margin-bottom: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: 1.8em;
+    text-align: center;
+    color: var(--text-normal);
+}
+
 /* ==========================================================================
    Dream Entries Filters Styles
    ========================================================================== */
@@ -4946,32 +4956,35 @@ input.oom-folder-autocomplete-input {
 /* Dream Journal Manager Styles
 --------------------------------------------- */
 
+/* Make sure modal doesn't exceed screen size */
 .modal:has(.oom-journal-manager-modal) {
-    
+    width: 900px !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
 }
 
 .oom-journal-manager-modal {
     flex-direction: column;
     max-width: 900px;
-    height: 80vh;
-    display: flex;
     width: 800px !important; /* Replace inline style */
     height: 600px !important; /* Replace inline style */
+    padding: 0;
+    display: flex;
 }
 
 .oom-journal-manager-content {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     max-height: calc(80vh - 60px); /* Accounting for header */
+    overflow: hidden;
 }
 
 .oom-journal-manager-container {
     display: flex;
     flex-direction: row;
     flex: 1;
-    overflow: hidden;
     height: calc(80vh - 110px); /* Accounting for header and padding */
+    overflow: hidden;
 }
 
 .oom-journal-manager-sidebar {
@@ -4997,13 +5010,6 @@ input.oom-folder-autocomplete-input {
 
 .oom-collapsible-content {
     display: block;
-}
-
-/* Make sure modal doesn't exceed screen size */
-.modal:has(.oom-journal-manager-modal) {
-    width: 900px !important;
-    max-width: 95vw !important;
-    max-height: 90vh !important;
 }
 
 /* Sidebar Navigation */
@@ -5065,6 +5071,7 @@ input.oom-folder-autocomplete-input {
     align-items: center;
     justify-content: center;
     padding: 15px 10px;
+    min-height: 80px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     cursor: pointer;
@@ -5080,8 +5087,13 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-quick-action-icon {
-    margin-bottom: 5px;
-    font-size: 20px;
+    margin-bottom: 8px;
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
 }
 
 .oom-recent-activity-list,
@@ -5267,11 +5279,6 @@ input.oom-folder-autocomplete-input {
 
 .oom-dream-scrape-footer .oom-button {
     padding: 8px 16px;
-}
-
-/* Ensure content doesn't get hidden behind sticky footer */
-.oom-journal-manager-modal [data-section="dream-scrape"] {
-    /*padding-bottom: 70px;*/ /* Match the height of the sticky footer */
 }
 
 /* Enhanced Nav Item - Make active state more distinctive

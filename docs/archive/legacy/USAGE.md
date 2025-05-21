@@ -239,21 +239,21 @@ OneiroMetrics now standardizes on Templater for dynamic templates while providin
 #### With Templater (Recommended)
 
 With Templater installed, your templates can include:
-- Dynamic date formatting: `<% tp.date.now("YYYY-MM-DD") %>`
-- User prompts: `<% tp.system.prompt("Enter mood", "neutral") %>`
+- Dynamic date formatting: `2025-05-21`
+- User prompts: `null`
 - Conditional content based on inputs
 - System information access
 
 Example template with Templater:
 ```markdown
-# Dream Journal: <% tp.date.now("YYYY-MM-DD") %>
+# Dream Journal: 2025-05-21
 
 > [!dream]
-> <% tp.system.prompt("Describe your dream", "") %>
+> null
 
 > [!dream-metrics]
-> Clarity: <% tp.system.prompt("Rate clarity (1-10)", "7") %>
-> Vividness: <% tp.system.prompt("Rate vividness (1-10)", "6") %>
+> Clarity: null
+> Vividness: null
 ```
 
 #### Without Templater (Fallback)

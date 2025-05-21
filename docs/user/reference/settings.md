@@ -1,7 +1,7 @@
 # OneiroMetrics Settings Reference
 
 > **Applies to:** OneiroMetrics v1.0.0 and above  
-> **Last Updated:** 2025-05-20
+> **Last Updated:** 2025-05-21
 
 This document provides a complete reference for all settings available in the OneiroMetrics plugin. Settings are organized by category as they appear in the plugin's settings page.
 
