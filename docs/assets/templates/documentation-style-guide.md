@@ -49,6 +49,7 @@
 - [13. Version Control Guidelines](#13-version-control-guidelines)
   - [13.1. When to Update Documentation](#131-when-to-update-documentation)
   - [13.2. Versioning Strategy](#132-versioning-strategy)
+  - [13.3. Date Usage Guidelines](#133-date-usage-guidelines)
 - [14. Documentation Templates](#14-documentation-templates)
   - [14.1. Feature Documentation Template](#141-feature-documentation-template)
   - [14.2. Tutorial Template](#142-tutorial-template)
@@ -71,6 +72,7 @@ The primary goal of our documentation is to help users understand and effectivel
 - **Active Voice**: Prefer active voice over passive voice
 - **Clarity**: Use clear, concise language without unnecessary jargon
 - **Consistency**: Maintain consistent terminology throughout all documentation
+- **Personal Pronouns**: Avoid using "we," "our," or "us" in documentation. Instead, refer directly to "the plugin," "the feature," or use other specific subjects.
 
 ### Examples
 
@@ -78,11 +80,15 @@ The primary goal of our documentation is to help users understand and effectivel
 - "Click the Settings button to access configuration options."
 - "You can customize your metrics by adding new entries."
 - "The plugin automatically creates backups before making changes."
+- "This feature enables filtering by date."
+- "Version 0.5.0 introduced the Dream Journal Manager."
 
 #### Avoid:
 - "The Settings button should be clicked to access configuration options."
 - "Users may customize their metrics by adding new entries."
 - "Backups are automatically created by the plugin before changes are made."
+- "We added a new feature that enables filtering by date."
+- "We introduced the Dream Journal Manager in version 0.5.0."
 
 ### Technical Writing Guidelines
 
@@ -595,6 +601,19 @@ Update documentation in the following scenarios:
 - **Version Tagging**: Tag documentation versions to match plugin versions
 - **Documentation Commits**: Use the prefix "docs:" for documentation-only commits
 - **Breaking Changes**: Clearly mark breaking changes in both code and documentation
+
+### 13.3. Date Usage Guidelines
+
+- **Past Releases**: Include specific dates (YYYY-MM-DD format) for all past releases in the CHANGELOG.md
+- **Current Features**: Use dates for documentation of existing features when relevant
+- **Future Plans**: Avoid specific dates or months for unreleased/planned features:
+  - Avoid phrases like "Coming in July 2025" or "Planned for Q3 2025"
+  - Instead use relative language like "In a future release" or "Planned for implementation after [prerequisite feature]"
+  - For implementation order, use "First Priority", "Second Priority" instead of specific timelines
+- **Implementation Timelines**: In planning documents, use general phases rather than specific dates:
+  - Use "Phase 1: Initial Implementation" instead of "July 2025: Initial Implementation"
+  - Structure timelines as dependency relationships rather than calendar dates
+  - Example: "Worker prototype development → CSS optimization → Multi-day selection → Performance testing"
 
 ## 14. Documentation Templates
 

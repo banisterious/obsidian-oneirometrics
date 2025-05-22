@@ -59,6 +59,7 @@
 - Refactored CSS class naming convention to consistently use "oom-" prefix for all plugin-specific classes
 - Updated and fixed main.ts to properly handle the loadStyles method (which is now just a stub for backwards compatibility)
 - Standardized documentation file naming to lowercase-with-hyphens convention
+- Fixed various CSS issues for better theme compatibility and user experience
 
 ### Removed
 - Archived completed CSS refactoring plan to docs/archive/
@@ -147,7 +148,7 @@
 - Scroll position maintenance when expanding/collapsing entries
 - Event listener attachment and cleanup
 - Performance with large datasets
-- See [docs/user/reference/troubleshooting.md](docs/user/reference/troubleshooting.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
+- See [docs/user/reference/troubleshooting.md](docs/user/reference/troubleshooting.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements.
 - Fixed unwanted animation in Obsidian Settings modal by properly scoping modal-related CSS selectors
 - The metrics table in the OneiroMetrics note now correctly displays all enabled metrics from dream entries, not just the word count. This was fixed by updating the metrics parsing logic to handle case-insensitive metric names and ensure all metrics are added to the global metrics record.
 
@@ -215,7 +216,7 @@
 - Show more button functionality across all themes
 - Event listener attachment and cleanup
 - Log file organization and management
-- See [docs/user/reference/troubleshooting.md](docs/user/reference/troubleshooting.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements (May 2025).
+- See [docs/user/reference/troubleshooting.md](docs/user/reference/troubleshooting.md#fixed-issues) for a detailed summary of the Show more button event handling fix, scroll jump fix, and visible rows performance improvements.
 
 ## [0.3.1] - 2025-05-12
 ### Added

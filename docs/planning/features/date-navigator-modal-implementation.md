@@ -78,7 +78,7 @@ The implementation offers several advantages:
    - Better use of limited screen real estate
    - More touch-friendly interaction model
 
-## Filter Application Resolution (May 2025)
+## Filter Application Resolution
 
 ### Implemented Changes
 1. **Metrics Summary Update**:
@@ -118,6 +118,35 @@ All critical issues have been resolved:
 - Explore the web worker architecture detailed in this document
 - Add tooltips and hover previews for entries on calendar view
 
+## Navigation Enhancement Decision
+
+After evaluating multiple options for enhancing the Date Navigator's navigation capabilities, the hierarchical navigation approach has been selected as the best option. This decision was made to maintain usability on both desktop and mobile while extending functionality.
+
+### Hierarchical Year Navigation Implementation
+The agreed-upon implementation will include:
+
+1. **Year Selection View**: Initial view showing available years with dream entries
+2. **Month Selection View**: After year selection, show the 12 months with visual indicators for entry density
+3. **Day Selection View**: After month selection, show the current day grid view
+4. **Breadcrumb Navigation**: Add breadcrumbs (e.g., "2025 > May > 15") for quick navigation between levels
+
+The implementation will draw inspiration from Material Design's date picker components, particularly their hierarchical approach to date selection and smooth transitions between different views. This will provide users with a familiar, intuitive experience while maintaining consistency with Obsidian's overall design language.
+
+### Implementation Order for Future Enhancements
+The following implementation order was determined:
+
+1. **Hierarchical Year Navigation** (First Priority)
+   - Creates the foundation for efficient navigation across years
+   - Provides the necessary UI structure for accessing dates in different time periods
+   - Establishes the pattern for visual indicators showing entry density
+
+2. **Multi-day Selection** (Second Priority)
+   - Builds on the hierarchical navigation to enable selecting dates across different months/years
+   - Requires the navigation framework to be in place first
+   - Involves more complex state management and filter logic
+
+This order ensures a logical progression of feature development, with each enhancement building on the previous one, while maintaining a consistent user experience.
+
 ## Next Steps
 
 To complete the implementation:
@@ -143,7 +172,7 @@ To complete the implementation:
    - Develop a more efficient event architecture 
    - Consider implementing virtualization for filtered tables
 
-## Planned Worker-Based Architecture (June 2025)
+## Planned Worker-Based Architecture
 
 To completely eliminate performance warnings and prepare for multi-day selection features, the following architecture improvements are planned:
 
@@ -215,10 +244,10 @@ filterWorker.onmessage = (e) => {
 - Support for complex visual feedback during multi-selection
 
 ### 5. Implementation Timeline
-- Worker prototype: Early June 2025
-- CSS optimization: Mid-June 2025
-- Multi-day selection: Late June 2025
-- Performance testing and refinement: July 2025
+- Worker prototype development
+- CSS optimization
+- Multi-day selection
+- Performance testing and refinement
 
 This architecture will provide a solid foundation for all planned Date Navigator features while ensuring excellent performance across devices.
 
@@ -237,7 +266,7 @@ Once open, users can:
 - Use the Today button to quickly navigate to the current month
 - Clear selection to remove date filters 
 
-## Recent Progress on Filtering and Metrics Display (June 2024)
+## Recent Progress on Filtering and Metrics Display
 
 ### Implemented Changes
 1. **Metrics Summary Update**:
