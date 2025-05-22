@@ -427,7 +427,7 @@ The Settings page provides a comprehensive interface for managing dream metrics 
    - Performance benchmarks
    - Accessibility testing 
 
-## Recent Fixes (May 2025)
+## Recent Fixes
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
 - A temporary debug button ("Debug: Attach Show More Listeners") is available at the top of the project note to manually attach event listeners for expand/collapse buttons if needed.

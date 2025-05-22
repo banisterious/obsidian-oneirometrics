@@ -2,7 +2,7 @@
 
 > **Note:** For detailed instructions on using Chrome DevTools to diagnose performance issues, see [Performance Testing](docs/developer/testing/performance-testing.md).
 
-> **Ribbon Button Visibility Bug:** [RESOLVED, May 2025] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
+> **Ribbon Button Visibility Bug:** [RESOLVED] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
 
 ## Recent Issues and Fixes
 
@@ -187,8 +187,8 @@
 
 6. **Custom Date Range Modal Issues**
    - Issue: The Custom Date Range modal has several UX and functionality issues:
-     - Default date range incorrectly shows the previous day (May 20, 2025) instead of the current day
-     - Input format mismatch: displays "May 21, 2025" but expects "2025-05-21" for manual entry, creating a confusing user experience
+     - Default date range incorrectly shows the previous day instead of the current day
+     - Input format mismatch: displays dates in a user-friendly format but expects ISO format for manual entry, creating a confusing user experience
      - Multiple modal instances can be spawned simultaneously, requiring users to close each one individually
    - Investigation: Initial fixes have improved the clickable favorites functionality and removed the dropdown
    - Next Steps: Defer fixes until after Month view feature implementation, which may provide alternative date selection approaches

@@ -161,7 +161,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
   - **Metrics Descriptions Modal:** A dedicated modal now displays all metric descriptions (default and optional) with a landscape layout, improved table borders, and Lucide icons integrated into headings. This modal is accessible via a 'Metrics Descriptions' button in the settings page.
   - **Settings Page Overhaul:** The Settings page now features a visually distinct bordered metrics section, clear section dividers, and helper text under key section headers for improved clarity and usability. Default and Optional Metrics are grouped and styled for easier navigation.
 
-## Current Status (May 2025)
+## Current Status
 - The filtering system and metrics scraping are functioning as expected.
 - The 'Read more' button arrow changes on click, but the content does not expand; this is under active investigation.
 - UI rendering and event handling for expand/collapse are being debugged.
@@ -177,7 +177,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - **Documentation:** Review and update documentation to reflect recent changes
 - **Feedback:** Gather user feedback on the new Custom Date Filter UI and metrics
 
-## Recent Improvements and Lessons Learned (May 12, 2025)
+## Recent Improvements and Lessons Learned
 
 ### Event Handling Improvements
 - Replaced non-existent `file-change` event with correct `modify` event from vault
@@ -223,7 +223,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - **Safe Updates:** Project note is backed up before overwriting metrics tables.
 - **Testing & Troubleshooting:** Comprehensive testing checklist and troubleshooting guide included.
 
-## Recent Fixes (May 2025)
+## Recent Fixes
 
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
 - All debug and backup log files are now stored in the `logs/` folder and excluded from version control.
