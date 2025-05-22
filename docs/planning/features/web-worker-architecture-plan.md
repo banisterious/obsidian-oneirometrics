@@ -1552,7 +1552,7 @@ The following items require further investigation or decision-making before impl
 
 - [x] **Storage Limit Investigation**: ✅ DECIDED: Implement a hybrid caching approach optimized for Obsidian that uses both memory cache and Obsidian's storage API
 - [ ] **Mobile Power Management**: Research best practices for detecting and adapting to battery status on mobile devices within Obsidian
-- [ ] **Obsidian Web Worker API Limitations**: Confirm if there are any Obsidian-specific limitations on Web Worker usage not covered by the [obsidian-web-worker-example](https://github.com/RyotaUshio/obsidian-web-worker-example) repository, particularly for mobile platforms
+- [x] **Obsidian Web Worker API Limitations**: ✅ DECIDED: Implement advanced feature detection with progressive enhancement that adapts to platform-specific limitations while maintaining core functionality across all environments
 - [x] **esbuild Configuration**: ✅ DECIDED: Use balanced configuration with TypeScript support and development-only sourcemaps:
   ```javascript
   inlineWorker({
@@ -1564,7 +1564,8 @@ The following items require further investigation or decision-making before impl
   ```
 - [x] **Worker Debugging Strategy**: ✅ DECIDED: Implement custom worker message protocol with debug channel for effective worker debugging
 - [ ] **Legacy Browser Fallbacks**: Decide minimum browser version support for Electron in Obsidian desktop and WebView in Obsidian mobile
-- [ ] **Plugin Integration Points**: Identify other OneiroMetrics features that could benefit from worker-based processing
+- [x] **Plugin Integration Points**: ✅ DECIDED: Extend worker architecture to support multiple plugin features beyond date navigation, including metrics calculation, tag analysis, and search functionality
+- [x] **OneiroMetrics Note Integration**: ✅ DECIDED: Implement deep integration with note metadata that enables processing of structured dream journal data while maintaining privacy and data integrity
 - [ ] **Telemetry Privacy Policy**: Formalize privacy policy around performance telemetry data collection
 - [ ] **Deployment Strategy**: Determine if this feature should be released incrementally or as part of a major version update
 - [ ] **User Settings**: Decide which aspects of worker behavior should be configurable by users
@@ -1573,3 +1574,429 @@ The following items require further investigation or decision-making before impl
 - [x] **DOM Manipulation Strategy**: ✅ DECIDED: Use DocumentFragment with CSS transitions for efficient DOM updates
 - [x] **Memory Management**: ✅ DECIDED: Implement comprehensive reference management with disposal patterns and lifecycle-aware resource handling
 - [x] **Input Validation**: ✅ DECIDED: Implement comprehensive validation with sanitization for all inputs, especially dates
+
+### Implementation Details for Obsidian Integration Decisions
+
+#### Obsidian Web Worker API Limitations: Advanced Feature Detection
+
+```typescript
+// Progressive enhancement approach for Obsidian platform compatibility
+export class ObsidianWorkerManager {
+  private isDesktop: boolean = false;
+  private isMobile: boolean = false;
+  private platformCapabilities = {
+    supportsWorkers: false,
+    supportsSharedArrayBuffer: false,
+    supportsIndexedDB: false,
+    maxWorkerMemory: 0,
+    perfMode: 'auto' as 'high' | 'balanced' | 'low' | 'auto'
+  };
+
+  constructor(app: App) {
+    this.app = app;
+    this.detectPlatform();
+    this.detectCapabilities();
+  }
+
+  // Detect Obsidian platform (mobile vs desktop)
+  private detectPlatform() {
+    // Use Obsidian API to detect platform
+    this.isDesktop = (this.app as any).platform !== 'mobile';
+    this.isMobile = (this.app as any).platform === 'mobile';
+    
+    console.log(`Platform detection: ${this.isDesktop ? 'Desktop' : 'Mobile'}`);
+  }
+
+  // Detect platform capabilities with graceful degradation
+  private detectCapabilities() {
+    // Web Worker basic support
+    this.platformCapabilities.supportsWorkers = typeof Worker !== 'undefined';
+    
+    // Check for SharedArrayBuffer support (for advanced features)
+    try {
+      new SharedArrayBuffer(1);
+      this.platformCapabilities.supportsSharedArrayBuffer = true;
+    } catch (e) {
+      this.platformCapabilities.supportsSharedArrayBuffer = false;
+    }
+    
+    // Check for IndexedDB support (for advanced caching)
+    this.platformCapabilities.supportsIndexedDB = 'indexedDB' in window;
+    
+    // Performance mode based on platform
+    this.platformCapabilities.perfMode = this.isMobile ? 'low' : 'balanced';
+    
+    // Estimate max worker memory based on platform
+    this.platformCapabilities.maxWorkerMemory = this.isMobile ? 
+      50 * 1024 * 1024 : // 50MB for mobile
+      250 * 1024 * 1024; // 250MB for desktop
+      
+    console.log('Platform capabilities:', this.platformCapabilities);
+  }
+  
+  // Create the appropriate worker based on platform capabilities
+  createWorker(workerScript: string): Worker | null {
+    if (!this.platformCapabilities.supportsWorkers) {
+      console.log('Web Workers not supported on this platform, using fallback');
+      return null;
+    }
+    
+    try {
+      // For mobile, use more conservative settings
+      if (this.isMobile) {
+        // Create worker with minimal features
+        return new Worker(
+          URL.createObjectURL(
+            new Blob(
+              [`self.PLATFORM = "mobile"; ${workerScript}`],
+              { type: 'text/javascript' }
+            )
+          )
+        );
+      } else {
+        // Desktop can use full feature set
+        return new Worker(
+          URL.createObjectURL(
+            new Blob(
+              [`self.PLATFORM = "desktop"; ${workerScript}`],
+              { type: 'text/javascript' }
+            )
+          )
+        );
+      }
+    } catch (e) {
+      console.error('Failed to create worker:', e);
+      return null;
+    }
+  }
+  
+  // Adapt filtering strategy based on platform capabilities
+  adaptFilterStrategy(entryCount: number): 'worker' | 'main-thread' | 'hybrid' {
+    // For small datasets, just use main thread
+    if (entryCount < 100) return 'main-thread';
+    
+    // For mobile with large datasets, use hybrid approach
+    if (this.isMobile && entryCount > 500) return 'hybrid';
+    
+    // Use workers when available
+    return this.platformCapabilities.supportsWorkers ? 'worker' : 'main-thread';
+  }
+}
+```
+
+#### OneiroMetrics Note Integration: Deep Metadata Integration
+
+```typescript
+// Integration with Obsidian note metadata and dream journal structure
+export class DreamJournalWorkerIntegration {
+  private app: App;
+  private workerManager: ObsidianWorkerManager;
+  private metadataCache: MetadataCache;
+  private vault: Vault;
+  
+  // Keep track of processed notes to avoid redundant work
+  private processedNotes: Map<string, {
+    timestamp: number,
+    metadata: any,
+    hash: string
+  }> = new Map();
+  
+  constructor(app: App, workerManager: ObsidianWorkerManager) {
+    this.app = app;
+    this.workerManager = workerManager;
+    this.metadataCache = app.metadataCache;
+    this.vault = app.vault;
+  }
+  
+  // Extract structured dream data from notes
+  async processNoteForWorker(file: TFile): Promise<DreamEntryData | null> {
+    // Skip if already processed and unchanged
+    const currentHash = await this.getNoteContentHash(file);
+    const cachedData = this.processedNotes.get(file.path);
+    
+    if (cachedData && cachedData.hash === currentHash) {
+      return cachedData.metadata;
+    }
+    
+    // Get file content
+    const content = await this.vault.read(file);
+    const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
+    
+    // Skip non-dream journal entries
+    if (!this.isDreamJournalEntry(frontmatter)) {
+      return null;
+    }
+    
+    // Extract structured data while maintaining privacy
+    // Only extract dates, tags, and structured metadata - not content
+    const dreamData: DreamEntryData = {
+      id: file.path,
+      date: frontmatter?.date || this.extractDateFromFilename(file.name),
+      tags: frontmatter?.tags || [],
+      lucid: frontmatter?.lucid || false,
+      // Only include indexed fields, not full content
+      metrics: this.extractMetricsData(frontmatter)
+    };
+    
+    // Cache processed data with content hash
+    this.processedNotes.set(file.path, {
+      timestamp: Date.now(),
+      metadata: dreamData,
+      hash: currentHash
+    });
+    
+    return dreamData;
+  }
+  
+  // Helper to determine if a note is a dream journal entry
+  private isDreamJournalEntry(frontmatter: any): boolean {
+    return frontmatter?.dreamjournal === true || 
+           frontmatter?.dream === true ||
+           (frontmatter?.tags && 
+            (frontmatter.tags.includes('dream') || 
+             frontmatter.tags.includes('dream-journal')));
+  }
+  
+  // Extract date from filename patterns like YYYY-MM-DD or diary formats
+  private extractDateFromFilename(filename: string): string {
+    // Match common date formats in filenames
+    const datePatterns = [
+      /(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
+      /(\d{2})[-_](\d{2})[-_](\d{4})/, // MM-DD-YYYY
+      /(\d{1,2})[-_](\d{1,2})[-_](\d{4})/ // M-D-YYYY
+    ];
+    
+    for (const pattern of datePatterns) {
+      const match = filename.match(pattern);
+      if (match) {
+        // Format consistently as YYYY-MM-DD
+        return `${match[1]}-${match[2]}-${match[3]}`;
+      }
+    }
+    
+    return ''; // No date found
+  }
+  
+  // Generate a hash of file content for change detection
+  private async getNoteContentHash(file: TFile): Promise<string> {
+    const content = await this.vault.read(file);
+    return this.hashString(content);
+  }
+  
+  // Simple hash function for change detection
+  private hashString(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash.toString(16);
+  }
+  
+  // Extract only metrics data, not personal content
+  private extractMetricsData(frontmatter: any): any {
+    const metrics: any = {};
+    const metricFields = [
+      'clarity', 'vividness', 'emotion', 'intensity',
+      'lucidity', 'duration', 'recall', 'awareness'
+    ];
+    
+    if (frontmatter) {
+      for (const field of metricFields) {
+        if (frontmatter[field] !== undefined) {
+          metrics[field] = frontmatter[field];
+        }
+      }
+    }
+    
+    return metrics;
+  }
+}
+```
+
+#### Plugin Integration Points: Extended Worker Architecture
+
+```typescript
+// Extended worker architecture to support multiple plugin features
+export class OneiroMetricsWorkerManager {
+  private app: App;
+  private workerPool: Map<string, Worker> = new Map();
+  private maxWorkers: number;
+  
+  constructor(app: App) {
+    this.app = app;
+    // Limit workers based on platform - max 2 on mobile, max 4 on desktop
+    this.maxWorkers = app.isMobile ? 2 : 4;
+    this.initializeWorkerPool();
+  }
+  
+  // Initialize the worker pool with specialized workers
+  private initializeWorkerPool() {
+    // Only create what's needed for active features
+    this.createWorker('date-filter', './workers/date-filter-worker.ts');
+    this.createWorker('metrics-analysis', './workers/metrics-analysis-worker.ts');
+    this.createWorker('tag-analysis', './workers/tag-analysis-worker.ts');
+    
+    // Optional search worker - only create if search feature is enabled
+    if (this.app.plugins.plugins['dataview']) {
+      this.createWorker('search', './workers/search-worker.ts');
+    }
+  }
+  
+  // Create a specialized worker with appropriate error handling
+  private createWorker(workerType: string, scriptPath: string) {
+    if (this.workerPool.size >= this.maxWorkers) {
+      console.log(`Maximum worker count reached (${this.maxWorkers}), skipping ${workerType} worker`);
+      return;
+    }
+    
+    try {
+      // Create the worker with a startup message to confirm initialization
+      const worker = new Worker(new URL(scriptPath, import.meta.url));
+      worker.postMessage({ type: 'INIT', workerType });
+      
+      // Set up error handling
+      worker.onerror = (error) => {
+        console.error(`Error in ${workerType} worker:`, error);
+        // Attempt recovery
+        this.recoverWorker(workerType, scriptPath);
+      };
+      
+      this.workerPool.set(workerType, worker);
+      console.log(`Created ${workerType} worker successfully`);
+    } catch (error) {
+      console.error(`Failed to create ${workerType} worker:`, error);
+    }
+  }
+  
+  // Attempt to recover a crashed worker
+  private recoverWorker(workerType: string, scriptPath: string) {
+    // Remove crashed worker
+    const worker = this.workerPool.get(workerType);
+    if (worker) {
+      worker.terminate();
+      this.workerPool.delete(workerType);
+    }
+    
+    // Attempt to recreate after a short delay
+    setTimeout(() => {
+      this.createWorker(workerType, scriptPath);
+    }, 2000);
+  }
+  
+  // Use the appropriate worker for a task
+  public processTask(taskType: string, data: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // Map task types to worker types
+      const workerTypeMap: Record<string, string> = {
+        'filter-by-date': 'date-filter',
+        'filter-by-pattern': 'date-filter',
+        'calculate-metrics': 'metrics-analysis',
+        'analyze-tags': 'tag-analysis',
+        'search-entries': 'search'
+      };
+      
+      const workerType = workerTypeMap[taskType] || 'date-filter';
+      const worker = this.workerPool.get(workerType);
+      
+      if (!worker) {
+        // Fall back to main thread if worker not available
+        this.processOnMainThread(taskType, data)
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
+      
+      // Generate unique request ID
+      const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Set up one-time message handler for this request
+      const messageHandler = (event: MessageEvent) => {
+        const response = event.data;
+        
+        if (response.requestId === requestId) {
+          worker.removeEventListener('message', messageHandler);
+          
+          if (response.error) {
+            reject(new Error(response.error));
+          } else {
+            resolve(response.data);
+          }
+        }
+      };
+      
+      worker.addEventListener('message', messageHandler);
+      
+      // Send the task to the worker
+      worker.postMessage({
+        type: taskType,
+        requestId,
+        data,
+        timestamp: Date.now()
+      });
+      
+      // Set timeout for long-running tasks
+      setTimeout(() => {
+        worker.removeEventListener('message', messageHandler);
+        reject(new Error(`Task ${taskType} timed out after 30 seconds`));
+      }, 30000);
+    });
+  }
+  
+  // Fallback processing on main thread
+  private processOnMainThread(taskType: string, data: any): Promise<any> {
+    console.log(`Processing ${taskType} on main thread as fallback`);
+    
+    // Implement simplified versions of worker algorithms for fallback
+    switch (taskType) {
+      case 'filter-by-date':
+        return this.processDateFilter(data);
+      case 'calculate-metrics':
+        return this.processMetricsCalculation(data);
+      // Other task types...
+      default:
+        return Promise.reject(new Error(`Unknown task type: ${taskType}`));
+    }
+  }
+  
+  // Main thread implementation of date filtering
+  private processDateFilter(data: any): Promise<any> {
+    return new Promise((resolve) => {
+      // Simple implementation to run on main thread if worker fails
+      const { entries, filterParams } = data;
+      const { startDate, endDate } = filterParams;
+      
+      const results = entries.map(entry => {
+        const entryDate = new Date(entry.date);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        return {
+          id: entry.id,
+          visible: entryDate >= start && entryDate <= end
+        };
+      });
+      
+      resolve({ visibilityMap: results });
+    });
+  }
+  
+  // Main thread implementation of metrics calculation
+  private processMetricsCalculation(data: any): Promise<any> {
+    // Simple implementation for metrics calculation
+    // ...implementation omitted for brevity
+    return Promise.resolve({ metrics: {} });
+  }
+  
+  // Clean up all workers
+  public destroy() {
+    this.workerPool.forEach(worker => {
+      worker.terminate();
+    });
+    this.workerPool.clear();
+  }
+}
+```
+
+These implementations provide a comprehensive approach to integrating Web Workers with Obsidian's plugin architecture and addressing the specific requirements of the OneiroMetrics plugin.
