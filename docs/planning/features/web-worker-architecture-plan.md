@@ -49,6 +49,37 @@ This document outlines the detailed architecture for implementing a web worker-b
 
 Web Workers are fully supported in Obsidian plugins, as demonstrated by existing implementations such as the [obsidian-web-worker-example](https://github.com/RyotaUshio/obsidian-web-worker-example) repository, which provides a minimal working example of building an Obsidian plugin using web workers.
 
+### Obsidian-Specific Implementation
+
+For integration with Obsidian's plugin architecture, we will use the [esbuild-plugin-inline-worker](https://github.com/mitschabaude/esbuild-plugin-inline-worker) package to bundle our worker code. This approach has several benefits:
+
+1. **Simplified Bundling**: The worker code gets bundled automatically with the main plugin code
+2. **No Separate Files**: Workers are embedded directly in the plugin bundle, avoiding file path issues
+3. **TypeScript Support**: Full TypeScript support for type checking across worker boundaries
+4. **Obsidian API Compatibility**: Proven to work within Obsidian's plugin sandbox environment
+
+The implementation will require updates to our `esbuild.config.mjs` file to include the inline worker plugin:
+
+```javascript
+// esbuild.config.mjs update
+import { inlineWorker } from 'esbuild-plugin-inline-worker';
+
+// Add to plugins array
+plugins: [
+    // existing plugins...
+    inlineWorker({
+        sourcemap: prod ? false : 'inline',
+    }),
+],
+```
+
+This configuration will automatically bundle any files imported using the Worker constructor:
+
+```typescript
+// The plugin will properly bundle this worker
+const worker = new Worker('./date-filter-worker.ts');
+```
+
 ## Goals
 
 1. **Performance Optimization**
@@ -247,6 +278,83 @@ function handleDateRangeFilter(message) {
 }
 
 // Similar implementations for other filter types...
+```
+
+#### Worker Initialization in Obsidian Plugin Context
+
+To integrate with Obsidian's plugin system, the worker will be initialized as follows:
+
+```typescript
+// Inside the DateNavigatorWorkerManager
+
+// Set up worker instance
+private initWorker() {
+  try {
+    // Using the esbuild-plugin-inline-worker, we can directly import the worker file
+    this.worker = new Worker(new URL('./date-filter-worker.ts', import.meta.url));
+    this.setupWorkerEventHandlers();
+    
+    // Log successful worker initialization
+    console.log('Date filter worker initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize worker:', error);
+    
+    // Cache the error for diagnostics
+    this.workerInitError = error;
+    
+    // Fall back to main thread processing
+    this.workerSupported = false;
+  }
+}
+
+// Clean up worker when plugin is unloaded
+public destroy() {
+  if (this.worker) {
+    // Cancel any active requests
+    this.activeRequests.forEach((_, requestId) => {
+      this.cancelFilter(requestId);
+    });
+    
+    // Terminate the worker
+    this.worker.terminate();
+    this.worker = null;
+  }
+  
+  // Clear other resources
+  this.activeRequests.clear();
+  this.resultCache.clear();
+}
+```
+
+##### Worker Support Detection
+
+To ensure compatibility across different Obsidian environments, we'll implement proper feature detection:
+
+```typescript
+// Feature detection for worker support in plugin load phase
+private checkWorkerSupport(): boolean {
+  // First, check basic Worker support
+  if (typeof Worker === 'undefined') {
+    console.log('Web Workers not supported in this environment');
+    return false;
+  }
+  
+  // Check for specific Obsidian limitations (e.g., on mobile platforms)
+  try {
+    // Attempt to create a minimal test worker to verify support
+    const testWorker = new Worker(
+      URL.createObjectURL(new Blob(['self.onmessage = () => self.postMessage("test")'], 
+      { type: 'text/javascript' }))
+    );
+    
+    // Clean up test worker
+    testWorker.terminate();
+    return true;
+  } catch (e) {
+    console.log('Web Worker creation failed, using fallback mode:', e);
+    return false;
+  }
+}
 ```
 
 ### 4. Main Thread Integration with Obsidian API
@@ -982,192 +1090,19 @@ if (prod) {
 }
 ```
 
-This configuration will automatically bundle and inline any worker files imported using the Worker constructor. The worker code will be properly bundled and made available to the plugin at runtime.
-
-## Testing Strategy
-
-### 1. Unit Testing
-- Test worker message protocol
-- Verify filter logic for different date formats
-- Test caching mechanisms
-- Validate error handling
-
-### 2. Integration Testing
-- Test worker integration with DateNavigator
-- Validate UI updates based on filter results
-- Verify progress indicators
-- Test cancellation functionality
-
-### 3. Performance Testing
-- Benchmark filtering speed for various dataset sizes
-- Measure main thread impact during filtering
-- Test UI responsiveness during filter operations
-- Verify memory usage during extended operation
-
-### 4. Obsidian Platform Testing
-- Test across Obsidian desktop (Windows, macOS, Linux) and mobile platforms
-- Verify worker functionality in Obsidian's Electron environment
-- Validate CSS transitions and animations in various Obsidian themes
-- Test in both Reading View and Live Preview modes
-- Verify compatibility with different Obsidian versions
-
-### 5. Testing with Realistic Data
-
-To ensure real-world effectiveness, testing will incorporate:
-
-```typescript
-// Test fixture generation for realistic data loads
-function generateRealisticTestData(entriesCount: number): DreamEntryData[] {
-  const entries: DreamEntryData[] = [];
-  const today = new Date();
-  
-  // Generate entries spanning multiple years with realistic distribution
-  for (let i = 0; i < entriesCount; i++) {
-    // Create realistic date distribution (more entries in recent months)
-    const daysAgo = Math.floor(Math.pow(Math.random() * 10, 2)); // Bias toward recent dates
-    const date = new Date(today);
-    date.setDate(date.getDate() - daysAgo);
-    
-    entries.push({
-      id: `entry-${i}`,
-      date: format(date, 'yyyy-MM-dd'),
-      content: `Test dream entry ${i}`,
-      // Include other realistic metadata
-    });
-  }
-  
-  return entries;
-}
-
-// Load actual anonymized user data (with permission) for testing
-async function loadAnonymizedUserData(): Promise<DreamEntryData[]> {
-  try {
-    const response = await fetch('test-data/anonymized-entries.json');
-    const data = await response.json();
-    return data.map((entry: any) => ({
-      id: entry.id,
-      date: entry.date,
-      // Only include non-sensitive metadata needed for filtering
-    }));
-  } catch (error) {
-    console.error('Failed to load test data:', error);
-    // Fall back to generated data
-    return generateRealisticTestData(500);
-  }
-}
-
-// Performance testing with realistic usage patterns
-async function benchmarkRealisticUsage() {
-  const testData = await loadAnonymizedUserData();
-  const testCases = [
-    { name: 'Recent week', startDate: '2023-05-01', endDate: '2023-05-07' },
-    { name: 'Full month', startDate: '2023-04-01', endDate: '2023-04-30' },
-    { name: 'Quarter', startDate: '2023-01-01', endDate: '2023-03-31' },
-    { name: 'Full year', startDate: '2022-01-01', endDate: '2022-12-31' },
-    { name: 'Multi-year', startDate: '2020-01-01', endDate: '2023-12-31' },
-  ];
-  
-  const results: BenchmarkResult[] = [];
-  
-  for (const testCase of testCases) {
-    console.log(`Running benchmark: ${testCase.name}`);
-    
-    const startTime = performance.now();
-    
-    const filterId = workerManager.filterByDateRange(
-      testData,
-      testCase.startDate,
-      testCase.endDate,
-      {
-        onComplete: (filterResults) => {
-          const endTime = performance.now();
-          const duration = endTime - startTime;
-          
-          results.push({
-            testCase: testCase.name,
-            duration,
-            entriesCount: testData.length,
-            resultsCount: filterResults.visibilityMap.filter(r => r.visible).length,
-          });
-          
-          console.log(`${testCase.name}: ${duration.toFixed(2)}ms`);
-        },
-        onError: (error) => {
-          console.error(`Benchmark error for ${testCase.name}:`, error);
-        }
-      }
-    );
-  }
-  
-  return results;
-}
-```
-
-The testing approach will include:
-
-1. **Dataset Variety**
-   - Small datasets (50-100 entries)
-   - Medium datasets (500-1000 entries)
-   - Large datasets (5000+ entries)
-   - Varied date distributions (clustered, uniform, sparse)
-
-2. **Usage Pattern Testing**
-   - Rapid consecutive filter changes
-   - Long idle periods followed by filtering
-   - Mobile-specific usage patterns
-   - Different view transitions
-
-3. **Real User Data Testing**
-   - Anonymized actual user data (with consent)
-   - Simulation of realistic filtering patterns
-   - Performance benchmarking under realistic conditions
-   - Representative metadata distributions
-
-## Risks and Mitigations
-
-### 1. Web Worker Support
-**Risk**: Some environments may not support Web Workers.  
-**Mitigation**: Implement feature detection and main thread fallback processing.
-
-### 2. Performance with Large Datasets
-**Risk**: Even with workers, very large datasets could cause issues.  
-**Mitigation**: Implement pagination and virtualization for extremely large datasets.
-
-### 3. Complex Date Operations
-**Risk**: Date comparisons can be error-prone and timezone-sensitive.  
-**Mitigation**: Use string-based date comparisons (YYYY-MM-DD) to avoid timezone issues.
-
-### 4. DOM Update Performance
-**Risk**: Applying filter results could still cause layout thrashing.  
-**Mitigation**: Use CSS-based visibility, batch updates, and request animation frames.
-
-### 5. Worker Communication Overhead
-**Risk**: Transferring large datasets between threads could introduce overhead.  
-**Mitigation**: Send only necessary data, use transferable objects when possible, and implement result caching.
-
-### 6. Memory Management
-**Risk**: Large datasets could lead to memory leaks or excessive memory usage.  
-**Mitigation**: Implement proper cleanup of workers and data structures when plugin is disabled or when switching contexts. Use periodic garbage collection hints and monitor memory usage with developer tools.
-
-### 7. Non-Metrics Note Context
-**Risk**: Users might apply filters while not viewing the OneiroMetrics Note, leading to confusion.  
-**Mitigation**: Implement state persistence between note navigation as outlined in the Date Navigator Modal implementation plan. Store filter state when applied from any context and apply it when the metrics note is opened.
-
-## Conclusion
-
-This web worker architecture provides a comprehensive solution for improving the performance and capabilities of the Date Navigator's filtering system. By moving complex filtering operations off the main thread, the plugin will maintain a responsive UI even with large datasets and complex filtering patterns. The architecture also provides a solid foundation for implementing advanced multi-date selection features while ensuring compatibility across different environments.
-
 ## Open Questions and Considerations
 
 The following items require further investigation or decision-making before implementation:
 
 - [ ] **Storage Limit Investigation**: Determine if there are any storage limits in Obsidian's environment that could affect caching large result sets
 - [ ] **Mobile Power Management**: Research best practices for detecting and adapting to battery status on mobile devices within Obsidian
-- [ ] **Obsidian Web Worker API Limitations**: Confirm if there are any Obsidian-specific limitations on Web Worker usage not covered by the example repository
-- [ ] **Legacy Browser Fallbacks**: Decide minimum browser version support and whether to implement additional fallbacks for older browsers
+- [ ] **Obsidian Web Worker API Limitations**: Confirm if there are any Obsidian-specific limitations on Web Worker usage not covered by the [obsidian-web-worker-example](https://github.com/RyotaUshio/obsidian-web-worker-example) repository, particularly for mobile platforms
+- [ ] **esbuild Configuration**: Test the specific esbuild-plugin-inline-worker configuration needed for our project, especially with TypeScript type definitions between worker and main thread
+- [ ] **Worker Debugging Strategy**: Establish a debugging strategy for worker code in Obsidian's environment, which may require special considerations compared to standard web apps
+- [ ] **Legacy Browser Fallbacks**: Decide minimum browser version support for Electron in Obsidian desktop and WebView in Obsidian mobile
 - [ ] **Plugin Integration Points**: Identify other OneiroMetrics features that could benefit from worker-based processing
 - [ ] **Telemetry Privacy Policy**: Formalize privacy policy around performance telemetry data collection
 - [ ] **Deployment Strategy**: Determine if this feature should be released incrementally or as part of a major version update
 - [ ] **User Settings**: Decide which aspects of worker behavior should be configurable by users
 - [ ] **Documentation Requirements**: Plan user and developer documentation updates needed to support this feature
-- [ ] **Security Review**: Schedule a security review of worker communication protocol and data handling 
+- [ ] **Security Review**: Schedule a security review of worker communication protocol and data handling
