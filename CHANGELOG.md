@@ -19,7 +19,12 @@
   - Concrete decisions on technical dependencies, backward compatibility, testing approach
   - Structured CSS refactoring strategy to eliminate inline styles
   - Version control and documentation strategies for maintaining quality
+  - Comprehensive TypeScript File Inventory with line counts and purpose descriptions
   - Located at `docs/developer/implementation/refactoring-plan-2025.md`
+- **Web Worker Plan Document:** Created technical plan to use web workers
+  - Plan to offload date filtering operations from the UI thread
+  - Will eliminate performance issues with large datasets
+  - Located at `docs/planning/features/web-worker-architecture-plan.md`
 - **Journal Structure Check Feature:** Implemented first phase of the Journal Structure Check system
   - Template creation and management for consistent journal entries
   - Support for both flat and nested journal structures
