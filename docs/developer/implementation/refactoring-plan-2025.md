@@ -86,6 +86,33 @@ As of May 22, 2025, the OneiroMetrics plugin has several architectural issues th
 - Map their dependencies and relationships
 - Document external API dependencies
 
+#### 1.1.1 TypeScript File Inventory
+
+The following inventory captures all significant TypeScript files in the codebase along with their purpose:
+
+| File Name | Location | Line Count | Description |
+|-----------|----------|------------|-------------|
+| main.ts | Root | 3,572 | Main plugin file containing most functionality |
+| JournalStructureModal.ts | src/journal_check/ui | 928 | UI for displaying and editing journal structure |
+| TemplateWizard.ts | src/journal_check/ui | 868 | Wizard interface for template creation and management |
+| DreamJournalManager.ts | src/journal_check/ui | 855 | Manages dream journal entry workflows |
+| DateNavigator.ts | src/dom | 732 | Date selection and navigation interface component |
+| LintingEngine.ts | src/journal_check | 511 | Analyzes and validates journal entries structure |
+| DateNavigatorModal.ts | src/dom | 437 | Modal dialog for date navigation interface |
+| TemplaterIntegration.ts | src/journal_check | 367 | Integration with Templater plugin |
+| DreamMetricsEvents.ts | src/events | 317 | Event handling for metrics-related operations |
+| CustomDateRangeModal.ts | src/filters | 317 | Modal for selecting custom date ranges |
+| TestModal.ts | src/journal_check/ui | 309 | Modal dialog for test operations |
+| DateNavigatorView.ts | src/dom | ~300 | Rendering logic for date navigator component |
+| DateNavigatorIntegration.ts | src/dom | ~250 | Integration of date navigator with other components |
+| DreamMetricsDOM.ts | src/dom | ~200 | DOM manipulation utilities for metrics display |
+| DateRangeFilter.ts | src/filters | ~180 | Filter implementation for date range selections |
+| ContentParser.ts | src/journal_check | ~150 | Parses journal content into structured data |
+| types.ts | Root | ~120 | Core type definitions used throughout the plugin |
+| settings.ts | Root | ~100 | Plugin settings definitions and management |
+
+This inventory highlights multiple candidates for refactoring beyond the main.ts file, particularly UI components with high line counts that would benefit from further modularization.
+
 ### 1.2 Define New Architecture
 - Establish module boundaries and interfaces
 - Create folder structure for new modules
@@ -963,24 +990,24 @@ Before beginning the implementation of this refactoring plan, the following ques
 **Decision:** Use a hybrid approach with initial manual dependency mapping supplemented by a lightweight Obsidian-specific analysis tool.
 
 **Implementation details:**
-1. Begin with a manual high-level dependency map of the main components identified in the refactoring plan:
-   - Create a visual diagram documenting relationships between:
-     - Modal components
-     - Service classes
-     - Data processing functions
-     - UI rendering systems
-   - Identify both direct dependencies (imports) and indirect dependencies (shared state)
-   
+1. Begin with a manual high-level dependency map of the main components
+- Create a visual diagram documenting relationships between:
+  - Modal components
+  - Service classes
+  - Data processing functions
+  - UI rendering systems
+- Identify both direct dependencies (imports) and indirect dependencies (shared state)
+
 2. Develop a simple Obsidian-specific analysis script that:
-   - Scans for Obsidian API usage patterns (e.g., `this.app`, `this.plugin`)
-   - Identifies plugin lifecycle hooks and their consumers
-   - Maps event emitters and subscribers
-   - Highlights potential circular dependencies
-   
+- Scans for Obsidian API usage patterns (e.g., `this.app`, `this.plugin`)
+- Identifies plugin lifecycle hooks and their consumers
+- Maps event emitters and subscribers
+- Highlights potential circular dependencies
+
 3. Maintain the dependency documentation as a living document:
-   - Update the diagram after each component extraction
-   - Include the dependency map in technical documentation
-   - Use the map to validate extraction order decisions
+- Update the diagram after each component extraction
+- Include the dependency map in technical documentation
+- Use the map to validate extraction order decisions
 
 **Benefits of this approach:**
 - Combines human insight with automated detection
