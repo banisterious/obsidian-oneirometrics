@@ -20,42 +20,45 @@
 - [5. Image Guidelines](#5-image-guidelines)
   - [5.1. Image Organization and Sizing](#51-image-organization-and-sizing)
   - [5.2. Banner Creation](#52-banner-creation)
-- [6. Annotated Screenshots](#6-annotated-screenshots)
-  - [6.1. Purpose](#61-purpose)
-  - [6.2. Key Sections to Annotate](#62-key-sections-to-annotate)
-  - [6.3. Steps for Creating Screenshots](#63-steps-for-creating-screenshots)
-  - [6.4. Suggested Locations](#64-suggested-locations)
-  - [6.5. Annotated Screenshot Template](#65-annotated-screenshot-template)
-- [7. CSS Styling](#7-css-styling)
-  - [7.1. Banner Fade Effect](#71-banner-fade-effect)
-  - [7.2. Lucide Icon Overlay](#72-lucide-icon-overlay)
-  - [7.3. Custom Callout Background](#73-custom-callout-background)
-- [8. Color Palette](#8-color-palette)
-  - [8.1. From "gsa-barn"](#81-from-gsa-barn)
-  - [8.2. From "gsa-strange-landscape"](#82-from-gsa-strange-landscape)
-- [9. Modal and Leaf Design Standards](#9-modal-and-leaf-design-standards)
-  - [9.1. Standard Modal Layout](#91-standard-modal-layout)
-  - [9.2. Implementation Notes](#92-implementation-notes)
-- [10. Accessibility Guidelines](#10-accessibility-guidelines)
-  - [10.1. Images and Visual Content](#101-images-and-visual-content)
-  - [10.2. Structure and Navigation](#102-structure-and-navigation)
-  - [10.3. Text and Readability](#103-text-and-readability)
-- [11. Mobile Considerations](#11-mobile-considerations)
-  - [11.1. Responsive Design](#111-responsive-design)
-  - [11.2. Touch Interactions](#112-touch-interactions)
-- [12. Documentation Review Process](#12-documentation-review-process)
-  - [12.1. Review Checklist](#121-review-checklist)
-  - [12.2. Workflow](#122-workflow)
-- [13. Version Control Guidelines](#13-version-control-guidelines)
-  - [13.1. When to Update Documentation](#131-when-to-update-documentation)
-  - [13.2. Versioning Strategy](#132-versioning-strategy)
-  - [13.3. Date Usage Guidelines](#133-date-usage-guidelines)
-- [14. Documentation Templates](#14-documentation-templates)
-  - [14.1. Feature Documentation Template](#141-feature-documentation-template)
-  - [14.2. Tutorial Template](#142-tutorial-template)
-  - [14.3. Technical Documentation Template](#143-technical-documentation-template)
-  - [14.4. Feature Plan Template](#144-feature-plan-template)
-- [15. Implementation Checklist](#15-implementation-checklist)
+- [6. Document Structure and Format](#6-document-structure-and-format)
+  - [6.1. Table of Contents (TOC)](#61-table-of-contents-toc)
+  - [6.2. Heading Structure](#62-heading-structure)
+- [7. Annotated Screenshots](#7-annotated-screenshots)
+  - [7.1. Purpose](#71-purpose)
+  - [7.2. Key Sections to Annotate](#72-key-sections-to-annotate)
+  - [7.3. Steps for Creating Screenshots](#73-steps-for-creating-screenshots)
+  - [7.4. Suggested Locations](#74-suggested-locations)
+  - [7.5. Annotated Screenshot Template](#75-annotated-screenshot-template)
+- [8. CSS Styling](#8-css-styling)
+  - [8.1. Banner Fade Effect](#81-banner-fade-effect)
+  - [8.2. Lucide Icon Overlay](#82-lucide-icon-overlay)
+  - [8.3. Custom Callout Background](#83-custom-callout-background)
+- [9. Color Palette](#9-color-palette)
+  - [9.1. From "gsa-barn"](#91-from-gsa-barn)
+  - [9.2. From "gsa-strange-landscape"](#92-from-gsa-strange-landscape)
+- [10. Modal and Leaf Design Standards](#10-modal-and-leaf-design-standards)
+  - [10.1. Standard Modal Layout](#101-standard-modal-layout)
+  - [10.2. Implementation Notes](#102-implementation-notes)
+- [11. Accessibility Guidelines](#11-accessibility-guidelines)
+  - [11.1. Images and Visual Content](#111-images-and-visual-content)
+  - [11.2. Structure and Navigation](#112-structure-and-navigation)
+  - [11.3. Text and Readability](#113-text-and-readability)
+- [12. Mobile Considerations](#12-mobile-considerations)
+  - [12.1. Responsive Design](#121-responsive-design)
+  - [12.2. Touch Interactions](#122-touch-interactions)
+- [13. Documentation Review Process](#13-documentation-review-process)
+  - [13.1. Review Checklist](#131-review-checklist)
+  - [13.2. Workflow](#132-workflow)
+- [14. Version Control Guidelines](#14-version-control-guidelines)
+  - [14.1. When to Update Documentation](#141-when-to-update-documentation)
+  - [14.2. Versioning Strategy](#142-versioning-strategy)
+  - [14.3. Date Usage Guidelines](#143-date-usage-guidelines)
+- [15. Documentation Templates](#15-documentation-templates)
+  - [15.1. Feature Documentation Template](#151-feature-documentation-template)
+  - [15.2. Tutorial Template](#152-tutorial-template)
+  - [15.3. Technical Documentation Template](#153-technical-documentation-template)
+  - [15.4. Feature Plan Template](#154-feature-plan-template)
+- [16. Implementation Checklist](#16-implementation-checklist)
 
 ## 1. Introduction
 
@@ -300,9 +303,59 @@ Consistent cross-referencing improves navigation and maintenance:
   <img src="images/banner-example.jpg" alt="Example banner showing the transition from structured data (barn) to dreams (surreal landscape)" width="1200"/>
 </p>
 
-## 6. Annotated Screenshots
+## 6. Document Structure and Format
 
-### 6.1. Purpose
+### 6.1. Table of Contents (TOC)
+
+- **Requirement:** Every documentation file (including this one, `docs/developer/architecture/overview.md`, `ISSUES.md`, `docs/developer/testing/testing-overview.md`, `docs/developer/architecture/specification.md`, `docs/user/guides/usage.md`, `CHANGELOG.md`, and any new `.md` documents) must include a Table of Contents at its top.
+- **Format:** The TOC should list all main headings (H1, H2, H3, etc.) present in the document.
+- **Interactivity:** Each entry in the TOC must be a clickable link that navigates directly to its corresponding heading within the document.
+- **Placement:** The TOC should be placed immediately after the document's main title (H1) and any introductory badges/images.
+
+#### Example TOC:
+
+```markdown
+## Table of Contents
+
+- [1. Introduction](#1-introduction)
+- [2. Installation](#2-installation)
+  - [2.1. Prerequisites](#21-prerequisites)
+  - [2.2. Installation Steps](#22-installation-steps)
+- [3. Configuration](#3-configuration)
+  - [3.1. Basic Settings](#31-basic-settings)
+  - [3.2. Advanced Options](#32-advanced-options)
+```
+
+### 6.2. Heading Structure
+
+- **Hierarchy:** Use a consistent heading hierarchy throughout all documentation:
+  - **H1 (#):** Document title - only one per document
+  - **H2 (##):** Major sections
+  - **H3 (###):** Subsections
+  - **H4 (####):** Minor subsections
+  - **H5 (#####):** Rarely needed, but available for deep nesting
+
+- **Numbering:** Use numbered headings for technical documentation and implementation guides:
+  - Example: `## 1. Introduction`, `### 1.1. Purpose`
+  - This aids in cross-referencing and provides clear structure
+
+- **Descriptiveness:** Ensure headings are descriptive and unique:
+  - Clear: "Installing from Community Plugins"
+  - Unclear: "Installation"
+
+- **Consistency:** Maintain parallel structure in headings:
+  - Good: "Creating Templates", "Managing Filters", "Exporting Data"
+  - Avoid mixed formats: "Create Templates", "Filter Management", "How to Export"
+
+- **Length:** Keep headings concise (under 60 characters) while still being descriptive
+
+- **Capitalization:** Use Title Case for all headings
+  - Capitalize all major words (nouns, pronouns, verbs, adjectives, adverbs)
+  - Do not capitalize articles (a, an, the), coordinating conjunctions (and, but, or), or prepositions shorter than five letters unless they are the first or last word
+
+## 7. Annotated Screenshots
+
+### 7.1. Purpose
 
 - Annotated screenshots are visual aids that enhance user understanding of the plugin's UI and workflows.
 - They are particularly helpful for:
@@ -310,7 +363,7 @@ Consistent cross-referencing improves navigation and maintenance:
   - Quickly communicating the relationship between different elements.
   - Guiding users in replicating specific structures or steps.
 
-### 6.2. Key Sections to Annotate
+### 7.2. Key Sections to Annotate
 
 When creating annotated screenshots, focus on highlighting these key sections of dream journal entries or plugin interfaces:
 
@@ -321,7 +374,7 @@ When creating annotated screenshots, focus on highlighting these key sections of
 - **Regular journal entry:** Any non-dream notes within a journal.
 - **Block references (e.g., ^20250511):** Unique identifiers for specific blocks of content.
 
-### 6.3. Steps for Creating Screenshots
+### 7.3. Steps for Creating Screenshots
 
 1. **Prepare a Sample Note:** Create a representative sample note in Obsidian that includes all the relevant sections you want to annotate.
 2. **Switch to Preview Mode:** Display the note or UI element in Obsidian's preview mode (or reading mode) to ensure a clean and accurate visual representation.
@@ -339,13 +392,13 @@ When creating annotated screenshots, focus on highlighting these key sections of
 7. **Optional Numbering and Legend:**
    - For complex screenshots, you can number the annotations and provide a legend below the image to explain each number.
 
-### 6.4. Suggested Locations
+### 7.4. Suggested Locations
 
 - **`docs/USAGE.md`:** Include annotated screenshots in the "Adding Dream Metrics" section to illustrate the callout structure.
 - **`docs/SAMPLES.md`:** If you create a separate document showcasing sample notes or UI elements, use annotated screenshots there.
 - **Plugin README:** Add a simplified annotated screenshot to the `README.md` for a quick visual overview.
 
-### 6.5. Annotated Screenshot Template
+### 7.5. Annotated Screenshot Template
 
 Below is an example of a properly annotated screenshot showing a dream journal entry:
 
@@ -373,11 +426,11 @@ Below is an example of a properly annotated screenshot showing a dream journal e
    - Connected by thin (1px) lines if necessary
    - With consistent positioning (e.g., all labels on the left)
 
-## 7. CSS Styling
+## 8. CSS Styling
 
 The following CSS rules are intended for use in the plugin's `styles.css` file or within the `README.md` if necessary, to enhance the visual presentation of documentation:
 
-### 7.1. Banner Fade Effect
+### 8.1. Banner Fade Effect
 
 ```css
 .banner-fade {
@@ -410,7 +463,7 @@ The following CSS rules are intended for use in the plugin's `styles.css` file o
   <img src="images/banner-fade-example.jpg" alt="Example of banner fade effect showing transition between two images" width="800"/>
 </p>
 
-### 7.2. Lucide Icon Overlay
+### 8.2. Lucide Icon Overlay
 
 ```html
 <svg width="32" height="32" style="position:absolute; top:40px; left:60px; opacity:0.3;">
@@ -420,7 +473,7 @@ The following CSS rules are intended for use in the plugin's `styles.css` file o
 
 Note: This example uses a local reference to the icons rather than an external URL to ensure stability.
 
-### 7.3. Custom Callout Background
+### 8.3. Custom Callout Background
 
 ```css
 .callout[data-callout="dream-metrics"] {
@@ -437,17 +490,17 @@ Note: This example uses a local reference to the icons rather than an external U
   <img src="images/custom-callout-example.jpg" alt="Example of a custom callout with dream-metrics styling" width="600"/>
 </p>
 
-## 8. Color Palette
+## 9. Color Palette
 
 Use the following color palettes, derived from the project's imagery, for headings, callouts, or accents in documentation and plugin UI:
 
-### 8.1. From "gsa-barn"
+### 9.1. From "gsa-barn"
 - Sky blue: #a7c7e7
 - Barn red: #b97a56
 - Leaf green: #7bb661
 - Soft yellow: #f7e7a0
 
-### 8.2. From "gsa-strange-landscape"
+### 9.2. From "gsa-strange-landscape"
 - Dream blue: #5a7fa3
 - Surreal green: #b6e3c6
 - Deep red: #a33c3c
@@ -459,9 +512,9 @@ Use the following color palettes, derived from the project's imagery, for headin
   <img src="images/color-palette-example.jpg" alt="Visual representation of the color palette derived from project imagery" width="600"/>
 </p>
 
-## 9. Modal and Leaf Design Standards
+## 10. Modal and Leaf Design Standards
 
-### 9.1. Standard Modal Layout
+### 10.1. Standard Modal Layout
 
 The following layout standards apply to all modals and leaves in the plugin, ensuring consistency with Obsidian's UI conventions:
 
@@ -492,7 +545,7 @@ The following layout standards apply to all modals and leaves in the plugin, ens
    - No thick horizontal lines or unnecessary dividers
    - Modal height adapts to content
 
-### 9.2. Implementation Notes
+### 10.2. Implementation Notes
 
 - Use CSS Grid or Flexbox for the two-column layout
 - Ensure proper spacing using CSS variables
@@ -506,9 +559,9 @@ The following layout standards apply to all modals and leaves in the plugin, ens
   <img src="images/modal-layout-example.jpg" alt="Example of the standard two-column modal layout with labels on the left and widgets on the right" width="700"/>
 </p>
 
-## 10. Accessibility Guidelines
+## 11. Accessibility Guidelines
 
-### 10.1. Images and Visual Content
+### 11.1. Images and Visual Content
 
 - **Alt Text**: All images must include descriptive alt text that conveys the content and purpose of the image
 - **Contrast**: Ensure sufficient contrast between text and background (minimum 4.5:1 ratio)
@@ -520,7 +573,7 @@ The following layout standards apply to all modals and leaves in the plugin, ens
 ![Dream Journal Manager interface showing three tabs: Dream Scraper, Journal Structure, and Templates, with the Dream Scraper tab active and displaying note selection options](images/dream-journal-manager.png)
 ```
 
-### 10.2. Structure and Navigation
+### 11.2. Structure and Navigation
 
 - **Heading Hierarchy**: Use proper heading levels (h1, h2, h3) in sequential order
 - **Link Text**: Use descriptive link text rather than "click here" or URLs
@@ -528,7 +581,7 @@ The following layout standards apply to all modals and leaves in the plugin, ens
 - **Tables**: Include header rows and provide sufficient context
 - **Keyboard Navigation**: Ensure all interactive elements can be accessed via keyboard
 
-### 10.3. Text and Readability
+### 11.3. Text and Readability
 
 - **Plain Language**: Use clear, straightforward language (aim for a 9th-grade reading level)
 - **Abbreviations**: Spell out abbreviations on first use
@@ -536,9 +589,9 @@ The following layout standards apply to all modals and leaves in the plugin, ens
 - **Line Length**: Keep line lengths reasonable (60-80 characters per line)
 - **Text Alternatives**: Provide text alternatives for any non-text content
 
-## 11. Mobile Considerations
+## 12. Mobile Considerations
 
-### 11.1. Responsive Design
+### 12.1. Responsive Design
 
 - **Image Sizing**: Use relative sizing for images (percentage-based or max-width)
 - **Tables**: Create responsive tables that can be viewed on smaller screens
@@ -547,16 +600,16 @@ The following layout standards apply to all modals and leaves in the plugin, ens
 - **Code Blocks**: Ensure code blocks wrap or scroll horizontally on small screens
 - **Touch Targets**: Buttons and links should be at least 44×44 pixels for easy tapping
 
-### 11.2. Touch Interactions
+### 12.2. Touch Interactions
 
 - **Instructions**: Adapt instructions for touch interfaces where appropriate
   - Example: "Tap the Settings button" instead of "Click the Settings button"
 - **Gestures**: Clearly explain any required touch gestures
 - **Mobile-Specific Features**: Document any features that work differently on mobile
 
-## 12. Documentation Review Process
+## 13. Documentation Review Process
 
-### 12.1. Review Checklist
+### 13.1. Review Checklist
 
 Before submitting documentation changes, ensure the following:
 
@@ -570,7 +623,7 @@ Before submitting documentation changes, ensure the following:
 - [ ] Mobile-friendly
 - [ ] Passes document validation checks (run `node docs/validate-docs.js`)
 
-### 12.2. Workflow
+### 13.2. Workflow
 
 1. **Create**: Draft new documentation following the style guide
 2. **Validate**: Run document validation script (`node docs/validate-docs.js`) to check for compliance
@@ -583,9 +636,9 @@ Before submitting documentation changes, ensure the following:
 
 For detailed information on document validation, see [Document Validation](../../developer/implementation/document-validation.md).
 
-## 13. Version Control Guidelines
+## 14. Version Control Guidelines
 
-### 13.1. When to Update Documentation
+### 14.1. When to Update Documentation
 
 Update documentation in the following scenarios:
 
@@ -595,14 +648,14 @@ Update documentation in the following scenarios:
 - When fixing bugs that affect user workflow
 - When improving clarity based on user feedback
 
-### 13.2. Versioning Strategy
+### 14.2. Versioning Strategy
 
 - **Changelog**: Keep documentation changes in the CHANGELOG.md file
 - **Version Tagging**: Tag documentation versions to match plugin versions
 - **Documentation Commits**: Use the prefix "docs:" for documentation-only commits
 - **Breaking Changes**: Clearly mark breaking changes in both code and documentation
 
-### 13.3. Date Usage Guidelines
+### 14.3. Date Usage Guidelines
 
 - **Past Releases**: Include specific dates (YYYY-MM-DD format) for all past releases in the CHANGELOG.md
 - **Current Features**: Use dates for documentation of existing features when relevant
@@ -615,9 +668,9 @@ Update documentation in the following scenarios:
   - Structure timelines as dependency relationships rather than calendar dates
   - Example: "Worker prototype development → CSS optimization → Multi-day selection → Performance testing"
 
-## 14. Documentation Templates
+## 15. Documentation Templates
 
-### 14.1. Feature Documentation Template
+### 15.1. Feature Documentation Template
 
 ```markdown
 # Feature Name
@@ -644,7 +697,7 @@ Address common issues and how to resolve them.
 Link to related features that users might also want to explore.
 ```
 
-### 14.2. Tutorial Template
+### 15.2. Tutorial Template
 
 ```markdown
 # Tutorial: Accomplishing X with OneiroMetrics
@@ -671,7 +724,7 @@ Suggestions for what to learn or try next.
 Common issues and solutions specific to this tutorial.
 ```
 
-### 14.3. Technical Documentation Template
+### 15.3. Technical Documentation Template
 
 ```markdown
 # Feature Name
@@ -698,7 +751,7 @@ Address common issues and how to resolve them.
 Link to related features that users might also want to explore.
 ```
 
-### 14.4. Feature Plan Template
+### 15.4. Feature Plan Template
 
 ```markdown
 # Feature Name
@@ -725,7 +778,7 @@ Address common issues and how to resolve them.
 Link to related features that users might also want to explore.
 ```
 
-## 15. Implementation Checklist
+## 16. Implementation Checklist
 
 - [x] Create docs/images/ directory
 - [x] Add gsa-barn.jpg and gsa-strange-landscape.jpg to docs/images/
