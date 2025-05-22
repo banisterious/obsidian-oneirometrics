@@ -14,12 +14,14 @@
     - [Accessibility Considerations](#accessibility-considerations)
 - [Result Caching and Optimization](#result-caching-and-optimization)
   - [1. Cache Strategy](#1-cache-strategy)
-  - [2. Progressive Enhancement](#2-progressive-enhancement)
+  - [2. Memory Management](#2-memory-management)
+  - [3. Progressive Enhancement](#3-progressive-enhancement)
 - [Error Handling and Recovery](#error-handling-and-recovery)
   - [1. Error Handling Strategy](#1-error-handling-strategy)
   - [2. Debugging and Logging Strategy](#2-debugging-and-logging-strategy)
   - [3. Monitoring and Telemetry](#3-monitoring-and-telemetry)
   - [4. Security Considerations](#4-security-considerations)
+  - [5. Input Validation](#5-input-validation)
 - [Integration with Date Navigator Features](#integration-with-date-navigator-features)
   - [1. Multi-Date Selection Integration](#1-multi-date-selection-integration)
   - [2. Pattern-Based Selection Integration](#2-pattern-based-selection-integration)
@@ -670,14 +672,25 @@ function createAccessibleUI() {
 
 ### 1. Cache Strategy
 
-To avoid redundant processing, results will be cached:
+To avoid redundant processing, results will be cached using a hybrid approach optimized for Obsidian's environment:
 
 ```typescript
 // Inside DateNavigatorWorkerManager
+private readonly MAX_MEMORY_CACHE_SIZE = 5 * 1024 * 1024; // 5MB memory limit
+private readonly CACHE_DATA_FILE = 'filter-cache.json';
 private resultCache: Map<string, {
   timestamp: number,
-  results: FilterResultData
+  results: FilterResultData,
+  size: number,
+  useCount: number
 }> = new Map();
+private currentCacheSize = 0;
+
+constructor(plugin: DreamMetricsPlugin) {
+  this.plugin = plugin;
+  this.app = plugin.app;
+  this.loadPersistentCache();
+}
 
 private getCacheKey(filterType: string, filterParams: any): string {
   return `${filterType}:${JSON.stringify(filterParams)}`;
@@ -692,35 +705,267 @@ private checkCache(filterType: string, filterParams: any): FilterResultData | nu
     
     // Cache valid for 5 minutes
     if (cacheAge < 5 * 60 * 1000) {
+      // Increment use count for frequency tracking
+      cachedData.useCount += 1;
       return cachedData.results;
     } else {
       // Cache expired
       this.resultCache.delete(cacheKey);
+      this.currentCacheSize -= cachedData.size;
     }
   }
   
   return null;
 }
 
+// Estimate object size in bytes
+private estimateObjectSize(obj: any): number {
+  // Simple estimation based on JSON size plus overhead
+  return JSON.stringify(obj).length * 2;
+}
+
 private updateCache(filterType: string, filterParams: any, results: FilterResultData): void {
   const cacheKey = this.getCacheKey(filterType, filterParams);
   
+  // Estimate size of results
+  const resultSize = this.estimateObjectSize(results);
+  
+  // Check if adding would exceed limit
+  if (this.currentCacheSize + resultSize > this.MAX_MEMORY_CACHE_SIZE) {
+    this.pruneMemoryCache(resultSize);
+  }
+  
+  // Add to cache and update size
   this.resultCache.set(cacheKey, {
     timestamp: Date.now(),
-    results
+    results,
+    size: resultSize,
+    useCount: 1
   });
   
-  // Limit cache size
-  if (this.resultCache.size > 20) {
-    // Remove oldest entries
-    const keysIterator = this.resultCache.keys();
-    const oldestKey = keysIterator.next().value;
-    this.resultCache.delete(oldestKey);
+  this.currentCacheSize += resultSize;
+  
+  // Schedule persisting frequently used filters
+  this.debouncedSaveCache();
+}
+
+// Remove least recently used items until we have space
+private pruneMemoryCache(neededSpace: number): void {
+  // Sort by useCount and timestamp (least used and oldest first)
+  const entries = Array.from(this.resultCache.entries())
+    .sort((a, b) => {
+      // First sort by use count
+      const useCountDiff = a[1].useCount - b[1].useCount;
+      if (useCountDiff !== 0) return useCountDiff;
+      
+      // Then by timestamp (oldest first)
+      return a[1].timestamp - b[1].timestamp;
+    });
+  
+  // Remove oldest/least used entries until we have enough space
+  let freedSpace = 0;
+  for (const [key, entry] of entries) {
+    if (freedSpace >= neededSpace) break;
+    
+    this.resultCache.delete(key);
+    freedSpace += entry.size;
+    this.currentCacheSize -= entry.size;
+  }
+  
+  console.log(`Cache pruned: ${freedSpace} bytes freed`);
+}
+
+// Get top filters by use count for persistence
+private getTopFilters(count: number) {
+  return Array.from(this.resultCache.entries())
+    .sort((a, b) => b[1].useCount - a[1].useCount)
+    .slice(0, count);
+}
+
+// Obsidian-specific persistent cache using plugin data
+private async loadPersistentCache(): Promise<void> {
+  try {
+    // Use Obsidian's API to access plugin data
+    const dataAdapter = this.app.vault.adapter;
+    const cacheFilePath = `${this.plugin.manifest.dir}/${this.CACHE_DATA_FILE}`;
+    
+    if (await dataAdapter.exists(cacheFilePath)) {
+      const cacheData = await dataAdapter.read(cacheFilePath);
+      const parsedCache = JSON.parse(cacheData);
+      
+      // Restore top cached items to memory
+      Object.entries(parsedCache).forEach(([key, value]) => {
+        this.resultCache.set(key, value as any);
+        this.currentCacheSize += this.estimateObjectSize(value);
+      });
+      
+      console.log(`Loaded ${this.resultCache.size} cached filters from Obsidian storage`);
+    }
+  } catch (error) {
+    console.warn('Failed to load filter cache from Obsidian storage:', error);
+    // Continue with empty cache if loading fails
+  }
+}
+
+// Debounced save to avoid excessive writes
+private debouncedSaveCache = debounce(() => {
+  this.savePersistentCache();
+}, 30000); // 30 second debounce
+
+private async savePersistentCache(): Promise<void> {
+  try {
+    // Only persist frequently used or recent filters
+    const topFilters = this.getTopFilters(10);
+    const dataAdapter = this.app.vault.adapter;
+    const cacheFilePath = `${this.plugin.manifest.dir}/${this.CACHE_DATA_FILE}`;
+    
+    // Use Obsidian's API to save to plugin data
+    await dataAdapter.write(
+      cacheFilePath,
+      JSON.stringify(Object.fromEntries(topFilters))
+    );
+  } catch (error) {
+    console.warn('Failed to save filter cache to Obsidian storage:', error);
   }
 }
 ```
 
-### 2. Progressive Enhancement
+This approach provides significant benefits:
+- **Memory Efficiency**: Maintains a size-limited in-memory cache for performance
+- **Persistence**: Uses Obsidian's own storage API for cross-session caching
+- **Adaptive**: Prioritizes frequently used filters for persistence
+- **Efficient**: Debounces cache saving to minimize disk writes
+- **Obsidian-Integrated**: Properly works within Obsidian's plugin architecture
+
+### 2. Memory Management
+
+To prevent memory leaks and ensure proper cleanup of resources, a comprehensive disposal pattern is implemented:
+
+```typescript
+// Inside DateNavigatorWorkerManager class
+private _cachedEntries: DreamEntryData[] | null = null;
+private _visibilityHandler: () => void;
+private _beforeUnloadHandler: () => void;
+
+constructor(plugin: DreamMetricsPlugin) {
+  this.plugin = plugin;
+  this.app = plugin.app;
+  
+  // Set up visibility change handler to pause worker during tab inactivity
+  this._visibilityHandler = () => {
+    if (document.visibilityState === 'hidden') {
+      this.suspendWorker();
+    } else {
+      this.resumeWorker();
+    }
+  };
+  
+  // Set up page unload handler to save cache
+  this._beforeUnloadHandler = () => {
+    this.savePersistentCache();
+  };
+  
+  // Attach lifecycle listeners
+  document.addEventListener('visibilitychange', this._visibilityHandler);
+  window.addEventListener('beforeunload', this._beforeUnloadHandler);
+  
+  // Initialize worker
+  this.initWorker();
+  this.loadPersistentCache();
+}
+
+// Suspend worker during inactivity to save resources
+private suspendWorker(): void {
+  if (this.worker && this.isWorkerActive) {
+    console.log('Suspending worker due to tab inactivity');
+    this.isWorkerActive = false;
+    
+    // Cancel any active requests to avoid stale results
+    this.activeRequests.forEach((_, requestId) => {
+      this.cancelFilter(requestId);
+    });
+    
+    // Worker is kept alive but no new tasks are processed
+  }
+}
+
+// Resume worker when tab becomes active again
+private resumeWorker(): void {
+  if (this.worker && !this.isWorkerActive) {
+    console.log('Resuming worker');
+    this.isWorkerActive = true;
+  }
+}
+
+// Explicit cleanup method
+public dispose(): void {
+  console.log('Disposing DateNavigatorWorkerManager');
+  
+  // Save cache before cleanup
+  this.savePersistentCache();
+  
+  // Clear worker
+  if (this.worker) {
+    // Cancel all pending requests
+    this.activeRequests.forEach((_, requestId) => {
+      this.cancelFilter(requestId);
+    });
+    
+    // Terminate worker thread
+    this.worker.terminate();
+    this.worker = null;
+  }
+  
+  // Remove event listeners to prevent memory leaks
+  document.removeEventListener('visibilitychange', this._visibilityHandler);
+  window.removeEventListener('beforeunload', this._beforeUnloadHandler);
+  
+  // Clear all requests and callbacks
+  this.activeRequests.clear();
+  
+  // Clear cache and release references
+  this.resultCache.clear();
+  this.currentCacheSize = 0;
+  
+  // Clear large datasets
+  this._cachedEntries = null;
+}
+
+// Auto-cleanup for large datasets
+private cleanupUnusedData(): void {
+  const now = Date.now();
+  const MAX_AGE = 10 * 60 * 1000; // 10 minutes
+  
+  // Remove expired cache entries
+  let freedMemory = 0;
+  this.resultCache.forEach((entry, key) => {
+    if (now - entry.timestamp > MAX_AGE) {
+      freedMemory += entry.size;
+      this.currentCacheSize -= entry.size;
+      this.resultCache.delete(key);
+    }
+  });
+  
+  if (freedMemory > 0) {
+    console.log(`Memory cleanup: ${freedMemory} bytes freed`);
+  }
+  
+  // Schedule next cleanup if we have items
+  if (this.resultCache.size > 0) {
+    setTimeout(() => this.cleanupUnusedData(), 5 * 60 * 1000); // Every 5 minutes
+  }
+}
+```
+
+This memory management approach provides:
+- **Lifecycle Management**: Proper initialization and cleanup following object lifecycle
+- **Event Listener Cleanup**: Removal of event listeners to prevent memory leaks
+- **Resource Efficiency**: Suspension of worker during tab inactivity
+- **Automatic Cleanup**: Scheduled cleanup of unused resources
+- **Large Dataset Handling**: Special handling for large data structures
+- **Cross-Session Management**: Persistence and restoration of critical data
+
+### 3. Progressive Enhancement
 
 The architecture will implement progressive enhancement:
 
@@ -936,22 +1181,141 @@ function verifyWorkerIntegrity(workerScript: string): boolean {
 }
 ```
 
-The implementation will follow these security principles:
+### 5. Input Validation
 
-1. **Data Sanitization**
-   - Validate all data before passing to/from workers
-   - Remove potentially sensitive information from worker data
-   - Implement schema validation for all message types
+Comprehensive validation and sanitization is applied to all inputs before processing:
 
-2. **Script Security**
-   - Use Content Security Policy headers for worker scripts
-   - Implement integrity checks for loaded worker code
-   - Restrict worker capabilities to minimum required permissions
+```typescript
+// Input validation utilities
+const dateValidators = {
+  // Check if string is ISO format YYYY-MM-DD
+  isValidISODate: (value: string): boolean => {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(new Date(value).getTime());
+  },
+  
+  // Sanitize date string to consistent format
+  sanitizeDateString: (value: string): string => {
+    if (!value) return '';
+    
+    // Try parsing with different formats
+    const formats = ['yyyy-MM-dd', 'MM/dd/yyyy', 'MM-dd-yyyy'];
+    for (const fmt of formats) {
+      try {
+        const parsed = parse(value, fmt, new Date());
+        if (isValid(parsed)) {
+          return format(parsed, 'yyyy-MM-dd');
+        }
+      } catch (e) {
+        // Continue to next format
+      }
+    }
+    
+    // If all parsing fails, try direct Date object
+    try {
+      const date = new Date(value);
+      if (isValid(date)) {
+        return format(date, 'yyyy-MM-dd');
+      }
+    } catch (e) {
+      // Failed to parse
+    }
+    
+    throw new Error(`Invalid date format: ${value}`);
+  }
+};
 
-3. **Privacy Protection**
-   - Never send actual dream content to workers, only metadata needed for filtering
-   - Implement opt-in telemetry with clear user disclosure
-   - Store all performance data locally with user control over retention
+// Message validation in worker
+function validateMessage(message: any): boolean {
+  // Basic structure validation
+  if (!message || typeof message !== 'object') return false;
+  if (!message.id || !message.type || !message.timestamp) return false;
+  
+  // Type-specific validation
+  switch (message.type) {
+    case 'FILTER_BY_DATE_RANGE':
+      // Validate entries array
+      if (!Array.isArray(message.data?.entries)) return false;
+      
+      // Validate date parameters
+      const { startDate, endDate } = message.data?.filterParams || {};
+      if (!startDate || !endDate) return false;
+      if (!dateValidators.isValidISODate(startDate) || !dateValidators.isValidISODate(endDate)) return false;
+      
+      return true;
+      
+    case 'FILTER_BY_MULTIPLE_DATES':
+      // Validate entries array
+      if (!Array.isArray(message.data?.entries)) return false;
+      
+      // Validate dates array
+      const { dates } = message.data?.filterParams || {};
+      if (!Array.isArray(dates) || dates.length === 0) return false;
+      if (!dates.every(date => dateValidators.isValidISODate(date))) return false;
+      
+      return true;
+      
+    // Other message types...
+    
+    default:
+      return false;
+  }
+}
+
+// Usage in main thread before sending to worker
+public filterByDateRange(
+  entries: DreamEntryData[],
+  startDate: string,
+  endDate: string,
+  callbacks?: FilterCallbacks
+): string {
+  // Validate and sanitize inputs
+  try {
+    const sanitizedStart = dateValidators.sanitizeDateString(startDate);
+    const sanitizedEnd = dateValidators.sanitizeDateString(endDate);
+    
+    // Continue with sanitized values
+    return this.sendFilterRequest('FILTER_BY_DATE_RANGE', {
+      entries,
+      filterParams: {
+        startDate: sanitizedStart,
+        endDate: sanitizedEnd
+      }
+    }, callbacks);
+  } catch (error) {
+    console.error('Invalid date parameters:', error);
+    if (callbacks?.onError) {
+      callbacks.onError(error.message);
+    }
+    return '';
+  }
+}
+
+// Apply validation when receiving worker messages
+this.worker.onmessage = (e) => {
+  const message = e.data;
+  
+  // Validate received message format
+  if (!validateMessage(message)) {
+    console.error('Received invalid message format from worker', message);
+    return;
+  }
+  
+  // Process valid message
+  const requestHandlers = this.activeRequests.get(message.data.requestId);
+  if (!requestHandlers) return;
+  
+  // Handle valid message types
+  // ...
+};
+```
+
+This validation approach:
+- **Sanitizes All Inputs**: Ensures consistent formatting of dates and other parameters
+- **Validates Message Structure**: Checks for required fields in all messages
+- **Type-Specific Validation**: Applies specialized validation for each message type
+- **Error Handling**: Provides meaningful errors for invalid inputs
+- **Security Enhancement**: Reduces the risk of injection or malformed data
+- **Format Flexibility**: Accepts multiple date formats but normalizes to a consistent format
 
 ## Integration with Date Navigator Features
 
@@ -1186,7 +1550,7 @@ This configuration provides an optimal balance by:
 
 The following items require further investigation or decision-making before implementation:
 
-- [ ] **Storage Limit Investigation**: Determine if there are any storage limits in Obsidian's environment that could affect caching large result sets
+- [x] **Storage Limit Investigation**: ✅ DECIDED: Implement a hybrid caching approach optimized for Obsidian that uses both memory cache and Obsidian's storage API
 - [ ] **Mobile Power Management**: Research best practices for detecting and adapting to battery status on mobile devices within Obsidian
 - [ ] **Obsidian Web Worker API Limitations**: Confirm if there are any Obsidian-specific limitations on Web Worker usage not covered by the [obsidian-web-worker-example](https://github.com/RyotaUshio/obsidian-web-worker-example) repository, particularly for mobile platforms
 - [x] **esbuild Configuration**: ✅ DECIDED: Use balanced configuration with TypeScript support and development-only sourcemaps:
@@ -1207,3 +1571,5 @@ The following items require further investigation or decision-making before impl
 - [ ] **Documentation Requirements**: Plan user and developer documentation updates needed to support this feature
 - [ ] **Security Review**: Schedule a security review of worker communication protocol and data handling
 - [x] **DOM Manipulation Strategy**: ✅ DECIDED: Use DocumentFragment with CSS transitions for efficient DOM updates
+- [x] **Memory Management**: ✅ DECIDED: Implement comprehensive reference management with disposal patterns and lifecycle-aware resource handling
+- [x] **Input Validation**: ✅ DECIDED: Implement comprehensive validation with sanitization for all inputs, especially dates
