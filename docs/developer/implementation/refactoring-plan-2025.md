@@ -100,17 +100,31 @@ The following inventory captures all significant TypeScript files in the codebas
 | LintingEngine.ts | src/journal_check | 511 | Analyzes and validates journal entries structure |
 | DateNavigatorModal.ts | src/dom | 437 | Modal dialog for date navigation interface |
 | TemplaterIntegration.ts | src/journal_check | 367 | Integration with Templater plugin |
+| CustomDateRangeModal.ts | src | ~330 | Modal for selecting custom date ranges |
+| autocomplete.ts | Root | 317 | File and folder autocomplete utilities for UI components |
 | DreamMetricsEvents.ts | src/events | 317 | Event handling for metrics-related operations |
-| CustomDateRangeModal.ts | src/filters | 317 | Modal for selecting custom date ranges |
 | TestModal.ts | src/journal_check/ui | 309 | Modal dialog for test operations |
+| timeFilters.ts | src | ~270 | Date-based filtering system (day/week/month granularity) |
 | DateNavigatorView.ts | src/dom | ~300 | Rendering logic for date navigator component |
 | DateNavigatorIntegration.ts | src/dom | ~250 | Integration of date navigator with other components |
 | DreamMetricsDOM.ts | src/dom | ~200 | DOM manipulation utilities for metrics display |
 | DateRangeFilter.ts | src/filters | ~180 | Filter implementation for date range selections |
-| timeFilters.ts | src | ~270 | Date-based filtering system (day/week/month granularity) |
 | ContentParser.ts | src/journal_check | ~150 | Parses journal content into structured data |
+| DreamMetricsProcessor.ts | src/metrics | 129 | Processes and analyzes dream metrics data |
+| logger.ts | utils | 108 | Logging system with file rotation and log levels |
 | types.ts | Root | ~120 | Core type definitions used throughout the plugin |
 | settings.ts | Root | ~100 | Plugin settings definitions and management |
+| DreamMetricsState.ts | src/state | 71 | State management for dream metrics data |
+| FilterManager.ts | src | 73 | Manages filter state and date range selection |
+| constants.ts | src | 24 | Default metrics and logging configuration |
+| types.ts | src | 52 | Type definitions specific to the src modules |
+| events.ts | src | 16 | Singleton event bus for application-wide events |
+
+Additionally, the following CSS files require refactoring:
+
+| File Name | Location | Line Count | Description | Refactoring Needed |
+|-----------|----------|------------|-------------|-------------------|
+| DateNavigatorStyles.css | src/dom | ~507 | Date navigator component styles | Should be consolidated into styles.css |
 
 This inventory highlights multiple candidates for refactoring beyond the main.ts file, particularly UI components with high line counts that would benefit from further modularization.
 
