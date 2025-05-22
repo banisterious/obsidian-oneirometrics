@@ -185,6 +185,15 @@
    - Next Steps: Complete layout fixes, ensure all autocompletes work, finalize progress bar, and polish for release.
    - Status: 🚧 In Progress
 
+6. **Custom Date Range Modal Issues**
+   - Issue: The Custom Date Range modal has several UX and functionality issues:
+     - Default date range incorrectly shows the previous day (May 20, 2025) instead of the current day
+     - Input format mismatch: displays "May 21, 2025" but expects "2025-05-21" for manual entry, creating a confusing user experience
+     - Multiple modal instances can be spawned simultaneously, requiring users to close each one individually
+   - Investigation: Initial fixes have improved the clickable favorites functionality and removed the dropdown
+   - Next Steps: Defer fixes until after Month view feature implementation, which may provide alternative date selection approaches
+   - Status: 🚧 Identified, Deferred
+
 ## Future Features
 
 ### Dream Analysis
@@ -193,6 +202,15 @@
 - Create dream theme categorization
 - Develop character relationship mapping
 - Further filter system fixes and improvements are planned for a future release.
+
+### Month View
+- Add a calendar-style month view for visualizing dream journal entries
+- Implement day cells showing dream entry presence and key metrics
+- Create an intuitive interface for navigating between months and years
+- Enable quick filtering by clicking on specific days
+- Integrate with existing date range filter system
+- Provide visual indicators for days with significant dream activity
+- Status: 🚧 Planned for next implementation phase
 
 ### Performance Optimization
 - Implement virtual scrolling for large tables

@@ -1139,6 +1139,48 @@ div#oom-time-filter-display {
     background: var(--background-modifier-hover);
 }
 
+/* Add optimized row visibility transitions */
+.oom-dream-row {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    will-change: opacity, visibility;
+    contain: layout style;
+    backface-visibility: hidden; /* Reduce composite layers */
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+.oom-row--hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important; 
+    border: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important; /* Remove from document flow */
+    transform: translateZ(0) !important; /* Force GPU acceleration */
+    display: none !important; /* Completely hide from layout */
+}
+
+.oom-row--visible {
+    visibility: visible;
+    opacity: 1;
+    height: auto;
+    display: table-row; /* Ensure proper display for table rows */
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+/* Add for filter display transition */
+.oom-filter-display {
+    contain: content;
+    will-change: contents;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.oom-filter-display--updated {
+    background-color: rgba(var(--interactive-accent-rgb), 0.1);
+}
+
 /* Column Widths */
 .oom-table .oom-date-column {
     width: 8%;
@@ -1534,10 +1576,9 @@ div#oom-time-filter-display {
 }
 
 .oom-button--expand:hover {
-    border-color: var(--interactive-accent-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--oom-shadow-sm);
-    background-color: var(--interactive-accent-hover);
+    background-color: var(--interactive-accent-hover) !important;
+    /* Remove transform: translateY(-1px) for a more subtle hover effect */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important; /* Add a subtle shadow instead */
 }
 
 .oom-button--expand:focus {
@@ -1602,6 +1643,11 @@ div#oom-time-filter-display {
         min-width: var(--oom-touch-target-size);
         padding: var(--oom-spacing-sm);
     }
+}
+
+/* Also fix the absolute positioned button hover effect */
+.oom-button--expand[style*="position: absolute"]:hover {
+    transform: translateX(-50%) !important; /* Keep only the horizontal centering transform */
 }
 
 /* ==========================================================================
@@ -1721,21 +1767,6 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     margin-right: var(--oom-margin);
     padding-left: var(--oom-padding);
     padding-right: var(--oom-padding);
-}
-
-/* Debug Mode
- * Add visual debugging helpers when needed
- */
-.oom-debug-mode {
-    outline: var(--oom-theme-debug-grid);
-}
-
-.oom-debug-mode * {
-    outline: var(--oom-theme-debug-margin);
-}
-
-.oom-debug-mode * > * {
-    outline: var(--oom-theme-debug-padding);
 }
 
 /* ==========================================================================
@@ -5801,4 +5832,300 @@ input.oom-folder-autocomplete-input {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
     border-color: var(--text-on-accent);
+}
+
+/* Add optimized row visibility transitions */
+.oom-dream-row {
+  transition: opacity 0.2s ease, height 0.3s ease;
+  will-change: opacity, height;
+  backface-visibility: hidden;
+}
+
+.oom-row--hidden {
+  visibility: hidden;
+  opacity: 0;
+  height: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+.oom-row--visible {
+  visibility: visible;
+  opacity: 1;
+  height: auto !important;
+  transform: translateZ(0);
+}
+
+/* Add for filter display transition */
+.oom-filter-display {
+  transition: background-color 0.3s ease;
+}
+
+.oom-filter-display--updated {
+  background-color: rgba(var(--interactive-accent-rgb), 0.15);
+}
+
+/* Content Expansion Styles */
+.oom-content-wrapper {
+    position: relative;
+    width: 100%;
+    transition: max-height 0.3s ease-in-out;
+}
+
+.oom-content-preview {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    position: relative;
+    max-height: 100px;
+    margin-bottom: 10px;
+}
+
+.oom-content-full {
+    display: none; /* Initially hidden */
+    white-space: normal;
+    margin-bottom: 10px;
+}
+
+.oom-content-wrapper.expanded .oom-content-preview {
+    display: none;
+}
+
+.oom-content-wrapper.expanded .oom-content-full {
+    display: block;
+}
+
+/* Fix for the show more button */
+.oom-button--expand {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+/* Enhanced Content Expansion Styles */
+.oom-content-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    transition: max-height 0.3s ease-in-out !important;
+}
+
+.oom-content-wrapper .oom-content-preview {
+    display: block !important;
+    max-height: 120px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    margin-bottom: 10px !important;
+}
+
+.oom-content-wrapper .oom-content-full {
+    display: none !important;
+    white-space: normal !important;
+    margin-bottom: 10px !important;
+}
+
+/* These are the most critical selectors - they control visibility */
+.oom-content-wrapper.expanded .oom-content-preview,
+.oom-content-wrapper[data-expanded="true"] .oom-content-preview {
+    display: none !important;
+}
+
+.oom-content-wrapper.expanded .oom-content-full,
+.oom-content-wrapper[data-expanded="true"] .oom-content-full {
+    display: block !important;
+}
+
+/* Fix for the show more button */
+.oom-button--expand {
+    margin-top: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    z-index: 2 !important;
+    cursor: pointer !important;
+}
+
+/* Show the correct button text based on expanded state */
+.oom-button--expand[data-expanded="true"] .oom-button-text::before,
+.oom-button--expand[data-expanded="false"] .oom-button-text::before,
+.oom-button--expand:not([data-expanded="true"]) .oom-button-text::before {
+    content: none !important;
+}
+
+/* Button appearance styling */
+.oom-button--expand {
+    color: var(--text-on-accent) !important;
+    background-color: var(--interactive-accent) !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+
+.oom-button--expand:hover {
+    background-color: var(--interactive-accent-hover) !important;
+    /* Remove transform: translateY(-1px) for a more subtle hover effect */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important; /* Add a subtle shadow instead */
+}
+
+/* Also fix the absolute positioned button hover effect */
+.oom-button--expand[style*="position: absolute"]:hover {
+    transform: translateX(-50%) !important; /* Keep only the horizontal centering transform */
+}
+
+/* Make sure the button is clearly visible */
+.oom-content-wrapper {
+    padding-bottom: 30px !important;
+    position: relative !important;
+}
+
+.oom-button--expand {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+/* Fixed Content Expansion Styles */
+.oom-content-preview {
+    display: block; 
+    max-height: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    margin-bottom: 10px;
+}
+
+.oom-content-full {
+    display: none; /* Initially hidden */
+    white-space: normal;
+    margin-bottom: 10px;
+}
+
+/* Button styling for consistency */
+.oom-button--expand {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    border-radius: 4px;
+    padding: 4px 8px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.oom-button--expand:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+/* Content Cell Height Fix */
+.oom-table tr td.column-content {
+    height: auto !important;
+    max-height: none !important;
+    transition: height 0.3s ease;
+}
+
+.oom-dream-content {
+    height: auto !important;
+    max-height: none !important;
+}
+
+/* Fix for expanding content to show full height */
+.oom-content-full {
+    display: none; /* Initially hidden */
+    white-space: normal;
+    margin-bottom: 10px;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Add transition for smoother expansion */
+.oom-table tr {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Ensure the table cell can expand beyond default height constraints */
+.oom-table td {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* Emergency Height Fix for Content Cells */
+.oom-table td.column-content,
+.oom-table td.oom-dream-content,
+.oom-dream-content,
+td.column-content,
+.column-content {
+    height: auto !important;
+    max-height: none !important;
+    min-height: fit-content !important;
+    overflow: visible !important;
+    word-break: normal !important;
+    white-space: normal !important;
+    position: relative !important;
+    line-height: normal !important;
+}
+
+/* Force the table row to expand with its content */
+.oom-table tr,
+.oom-dream-row,
+tr.oom-dream-row {
+    height: auto !important;
+    max-height: none !important;
+    min-height: fit-content !important;
+    display: table-row !important;
+}
+
+/* Ensure the content wrapper has no restrictions */
+.oom-content-wrapper,
+.oom-content-wrapper.expanded {
+    height: auto !important;
+    max-height: none !important;
+    min-height: fit-content !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+}
+
+/* Fix for full content display */
+.oom-content-full {
+    display: none;
+    height: auto !important;
+    max-height: none !important;
+    min-height: fit-content !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
+}
+
+/* Content wrapper expanded state */
+.oom-content-wrapper.expanded .oom-content-full,
+.oom-content-wrapper[data-expanded="true"] .oom-content-full {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    position: static !important;
+}
+
+/* Button styling with subtle hover effect */
+.oom-button--expand {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    border-radius: 4px;
+    padding: 4px 8px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.oom-button--expand:hover {
+    background-color: var(--interactive-accent-hover);
+    /* Remove the transform for a more subtle effect */
 }

@@ -5,15 +5,17 @@
 - [Overview](#overview)
 - [Core Features](#core-features)
   - [Date Filter](#1-date-filter)
-  - [Multi-month Calendar](#2-multi-month-calendar)
-  - [Date Comparison](#3-date-comparison)
-  - [Pattern Analysis](#4-pattern-analysis)
+  - [Month View](#2-month-view)
+  - [Multi-month Calendar](#3-multi-month-calendar)
+  - [Date Comparison](#4-date-comparison)
+  - [Pattern Analysis](#5-pattern-analysis)
 - [Technical Architecture](#technical-architecture)
 - [Implementation Plan](#implementation-plan)
 - [UI/UX Design](#uiux-design)
 - [Accessibility](#accessibility)
 - [Testing](#testing)
 - [Future Enhancements](#future-enhancements)
+- [Month View Specification](#month-view-specification)
 - [Multi-month Calendar View Specification](#multi-month-calendar-view-specification)
 - [Date Range Comparison Specification](#date-range-comparison-specification)
 - [Comparison User Flow](#comparison-user-flow)
@@ -21,7 +23,7 @@
 
 ## Overview
 
-Date Tools is a comprehensive suite of features for analyzing dream entries across different time periods. It provides users with powerful tools to filter, visualize, and compare dream journal data based on dates. The system includes date filtering, multi-month calendar views, date range comparison, and pattern analysis capabilities designed to help users gain deeper insights into their dream patterns over time.
+Date Tools is a comprehensive suite of features for analyzing dream entries across different time periods. It provides users with powerful tools to filter, visualize, and compare dream journal data based on dates. The system includes date filtering, month and multi-month calendar views, date range comparison, and pattern analysis capabilities designed to help users gain deeper insights into their dream patterns over time.
 
 This document outlines the technical specifications, implementation plan, and user experience considerations for the Date Tools feature set within the OneiroMetrics plugin.
 
@@ -32,20 +34,29 @@ This document outlines the technical specifications, implementation plan, and us
 - Quick filter presets
 - Favorites system
 - Filter state persistence
+- Unified filter interface with integrated access points
 
-### 2. Multi-month Calendar
+### 2. Month View
+- Calendar-style visualization of dream entries
+- Day cells showing entry presence and key metrics
+- Navigation between months and years
+- Single-click filtering by day
+- Visual indicators for dream activity
+- Integration with existing date filter system
+
+### 3. Multi-month Calendar
 - Simultaneous month display
 - Range selection
 - Week numbers
 - Navigation controls
 
-### 3. Date Comparison
+### 4. Date Comparison
 - Compare different time periods
 - Pattern recognition
 - Metric analysis
 - Visual comparison tools
 
-### 4. Pattern Analysis
+### 5. Pattern Analysis
 - Theme recurrence
 - Emotional patterns
 - Temporal patterns
@@ -57,6 +68,7 @@ This document outlines the technical specifications, implementation plan, and us
 ```typescript
 interface DateTools {
     filter: DateFilter;
+    monthView: MonthView;
     calendar: MultiMonthCalendar;
     comparison: DateComparison;
     analysis: PatternAnalysis;
@@ -66,6 +78,13 @@ interface DateFilter {
     range: DateRange;
     presets: FilterPreset[];
     favorites: FavoriteRange[];
+}
+
+interface MonthView {
+    currentMonth: Date;
+    days: Day[];
+    navigation: MonthNavigation;
+    metrics: DayMetricsSummary;
 }
 
 interface MultiMonthCalendar {
@@ -96,20 +115,28 @@ interface PatternAnalysis {
 2. Quick filter presets
 3. Favorites system
 4. Filter state management
+5. Unified filter interface with renamed "Choose Dates..." option
 
-### Phase 2: Multi-month Calendar
+### Phase 2: Month View
+1. Single month calendar grid implementation
+2. Dream entry indicators on day cells
+3. Navigation controls (month/year)
+4. Day selection for filtering
+5. Integration with existing filter system
+
+### Phase 3: Multi-month Calendar
 1. Calendar grid implementation
 2. Range selection
 3. Navigation controls
 4. Week numbers
 
-### Phase 3: Date Comparison
+### Phase 4: Date Comparison
 1. Comparison interface
 2. Metric analysis
 3. Pattern detection
 4. Visualization tools
 
-### Phase 4: Pattern Analysis
+### Phase 5: Pattern Analysis
 1. Theme analysis
 2. Emotional patterns
 3. Temporal patterns
@@ -118,10 +145,20 @@ interface PatternAnalysis {
 ## UI/UX Design
 
 ### Date Filter UI
+- Unified dropdown with presets and "Choose Dates..." option
 - Modal dialog for date selection
-- Quick filter dropdown
-- Favorites management
 - Clear visual feedback
+- Consistent state indication
+- Integrated access to Month View
+
+### Month View UI
+- Single month grid layout
+- Day cells with dream indicators
+- Month/year navigation controls
+- Metric visualization on day cells
+- Selected day highlighting
+- Current day indicator
+- Integration with filter system
 
 ### Calendar UI
 - Responsive grid layout
@@ -174,6 +211,279 @@ interface PatternAnalysis {
 - Machine learning integration
 - Custom visualization tools
 - Extended export options
+
+## Month View Specification
+
+### Overview
+The Month View provides a calendar-style visualization of dream journal entries, allowing users to see dream activity patterns at a glance and quickly filter data by selecting specific days.
+
+### Technical Architecture
+
+#### Core Components
+```typescript
+interface MonthView {
+    currentMonth: Date;
+    days: Day[];
+    navigation: MonthNavigation;
+    metrics: DayMetricsSummary;
+}
+
+interface Day {
+    date: Date;
+    hasDreamEntry: boolean;
+    metrics: MetricSummary;
+    isSelected: boolean;
+    isToday: boolean;
+    isCurrentMonth: boolean;
+    entries?: DreamEntry[]; // Optional entries for preview functionality
+}
+
+interface MonthNavigation {
+    currentView: Date;
+    canNavigateBack: boolean;
+    canNavigateForward: boolean;
+}
+
+interface MetricSummary {
+    count: number;
+    key: string;
+    value: number;
+    indicator: 'high' | 'medium' | 'low' | 'none';
+}
+```
+
+#### State Management
+```typescript
+interface MonthViewState {
+    currentMonth: Date;
+    selectedDay: Date | null;
+    dreamEntries: Map<string, DreamEntry[]>; // Key: YYYY-MM-DD
+    metrics: Map<string, MetricSummary>; // Key: YYYY-MM-DD
+    filterActive: boolean;
+    lastViewedMonth?: Date; // For state persistence
+    viewHistory?: Date[]; // For navigation history
+}
+```
+
+### UI Components
+
+#### Month Grid
+- Month header with month name and year
+- Week day headers (Sun-Sat)
+- Day cells with:
+  - Date number
+  - Dream entry indicator
+  - Selected state highlighting
+  - Today's date indicator
+  - Metrics visualization (configurable)
+  - Content preview on hover
+
+#### Navigation Controls
+- Previous/Next month buttons
+- Current month/year display
+- Jump to today button
+- Month/year selector dropdown
+- Clear selection button
+- Year context strip showing months with entries
+
+#### Day Cell Design
+```
++------------------+
+| 21               | ← Date number
+|                  |
+| ●●●              | ← Dream indicators (3 entries)
+|                  |
+| [★★★☆☆]          | ← Metric visualization (3/5 rating)
+|                  |
+| 📝 Preview       | ← Content preview (on hover)
++------------------+
+```
+
+#### Enhanced Visual Design
+- Consistent visual hierarchy using:
+  - Color intensity for metric values
+  - Size variation for importance
+  - Background shading for content density
+  - Clear indicators for today and selected days
+- Interactive elements:
+  - Hover previews showing dream content
+  - Interactive selection indicators
+  - Visual feedback when filtering is active
+  - Focus indicators for keyboard navigation
+
+#### Metrics Visualization Options
+- Color coding based on metric values
+- Icons representing metric categories
+- Size variation indicating value intensity
+- Star rating for satisfaction/importance metrics
+- Mini bar/dot indicators for numerical metrics
+- Heat map visualization mode for patterns
+
+### Interaction Patterns
+
+#### Day Selection
+- Click to select a day
+- Click selected day to deselect
+- Shift+Click for range selection (future enhancement)
+- Selection updates filter system automatically
+- Pattern-based selection (e.g., "all Mondays")
+
+#### Month Navigation
+- Previous/Next buttons to change months
+- Click on month name to open month selector
+- Click on year to open year selector
+- Today button to jump to current month
+- Keyboard shortcuts (Left/Right to change months)
+- Year context strip for quick month selection
+
+### Integration with Filter System
+
+#### Filter Updates
+- Selecting a day updates the global date filter
+- Filter changes highlight relevant days in Month View
+- Clear selection button resets filter
+- Combine with other filter types (themes, metrics)
+- Filter history and quick jumps to previous selections
+
+#### State Synchronization
+- Month View state synchronizes with global filter state
+- Changes in date filter reflect in Month View
+- Quick filter buttons update Month View selection
+- Persistence of selected day across sessions
+- Smart state restoration when returning to view
+
+#### Unified Filter Interface
+- Rename "Custom Range" to "Choose Dates..." for better clarity and user understanding
+- Create a single dropdown menu that includes preset filters and the "Choose Dates..." option
+- Make Month View accessible from the unified filter interface
+- Show current filter state consistently across all filter methods
+- Provide smooth transitions between different filtering approaches
+- Allow starting with a preset and then refining with custom dates
+
+### Obsidian Integration
+
+#### UI Integration
+- Follow Obsidian's design patterns and CSS variables
+- Support both light and dark themes
+- Match Obsidian's animation and transition styles
+- Support mobile and desktop interfaces
+- Use Obsidian's modal and tooltip components
+
+#### File System Integration
+- Access dream journal entries through Obsidian's vault API
+- Maintain cache of parsed entries for performance
+- Respect Obsidian's file operations model
+- Support linking to specific journal entries
+
+#### Settings Integration
+- Configurable display options
+- Customizable metrics visualization
+- Persistent state management
+- User preference handling
+
+### Layout Considerations
+
+#### Desktop Layout
+- Full month grid
+- Day cells with complete information
+- Navigation controls at top
+- Filter integration panel below
+- Year context strip for broader navigation
+
+#### Tablet/Mobile Layout
+- Month grid adapts to screen width
+- Simplified day cell information
+- Swipe gestures for month navigation
+- Collapsible filter panel
+- Bottom sheet for additional controls
+- Optimized touch targets
+
+### Theme Integration
+
+#### CSS Variables
+```css
+.oom-month-view {
+    --month-bg: var(--background-primary);
+    --month-border: var(--background-modifier-border);
+    --month-text: var(--text-normal);
+    --month-header: var(--text-accent);
+    --day-bg: var(--background-primary);
+    --day-border: var(--background-modifier-border);
+    --day-text: var(--text-normal);
+    --day-today: var(--interactive-accent);
+    --day-selected: var(--interactive-accent-hover);
+    --day-dream: var(--text-accent);
+    --day-no-dream: var(--text-muted);
+    --day-other-month: var(--background-secondary);
+    --day-hover: var(--background-modifier-hover);
+    --day-with-entry-bg: rgba(var(--interactive-accent-rgb), 0.1);
+}
+```
+
+### Performance Considerations
+
+#### Rendering Optimization
+- Render only visible month
+- Optimize metric calculations
+- Efficient day cell updates
+- Debounced filter updates
+- Virtual rendering for large datasets
+
+#### Data Management
+- Cache dream entry data by month
+- Precompute metrics for visible month
+- Lazy load data for other months
+- Memoized calculations
+- Efficient state updates
+
+### Accessibility Features
+
+#### Keyboard Navigation
+- Arrow keys to navigate between days
+- Enter to select day
+- Escape to clear selection
+- Tab navigation between controls
+- Home/End to jump to start/end of month
+- Page Up/Down to navigate between months
+
+#### Screen Reader Support
+- Announce month changes
+- Describe day cell contents
+- Indicate selected state
+- Announce dream entry presence
+- Describe metric values
+- Provide context information
+
+#### Additional Accessibility
+- High contrast mode support
+- Reduced motion option
+- Scalable UI elements
+- Sufficient color contrast
+- Text alternatives for visual indicators
+
+### Implementation Phases
+
+#### Phase 1: Basic Month View
+- Month grid implementation
+- Day indicators for dream entries
+- Basic navigation
+- Today highlighting
+- Single day selection
+
+#### Phase 2: Enhanced Features
+- Metric visualization on days
+- Filter integration
+- State persistence
+- Keyboard navigation
+- Hover previews
+
+#### Phase 3: Advanced Features
+- Range selection
+- Advanced metric visualization
+- Animation enhancements
+- Performance optimizations
+- Heat map mode
+- Year context navigation
 
 ## Multi-month Calendar View Specification
 
@@ -333,18 +643,6 @@ interface CalendarState {
 - Efficient DOM updates
 - Debounced touch events
 - Memory-efficient date calculations
-
-#### Mobile-Specific Features
-- Native date picker fallback option
-- Quick actions in bottom sheet:
-  - "Today" button
-  - "Clear" button
-  - "Apply" button
-- Pull-to-refresh for updating data
-- Bottom sheet gestures:
-  - Swipe down to dismiss
-  - Swipe up to expand
-  - Tap outside to close
 
 #### Mobile Accessibility
 - Larger text sizes for better readability
@@ -591,7 +889,7 @@ interface ComparisonPatterns {
 - Pattern detection algorithms
 - Export functionality
 
-#### Integration Testing
+#### Integration Tests
 - UI component interaction
 - Data flow validation
 - Performance testing
@@ -707,6 +1005,7 @@ After clicking "Compare", a new view appears showing:
 
 ## Changelog
 
+- **May 2025**: Added Month View specification with detailed implementation plan and UI components
 - **May 2025**: Added mobile optimization section with detailed touch interface guidelines
 - **April 2025**: Expanded accessibility features with ARIA implementation
 - **March 2025**: Added date range comparison specification

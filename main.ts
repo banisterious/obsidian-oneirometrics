@@ -483,6 +483,62 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         });
 
+        // Add global event handlers for date filter controls
+        this.registerDomEvent(document, 'change', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.id === 'oom-date-range-filter') {
+                console.log('[OOM-DEBUG] Date range dropdown changed via global handler:', (target as HTMLSelectElement).value);
+                
+                // Check if this was triggered programmatically from the Date Navigator
+                // If it's "custom" value and customDateRange exists, don't clear it
+                const dropdownValue = (target as HTMLSelectElement).value;
+                
+                if (dropdownValue !== 'custom' || !customDateRange) {
+                    // Only clear customDateRange for non-custom ranges or if it's already null
+                    console.log('[OOM-DEBUG] Clearing customDateRange for dropdown change to:', dropdownValue);
+                    customDateRange = null;
+                } else {
+                    console.log('[OOM-DEBUG] Keeping customDateRange for programmatic custom selection:', customDateRange);
+                }
+                
+                // Reset custom range button active state
+                const customRangeBtn = document.getElementById('oom-custom-range-btn');
+                if (customRangeBtn) {
+                    if (dropdownValue === 'custom' && customDateRange) {
+                        // For custom selection with valid range, keep the button active
+                        customRangeBtn.classList.add('active');
+                    } else {
+                        customRangeBtn.classList.remove('active');
+                    }
+                }
+                
+                // Get the container and apply filters
+                const container = document.querySelector('.oom-metrics-container') as HTMLElement;
+                if (container) {
+                    setTimeout(() => {
+                        // For custom date selection, use applyCustomDateRangeFilter directly
+                        if (dropdownValue === 'custom' && customDateRange) {
+                            console.log('[OOM-DEBUG] Applying custom date filter directly');
+                            applyCustomDateRangeFilter();
+                        } else {
+                            // Use the instance method for standard dropdown options
+                            this.applyFilters(container);
+                        }
+                    }, 50);
+                }
+            }
+        });
+        
+        // Global event handler for custom range button
+        this.registerDomEvent(document, 'click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.id === 'oom-custom-range-btn' || target.closest('#oom-custom-range-btn')) {
+                console.log('[OOM-DEBUG] Custom range button clicked via global handler');
+                // Get the current Obsidian app instance
+                openCustomRangeModal(this.app);
+            }
+        });
+
         // Add command to open dream scrape tab
         this.addCommand({
             id: 'open-dream-scrape',
@@ -547,6 +603,8 @@ export default class DreamMetricsPlugin extends Plugin {
         this.registerEvent(
             this.app.workspace.on('layout-change', () => {
                 this.updateProjectNoteView();
+                // Initialize table row classes when layout changes
+                initializeTableRowClasses();
             })
         );
 
@@ -1787,31 +1845,26 @@ export default class DreamMetricsPlugin extends Plugin {
         });
     }
 
-    private updateProjectNoteView(currentLogLevel?: LogLevel) {
-        console.log('updateProjectNoteView called');
-        try {
-            const leaves = this.app.workspace.getLeavesOfType('markdown');
-            let updated = false;
-            leaves.forEach(leaf => {
-                const view = leaf.view;
-                if (view instanceof MarkdownView && view.file && view.file.path === this.settings.projectNote) {
-                    // Update the view's content
-                    if (view.getMode() === 'preview') {
-                        view.previewMode?.rerender();
-                    } else {
-                        view.editor?.refresh();
-                    }
-                    updated = true;
-                }
-            });
-            if (!updated) {
-                this.logger.log('UI', 'Project note was not open in any workspace leaf.');
-            }
-            // Attach event listeners after table render
-            setTimeout(() => this.attachProjectNoteEventListeners(), 500);
-        } catch (err) {
-            this.logger.error('UI', 'Error updating OneiroMetrics Note view', err as Error);
-            new Notice('Error updating OneiroMetrics Note view. See console for details.');
+        private updateProjectNoteView(currentLogLevel?: string) {
+        // Only update if the current file is a project note
+        
+        // Setup event listeners for project notes
+        this.attachProjectNoteEventListeners();
+        
+        // Initialize the table row classes for improved filtering
+        // Defer initialization to avoid blocking initial render
+        setTimeout(() => {
+            initializeTableRowClasses();
+        }, 250);
+        
+        // Apply debug mode classes if needed
+        // Use the currentLogLevel or fall back to the settings
+        const logLevel = currentLogLevel || this.settings.logging?.level || 'off';
+        
+        if (logLevel === 'debug' || logLevel === 'trace') {
+            document.body.addClass('oom-debug-mode');
+        } else {
+            document.body.removeClass('oom-debug-mode');
         }
     }
 
@@ -1859,6 +1912,8 @@ export default class DreamMetricsPlugin extends Plugin {
                 (this.app as any).setting.openTabById('oneirometrics');
             });
         }
+        
+        // Add event listeners for debug buttons
         const debugBtn = previewEl.querySelector('.oom-debug-attach-listeners');
         if (debugBtn) {
             debugBtn.addEventListener('click', () => {
@@ -1866,14 +1921,54 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.attachProjectNoteEventListeners();
             });
         }
+        
+        // Add debug expand all button in debug mode
+        if (this.settings.logging?.level === 'debug' || this.settings.logging?.level === 'trace') {
+            const expandAllDebugBtn = previewEl.querySelector('.oom-debug-expand-all');
+            if (!expandAllDebugBtn) {
+                // Create a new debug button if it doesn't exist
+                const debugBtnContainer = previewEl.querySelector('.oom-filter-controls');
+                if (debugBtnContainer) {
+                    const newDebugBtn = document.createElement('button');
+                    newDebugBtn.className = 'oom-button oom-debug-expand-all';
+                    newDebugBtn.innerHTML = '<span class="oom-button-text">Debug: Expand All Content</span>';
+                    newDebugBtn.style.backgroundColor = 'var(--color-red)';
+                    newDebugBtn.style.color = 'white';
+                    newDebugBtn.style.marginLeft = '8px';
+                    newDebugBtn.addEventListener('click', () => {
+                        new Notice('Expanding all content sections for debugging...');
+                        expandAllContentSections(previewEl);
+                    });
+                    debugBtnContainer.appendChild(newDebugBtn);
+                }
+            }
+        }
 
-        // Add date range filter event listener
+        // Add date range filter event listener with performance optimizations
         const dateRangeFilter = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
         if (dateRangeFilter) {
-            dateRangeFilter.addEventListener('change', () => {
-                console.log('[DEBUG] Date range filter changed:', dateRangeFilter.value);
-                this.applyFilters(previewEl);
+            // First remove any existing event listeners by cloning the node
+            const newDateRangeFilter = dateRangeFilter.cloneNode(true) as HTMLSelectElement;
+            newDateRangeFilter.addEventListener('change', () => {
+                console.log('[DEBUG] Date range filter changed:', newDateRangeFilter.value);
+                
+                // Clear any custom date range when using dropdown
+                customDateRange = null;
+                
+                // Reset any active state on custom range button - do this in a requestAnimationFrame
+                // to avoid forced reflow
+                const customRangeBtn = document.getElementById('oom-custom-range-btn');
+                if (customRangeBtn) {
+                    requestAnimationFrame(() => {
+                        customRangeBtn.classList.remove('active');
+                    });
+                }
+                
+                // Apply the filter in a delayed manner to avoid UI jank
+                setTimeout(() => this.applyFilters(previewEl), 50);
             });
+            dateRangeFilter.parentNode?.replaceChild(newDateRangeFilter, dateRangeFilter);
+            console.log('[DEBUG] Attached event listener to date range filter');
         }
 
         // Existing show more/less button handlers
@@ -1884,31 +1979,11 @@ export default class DreamMetricsPlugin extends Plugin {
             newButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const contentCellId = newButton.getAttribute('data-parent-cell');
-                const contentCell = contentCellId ? 
-                    previewEl.querySelector(`#${contentCellId}`) as HTMLElement :
-                    newButton.closest('.oom-dream-content') as HTMLElement;
-                if (!contentCell) return;
-                const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
-                const previewDiv = contentWrapper?.querySelector('.oom-content-preview') as HTMLElement;
-                const fullDiv = contentWrapper?.querySelector('.oom-content-full') as HTMLElement;
-                if (!contentWrapper || !previewDiv || !fullDiv) return;
-                const isExpanded = newButton.getAttribute('data-expanded') === 'true';
-                if (isExpanded) {
-                    contentWrapper.classList.remove('expanded');
-                    previewDiv.style.display = 'block';
-                    fullDiv.style.display = 'none';
-                    newButton.querySelector('.oom-button-text')!.textContent = 'Show more';
-                    newButton.setAttribute('data-expanded', 'false');
-                    newButton.setAttribute('aria-expanded', 'false');
-                } else {
-                    contentWrapper.classList.add('expanded');
-                    previewDiv.style.display = 'none';
-                    fullDiv.style.display = 'block';
-                    newButton.querySelector('.oom-button-text')!.textContent = 'Show less';
-                    newButton.setAttribute('data-expanded', 'true');
-                    newButton.setAttribute('aria-expanded', 'true');
-                }
+                
+                console.log('[OOM-DEBUG] Show more/less button clicked');
+                
+                // Use the dedicated function to handle content visibility toggle
+                toggleContentVisibility(newButton, previewEl);
             });
             button.parentNode?.replaceChild(newButton, button);
         });
@@ -1916,24 +1991,35 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add custom range button event listener
         const customRangeBtn = document.getElementById('oom-custom-range-btn');
         if (customRangeBtn) {
-            customRangeBtn.addEventListener('click', () => {
+            // Clone the button to remove any existing listeners
+            const newCustomRangeBtn = customRangeBtn.cloneNode(true) as HTMLElement;
+            newCustomRangeBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Custom range button clicked');
                 openCustomRangeModal(this.app);
             });
+            customRangeBtn.parentNode?.replaceChild(newCustomRangeBtn, customRangeBtn);
+            console.log('[DEBUG] Attached event listener to custom range button');
         }
     }
 
     private applyFilters(previewEl: HTMLElement) {
         console.log('[DEBUG] main.ts applyFilters called', previewEl);
+
+        // Get important elements early before any DOM operations
+        const tableContainer = previewEl.querySelector('.oom-table-container');
         const rows = previewEl.querySelectorAll('.oom-dream-row');
         const dateRange = (previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement)?.value || 'all';
+        
+        // Apply will-change to the table container for better performance
+        if (tableContainer) {
+            tableContainer.setAttribute('style', 'will-change: contents;');
+        }
+        
         this.logger.log('Filter', `Applying filter: ${dateRange}`, {
             totalRows: rows.length
         });
 
-        let visibleCount = 0;
-        let invalidDates = 0;
-        let outOfRangeDates = 0;
-
+        // Prepare date ranges before any DOM operations
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const yesterday = new Date(today);
@@ -1948,27 +2034,59 @@ export default class DreamMetricsPlugin extends Plugin {
         last6months.setMonth(today.getMonth() - 6);
         const last12months = new Date(today);
         last12months.setFullYear(today.getFullYear() - 1);
+        
+        // Process in chunks to avoid UI freezing
+        const CHUNK_SIZE = 20;
+        const totalRows = rows.length;
+        let currentChunk = 0;
+        
+        // Prep counters
+        let visibleCount = 0;
+        let invalidDates = 0;
+        let outOfRangeDates = 0;
 
-        rows.forEach((rowEl, index) => {
-            const row = rowEl as HTMLElement;
-            const date = row.getAttribute('data-date');
+        // Show a loading indicator for large tables
+        let loadingIndicator: HTMLElement | null = null;
+        if (totalRows > 50) {
+            loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'oom-loading-indicator';
+            loadingIndicator.textContent = 'Filtering entries...';
+            loadingIndicator.style.position = 'fixed';
+            loadingIndicator.style.top = '10px';
+            loadingIndicator.style.right = '10px';
+            loadingIndicator.style.background = 'var(--background-primary)';
+            loadingIndicator.style.color = 'var(--text-normal)';
+            loadingIndicator.style.padding = '8px 12px';
+            loadingIndicator.style.borderRadius = '4px';
+            loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
+            loadingIndicator.style.zIndex = '1000';
+            document.body.appendChild(loadingIndicator);
+        }
+        
+        // First, pre-compute all row visibility states without touching the DOM
+        const rowVisibility: boolean[] = [];
+        
+        for (let i = 0; i < totalRows; i++) {
+            const rowEl = rows[i] as HTMLElement;
+            const date = rowEl.getAttribute('data-date');
+            
             if (!date) {
-                this.logger.warn('Filter', `Row ${index} has no date attribute`);
-                row.classList.remove('oom-row--visible');
-                row.style.display = 'none';
-                return;
+                this.logger.warn('Filter', `Row ${i} has no date attribute`);
+                rowVisibility.push(false);
+                continue;
             }
 
             const dreamDate = this.parseDate(date);
             if (isNaN(dreamDate.getTime())) {
-                this.logger.error('Filter', `Invalid date for row ${index}: ${date}`);
+                this.logger.error('Filter', `Invalid date for row ${i}: ${date}`);
                 invalidDates++;
-                row.classList.remove('oom-row--visible');
-                row.style.display = 'none';
-                return;
+                rowVisibility.push(false);
+                continue;
             }
 
             let isVisible = true;
+            // Only compute visibility based on the selected date range
+            // We've already calculated the date ranges above
             switch (dateRange) {
                 case 'all':
                     isVisible = true;
@@ -2002,26 +2120,81 @@ export default class DreamMetricsPlugin extends Plugin {
             }
 
             if (isVisible) {
-                row.classList.add('oom-row--visible');
-                row.style.display = '';
                 visibleCount++;
-                this.logger.log('Filter', `Row ${index} visible`, {
+                this.logger.log('Filter', `Row ${i} visible`, {
                     date: dreamDate.toISOString(),
-                    title: row.querySelector('.oom-dream-title')?.textContent
+                    title: rowEl.querySelector('.oom-dream-title')?.textContent
                 });
             } else {
-                row.classList.remove('oom-row--visible');
-                row.style.display = 'none';
                 outOfRangeDates++;
             }
-        });
-
-        // Update filter display with enhanced information
-        const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
-        if (filterDisplay) {
-            const totalEntries = rows.length;
-            const hiddenCount = totalEntries - visibleCount;
-            const colorClass = visibleCount === totalEntries ? 'oom-filter--all-visible' : visibleCount > 0 ? 'oom-filter--partially-visible' : 'oom-filter--none-visible';
+            
+            rowVisibility.push(isVisible);
+        }
+        
+        // Create a function to process chunks of rows
+        const processNextChunk = () => {
+            const start = currentChunk * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, totalRows);
+            
+            // Update loading indicator if present
+            if (loadingIndicator) {
+                const percent = Math.floor((currentChunk * CHUNK_SIZE / totalRows) * 100);
+                loadingIndicator.textContent = `Filtering entries... ${percent}%`;
+            }
+            
+            // Batch all DOM operations inside requestAnimationFrame
+            requestAnimationFrame(() => {
+                // Apply visibility to this chunk of rows
+                for (let i = start; i < end; i++) {
+                    const rowEl = rows[i] as HTMLElement;
+                    const isVisible = rowVisibility[i];
+                    
+                    if (isVisible) {
+                        rowEl.classList.remove('oom-row--hidden');
+                        rowEl.classList.add('oom-row--visible');
+                    } else {
+                        rowEl.classList.add('oom-row--hidden');
+                        rowEl.classList.remove('oom-row--visible');
+                    }
+                }
+                
+                // Move to next chunk or finish
+                currentChunk++;
+                
+                if (currentChunk * CHUNK_SIZE < totalRows) {
+                    // Schedule next chunk with a slight delay to allow rendering
+                    setTimeout(() => processNextChunk(), 0);
+                } else {
+                                        // All done, update UI                    if (loadingIndicator) {                        document.body.removeChild(loadingIndicator);                    }                                        // Reset will-change property once filtering is complete                    if (tableContainer) {                        requestAnimationFrame(() => {                            tableContainer.removeAttribute('style');                        });                    }                                        // ADDED: Update summary table with filtered metrics                    const filteredMetrics = collectVisibleRowMetrics(previewEl);                    updateSummaryTable(previewEl, filteredMetrics);                                        // Update filter display in the next animation frame                    requestAnimationFrame(() => {                        updateFilterDisplayWithDetails(dateRange, visibleCount, totalRows, invalidDates, outOfRangeDates);                    });
+                }
+            });
+        };
+        
+        // Delay the start of processing slightly to avoid UI jank
+        setTimeout(() => processNextChunk(), 20);
+        
+        // This function updates the filter display with detailed information
+        function updateFilterDisplayWithDetails(
+            filterType: string, 
+            visible: number, 
+            total: number, 
+            invalid: number, 
+            outOfRange: number
+        ) {
+            const filterDisplay = previewEl.querySelector('#oom-time-filter-display') as HTMLElement;
+            if (!filterDisplay) return;
+            
+            // Temporarily set will-change for better performance
+            filterDisplay.style.willChange = 'contents';
+            
+            const hiddenCount = total - visible;
+            const colorClass = visible === total 
+                ? 'oom-filter--all-visible' 
+                : visible > 0 
+                    ? 'oom-filter--partially-visible' 
+                    : 'oom-filter--none-visible';
+                    
             // Map filter keys to human-friendly labels
             const filterLabels: Record<string, string> = {
                 all: 'All Time',
@@ -2034,22 +2207,65 @@ export default class DreamMetricsPlugin extends Plugin {
                 thisYear: 'This Year',
                 last12months: 'Last 12 Months',
             };
-            const displayLabel = filterLabels[dateRange] || dateRange;
-            filterDisplay.innerHTML = `
-                <span class="oom-filter-icon"></span>
-                <span class="oom-filter-text ${colorClass}">
-                    ${displayLabel} (${visibleCount} entries)
-                    ${hiddenCount > 0 ? `<span class="oom-filter-hidden">- ${hiddenCount} hidden</span>` : ''}
-                </span>
-            `;
-            // Set Lucide icon using Obsidian's setIcon utility
-            // @ts-ignore
-            const { setIcon } = require('obsidian');
-            const iconSpan = filterDisplay.querySelector('.oom-filter-icon');
-            if (iconSpan && setIcon) setIcon(iconSpan, 'calendar-range');
-            filterDisplay.setAttribute('title', `Total Entries: ${totalEntries}\nVisible: ${visibleCount}\nHidden: ${hiddenCount}\nInvalid Dates: ${invalidDates}\nOut of Range: ${outOfRangeDates}\nFilter Type: ${dateRange}\nApplied: ${new Date().toLocaleTimeString()}`);
-            filterDisplay.classList.add('oom-filter-display--updated');
-            setTimeout(() => filterDisplay.classList.remove('oom-filter-display--updated'), 500);
+            
+            const displayLabel = filterLabels[filterType] || filterType;
+            
+            // Build HTML content in a single string to minimize DOM operations
+            let htmlContent = '';
+            
+            htmlContent += `<span class="oom-filter-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <path d="M16 2v4"/>
+                    <path d="M8 2v4"/>
+                    <path d="M3 10h18"/>
+                    <path d="M17 14h-6"/>
+                    <path d="M13 18H7"/>
+                </svg>
+            </span>`;
+            
+            htmlContent += `<span class="oom-filter-text ${colorClass}">
+                ${displayLabel} (${visible} entries)
+                ${hiddenCount > 0 ? `<span class="oom-filter-hidden">- ${hiddenCount} hidden</span>` : ''}
+            </span>`;
+            
+            // Set detailed title attribute
+            const titleInfo = `Total Entries: ${total}
+Visible: ${visible}
+Hidden: ${hiddenCount}
+Invalid Dates: ${invalid}
+Out of Range: ${outOfRange}
+Filter Type: ${filterType}
+Applied: ${new Date().toLocaleTimeString()}`;
+            
+            // Use requestAnimationFrame for smooth transition
+            requestAnimationFrame(() => {
+                // First, remove the transition for immediate change
+                filterDisplay.style.transition = 'none';
+                filterDisplay.classList.remove('oom-filter-display--updated');
+                
+                // Force a reflow to ensure the removal of the class takes effect immediately
+                void filterDisplay.offsetHeight;
+                
+                // Apply all changes at once
+                filterDisplay.innerHTML = htmlContent;
+                filterDisplay.setAttribute('title', titleInfo);
+                
+                // Add animation back in the next frame
+                setTimeout(() => {
+                    // Reset will-change property
+                    filterDisplay.style.willChange = 'auto';
+                    
+                    // Restore transition and add the updated class
+                    filterDisplay.style.removeProperty('transition');
+                    filterDisplay.classList.add('oom-filter-display--updated');
+                    
+                    // Remove class after transition completes
+                    setTimeout(() => {
+                        filterDisplay.classList.remove('oom-filter-display--updated');
+                    }, 1000);
+                }, 20);
+            });
         }
     }
 
@@ -2595,21 +2811,56 @@ function openCustomRangeModal(app: App) {
     console.log('[DEBUG] Opening modal with favorites:', favorites);
     new CustomDateRangeModal(app, (start: string, end: string, saveName?: string) => {
         if (start && end) {
-            customDateRange = { start, end };
-            saveLastCustomRange(customDateRange);
-            if (saveName) {
-                saveFavoriteRange(saveName, customDateRange);
-                new Notice(`Saved favorite: ${saveName}`);
-            }
-            applyCustomDateRangeFilter();
-            const btn = document.getElementById('oom-custom-range-btn');
-            if (btn) btn.classList.add('active');
+            // First, update button state before making any layout changes
+            requestAnimationFrame(() => {
+                const btn = document.getElementById('oom-custom-range-btn');
+                if (btn) btn.classList.add('active');
+            });
+            
+            // Batch remaining operations with slight delays to avoid layout thrashing
+            setTimeout(() => {
+                // Set the customDateRange
+                const newRange = { start, end };
+                customDateRange = newRange;
+                
+                // Persist the selection to localStorage but without forcing layout
+                setTimeout(() => {
+                    saveLastCustomRange(newRange);
+                    
+                    // Save favorite if needed without disrupting the filter application
+                    if (saveName) {
+                        saveFavoriteRange(saveName, newRange);
+                        // Show notification after filtering is complete
+                        setTimeout(() => {
+                            new Notice(`Saved favorite: ${saveName}`);
+                        }, 100);
+                    }
+                    
+                    // Apply the filter with delay for UI responsiveness
+                    setTimeout(() => {
+                        console.log('[DEBUG] Applying custom date range filter:', customDateRange);
+                        applyCustomDateRangeFilter();
+                    }, 50);
+                }, 0);
+            }, 10);
         } else {
+            // Handle clearing the filter
             customDateRange = null;
-            const btn = document.getElementById('oom-custom-range-btn');
-            if (btn) btn.classList.remove('active');
-            const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-            if (dropdown) dropdown.dispatchEvent(new Event('change'));
+            
+            // Batch UI updates
+            requestAnimationFrame(() => {
+                const btn = document.getElementById('oom-custom-range-btn');
+                if (btn) btn.classList.remove('active');
+                
+                // Trigger date range dropdown to apply the default filter
+                setTimeout(() => {
+                    const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+                    if (dropdown) {
+                        dropdown.value = dropdown.value; // Keep same value
+                        dropdown.dispatchEvent(new Event('change'));
+                    }
+                }, 10);
+            });
         }
     }, favorites, deleteFavoriteRange).open();
 }
@@ -2664,36 +2915,102 @@ function deleteFavoriteRange(name: string) {
 function forceApplyDateFilter(date: Date) {
     console.log('[OOM-DEBUG] forceApplyDateFilter called with date:', date);
     
-    // Create start and end dates for the entire day (midnight to midnight)
-    const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
-    const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+    if (!date || isNaN(date.getTime())) {
+        console.error('[OOM-DEBUG] Invalid date provided to forceApplyDateFilter');
+        return;
+    }
     
-    // Directly set customDateRange to trigger filtering
-    customDateRange = {
-        start: startDate.toISOString().split('T')[0],
-        end: endDate.toISOString().split('T')[0]
-    };
-    
-    console.log('[OOM-DEBUG] Setting customDateRange to:', customDateRange);
-    
-    // Save to localStorage
-    localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
-    
-    // Directly apply the filter to the table
-    console.log('[OOM-DEBUG] Calling applyCustomDateRangeFilter');
-    applyCustomDateRangeFilter();
-    
-    // Update UI to show filter is active
-    const btn = document.getElementById('oom-custom-range-btn');
-    if (btn) btn.classList.add('active');
-    
-    console.log('[OOM-DEBUG] Filter applied for date:', date.toLocaleDateString());
+    try {
+        // Extract year, month, day components directly to avoid timezone issues
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+        const day = date.getDate();
+        
+        // Format dates as YYYY-MM-DD strings for consistency
+        const start = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        const end = start; // For a single day selection, start and end are the same
+        
+        console.log('[OOM-DEBUG] Setting date range for filtering:', {
+            selectedDate: date.toISOString(),
+            selectedYear: year, 
+            selectedMonth: month, 
+            selectedDay: day,
+            formattedStart: start,
+            formattedEnd: end
+        });
+        
+        // First, set customDateRange to trigger filtering
+        // This must happen BEFORE updating the UI to prevent event handlers from clearing it
+        customDateRange = { start: start, end: end };
+        
+        console.log('[OOM-DEBUG] Setting customDateRange to:', customDateRange);
+        
+        // Save to localStorage for persistence
+        localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
+        
+        // Create a small delay to ensure customDateRange is set before any event handlers run
+        setTimeout(() => {
+            // Update UI to show filter is active
+            requestAnimationFrame(() => {
+                // Update button state
+                const btn = document.getElementById('oom-custom-range-btn');
+                if (btn) {
+                    btn.classList.add('active');
+                }
+                
+                // Update filter info display
+                const filterDisplay = document.getElementById('oom-time-filter-display');
+                if (filterDisplay) {
+                    // Quick update to give immediate feedback
+                    const formattedDate = date.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short', 
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                    filterDisplay.innerHTML = `<span class="oom-filter-icon">🗓️</span> <span class="oom-filter-text">Filtering for: ${formattedDate}</span>`;
+                }
+                
+                // Update dropdown to show "Custom" is selected - AFTER setting customDateRange
+                const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+                if (dropdown) {
+                    // Add a custom option if it doesn't exist
+                    let customOption = dropdown.querySelector('option[value="custom"]') as HTMLOptionElement;
+                    if (!customOption) {
+                        customOption = document.createElement('option');
+                        customOption.value = 'custom';
+                        customOption.text = 'Custom Date';
+                        dropdown.appendChild(customOption);
+                    }
+                    
+                    // Set the value WITHOUT dispatching a change event
+                    dropdown.value = 'custom';
+                    
+                    // Dispatch a custom event instead that won't trigger our change handler
+                    dropdown.dispatchEvent(new CustomEvent('oom-value-set', { 
+                        bubbles: true,
+                        detail: { isDateNavigator: true }
+                    }));
+                }
+            });
+            
+            // Apply the filter after UI updates to avoid jank
+            setTimeout(() => {
+                console.log('[OOM-DEBUG] Calling applyCustomDateRangeFilter');
+                applyCustomDateRangeFilter();
+            }, 100);
+            
+            console.log('[OOM-DEBUG] Filter applied for date:', date.toLocaleDateString());
+        }, 50);
+    } catch (error) {
+        console.error('[OOM-DEBUG] Error in forceApplyDateFilter:', error);
+    }
 }
 
 // Expose the function globally so it can be called from DateNavigatorModal
 (window as any).forceApplyDateFilter = forceApplyDateFilter;
 
-// Further optimize applyCustomDateRangeFilter with chunking to eliminate requestAnimationFrame warnings
+// Phase 1: CSS-based visibility optimization to reduce browser reflows
 function applyCustomDateRangeFilter() {
     console.log('[OOM-DEBUG] applyCustomDateRangeFilter called with customDateRange:', customDateRange);
     
@@ -2708,194 +3025,692 @@ function applyCustomDateRangeFilter() {
         return;
     }
     
-    // Performance optimization: Prevent layout thrashing by reading all data at once
-    const rowsArray = Array.from(previewEl.querySelectorAll('.oom-dream-row'));
-    const totalRows = rowsArray.length;
-    console.log('[OOM-DEBUG] Found', totalRows, 'rows to filter');
+    // Ensure table styles are initialized before filtering
+    initializeTableRowClasses();
     
-    // Show a loading indicator for large tables (over 50 rows)
-    let loadingIndicator: HTMLElement | null = null;
-    if (totalRows > 50) {
-        loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'oom-loading-indicator';
-        loadingIndicator.textContent = 'Filtering entries...';
-        loadingIndicator.style.position = 'fixed';
-        loadingIndicator.style.top = '10px';
-        loadingIndicator.style.right = '10px';
-        loadingIndicator.style.background = 'var(--background-primary)';
-        loadingIndicator.style.color = 'var(--text-normal)';
-        loadingIndicator.style.padding = '8px 12px';
-        loadingIndicator.style.borderRadius = '4px';
-        loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
-        loadingIndicator.style.zIndex = '1000';
-        document.body.appendChild(loadingIndicator);
+    // Performance optimization: Prevent layout thrashing by reading all data at once
+    const tableContainer = previewEl.querySelector('.oom-table-container');
+    if (tableContainer) {
+        // Set will-change to optimize for upcoming changes
+        tableContainer.setAttribute('style', 'will-change: transform, contents; contain: content;');
     }
     
-    const startDate = new Date(customDateRange.start);
-    const endDate = new Date(customDateRange.end);
-    console.log('[OOM-DEBUG] Filtering dates between', startDate.toLocaleDateString(), 'and', endDate.toLocaleDateString());
+    // Store the date range values safely
+    // IMPORTANT: We need to clone these to avoid timezone issues
+    const startDateString = customDateRange?.start || '';
+    const endDateString = customDateRange?.end || '';
     
-    // Pre-compute date strings for comparison to avoid repeated parsing
-    const startDateString = customDateRange.start;
-    const endDateString = customDateRange.end;
+    // Ensure we create the dates in a timezone-safe way
+    // For UTC date handling, we'll parse YYYY-MM-DD directly
+    const startYMD = startDateString.split('-').map(n => parseInt(n));
+    const endYMD = endDateString.split('-').map(n => parseInt(n));
     
-    let visibleCount = 0;
-    let hiddenCount = 0;
+    // Validate the date parts
+    if (startYMD.length !== 3 || endYMD.length !== 3 || 
+        startYMD.some(isNaN) || endYMD.some(isNaN)) {
+        console.error('[OOM-DEBUG] Invalid date format:', {startDateString, endDateString});
+        return;
+    }
     
-    // Process rows in chunks to avoid blocking the UI
-    const CHUNK_SIZE = 20; // Process 20 rows per frame
-    let currentChunk = 0;
+    // Create date objects with the exact day boundaries (year, month-1, day)
+    const startDate = new Date(startYMD[0], startYMD[1] - 1, startYMD[2], 0, 0, 0, 0);
+    const endDate = new Date(endYMD[0], endYMD[1] - 1, endYMD[2], 23, 59, 59, 999);
     
-    // Create a processing function that will handle a chunk of rows
-    const processNextChunk = () => {
-        const start = currentChunk * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, totalRows);
+    // Sanity check on the dates
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error('[OOM-DEBUG] Could not create valid date objects:', {startYMD, endYMD});
+        return;
+    }
+    
+    console.log('[OOM-DEBUG] Using date objects for comparison:', {
+        startDate: startDate.toISOString(),
+        startYMD: startYMD,
+        endDate: endDate.toISOString(),
+        endYMD: endYMD
+    });
+    
+    // Create a processing function to handle filtering without touching the DOM immediately
+    function processFiltering() {
+        // Ensure we're working with an array for consistent handling
+        const rowsArray = Array.from(previewEl.querySelectorAll('.oom-dream-row'));
+        const totalRows = rowsArray.length;
+        console.log('[OOM-DEBUG] Found', totalRows, 'rows to filter');
         
-        // Update loading indicator if present
-        if (loadingIndicator) {
-            const percent = Math.floor((start / totalRows) * 100);
-            loadingIndicator.textContent = `Filtering entries... ${percent}%`;
+        // Show a loading indicator for large tables (over 50 rows)
+        let loadingIndicator: HTMLElement | null = null;
+        if (totalRows > 50) {
+            loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'oom-loading-indicator';
+            loadingIndicator.textContent = 'Filtering entries...';
+            loadingIndicator.style.position = 'fixed';
+            loadingIndicator.style.top = '10px';
+            loadingIndicator.style.right = '10px';
+            loadingIndicator.style.background = 'var(--background-primary)';
+            loadingIndicator.style.color = 'var(--text-normal)';
+            loadingIndicator.style.padding = '8px 12px';
+            loadingIndicator.style.borderRadius = '4px';
+            loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
+            loadingIndicator.style.zIndex = '1000';
+            document.body.appendChild(loadingIndicator);
         }
         
-        // Process this chunk
-        for (let i = start; i < end; i++) {
-            const rowEl = rowsArray[i] as HTMLElement;
-            const dateAttr = rowEl.getAttribute('data-date');
-            
-            if (!dateAttr) {
-                rowEl.style.display = 'none';
-                hiddenCount++;
-                continue;
-            }
-            
-            // Most efficient date comparison - string comparison instead of Date objects
-            // Format is already YYYY-MM-DD so lexicographical comparison works
-            const isInRange = dateAttr >= startDateString && dateAttr <= endDateString;
-            
-            if (isInRange) {
-                rowEl.style.display = '';
-                rowEl.classList.add('oom-row--visible');
-                visibleCount++;
-            } else {
-                rowEl.style.display = 'none';
-                rowEl.classList.remove('oom-row--visible');
-                hiddenCount++;
-            }
-        }
+        console.log('[OOM-DEBUG] Filtering dates between', startDateString, 'and', endDateString);
         
-        // Move to next chunk or finish
-        currentChunk++;
+        let visibleCount = 0;
+        let hiddenCount = 0;
+        let emptyDateCount = 0;
+        let invalidDateCount = 0;
         
-        if (currentChunk * CHUNK_SIZE < totalRows) {
-            // Schedule next chunk in the next animation frame
-            requestAnimationFrame(processNextChunk);
-        } else {
-            // All chunks processed, finalize
-            console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
+        // First, read all data before modifying DOM (reduce layout thrashing)
+        const rowVisibility: boolean[] = [];
+        
+                // Before full processing, do a quick filter on dateAttr to avoid unnecessary computation        const startYearMonth = `${startYMD[0]}-${startYMD[1].toString().padStart(2, '0')}`;        const endYearMonth = `${endYMD[0]}-${endYMD[1].toString().padStart(2, '0')}`;        console.log('[OOM-DEBUG] Quick filtering with year-month range:', startYearMonth, 'to', endYearMonth);                    // Pre-process all row visibility without touching the DOM        rowsArray.forEach((row, index) => {            const dateAttr = row.getAttribute('data-date');                        if (!dateAttr || dateAttr.trim() === '') {                // Handle rows without a date attribute                emptyDateCount++;                rowVisibility.push(false); // Always hide rows without dates                return;            }                        // Quick check - if date is outside year-month range, don't process further            // This avoids detailed parsing for dates clearly outside the range            if (dateAttr < startYearMonth || dateAttr > endYearMonth + '-31') {                // Skip detailed processing for dates clearly outside range                hiddenCount++;                rowVisibility.push(false);                return;            }                        try {                // Parse the date in a consistent way matching our comparison dates                // Split YYYY-MM-DD format for exact control                const rowYMD = dateAttr.split('-').map(n => parseInt(n));                                if (rowYMD.length !== 3 || rowYMD.some(isNaN)) {                    console.log('[OOM-DEBUG] Row has invalid date format:', dateAttr);                    invalidDateCount++;                    rowVisibility.push(false);                    return;                }                                // Create a date object with the same time (noon) and force local timezone interpretation                const rowDate = new Date(rowYMD[0], rowYMD[1] - 1, rowYMD[2], 12, 0, 0, 0);                                // Check if date is valid                if (isNaN(rowDate.getTime())) {                    console.log('[OOM-DEBUG] Row has invalid date value:', dateAttr);                    invalidDateCount++;                    rowVisibility.push(false);                    return;                }                                // Only log for rows close to the time range to avoid console spam                const daysBefore = Math.floor((startDate.getTime() - rowDate.getTime()) / (24 * 60 * 60 * 1000));                const daysAfter = Math.floor((rowDate.getTime() - endDate.getTime()) / (24 * 60 * 60 * 1000));                                if (daysBefore <= 2 || daysAfter <= 2 || (daysBefore < 0 && daysAfter < 0)) {                    // Only log for dates within 2 days of the range or actually in the range                    console.log('[OOM-DEBUG] Row date parts:', {                        rowDate: rowDate.toISOString(),                        rowYMD: rowYMD,                        dateAttr,                        index                    });                }                                // Check if the row date is within range (inclusive)                // Use direct year/month/day comparison to avoid timezone issues                const isInRange =                     // Simple date comparison using dateAttr - more reliable                    dateAttr >= startDateString && dateAttr <= endDateString;                                if (isInRange) {                    console.log('[OOM-DEBUG] Row matches date range:', {                        rowDate: rowDate.toISOString(),                        dateAttr,                        index                    });                    visibleCount++;                } else {                    hiddenCount++;                }                                rowVisibility.push(isInRange);            } catch (error) {                console.error('[OOM-DEBUG] Error parsing date:', dateAttr, error);                invalidDateCount++;                rowVisibility.push(false);            }        });
+        
+        // Process rows in chunks to avoid blocking the UI
+        const CHUNK_SIZE = 20; // Process 20 rows per frame
+        let currentChunk = 0;
+        
+        // Create a processing function that will handle a chunk of rows
+        const processNextChunk = () => {
+            const start = currentChunk * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, totalRows);
             
-            // Remove loading indicator if present
+            // Update loading indicator if present
             if (loadingIndicator) {
-                document.body.removeChild(loadingIndicator);
+                const percent = Math.floor((start / totalRows) * 100);
+                loadingIndicator.textContent = `Filtering entries... ${percent}%`;
             }
             
-            // Update filter display after all rows are processed
-            updateFilterDisplay(visibleCount);
-            
-            // Show notification after UI is updated
+            // Batch DOM operations by applying visibility in chunks
             requestAnimationFrame(() => {
-                new Notice(`Date filter applied: ${visibleCount} entries visible, ${hiddenCount} hidden`);
+                for (let i = start; i < end; i++) {
+                    const rowEl = rowsArray[i] as HTMLElement;
+                    const isVisible = rowVisibility[i];
+                    
+                    if (isVisible) {
+                        // Show row using CSS classes
+                        rowEl.classList.remove('oom-row--hidden');
+                        rowEl.classList.add('oom-row--visible');
+                        rowEl.style.removeProperty('display');
+                    } else {
+                        // Hide row using CSS classes
+                        rowEl.classList.add('oom-row--hidden');
+                        rowEl.classList.remove('oom-row--visible');
+                        // Use display:none for complete removal from layout
+                        rowEl.style.display = 'none';
+                    }
+                }
+                
+                // Move to next chunk or finish
+                currentChunk++;
+                
+                if (currentChunk * CHUNK_SIZE < totalRows) {
+                    // Schedule next chunk with a slight delay to allow rendering
+                    setTimeout(() => processNextChunk(), 5);
+                } else {
+                                        // All chunks processed, finalize                    console.log(`[OOM-DEBUG] Filter complete: ${visibleCount} visible, ${hiddenCount} hidden, ${emptyDateCount} empty dates, ${invalidDateCount} invalid dates`);                                        // Remove loading indicator if present                    if (loadingIndicator) {                        document.body.removeChild(loadingIndicator);                    }                                        // Reset will-change property once filtering is complete                    if (tableContainer) {                        requestAnimationFrame(() => {                            tableContainer.removeAttribute('style');                        });                    }                                        // ADDED: Update summary table with filtered metrics                    const filteredMetrics = collectVisibleRowMetrics(previewEl);                    updateSummaryTable(previewEl, filteredMetrics);                                        // Update filter display after all rows are processed                    // But do it in the next frame to avoid forced reflow                    requestAnimationFrame(() => {                        updateFilterDisplay(visibleCount);                                                // Show notification after UI is updated                        setTimeout(() => {                            if (visibleCount === 0) {                                new Notice(`No entries found for the selected date range.`);                            } else {                                new Notice(`Date filter applied: ${visibleCount} entries visible`);                            }                        }, 50);                    });
+                }
             });
-        }
-    };
+        };
+        
+        // Start processing the first chunk, but delay slightly to allow the UI to update first
+        setTimeout(() => processNextChunk(), 50);
+    }
     
-    // Start processing the first chunk
-    requestAnimationFrame(processNextChunk);
+    // Delay the actual processing to let any previous operations complete
+    setTimeout(processFiltering, 10);
 }
 
 function updateFilterDisplay(entryCount: number) {
     const filterDisplay = document.getElementById('oom-time-filter-display');
     if (!filterDisplay) return;
     
-    // Performance optimization: Build all DOM elements in a document fragment
-    // before adding to the DOM to minimize reflows
-    const fragment = document.createDocumentFragment();
+    // Temporarily set will-change to optimize for layout changes
+    filterDisplay.style.willChange = 'contents';
     
-    // Create all elements at once with their attributes
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'oom-filter-icon';
-    iconSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>`;
+    // Create a complete HTML string instead of multiple DOM manipulations
+    // This is more efficient as it causes only one reflow when inserted
+    let htmlContent = '';
     
-    const textSpan = document.createElement('span');
-    textSpan.className = 'oom-filter-text';
+    // Icon element
+    htmlContent += '<span class="oom-filter-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg></span>';
     
-    // Prepare all text content and attributes before adding to DOM
+    // Text content with appropriate class
     if (customDateRange) {
-        textSpan.classList.add('oom-filter--custom-range');
-        textSpan.textContent = ` Custom Range: ${customDateRange.start} to ${customDateRange.end} (${entryCount} entries) `;
-        
-        // Only create clear button if we have a custom range
-        const clearBtn = document.createElement('span');
-        clearBtn.className = 'oom-filter-clear';
-        clearBtn.setAttribute('title', 'Clear custom range');
-        clearBtn.setAttribute('tabindex', '0');
-        clearBtn.setAttribute('role', 'button');
-        clearBtn.textContent = '×';
-        
-        // Attach event listeners
-        clearBtn.addEventListener('click', (e) => {
-            // Prevent event bubbling for better performance
-            e.stopPropagation();
-            
-            customDateRange = null;
-            
-            // Batch related DOM operations together
-            requestAnimationFrame(() => {
-                const btn = document.getElementById('oom-custom-range-btn');
-                if (btn) btn.classList.remove('active');
-                
-                const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                if (dropdown) {
-                    dropdown.value = dropdown.value; // Keep same value
-                    dropdown.dispatchEvent(new Event('change'));
-                }
-            });
-        });
-        
-        // Keyboard accessibility
-        clearBtn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                clearBtn.click();
-            }
-        });
-        
-        textSpan.appendChild(clearBtn);
+        htmlContent += `<span class="oom-filter-text oom-filter--custom-range"> Custom Range: ${customDateRange.start} to ${customDateRange.end} (${entryCount} entries) <span class="oom-filter-clear" title="Clear custom range" tabindex="0" role="button" aria-label="Clear date filter">×</span></span>`;
     } else {
         // Show dropdown label
         const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
         const label = dropdown ? dropdown.options[dropdown.selectedIndex].text : 'All Time';
-        textSpan.classList.add('oom-filter--all-visible');
-        textSpan.textContent = ` ${label} (${entryCount} entries) `;
+        htmlContent += `<span class="oom-filter-text oom-filter--all-visible"> ${label} (${entryCount} entries) </span>`;
     }
     
-    // Construct the fragment hierarchy once before touching the live DOM
-    fragment.appendChild(iconSpan);
-    fragment.appendChild(textSpan);
-    
-    // Single DOM operation to replace all content
-    filterDisplay.innerHTML = '';
-    filterDisplay.appendChild(fragment);
-    
-    // Use CSS transitions instead of JS for animation
-    // Add the updated class in the next frame to ensure it triggers the transition
+    // Use a single update to minimize reflows
     requestAnimationFrame(() => {
-        filterDisplay.classList.add('oom-filter-display--updated');
+        // First, remove the transition for immediate change
+        filterDisplay.style.transition = 'none';
+        filterDisplay.classList.remove('oom-filter-display--updated');
         
-        // Remove class after transition completes
-        setTimeout(() => {
-            requestAnimationFrame(() => {
-                filterDisplay.classList.remove('oom-filter-display--updated');
+        // Force a reflow to ensure the removal of the class takes effect immediately
+        void filterDisplay.offsetHeight;
+        
+        // Apply the HTML content in one operation
+        filterDisplay.innerHTML = htmlContent;
+        
+        // Now add event listeners to the clear button if present
+        const clearBtn = filterDisplay.querySelector('.oom-filter-clear');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                // Prevent event bubbling for better performance
+                e.stopPropagation();
+                
+                customDateRange = null;
+                
+                // Batch related DOM operations together
+                requestAnimationFrame(() => {
+                    const btn = document.getElementById('oom-custom-range-btn');
+                    if (btn) btn.classList.remove('active');
+                    
+                    const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+                    if (dropdown) {
+                        dropdown.value = dropdown.value; // Keep same value
+                        dropdown.dispatchEvent(new Event('change'));
+                    }
+                });
             });
-        }, 500);
+            
+            // Keyboard accessibility
+            clearBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    (e.target as HTMLElement).click();
+                }
+            });
+        }
+        
+        // Add the animation class in the next frame
+        setTimeout(() => {
+            // Reset will-change property
+            filterDisplay.style.willChange = 'auto';
+            
+            // Restore transition and add the updated class
+            filterDisplay.style.removeProperty('transition');
+            filterDisplay.classList.add('oom-filter-display--updated');
+            
+            // Remove class after transition completes
+            setTimeout(() => {
+                filterDisplay.classList.remove('oom-filter-display--updated');
+            }, 1000);
+        }, 20);
     });
 }
+
+// Add this function to initialize CSS classes for table rows with performance optimizations
+function initializeTableRowClasses() {
+    // Use a flag to ensure this only runs once per page load
+    if ((window as any).__tableRowsInitialized) {
+        console.log('[OOM-DEBUG] Table rows already initialized, skipping');
+        return;
+    }
+    
+    // Use requestIdleCallback to run this during browser idle time
+    // This prevents blocking the main thread during initial page load
+    const runWhenIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 100));
+    
+    runWhenIdle(() => {
+        console.log('[OOM-DEBUG] Initializing table row classes during idle time');
+        const tables = document.querySelectorAll('.oom-table');
+        
+        if (tables.length === 0) {
+            console.log('[OOM-DEBUG] No tables found for row initialization');
+            return;
+        }
+        
+        // Process tables one at a time to avoid large reflows
+        tables.forEach((table) => {
+            // Use DocumentFragment to batch DOM operations
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            
+            if (rows.length === 0) {
+                console.log('[OOM-DEBUG] No rows found in table');
+                return;
+            }
+            
+            console.log(`[OOM-DEBUG] Initializing ${rows.length} table rows`);
+            
+            // Process rows in chunks to avoid long tasks
+            const CHUNK_SIZE = 20;
+            let currentChunk = 0;
+            
+            const processNextChunk = () => {
+                const start = currentChunk * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, rows.length);
+                
+                // Use a single requestAnimationFrame to batch operations
+                requestAnimationFrame(() => {
+                    for (let i = start; i < end; i++) {
+                        const row = rows[i];
+                        // Add base class to all rows
+                        row.classList.add('oom-dream-row');
+                        
+                        // Default all rows to visible
+                        row.classList.add('oom-row--visible');
+                        
+                        // Make sure hidden class is not present initially
+                        row.classList.remove('oom-row--hidden');
+                        
+                        // Make sure inline style display is removed if it exists
+                        (row as HTMLElement).style.removeProperty('display');
+                    }
+                    
+                    // Move to next chunk or finish
+                    currentChunk++;
+                    
+                    if (currentChunk * CHUNK_SIZE < rows.length) {
+                        // Schedule next chunk with slight delay
+                        setTimeout(processNextChunk, 10);
+                    } else {
+                        console.log(`[OOM-DEBUG] Table row initialization complete`);
+                    }
+                });
+            };
+            
+            // Start processing chunks with slight delay to allow initial render
+            setTimeout(processNextChunk, 50);
+        });
+        
+        // Set the flag to prevent reinitialization
+        (window as any).__tableRowsInitialized = true;
+    }, { timeout: 1000 });
+}
+
+// Function to collect metrics data from visible rows only
+function collectVisibleRowMetrics(container: HTMLElement): Record<string, number[]> {
+    console.log('[OOM-DEBUG] Collecting metrics from visible rows');
+    const visibleRows = container.querySelectorAll('.oom-dream-row:not(.oom-row--hidden)');
+    const metrics: Record<string, number[]> = {};
+    
+    // Initialize metrics with empty arrays
+    container.querySelectorAll('.oom-table th').forEach(header => {
+        const metricName = header.textContent?.trim() || '';
+        if (metricName && metricName !== 'Date' && metricName !== 'Dream Title' && metricName !== 'Content') {
+            metrics[metricName] = [];
+        }
+    });
+    
+    // Always include Words metric
+    if (!metrics['Words']) {
+        metrics['Words'] = [];
+    }
+    
+    // Collect metrics from visible rows
+    visibleRows.forEach(row => {
+        // Get Words metric
+        const wordsCell = row.querySelector('.column-words');
+        if (wordsCell && wordsCell.textContent) {
+            const wordsValue = parseInt(wordsCell.textContent.trim(), 10);
+            if (!isNaN(wordsValue)) {
+                metrics['Words'].push(wordsValue);
+            }
+        }
+        
+        // Process all metric columns by iterating through all cells
+        row.querySelectorAll('td').forEach(cell => {
+            // Skip non-metric cells
+            if (cell.classList.contains('column-date') || 
+                cell.classList.contains('column-dream-title') || 
+                cell.classList.contains('column-content')) {
+                return;
+            }
+            
+            // Get column header to determine metric name
+            const colIndex = cell.parentNode ? Array.from(cell.parentNode.children).indexOf(cell) : -1;
+            if (colIndex === -1) return;
+            const header = container.querySelector(`.oom-table th:nth-child(${colIndex + 1})`);
+            if (!header) return;
+            
+            const metricName = header.textContent?.trim() || '';
+            if (!metricName || metricName === 'Words') return; // Skip already handled Words column
+            
+            const value = parseFloat(cell.textContent?.trim() || '0');
+            if (!isNaN(value)) {
+                if (!metrics[metricName]) {
+                    metrics[metricName] = [];
+                }
+                metrics[metricName].push(value);
+            }
+        });
+    });
+    
+    console.log('[OOM-DEBUG] Collected metrics from visible rows:', metrics);
+    return metrics;
+}
+
+// Function to update the summary table with new metrics
+function updateSummaryTable(container: HTMLElement, metrics: Record<string, number[]>) {
+    console.log('[OOM-DEBUG] Updating summary table with filtered metrics');
+    const summarySection = container.querySelector('.oom-stats-section');
+    if (!summarySection) {
+        console.log('[OOM-DEBUG] No summary section found');
+        return;
+    }
+    
+    // Set will-change to optimize for upcoming changes
+    summarySection.setAttribute('style', 'will-change: contents;');
+    
+    // Generate new summary table content
+    let content = '<h2 class="oom-table-title oom-stats-title">Statistics (Filtered)</h2>';
+    content += '<div class="oom-table-container">\n';
+    content += '<table class="oom-table oom-stats-table">\n';
+    content += '<thead>\n';
+    content += '<tr>\n';
+    content += '<th>Metric</th>\n';
+    content += '<th>Average</th>\n';
+    content += '<th>Min</th>\n';
+    content += '<th>Max</th>\n';
+    content += '<th>Count</th>\n';
+    content += '</tr>\n';
+    content += '</thead>\n';
+    content += '<tbody>\n';
+
+    // Get metric names from all table headers
+    const metricNames = Object.keys(metrics);
+    
+    let hasMetrics = false;
+    for (const name of metricNames) {
+        const values = metrics[name];
+        if (!values || values.length === 0) continue;
+        
+        hasMetrics = true;
+        const avg = values.reduce((a, b) => a + b) / values.length;
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        let label = name;
+        
+        if (name === 'Words') {
+            const total = values.reduce((a, b) => a + b, 0);
+            label = `Words <span class="oom-words-total">(total: ${total})</span>`;
+        }
+        
+        content += '<tr>\n';
+        content += `<td>${label}</td>\n`;
+        content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
+        content += `<td class="metric-value">${min}</td>\n`;
+        content += `<td class="metric-value">${max}</td>\n`;
+        content += `<td class="metric-value">${values.length}</td>\n`;
+        content += '</tr>\n';
+    }
+
+    if (!hasMetrics) {
+        content += '<tr><td colspan="5" class="oom-no-metrics">No metrics available for filtered results</td></tr>\n';
+    }
+
+    content += '</tbody>\n';
+    content += '</table>\n';
+    content += '</div>\n';
+    
+    // Update the summary section in a requestAnimationFrame to avoid forced reflows
+    requestAnimationFrame(() => {
+        // Update the summary section
+        summarySection.innerHTML = content;
+        
+        // Remove will-change property after update
+        setTimeout(() => {
+            summarySection.removeAttribute('style');
+        }, 100);
+    });
+}
+
+// Helper function to format a date for display
+function formatDateForDisplay(date: Date): string {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
+// Function to force apply a date filter, called from DateNavigatorModal
+window.forceApplyDateFilter = function(selectedDate: Date) {
+    console.log('[OOM-DEBUG] forceApplyDateFilter called with date:', selectedDate);
+    
+    if (!selectedDate) {
+        console.error('[OOM-DEBUG] No date provided to forceApplyDateFilter');
+        new Notice('Cannot apply filter: no date selected.');
+        return;
+    }
+
+    // Get the OOM content
+    const previewEl = document.querySelector('.oom-metrics-content');
+    if (!previewEl) {
+        console.error('[OOM-DEBUG] Cannot find .oom-metrics-content element');
+        new Notice('Cannot apply filter: OOM content not found.');
+        return;
+    }
+
+    // Create start and end of day for precise filtering
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    console.log('[OOM-DEBUG] Filtering for date range:', {
+        startOfDay: startOfDay.toISOString(),
+        endOfDay: endOfDay.toISOString()
+    });
+
+    // Get all rows
+    const rows = previewEl.querySelectorAll('.oom-dream-row');
+    console.log(`[OOM-DEBUG] Found ${rows.length} rows to filter`);
+    
+    // For performance, prepare date strings before filtering
+    const startStr = startOfDay.toISOString().split('T')[0];
+    const endStr = endOfDay.toISOString().split('T')[0];
+    
+    // Track counts for feedback
+    let visibleCount = 0;
+    let hiddenCount = 0;
+    let invalidDateCount = 0;
+    
+    // Apply date filter to each row
+    rows.forEach(row => {
+        const dateCell = row.querySelector('.column-date');
+        if (!dateCell || !dateCell.textContent) {
+            invalidDateCount++;
+            (row as HTMLElement).classList.add('oom-row--hidden');
+            (row as HTMLElement).classList.remove('oom-row--visible');
+            return;
+        }
+        
+        try {
+            // Parse date from cell
+            const dateText = dateCell.textContent.trim();
+            const rowDate = new Date(dateText);
+            const rowDateStr = rowDate.toISOString().split('T')[0];
+            
+            // Check if the date matches the selected date
+            const isVisible = rowDateStr === startStr;
+            
+            if (isVisible) {
+                (row as HTMLElement).classList.remove('oom-row--hidden');
+                (row as HTMLElement).classList.add('oom-row--visible');
+                visibleCount++;
+            } else {
+                (row as HTMLElement).classList.add('oom-row--hidden');
+                (row as HTMLElement).classList.remove('oom-row--visible');
+                hiddenCount++;
+            }
+        } catch (e) {
+            console.error('[OOM-DEBUG] Error processing row date:', dateCell.textContent, e);
+            invalidDateCount++;
+            (row as HTMLElement).classList.add('oom-row--hidden');
+            (row as HTMLElement).classList.remove('oom-row--visible');
+        }
+    });
+    
+    console.log(`[OOM-DEBUG] Date filter applied: ${visibleCount} visible, ${hiddenCount} hidden, ${invalidDateCount} invalid dates`);
+    
+    // Update the filter display
+    const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
+    if (filterDisplay) {
+        filterDisplay.textContent = `Filtered by date: ${selectedDate.toLocaleDateString()} (${visibleCount} entries)`;
+        filterDisplay.classList.add('oom-filter-active');
+    }
+    
+    // IMPORTANT: Update summary table with filtered metrics
+    const filteredMetrics = collectVisibleRowMetrics(previewEl as HTMLElement);
+    updateSummaryTable(previewEl as HTMLElement, filteredMetrics);
+    
+    new Notice(`Date filter applied: ${visibleCount} entries visible`);
+}
+
+// Add TypeScript declaration for the window object extension
+declare global {
+    interface Window {
+        forceApplyDateFilter: (selectedDate: Date) => void;
+    }
+}
+
+// Function to toggle content visibility for a given button - alternative implementation
+function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
+    console.log('[OOM-DEBUG] Using alternative content visibility implementation');
+    
+    try {
+        // Get the content cell ID from the button
+        const contentCellId = button.getAttribute('data-parent-cell');
+        if (!contentCellId) {
+            console.error('[OOM-DEBUG] No data-parent-cell attribute on button');
+            new Notice('Error: Cannot find content to expand');
+            return;
+        }
+        
+        const contentCell = document.getElementById(contentCellId);
+        if (!contentCell) {
+            console.error('[OOM-DEBUG] Could not find content cell with ID:', contentCellId);
+            new Notice('Error: Content cell not found');
+            return;
+        }
+        
+        // Get the current state
+        const isExpanded = button.getAttribute('data-expanded') === 'true';
+        console.log('[OOM-DEBUG] Current state:', isExpanded);
+        
+        // Get elements
+        const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
+        const previewContent = contentCell.querySelector('.oom-content-preview');
+        const fullContent = contentCell.querySelector('.oom-content-full');
+        
+        if (!contentWrapper || !previewContent || !fullContent) {
+            console.error('[OOM-DEBUG] Missing required elements');
+            return;
+        }
+        
+        // Force browser reflow first
+        void contentCell.offsetHeight;
+        
+        // Direct DOM manipulation approach
+        if (!isExpanded) {
+            // EXPANDING
+            // 1. First update button state
+            button.setAttribute('data-expanded', 'true');
+            button.setAttribute('aria-expanded', 'true');
+            const buttonText = button.querySelector('.oom-button-text');
+            if (buttonText) buttonText.textContent = 'Show less';
+            
+            // 2. Update content wrapper
+            contentWrapper.setAttribute('data-expanded', 'true');
+            contentWrapper.classList.add('expanded');
+            
+            // 3. Set styles directly on the elements
+            (previewContent as HTMLElement).style.display = 'none';
+            (fullContent as HTMLElement).style.display = 'block';
+            
+            // 4. Update the table row height to fit the new content
+            const tableRow = contentCell.closest('tr');
+            if (tableRow) {
+                (tableRow as HTMLElement).style.height = 'auto';
+                (tableRow as HTMLElement).style.minHeight = 'fit-content';
+            }
+            
+            console.log('[OOM-DEBUG] Expanded content');
+        } else {
+            // COLLAPSING
+            // 1. First update button state
+            button.setAttribute('data-expanded', 'false');
+            button.setAttribute('aria-expanded', 'false');
+            const buttonText = button.querySelector('.oom-button-text');
+            if (buttonText) buttonText.textContent = 'Show more';
+            
+            // 2. Update content wrapper
+            contentWrapper.setAttribute('data-expanded', 'false');
+            contentWrapper.classList.remove('expanded');
+            
+            // 3. Set styles directly on the elements
+            (previewContent as HTMLElement).style.display = 'block';
+            (fullContent as HTMLElement).style.display = 'none';
+            
+            console.log('[OOM-DEBUG] Collapsed content');
+        }
+        
+        // Force browser reflow once more to ensure changes are applied
+        void contentCell.offsetHeight;
+        
+    } catch (error) {
+        console.error('[OOM-DEBUG] Error in toggleContentVisibility:', error);
+    }
+}
+
+// Helper function to expand all content sections - useful for debugging
+function expandAllContentSections(previewEl: HTMLElement) {
+    console.log('[OOM-DEBUG] Expanding all content sections for debugging');
+    
+    const expandButtons = previewEl.querySelectorAll('.oom-button--expand');
+    expandButtons.forEach(button => {
+        const isExpanded = button.getAttribute('data-expanded') === 'true';
+        if (!isExpanded) {
+            // Only expand sections that aren't already expanded
+            console.log('[OOM-DEBUG] Expanding content section:', button.getAttribute('data-parent-cell'));
+            toggleContentVisibility(button as HTMLElement, previewEl);
+        }
+    });
+    
+    console.log('[OOM-DEBUG] Finished expanding all content sections');
+}
+
+// Debug helper - expose content expansion function to window object for console debugging
+(window as any).debugContentExpansion = function(showExpanded: boolean = true) {
+    console.log('[OOM-DEBUG] Manual content expansion debug triggered');
+    
+    // Get the OOM content container
+    const previewEl = document.querySelector('.oom-metrics-content') as HTMLElement;
+    if (!previewEl) {
+        console.error('[OOM-DEBUG] Cannot find .oom-metrics-content element');
+        return 'Error: Content container not found';
+    }
+    
+    // Find all expand buttons
+    const expandButtons = previewEl.querySelectorAll('.oom-button--expand');
+    console.log(`[OOM-DEBUG] Found ${expandButtons.length} content expansion buttons`);
+    
+    if (expandButtons.length === 0) {
+        return 'No content expansion buttons found';
+    }
+    
+    // Toggle each button to the desired state
+    let processed = 0;
+    expandButtons.forEach(button => {
+        const isCurrentlyExpanded = button.getAttribute('data-expanded') === 'true';
+        
+        // Only process if the button isn't already in the desired state
+        if (showExpanded !== isCurrentlyExpanded) {
+            console.log(`[OOM-DEBUG] Processing button:`, button);
+            toggleContentVisibility(button as HTMLElement, previewEl);
+            processed++;
+        }
+    });
+    
+    // Output summary
+    if (processed > 0) {
+        return `${processed} content sections ${showExpanded ? 'expanded' : 'collapsed'}`;
+    } else {
+        return `All content sections already ${showExpanded ? 'expanded' : 'collapsed'}`;
+    }
+};

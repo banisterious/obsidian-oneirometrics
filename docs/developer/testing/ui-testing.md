@@ -43,20 +43,20 @@ UI testing ensures that all visual components of the OneiroMetrics plugin displa
 - No horizontal scrolling on desktop
 
 ## UI Test Checklist
-- [ ] Tables match Obsidian theme
-- [ ] Hover effects work on rows
-- [ ] Buttons have proper hover states
-- [ ] Links have proper hover states
-- [ ] Text is readable
-- [ ] Spacing is consistent
+- [x] Tables match Obsidian theme ✅ 2025-05-21
+- [x] Hover effects work on rows ✅ 2025-05-21
+- [x] Buttons have proper hover states ✅ 2025-05-21
+- [x] Links have proper hover states ✅ 2025-05-21
+- [x] Text is readable ✅ 2025-05-21
+- [x] Spacing is consistent ✅ 2025-05-21
 - [ ] UI is responsive
 - [ ] No horizontal scrolling on desktop
 - [ ] Mobile view is usable
 - [ ] Table overrides readable line length setting
-- [ ] Table maintains full width regardless of theme settings
+- [x] Table maintains full width regardless of theme settings ✅ 2025-05-21
 - [ ] Column widths are optimized
 - [ ] Progress modal styling matches theme
-- [ ] Suggestion containers use CSS classes
+- [x] Suggestion containers use CSS classes ✅ 2025-05-21
 - [ ] No inline styles present
 - [ ] CSS components are properly organized
 

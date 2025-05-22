@@ -94,26 +94,34 @@ export class DateNavigatorModal extends Modal {
             }
             
             // Get the selected date, or the current day if none is selected
-            let selectedDate = this.dateNavigator.getSelectedDay();
+            const selectedDate = this.dateNavigator.getSelectedDay();
             
-            // Use direct access to ensure we get the most up-to-date selection
-            const dateNavigator = this.dateNavigator as any;
-            if (dateNavigator.selectedDay) {
-                selectedDate = dateNavigator.selectedDay;
+            if (!selectedDate) {
+                new Notice('No date selected. Please select a date first.');
+                return;
             }
             
-            if (selectedDate) {
-                // Call the direct filtering function in main.ts
-                // This bypasses the TimeFilterManager for more reliable filtering
-                (window as any).forceApplyDateFilter(selectedDate);
-                
-                // Show success notice and close modal
-                new Notice(`Filter applied for ${selectedDate.toLocaleDateString()}`);
-                
-                // Close the modal to allow user to see the filtered results
-                this.close();
+            // Call the global forceApplyDateFilter function
+            if (typeof window.forceApplyDateFilter === 'function') {
+                try {
+                    // Create copy of the date to avoid timezone issues
+                    const dateToFilter = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                    
+                    // Apply the filter
+                    window.forceApplyDateFilter(dateToFilter);
+                    
+                    // Show success notice
+                    new Notice(`Filter applied for ${selectedDate.toLocaleDateString()}`);
+                    
+                    // Close the modal
+                    this.close();
+                } catch (error) {
+                    console.error('[DateNavigatorModal] Error applying filter:', error);
+                    new Notice('Error applying filter. Please try again.');
+                }
             } else {
-                new Notice('No date selected. Please select a date first.');
+                console.error('[DateNavigatorModal] forceApplyDateFilter function not found');
+                new Notice('Filter application not available. Please update the plugin.');
             }
         });
         
