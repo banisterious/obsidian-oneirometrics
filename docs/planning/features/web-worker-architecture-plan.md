@@ -17,8 +17,9 @@
   - [2. Progressive Enhancement](#2-progressive-enhancement)
 - [Error Handling and Recovery](#error-handling-and-recovery)
   - [1. Error Handling Strategy](#1-error-handling-strategy)
-  - [2. Monitoring and Telemetry](#2-monitoring-and-telemetry)
-  - [3. Security Considerations](#3-security-considerations)
+  - [2. Debugging and Logging Strategy](#2-debugging-and-logging-strategy)
+  - [3. Monitoring and Telemetry](#3-monitoring-and-telemetry)
+  - [4. Security Considerations](#4-security-considerations)
 - [Integration with Date Navigator Features](#integration-with-date-navigator-features)
   - [1. Multi-Date Selection Integration](#1-multi-date-selection-integration)
   - [2. Pattern-Based Selection Integration](#2-pattern-based-selection-integration)
@@ -531,61 +532,56 @@ To complement the worker-based filtering, DOM updates will be optimized:
 }
 ```
 
+The DOM updates will be optimized using DocumentFragment for batch processing with CSS transitions:
+
 ```typescript
 // Efficient DOM updates using the worker results
 function applyFilterResults(results: FilterResultData) {
   const { visibilityMap } = results;
   
-  // Process in chunks to avoid blocking UI
-  const CHUNK_SIZE = 20;
-  let currentChunk = 0;
-  const totalItems = visibilityMap.length;
+  // Create document fragment for batch update
+  const fragment = document.createDocumentFragment();
+  const rows = [];
   
-  // Smaller chunk size on mobile for smoother performance
-  const isMobile = window.innerWidth <= 768;
-  const actualChunkSize = isMobile ? 10 : CHUNK_SIZE;
-  
-  function processNextChunk() {
-    const start = currentChunk * actualChunkSize;
-    const end = Math.min(start + actualChunkSize, totalItems);
-    
-    requestAnimationFrame(() => {
-      for (let i = start; i < end; i++) {
-        const result = visibilityMap[i];
-        const element = document.getElementById(`entry-${result.id}`);
-        
-        if (element) {
-          if (result.visible) {
-            element.classList.remove('oom-row--hidden');
-            element.classList.add('oom-row--visible');
-          } else {
-            element.classList.add('oom-row--hidden');
-            element.classList.remove('oom-row--visible');
-          }
-        }
-      }
+  // Prepare all changes first
+  visibilityMap.forEach(result => {
+    const row = document.getElementById(`entry-${result.id}`);
+    if (row) {
+      // Clone the row to work with
+      const rowClone = row.cloneNode(true);
       
-      currentChunk++;
-      
-      if (currentChunk * actualChunkSize < totalItems) {
-        // Introduce slight delay between chunks on mobile to allow UI to breathe
-        if (isMobile && totalItems > 100) {
-          setTimeout(processNextChunk, 5);
-        } else {
-          processNextChunk();
-        }
+      // Set appropriate classes
+      if (result.visible) {
+        rowClone.classList.remove('oom-row--hidden');
+        rowClone.classList.add('oom-row--visible');
       } else {
-        // Filtering complete
-        updateFilteringStatusUI(false);
-        updateMetricsSummary();
+        rowClone.classList.add('oom-row--hidden');
+        rowClone.classList.remove('oom-row--visible');
       }
-    });
-  }
+      
+      // Replace the original row with the modified clone
+      rows.push({ original: row, replacement: rowClone });
+    }
+  });
   
-  updateFilteringStatusUI(true);
-  processNextChunk();
+  // Apply all changes in a single requestAnimationFrame
+  requestAnimationFrame(() => {
+    rows.forEach(({ original, replacement }) => {
+      original.parentNode.replaceChild(replacement, original);
+    });
+    
+    // Filtering complete
+    updateFilteringStatusUI(false);
+    updateMetricsSummary();
+  });
 }
 ```
+
+This approach provides several benefits:
+- Reduces layout thrashing by batching DOM updates
+- Uses CSS transitions for smooth visual changes
+- Optimizes performance by minimizing reflows
+- Provides a good balance between code simplicity and performance
 
 #### Mobile-Specific Performance Optimizations
 
@@ -779,7 +775,92 @@ private handleWorkerFailure() {
 }
 ```
 
-### 2. Monitoring and Telemetry
+### 2. Debugging and Logging Strategy
+
+To facilitate effective debugging of worker code, a dedicated debug channel has been added to the worker message protocol:
+
+```typescript
+// Debug message type
+interface DebugMessage extends WorkerMessage {
+  type: 'DEBUG_LOG';
+  data: {
+    level: 'info' | 'warn' | 'error';
+    message: string;
+    context?: any;
+  }
+}
+
+// In worker implementation
+function debugLog(level: 'info' | 'warn' | 'error', message: string, context?: any) {
+  if (isDebugMode) {
+    self.postMessage({
+      id: generateUniqueId(),
+      type: 'DEBUG_LOG',
+      timestamp: Date.now(),
+      data: { level, message, context }
+    });
+  }
+}
+
+// Usage in worker code
+function handleDateRangeFilter(message) {
+  debugLog('info', 'Starting date range filter', { 
+    messageId: message.id,
+    entriesCount: message.data.entries.length
+  });
+  
+  // Processing logic...
+  
+  if (error) {
+    debugLog('error', 'Filter processing error', { error });
+  }
+}
+
+// Main thread handler for debug messages
+private setupWorkerEventHandlers() {
+  if (!this.worker) return;
+  
+  this.worker.onmessage = (e) => {
+    const message = e.data;
+    
+    // Handle debug messages
+    if (message.type === 'DEBUG_LOG') {
+      const { level, message: logMessage, context } = message.data;
+      
+      switch (level) {
+        case 'info':
+          console.log(`[Worker Debug] ${logMessage}`, context);
+          break;
+        case 'warn':
+          console.warn(`[Worker Debug] ${logMessage}`, context);
+          break;
+        case 'error':
+          console.error(`[Worker Debug] ${logMessage}`, context);
+          break;
+      }
+      
+      // Also log to plugin's logging system if available
+      if (this.logger) {
+        this.logger.log(level, `[Worker] ${logMessage}`, context);
+      }
+      
+      return;
+    }
+    
+    // Handle regular message types
+    // ... existing message handling code ...
+  };
+}
+```
+
+This approach provides several benefits:
+- Worker code can log detailed information without direct console access
+- Debug messages can be filtered by setting a debug mode flag
+- Context objects can be passed for detailed debugging information
+- The main thread can format and route logs appropriately
+- Debug logging can be disabled in production builds
+
+### 3. Monitoring and Telemetry
 
 ```typescript
 // Performance monitoring
@@ -816,7 +897,7 @@ function updatePerfMetrics(metrics) {
 }
 ```
 
-### 3. Security Considerations
+### 4. Security Considerations
 
 To ensure secure communication between threads and protect user data:
 
@@ -1079,7 +1160,12 @@ const context = await esbuild.context({
   sourcemap: prod ? false : "inline",
   treeShaking: true,
   outfile: "main.js",
-  plugins: [inlineWorker()],
+  plugins: [inlineWorker({
+    sourcemap: prod ? false : 'inline',
+    typescript: {
+      tsconfigRaw: require('./tsconfig.json')
+    }
+  })],
 });
 
 if (prod) {
@@ -1090,6 +1176,12 @@ if (prod) {
 }
 ```
 
+This configuration provides an optimal balance by:
+- Including sourcemaps only in development builds for easier debugging
+- Supporting TypeScript for worker files with proper type checking
+- Using the project's existing tsconfig for consistent TypeScript settings
+- Disabling sourcemaps in production for smaller bundle size and better security
+
 ## Open Questions and Considerations
 
 The following items require further investigation or decision-making before implementation:
@@ -1097,8 +1189,16 @@ The following items require further investigation or decision-making before impl
 - [ ] **Storage Limit Investigation**: Determine if there are any storage limits in Obsidian's environment that could affect caching large result sets
 - [ ] **Mobile Power Management**: Research best practices for detecting and adapting to battery status on mobile devices within Obsidian
 - [ ] **Obsidian Web Worker API Limitations**: Confirm if there are any Obsidian-specific limitations on Web Worker usage not covered by the [obsidian-web-worker-example](https://github.com/RyotaUshio/obsidian-web-worker-example) repository, particularly for mobile platforms
-- [ ] **esbuild Configuration**: Test the specific esbuild-plugin-inline-worker configuration needed for our project, especially with TypeScript type definitions between worker and main thread
-- [ ] **Worker Debugging Strategy**: Establish a debugging strategy for worker code in Obsidian's environment, which may require special considerations compared to standard web apps
+- [x] **esbuild Configuration**: ✅ DECIDED: Use balanced configuration with TypeScript support and development-only sourcemaps:
+  ```javascript
+  inlineWorker({
+    sourcemap: prod ? false : 'inline',
+    typescript: {
+      tsconfigRaw: require('./tsconfig.json')
+    }
+  })
+  ```
+- [x] **Worker Debugging Strategy**: ✅ DECIDED: Implement custom worker message protocol with debug channel for effective worker debugging
 - [ ] **Legacy Browser Fallbacks**: Decide minimum browser version support for Electron in Obsidian desktop and WebView in Obsidian mobile
 - [ ] **Plugin Integration Points**: Identify other OneiroMetrics features that could benefit from worker-based processing
 - [ ] **Telemetry Privacy Policy**: Formalize privacy policy around performance telemetry data collection
@@ -1106,3 +1206,4 @@ The following items require further investigation or decision-making before impl
 - [ ] **User Settings**: Decide which aspects of worker behavior should be configurable by users
 - [ ] **Documentation Requirements**: Plan user and developer documentation updates needed to support this feature
 - [ ] **Security Review**: Schedule a security review of worker communication protocol and data handling
+- [x] **DOM Manipulation Strategy**: ✅ DECIDED: Use DocumentFragment with CSS transitions for efficient DOM updates
