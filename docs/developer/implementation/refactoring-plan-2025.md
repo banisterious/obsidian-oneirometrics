@@ -107,11 +107,24 @@ The following inventory captures all significant TypeScript files in the codebas
 | DateNavigatorIntegration.ts | src/dom | ~250 | Integration of date navigator with other components |
 | DreamMetricsDOM.ts | src/dom | ~200 | DOM manipulation utilities for metrics display |
 | DateRangeFilter.ts | src/filters | ~180 | Filter implementation for date range selections |
+| timeFilters.ts | src | ~270 | Date-based filtering system (day/week/month granularity) |
 | ContentParser.ts | src/journal_check | ~150 | Parses journal content into structured data |
 | types.ts | Root | ~120 | Core type definitions used throughout the plugin |
 | settings.ts | Root | ~100 | Plugin settings definitions and management |
 
 This inventory highlights multiple candidates for refactoring beyond the main.ts file, particularly UI components with high line counts that would benefit from further modularization.
+
+#### 1.1.2 Specific Naming Improvements 
+
+During refactoring, several files should be renamed to better reflect their purpose:
+
+1. **timeFilters.ts → dateFilters.ts**: The current name suggests time-based filtering (hours, minutes, seconds), but the file actually handles date-based filtering (days, weeks, months) without time components. Along with the file rename, these related changes should be made:
+   - `TimeFilter` interface → `DateFilter`
+   - `TimeFilterManager` class → `DateFilterManager`
+   - `TIME_FILTERS` constant → `DATE_FILTERS`
+   - Any related method names should use "date" terminology instead of "time"
+
+These naming improvements will provide better clarity about each component's purpose and align with existing naming patterns like DateNavigator and DateRangeFilter.
 
 ### 1.2 Define New Architecture
 - Establish module boundaries and interfaces
