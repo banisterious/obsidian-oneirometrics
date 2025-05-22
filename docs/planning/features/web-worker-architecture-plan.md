@@ -362,7 +362,7 @@ private checkWorkerSupport(): boolean {
 
 ### 4. Main Thread Integration with Obsidian API
 
-On the main thread, the worker will be integrated with Obsidian's API as follows:
+On the main thread, the worker will be integrated with Obsidian's API as follows, with advanced feature detection to handle platform-specific limitations:
 
 ```typescript
 // date-navigator-worker-manager.ts
@@ -502,6 +502,117 @@ export class DateNavigatorWorkerManager {
 }
 ```
 
+### Platform-Specific Integration with Progressive Enhancement
+
+To handle the various Obsidian platforms (desktop, mobile, different operating systems) and their potential limitations, advanced feature detection with progressive enhancement has been implemented:
+
+```typescript
+// Platform detection and capability adaptation for Obsidian
+export class ObsidianWorkerManager {
+  private isDesktop: boolean = false;
+  private isMobile: boolean = false;
+  private platformCapabilities = {
+    supportsWorkers: false,
+    supportsSharedArrayBuffer: false,
+    supportsIndexedDB: false,
+    maxWorkerMemory: 0,
+    perfMode: 'auto' as 'high' | 'balanced' | 'low' | 'auto'
+  };
+
+  constructor(app: App) {
+    this.app = app;
+    this.detectPlatform();
+    this.detectCapabilities();
+  }
+
+  // Detect Obsidian platform (mobile vs desktop)
+  private detectPlatform() {
+    // Use Obsidian API to detect platform
+    this.isDesktop = (this.app as any).platform !== 'mobile';
+    this.isMobile = (this.app as any).platform === 'mobile';
+    
+    console.log(`Platform detection: ${this.isDesktop ? 'Desktop' : 'Mobile'}`);
+  }
+
+  // Detect platform capabilities with graceful degradation
+  private detectCapabilities() {
+    // Web Worker basic support
+    this.platformCapabilities.supportsWorkers = typeof Worker !== 'undefined';
+    
+    // Check for SharedArrayBuffer support (for advanced features)
+    try {
+      new SharedArrayBuffer(1);
+      this.platformCapabilities.supportsSharedArrayBuffer = true;
+    } catch (e) {
+      this.platformCapabilities.supportsSharedArrayBuffer = false;
+    }
+    
+    // Check for IndexedDB support (for advanced caching)
+    this.platformCapabilities.supportsIndexedDB = 'indexedDB' in window;
+    
+    // Performance mode based on platform
+    this.platformCapabilities.perfMode = this.isMobile ? 'low' : 'balanced';
+    
+    // Estimate max worker memory based on platform
+    this.platformCapabilities.maxWorkerMemory = this.isMobile ? 
+      50 * 1024 * 1024 : // 50MB for mobile
+      250 * 1024 * 1024; // 250MB for desktop
+      
+    console.log('Platform capabilities:', this.platformCapabilities);
+  }
+  
+  // Create the appropriate worker based on platform capabilities
+  createWorker(workerScript: string): Worker | null {
+    if (!this.platformCapabilities.supportsWorkers) {
+      console.log('Web Workers not supported on this platform, using fallback');
+      return null;
+    }
+    
+    try {
+      // For mobile, use more conservative settings
+      if (this.isMobile) {
+        // Create worker with minimal features
+        return new Worker(
+          URL.createObjectURL(
+            new Blob(
+              [`self.PLATFORM = "mobile"; ${workerScript}`],
+              { type: 'text/javascript' }
+            )
+          )
+        );
+      } else {
+        // Desktop can use full feature set
+        return new Worker(
+          URL.createObjectURL(
+            new Blob(
+              [`self.PLATFORM = "desktop"; ${workerScript}`],
+              { type: 'text/javascript' }
+            )
+          )
+        );
+      }
+    } catch (e) {
+      console.error('Failed to create worker:', e);
+      return null;
+    }
+  }
+  
+  // Adapt filtering strategy based on platform capabilities
+  adaptFilterStrategy(entryCount: number): 'worker' | 'main-thread' | 'hybrid' {
+    // For small datasets, just use main thread
+    if (entryCount < 100) return 'main-thread';
+    
+    // For mobile with large datasets, use hybrid approach
+    if (this.isMobile && entryCount > 500) return 'hybrid';
+    
+    // Use workers when available
+    return this.platformCapabilities.supportsWorkers ? 'worker' : 'main-thread';
+  }
+}
+```
+
+This adaptive approach ensures that the plugin works effectively across all Obsidian platforms while optimizing for each environment's specific capabilities and limitations.
+
 ### 5. CSS-Based Visibility Optimization
 
 To complement the worker-based filtering, DOM updates will be optimized:
@@ -579,11 +690,12 @@ function applyFilterResults(results: FilterResultData) {
 }
 ```
 
-This approach provides several benefits:
+This DocumentFragment-based approach with CSS transitions has been selected as the optimal DOM manipulation strategy. It provides several benefits:
 - Reduces layout thrashing by batching DOM updates
 - Uses CSS transitions for smooth visual changes
 - Optimizes performance by minimizing reflows
 - Provides a good balance between code simplicity and performance
+- Ensures consistent behavior across Obsidian platforms
 
 #### Mobile-Specific Performance Optimizations
 
@@ -830,7 +942,7 @@ private async savePersistentCache(): Promise<void> {
 }
 ```
 
-This approach provides significant benefits:
+This hybrid caching approach has been selected as the optimal strategy for Obsidian, combining in-memory cache with Obsidian's storage API. It provides significant benefits:
 - **Memory Efficiency**: Maintains a size-limited in-memory cache for performance
 - **Persistence**: Uses Obsidian's own storage API for cross-session caching
 - **Adaptive**: Prioritizes frequently used filters for persistence
@@ -957,7 +1069,7 @@ private cleanupUnusedData(): void {
 }
 ```
 
-This memory management approach provides:
+This comprehensive memory management approach has been selected as the optimal strategy for the web worker implementation. It provides:
 - **Lifecycle Management**: Proper initialization and cleanup following object lifecycle
 - **Event Listener Cleanup**: Removal of event listeners to prevent memory leaks
 - **Resource Efficiency**: Suspension of worker during tab inactivity
@@ -1098,12 +1210,13 @@ private setupWorkerEventHandlers() {
 }
 ```
 
-This approach provides several benefits:
+This custom worker message protocol with debug channel has been selected as the optimal debugging strategy. It provides several benefits:
 - Worker code can log detailed information without direct console access
 - Debug messages can be filtered by setting a debug mode flag
 - Context objects can be passed for detailed debugging information
 - The main thread can format and route logs appropriately
 - Debug logging can be disabled in production builds
+- Provides visibility into otherwise isolated worker processes
 
 ### 3. Monitoring and Telemetry
 
@@ -1426,6 +1539,50 @@ private applyPatternFilter(pattern: DatePattern) {
 - Optimize worker communication
 - Enhance result caching
 - Add monitoring and telemetry
+
+### Feature Flag Deployment Strategy
+
+For the deployment of the web worker architecture, a Feature Flag approach with A/B testing has been selected. This will allow users to toggle web worker functionality on/off until stability is confirmed:
+
+```typescript
+// Settings interface additions for feature flags
+interface DreamMetricsSettings {
+  // ... existing settings
+  enableWebWorkers: boolean;
+  webWorkerFeatures: {
+    dateFiltering: boolean;
+    metricsCalculation: boolean;
+    tagAnalysis: boolean;
+    search: boolean;
+  };
+}
+
+// Default to disabled initially until stability is confirmed
+const DEFAULT_SETTINGS: Partial<DreamMetricsSettings> = {
+  // ... existing defaults
+  enableWebWorkers: false,
+  webWorkerFeatures: {
+    dateFiltering: true,
+    metricsCalculation: true,
+    tagAnalysis: true,
+    search: true
+  }
+};
+```
+
+This approach provides several advantages:
+- **Lower Risk**: Users can disable web workers if issues arise
+- **Granular Control**: Features can be enabled/disabled individually
+- **Staged Rollout**: Can be enabled by default in a future release once stable
+- **Real-World Testing**: Allows for collecting performance data across different environments
+- **Single Codebase**: Maintains a single implementation with conditional execution paths
+
+The implementation will include:
+1. A main toggle in Settings to enable/disable all web worker optimizations
+2. Sub-toggles for specific functional areas
+3. Clear user messaging about the beta nature of the feature
+4. Performance comparison metrics (optional, with user consent)
+5. Graceful fallback to main thread implementation when disabled
 
 ## Versioning and Upgrade Path
 
