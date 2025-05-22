@@ -1551,7 +1551,6 @@ This configuration provides an optimal balance by:
 The following items require further investigation or decision-making before implementation:
 
 - [x] **Storage Limit Investigation**: ✅ DECIDED: Implement a hybrid caching approach optimized for Obsidian that uses both memory cache and Obsidian's storage API
-- [ ] **Mobile Power Management**: Research best practices for detecting and adapting to battery status on mobile devices within Obsidian
 - [x] **Obsidian Web Worker API Limitations**: ✅ DECIDED: Implement advanced feature detection with progressive enhancement that adapts to platform-specific limitations while maintaining core functionality across all environments
 - [x] **esbuild Configuration**: ✅ DECIDED: Use balanced configuration with TypeScript support and development-only sourcemaps:
   ```javascript
@@ -1563,7 +1562,6 @@ The following items require further investigation or decision-making before impl
   })
   ```
 - [x] **Worker Debugging Strategy**: ✅ DECIDED: Implement custom worker message protocol with debug channel for effective worker debugging
-- [ ] **Legacy Browser Fallbacks**: Decide minimum browser version support for Electron in Obsidian desktop and WebView in Obsidian mobile
 - [x] **Plugin Integration Points**: ✅ DECIDED: Extend worker architecture to support multiple plugin features beyond date navigation, including metrics calculation, tag analysis, and search functionality
 - [x] **OneiroMetrics Note Integration**: ✅ DECIDED: Implement deep integration with note metadata that enables processing of structured dream journal data while maintaining privacy and data integrity
 - [ ] **Telemetry Privacy Policy**: Formalize privacy policy around performance telemetry data collection
