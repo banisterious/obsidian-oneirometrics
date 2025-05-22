@@ -12,6 +12,14 @@
 
 ## [Unreleased]
 ### Added
+- **Refactoring Plan Document:** Created comprehensive refactoring plan for modernizing codebase architecture
+  - Detailed assessment of current monolithic structure and challenges
+  - Five-phase implementation strategy with clear timelines and milestones
+  - Practical extraction examples for modal components and service modules
+  - Concrete decisions on technical dependencies, backward compatibility, testing approach
+  - Structured CSS refactoring strategy to eliminate inline styles
+  - Version control and documentation strategies for maintaining quality
+  - Located at `docs/developer/implementation/refactoring-plan-2025.md`
 - **Journal Structure Check Feature:** Implemented first phase of the Journal Structure Check system
   - Template creation and management for consistent journal entries
   - Support for both flat and nested journal structures
