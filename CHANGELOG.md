@@ -2,24 +2,13 @@
 
 ## Table of Contents
 - [Unreleased](#unreleased)
-- [0.5.0] - 2025-05-20
-- [0.4.3] - 2025-05-19
-- [0.4.1] - 2024-05-14
-- [0.4.0] - 2025-05-16
-- [0.3.7] - 2025-05-15
-- [0.3.6] - 2025-05-14
-- [0.3.5] - 2025-05-14
-- [0.3.4] - 2025-05-14
-- [0.3.3] - 2025-05-14
-- [0.3.2] - 2025-05-13
-- [0.3.1] - 2025-05-12
-- [0.3.0] - 2025-05-11
-- [0.2.1] - 2025-05-10
-- [0.2.0] - 2025-05-10
-- [0.1.3] - 2025-05-10
-- [0.1.2] - 2025-05-09
-- [0.1.1] - 2025-05-09
-- [0.1.0] - 2025-05-08
+- [Released Versions](#released-versions)
+  - [Version 0.5.x](#050---2025-05-20)
+  - [Version 0.4.x](#043---2025-05-19)
+  - [Version 0.3.x](#037---2025-05-15)
+  - [Version 0.2.x](#021---2025-05-10)
+  - [Version 0.1.x](#013---2025-05-10)
+- [Older Releases](#older-releases)
 
 ## [Unreleased]
 ### Added
@@ -65,6 +54,8 @@
 - Archived completed CSS refactoring plan to docs/archive/
 - Removed unnecessary documentation redirect files after migrating content
 
+## Released Versions
+
 ## [0.5.0] - 2025-05-20
 ### Added
 - **Dream Journal Manager:** Implemented a comprehensive unified interface for managing all aspects of dream journaling
@@ -104,7 +95,7 @@
 ### Removed
 - Removed related TODOs regarding button visibility and alignment in the Dream Scrape modal.
 
-## [0.4.1] - 2024-05-14
+## [0.4.1] - 2025-05-14
 ### Changed
 - The date filter dropdown is now fully functional for the first time, with user-friendly labels (e.g., "Yesterday", "This Week", "Last 12 Months") and color-coded icons for each filter state.
 - Updated filter dropdown: options now display as "Yesterday", "This Week", "Last 12 Months", etc., making selection clearer and more user-friendly.
@@ -322,7 +313,7 @@
 - Modify backup files so that the file names end in .backup or another appropriate extension, to avoid having files be discoverable markdown documents in Obsidian.
 
 ## [0.1.3] - 2025-05-10
-### Changed
+### Added
 - Modal's Selected Notes autocomplete now only shows real, existing markdown files (not folders or non-existent files), matching the settings page behavior.
 - UI and logic clean-up for autocomplete fields in both settings and modal.
 ### Fixed
@@ -386,5 +377,5 @@
 - Metric validation
 - File path autocomplete
 
-# Older Releases
+## Older Releases
 For full details, see `CHANGELOG_ARCHIVE.md` if available. 
