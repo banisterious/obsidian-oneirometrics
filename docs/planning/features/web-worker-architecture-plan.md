@@ -1564,7 +1564,7 @@ The following items require further investigation or decision-making before impl
 - [x] **Worker Debugging Strategy**: ✅ DECIDED: Implement custom worker message protocol with debug channel for effective worker debugging
 - [x] **Plugin Integration Points**: ✅ DECIDED: Extend worker architecture to support multiple plugin features beyond date navigation, including metrics calculation, tag analysis, and search functionality
 - [x] **OneiroMetrics Note Integration**: ✅ DECIDED: Implement deep integration with note metadata that enables processing of structured dream journal data while maintaining privacy and data integrity
-- [ ] **Deployment Strategy**: Determine if this feature should be released incrementally or as part of a major version update
+- [x] **Deployment Strategy**: ✅ DECIDED: Implement a Feature Flag approach with A/B testing allowing users to toggle web worker functionality on/off until stability is confirmed
 - [ ] **User Settings**: Decide which aspects of worker behavior should be configurable by users
 - [ ] **Documentation Requirements**: Plan user and developer documentation updates needed to support this feature
 - [ ] **Security Review**: Schedule a security review of worker communication protocol and data handling
@@ -1997,3 +1997,175 @@ export class OneiroMetricsWorkerManager {
 ```
 
 These implementations provide a comprehensive approach to integrating Web Workers with Obsidian's plugin architecture and addressing the specific requirements of the OneiroMetrics plugin.
+
+#### Deployment Strategy: Feature Flag with A/B Testing
+
+```typescript
+// Implementation of Feature Flag system for web workers
+
+// Add to plugin settings interface
+interface DreamMetricsSettings {
+  // ... existing settings
+  enableWebWorkers: boolean;
+  webWorkerFeatures: {
+    dateFiltering: boolean;
+    metricsCalculation: boolean;
+    tagAnalysis: boolean;
+    search: boolean;
+  };
+}
+
+// Default settings
+const DEFAULT_SETTINGS: DreamMetricsSettings = {
+  // ... existing defaults
+  enableWebWorkers: false, // Default off initially
+  webWorkerFeatures: {
+    dateFiltering: true,
+    metricsCalculation: true,
+    tagAnalysis: true,
+    search: true
+  }
+};
+
+// Settings tab implementation
+class DreamMetricsSettingTab extends PluginSettingTab {
+  // ... existing code
+
+  display(): void {
+    const { containerEl } = this;
+    containerEl.empty();
+    
+    // ... existing settings
+
+    // Performance Optimization section
+    containerEl.createEl('h2', { text: 'Performance Optimizations' });
+    
+    new Setting(containerEl)
+      .setName('Enable Web Worker Optimizations (Beta)')
+      .setDesc('Offloads intensive processing to background threads for better performance. Disable if you experience issues.')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableWebWorkers)
+        .onChange(async (value) => {
+          this.plugin.settings.enableWebWorkers = value;
+          await this.plugin.saveSettings();
+          
+          // Apply the change immediately
+          if (value) {
+            this.plugin.initializeWorkers();
+          } else {
+            this.plugin.disposeWorkers();
+          }
+          
+          // Show confirmation
+          new Notice(`Web worker optimizations ${value ? 'enabled' : 'disabled'}`);
+        }));
+    
+    // Collapsible advanced section for individual features
+    const advancedPerformanceSettings = containerEl.createEl('details');
+    advancedPerformanceSettings.createEl('summary', { text: 'Advanced Web Worker Settings' });
+    
+    // Only show if main toggle is enabled
+    if (this.plugin.settings.enableWebWorkers) {
+      const features = [
+        { id: 'dateFiltering', name: 'Date Filtering', desc: 'Improves performance when filtering by date' },
+        { id: 'metricsCalculation', name: 'Metrics Calculation', desc: 'Speeds up calculation of dream metrics and statistics' },
+        { id: 'tagAnalysis', name: 'Tag Analysis', desc: 'Accelerates tag and pattern analysis' },
+        { id: 'search', name: 'Search Performance', desc: 'Optimizes search operations' }
+      ];
+      
+      features.forEach(feature => {
+        new Setting(advancedPerformanceSettings)
+          .setName(`${feature.name} Optimization`)
+          .setDesc(feature.desc)
+          .addToggle(toggle => toggle
+            .setValue(this.plugin.settings.webWorkerFeatures[feature.id])
+            .onChange(async (value) => {
+              this.plugin.settings.webWorkerFeatures[feature.id] = value;
+              await this.plugin.saveSettings();
+              
+              // Restart workers with new configuration
+              if (this.plugin.settings.enableWebWorkers) {
+                this.plugin.restartWorkers();
+              }
+            }));
+      });
+    }
+  }
+}
+
+// Main plugin class integration
+export default class DreamMetricsPlugin extends Plugin {
+  // ... existing code
+  
+  private workerManager: OneiroMetricsWorkerManager;
+  
+  async onload() {
+    // ... existing code
+    
+    // Initialize workers if enabled in settings
+    if (this.settings.enableWebWorkers) {
+      this.initializeWorkers();
+    }
+    
+    // ... existing code
+  }
+  
+  initializeWorkers() {
+    // Clean up existing workers if any
+    this.disposeWorkers();
+    
+    // Create new worker manager with current settings
+    this.workerManager = new OneiroMetricsWorkerManager(
+      this.app, 
+      this.settings.webWorkerFeatures
+    );
+    
+    console.log('Web workers initialized with features:', this.settings.webWorkerFeatures);
+  }
+  
+  disposeWorkers() {
+    if (this.workerManager) {
+      this.workerManager.destroy();
+      this.workerManager = null;
+      console.log('Web workers disposed');
+    }
+  }
+  
+  restartWorkers() {
+    console.log('Restarting workers with updated configuration');
+    this.initializeWorkers();
+  }
+  
+  // Feature-specific functions that check feature flags before using workers
+  async filterByDateRange(entries, startDate, endDate, callbacks) {
+    if (this.settings.enableWebWorkers && this.settings.webWorkerFeatures.dateFiltering) {
+      // Use worker implementation
+      return this.workerManager.filterByDateRange(entries, startDate, endDate, callbacks);
+    } else {
+      // Use main thread implementation
+      return this.filterByDateRangeMainThread(entries, startDate, endDate, callbacks);
+    }
+  }
+  
+  // Similar methods for other features...
+  
+  onunload() {
+    // ... existing code
+    
+    // Clean up workers
+    this.disposeWorkers();
+    
+    // ... existing code
+  }
+}
+```
+
+This implementation provides:
+
+1. **User Control**: A main toggle to enable/disable all web worker optimizations
+2. **Granular Options**: Individual toggles for specific features
+3. **Immediate Application**: Changes take effect without requiring a restart
+4. **Transparent Fallback**: Code paths for both worker and non-worker implementations
+5. **Clean Resource Management**: Proper initialization and cleanup of worker resources
+
+The feature flag approach allows for incremental testing and rollout while maintaining a single codebase. Users can selectively enable optimizations based on their device capabilities and preferences.
