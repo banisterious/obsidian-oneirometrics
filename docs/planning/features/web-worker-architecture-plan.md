@@ -1565,8 +1565,8 @@ The following items require further investigation or decision-making before impl
 - [x] **Plugin Integration Points**: ✅ DECIDED: Extend worker architecture to support multiple plugin features beyond date navigation, including metrics calculation, tag analysis, and search functionality
 - [x] **OneiroMetrics Note Integration**: ✅ DECIDED: Implement deep integration with note metadata that enables processing of structured dream journal data while maintaining privacy and data integrity
 - [x] **Deployment Strategy**: ✅ DECIDED: Implement a Feature Flag approach with A/B testing allowing users to toggle web worker functionality on/off until stability is confirmed
-- [ ] **User Settings**: Decide which aspects of worker behavior should be configurable by users
-- [ ] **Documentation Requirements**: Plan user and developer documentation updates needed to support this feature
+- [x] **User Settings**: ✅ DECIDED: Implement Performance-Focused Settings with tuning options for batch size, worker count, and memory limits
+- [x] **Documentation Requirements**: ✅ DECIDED: Create a Balanced Documentation Approach with both user guides and technical documentation for developers
 - [ ] **Security Review**: Schedule a security review of worker communication protocol and data handling
 - [x] **DOM Manipulation Strategy**: ✅ DECIDED: Use DocumentFragment with CSS transitions for efficient DOM updates
 - [x] **Memory Management**: ✅ DECIDED: Implement comprehensive reference management with disposal patterns and lifecycle-aware resource handling
@@ -2013,33 +2013,50 @@ interface DreamMetricsSettings {
     tagAnalysis: boolean;
     search: boolean;
   };
+  
+  // Performance tuning settings
+  workerPerformance: {
+    maxWorkers: number;         // 1-4 workers
+    batchSize: 'small' | 'medium' | 'large'; // Processing batch size
+    memoryLimit: number;        // Memory limit in MB
+    priorityMode: 'balanced' | 'performance' | 'efficiency'; // Performance mode
+  };
 }
 
-// Default settings
-const DEFAULT_SETTINGS: DreamMetricsSettings = {
+// Default settings with reasonable defaults
+const DEFAULT_SETTINGS: Partial<DreamMetricsSettings> = {
   // ... existing defaults
-  enableWebWorkers: false, // Default off initially
+  enableWebWorkers: false,
   webWorkerFeatures: {
     dateFiltering: true,
     metricsCalculation: true,
     tagAnalysis: true,
     search: true
+  },
+  
+  // Performance defaults
+  workerPerformance: {
+    maxWorkers: 2,              // Default to 2 workers
+    batchSize: 'medium',        // Medium batch size
+    memoryLimit: 100,           // 100MB memory limit
+    priorityMode: 'balanced',   // Balanced mode by default
   }
 };
 
 // Settings tab implementation
 class DreamMetricsSettingTab extends PluginSettingTab {
   // ... existing code
-
+  
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
     
-    // ... existing settings
-
+    // ... existing settings sections
+    
     // Performance Optimization section
     containerEl.createEl('h2', { text: 'Performance Optimizations' });
     
+    // Main toggle (as before)
     new Setting(containerEl)
       .setName('Enable Web Worker Optimizations (Beta)')
       .setDesc('Offloads intensive processing to background threads for better performance. Disable if you experience issues.')
@@ -2056,39 +2073,112 @@ class DreamMetricsSettingTab extends PluginSettingTab {
             this.plugin.disposeWorkers();
           }
           
+          // Refresh settings display
+          this.display();
+          
           // Show confirmation
           new Notice(`Web worker optimizations ${value ? 'enabled' : 'disabled'}`);
         }));
     
-    // Collapsible advanced section for individual features
-    const advancedPerformanceSettings = containerEl.createEl('details');
-    advancedPerformanceSettings.createEl('summary', { text: 'Advanced Web Worker Settings' });
-    
-    // Only show if main toggle is enabled
+    // Only show performance settings if workers are enabled
     if (this.plugin.settings.enableWebWorkers) {
-      const features = [
-        { id: 'dateFiltering', name: 'Date Filtering', desc: 'Improves performance when filtering by date' },
-        { id: 'metricsCalculation', name: 'Metrics Calculation', desc: 'Speeds up calculation of dream metrics and statistics' },
-        { id: 'tagAnalysis', name: 'Tag Analysis', desc: 'Accelerates tag and pattern analysis' },
-        { id: 'search', name: 'Search Performance', desc: 'Optimizes search operations' }
-      ];
+      // Feature-specific toggles in collapsible section (as before)
+      const advancedFeatureSettings = containerEl.createEl('details');
+      advancedFeatureSettings.createEl('summary', { text: 'Worker Feature Settings' });
       
-      features.forEach(feature => {
-        new Setting(advancedPerformanceSettings)
-          .setName(`${feature.name} Optimization`)
-          .setDesc(feature.desc)
-          .addToggle(toggle => toggle
-            .setValue(this.plugin.settings.webWorkerFeatures[feature.id])
-            .onChange(async (value) => {
-              this.plugin.settings.webWorkerFeatures[feature.id] = value;
-              await this.plugin.saveSettings();
-              
-              // Restart workers with new configuration
-              if (this.plugin.settings.enableWebWorkers) {
-                this.plugin.restartWorkers();
-              }
-            }));
-      });
+      // ... feature toggle implementations (as before)
+      
+      // New performance tuning section
+      containerEl.createEl('h3', { text: 'Worker Performance Tuning' });
+      
+      // Maximum worker count setting
+      new Setting(containerEl)
+        .setName('Maximum Worker Count')
+        .setDesc('Number of parallel worker threads. Higher values may improve performance but consume more resources. Recommended: 2 for desktop, 1 for mobile.')
+        .addSlider(slider => slider
+          .setLimits(1, 4, 1)
+          .setValue(this.plugin.settings.workerPerformance.maxWorkers)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.workerPerformance.maxWorkers = value;
+            await this.plugin.saveSettings();
+            
+            if (this.plugin.settings.enableWebWorkers) {
+              this.plugin.applyWorkerSettings();
+            }
+          }));
+      
+      // Batch size selection
+      new Setting(containerEl)
+        .setName('Processing Batch Size')
+        .setDesc('Controls how many items are processed at once. Larger batches may be faster but less responsive.')
+        .addDropdown(dropdown => dropdown
+          .addOption('small', 'Small (more responsive)')
+          .addOption('medium', 'Medium (balanced)')
+          .addOption('large', 'Large (faster but may cause UI delays)')
+          .setValue(this.plugin.settings.workerPerformance.batchSize)
+          .onChange(async (value: 'small' | 'medium' | 'large') => {
+            this.plugin.settings.workerPerformance.batchSize = value;
+            await this.plugin.saveSettings();
+            
+            if (this.plugin.settings.enableWebWorkers) {
+              this.plugin.applyWorkerSettings();
+            }
+          }));
+      
+      // Memory limit setting
+      new Setting(containerEl)
+        .setName('Memory Limit (MB)')
+        .setDesc('Maximum memory for caching results. Lower values use less resources but may reduce performance. Recommended: 50-100MB.')
+        .addSlider(slider => slider
+          .setLimits(25, 250, 25)
+          .setValue(this.plugin.settings.workerPerformance.memoryLimit)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.workerPerformance.memoryLimit = value;
+            await this.plugin.saveSettings();
+            
+            if (this.plugin.settings.enableWebWorkers) {
+              this.plugin.applyWorkerSettings();
+            }
+          }));
+      
+      // Priority mode selection
+      new Setting(containerEl)
+        .setName('Processing Priority')
+        .setDesc('Sets the performance vs. efficiency balance for background processing.')
+        .addDropdown(dropdown => dropdown
+          .addOption('balanced', 'Balanced (recommended)')
+          .addOption('performance', 'Performance (faster, higher resource usage)')
+          .addOption('efficiency', 'Efficiency (more conservative, better battery life)')
+          .setValue(this.plugin.settings.workerPerformance.priorityMode)
+          .onChange(async (value: 'balanced' | 'performance' | 'efficiency') => {
+            this.plugin.settings.workerPerformance.priorityMode = value;
+            await this.plugin.saveSettings();
+            
+            if (this.plugin.settings.enableWebWorkers) {
+              this.plugin.applyWorkerSettings();
+            }
+          }));
+      
+      // Reset to defaults button
+      new Setting(containerEl)
+        .setName('Reset Performance Settings')
+        .setDesc('Restore default performance settings')
+        .addButton(button => button
+          .setButtonText('Reset to Defaults')
+          .onClick(async () => {
+            this.plugin.settings.workerPerformance = { ...DEFAULT_SETTINGS.workerPerformance };
+            await this.plugin.saveSettings();
+            
+            if (this.plugin.settings.enableWebWorkers) {
+              this.plugin.restartWorkers();
+            }
+            
+            // Refresh display
+            this.display();
+            new Notice('Worker performance settings reset to defaults');
+          }));
     }
   }
 }
@@ -2097,19 +2187,29 @@ class DreamMetricsSettingTab extends PluginSettingTab {
 export default class DreamMetricsPlugin extends Plugin {
   // ... existing code
   
-  private workerManager: OneiroMetricsWorkerManager;
-  
-  async onload() {
-    // ... existing code
-    
-    // Initialize workers if enabled in settings
-    if (this.settings.enableWebWorkers) {
-      this.initializeWorkers();
+  // Apply worker settings without restarting
+  applyWorkerSettings() {
+    if (this.workerManager) {
+      // Convert settings to worker configuration
+      const batchSizes = {
+        small: 50,
+        medium: 100,
+        large: 250
+      };
+      
+      // Apply settings to worker manager
+      this.workerManager.setConfiguration({
+        maxWorkers: this.settings.workerPerformance.maxWorkers,
+        batchSize: batchSizes[this.settings.workerPerformance.batchSize],
+        memoryLimit: this.settings.workerPerformance.memoryLimit * 1024 * 1024, // Convert MB to bytes
+        priorityMode: this.settings.workerPerformance.priorityMode
+      });
+      
+      console.log('Applied worker performance settings:', this.settings.workerPerformance);
     }
-    
-    // ... existing code
   }
   
+  // Updated worker initialization to apply performance settings
   initializeWorkers() {
     // Clean up existing workers if any
     this.disposeWorkers();
@@ -2117,46 +2217,29 @@ export default class DreamMetricsPlugin extends Plugin {
     // Create new worker manager with current settings
     this.workerManager = new OneiroMetricsWorkerManager(
       this.app, 
-      this.settings.webWorkerFeatures
+      this.settings.webWorkerFeatures,
+      {
+        maxWorkers: this.settings.workerPerformance.maxWorkers,
+        batchSize: this.getBatchSizeFromSetting(),
+        memoryLimit: this.settings.workerPerformance.memoryLimit * 1024 * 1024,
+        priorityMode: this.settings.workerPerformance.priorityMode
+      }
     );
     
-    console.log('Web workers initialized with features:', this.settings.webWorkerFeatures);
+    console.log('Web workers initialized with performance settings:', this.settings.workerPerformance);
   }
   
-  disposeWorkers() {
-    if (this.workerManager) {
-      this.workerManager.destroy();
-      this.workerManager = null;
-      console.log('Web workers disposed');
-    }
+  private getBatchSizeFromSetting(): number {
+    // Convert string setting to numeric value
+    const batchSizes = {
+      small: 50,
+      medium: 100,
+      large: 250
+    };
+    return batchSizes[this.settings.workerPerformance.batchSize] || 100;
   }
   
-  restartWorkers() {
-    console.log('Restarting workers with updated configuration');
-    this.initializeWorkers();
-  }
-  
-  // Feature-specific functions that check feature flags before using workers
-  async filterByDateRange(entries, startDate, endDate, callbacks) {
-    if (this.settings.enableWebWorkers && this.settings.webWorkerFeatures.dateFiltering) {
-      // Use worker implementation
-      return this.workerManager.filterByDateRange(entries, startDate, endDate, callbacks);
-    } else {
-      // Use main thread implementation
-      return this.filterByDateRangeMainThread(entries, startDate, endDate, callbacks);
-    }
-  }
-  
-  // Similar methods for other features...
-  
-  onunload() {
-    // ... existing code
-    
-    // Clean up workers
-    this.disposeWorkers();
-    
-    // ... existing code
-  }
+  // ... rest of the plugin code
 }
 ```
 
@@ -2169,3 +2252,82 @@ This implementation provides:
 5. **Clean Resource Management**: Proper initialization and cleanup of worker resources
 
 The feature flag approach allows for incremental testing and rollout while maintaining a single codebase. Users can selectively enable optimizations based on their device capabilities and preferences.
+
+#### Documentation Requirements: Balanced Documentation Approach
+
+The documentation strategy will include both user-focused guides and developer-oriented technical documentation:
+
+**User Documentation:**
+
+1. **Settings Guide**
+   - **Web Worker Settings Reference**
+     - Main enable/disable toggle explanation
+     - Individual feature toggle descriptions
+     - Performance tuning options with recommended values for different devices
+     - Troubleshooting FAQ for common issues
+
+   - **Performance Optimization Guide**
+     - What operations benefit from web worker acceleration
+     - How to determine optimal settings
+     - Expected performance improvements
+     - When to disable features for better performance
+
+2. **Troubleshooting Guide**
+   - Common issues and resolutions
+   - Performance troubleshooting steps
+   - Error messages explained
+   - Fallback options when workers fail
+
+**Developer Documentation:**
+
+1. **Architecture Overview**
+   ```markdown
+   # Web Worker Architecture Overview
+   
+   ## Component Diagram
+   
+   ```mermaid
+   graph TD
+     A[Main Thread UI] <-->|Messages| B[Worker Manager]
+     B <-->|Task Distribution| C[Worker Pool]
+     C -->|Date Filtering| D[Date Filter Worker]
+     C -->|Metrics| E[Metrics Analysis Worker]
+     C -->|Tags| F[Tag Analysis Worker]
+     C -->|Search| G[Search Worker]
+     H[Obsidian API] <--> A
+     I[Settings Manager] --> B
+   ```
+   
+   ## Key Components
+   
+   - **Worker Manager**: Coordinates workers and handles communication
+   - **Worker Pool**: Manages multiple workers for different tasks
+   - **Message Protocol**: Standardized format for worker communication
+   - **Fallback Mechanism**: Main thread processing when workers unavailable
+   
+   ## Implementation Sequence
+   1. Feature detection
+   2. Worker initialization
+   3. Task distribution
+   4. Result processing
+   5. DOM updates
+   
+   ## Design Principles
+   - **Progressive Enhancement**: Graceful fallback to main thread
+   - **Performance Optimization**: Batch processing and efficient DOM updates
+   - **Resilience**: Error recovery and self-healing
+   - **User Control**: Configurable via settings
+   ```
+
+2. **Integration Guide**
+   - How to use worker functionality in new features
+   - Message protocol documentation
+   - Error handling patterns
+
+3. **Code Documentation**
+   - Web worker manager class documentation
+   - Message format specifications
+   - Main configuration options
+   - Method documentation for key components
+
+This balanced documentation approach will ensure both users and developers have the necessary information to effectively use and extend the web worker functionality, without creating an excessive maintenance burden.
