@@ -1564,7 +1564,6 @@ The following items require further investigation or decision-making before impl
 - [x] **Worker Debugging Strategy**: ✅ DECIDED: Implement custom worker message protocol with debug channel for effective worker debugging
 - [x] **Plugin Integration Points**: ✅ DECIDED: Extend worker architecture to support multiple plugin features beyond date navigation, including metrics calculation, tag analysis, and search functionality
 - [x] **OneiroMetrics Note Integration**: ✅ DECIDED: Implement deep integration with note metadata that enables processing of structured dream journal data while maintaining privacy and data integrity
-- [ ] **Telemetry Privacy Policy**: Formalize privacy policy around performance telemetry data collection
 - [ ] **Deployment Strategy**: Determine if this feature should be released incrementally or as part of a major version update
 - [ ] **User Settings**: Decide which aspects of worker behavior should be configurable by users
 - [ ] **Documentation Requirements**: Plan user and developer documentation updates needed to support this feature
