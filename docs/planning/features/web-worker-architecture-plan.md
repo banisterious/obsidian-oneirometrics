@@ -44,7 +44,7 @@
   - [6. Memory Management](#6-memory-management)
   - [7. Non-Metrics Note Context](#7-non-metrics-note-context)
 - [Conclusion](#conclusion)
-- [Open Questions and Considerations](#open-questions-and-considerations)
+- [Key Decisions Summary](#key-decisions-summary)
 
 ## Overview
 
@@ -1703,9 +1703,9 @@ This configuration provides an optimal balance by:
 - Using the project's existing tsconfig for consistent TypeScript settings
 - Disabling sourcemaps in production for smaller bundle size and better security
 
-## Open Questions and Considerations
+## Key Decisions Summary
 
-The following items require further investigation or decision-making before implementation:
+The following key architectural decisions have been made for the web worker implementation:
 
 - [x] **Storage Limit Investigation**: ✅ DECIDED: Implement a hybrid caching approach optimized for Obsidian that uses both memory cache and Obsidian's storage API
 - [x] **Obsidian Web Worker API Limitations**: ✅ DECIDED: Implement advanced feature detection with progressive enhancement that adapts to platform-specific limitations while maintaining core functionality across all environments
