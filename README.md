@@ -35,8 +35,8 @@
 - Backup system for your data
 - Powerful logging and debug tools
 
-### Ribbon Button Visibility
-- The plugin now uses a single toggle to control both ribbon buttons (Dream Scrape Tool and Open Metrics Note) due to an Obsidian API limitation. See the archived investigation: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
+### Ribbon Button
+- The plugin now uses a single ribbon button (Dream Journal Manager) to access journal management features. This streamlined interface replaces the previous multiple-button approach for a cleaner user experience.
 
 ## Journal Structure Check
 
@@ -90,10 +90,10 @@ To use Templater integration:
 
 - **Reading View Required:** OneiroMetrics works best in Reading View. If you open a metrics note in Live Preview, you'll see a warning.
 - **Access Settings:**  
-  - In the Dream Scrape modal, click the 'Settings' button next to 'Scrape Metrics'.
+  - In the Dream Journal Manager, click the 'Settings' button.
   - In your metrics note, click the 'Settings' button at the top.
   - Use the command palette: `Ctrl/Cmd + P` → "OneiroMetrics Settings".
-  - Right-click the wand icon in the sidebar.
+  - Right-click the journal icon in the sidebar.
 
 - **Filtering:** Use the date filter dropdown to quickly view entries from "Yesterday", "This Week", "Last 12 Months", and more. Save your favorite ranges for quick access.
 

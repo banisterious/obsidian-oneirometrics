@@ -500,4 +500,9 @@ Once the consolidation is complete, we can consider additional improvements:
 - Shared state between tabs
 - Unified reporting of issues and metrics
 - Additional tabs for other functionality (e.g., metrics visualization)
+- Move Templater Settings from the dedicated Templater tab into the Templates tab to improve UX and reduce tab clutter:
+  - This would reduce the number of tabs in the navigation sidebar
+  - Group all template-related functionality in one place for better user experience
+  - Create a natural workflow where users can manage templates and their Templater integration in a single tab
+  - Keep settings for Templater in a collapsible section at the bottom of the Templates tab
 - TODO: Consider building a local help modal as an alternative to opening GitHub docs directly. For now, the "Help & Docs" button should open docs/USAGE.md on GitHub. 

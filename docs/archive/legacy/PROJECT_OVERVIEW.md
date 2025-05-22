@@ -305,7 +305,7 @@ For information about the plugin's logging system and debugging capabilities, se
 - [ ] User feedback integration
 
 ## Documentation
-For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](METRICS.md).
+For detailed information about the metrics used in OneiroMetrics, including scoring guidelines and examples, see [METRICS.md](Projects/Obsidian%20Projects/OneiroMetrics%20(OOM)/docs/user/guides/metrics.md).
 
 For information about the plugin's logging system and debugging capabilities, see [Logging System](developer/implementation/logging.md).
 

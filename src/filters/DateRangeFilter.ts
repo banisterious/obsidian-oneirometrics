@@ -5,6 +5,7 @@ export class DateRangeFilter {
     private state: DreamMetricsState;
     private startDate: Date | null = null;
     private endDate: Date | null = null;
+    private isFiltering = false;
 
     constructor(state: DreamMetricsState) {
         this.state = state;
@@ -144,21 +145,78 @@ export class DateRangeFilter {
     }
 
     private applyFilter(): void {
+        // Prevent multiple filtering operations from running simultaneously
+        if (this.isFiltering) return;
+        this.isFiltering = true;
+        
+        console.log('[DateRangeFilter] Applying filter with date range:', {
+            startDate: this.startDate ? this.startDate.toISOString() : null,
+            endDate: this.endDate ? this.endDate.toISOString() : null
+        });
+        
         const entries = this.state.getDreamEntries();
-        const filteredEntries = entries.filter(entry => {
-            const entryDate = new Date(entry.date);
+        
+        // Pre-filtering step: Quickly filter out entries outside the month range
+        // This significantly improves performance by reducing the data set before detailed filtering
+        let candidateEntries = entries;
+        if (this.startDate || this.endDate) {
+            const startYear = this.startDate ? this.startDate.getFullYear() : 0;
+            const startMonth = this.startDate ? this.startDate.getMonth() : 0;
+            const endYear = this.endDate ? this.endDate.getFullYear() : 9999;
+            const endMonth = this.endDate ? this.endDate.getMonth() : 11;
             
-            if (this.startDate && entryDate < this.startDate) {
+            candidateEntries = entries.filter(entry => {
+                // Use string format for quick comparison to avoid time zone issues
+                const dateStr = entry.date;
+                if (!dateStr) return false;
+                
+                try {
+                    const entryDate = new Date(dateStr);
+                    const entryYear = entryDate.getFullYear();
+                    const entryMonth = entryDate.getMonth();
+                    
+                    // Quick month-year check before detailed date comparison
+                    const yearMonthInRange = (
+                        (entryYear > startYear || (entryYear === startYear && entryMonth >= startMonth)) &&
+                        (entryYear < endYear || (entryYear === endYear && entryMonth <= endMonth))
+                    );
+                    
+                    return yearMonthInRange;
+                } catch (e) {
+                    console.error('[DateRangeFilter] Error parsing date:', dateStr, e);
+                    return false;
+                }
+            });
+        }
+        
+        // Detailed filtering with exact date comparison
+        const filteredEntries = candidateEntries.filter(entry => {
+            if (!entry.date) return false;
+            
+            try {
+                // Convert to ISO date strings for comparison to avoid time zone issues
+                const entryDate = new Date(entry.date);
+                const entryDateStr = entryDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+                
+                if (this.startDate) {
+                    const startDateStr = this.startDate.toISOString().split('T')[0];
+                    if (entryDateStr < startDateStr) return false;
+                }
+                
+                if (this.endDate) {
+                    const endDateStr = this.endDate.toISOString().split('T')[0];
+                    if (entryDateStr > endDateStr) return false;
+                }
+                
+                return true;
+            } catch (e) {
+                console.error('[DateRangeFilter] Error processing entry date:', entry.date, e);
                 return false;
             }
-            
-            if (this.endDate && entryDate > this.endDate) {
-                return false;
-            }
-            
-            return true;
         });
 
+        console.log(`[DateRangeFilter] Filtered ${entries.length} entries to ${filteredEntries.length} entries`);
         this.state.updateDreamEntries(filteredEntries);
+        this.isFiltering = false;
     }
 } 

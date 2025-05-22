@@ -80,76 +80,43 @@ The implementation offers several advantages:
 
 ## Filter Application Resolution (May 2025)
 
-### Issue Identified
-After initial implementation, the Date Navigator's Apply Filter button showed visual feedback for selected dates but did not properly filter table rows when clicked. Investigation revealed:
+### Implemented Changes
+1. **Metrics Summary Update**:
+   - Added functionality to recalculate and update the metrics summary table when filters are applied
+   - Ensured the summary table shows statistics based only on visible (filtered) rows
+   - Added "(Filtered)" indication to the title when filters are applied
 
-1. **Performance Bottlenecks**
-   - Browser reported forced reflow warnings and slow animation frame handlers
-   - Complex chain of event handlers caused synchronization issues
-   - Multiple layers of abstraction between DateNavigator and table filtering
+2. **Performance Optimization**:
+   - Implemented a pre-filtering step to quickly eliminate rows outside the year-month range
+   - Reduced console logging to only show relevant rows
+   - Made date comparisons more consistent by using string comparisons instead of complex Date object comparisons
 
-2. **Communication Issues**
-   - Indirect filtering through TimeFilterManager created circular updates
-   - Reliance on event propagation rather than direct communication
-   - Date comparison edge cases affected filter accuracy
+3. **UI and Filtering Improvements**:
+   - Fixed the table row initialization to prevent multiple unnecessary calls
+   - Implemented the `forceApplyDateFilter()` function for direct filtering
+   - Optimized the date filtering logic to show only entries from the selected date
+   - Resolved timezone inconsistencies with ISO date string comparisons
 
-### Solution Implemented
-A direct, debuggable approach was implemented to fix the filtering issue:
+### Accomplishments
+- Successfully transformed Date Navigator from sidebar to modal interface
+- Implemented direct filtering approach that significantly improves performance
+- Added clear visual feedback for date selections
+- Created a more intuitive user flow with explicit "Apply Filter" button
+- Enhanced date comparison with improved string-based approach
+- Optimized table initialization to reduce reflow warnings
 
-1. **Direct Filtering Function**
-   - Created `forceApplyDateFilter()` in main.ts that takes a date directly
-   - Exposed this function globally for access from DateNavigatorModal
-   - Implemented extensive debug logging to trace the filtering process
+### Implementation Status
+All critical issues have been resolved:
+- Fixed table row initialization to prevent multiple calls, reducing reflow warnings
+- Implemented direct date filtering with the `forceApplyDateFilter()` function 
+- Optimized date filtering logic to properly show only entries from the selected date
+- Resolved timezone inconsistencies with ISO date string comparisons
 
-2. **Simplified DateNavigatorModal Apply Button**
-   - Modified the Apply Button click handler to use direct filtering function
-   - Bypassed TimeFilterManager to avoid communication issues
-   - Added visible notifications to confirm filter application
-
-3. **Improved Date Comparison**
-   - Used ISO date string comparison for more reliable results
-   - Added proper null checks throughout the filtering process
-   - Enhanced date validation to avoid parsing errors
-
-4. **Performance Optimization**
-   - Eliminated unnecessary DOM operations
-   - Added detailed logging to identify bottlenecks
-   - Simplified the filtering process for better reliability
-
-### Benefits of the Direct Approach
-1. **Reliability**: Direct connection between date selection and filtering
-2. **Debuggability**: Extensive logging throughout the process
-3. **Performance**: Reduced browser reflows and improved responsiveness
-4. **Transparency**: Clear notifications when filtering occurs
-
-### Performance Optimization (May 2025)
-After implementing the direct filtering approach, performance warnings were still observed:
-```
-[Violation] 'requestAnimationFrame' handler took 57ms
-[Violation] Forced reflow while executing JavaScript took 40ms
-```
-
-These warnings indicated that even with our optimized approach, the browser was still struggling with the volume of DOM operations. To address this, an advanced chunking strategy was implemented:
-
-1. **Chunk-Based Processing**
-   - Split large table filtering operations into manageable chunks of 20 rows each
-   - Process one chunk per animation frame to prevent UI freezing
-   - Added progress indicator for large tables (over 50 rows)
-
-2. **Optimized Date Comparison**
-   - Used direct string comparison instead of Date objects for performance
-   - Pre-computed date strings to avoid repeated parsing
-   - Simplified flow to minimize unnecessary operations
-
-3. **Progressive UI Updates**
-   - Added visual feedback during lengthy operations
-   - Implemented a clean progression from filtering to notification
-
-4. **Benefits of Chunking**
-   - Smooth UI even with very large tables
-   - Eliminated or greatly reduced browser performance warnings
-   - Better user experience on lower-powered devices
-   - Responsive interface during filtering operations
+### Future Enhancements
+- Consider implementing year view navigation for easier date browsing
+- Add support for multi-date and date range selection
+- Explore the web worker architecture detailed in this document
+- Add tooltips and hover previews for entries on calendar view
 
 ## Next Steps
 
@@ -176,6 +143,85 @@ To complete the implementation:
    - Develop a more efficient event architecture 
    - Consider implementing virtualization for filtered tables
 
+## Planned Worker-Based Architecture (June 2025)
+
+To completely eliminate performance warnings and prepare for multi-day selection features, the following architecture improvements are planned:
+
+### 1. Web Worker Implementation
+- Move all date filtering logic to a dedicated web worker
+- Process filtering operations off the main UI thread
+- Implement a message-based communication system between UI and worker
+- Cache results for common filter operations
+
+```javascript
+// Planned worker architecture
+const filterWorker = new Worker('date-filter-worker.js');
+
+// Send filter request to worker
+filterWorker.postMessage({
+  action: 'filterByDateRange',
+  data: {
+    rows: rowData,
+    startDate: customDateRange.start,
+    endDate: customDateRange.end
+  }
+});
+
+// Receive results from worker
+filterWorker.onmessage = (e) => {
+  if (e.data.action === 'filterResults') {
+    applyFilterResults(e.data.results);
+  }
+};
+```
+
+### 2. CSS-Based Visibility Optimization
+- Replace display property changes with visibility and opacity
+- Use CSS transitions for smoother visual changes
+- Maintain DOM structure to prevent layout thrashing
+- Implement proper ARIA attributes for accessibility
+
+```css
+/* Planned CSS optimizations */
+.oom-dream-row {
+  transition: opacity 0.2s ease, height 0.3s ease;
+}
+
+.oom-row--hidden {
+  visibility: hidden;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.oom-row--visible {
+  visibility: visible;
+  opacity: 1;
+  height: auto;
+}
+```
+
+### 3. Multi-Day Selection Support
+- Enhance worker to handle multiple date ranges
+- Implement more complex filtering logic for non-contiguous selections
+- Create visual indicators for different selection types
+- Support saved selection patterns and templates
+
+### 4. Performance Benefits
+- Complete elimination of requestAnimationFrame warnings
+- Smooth performance even with thousands of table rows
+- Responsive UI during filtering operations
+- Support for complex visual feedback during multi-selection
+
+### 5. Implementation Timeline
+- Worker prototype: Early June 2025
+- CSS optimization: Mid-June 2025
+- Multi-day selection: Late June 2025
+- Performance testing and refinement: July 2025
+
+This architecture will provide a solid foundation for all planned Date Navigator features while ensuring excellent performance across devices.
+
 ## How to Use
 
 The Date Navigator Modal can be opened in several ways:
@@ -190,3 +236,35 @@ Once open, users can:
 - Click Apply Filter to apply the date filter and close the modal
 - Use the Today button to quickly navigate to the current month
 - Clear selection to remove date filters 
+
+## Recent Progress on Filtering and Metrics Display (June 2024)
+
+### Implemented Changes
+1. **Metrics Summary Update**:
+   - Added functionality to recalculate and update the metrics summary table when filters are applied
+   - Ensured the summary table shows statistics based only on visible (filtered) rows
+   - Added "(Filtered)" indication to the title when filters are applied
+
+2. **Performance Optimization**:
+   - Implemented a pre-filtering step to quickly eliminate rows outside the year-month range
+   - Reduced console logging to only show relevant rows
+   - Made date comparisons more consistent by using string comparisons instead of complex Date object comparisons
+
+3. **UI and Filtering Improvements**:
+   - Fixed the table row initialization to prevent multiple unnecessary calls
+   - Implemented the `forceApplyDateFilter()` function for direct filtering
+   - Optimized the date filtering logic to show only entries from the selected date
+   - Resolved timezone inconsistencies with ISO date string comparisons
+
+### Implementation Status
+All critical issues have been resolved:
+- Fixed table row initialization to prevent multiple calls, reducing reflow warnings
+- Implemented direct date filtering with the `forceApplyDateFilter()` function 
+- Optimized date filtering logic to properly show only entries from the selected date
+- Resolved timezone inconsistencies with ISO date string comparisons
+
+### Future Enhancements
+- Consider implementing year view navigation for easier date browsing
+- Add support for multi-date and date range selection
+- Explore the web worker architecture detailed in this document
+- Add tooltips and hover previews for entries on calendar view

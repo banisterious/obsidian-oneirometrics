@@ -45,20 +45,22 @@
   - Established templates and standards for future documentation
   - Added documentation validation tools and workflow guidance
   - Updated all cross-references throughout the codebase
+- **Date Navigator Modal:** Partial implementation of improved date navigation
+  - Added Apply Filter button for explicit filter application
+  - Implemented direct filtering approach for improved performance
+  - Added better visual feedback for selected dates
+  - Enhanced pre-filtering of dates for faster performance
 
 ### Changed
 - Renamed "Linting" feature to "Journal Structure Check" for clarity
 - Reorganized documentation structure to better reflect feature naming
 - Updated all feature references throughout the codebase
 - Improved UI for dream scrape modal: the old plugin-generated `<div class="oom-rescrape-container">` was removed and is now generated as part of the metrics HTML
-- Merged CSS files: Successfully combined journal_check styles into main styles.css with proper "oom-" prefix, removing the need for separate CSS files
 - Refactored CSS class naming convention to consistently use "oom-" prefix for all plugin-specific classes
 - Updated and fixed main.ts to properly handle the loadStyles method (which is now just a stub for backwards compatibility)
 - Standardized documentation file naming to lowercase-with-hyphens convention
 
 ### Removed
-- Removed src/journal_check/styles.css after merging into main styles.css
-- Removed test files that were no longer needed: test-dream-entries.md, test-read-more.html, and testProcessDreamContent.js
 - Archived completed CSS refactoring plan to docs/archive/
 - Removed unnecessary documentation redirect files after migrating content
 

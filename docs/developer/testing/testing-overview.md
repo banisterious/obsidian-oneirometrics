@@ -30,7 +30,7 @@ For detailed UI and accessibility test checklists, refer to the dedicated guides
 ## Testing Categories
 
 ### 1. View Mode Testing
-- [ ] Verify Reading View requirement warnings
+- [x] Verify Reading View requirement warnings ✅ 2025-05-21
 - [ ] Test Live Preview mode limitations
 - [ ] Check view mode switching behavior
 - [ ] Validate warning notifications
@@ -48,7 +48,7 @@ See [View Mode Requirements](../../user/guides/view-mode.md) for detailed testin
 
 ### Settings Testing
 
-> This section covers only the test cases for settings. For user instructions, see [USAGE.md](../../user/guides/usage.md). For technical details, see [SPECIFICATION.md](../architecture/specification.md).
+> This section covers only the test cases for settings. For user instructions, see [usage.md](../../user/guides/usage.md). For technical details, see [specification.md](../architecture/specification.md).
 
 - [x] OneiroMetrics Note path can be set and saved
 - [x] Selected notes can be added and removed using multi-chip autocomplete in both Settings and the modal
@@ -73,12 +73,12 @@ See [View Mode Requirements](../../user/guides/view-mode.md) for detailed testin
 - [ ] Callout Metadata Support: 'hide' hides the metrics section, 'compact' condenses it, 'summary' highlights it. Settings and documentation are present in the UI.
 - [x] Metrics Export/Import (JSON) works as expected
 - [ ] CSV Export button generates a CSV file with summary and detailed structure
-- [ ] Settings page UI/UX overhaul: Bordered metrics section, clear section dividers, and helper text under section headers are present and visually correct. Default and Optional Metrics are grouped and styled for easier navigation.
+- [x] Settings page UI/UX overhaul: Bordered metrics section, clear section dividers, and helper text under section headers are present and visually correct. Default and Optional Metrics are grouped and styled for easier navigation.
 
 ### Metrics Scraping
 
 - [x] Scrape button works from modal (notes mode only)
-- [ ] Scrape command works from command palette
+- [x] Scrape command works from command palette
 - [x] Progress is shown during scraping with detailed status
 - [x] Batch processing works for large datasets
 - [x] Errors are handled gracefully
@@ -93,7 +93,7 @@ See [View Mode Requirements](../../user/guides/view-mode.md) for detailed testin
 
 ### Metrics Table - Summary Section
 
-- [ ] Table renders correctly
+- [x] Table renders correctly
 - [ ] All metrics are displayed
 - [ ] Averages are calculated correctly
 - [ ] Min/Max values are correct
@@ -141,12 +141,12 @@ See [View Mode Requirements](../../user/guides/view-mode.md) for detailed testin
 
 #### Template Wizard UI
 - [ ] Template wizard opens correctly from command palette
-- [ ] UI elements are properly aligned and styled
-- [ ] Step indicators work correctly (1 of 4, 2 of 4, etc.)
-- [ ] Navigation between steps works as expected
-- [ ] Cancel button closes the wizard without saving
+- [x] UI elements are properly aligned and styled
+- [x] Step indicators work correctly (1 of 4, 2 of 4, etc.)
+- [x] Navigation between steps works as expected
+- [x] Cancel button closes the wizard without saving
 - [ ] All form elements render correctly in various themes
-- [ ] Wizard closes properly after template creation
+- [x] Wizard closes properly after template creation
 
 #### Templater Detection
 - [ ] Plugin correctly detects if Templater is installed
@@ -206,17 +206,17 @@ See [View Mode Requirements](../../user/guides/view-mode.md) for detailed testin
 
 ### Custom Date Filter UI Testing
 
-> This section covers the Custom Date Filter UI, a new feature added in the May 2025 update
+> This section covers the Custom Date Filter UI, a new feature added in a May 2025 update
 
 #### Modal UI Elements
-- [ ] Custom Date Filter button opens modal correctly
-- [ ] Modal has correct dimensions and positioning
+- [x] Custom Date Filter button opens modal correctly
+- [x] Modal has correct dimensions and positioning
 - [ ] Calendar displays correctly with current month
 - [ ] Previous and next month buttons work properly
-- [ ] Today button highlights current day
+- [x] Today button highlights current day
 - [ ] Start and end date fields update when calendar dates are selected
 - [ ] Save button is enabled only when a valid range is selected
-- [ ] Cancel button closes the modal without saving
+- [x] Cancel button closes the modal without saving
 - [ ] Reset button clears selection
 - [ ] Modal is responsive on different screen sizes
 
