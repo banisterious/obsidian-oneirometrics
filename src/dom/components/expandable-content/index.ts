@@ -1,9 +1,11 @@
-// Export types
-export type {
-  ExpandableContentProps,
-  ExpandableContentCallbacks
-} from './ExpandableContentTypes';
-
-// Export components
+// Export all components from the expandable-content directory
+export { ExpandableContentContainer } from './ExpandableContentContainer';
 export { ExpandableContentView } from './ExpandableContentView';
-export { ExpandableContentContainer } from './ExpandableContentContainer'; 
+export type { 
+    ExpandableContentProps, 
+    ExpandableContentCallbacks,
+    ExpandableContentViewProps, 
+    ExpandableContentState, 
+    ExpandableContentOptions,
+    ExpandableContentEvents
+} from './ExpandableContentTypes'; 

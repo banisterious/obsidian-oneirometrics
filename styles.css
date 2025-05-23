@@ -6624,3 +6624,107 @@ tr.oom-dream-row {
 .oom-scrape-modal .oom-browse-folder-btn:hover {
   background-color: var(--background-modifier-border-hover);
 }
+
+/* ==========================================================================
+   ExpandableContent Component Styles
+   ========================================================================== */
+
+.oom-expandable-content {
+    margin: 0.75rem 0;
+    position: relative;
+    border-radius: var(--radius-m);
+    background: var(--background-secondary);
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+}
+
+.oom-expandable-content-header {
+    padding: 0.5rem 1rem;
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-expandable-content-text {
+    padding: 0.75rem 1rem;
+    color: var(--text-normal);
+    line-height: 1.5;
+    overflow-wrap: break-word;
+}
+
+.oom-expandable-content.oom-collapsed .oom-expandable-content-text {
+    max-height: none;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.oom-expandable-content-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--background-secondary-alt);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin: 0.25rem 1rem;
+    user-select: none;
+}
+
+.oom-expandable-content-button:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-expandable-content-button-top {
+    margin-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.oom-expandable-content-button-bottom {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.oom-expandable-content-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.25rem;
+    height: 16px;
+    width: 16px;
+}
+
+/* Dark mode adjustments */
+.theme-dark .oom-expandable-content {
+    background: var(--background-secondary-alt);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.theme-dark .oom-expandable-content-button {
+    background: var(--background-secondary);
+}
+
+/* For accessibility - high contrast mode */
+@media (forced-colors: active) {
+    .oom-expandable-content {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-expandable-content-button {
+        border: 1px solid CanvasText;
+    }
+}
+
+/* For reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .oom-expandable-content,
+    .oom-expandable-content-button {
+        transition: none;
+    }
+}

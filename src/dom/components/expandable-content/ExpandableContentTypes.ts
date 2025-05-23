@@ -75,4 +75,58 @@ export interface ExpandableContentCallbacks {
    * Called after the content has collapsed fully
    */
   onAfterCollapse?: (id: string) => void;
+}
+
+/**
+ * Props for the ExpandableContentView component
+ */
+export interface ExpandableContentViewProps {
+    content: string;
+    summary?: string;
+    isExpanded: boolean;
+    maxCollapsedLength: number;
+    onToggle: () => void;
+    className?: string;
+    formatContent?: (content: string) => string;
+    preserveParagraphs?: boolean;
+    showExpandButton?: boolean;
+    buttonPosition?: 'top' | 'bottom' | 'both';
+    expandedButtonText?: string;
+    collapsedButtonText?: string;
+    headerContent?: string | HTMLElement;
+}
+
+/**
+ * State for the ExpandableContentContainer component
+ */
+export interface ExpandableContentState {
+    isExpanded: boolean;
+    content: string;
+    summary: string;
+    hasTruncatedContent: boolean;
+}
+
+/**
+ * Configuration options for the ExpandableContent component
+ */
+export interface ExpandableContentOptions {
+    content: string;
+    maxCollapsedLength?: number;
+    initiallyExpanded?: boolean;
+    className?: string;
+    formatContent?: (content: string) => string;
+    preserveParagraphs?: boolean;
+    showExpandButton?: boolean;
+    buttonPosition?: 'top' | 'bottom' | 'both';
+    expandedButtonText?: string;
+    collapsedButtonText?: string;
+    headerContent?: string | HTMLElement;
+}
+
+/**
+ * Events related to expandable content
+ */
+export interface ExpandableContentEvents {
+    'expand': { content: string, wasExpanded: boolean };
+    'collapse': { content: string, wasSummary: boolean };
 } 

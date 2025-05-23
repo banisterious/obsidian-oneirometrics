@@ -1,342 +1,237 @@
-import { BaseComponent } from '../BaseComponent';
-import { ExpandableContentProps, ExpandableContentCallbacks } from './ExpandableContentTypes';
+import { ExpandableContentViewProps } from './ExpandableContentTypes';
 
 /**
- * View component for expandable content sections
- * 
- * This component renders a collapsible/expandable content section
- * with a header that can be clicked to toggle the expansion state.
+ * View component for ExpandableContent
+ * Handles UI rendering and DOM interactions
  */
-export class ExpandableContentView extends BaseComponent {
-  private props: ExpandableContentProps;
-  private callbacks: ExpandableContentCallbacks;
-  
-  // DOM elements
-  private headerEl: HTMLElement | null = null;
-  private contentEl: HTMLElement | null = null;
-  private iconEl: HTMLElement | null = null;
-  
-  // Animation state
-  private isAnimating = false;
-  
-  /**
-   * Constructor
-   * @param props Initial props for the component
-   * @param callbacks Event callbacks for the component
-   */
-  constructor(props: ExpandableContentProps, callbacks: ExpandableContentCallbacks = {}) {
-    super();
-    this.props = props;
-    this.callbacks = callbacks;
-  }
-  
-  /**
-   * Called when the component is rendered
-   */
-  protected onRender(): void {
-    if (!this.containerEl) return;
-    
-    // Create main container
-    const expandableEl = this.containerEl.createDiv({
-      cls: `oom-expandable ${this.props.className || ''} ${this.props.isExpanded ? 'oom-expandable--expanded' : ''}`
-    });
-    expandableEl.setAttribute('data-expandable-id', this.props.id);
-    
-    // Create header
-    this.headerEl = expandableEl.createDiv({ cls: 'oom-expandable-header' });
-    
-    // Add click handler to header
-    this.headerEl.addEventListener('click', this.handleHeaderClick.bind(this));
-    this.registerCleanup(() => this.headerEl?.removeEventListener('click', this.handleHeaderClick.bind(this)));
-    
-    // Add header icon
-    this.iconEl = this.headerEl.createDiv({ cls: 'oom-expandable-icon' });
-    
-    // Add title container
-    const titleContainer = this.headerEl.createDiv({ cls: 'oom-expandable-title-container' });
-    
-    // Add title
-    titleContainer.createDiv({ 
-      cls: 'oom-expandable-title',
-      text: this.props.title 
-    });
-    
-    // Add subtitle if provided
-    if (this.props.subtitle) {
-      titleContainer.createDiv({ 
-        cls: 'oom-expandable-subtitle',
-        text: this.props.subtitle 
-      });
-    }
-    
-    // Add icon if provided
-    if (this.props.icon) {
-      this.iconEl.addClass(this.props.icon);
-    }
-    
-    // Create content container
-    this.contentEl = expandableEl.createDiv({ 
-      cls: 'oom-expandable-content'
-    });
-    
-    // Set content
-    this.setContent(this.props.content);
-    
-    // Set initial state
-    this.updateExpandedState(this.props.isExpanded, false);
-  }
-  
-  /**
-   * Called when the component is updated
-   * @param data New data for the component
-   */
-  protected onUpdate(data: Partial<ExpandableContentProps>): void {
-    // Update props
-    this.props = { ...this.props, ...data };
-    
-    // Update title if changed
-    if (data.title && this.headerEl) {
-      const titleEl = this.headerEl.querySelector('.oom-expandable-title');
-      if (titleEl) titleEl.textContent = data.title;
-    }
-    
-    // Update subtitle if changed
-    if (data.subtitle !== undefined && this.headerEl) {
-      const subtitleEl = this.headerEl.querySelector('.oom-expandable-subtitle') as HTMLElement | null;
-      if (subtitleEl) {
-        if (data.subtitle) {
-          subtitleEl.textContent = data.subtitle;
-          subtitleEl.style.display = '';
-        } else {
-          subtitleEl.style.display = 'none';
-        }
-      } else if (data.subtitle) {
-        // Add subtitle if it didn't exist before
-        this.headerEl.querySelector('.oom-expandable-title-container')?.createDiv({
-          cls: 'oom-expandable-subtitle',
-          text: data.subtitle
-        });
-      }
-    }
-    
-    // Update icon if changed
-    if (data.icon !== undefined && this.iconEl) {
-      // Remove old icon classes
-      if (this.props.icon) {
-        this.iconEl.removeClass(this.props.icon);
-      }
-      
-      // Add new icon class if provided
-      if (data.icon) {
-        this.iconEl.addClass(data.icon);
-      }
-    }
-    
-    // Update content if changed
-    if (data.content !== undefined && this.contentEl) {
-      this.setContent(data.content);
-    }
-    
-    // Update expanded state if changed
-    if (data.isExpanded !== undefined && data.isExpanded !== this.props.isExpanded) {
-      this.updateExpandedState(data.isExpanded, this.props.animate !== false);
-    }
-    
-    // Update max height if changed
-    if (data.maxContentHeight !== undefined && this.contentEl) {
-      this.updateMaxHeight(data.maxContentHeight);
-    }
-  }
-  
-  /**
-   * Clean up any resources used by the component
-   */
-  protected onCleanup(): void {
-    // Clean up event listeners
-    this.headerEl?.removeEventListener('click', this.handleHeaderClick.bind(this));
-    
-    // Clear references
-    this.headerEl = null;
-    this.contentEl = null;
-    this.iconEl = null;
-  }
-  
-  /**
-   * Set the content of the expandable section
-   * @param content Content to set (string or HTMLElement)
-   */
-  private setContent(content: string | HTMLElement): void {
-    if (!this.contentEl) return;
-    
-    // Clear existing content
-    this.contentEl.empty();
-    
-    // Add new content
-    if (typeof content === 'string') {
-      // Set HTML content
-      this.contentEl.innerHTML = content;
-    } else {
-      // Append element
-      this.contentEl.appendChild(content);
-    }
-  }
-  
-  /**
-   * Update the expanded state of the component
-   * @param isExpanded Whether the component should be expanded
-   * @param animate Whether to animate the transition
-   */
-  private updateExpandedState(isExpanded: boolean, animate: boolean): void {
-    if (!this.containerEl || !this.contentEl) return;
-    
-    // Get expandable element
-    const expandableEl = this.containerEl.querySelector('.oom-expandable');
-    if (!expandableEl) return;
-    
-    // Skip if already animating
-    if (this.isAnimating) return;
-    
-    if (isExpanded) {
-      // Expanding
-      if (animate) {
-        this.isAnimating = true;
+export class ExpandableContentView {
+    private containerEl: HTMLElement;
+    private contentEl: HTMLElement;
+    private expandButtonTop: HTMLElement | null = null;
+    private expandButtonBottom: HTMLElement | null = null;
+    private headerEl: HTMLElement | null = null;
+
+    constructor(
+        containerEl: HTMLElement,
+        private props: ExpandableContentViewProps
+    ) {
+        this.containerEl = containerEl;
+        this.containerEl.addClass('oom-expandable-content');
         
-        // Set max height to 0 then to actual height to enable animation
-        const contentHeight = this.getContentHeight();
-        this.contentEl.style.maxHeight = '0px';
-        
-        // Force reflow
-        this.contentEl.getBoundingClientRect();
-        
-        // Add expanded class
-        expandableEl.classList.add('oom-expandable--expanded');
-        
-        // Set max height to actual content height
-        this.contentEl.style.maxHeight = `${contentHeight}px`;
-        
-        // Listen for transition end
-        const onTransitionEnd = () => {
-          // If maxContentHeight is set, apply it
-          if (this.props.maxContentHeight) {
-            this.updateMaxHeight(this.props.maxContentHeight);
-          } else {
-            this.contentEl!.style.maxHeight = '';
-          }
-          
-          this.isAnimating = false;
-          this.contentEl!.removeEventListener('transitionend', onTransitionEnd);
-          
-          // Trigger callback
-          this.callbacks.onAfterExpand?.(this.props.id);
-        };
-        
-        this.contentEl.addEventListener('transitionend', onTransitionEnd);
-      } else {
-        // No animation, just expand
-        expandableEl.classList.add('oom-expandable--expanded');
-        
-        // Set max height if specified
-        if (this.props.maxContentHeight) {
-          this.updateMaxHeight(this.props.maxContentHeight);
-        } else {
-          this.contentEl.style.maxHeight = '';
+        if (this.props.className) {
+            this.containerEl.addClass(this.props.className);
         }
         
-        // Trigger callback
-        this.callbacks.onAfterExpand?.(this.props.id);
-      }
-    } else {
-      // Collapsing
-      if (animate) {
-        this.isAnimating = true;
+        this.contentEl = this.containerEl.createDiv('oom-expandable-content-text');
         
-        // Set max height to current height then to 0 to enable animation
-        const contentHeight = this.contentEl.getBoundingClientRect().height;
-        this.contentEl.style.maxHeight = `${contentHeight}px`;
-        
-        // Force reflow
-        this.contentEl.getBoundingClientRect();
-        
-        // Set max height to 0
-        this.contentEl.style.maxHeight = '0px';
-        
-        // Listen for transition end
-        const onTransitionEnd = () => {
-          expandableEl.classList.remove('oom-expandable--expanded');
-          this.isAnimating = false;
-          this.contentEl!.removeEventListener('transitionend', onTransitionEnd);
-          
-          // Trigger callback
-          this.callbacks.onAfterCollapse?.(this.props.id);
-        };
-        
-        this.contentEl.addEventListener('transitionend', onTransitionEnd);
-      } else {
-        // No animation, just collapse
-        expandableEl.classList.remove('oom-expandable--expanded');
-        this.contentEl.style.maxHeight = '0px';
-        
-        // Trigger callback
-        this.callbacks.onAfterCollapse?.(this.props.id);
-      }
+        this.render();
     }
-  }
-  
-  /**
-   * Update the maximum height of the content
-   * @param maxHeight Maximum height in pixels, or undefined to remove max height
-   */
-  private updateMaxHeight(maxHeight?: number): void {
-    if (!this.contentEl) return;
-    
-    if (maxHeight) {
-      this.contentEl.style.maxHeight = `${maxHeight}px`;
-      this.contentEl.style.overflowY = 'auto';
-    } else {
-      this.contentEl.style.maxHeight = '';
-      this.contentEl.style.overflowY = '';
+
+    /**
+     * Update the view with new props
+     */
+    public update(props: ExpandableContentViewProps): void {
+        this.props = props;
+        this.render();
     }
-  }
-  
-  /**
-   * Get the actual height of the content
-   * @returns Content height in pixels
-   */
-  private getContentHeight(): number {
-    if (!this.contentEl) return 0;
-    
-    // Store original max height
-    const originalMaxHeight = this.contentEl.style.maxHeight;
-    const originalOverflow = this.contentEl.style.overflow;
-    
-    // Temporarily remove max height and measure
-    this.contentEl.style.maxHeight = '';
-    this.contentEl.style.overflow = 'hidden';
-    const height = this.contentEl.getBoundingClientRect().height;
-    
-    // Restore original max height
-    this.contentEl.style.maxHeight = originalMaxHeight;
-    this.contentEl.style.overflow = originalOverflow;
-    
-    return height;
-  }
-  
-  /**
-   * Handle click on the header
-   */
-  private handleHeaderClick(e: MouseEvent): void {
-    // Call header click callback
-    this.callbacks.onHeaderClick?.(this.props.id);
-    
-    // Toggle expanded state
-    const newExpandedState = !this.props.isExpanded;
-    
-    // Call onToggle callback
-    this.callbacks.onToggle?.(this.props.id, newExpandedState);
-    
-    // Update the expanded state
-    if (!this.containerEl) return;
-    this.props.isExpanded = newExpandedState;
-    this.updateExpandedState(newExpandedState, this.props.animate !== false);
-  }
+
+    /**
+     * Clean up resources on destruction
+     */
+    public destroy(): void {
+        // Remove event listeners if needed
+        if (this.expandButtonTop) {
+            this.expandButtonTop.removeEventListener('click', this.handleToggle);
+        }
+        if (this.expandButtonBottom) {
+            this.expandButtonBottom.removeEventListener('click', this.handleToggle);
+        }
+        
+        // Clear container
+        this.containerEl.empty();
+    }
+
+    /**
+     * Render the component
+     */
+    private render(): void {
+        // Update expanded/collapsed class
+        this.containerEl.toggleClass('oom-expanded', this.props.isExpanded);
+        this.containerEl.toggleClass('oom-collapsed', !this.props.isExpanded);
+        
+        // Render header if provided
+        this.renderHeader();
+        
+        // Render top button if configured
+        if (this.props.showExpandButton !== false && 
+            (this.props.buttonPosition === 'top' || this.props.buttonPosition === 'both')) {
+            this.renderExpandButton('top');
+        } else if (this.expandButtonTop) {
+            this.expandButtonTop.remove();
+            this.expandButtonTop = null;
+        }
+        
+        // Render content
+        this.renderContent();
+        
+        // Render bottom button if configured
+        if (this.props.showExpandButton !== false && 
+            (this.props.buttonPosition === 'bottom' || this.props.buttonPosition === 'both' || !this.props.buttonPosition)) {
+            this.renderExpandButton('bottom');
+        } else if (this.expandButtonBottom) {
+            this.expandButtonBottom.remove();
+            this.expandButtonBottom = null;
+        }
+    }
+
+    /**
+     * Render the header content if provided
+     */
+    private renderHeader(): void {
+        if (!this.props.headerContent) {
+            if (this.headerEl) {
+                this.headerEl.remove();
+                this.headerEl = null;
+            }
+            return;
+        }
+        
+        if (!this.headerEl) {
+            this.headerEl = this.containerEl.createDiv('oom-expandable-content-header');
+        } else {
+            this.headerEl.empty();
+        }
+        
+        if (typeof this.props.headerContent === 'string') {
+            this.headerEl.setText(this.props.headerContent);
+        } else {
+            this.headerEl.appendChild(this.props.headerContent.cloneNode(true));
+        }
+    }
+
+    /**
+     * Render the expand/collapse button
+     */
+    private renderExpandButton(position: 'top' | 'bottom'): void {
+        const buttonText = this.props.isExpanded 
+            ? (this.props.expandedButtonText || 'Show less') 
+            : (this.props.collapsedButtonText || 'Show more');
+        
+        if (position === 'top') {
+            if (!this.expandButtonTop) {
+                this.expandButtonTop = this.containerEl.createDiv({
+                    cls: 'oom-expandable-content-button oom-expandable-content-button-top',
+                    text: buttonText
+                });
+                this.expandButtonTop.addEventListener('click', this.handleToggle);
+            } else {
+                this.expandButtonTop.setText(buttonText);
+            }
+            
+            // Add arrow icon
+            this.updateButtonIcon(this.expandButtonTop);
+            
+        } else { // bottom
+            if (!this.expandButtonBottom) {
+                this.expandButtonBottom = this.containerEl.createDiv({
+                    cls: 'oom-expandable-content-button oom-expandable-content-button-bottom',
+                    text: buttonText
+                });
+                this.expandButtonBottom.addEventListener('click', this.handleToggle);
+            } else {
+                this.expandButtonBottom.setText(buttonText);
+            }
+            
+            // Add arrow icon
+            this.updateButtonIcon(this.expandButtonBottom);
+        }
+    }
+
+    /**
+     * Update the button icon to reflect expanded/collapsed state
+     */
+    private updateButtonIcon(button: HTMLElement): void {
+        // Remove existing icon if any
+        const existingIcon = button.querySelector('.oom-expandable-content-icon');
+        if (existingIcon) {
+            existingIcon.remove();
+        }
+        
+        // Create new icon
+        const iconEl = document.createElement('span');
+        iconEl.addClass('oom-expandable-content-icon');
+        
+        // Use different SVG based on expanded state
+        if (this.props.isExpanded) {
+            iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>`;
+        } else {
+            iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>`;
+        }
+        
+        button.appendChild(iconEl);
+    }
+
+    /**
+     * Render the content text
+     */
+    private renderContent(): void {
+        this.contentEl.empty();
+        
+        // Get the content to display based on expanded state
+        const displayContent = this.props.isExpanded 
+            ? this.props.content 
+            : (this.props.summary || this.truncateContent(this.props.content));
+        
+        // Format content if formatter is provided
+        const formattedContent = this.props.formatContent 
+            ? this.props.formatContent(displayContent) 
+            : displayContent;
+        
+        if (this.props.preserveParagraphs) {
+            // Split by paragraphs and create paragraph elements
+            const paragraphs = formattedContent.split(/\n\s*\n/);
+            
+            paragraphs.forEach(paragraph => {
+                if (paragraph.trim()) {
+                    const p = this.contentEl.createEl('p');
+                    p.setText(paragraph.trim());
+                }
+            });
+        } else {
+            // Just set the text content directly
+            this.contentEl.setText(formattedContent);
+        }
+    }
+
+    /**
+     * Truncate content to maxCollapsedLength while preserving words
+     */
+    private truncateContent(content: string): string {
+        if (content.length <= this.props.maxCollapsedLength) {
+            return content;
+        }
+        
+        // Find a good breaking point near maxCollapsedLength
+        let truncateAt = this.props.maxCollapsedLength;
+        
+        // Try to find a space or punctuation to break at
+        const breakChars = [' ', '.', '!', '?', ',', ';', ':', '\n'];
+        
+        // Look for a good break point starting from maxCollapsedLength and going backwards
+        for (let i = truncateAt; i > truncateAt - 50 && i > 0; i--) {
+            if (breakChars.includes(content.charAt(i))) {
+                truncateAt = i + 1; // Include the break character
+                break;
+            }
+        }
+        
+        return content.substring(0, truncateAt) + '...';
+    }
+
+    /**
+     * Handle expand/collapse toggle
+     */
+    private handleToggle = (): void => {
+        this.props.onToggle();
+    }
 } 

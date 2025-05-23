@@ -1,157 +1,166 @@
-import { App } from 'obsidian';
+import { ExpandableContentOptions, ExpandableContentState, ExpandableContentViewProps } from './ExpandableContentTypes';
 import { ExpandableContentView } from './ExpandableContentView';
-import { ExpandableContentProps, ExpandableContentCallbacks } from './ExpandableContentTypes';
 
 /**
- * Container component for expandable content
- * 
- * This component handles the business logic for the expandable content,
- * while delegating rendering to the ExpandableContentView component.
+ * Container component for ExpandableContent
+ * Implements business logic and state management
  */
 export class ExpandableContentContainer {
-  // Component reference
-  private view: ExpandableContentView;
-  
-  // Component state
-  private isExpanded: boolean;
-  private props: ExpandableContentProps;
-  private contentElements: Map<string, HTMLElement> = new Map();
-  
-  /**
-   * Constructor
-   * @param app Obsidian app instance
-   * @param container DOM element to render into
-   * @param props Initial props for the component
-   * @param callbacks Optional callbacks for component events
-   */
-  constructor(
-    private app: App,
-    container: HTMLElement,
-    props: ExpandableContentProps,
-    callbacks?: ExpandableContentCallbacks
-  ) {
-    this.props = props;
-    this.isExpanded = props.isExpanded;
+    private view: ExpandableContentView;
+    private state: ExpandableContentState;
+    private id: string;
     
-    // Create callbacks with internal handlers
-    const containerCallbacks: ExpandableContentCallbacks = {
-      onToggle: this.handleToggle.bind(this),
-      onHeaderClick: this.handleHeaderClick.bind(this),
-      ...callbacks
-    };
-    
-    // Create view
-    this.view = new ExpandableContentView(props, containerCallbacks);
-    
-    // Render view
-    this.view.render(container);
-  }
-  
-  /**
-   * Clean up resources used by the component
-   */
-  public cleanup(): void {
-    this.view.cleanup();
-    this.contentElements.clear();
-  }
-  
-  /**
-   * Update the component with new props
-   * @param props New props to update with
-   */
-  public update(props: Partial<ExpandableContentProps>): void {
-    // Update internal state
-    this.props = { ...this.props, ...props };
-    
-    if (props.isExpanded !== undefined) {
-      this.isExpanded = props.isExpanded;
+    private static idCounter = 0;
+
+    constructor(
+        private containerEl: HTMLElement,
+        private options: ExpandableContentOptions
+    ) {
+        // Generate unique ID
+        this.id = `oom-expandable-content-${ExpandableContentContainer.idCounter++}`;
+        this.containerEl.setAttribute('id', this.id);
+        
+        // Set default values
+        const maxCollapsedLength = options.maxCollapsedLength || 150;
+        const content = options.content || '';
+        
+        // Calculate initial summary
+        const summary = this.createSummary(content, maxCollapsedLength);
+        
+        // Initialize state
+        this.state = {
+            isExpanded: options.initiallyExpanded || false,
+            content: content,
+            summary: summary,
+            hasTruncatedContent: content.length > maxCollapsedLength
+        };
+        
+        // Create and render view
+        this.view = new ExpandableContentView(containerEl, this.getViewProps());
     }
-    
-    // Update view
-    this.view.update(props);
-  }
-  
-  /**
-   * Get the current expanded state
-   * @returns Whether the content is expanded
-   */
-  public getIsExpanded(): boolean {
-    return this.isExpanded;
-  }
-  
-  /**
-   * Set the expanded state
-   * @param isExpanded Whether the content should be expanded
-   * @param animate Whether to animate the transition
-   */
-  public setExpanded(isExpanded: boolean, animate = true): void {
-    if (isExpanded === this.isExpanded) return;
-    
-    this.isExpanded = isExpanded;
-    this.view.update({ isExpanded, animate });
-  }
-  
-  /**
-   * Toggle the expanded state
-   * @param animate Whether to animate the transition
-   */
-  public toggle(animate = true): void {
-    this.setExpanded(!this.isExpanded, animate);
-  }
-  
-  /**
-   * Set the content of the expandable section
-   * @param content Content to display (string or HTMLElement)
-   */
-  public setContent(content: string | HTMLElement): void {
-    this.view.update({ content });
-  }
-  
-  /**
-   * Add content to the component with a key for later reference
-   * @param key Identifier for the content
-   * @param element Element to add
-   */
-  public addContent(key: string, element: HTMLElement): void {
-    this.contentElements.set(key, element);
-    
-    // If this is the first content, set it as the current content
-    if (this.contentElements.size === 1) {
-      this.setContent(element);
+
+    /**
+     * Clean up on component destruction
+     */
+    public destroy(): void {
+        this.view.destroy();
     }
-  }
-  
-  /**
-   * Switch to content with the specified key
-   * @param key Identifier for the content to display
-   * @returns True if content was found and switched, false otherwise
-   */
-  public switchContent(key: string): boolean {
-    const content = this.contentElements.get(key);
-    
-    if (content) {
-      this.setContent(content);
-      return true;
+
+    /**
+     * Update component with new content or options
+     */
+    public update(options: Partial<ExpandableContentOptions>): void {
+        // Update options
+        this.options = { ...this.options, ...options };
+        
+        // Update state if content changed
+        if (options.content !== undefined) {
+            const maxCollapsedLength = this.options.maxCollapsedLength || 150;
+            const content = options.content;
+            const summary = this.createSummary(content, maxCollapsedLength);
+            
+            this.state = {
+                ...this.state,
+                content: content,
+                summary: summary,
+                hasTruncatedContent: content.length > maxCollapsedLength
+            };
+        }
+        
+        // Update view
+        this.view.update(this.getViewProps());
     }
-    
-    return false;
-  }
-  
-  /**
-   * Handle toggle event from view
-   * @param id Component ID
-   * @param isExpanded New expanded state
-   */
-  private handleToggle(id: string, isExpanded: boolean): void {
-    this.isExpanded = isExpanded;
-  }
-  
-  /**
-   * Handle header click event from view
-   * @param id Component ID
-   */
-  private handleHeaderClick(id: string): void {
-    // This is already handled by the view's toggle event
-    // Additional logic could be added here if needed
-  }
+
+    /**
+     * Toggle expanded state
+     */
+    public toggle(): void {
+        this.state.isExpanded = !this.state.isExpanded;
+        this.view.update(this.getViewProps());
+    }
+
+    /**
+     * Handle toggle event from view
+     */
+    private handleToggle(): void {
+        this.toggle();
+    }
+
+    /**
+     * Expand the content
+     */
+    public expand(): void {
+        if (!this.state.isExpanded) {
+            this.state.isExpanded = true;
+            this.view.update(this.getViewProps());
+        }
+    }
+
+    /**
+     * Collapse the content
+     */
+    public collapse(): void {
+        if (this.state.isExpanded) {
+            this.state.isExpanded = false;
+            this.view.update(this.getViewProps());
+        }
+    }
+
+    /**
+     * Get the current expanded state
+     */
+    public isExpanded(): boolean {
+        return this.state.isExpanded;
+    }
+
+    /**
+     * Get the component's ID
+     */
+    public getId(): string {
+        return this.id;
+    }
+
+    /**
+     * Get view props from current state and options
+     */
+    private getViewProps(): ExpandableContentViewProps {
+        return {
+            content: this.state.content,
+            summary: this.state.summary,
+            isExpanded: this.state.isExpanded,
+            maxCollapsedLength: this.options.maxCollapsedLength || 150,
+            onToggle: this.handleToggle.bind(this),
+            className: this.options.className,
+            formatContent: this.options.formatContent,
+            preserveParagraphs: this.options.preserveParagraphs,
+            showExpandButton: this.options.showExpandButton,
+            buttonPosition: this.options.buttonPosition,
+            expandedButtonText: this.options.expandedButtonText,
+            collapsedButtonText: this.options.collapsedButtonText,
+            headerContent: this.options.headerContent
+        };
+    }
+
+    /**
+     * Create a summary of the content
+     */
+    private createSummary(content: string, maxLength: number): string {
+        if (content.length <= maxLength) {
+            return content;
+        }
+
+        // Find a suitable breaking point - end of a sentence or word
+        let truncateAt = maxLength;
+        const breakChars = [' ', '.', '!', '?', ',', ';', ':', '\n'];
+        
+        // Look back from maxLength to find a good break point
+        for (let i = truncateAt; i > truncateAt - 50 && i > 0; i--) {
+            if (breakChars.includes(content.charAt(i))) {
+                truncateAt = i + 1; // Include the break character
+                break;
+            }
+        }
+        
+        return content.substring(0, truncateAt) + '...';
+    }
 } 
