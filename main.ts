@@ -24,7 +24,6 @@ import { ExpandableContentContainer } from './src/dom/components/expandable-cont
 import { FilterControlsContainer } from './src/dom/components/filter-controls';
 
 // Import journal structure check modules
-import { LintingEngine } from './src/journal_check/LintingEngine';
 import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
 import { TestModal } from './src/journal_check/ui/TestModal';
 import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
@@ -453,7 +452,7 @@ export default class DreamMetricsPlugin extends Plugin {
     logger: LogManager | LoggingAdapter;
     
     // Replace LintingEngine with LintingEngineContainer
-    lintingEngineContainer: LintingEngineContainer;
+    lintingEngineContainer: LintingEngineContainer | null = null;
     templaterIntegration: TemplaterIntegration;
     
     // New for the plugin API
@@ -465,6 +464,7 @@ export default class DreamMetricsPlugin extends Plugin {
     // Refactored UI Components
     private filterControlsContainer: FilterControlsContainer | null = null;
     private summaryViewContainer: SummaryViewContainer | null = null;
+    private advancedFilterContainer: AdvancedFilterContainer | null = null;
     
     state: DreamMetricsState;
     
@@ -588,6 +588,15 @@ export default class DreamMetricsPlugin extends Plugin {
         this.summaryViewContainer = new SummaryViewContainer(
             this.app,
             summaryContainerEl,
+            this.state
+        );
+        
+        // Initialize AdvancedFilterContainer
+        const advancedFilterContainerEl = document.createElement('div');
+        advancedFilterContainerEl.addClass('oom-advanced-filter-container');
+        this.advancedFilterContainer = new AdvancedFilterContainer(
+            this.app,
+            advancedFilterContainerEl,
             this.state
         );
         
@@ -906,6 +915,12 @@ export default class DreamMetricsPlugin extends Plugin {
             this.dateNavigatorIntegration = null;
         }
         
+        // Clean up LintingEngine
+        if (this.lintingEngineContainer) {
+            this.lintingEngineContainer.destroy();
+            this.lintingEngineContainer = null;
+        }
+        
         // Clean up FilterControls
         if (this.filterControlsContainer) {
             this.filterControlsContainer.cleanup();
@@ -916,6 +931,12 @@ export default class DreamMetricsPlugin extends Plugin {
         if (this.summaryViewContainer) {
             this.summaryViewContainer.cleanup();
             this.summaryViewContainer = null;
+        }
+        
+        // Clean up AdvancedFilter
+        if (this.advancedFilterContainer) {
+            this.advancedFilterContainer.cleanup();
+            this.advancedFilterContainer = null;
         }
         
         // Execute all cleanup functions
@@ -1021,30 +1042,15 @@ export default class DreamMetricsPlugin extends Plugin {
         }
 
         try {
-            // Read the file content
-            const content = await this.app.vault.read(activeFile);
-            
-            // Create a service instance for validation
-            const lintingService = new LintingEngineService(this.settings.linting || DEFAULT_LINTING_SETTINGS);
-            
-            // Validate content
-            const results = lintingService.validate(content);
-            
-            // If no issues, show a success notice
-            if (results.length === 0) {
-                new Notice('No linting issues found.');
+            // Use the lintingEngineContainer to validate the current file
+            if (!this.lintingEngineContainer) {
+                new Notice('Linting engine not initialized');
                 return;
             }
             
-            // Count issues by severity
-            const errorCount = results.filter(r => r.severity === 'error').length;
-            const warningCount = results.filter(r => r.severity === 'warning').length;
-            const infoCount = results.filter(r => r.severity === 'info').length;
-            
-            // Show a notice with the results
-            new Notice(`Validation results: ${errorCount} errors, ${warningCount} warnings, ${infoCount} info`);
-            
-            // TODO: Open the linting UI to show detailed results
+            // The lintingEngineContainer will handle validation internally
+            // It already knows how to get the active file and will show notices with results
+            await (this.lintingEngineContainer as any).handleRunValidation();
         } catch (error) {
             console.error('Error validating file:', error);
             new Notice('Error validating file');
