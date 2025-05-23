@@ -47,6 +47,11 @@ export class BaseModal extends Modal implements IModal {
     if (this.modalContent) {
       this.updateContentElement(this.modalContent);
     }
+    
+    // Call onCreateContent if it exists on the subclass
+    if (typeof (this as any).onCreateContent === 'function') {
+      (this as any).onCreateContent();
+    }
   }
   
   /**

@@ -38,6 +38,7 @@ export interface DreamMetricsSettings {
         maxBackups: number;
     };
     linting?: LintingSettings;
+    metricsVersion?: string;
 }
 
 export interface DreamMetricData {

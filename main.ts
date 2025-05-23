@@ -43,7 +43,6 @@ import { TimeFilterManager } from './src/timeFilters';
 import { DreamMetricsState } from './src/state/DreamMetricsState';
 import { DateNavigatorView, DATE_NAVIGATOR_VIEW_TYPE } from './src/dom/DateNavigatorView';
 import { DateNavigatorModal, NavigatorViewMode } from './src/dom/DateNavigatorModal';
-import { TestRunner, registerMetricsProcessorTests, registerDirectMetricsTests, registerHelperTests } from './src/testing';
 import { MetricsProcessor } from './src/metrics';
 
 // Move this to the top of the file, before any functions that use it
@@ -495,6 +494,9 @@ export default class DreamMetricsPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
         
+        // Handle version checks and migrations
+        this.handleVersionMigration();
+        
         // Initialize our plugin API adapter (dependency injection)
         this.pluginApi = new PluginAdapter(this);
         
@@ -582,7 +584,8 @@ export default class DreamMetricsPlugin extends Plugin {
                     maxSize: this.settings.logging?.maxLogSize,
                     maxBackups: this.settings.logging?.maxBackups,
                 },
-                linting: this.settings.linting || DEFAULT_LINTING_SETTINGS
+                linting: this.settings.linting || DEFAULT_LINTING_SETTINGS,
+                version: this.settings.metricsVersion || '1.0.0'
             };
             
             // Initialize the state with adapted settings
@@ -649,140 +652,90 @@ export default class DreamMetricsPlugin extends Plugin {
      * Register all plugin commands using the command registry
      */
     private registerCommands(): void {
-        // Register the main command to open the Dream Journal Manager
-        this.commandRegistry.register({
-            id: 'open-oneirometrics-modal',
-            name: 'Open Dream Journal Manager',
-            callback: () => {
-                new DreamJournalManager(this.app, this).open();
-            }
-        });
-        
-        // Add command to open dream scrape tab
-        this.commandRegistry.register({
-            id: 'open-dream-scrape',
-            name: 'Open Dream Scrape Tool',
-            callback: () => {
-                new DreamJournalManager(this.app, this, 'dream-scrape').open();
-            }
-        });
-
-        // Add command for journal structure
-        this.commandRegistry.register({
-            id: 'open-journal-structure',
-            name: 'Open Journal Structure Settings',
-            callback: () => {
-                new DreamJournalManager(this.app, this, 'journal-structure').open();
-            }
-        });
-
-        // Add command to open settings
-        this.commandRegistry.register({
-            id: 'open-oneirometrics-settings',
-            name: 'Open OneiroMetrics Settings',
-            callback: () => {
-                (this.app as any).setting.open();
-                (this.app as any).setting.openTabById('oneirometrics');
-            }
-        });
-
-        // Add command to open metrics note
-        this.commandRegistry.register({
-            id: 'open-metrics-note',
-            name: 'Open Metrics Note',
-            callback: () => {
-                const file = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
-                if (file instanceof TFile) {
-                    this.app.workspace.openLinkText(this.settings.projectNote, '', true);
-                } else {
-                    new Notice('Metrics note not found. Please set the path in settings.');
-                    // Open settings to the OneiroMetrics tab
-                    (this.app as any).setting.open('oneirometrics');
+        this.commandRegistry.registerAll([
+            {
+                id: 'open-oneirometrics-modal',
+                name: 'Open OneiroMetrics Dream Scrape Modal',
+                callback: () => {
+                    const modal = new OneiroMetricsModal(this.app, this);
+                    modal.open();
+                }
+            },
+            {
+                id: 'scrape-metrics',
+                name: 'Scrape Dream Metrics',
+                callback: () => this.scrapeMetrics()
+            },
+            {
+                id: 'insert-template',
+                name: 'Insert Dream Journal Template',
+                editorCallback: (editor) => this.insertTemplate(editor)
+            },
+            {
+                id: 'open-template-wizard',
+                name: 'Create Dream Journal Template',
+                callback: () => {
+                    const wizard = new TemplateWizard(this.app, this, this.templaterIntegration);
+                    wizard.open();
+                }
+            },
+            {
+                id: 'validate-current-file',
+                name: 'Validate Current Dream Journal File',
+                callback: () => this.validateCurrentFile()
+            },
+            {
+                id: 'open-journal-manager',
+                name: 'Open Dream Journal Manager',
+                callback: () => {
+                    if (this.dreamJournalManager) {
+                        this.dreamJournalManager.open();
+                    }
+                }
+            },
+            {
+                id: 'open-custom-date-filter',
+                name: 'Open Custom Date Filter',
+                callback: () => openCustomRangeModal(this.app)
+            },
+            {
+                id: 'open-date-navigator',
+                name: 'Open Date Navigator',
+                callback: () => {
+                    if (this.dateNavigator) {
+                        this.dateNavigator.showDateNavigator();
+                    }
+                }
+            },
+            {
+                id: 'expand-all-content-sections',
+                name: 'Expand All Dream Content Sections',
+                callback: () => {
+                    const activeLeaf = this.app.workspace.activeLeaf;
+                    if (activeLeaf) {
+                        const view = activeLeaf.view;
+                        if (view instanceof MarkdownView && view.getMode() === 'preview') {
+                            const previewEl = view.previewMode.containerEl;
+                            expandAllContentSections(previewEl);
+                        }
+                    }
                 }
             }
-        });
-
-        // Add command to scrape metrics
-        this.commandRegistry.register({
-            id: 'scrape-metrics',
-            name: 'Scrape Metrics',
-            callback: () => this.scrapeMetrics()
-        });
-
-        // Add command to copy console logs
-        this.commandRegistry.register({
-            id: 'copy-console-logs',
-            name: 'Copy Console Logs to Debug File',
-            callback: () => this.copyConsoleLogs()
-        });
+        ]);
         
-        // Add commands for log management
-        this.commandRegistry.register({
-            id: 'clear-debug-log',
-            name: 'Clear Debug Log',
-            callback: () => this.clearDebugLog()
-        });
-
-        this.commandRegistry.register({
-            id: 'backup-debug-log',
-            name: 'Backup Debug Log',
-            callback: () => this.backupDebugLog()
-        });
-
-        // Add journal structure validation commands
-        this.commandRegistry.register({
-            id: 'validate-dream-journal',
-            name: 'Validate Dream Journal Structure',
-            callback: () => this.validateCurrentFile()
-        });
-        
-        this.commandRegistry.register({
-            id: 'open-validation-test',
-            name: 'Open Validation Test Modal',
-            callback: () => new TestModal(this.app, this).open()
-        });
-        
-        this.commandRegistry.register({
-            id: 'create-journal-template',
-            name: 'Create Journal Template',
-            callback: () => new TemplateWizard(this.app, this, this.templaterIntegration).open()
-        });
-        
-        // Register command to insert dream journal template
-        this.commandRegistry.register({
-            id: 'insert-journal-template',
-            name: 'Insert Journal Template',
-            editorCallback: (editor: Editor, view: MarkdownView) => {
-                this.insertTemplate(editor);
-            }
-        });
-        
-        // Register DateNavigator command
-        this.commandRegistry.register({
-            id: 'open-date-navigator',
-            name: 'Open Date Navigator',
-            callback: () => {
-                this.dateNavigator.showDateNavigator();
-            }
-        });
-
-        // Add command to run metrics tests
-        this.commandRegistry.register({
-            id: 'run-metrics-tests',
-            name: 'Run Metrics Module Tests',
-            callback: () => this.runMetricsTests()
-        });
-        
-        // Add command to toggle active file only mode
-        this.commandRegistry.register({
-            id: 'toggle-active-file-only',
-            name: 'Toggle Active File Only Mode',
-            callback: () => {
-                this.onlyActiveFile = !this.onlyActiveFile;
-                this.logger.log('Filter', `Toggled Active File Only mode to ${this.onlyActiveFile}`);
-                this.validateCurrentFile();
-            }
-        });
+        // Run tests command - only available in development mode
+        if (process.env.NODE_ENV === 'development') {
+            // Add the TestRunnerModal command
+            this.commandRegistry.register({
+                id: 'open-test-runner',
+                name: 'Open Test Runner Modal',
+                callback: () => {
+                    const { TestRunnerModal } = require('./src/dom/modals');
+                    const modal = new TestRunnerModal(this.app, this.pluginApi);
+                    modal.open();
+                }
+            });
+        }
     }
 
     /**
@@ -999,6 +952,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 maxLogSize: 5242880,
                 maxBackups: 5,
             },
+            metricsVersion: '1.0.0', // Initial version
         };
         const savedData = await this.loadData();
 
@@ -1043,6 +997,14 @@ export default class DreamMetricsPlugin extends Plugin {
         } else {
             // Ensure all linting fields are present by merging with defaults
             this.settings.linting = { ...DEFAULT_LINTING_SETTINGS, ...this.settings.linting };
+        }
+
+        // Ensure we have a version field (handles migration from old state)
+        if (!this.settings.metricsVersion) {
+            this.settings.metricsVersion = '1.0.0';
+            // Save the updated settings with version field
+            await this.saveData(this.settings);
+            console.log(`[OOM][Settings][INFO][${now}] Added version field to settings: ${this.settings.metricsVersion}`);
         }
 
         // --- In onload() of DreamMetricsPlugin, after loading settings ---
@@ -2911,28 +2873,49 @@ Applied: ${new Date().toLocaleTimeString()}`;
     }
 
     /**
-     * Run tests for the metrics module
+     * Handle version checking and migrations between versions
+     * This ensures smooth upgrades when the plugin structure changes
      */
-    async runMetricsTests() {
-        console.log('[OneiroMetrics] Running metrics tests...');
+    private handleVersionMigration(): void {
+        const currentVersion = this.settings.metricsVersion || '1.0.0';
+        console.log(`[OOM][Migration] Current plugin state version: ${currentVersion}`);
         
-        // Create a new test runner
-        const testRunner = new TestRunner();
+        // Perform migration steps based on version
+        // In the future, add migration logic here when the state schema changes
+        // Example:
+        // if (this.isVersionLessThan(currentVersion, '1.1.0')) {
+        //     this.migrateFrom_1_0_0_to_1_1_0();
+        // }
         
-        // Register metrics processor tests
-        registerMetricsProcessorTests(testRunner, this.settings.metrics);
+        // Always ensure version is set to the latest
+        const latestVersion = '1.0.0';
+        if (currentVersion !== latestVersion) {
+            this.settings.metricsVersion = latestVersion;
+            this.saveSettings().then(() => {
+                console.log(`[OOM][Migration] Updated version to ${latestVersion}`);
+            });
+        }
+    }
+    
+    /**
+     * Compare version strings (semantic versioning)
+     * @param version1 First version string (e.g., "1.0.0")
+     * @param version2 Second version string (e.g., "1.1.0") 
+     * @returns true if version1 is less than version2
+     */
+    private isVersionLessThan(version1: string, version2: string): boolean {
+        const v1Parts = version1.split('.').map(Number);
+        const v2Parts = version2.split('.').map(Number);
         
-        // Register direct tests that don't rely on the implementation
-        registerDirectMetricsTests(testRunner);
+        for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+            const v1Part = v1Parts[i] || 0;
+            const v2Part = v2Parts[i] || 0;
+            
+            if (v1Part < v2Part) return true;
+            if (v1Part > v2Part) return false;
+        }
         
-        // Register helper tests
-        registerHelperTests(testRunner, this.settings.metrics);
-        
-        // Run the tests
-        await testRunner.runTests();
-        
-        // Show results in a modal
-        testRunner.showResultsModal(this.app);
+        return false; // Versions are equal
     }
 }
 

@@ -121,6 +121,10 @@ export interface ExpandableContentOptions {
     expandedButtonText?: string;
     collapsedButtonText?: string;
     headerContent?: string | HTMLElement;
+    id?: string;
+    title?: string;
+    subtitle?: string;
+    icon?: string;
 }
 
 /**

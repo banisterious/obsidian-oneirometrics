@@ -116,7 +116,7 @@ export class MetricsTableContainer {
       });
     });
     
-    this.events.on('filter:applied', (filter: FilterCriteria) => {
+    this.events.on('filter:applied' as any, (filter: FilterCriteria) => {
       // Apply filter logic here
       const filteredEntries = this.applyFilter(this.state.getDreamEntries(), filter);
       this.updateEntries(filteredEntries);

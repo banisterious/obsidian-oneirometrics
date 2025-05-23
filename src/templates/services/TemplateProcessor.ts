@@ -1,4 +1,4 @@
-import { App, Notice, TFile } from 'obsidian';
+import { App, Notice, TFile, TFolder } from 'obsidian';
 import { ITemplateProcessor } from '../interfaces';
 import { JournalTemplate, TemplaterVariable } from '../types';
 
@@ -12,7 +12,8 @@ export class TemplateProcessor implements ITemplateProcessor {
    * Check if Templater plugin is installed and enabled
    */
   isTemplaterAvailable(): boolean {
-    return this.app.plugins.plugins['templater-obsidian'] !== undefined;
+    // Use any type to access plugins property safely
+    return (this.app as any).plugins?.plugins['templater-obsidian'] !== undefined;
   }
   
   /**
@@ -24,7 +25,8 @@ export class TemplateProcessor implements ITemplateProcessor {
     }
     
     try {
-      const templaterPlugin = this.app.plugins.plugins['templater-obsidian'];
+      // Use any type to access plugins property safely
+      const templaterPlugin = (this.app as any).plugins.plugins['templater-obsidian'];
       const templateFolder = templaterPlugin.settings.template_folder;
       
       if (!templateFolder) {
@@ -48,17 +50,19 @@ export class TemplateProcessor implements ITemplateProcessor {
   private getTemplateFilesInFolder(folderPath: string, results: string[]): void {
     const folder = this.app.vault.getAbstractFileByPath(folderPath);
     
-    if (!folder || folder instanceof TFile) {
+    if (!folder || !(folder instanceof TFolder)) {
       return;
     }
     
     // Iterate through children
-    for (const child of folder.children) {
+    // Cast to TFolder to use the children property safely
+    const folderChildren = (folder as TFolder).children || [];
+    for (const child of folderChildren) {
       if (child instanceof TFile) {
         if (child.extension === 'md') {
           results.push(child.path);
         }
-      } else {
+      } else if (child instanceof TFolder) {
         this.getTemplateFilesInFolder(child.path, results);
       }
     }
@@ -268,17 +272,23 @@ export class TemplateProcessor implements ITemplateProcessor {
         return { content: '', staticContent: '' };
       }
       
-      // Get template content from cache
-      const cachedContent = this.app.metadataCache.getFileCache(file)?.content || '';
+      // Read the file content directly from vault instead of using metadata cache
+      let content = '';
+      try {
+        // Read file content synchronously (we're already in a try/catch block)
+        content = this.app.vault.read(file as TFile) as unknown as string;
+      } catch (e) {
+        console.error('[OneiroMetrics] Error reading template file:', e);
+      }
       
       // Convert to static content if it has Templater syntax
-      const hasTemplater = this.hasTemplaterSyntax(cachedContent);
+      const hasTemplater = this.hasTemplaterSyntax(content);
       const staticContent = hasTemplater 
-        ? this.convertToStaticTemplate(cachedContent)
-        : cachedContent;
+        ? this.convertToStaticTemplate(content)
+        : content;
       
       return {
-        content: cachedContent,
+        content: content,
         staticContent: staticContent
       };
     } catch (error) {

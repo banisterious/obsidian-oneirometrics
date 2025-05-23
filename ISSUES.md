@@ -223,7 +223,7 @@
    - Progress: Major UI and logic restoration underway. Dismissible note, two-column layout, helper text, and progress bar have been added. Folder autocomplete and layout refinements are in progress.
    - Remaining: Folder autocomplete not visible/working, section order/layout needs adjustment, progress bar label/placement, and two-column alignment. Modal dimensions under review.
    - Next Steps: Complete layout fixes, ensure all autocompletes work, finalize progress bar, and polish for release.
-   - Status: �� In Progress
+   - Status: 🚧 In Progress
 
 6. **Settings Redirection Bug**
    - Issue: When no note is defined in Settings > OneiroMetrics Note, and the user clicks "Scrape" and then "View Metrics", they are taken to Obsidian Settings instead of OneiroMetrics Settings.
@@ -239,6 +239,12 @@
    - Investigation: Initial fixes have improved the clickable favorites functionality and removed the dropdown
    - Next Steps: Defer fixes until after Month view feature implementation, which may provide alternative date selection approaches
    - Status: 🚧 Identified, Deferred
+
+8. **Persistent "Filtering entries..." Message**
+   - Issue: A "Filtering entries... [percentage]" message appears in the upper right corner during scraping and persists throughout the Obsidian session until the application is reloaded.
+   - Investigation: Likely caused by a UI notification that isn't properly being removed after the filtering operation completes.
+   - Next Steps: Identify where the notification is created and ensure it's properly removed when the operation completes.
+   - Status: 🐛 Open
 
 ## Future Features
 

@@ -1,6 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, TFile, TFolder } from 'obsidian';
 import { DreamMetricsSettings, LogLevel } from '../types';
 import { LoggingAdapter } from '../logging';
+import { IErrorHandlingService } from '../logging/IErrorHandlingService';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { StateAdapter } from '../state/adapters';
 import { IFileOperations } from '../file-operations/interfaces/IFileOperations';
@@ -48,6 +49,12 @@ export interface IPluginAPI {
      * Logging
      */
     getLogger(): LoggingAdapter;
+    
+    /**
+     * Error handling
+     * @returns The error handling service
+     */
+    getErrorHandler(): IErrorHandlingService;
     
     /**
      * Utility functions

@@ -95,42 +95,7 @@ export class DreamJournalManagerContainer {
         };
         
         // Create props for view
-        const props: DreamJournalManagerProps = {
-            activeTab: this.activeTab,
-            
-            // Dashboard props
-            quickActions: this.getQuickActions(),
-            recentActivities: this.getRecentActivities(),
-            statusItems: this.getStatusItems(),
-            
-            // Dream Scrape props
-            selectionMode: this.selectionMode,
-            selectedNotes: this.selectedNotes,
-            selectedFolder: this.selectedFolder,
-            scrapeProgress: {
-                current: 0,
-                total: 0,
-                message: 'Ready',
-                isActive: false
-            },
-            isScraping: this.isScraping,
-            hasScraped: this.hasScraped,
-            
-            // Journal Structure props
-            lintingSettings: this.plugin.settings.linting || this.getDefaultLintingSettings(),
-            
-            // Templates props
-            templates: this.plugin.settings.templates || [],
-            
-            // Content isolation props
-            contentIsolationSettings: this.plugin.settings.contentIsolation || {
-                enabled: true,
-                callouts: []
-            },
-            
-            // UI customization props
-            customCss: this.plugin.settings.customCss || ''
-        };
+        const props: DreamJournalManagerProps = this.getProps();
         
         // Create view
         this.view = new DreamJournalManagerView(props, callbacks);
@@ -241,12 +206,12 @@ export class DreamJournalManagerContainer {
             {
                 id: 'templates',
                 label: 'Templates',
-                value: `${this.plugin.settings.templates?.length || 0} templates defined`
+                value: `${(this.plugin.settings as any).templates?.length || 0} templates defined`
             },
             {
                 id: 'structures',
                 label: 'Structures',
-                value: `${this.plugin.settings.contentIsolation?.callouts?.length || 0} structures defined`
+                value: `${(this.plugin.settings as any).contentIsolation?.callouts?.length || 0} structures defined`
             },
             {
                 id: 'validation',
@@ -262,8 +227,22 @@ export class DreamJournalManagerContainer {
     private getDefaultLintingSettings(): LintingSettings {
         return {
             enabled: true,
-            rules: []
-        };
+            rules: [],
+            structures: [],
+            templates: [],
+            templaterIntegration: {
+                enabled: false,
+                folderPath: '',
+                defaultTemplate: ''
+            },
+            contentIsolation: {
+                enabled: true,
+                callouts: []
+            },
+            userInterface: {
+                showWarnings: true
+            }
+        } as unknown as LintingSettings;
     }
     
     /**
@@ -328,46 +307,43 @@ export class DreamJournalManagerContainer {
      * Handle start scrape
      */
     private handleStartScrape(): void {
+        if (this.isScraping) {
+            return;
+        }
+        
         this.isScraping = true;
-        this.hasScraped = false;
+        this.view.update({ isScraping: true });
         
-        this.view.update({ 
-            isScraping: true,
-            hasScraped: false,
-            scrapeProgress: {
-                current: 0,
-                total: 1,
-                message: 'Preparing to scrape...',
-                isActive: true
-            }
-        });
-        
-        // In a real implementation, this would trigger the plugin's scrape functionality
-        // For now, simulate the scraping process
-        setTimeout(() => {
-            // Start the plugin's scrape process, which would call updateProgress during execution
-            this.plugin.startScrapeProcess();
-        }, 100);
+        // Call the main plugin to start scraping
+        // This is just a simulation for now
+        if (this.plugin) {
+            (this.plugin as any).startScrapeProcess();
+        } else {
+            // Simulate scraping
+            setTimeout(() => {
+                this.isScraping = false;
+                this.hasScraped = true;
+                this.view.update({ 
+                    isScraping: false,
+                    hasScraped: true
+                });
+            }, 2000);
+        }
     }
     
     /**
      * Handle cancel scrape
      */
     private handleCancelScrape(): void {
+        if (!this.isScraping) {
+            return;
+        }
+        
+        // Call the main plugin to cancel scraping
+        (this.plugin as any).cancelScrapeProcess();
+        
         this.isScraping = false;
-        
-        this.view.update({ 
-            isScraping: false,
-            scrapeProgress: {
-                current: 0,
-                total: 0,
-                message: 'Scraping cancelled',
-                isActive: false
-            }
-        });
-        
-        // In a real implementation, this would cancel the plugin's scrape functionality
-        this.plugin.cancelScrapeProcess();
+        this.view.update({ isScraping: false });
     }
     
     /**
@@ -394,15 +370,16 @@ export class DreamJournalManagerContainer {
      * Handle linting settings change
      */
     private handleLintingSettingsChange(settings: Partial<LintingSettings>): void {
-        this.plugin.settings.linting = {
+        (this.plugin.settings.linting as any) = {
             ...this.plugin.settings.linting,
-            ...settings
+            ...settings,
+            enabled: settings.enabled ?? (this.plugin.settings.linting?.enabled || false)
         };
+        
         this.plugin.saveSettings();
         
-        this.view.update({ 
-            lintingSettings: this.plugin.settings.linting,
-            statusItems: this.getStatusItems()
+        this.view.update({
+            lintingSettings: this.plugin.settings.linting
         });
     }
     
@@ -438,15 +415,15 @@ export class DreamJournalManagerContainer {
      * Handle content isolation settings change
      */
     private handleContentIsolationSettingsChange(settings: Partial<ContentIsolationSettings>): void {
-        this.plugin.settings.contentIsolation = {
-            ...this.plugin.settings.contentIsolation,
+        (this.plugin.settings as any).contentIsolation = {
+            ...(this.plugin.settings as any).contentIsolation,
             ...settings
         };
+        
         this.plugin.saveSettings();
         
-        this.view.update({ 
-            contentIsolationSettings: this.plugin.settings.contentIsolation,
-            statusItems: this.getStatusItems()
+        this.view.update({
+            contentIsolationSettings: (this.plugin.settings as any).contentIsolation,
         });
     }
     
@@ -454,11 +431,11 @@ export class DreamJournalManagerContainer {
      * Handle custom CSS change
      */
     private handleCustomCssChange(css: string): void {
-        this.plugin.settings.customCss = css;
+        (this.plugin.settings as any).customCss = css;
         this.plugin.saveSettings();
         
-        this.view.update({ 
-            customCss: css 
+        this.view.update({
+            customCss: css
         });
     }
     
@@ -486,5 +463,45 @@ export class DreamJournalManagerContainer {
                 hasScraped: true
             });
         }
+    }
+    
+    private getProps(): DreamJournalManagerProps {
+        return {
+            // General props
+            activeTab: this.activeTab,
+            quickActions: this.getQuickActions(),
+            recentActivities: this.getRecentActivities(),
+            statusItems: this.getStatusItems(),
+            
+            // Selection props
+            selectionMode: this.selectionMode,
+            selectedNotes: this.selectedNotes,
+            selectedFolder: this.selectedFolder,
+            
+            // Scraping props
+            isScraping: this.isScraping,
+            hasScraped: this.hasScraped,
+            scrapeProgress: {
+                current: 0,
+                total: 0,
+                message: 'Ready',
+                isActive: false
+            },
+            
+            // Linting props
+            lintingSettings: this.plugin.settings.linting || this.getDefaultLintingSettings(),
+            
+            // Templates props
+            templates: (this.plugin.settings as any).templates || [],
+            
+            // Content isolation props
+            contentIsolationSettings: (this.plugin.settings as any).contentIsolation || {
+                enabled: true,
+                callouts: []
+            },
+            
+            // UI customization props
+            customCss: (this.plugin.settings as any).customCss || ''
+        };
     }
 } 

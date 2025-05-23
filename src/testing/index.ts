@@ -2,4 +2,7 @@ export * from './TestRunner';
 export * from './MetricsTests';
 export * from './DirectMetricsTest';
 export * from './MetricsTestHelper';
-export * from './TestWithHelper'; 
+export * from './TestWithHelper';
+export * from './ErrorHandlingTests';
+export * from './PluginAPITests';
+export * from './FileOperationsTests'; 

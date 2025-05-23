@@ -47,6 +47,13 @@ export class ExpandableContentContainer {
     }
 
     /**
+     * Alias for destroy() to maintain compatibility
+     */
+    public cleanup(): void {
+        this.destroy();
+    }
+
+    /**
      * Update component with new content or options
      */
     public update(options: Partial<ExpandableContentOptions>): void {
@@ -69,6 +76,22 @@ export class ExpandableContentContainer {
         
         // Update view
         this.view.update(this.getViewProps());
+    }
+
+    /**
+     * Set the content of the expandable container
+     * @param content The new content
+     */
+    public setContent(content: string | HTMLElement): void {
+        let contentStr = '';
+        
+        if (typeof content === 'string') {
+            contentStr = content;
+        } else if (content instanceof HTMLElement) {
+            contentStr = content.outerHTML;
+        }
+        
+        this.update({ content: contentStr });
     }
 
     /**

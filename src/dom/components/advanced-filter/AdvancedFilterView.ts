@@ -7,7 +7,8 @@ import {
   FilterCondition,
   FilterFieldType,
   FilterOperator,
-  LogicalOperator
+  LogicalOperator,
+  FilterPreset
 } from './AdvancedFilterTypes';
 
 /**
@@ -118,14 +119,13 @@ export class AdvancedFilterView extends BaseComponent {
     // Create expandable container
     const app = (window as any).app;
     this.expandablePresets = new ExpandableContentContainer(
-      app,
       this.presetsContainer,
       {
         id: 'filter-presets',
         title: 'Saved Filters',
         subtitle: `${this.props.presets.length} presets available`,
-        isExpanded: false,
-        content: presetsContent,
+        initiallyExpanded: false,
+        content: presetsContent.innerHTML,
         icon: 'oom-icon-preset'
       }
     );
@@ -385,34 +385,39 @@ export class AdvancedFilterView extends BaseComponent {
     parentGroup: FilterGroup,
     conditionIndex: number
   ): void {
-    const conditionEl = container.createDiv({ 
-      cls: `oom-filter-condition ${!condition.enabled ? 'oom-filter-condition--disabled' : ''}`
-    });
+    // Create condition container
+    const conditionEl = container.createDiv({ cls: 'oom-filter-condition' });
     
     // Field selector
-    const fieldContainer = conditionEl.createDiv({ cls: 'oom-filter-field' });
+    const fieldContainer = conditionEl.createDiv({ cls: 'oom-filter-condition-field' });
     const fieldSelect = fieldContainer.createEl('select', { cls: 'oom-filter-field-select' });
     
-    // Add regular fields
-    const fieldsGroup = fieldSelect.createEl('optgroup', { label: 'Fields' });
-    Object.entries(this.props.availableFields).forEach(([key, field]) => {
-      fieldsGroup.createEl('option', { 
-        text: field.name, 
-        value: key 
+    // Create option groups for categorizing fields
+    const fieldsGroup = fieldSelect.createEl('optgroup');
+    fieldsGroup.setAttribute('label', 'Fields');
+    
+    // Add field options
+    Object.keys(this.props.availableFields).forEach(field => {
+      const option = fieldsGroup.createEl('option', {
+        text: this.props.availableFields[field].name,
+        value: field
       });
+      option.selected = condition.field === field;
     });
     
-    // Add metrics fields
-    const metricsGroup = fieldSelect.createEl('optgroup', { label: 'Metrics' });
-    Object.entries(this.props.availableMetrics).forEach(([key, metric]) => {
-      metricsGroup.createEl('option', { 
-        text: metric.name, 
-        value: `metric:${key}` 
+    // Add metrics options if available
+    if (Object.keys(this.props.availableMetrics).length > 0) {
+      const metricsGroup = fieldSelect.createEl('optgroup');
+      metricsGroup.setAttribute('label', 'Metrics');
+      
+      Object.keys(this.props.availableMetrics).forEach(metric => {
+        const option = metricsGroup.createEl('option', {
+          text: this.props.availableMetrics[metric].name,
+          value: `metric:${metric}`
+        });
+        option.selected = condition.field === `metric:${metric}`;
       });
-    });
-    
-    // Set selected field
-    fieldSelect.value = condition.field;
+    }
     
     // Operator selector
     const operatorContainer = conditionEl.createDiv({ cls: 'oom-filter-operator' });
@@ -424,10 +429,8 @@ export class AdvancedFilterView extends BaseComponent {
     // Set selected operator
     operatorSelect.value = condition.operator;
     
-    // Value input area
-    const valueContainer = conditionEl.createDiv({ cls: 'oom-filter-value' });
-    
-    // Create appropriate value input based on field type and operator
+    // Value input container
+    const valueContainer = conditionEl.createDiv({ cls: 'oom-filter-condition-value' });
     this.createValueInput(valueContainer, condition);
     
     // Enable/disable checkbox
@@ -592,11 +595,9 @@ export class AdvancedFilterView extends BaseComponent {
   }
   
   /**
-   * Create appropriate value input based on condition
-   * @param container Container element
-   * @param condition Filter condition
+   * Create appropriate input based on field type and operator
    */
-  private createValueInput(container: HTMLElement, condition: Partial<FilterCondition>): void {
+  private createValueInput(container: HTMLElement, condition: any): void {
     const fieldType = condition.fieldType;
     const operator = condition.operator;
     
@@ -868,42 +869,32 @@ export class AdvancedFilterView extends BaseComponent {
    * Show dialog to save the current filter as a preset
    */
   private showSavePresetDialog(): void {
-    if (!this.containerEl) return;
+    // Create modal
+    const modal = new (window as any).app.Modal();
+    modal.titleEl.setText('Save Filter Preset');
+    modal.contentEl.addClass('oom-save-preset-modal');
     
-    // Create modal container
-    const modalOverlay = document.createElement('div');
-    modalOverlay.addClass('oom-modal-overlay');
+    // Name container
+    const nameContainer = modal.contentEl.createDiv({ cls: 'oom-preset-name-container' });
+    const nameLabel = nameContainer.createEl('label', { text: 'Preset Name:' });
+    nameLabel.setAttribute('for', 'preset-name');
     
-    const modal = modalOverlay.createDiv({ cls: 'oom-modal oom-save-preset-modal' });
-    
-    // Modal header
-    const header = modal.createDiv({ cls: 'oom-modal-header' });
-    header.createEl('h3', { text: 'Save Filter Preset', cls: 'oom-modal-title' });
-    
-    const closeButton = header.createEl('button', { cls: 'oom-modal-close' });
-    closeButton.innerHTML = '&times;';
-    
-    // Modal content
-    const content = modal.createDiv({ cls: 'oom-modal-content' });
-    
-    // Name field
-    const nameContainer = content.createDiv({ cls: 'oom-form-group' });
-    nameContainer.createEl('label', { text: 'Preset Name:', for: 'preset-name' });
-    const nameInput = nameContainer.createEl('input', {
-      type: 'text',
-      cls: 'oom-input',
-      placeholder: 'Enter a name for this preset',
-      id: 'preset-name'
+    const nameInput = nameContainer.createEl('input', { 
+      cls: 'oom-preset-name-input',
+      type: 'text'
     });
+    nameInput.setAttribute('id', 'preset-name');
+    nameInput.focus();
     
-    // Description field
-    const descContainer = content.createDiv({ cls: 'oom-form-group' });
-    descContainer.createEl('label', { text: 'Description (optional):', for: 'preset-desc' });
-    const descInput = descContainer.createEl('textarea', {
-      cls: 'oom-textarea',
-      placeholder: 'Enter a description for this preset',
-      id: 'preset-desc'
+    // Description container
+    const descContainer = modal.contentEl.createDiv({ cls: 'oom-preset-desc-container' });
+    const descLabel = descContainer.createEl('label', { text: 'Description (optional):' });
+    descLabel.setAttribute('for', 'preset-desc');
+    
+    const descInput = descContainer.createEl('textarea', { 
+      cls: 'oom-preset-desc-input'
     });
+    descInput.setAttribute('id', 'preset-desc');
     
     // Modal footer
     const footer = modal.createDiv({ cls: 'oom-modal-footer' });
@@ -918,20 +909,16 @@ export class AdvancedFilterView extends BaseComponent {
       cls: 'oom-button oom-button--primary'
     });
     
-    // Initial focus
-    nameInput.focus();
-    
     // Event listeners
     const closeModal = () => {
-      modalOverlay.remove();
+      modal.remove();
     };
     
-    closeButton.addEventListener('click', closeModal);
     cancelButton.addEventListener('click', closeModal);
     
     // Handle click outside modal
-    modalOverlay.addEventListener('click', e => {
-      if (e.target === modalOverlay) {
+    modal.addEventListener('click', (e: MouseEvent) => {
+      if (e.target === modal) {
         closeModal();
       }
     });
@@ -961,9 +948,6 @@ export class AdvancedFilterView extends BaseComponent {
       // Close modal
       closeModal();
     });
-    
-    // Add to DOM
-    this.containerEl.appendChild(modalOverlay);
   }
   
   /**

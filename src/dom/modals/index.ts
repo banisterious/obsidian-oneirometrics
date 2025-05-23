@@ -5,12 +5,11 @@
  * Obsidian's Modal class with additional functionality and consistent styling.
  */
 
-// Export interfaces
-export * from './IModal';
+// Export all modal components
+export { BaseModal } from './BaseModal';
+export { ConfirmModal } from './ConfirmModal';
+export { AlertModal } from './AlertModal';
+export { TestRunnerModal } from './TestRunnerModal';
 
-// Export base class
-export * from './BaseModal';
-
-// Export specific modal implementations
-export * from './ConfirmModal';
-export * from './AlertModal'; 
+// Export associated types
+export type { IModal } from './IModal'; 

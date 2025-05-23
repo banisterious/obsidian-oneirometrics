@@ -1,6 +1,8 @@
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import { DreamMetricsSettings, LogLevel } from '../types';
 import { LoggingAdapter } from '../logging';
+import { IErrorHandlingService } from '../logging/IErrorHandlingService';
+import { ErrorHandlingService } from '../logging/ErrorHandlingService';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { IPluginAPI } from './IPluginAPI';
 import { StateAdapter } from '../state/adapters';
@@ -14,6 +16,7 @@ import { FileOperations } from '../file-operations/services/FileOperations';
  */
 export class PluginAdapter implements IPluginAPI {
     private fileOperations: IFileOperations;
+    private errorHandler: IErrorHandlingService;
     
     /**
      * Creates a new PluginAdapter instance.
@@ -21,6 +24,7 @@ export class PluginAdapter implements IPluginAPI {
      */
     constructor(private plugin: any) {
         this.fileOperations = new FileOperations(this.plugin.app);
+        this.errorHandler = new ErrorHandlingService(this.plugin.logger);
     }
     
     /**
@@ -87,6 +91,13 @@ export class PluginAdapter implements IPluginAPI {
      */
     getLogger(): LoggingAdapter {
         return this.plugin.logger;
+    }
+    
+    /**
+     * Get the error handler instance
+     */
+    getErrorHandler(): IErrorHandlingService {
+        return this.errorHandler;
     }
     
     /**
@@ -158,18 +169,26 @@ export class PluginAdapter implements IPluginAPI {
      * @returns A promise that resolves when the file is opened
      */
     async openFile(file: TFile | string, newLeaf?: boolean, leafBehavior?: 'replace' | 'split'): Promise<void> {
-        const app = this.getApp();
-        
-        if (typeof file === 'string') {
-            const tfile = app.vault.getAbstractFileByPath(file);
-            if (tfile instanceof TFile) {
-                await app.workspace.getLeaf(newLeaf).openFile(tfile);
-            } else {
-                throw new Error(`File not found: ${file}`);
-            }
-        } else {
-            await app.workspace.getLeaf(newLeaf).openFile(file);
-        }
+        return this.errorHandler.tryExecute<void>(
+            'PluginAdapter',
+            'openFile',
+            async () => {
+                const app = this.getApp();
+                
+                if (typeof file === 'string') {
+                    const tfile = app.vault.getAbstractFileByPath(file);
+                    if (tfile instanceof TFile) {
+                        await app.workspace.getLeaf(newLeaf).openFile(tfile);
+                    } else {
+                        throw new Error(`File not found: ${file}`);
+                    }
+                } else {
+                    await app.workspace.getLeaf(newLeaf).openFile(file);
+                }
+            },
+            undefined,
+            `Failed to open file: ${typeof file === 'string' ? file : file.path}`
+        );
     }
     
     /**
