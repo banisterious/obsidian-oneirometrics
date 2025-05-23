@@ -59,6 +59,7 @@
   - [Q9: Regression Testing Approach](#q9-regression-testing-approach)
   - [Q10: Documentation Update Plan](#q10-documentation-update-plan)
 - [Conclusion](#conclusion)
+- [Implementation Progress Tracking](#implementation-progress-tracking)
 
 ## Current State Assessment
 
@@ -170,8 +171,9 @@ This approach combines human insight with automated detection while accounting f
   - Metrics processing (`src/metrics/`)
   - Content parsing (`src/parsing/`)
   - File operations (`src/file-operations/`)
-  - Event management (`src/events/`)
-  - Logging system (`src/logging/`)
+  - Event management (`src/events/`) ✅
+  - Logging system (`src/logging/`) ✅
+  - State management (`src/state/`) ✅
 
 #### 2.1.1 Interface Design Implementation
 
@@ -577,129 +579,61 @@ To standardize error handling across components, we will implement error bubblin
      ```
 
 ### 2.2 Reorganize Modal Components
-- Move all modals to the `src/dom/modals/` directory:
-  - `OneiroMetricsModal` → `src/dom/modals/ScrapeModal.ts`
-  - `ConfirmModal` → `src/dom/modals/ConfirmModal.ts`
-  - Any other embedded modals
+- Create dedicated modal components directory
+- Extract common modal functionality
+- Standardize modal interfaces
 
 ### 2.3 Refactor State Management
-- Enhance `DreamMetricsState` with proper reactive state management
-- Implement observer pattern for state changes
-- Create dedicated state slices for different functionality areas
+- Implement the observable pattern for state management
+- Create typed interfaces and base classes for state
+- Reorganize metrics state and UI state
+- Implement state selectors for component-specific state
+- Add state persistence through interfaces
+- Create backwards compatibility adapters
 
 #### 2.3.1 State Management Implementation
 
-To improve the state management architecture, we will enhance the current DreamMetricsState with a more robust observable pattern:
+The state management system has been refactored following the observable pattern with a unidirectional data flow. The implementation includes:
 
-1. **Domain-Specific State Classes**
-   - Create separate state classes for different domains:
-     ```typescript
-     // Base state class with common functionality
-     abstract class BaseState<T> {
-       protected state: T;
-       protected listeners: StateChangeListener<T>[] = [];
-       
-       subscribe(listener: StateChangeListener<T>): () => void {
-         this.listeners.push(listener);
-         return () => this.unsubscribe(listener);
-       }
-       
-       unsubscribe(listener: StateChangeListener<T>): void {
-         this.listeners = this.listeners.filter(l => l !== listener);
-       }
-       
-       protected notify(changes: Partial<T>): void {
-         this.listeners.forEach(listener => listener(changes));
-       }
-     }
-     
-     // Example domain-specific state classes
-     export class MetricsState extends BaseState<MetricsStateData> { ... }
-     export class UIState extends BaseState<UIStateData> { ... }
-     export class SettingsState extends BaseState<PluginSettings> { ... }
-     ```
+1. **Core State Management Interfaces**
+   - `IObservableState`: Base interface for subscribing to state changes
+   - `IMutableState`: Interface for updating state
+   - `IPersistableState`: Interface for serializing and deserializing state
+   - `IStateSelector`: Interface for selecting specific parts of state
+   - `IStateDispatcher`: Interface for action-based state changes
 
-2. **Observable Pattern Implementation**
-   - Implement a common base observable pattern for all state classes:
-     ```typescript
-     export type StateChangeListener<T> = (changes: Partial<T>) => void;
-     
-     export interface IObservableState<T> {
-       subscribe(listener: StateChangeListener<T>): () => void;
-       unsubscribe(listener: StateChangeListener<T>): void;
-       getState(): Readonly<T>;
-     }
-     ```
+2. **Base State Classes**
+   - `ObservableState`: Base implementation of observer pattern
+   - `MutableState`: Implementation of direct state updates
+   - `PersistableState`: Implementation of state persistence
+   - `StateSelector`: Implementation for watching specific state keys
+   - `StateDispatcher`: Implementation for action-based state updates
 
-3. **Specific State Change Notifications**
-   - Enable subscribing to specific state changes:
-     ```typescript
-     // Select specific parts of state to observe
-     export function selectState<T, K extends keyof T>(
-       state: IObservableState<T>,
-       selector: K | K[],
-       onChange: (selected: Pick<T, K>) => void
-     ): () => void {
-       const listener: StateChangeListener<T> = (changes) => {
-         const keys = Array.isArray(selector) ? selector : [selector];
-         if (keys.some(key => key in changes)) {
-           const selected = keys.reduce((acc, key) => {
-             acc[key] = state.getState()[key];
-             return acc;
-           }, {} as Pick<T, K>);
-           onChange(selected);
-         }
-       };
-       
-       return state.subscribe(listener);
-     }
-     ```
+3. **Metrics-Specific State**
+   - `MetricsState`: Application-specific state with action handlers
+   - `MetricsStateAdapter`: Backward compatibility layer for legacy code
 
-4. **State Persistence**
-   - Add serialization/deserialization for state persistence:
-     ```typescript
-     export interface IPersistableState<T> extends IObservableState<T> {
-       serialize(): string;
-       deserialize(data: string): void;
-     }
-     
-     // Implementation example
-     serialize(): string {
-       return JSON.stringify(this.state);
-     }
-     
-     deserialize(data: string): void {
-       try {
-         const parsed = JSON.parse(data);
-         this.setState(parsed);
-       } catch (e) {
-         console.error("Failed to deserialize state:", e);
-       }
-     }
-     ```
+4. **Directory Structure**
+   ```
+   src/state/
+   ├── StateInterfaces.ts    # Core interfaces for state management
+   ├── ObservableState.ts    # Base observable state implementation
+   ├── MutableState.ts       # State that can be directly modified
+   ├── PersistableState.ts   # State that can be saved/loaded
+   ├── StateSelector.ts      # Component for selecting parts of state
+   ├── StateDispatcher.ts    # Action-based state updates
+   ├── MetricsState.ts       # Application-specific state
+   ├── MetricsStateAdapter.ts # Backward compatibility adapter
+   ├── index.ts              # Public exports
+   ├── StateUsageExample.ts  # Example usage patterns
+   └── README.md             # Documentation
+   ```
 
-5. **Immutable State Access**
-   - Create accessor methods that enforce immutability:
-     ```typescript
-     getState(): Readonly<T> {
-       return Object.freeze({...this.state});
-     }
-     
-     setState(newState: Partial<T>): void {
-       const prevState = {...this.state};
-       this.state = {...this.state, ...newState};
-       this.notify(newState);
-     }
-     
-     // For nested updates with immutability
-     updateNestedState<K extends keyof T>(
-       key: K, 
-       updater: (currentValue: T[K]) => T[K]
-     ): void {
-       const newValue = updater(this.state[key]);
-       this.setState({ [key]: newValue } as Partial<T>);
-     }
-     ```
+5. **Migration to New System**
+   - All new components should use `MetricsState` directly
+   - Legacy components can use `MetricsStateAdapter` during transition
+   - State operations are now tracked through actions for better debugging
+   - Components use selectors to watch specific state portions
 
 ### 2.4 Backward Compatibility Approach
 
@@ -1212,540 +1146,100 @@ This systematic approach will improve maintainability, reduce code duplication, 
 - Implement integration tests for key workflows
 - Add snapshot tests for UI components
 
-#### 5.1.1 Error Handling Testing
-
-As part of our testing strategy, we will specifically address error handling:
-
-1. **Error Propagation Tests**
-   - Verify that errors are properly enriched with context as they bubble up:
-     ```typescript
-     describe('Error handling', () => {
-       it('should enrich errors with context', () => {
-         // Arrange
-         const originalError = new Error('Original error');
-         
-         // Act
-         const enriched = enrichError(originalError, {
-           component: 'TestComponent',
-           operation: 'testOperation'
-         });
-         
-         // Assert
-         expect(enriched.message).toBe('Original error');
-         expect(enriched.context?.component).toBe('TestComponent');
-         expect(enriched.context?.operation).toBe('testOperation');
-         expect(enriched.context?.timestamp).toBeDefined();
-       });
-       
-       it('should wrap errors and preserve stack traces', () => {
-         // Arrange
-         const originalError = new Error('Database error');
-         
-         // Act
-         const wrapped = wrapError(originalError, 'Failed to load metrics', {
-           component: 'MetricsService',
-           operation: 'loadMetrics'
-         });
-         
-         // Assert
-         expect(wrapped.message).toBe('Failed to load metrics');
-         expect(wrapped.originalError).toBe(originalError);
-         expect(wrapped.stack).toContain('Caused by: Error: Database error');
-       });
-     });
-     ```
-
-2. **Error Boundary Tests**
-   - Test that error boundaries properly catch and handle errors:
-     ```typescript
-     describe('ErrorBoundaryComponent', () => {
-       let component: TestErrorBoundary;
-       let loggerSpy: jest.SpyInstance;
-       
-       beforeEach(() => {
-         component = new TestErrorBoundary();
-         loggerSpy = jest.spyOn(LoggerService.getInstance(), 'error');
-       });
-       
-       it('should catch errors and execute fallback', () => {
-         // Arrange
-         const error = new Error('Test error');
-         const throwingOperation = () => { throw error; };
-         const fallback = jest.fn();
-         
-         // Act
-         component.testHandleError(error, fallback);
-         
-         // Assert
-         expect(fallback).toHaveBeenCalled();
-         expect(loggerSpy).toHaveBeenCalledWith('Component error', expect.any(Object));
-       });
-       
-       it('should wrap operations and use fallback on error', () => {
-         // Arrange
-         const throwingOperation = () => { throw new Error('Operation failed'); };
-         const fallback = jest.fn().mockReturnValue('fallback result');
-         
-         // Act
-         const result = component.testWrapOperation('testOp', throwingOperation, fallback);
-         
-         // Assert
-         expect(result).toBe('fallback result');
-         expect(fallback).toHaveBeenCalled();
-         expect(loggerSpy).toHaveBeenCalledWith(
-           'Operation testOp failed',
-           expect.any(Object)
-         );
-       });
-     });
-     ```
-
-3. **Error Type Tests**
-   - Verify custom error types work as expected:
-     ```typescript
-     describe('Custom error types', () => {
-       it('should create ValidationError with details', () => {
-         // Arrange & Act
-         const details = { field: 'date', message: 'Invalid date format' };
-         const error = new ValidationError('Validation failed', details);
-         
-         // Assert
-         expect(error.name).toBe('ValidationError');
-         expect(error.details).toEqual(details);
-       });
-       
-       it('should create ServiceError with service name', () => {
-         // Arrange & Act
-         const error = new ServiceError('Failed to process metrics', 'MetricsService');
-         
-         // Assert
-         expect(error.name).toBe('ServiceError');
-         expect(error.service).toBe('MetricsService');
-       });
-     });
-     ```
-
-4. **Logger Integration Tests**
-   - Test that errors are properly logged with context:
-     ```typescript
-     describe('Logger error handling', () => {
-       let consoleErrorSpy: jest.SpyInstance;
-       let logger: LoggerService;
-       
-       beforeEach(() => {
-         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-         logger = new LoggerService(LogLevel.DEBUG);
-       });
-       
-       afterEach(() => {
-         consoleErrorSpy.mockRestore();
-       });
-       
-       it('should log enriched errors with full context', () => {
-         // Arrange
-         const originalError = new Error('Database connection failed');
-         const enriched = enrichError(originalError, {
-           component: 'DatabaseService',
-           operation: 'connect',
-           metadata: { host: 'localhost', port: 5432 }
-         });
-         
-         // Act
-         logger.error('Failed to initialize database', enriched);
-         
-         // Assert
-         expect(consoleErrorSpy).toHaveBeenCalled();
-         expect(consoleErrorSpy.mock.calls[0][0]).toContain('[ERROR] Failed to initialize database');
-         expect(consoleErrorSpy.mock.calls[0][1]).toContain('Component: DatabaseService');
-       });
-     });
-     ```
-
 ### 5.2 Performance Optimization
-- Measure and improve startup time
-- Optimize rendering performance
-- Reduce memory usage
-
-#### 5.2.1 Performance Monitoring Implementation
-
-To ensure performance during and after refactoring, we will implement a user-focused performance strategy with developer tooling:
-
-1. **Performance-Critical Operations**
-   - Identify key operations that impact user experience:
-     - Journal parsing (especially with large journals)
-     - Metrics calculation (particularly for long time periods)
-     - UI rendering during updates and data filtering
-     - Modal initialization and content loading
-     - Data persistence operations
-
-2. **Timing Measurement Implementation**
-   - Implement simple timing measurements using `performance.now()`:
-     ```typescript
-     export class PerformanceMonitor {
-       private static instance: PerformanceMonitor;
-       private measurements: Record<string, PerformanceMeasurement[]> = {};
-       private isEnabled: boolean = false;
-       
-       static getInstance(): PerformanceMonitor {
-         if (!PerformanceMonitor.instance) {
-           PerformanceMonitor.instance = new PerformanceMonitor();
-         }
-         return PerformanceMonitor.instance;
-       }
-       
-       enable(): void {
-         this.isEnabled = true;
-       }
-       
-       disable(): void {
-         this.isEnabled = false;
-       }
-       
-       startMeasurement(operation: string, metadata?: Record<string, any>): () => void {
-         if (!this.isEnabled) return () => {};
-         
-         const start = performance.now();
-         return () => {
-           const end = performance.now();
-           const duration = end - start;
-           
-           if (!this.measurements[operation]) {
-             this.measurements[operation] = [];
-           }
-           
-           this.measurements[operation].push({
-             timestamp: Date.now(),
-             duration,
-             metadata
-           });
-           
-           // Keep only the last 100 measurements per operation
-           if (this.measurements[operation].length > 100) {
-             this.measurements[operation].shift();
-           }
-           
-           console.debug(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
-         };
-       }
-       
-       getMeasurements(operation?: string): Record<string, PerformanceMeasurement[]> {
-         if (operation) {
-           return { [operation]: this.measurements[operation] || [] };
-         }
-         return {...this.measurements};
-       }
-       
-       getAverageDuration(operation: string): number {
-         const measurements = this.measurements[operation];
-         if (!measurements || measurements.length === 0) {
-           return 0;
-         }
-         
-         const sum = measurements.reduce((acc, m) => acc + m.duration, 0);
-         return sum / measurements.length;
-       }
-       
-       clearMeasurements(operation?: string): void {
-         if (operation) {
-           this.measurements[operation] = [];
-         } else {
-           this.measurements = {};
-         }
-       }
-     }
-     
-     export interface PerformanceMeasurement {
-       timestamp: number;
-       duration: number;
-       metadata?: Record<string, any>;
-     }
-     ```
-
-3. **Developer UI for Performance Metrics**
-   - Create a developer-only UI panel for visualizing performance data:
-     ```typescript
-     export class PerformanceDebugView extends Modal {
-       constructor(app: App) {
-         super(app);
-       }
-       
-       onOpen() {
-         const {contentEl} = this;
-         contentEl.empty();
-         
-         contentEl.createEl('h2', {text: 'Performance Metrics'});
-         
-         const monitor = PerformanceMonitor.getInstance();
-         const measurements = monitor.getMeasurements();
-         
-         // Create operation tabs
-         const tabContainer = contentEl.createEl('div', {cls: 'performance-tabs'});
-         const contentContainer = contentEl.createEl('div', {cls: 'performance-content'});
-         
-         Object.keys(measurements).forEach((operation, index) => {
-           const operationMeasurements = measurements[operation];
-           const avgDuration = monitor.getAverageDuration(operation);
-           
-           // Create tab
-           const tab = tabContainer.createEl('div', {
-             cls: 'performance-tab',
-             text: `${operation} (${avgDuration.toFixed(2)}ms avg)`
-           });
-           
-           // Create content panel
-           const panel = contentContainer.createEl('div', {
-             cls: 'performance-panel'
-           });
-           
-           if (index === 0) {
-             tab.addClass('active');
-             panel.addClass('active');
-           }
-           
-           // Add event listener
-           tab.addEventListener('click', () => {
-             tabContainer.querySelectorAll('.performance-tab').forEach(t => 
-               t.removeClass('active')
-             );
-             contentContainer.querySelectorAll('.performance-panel').forEach(p => 
-               p.removeClass('active')
-             );
-             tab.addClass('active');
-             panel.addClass('active');
-           });
-           
-           // Create table of measurements
-           const table = panel.createEl('table', {cls: 'performance-table'});
-           
-           // Header row
-           const thead = table.createEl('thead');
-           const headerRow = thead.createEl('tr');
-           headerRow.createEl('th', {text: '#'});
-           headerRow.createEl('th', {text: 'Time'});
-           headerRow.createEl('th', {text: 'Duration (ms)'});
-           headerRow.createEl('th', {text: 'Metadata'});
-           
-           // Body rows
-           const tbody = table.createEl('tbody');
-           operationMeasurements.forEach((measurement, idx) => {
-             const row = tbody.createEl('tr');
-             row.createEl('td', {text: String(idx + 1)});
-             row.createEl('td', {
-               text: new Date(measurement.timestamp).toLocaleTimeString()
-             });
-             row.createEl('td', {text: measurement.duration.toFixed(2)});
-             row.createEl('td', {
-               text: measurement.metadata ? 
-                 JSON.stringify(measurement.metadata) : '-'
-             });
-           });
-         });
-       }
-     }
-     ```
-
-4. **Toggleable Performance Logging**
-   - Add a developer setting to enable detailed performance logging:
-     ```typescript
-     // In settings.ts
-     interface DeveloperSettings {
-       enablePerformanceMonitoring: boolean;
-       logPerformanceToConsole: boolean;
-       performanceLogLevel: 'debug' | 'info';
-     }
-     
-     // Usage in plugin
-     if (this.settings.developer.enablePerformanceMonitoring) {
-       PerformanceMonitor.getInstance().enable();
-     }
-     
-     // Add to settings tab
-     new Setting(containerEl)
-       .setName('Enable Performance Monitoring')
-       .setDesc('Track and display performance metrics (developer feature)')
-       .addToggle(toggle => toggle
-         .setValue(this.plugin.settings.developer.enablePerformanceMonitoring)
-         .onChange(async (value) => {
-           this.plugin.settings.developer.enablePerformanceMonitoring = value;
-           await this.plugin.saveSettings();
-           
-           if (value) {
-             PerformanceMonitor.getInstance().enable();
-           } else {
-             PerformanceMonitor.getInstance().disable();
-           }
-         }));
-     ```
-
-5. **Informal Performance Budgets**
-   - Establish guidelines for performance targets:
-     - Journal loading: < 500ms for 100 entries
-     - Metrics calculation: < 1000ms for 1000 entries
-     - UI rendering: < 100ms for updates
-     - Filter operations: < 200ms for applying filters
-     - Plugin initialization: < 300ms
-
-6. **Before/After Comparisons**
-   - Create a process for comparing performance between versions:
-     ```typescript
-     export function comparePerformance(
-       beforeData: Record<string, PerformanceMeasurement[]>,
-       afterData: Record<string, PerformanceMeasurement[]>
-     ): PerformanceComparison {
-       const comparison: PerformanceComparison = {
-         operations: {},
-         summary: {
-           improved: 0,
-           degraded: 0,
-           unchanged: 0
-         }
-       };
-       
-       // Combine all operation keys
-       const operations = new Set([
-         ...Object.keys(beforeData),
-         ...Object.keys(afterData)
-       ]);
-       
-       operations.forEach(operation => {
-         const beforeMeasurements = beforeData[operation] || [];
-         const afterMeasurements = afterData[operation] || [];
-         
-         const beforeAvg = beforeMeasurements.length > 0 ?
-           beforeMeasurements.reduce((sum, m) => sum + m.duration, 0) / 
-           beforeMeasurements.length : 0;
-           
-         const afterAvg = afterMeasurements.length > 0 ?
-           afterMeasurements.reduce((sum, m) => sum + m.duration, 0) / 
-           afterMeasurements.length : 0;
-         
-         const percentChange = beforeAvg > 0 ?
-           ((afterAvg - beforeAvg) / beforeAvg) * 100 : 0;
-         
-         comparison.operations[operation] = {
-           beforeAvg,
-           afterAvg,
-           percentChange,
-           status: percentChange < -5 ? 'improved' :
-                  percentChange > 5 ? 'degraded' : 'unchanged'
-         };
-         
-         comparison.summary[comparison.operations[operation].status]++;
-       });
-       
-       return comparison;
-     }
-     
-     interface PerformanceComparison {
-       operations: Record<string, {
-         beforeAvg: number;
-         afterAvg: number;
-         percentChange: number;
-         status: 'improved' | 'degraded' | 'unchanged';
-       }>;
-       summary: {
-         improved: number;
-         degraded: number;
-         unchanged: number;
-       };
-     }
-     ```
-
-7. **Event System Performance Monitoring**
-   - Add event tracking to monitor propagation delays:
-     ```typescript
-     // Add performance monitoring to EventEmitter
-     emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): void {
-       if (!this.listeners[event]) return;
-       
-       const endMeasurement = PerformanceMonitor.getInstance()
-         .startMeasurement('event:emit', {
-           event: String(event),
-           listenerCount: this.listeners[event]?.length || 0
-         });
-       
-       this.listeners[event]?.forEach(listener => {
-         const endListenerMeasurement = PerformanceMonitor.getInstance()
-           .startMeasurement('event:listener', {
-             event: String(event),
-             listener: listener.name || 'anonymous'
-           });
-           
-         try {
-           listener(payload);
-         } catch (error) {
-           console.error(`Error in event listener for ${String(event)}:`, error);
-         } finally {
-           endListenerMeasurement();
-         }
-       });
-       
-       endMeasurement();
-     }
-     ```
+- Analyze performance bottlenecks
+- Optimize critical path operations
+- Implement progressive loading for large datasets
 
 ### 5.3 Documentation
+- Update API documentation
+- Create architecture diagrams
+- Write migration guides for plugin users
+- Document extension points for future development
 
-```docs/developer/implementation/refactoring-plan-2025.md
-```
+### 5.4 Regression Testing Strategy
+- Create comprehensive test suites
+- Implement automated smoke tests
+- Conduct manual verification of key user workflows
+- Perform cross-validation against the previous version
 
-## Conclusion
+## Implementation Progress Tracking
 
-This refactoring plan provides a structured approach to transforming the OneiroMetrics plugin from a monolithic codebase to a modular, maintainable architecture. By following this plan, we can improve code quality, enable future extensions, and ensure long-term sustainability while preserving the existing user experience.
+This section tracks the implementation progress of the refactoring plan.
 
-The implementation examples demonstrate how specific components will be extracted and restructured, providing concrete guidance for the refactoring process.
+### Phase 1: Complete ✅
+- Created component inventory
+- Defined new architecture
+- Set up testing infrastructure
+- Developed dependency analysis strategy
 
-The decisions made during pre-implementation analysis have been integrated throughout the plan, providing clear direction for:
-- Technical dependency mapping and analysis
-- Backward compatibility and interface stability
-- Feature management during refactoring
-- User impact assessment and communication
-- Component extraction prioritization
-- Testing strategy and requirements
-- Version control approach
-- Documentation maintenance
+### Phase 2: In Progress
+- Extract Core Services (Partial)
+  - Event management system (`src/events/`) ✅
+  - Logging system (`src/logging/`) ✅
+  - State management system (`src/state/`) ✅
+  - Metrics processing (`src/metrics/`)
+  - Content parsing (`src/parsing/`)
+  - File operations (`src/file-operations/`)
+- Reorganize Modal Components
+- Backward Compatibility Approach
 
-This comprehensive approach ensures the refactoring will proceed methodically with appropriate attention to technical quality, user impact, and long-term maintainability. 
+### Phase 3: Not Started
+- Dream Journal Analysis
+- Template System
+- UI Components
+- Data Processing Pipeline
+- CSS Refactoring
+
+### Phase 4: Not Started
+- Rebuild Main Plugin Class
+- Command Registration
+- Settings Management
+
+### Phase 5: Not Started
+- Unit Testing
+- Performance Optimization
+- Documentation
+- Regression Testing
 
 ## Implementation Strategy
 
+### Incremental Approach
+### Modular Structure
+### Testing Guidelines
 ### Version Control Strategy
-
-To manage this large-scale refactoring project effectively, we're following a dedicated branch approach:
-
-1. **Dedicated Refactoring Branch**
-   - Created a long-lived `refactoring/2025` branch for all refactoring work
-   - This branch isolates refactoring changes from the main development branch
-   - All refactoring PRs target this branch, not main
-
-2. **Module-Specific Commits**
-   - Each major module extraction will have its own dedicated commit
-   - Commit messages follow the pattern: "Implement [module] as part of refactoring"
-   - Example: "Implement logging service as first refactoring module"
-
-3. **Integration with Main Branch**
-   - When major milestones are completed, create PRs from `refactoring/2025` to `main`
-   - Each PR should represent a stable, tested state of the refactoring
-   - Code reviews required before merging milestone PRs
-
-4. **Merge Strategy**
-   - Use merge commits (with `--no-ff` flag) to preserve the refactoring history
-   - This creates a clear record of when refactoring changes were integrated
-   - Example: `git merge --no-ff refactoring/2025 -m "Merge Phase 2 refactoring: Core Infrastructure"`
-
-5. **Conflict Resolution**
-   - If feature work on `main` conflicts with refactoring:
-     - First, try to resolve conflicts in the PR
-     - For major conflicts, merge latest `main` into `refactoring/2025` and resolve there
-     - Document significant conflict resolutions
-
-6. **Version Tracking**
-   - Add version suffix to indicate refactored status: e.g., "2.0.0-refactor.1"
-   - Increment with each major milestone: "2.0.0-refactor.2", etc.
-   - Final refactored release will be "2.0.0"
-
-This approach ensures that refactoring work proceeds without disrupting ongoing feature development, while providing a clear path to integrate improvements incrementally.
-
 ### Documentation Approach
+### Feature Management During Refactoring
 
-// ... existing code ... 
+## Timeline and Milestones
+
+### Release Strategy
+
+## Risk Assessment
+
+### Potential Challenges
+### Mitigation Strategies
+### User Impact Management
+
+## Implementation Examples
+
+### Example 1: Modal Extraction
+### Example 2: Metrics Service Extraction
+### Example 3: Further Extraction Strategies
+
+## Pre-Implementation Questions
+
+### Q1: Technical Dependencies
+### Q2: Backward Compatibility Strategy
+### Q3: Feature Freeze Requirements
+### Q4: User Impact Assessment
+### Q5: Incremental Deployment Strategy
+### Q6: Extraction Priorities
+### Q7: Test Coverage Requirements
+### Q8: Version Control Strategy
+### Q9: Regression Testing Approach
+### Q10: Documentation Update Plan
+
+## Conclusion
+
+## Implementation Progress Tracking
