@@ -21,4 +21,16 @@ export type { MetricsStateShape } from './MetricsState';
 export { MetricsStateAdapter } from './MetricsStateAdapter';
 
 // Export legacy state for backward compatibility
-export { DreamMetricsState } from './DreamMetricsState'; 
+export { DreamMetricsState } from './DreamMetricsState';
+
+// Core
+export * from './core';
+
+// Interfaces
+export * from './interfaces';
+
+// Adapters
+export * from './adapters';
+
+// Metrics
+export * from './metrics'; 
