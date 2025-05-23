@@ -23,19 +23,7 @@ export function createSelectedNotesAutocomplete({
         attr: { placeholder: 'Type to search notes...' }
     });
     const chipsContainer = containerEl.createEl('div', { cls: 'oom-chips-container' });
-    chipsContainer.style.border = 'none';
-    chipsContainer.style.background = 'none';
-    chipsContainer.style.padding = '0';
-    chipsContainer.style.margin = '0';
-    chipsContainer.style.boxShadow = 'none';
-    // Remove border/background from .oom-chip as well
-    const style = document.createElement('style');
-    style.textContent = `
-        .oom-chips-container { border: none !important; background: none !important; box-shadow: none !important; }
-        .oom-chip { border: none !important; background: none !important; box-shadow: none !important; }
-    `;
-    document.head.appendChild(style);
-
+    
     const suggestionContainer = containerEl.createEl('div', {
         cls: 'oom-suggestion-container'
     });

@@ -102,7 +102,7 @@ export class DreamJournalManager extends Modal {
     private buildSidebar(containerEl: HTMLElement) {
         const navItems = [
             { id: 'dashboard', label: 'Dashboard', icon: 'home' },
-            { id: 'dream-scrape', label: 'Dream Scrape', icon: 'sparkles' },
+            { id: 'dream-scrape', label: 'Dream Scraper', icon: 'sparkles' },
             { id: 'journal-structure', label: 'Journal Structure', icon: 'layout' },
             { id: 'templates', label: 'Templates', icon: 'file-text' },
             { id: 'content-isolation', label: 'Content Isolation', icon: 'filter' },
@@ -305,30 +305,63 @@ export class DreamJournalManager extends Modal {
         // Add data-section attribute for CSS targeting
         sectionEl.setAttribute('data-section', 'dream-scrape');
         
-        sectionEl.createEl('h3', { text: 'Dream Scrape' });
+        sectionEl.createEl('h3', { text: 'Dream Scraper' });
         
         sectionEl.createEl('p', { 
             text: 'Extract dream metrics from journal entries.' 
         });
         
+        // View Metrics Descriptions Section
+        const metricsDescriptionsSection = sectionEl.createDiv({ cls: 'oom-modal-section' });
+        
+        // Create a container for the heading, helper text, and button
+        const metricsDescHeader = metricsDescriptionsSection.createDiv({ cls: 'oom-section-header oom-flex-row' });
+        
+        // Left side with heading and helper text
+        const metricsDescLeft = metricsDescHeader.createDiv({ cls: 'oom-section-header-left oom-flex-grow' });
+        metricsDescLeft.createEl('h4', { text: 'View Metrics Descriptions' });
+        metricsDescLeft.createEl('p', { 
+            text: 'View detailed descriptions of all available metrics',
+            cls: 'oom-section-helper'
+        });
+        
+        // Right side with button
+        const metricsDescRight = metricsDescHeader.createDiv({ cls: 'oom-section-header-right' });
+        
+        const viewDescriptionsButton = metricsDescRight.createEl('button', {
+            text: 'View Descriptions',
+            cls: 'oom-button'
+        });
+        
+        viewDescriptionsButton.addEventListener('click', () => {
+            // Use the plugin's method to open metrics descriptions
+            this.plugin.openMetricsDescriptionsModal();
+        });
+        
         // Mode Selection Section
         const modeSection = sectionEl.createDiv({ cls: 'oom-modal-section' });
         
-        modeSection.createEl('h4', { text: 'Selection Mode' });
-        modeSection.createEl('p', { 
+        // Create a container for the heading, helper text, and dropdown
+        const modeSectionHeader = modeSection.createDiv({ cls: 'oom-section-header oom-flex-row' });
+        
+        // Left side with heading and helper text
+        const modeSectionLeft = modeSectionHeader.createDiv({ cls: 'oom-section-header-left oom-flex-grow' });
+        modeSectionLeft.createEl('h4', { text: 'Selection Mode' });
+        modeSectionLeft.createEl('p', { 
             text: 'Choose whether to scrape individual notes or a folder',
             cls: 'oom-section-helper'
         });
         
-        const modeRow = modeSection.createDiv({ cls: 'oom-actions-row' });
+        // Right side with dropdown
+        const modeSectionRight = modeSectionHeader.createDiv({ cls: 'oom-section-header-right' });
         
-        const modeDropdown = modeRow.createEl('select', { cls: 'oom-dropdown' });
+        const modeDropdown = modeSectionRight.createEl('select', { cls: 'oom-dropdown' });
         modeDropdown.createEl('option', { text: 'Notes', value: 'notes' });
         modeDropdown.createEl('option', { text: 'Folder', value: 'folder' });
         modeDropdown.value = this.selectionMode;
         
-        // File/Folder Selector Section
-        const selectorSection = sectionEl.createDiv({ cls: 'oom-modal-section' });
+        // File/Folder Selector Section - with less vertical padding
+        const selectorSection = sectionEl.createDiv({ cls: 'oom-modal-section oom-selector-section' });
         
         if (this.selectionMode === 'folder') {
             selectorSection.createEl('h4', { text: 'Selected Folder' });
@@ -395,7 +428,7 @@ export class DreamJournalManager extends Modal {
         });
         
         this.openNoteButton = scrapeRow.createEl('button', {
-            text: 'Open OneiroMetrics',
+            text: 'View Metrics',
             cls: 'oom-button oom-open-note-button',
             attr: { title: 'Run a scrape to enable this' }
         });

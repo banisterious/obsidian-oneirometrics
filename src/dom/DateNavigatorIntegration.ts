@@ -3,6 +3,7 @@ import { DateNavigator } from './DateNavigator';
 import { TimeFilterManager, DateRange } from '../timeFilters';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { format } from 'date-fns';
+import { DateNavigatorModal } from './DateNavigatorModal';
 
 export class DateNavigatorIntegration {
     private app: App;
@@ -167,6 +168,14 @@ export class DateNavigatorIntegration {
                 this.hide();
             }
         }
+    }
+    
+    /**
+     * Shows the date navigator modal
+     */
+    public showDateNavigator(): void {
+        const modal = new DateNavigatorModal(this.app, this.state, this.timeFilterManager);
+        modal.open();
     }
     
     /**

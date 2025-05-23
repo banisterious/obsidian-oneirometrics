@@ -49,4 +49,17 @@ export interface LoggingSettings {
     maxBackups?: number;
 }
 
-export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug'; 
+export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug';
+
+// Temporary interfaces to fix build errors
+export interface Timeline {
+    // Placeholder interface to fix build errors
+}
+
+export interface CalendarView {
+    // Placeholder interface to fix build errors
+}
+
+export interface ActiveJournal {
+    // Placeholder interface to fix build errors
+} 

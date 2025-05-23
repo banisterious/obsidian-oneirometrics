@@ -3,8 +3,9 @@
 // https://opensource.org/licenses/MIT
 
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, TFolder, Vault, parseYaml, ButtonComponent, Menu, View, WorkspaceLeaf } from 'obsidian';
-import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks, format } from 'date-fns';
+import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks, format, isValid, parse, parseISO, isWithinInterval, addDays, startOfYear, endOfYear, subYears } from 'date-fns';
 import { DEFAULT_METRICS, DreamMetricData, LogLevel, DEFAULT_LOGGING, DreamMetric, DreamMetricsSettings } from './types';
+import { Timeline, CalendarView, ActiveJournal } from './src/types';
 import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
@@ -26,6 +27,8 @@ import { TimeFilterManager } from './src/timeFilters';
 import { DreamMetricsState } from './src/state/DreamMetricsState';
 import { DateNavigatorView, DATE_NAVIGATOR_VIEW_TYPE } from './src/dom/DateNavigatorView';
 import { DateNavigatorModal, NavigatorViewMode } from './src/dom/DateNavigatorModal';
+import { TestRunner, registerMetricsProcessorTests, registerDirectMetricsTests, registerHelperTests } from './src/testing';
+import { MetricsProcessor } from './src/metrics';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -415,7 +418,7 @@ export default class DreamMetricsPlugin extends Plugin {
     templaterIntegration: TemplaterIntegration;
     
     // New for the plugin API
-    activeJournal: ActiveJournal = null;
+    activeJournal: ActiveJournal | null = null;
     private dreamJournalManager: DreamJournalManager;
     private dateNavigator: DateNavigatorIntegration;
     private timeFilterManager: TimeFilterManager;
@@ -449,22 +452,9 @@ export default class DreamMetricsPlugin extends Plugin {
         // Log a test message with our new logger
         this.logger.info('Plugin', 'OneiroMetrics plugin loaded with new logging system');
         
-        // Initialize components
-        this.templaterIntegration = new TemplaterIntegration(this);
-        this.lintingEngine = new LintingEngine(this, this.settings.linting || DEFAULT_LINTING_SETTINGS);
+        // Initialize TimeFilterManager before using it
+        this.timeFilterManager = new TimeFilterManager();
         
-        // Load linting styles
-        this.loadStyles();
-        
-        // Restore expanded states
-        try {
-            this.expandedStates = new Set(Object.keys(this.settings.expandedStates).filter(key => this.settings.expandedStates[key]));
-            this.logger.log('UI', `Loaded ${this.expandedStates.size} expanded states`);
-        } catch (error) {
-            console.error('Error restoring expanded states:', error);
-            this.expandedStates = new Set();
-        }
-
         // Set up TimeFilterManager's onFilterChange callback with performance optimizations
         this.timeFilterManager.onFilterChange = (filter) => {
             const range = filter.getDateRange();
@@ -493,6 +483,22 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             });
         };
+
+        // Initialize components
+        this.templaterIntegration = new TemplaterIntegration(this);
+        this.lintingEngine = new LintingEngine(this, this.settings.linting || DEFAULT_LINTING_SETTINGS);
+        
+        // Load linting styles
+        this.loadStyles();
+        
+        // Restore expanded states
+        try {
+            this.expandedStates = new Set(Object.keys(this.settings.expandedStates).filter(key => this.settings.expandedStates[key]));
+            this.logger.log('UI', `Loaded ${this.expandedStates.size} expanded states`);
+        } catch (error) {
+            console.error('Error restoring expanded states:', error);
+            this.expandedStates = new Set();
+        }
 
         // Add settings tab
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
@@ -757,9 +763,6 @@ export default class DreamMetricsPlugin extends Plugin {
             })
         );
 
-        // Initialize TimeFilterManager
-        this.timeFilterManager = new TimeFilterManager();
-        
         // Register the DateNavigatorView
         this.registerView(
             DATE_NAVIGATOR_VIEW_TYPE,
@@ -779,8 +782,15 @@ export default class DreamMetricsPlugin extends Plugin {
             id: 'open-date-navigator',
             name: 'Open Date Navigator',
             callback: () => {
-                this.showDateNavigator();
+                this.dateNavigator.showDateNavigator();
             }
+        });
+
+        // Add command to run metrics tests
+        this.addCommand({
+            id: 'run-metrics-tests',
+            name: 'Run Metrics Module Tests',
+            callback: () => this.runMetricsTests()
         });
     }
 
@@ -2737,6 +2747,31 @@ Applied: ${new Date().toLocaleTimeString()}`;
         (this.app as any).setting.open();
         (this.app as any).setting.openTabById('oneirometrics');
         new Notice('Click on "View Metrics Descriptions" in the settings panel');
+    }
+
+    /**
+     * Run tests for the metrics module
+     */
+    async runMetricsTests() {
+        console.log('[OneiroMetrics] Running metrics tests...');
+        
+        // Create a new test runner
+        const testRunner = new TestRunner();
+        
+        // Register metrics processor tests
+        registerMetricsProcessorTests(testRunner, this.settings.metrics);
+        
+        // Register direct tests that don't rely on the implementation
+        registerDirectMetricsTests(testRunner);
+        
+        // Register helper tests
+        registerHelperTests(testRunner, this.settings.metrics);
+        
+        // Run the tests
+        await testRunner.runTests();
+        
+        // Show results in a modal
+        testRunner.showResultsModal(this.app);
     }
 }
 

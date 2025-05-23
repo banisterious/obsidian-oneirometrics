@@ -464,13 +464,13 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Show Ribbon Button Setting
         const ribbonLabelFrag = document.createDocumentFragment();
         ribbonLabelFrag.append('Show Ribbon Button ');
-        const bookOpenCheckSvg = getIcon('book-open-check');
+        const moonSvg = getIcon('moon');
         const iconsSpan = document.createElement('span');
         iconsSpan.classList.add('oom-example-button');
-        if (bookOpenCheckSvg) {
-            bookOpenCheckSvg.setAttribute('width', '16');
-            bookOpenCheckSvg.setAttribute('height', '16');
-            iconsSpan.append(bookOpenCheckSvg);
+        if (moonSvg) {
+            moonSvg.setAttribute('width', '16');
+            moonSvg.setAttribute('height', '16');
+            iconsSpan.append(moonSvg);
         } else {
             iconsSpan.append('(?)');
         }

@@ -24,6 +24,211 @@
     user-select: none;
 }
 
+/* Date Navigator Modal Styles */
+.oom-date-navigator-modal {
+    width: 100%;
+    max-width: 600px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.oom-modal-title {
+    margin-bottom: 12px;
+    text-align: center;
+    color: var(--text-accent);
+}
+
+.oom-modal-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 8px 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-modal-button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oom-modal-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-apply-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-apply-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+/* Breadcrumb Navigation */
+.oom-breadcrumb-container {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background-color: var(--background-secondary-alt);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.oom-breadcrumb {
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.oom-breadcrumb:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-breadcrumb-separator {
+    color: var(--text-muted);
+    margin: 0 4px;
+}
+
+.oom-breadcrumb-current {
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+    cursor: default;
+}
+
+.oom-breadcrumb-current:hover {
+    background-color: transparent;
+}
+
+/* Year View */
+.oom-year-view-container,
+.oom-month-view-container {
+    padding: 12px;
+    background-color: var(--background-primary);
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 16px;
+}
+
+.oom-view-title {
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 1.1em;
+    color: var(--text-accent);
+}
+
+.oom-years-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.oom-year-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.oom-year-cell:hover {
+    background-color: var(--background-modifier-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.oom-year-cell.is-current {
+    border: 2px solid var(--day-today);
+}
+
+.oom-year-cell.is-selected {
+    background-color: var(--day-selected);
+    color: var(--text-on-accent);
+}
+
+.oom-year-number {
+    font-size: 1.2em;
+    font-weight: var(--font-bold);
+}
+
+.oom-year-indicator {
+    width: 24px;
+    height: 4px;
+    background-color: var(--day-dream);
+    border-radius: 2px;
+    margin-top: 8px;
+}
+
+/* Month View */
+.oom-months-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.oom-month-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oom-month-cell:hover {
+    background-color: var(--background-modifier-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.oom-month-cell.is-current {
+    border: 2px solid var(--day-today);
+}
+
+.oom-month-name {
+    font-weight: var(--font-bold);
+}
+
+.oom-month-density {
+    margin-top: 8px;
+    display: flex;
+    gap: 3px;
+}
+
+/* Density indicators - these will be dynamically generated */
+.oom-month-density::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--day-dream);
+    opacity: 0.5;
+}
+
+/* Animation for transitions between views */
+.oom-view-transition {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Month header styles */
 .oom-month-header {
     display: flex;
@@ -213,8 +418,16 @@
     padding-top: 4px;
 }
 
-/* Responsive adjustments */
+/* Mobile responsiveness */
 @media (max-width: 768px) {
+    .oom-years-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .oom-months-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
     .oom-day-cell {
         min-height: 60px;
         padding: 2px;
@@ -229,6 +442,20 @@
         width: 180px;
         left: 0;
         transform: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .oom-years-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .oom-months-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .oom-breadcrumb-container {
+        flex-wrap: wrap;
     }
 }
 
@@ -248,34 +475,6 @@
 .oom-filter-section {
     padding: 8px;
     background-color: var(--background-secondary-alt);
-    border-top: 1px solid var(--month-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.oom-filter-button {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-
-.oom-filter-button:hover {
-    background-color: var(--interactive-accent-hover);
-}
-
-.oom-filter-info {
-    font-size: 0.85em;
-    color: var(--text-muted);
-}
-
-.oom-filter-info.active {
-    color: var(--text-accent);
-    font-weight: var(--font-bold);
 }
 
 /* Year context navigation strip */

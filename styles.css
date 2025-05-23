@@ -26,6 +26,86 @@
     display: none !important;
 }
 
+/* Dream Journal Manager layout classes */
+.oom-flex-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.oom-flex-grow {
+    flex-grow: 1;
+}
+
+.oom-right-aligned-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.oom-section-content {
+    margin-top: 0.5em;
+}
+
+.oom-dropdown-container {
+    min-width: 120px;
+}
+
+/* Dream Journal Manager Section Header Layout */
+.oom-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.5em;
+}
+
+.oom-section-header-left {
+    flex-grow: 1;
+}
+
+.oom-section-header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: 1em;
+}
+
+.oom-section-header h4 {
+    margin: 0;
+    margin-bottom: 0.25em;
+}
+
+.oom-section-helper {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+/* Selector Section - reduce spacing and remove border */
+.oom-selector-section {
+    padding-top: 0.5em;
+}
+
+.oom-selector-section .oom-multiselect-item {
+    border-bottom: none;
+    margin-bottom: 4px;
+}
+
+.oom-notes-selector-container,
+.oom-folder-selector-container {
+    margin-top: 0.5em;
+}
+
+/* Make selected notes container tighter */
+.oom-selector-section .oom-multiselect-selected {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Remove bottom border from all multiselect items in Dream Journal Manager */
+.oom-journal-manager-modal .oom-multiselect-item {
+    border-bottom: none;
+}
+
 /* ==========================================================================
    Dream Entries Filters Styles
    ========================================================================== */
@@ -3380,6 +3460,15 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     color: var(--text-normal);
 }
 
+/* Chips Container */
+.oom-chips-container {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
 /* Input Container */
 .oom-input-container {
     position: relative;
@@ -5038,6 +5127,11 @@ input.oom-folder-autocomplete-input {
     overflow: hidden;
 }
 
+.oom-journal-manager-main-content h3 {
+    margin-top: 0;
+    margin-bottom: .5em;
+}
+
 .oom-journal-manager-container {
     display: flex;
     flex-direction: row;
@@ -6128,4 +6222,405 @@ tr.oom-dream-row {
 .oom-button--expand:hover {
     background-color: var(--interactive-accent-hover);
     /* Remove the transform for a more subtle effect */
+}
+
+/* ==========================================================================
+   Hierarchical Date Navigator Styles
+   ========================================================================== */
+
+/* Breadcrumb Navigation */
+.oom-breadcrumb-container {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background-color: var(--background-secondary-alt);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.oom-breadcrumb {
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.oom-breadcrumb:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-breadcrumb-separator {
+    color: var(--text-muted);
+    margin: 0 4px;
+}
+
+.oom-breadcrumb-current {
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+    cursor: default;
+}
+
+.oom-breadcrumb-current:hover {
+    background-color: transparent;
+}
+
+/* Year View */
+.oom-year-view-container,
+.oom-month-view-container {
+    padding: 12px;
+    background-color: var(--background-primary);
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 16px;
+}
+
+.oom-view-title {
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 1.1em;
+    color: var(--text-accent);
+}
+
+.oom-years-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.oom-year-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.oom-year-cell:hover {
+    background-color: var(--background-modifier-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.oom-year-cell.is-current {
+    border: 2px solid var(--day-today);
+}
+
+.oom-year-cell.is-selected {
+    background-color: var(--day-selected);
+    color: var(--text-on-accent);
+}
+
+.oom-year-number {
+    font-size: 1.2em;
+    font-weight: var(--font-bold);
+}
+
+.oom-year-indicator {
+    width: 24px;
+    height: 4px;
+    background-color: var(--day-dream);
+    border-radius: 2px;
+    margin-top: 8px;
+}
+
+/* Month View */
+.oom-months-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.oom-month-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oom-month-cell:hover {
+    background-color: var(--background-modifier-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.oom-month-cell.is-current {
+    border: 2px solid var(--day-today);
+}
+
+.oom-month-name {
+    font-weight: var(--font-bold);
+}
+
+.oom-month-density {
+    margin-top: 8px;
+    display: flex;
+    gap: 3px;
+}
+
+/* Density indicators - these will be dynamically generated */
+.oom-month-density::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--day-dream);
+    opacity: 0.5;
+}
+
+/* Animation for transitions between views */
+.oom-view-transition {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile responsiveness for hierarchical navigation */
+@media (max-width: 768px) {
+    .oom-years-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .oom-months-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .oom-years-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .oom-months-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .oom-breadcrumb-container {
+        flex-wrap: wrap;
+    }
+}
+
+/* ==========================================================================
+   Modal Component Styles - New Refactored Modal System
+   ========================================================================== */
+
+/* Base Modal Component (extends Obsidian's Modal) */
+.oom-modal {
+  --modal-padding: 20px;
+  --modal-border-radius: 8px;
+  --modal-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --modal-background: var(--background-primary);
+  --modal-border-color: var(--background-modifier-border);
+  
+  border-radius: var(--modal-border-radius);
+  box-shadow: var(--modal-shadow);
+  background-color: var(--modal-background);
+  border: 1px solid var(--modal-border-color);
+  padding: var(--modal-padding);
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+/* Modal Header */
+.oom-modal .modal-title {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.5em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--modal-border-color);
+  padding-bottom: 10px;
+}
+
+/* Modal Button Container */
+.oom-modal-button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  border-top: 1px solid var(--modal-border-color);
+  padding-top: 15px;
+}
+
+/* Confirmation Modal */
+.oom-confirm-modal {
+  max-width: 450px;
+}
+
+.oom-confirm-modal p {
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Scrape Modal */
+.oom-scrape-modal {
+  min-width: 500px;
+}
+
+.oom-scrape-modal .oom-mode-selector {
+  margin-bottom: 20px;
+}
+
+.oom-scrape-modal .oom-mode-label {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.oom-scrape-modal .oom-toggle-container {
+  display: flex;
+  gap: 10px;
+  border: 1px solid var(--modal-border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.oom-scrape-modal .oom-toggle-option {
+  flex: 1;
+  text-align: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  background-color: var(--background-secondary);
+  transition: background-color 0.2s;
+}
+
+.oom-scrape-modal .oom-toggle-option.active {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.oom-scrape-modal .oom-toggle-option input[type="radio"] {
+  display: none;
+}
+
+/* Note Selection */
+.oom-scrape-modal .oom-notes-section,
+.oom-scrape-modal .oom-folder-section {
+  margin-bottom: 20px;
+}
+
+.oom-scrape-modal .oom-notes-list {
+  margin-bottom: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--modal-border-color);
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.oom-scrape-modal .oom-note-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  background-color: var(--background-secondary);
+  border-radius: 3px;
+}
+
+.oom-scrape-modal .oom-remove-note {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 0 5px;
+}
+
+.oom-scrape-modal .oom-remove-note:hover {
+  color: var(--text-error);
+}
+
+.oom-scrape-modal .oom-empty-list,
+.oom-scrape-modal .oom-empty-folder {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 10px;
+  text-align: center;
+}
+
+.oom-scrape-modal .oom-folder-path {
+  padding: 10px;
+  border: 1px solid var(--modal-border-color);
+  border-radius: 4px;
+  background-color: var(--background-secondary);
+  margin-bottom: 10px;
+  min-height: 20px;
+}
+
+/* Progress UI */
+.oom-scrape-modal .oom-progress-content {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--modal-border-color);
+}
+
+.oom-scrape-modal .oom-progress-wrapper {
+  margin: 15px 0;
+  background-color: var(--background-secondary);
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.oom-scrape-modal .oom-progress-bar {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.oom-scrape-modal .oom-progress-fill {
+  position: absolute;
+  height: 100%;
+  width: 0;
+  background-color: var(--interactive-accent);
+  transition: width 0.2s ease-in-out;
+}
+
+.oom-scrape-modal .oom-status-text {
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.oom-scrape-modal .oom-details-text {
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.oom-scrape-modal .oom-open-note-btn {
+  margin-top: 15px;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Add Note & Browse Folder Buttons */
+.oom-scrape-modal .oom-add-note-btn,
+.oom-scrape-modal .oom-browse-folder-btn {
+  background-color: var(--background-modifier-border);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--text-normal);
+}
+
+.oom-scrape-modal .oom-add-note-btn:hover,
+.oom-scrape-modal .oom-browse-folder-btn:hover {
+  background-color: var(--background-modifier-border-hover);
 }
