@@ -70,6 +70,8 @@ As of May 22, 2025, the OneiroMetrics plugin has several architectural issues th
 4. **Complex Modal Logic**: Modal implementations are embedded in the main file rather than in dedicated components.
 5. **Limited Testability**: Tightly coupled code makes it difficult to write unit tests for individual components.
 
+> **Note:** This refactoring plan implements the architectural decisions documented in [Architecture Decisions](./architecture-decisions.md). Please refer to that document for the rationale behind key architectural choices.
+
 ## Refactoring Goals
 
 1. Reduce `main.ts` to less than 500 lines

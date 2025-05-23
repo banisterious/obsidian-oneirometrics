@@ -1,6 +1,6 @@
 # OneiroMetrics Architecture Decisions
 
-This document tracks important architecture decisions that need to be made during the refactoring process. Each question includes options with pros and cons to help guide decision-making. All implementation details for these decisions have been incorporated into the comprehensive refactoring plan (docs/developer/implementation/refactoring-plan-2025.md).
+This document tracks important architecture decisions that need to be made during the refactoring process. Each question includes options with pros and cons to help guide decision-making. All implementation details for these decisions have been incorporated into the comprehensive [refactoring plan](./refactoring-plan-2025.md). For the full technical implementation of these decisions, including code examples and timelines, refer to the refactoring plan document.
 
 ## 1. Interface Design Strategy - DECIDED
 
