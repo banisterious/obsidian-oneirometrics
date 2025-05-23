@@ -16,6 +16,9 @@ import { UIEventEmitter } from './UIEventEmitter';
 import { JournalEventEmitter } from './JournalEventEmitter';
 import { SystemEventEmitter } from './SystemEventEmitter';
 
+// Export legacy events adapter
+export { DreamMetricsEventsAdapter } from './DreamMetricsEventsAdapter';
+
 export {
   MetricsEventEmitter,
   UIEventEmitter,
