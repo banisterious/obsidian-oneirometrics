@@ -1,9 +1,133 @@
 # OneiroMetrics Architecture Overview
 
-<p align="center">
-  <img src="../../images/gsa-barn.jpg" alt="A country barn painting, representing the foundation of dream journaling." width="600"/>
-</p>
-<p align="center"><em>"Barn at Sunrise" by Gary Armstrong, inspiration for OneiroMetrics</em></p>
+This document provides a high-level overview of the OneiroMetrics plugin architecture after the 2025 refactoring project.
+
+## Core Architecture Principles
+
+The refactored architecture follows these key principles:
+
+1. **Modular Design**: Functionality is divided into cohesive, loosely coupled modules
+2. **Interface-First Development**: Components interact through well-defined interfaces
+3. **Separation of Concerns**: Clear boundaries between UI, business logic, and data access
+4. **Observable State**: State changes propagate through a centralized state management system
+5. **Testability**: Components designed to be easily testable in isolation
+
+## Component Architecture
+
+The OneiroMetrics plugin is organized into the following major component groups:
+
+![Component Architecture](./diagrams/component-architecture.png)
+
+### Core Plugin Component
+
+- **OneiroMetricsPlugin**: The entry point that initializes the plugin and registers with Obsidian
+
+### State Management
+
+- **StateManager**: Centralized state management that maintains application state
+- **JournalStore**: Manages journal entry data
+- **MetricsStore**: Manages calculated metrics
+- **ConfigStore**: Manages user configuration
+
+### Services
+
+- **FileService**: Handles file system operations
+- **JournalService**: Processes journal entries
+- **MetricsService**: Calculates metrics from journal data
+- **TemplateService**: Manages journal templates
+- **LoggingService**: Handles error and event logging
+
+### UI Components
+
+- **RibbonButton**: Adds plugin button to Obsidian ribbon
+- **SettingsTab**: Plugin settings interface
+- **DashboardView**: Main interface for viewing journals and metrics
+- **JournalEntryView**: Displays individual journal entries
+- **MetricsPanel**: Displays calculated metrics
+- **FilterPanel**: Provides filtering controls
+- **ExportModal**: Handles data export
+- **TestRunnerModal**: Interface for running tests
+
+### Core Modules
+
+- **Parser**: Parses journal content into structured data
+- **Filters**: Applies filters to journal and metrics data
+- **Analytics**: Performs metric calculations
+- **Utils**: Utility functions used throughout the plugin
+
+## Data Flow
+
+The data flow within OneiroMetrics follows a predictable pattern:
+
+![Data Flow Diagram](./diagrams/data-flow.png)
+
+1. User interacts with the UI
+2. UI components dispatch actions to services
+3. Services process the data and update the state
+4. State changes trigger UI updates
+5. File operations persist changes to the Obsidian vault
+
+## State Lifecycle
+
+The state management system follows this lifecycle:
+
+![State Lifecycle](./diagrams/state-lifecycle.png)
+
+1. Plugin initialization loads configuration
+2. Services initialize based on configuration
+3. Journal data is loaded and processed
+4. Metrics are calculated from journal data
+5. UI is rendered based on current state
+6. User interactions trigger state updates
+7. State updates flow through the system
+
+## Testing Infrastructure
+
+The plugin includes a comprehensive testing infrastructure:
+
+![Test Infrastructure](./diagrams/test-infrastructure.png)
+
+- **TestRunner**: Executes test cases
+- **TestCase**: Abstract base class for all tests
+- **TestFixture**: Provides test environment and mock data
+- **TestRegistry**: Registers and organizes tests
+- **TestRunnerModal**: UI for running tests and viewing results
+
+See the [Test Data Flow](./diagrams/test-data-flow.png) diagram for more details on how tests are executed.
+
+## Key Interfaces
+
+The architecture defines several key interfaces that enable loose coupling:
+
+- **IStateManager**: Interface for state management operations
+- **IStore**: Common interface for all data stores
+- **IService**: Base interface for all services
+- **IParser**: Interface for journal parsing
+- **IComponent**: Interface for UI components
+
+## Performance Considerations
+
+The architecture addresses performance through:
+
+1. **Lazy Loading**: Components and data loaded only when needed
+2. **Efficient State Updates**: Only affected components re-render
+3. **Caching**: Frequently used data cached for performance
+4. **Background Processing**: Heavy processing runs in the background
+5. **Incremental Updates**: Only process changed data when possible
+
+## Security and Error Handling
+
+The architecture implements:
+
+1. **Centralized Error Handling**: All errors flow through LoggingService
+2. **Error Recovery**: Components can recover from common errors
+3. **Safe File Operations**: File operations use transactions where possible
+4. **Data Validation**: Input validation at service boundaries
+5. **Secure Data Storage**: Sensitive settings stored securely
+
+## Next Steps
+
+See the [Post-Refactoring Roadmap](../implementation/post-refactoring-roadmap.md) for planned improvements building on this architecture.
 
 # OneiroMetrics Plugin Overview
 
