@@ -171,6 +171,409 @@ This approach combines human insight with automated detection while accounting f
   - Event management (`src/events/`)
   - Logging system (`src/logging/`)
 
+#### 2.1.1 Interface Design Implementation
+
+To break circular dependencies and improve component isolation, we will implement a TypeScript interface-based approach:
+
+1. **Component Interface Creation**
+   - Define interfaces for each major component:
+     ```typescript
+     // Example: Metrics Service Interface
+     export interface IMetricsService {
+       processMetrics(text: string): Record<string, number[]>;
+       calculateSummaryStatistics(metrics: Record<string, number[]>): SummaryStats;
+       generateMetricsTable(metrics: Record<string, number[]>): HTMLElement;
+     }
+     
+     // Example: Content Processor Interface
+     export interface IContentProcessor {
+       processDreamContent(content: string): string;
+       extractMetricsFromText(text: string): Record<string, number[]>;
+       sanitizeContent(content: string): string;
+     }
+     ```
+
+2. **Plugin API Interface**
+   - Extract a plugin interface that exposes only necessary methods:
+     ```typescript
+     export interface IPluginAPI {
+       // Settings access
+       getSettings(): PluginSettings;
+       saveSettings(): Promise<void>;
+       
+       // File access
+       getActiveFile(): TFile | null;
+       getFilePath(file: TFile): string;
+       
+       // UI access
+       createNotice(message: string, timeout?: number): void;
+       
+       // Event handling
+       registerEvent(event: EventRef): void;
+     }
+     ```
+
+3. **Dependency Direction**
+   - Update components to depend on interfaces rather than concrete implementations:
+     ```typescript
+     // Before:
+     constructor(plugin: DreamMetricsPlugin) {
+       this.plugin = plugin;
+     }
+     
+     // After:
+     constructor(pluginApi: IPluginAPI, metricsService: IMetricsService) {
+       this.pluginApi = pluginApi;
+       this.metricsService = metricsService;
+     }
+     ```
+
+4. **Circular Dependency Breaking**
+   - Focus first on breaking the highest-priority circular dependencies:
+     - Plugin → Modal → Plugin
+     - State → UI Components → State
+     - Content Processor → Metrics Service → Content Processor
+
+5. **Implementation Order**
+   - Define all interfaces first, before implementation
+   - Implement one service at a time, with tests
+   - Update dependent components to use the new interfaces
+   - Verify correct operation after each component is updated
+
+#### 2.1.2 Event Communication System Implementation
+
+To improve component communication while maintaining separation of concerns, we will implement typed event emitters for specific functional areas:
+
+1. **Base Event Emitter with Type Safety**
+   - Create a generic event emitter base class:
+     ```typescript
+     export type EventListener<T> = (payload: T) => void;
+     
+     export class EventEmitter<EventMap extends Record<string, any>> {
+       private listeners: {
+         [K in keyof EventMap]?: Array<EventListener<EventMap[K]>>;
+       } = {};
+       
+       on<K extends keyof EventMap>(
+         event: K, 
+         listener: EventListener<EventMap[K]>
+       ): () => void {
+         if (!this.listeners[event]) {
+           this.listeners[event] = [];
+         }
+         
+         this.listeners[event]?.push(listener);
+         
+         return () => this.off(event, listener);
+       }
+       
+       off<K extends keyof EventMap>(
+         event: K, 
+         listener: EventListener<EventMap[K]>
+       ): void {
+         if (!this.listeners[event]) return;
+         
+         this.listeners[event] = this.listeners[event]?.filter(
+           l => l !== listener
+         ) as any;
+       }
+       
+       emit<K extends keyof EventMap>(
+         event: K, 
+         payload: EventMap[K]
+       ): void {
+         if (!this.listeners[event]) return;
+         
+         this.listeners[event]?.forEach(listener => {
+           try {
+             listener(payload);
+           } catch (error) {
+             console.error(`Error in event listener for ${String(event)}:`, error);
+           }
+         });
+       }
+       
+       clear(): void {
+         this.listeners = {};
+       }
+     }
+     ```
+
+2. **Specific Event Types and Payloads**
+   - Define event types for each functional area:
+     ```typescript
+     // Metrics events
+     export interface MetricsEvents {
+       'metrics:calculated': { metrics: Record<string, number[]>, source: string };
+       'metrics:display': { target: HTMLElement, metrics: Record<string, number[]> };
+       'metrics:filter': { filter: MetricsFilter };
+     }
+     
+     // UI events
+     export interface UIEvents {
+       'ui:modalOpened': { modalType: string, modal: Modal };
+       'ui:modalClosed': { modalType: string };
+       'ui:viewChanged': { view: string, previousView: string };
+     }
+     
+     // Journal events
+     export interface JournalEvents {
+       'journal:entryProcessed': { path: string, date: string, content: string };
+       'journal:entryFailed': { path: string, error: Error };
+       'journal:scanCompleted': { totalEntries: number, processedEntries: number };
+     }
+     ```
+
+3. **Functional Area Event Emitters**
+   - Implement specific emitters for each area:
+     ```typescript
+     export class MetricsEventEmitter extends EventEmitter<MetricsEvents> {
+       // Specific methods for metrics events if needed
+       notifyMetricsCalculated(metrics: Record<string, number[]>, source: string): void {
+         this.emit('metrics:calculated', { metrics, source });
+       }
+     }
+     
+     export class UIEventEmitter extends EventEmitter<UIEvents> {
+       // UI-specific methods
+     }
+     
+     export class JournalEventEmitter extends EventEmitter<JournalEvents> {
+       // Journal-specific methods
+     }
+     ```
+
+4. **Subscription Management**
+   - Add proper subscription cleanup to prevent memory leaks:
+     ```typescript
+     // Example usage in a component
+     export class MetricsVisualization {
+       private subscriptions: Array<() => void> = [];
+       
+       constructor(private metricsEvents: MetricsEventEmitter) {
+         // Subscribe to events
+         this.subscriptions.push(
+           metricsEvents.on('metrics:calculated', this.handleMetricsCalculated.bind(this))
+         );
+       }
+       
+       // Clean up subscriptions when component is destroyed
+       destroy(): void {
+         this.subscriptions.forEach(unsubscribe => unsubscribe());
+         this.subscriptions = [];
+       }
+       
+       private handleMetricsCalculated(payload: MetricsEvents['metrics:calculated']): void {
+         // Handle the event
+       }
+     }
+     ```
+
+5. **Event Documentation**
+   - Document all events and their payloads for developer reference:
+     ```typescript
+     /**
+      * Event: metrics:calculated
+      * Emitted when metrics have been calculated from dream journal entries.
+      * 
+      * Payload:
+      * - metrics: Record<string, number[]> - The calculated metrics data
+      * - source: string - Source of the metrics (e.g., "manual", "scheduled")
+      * 
+      * Usage:
+      * metricsEvents.on('metrics:calculated', ({metrics, source}) => {
+      *   // Handle newly calculated metrics
+      * });
+      */
+     ```
+
+#### 2.1.3 Error Handling Implementation
+
+To standardize error handling across components, we will implement error bubbling with context enrichment:
+
+1. **Error Context Interface**
+   - Create a standard interface for adding metadata to errors:
+     ```typescript
+     export interface ErrorContext {
+       component: string;
+       operation: string;
+       timestamp: number;
+       metadata?: Record<string, any>;
+     }
+     
+     export interface EnrichedError extends Error {
+       context?: ErrorContext;
+       originalError?: Error;
+     }
+     ```
+
+2. **Error Wrapping Utilities**
+   - Implement utility functions for wrapping errors with context:
+     ```typescript
+     export function enrichError(
+       error: Error, 
+       context: Partial<ErrorContext>
+     ): EnrichedError {
+       const enriched = error as EnrichedError;
+       enriched.context = {
+         component: context.component || 'unknown',
+         operation: context.operation || 'unknown',
+         timestamp: context.timestamp || Date.now(),
+         metadata: context.metadata || {}
+       };
+       return enriched;
+     }
+     
+     export function wrapError(
+       originalError: Error, 
+       message: string, 
+       context: Partial<ErrorContext>
+     ): EnrichedError {
+       const wrapped = new Error(message) as EnrichedError;
+       wrapped.originalError = originalError;
+       wrapped.stack = `${wrapped.stack}\nCaused by: ${originalError.stack}`;
+       wrapped.context = {
+         component: context.component || 'unknown',
+         operation: context.operation || 'unknown',
+         timestamp: context.timestamp || Date.now(),
+         metadata: context.metadata || {}
+       };
+       return wrapped;
+     }
+     ```
+
+3. **Standard Error Types**
+   - Define standard error types for different areas of the application:
+     ```typescript
+     export class ValidationError extends Error {
+       constructor(message: string, public details?: any) {
+         super(message);
+         this.name = 'ValidationError';
+       }
+     }
+     
+     export class ParseError extends Error {
+       constructor(message: string, public source?: string) {
+         super(message);
+         this.name = 'ParseError';
+       }
+     }
+     
+     export class ServiceError extends Error {
+       constructor(message: string, public service: string) {
+         super(message);
+         this.name = 'ServiceError';
+       }
+     }
+     
+     export class UIError extends Error {
+       constructor(message: string, public component: string) {
+         super(message);
+         this.name = 'UIError';
+       }
+     }
+     ```
+
+4. **Consistent Error Logging**
+   - Implement consistent error logging through the logger service:
+     ```typescript
+     export class LoggerService {
+       private level: LogLevel;
+       
+       constructor(level: LogLevel = LogLevel.INFO) {
+         this.level = level;
+       }
+       
+       error(message: string, error?: Error): void {
+         if (this.level <= LogLevel.ERROR) {
+           if (error && 'context' in error) {
+             const enrichedError = error as EnrichedError;
+             console.error(
+               `[ERROR] ${message}`, 
+               `\nComponent: ${enrichedError.context?.component}`, 
+               `\nOperation: ${enrichedError.context?.operation}`,
+               `\nTimestamp: ${new Date(enrichedError.context?.timestamp || 0).toISOString()}`,
+               `\nMetadata:`, enrichedError.context?.metadata,
+               `\nOriginal error:`, enrichedError.originalError || error
+             );
+           } else {
+             console.error(`[ERROR] ${message}`, error);
+           }
+         }
+       }
+       
+       // Other logging methods...
+     }
+     ```
+
+5. **Error Boundaries**
+   - Add error boundaries at key points in the component hierarchy:
+     ```typescript
+     export abstract class ErrorBoundaryComponent {
+       protected handleError(error: Error, fallback: () => void): void {
+         const enriched = enrichError(error, {
+           component: this.constructor.name,
+           operation: 'render'
+         });
+         
+         LoggerService.getInstance().error('Component error', enriched);
+         
+         // Show user-friendly message
+         new Notice('An error occurred. Check console for details.');
+         
+         // Try to recover with fallback behavior
+         try {
+           fallback();
+         } catch (fallbackError) {
+           // Last resort if fallback also fails
+           console.error('Fallback also failed:', fallbackError);
+         }
+       }
+       
+       protected wrapOperation<T>(
+         operation: string, 
+         callback: () => T, 
+         fallback: () => T
+       ): T {
+         try {
+           return callback();
+         } catch (error) {
+           const enriched = enrichError(error as Error, {
+             component: this.constructor.name,
+             operation
+           });
+           
+           LoggerService.getInstance().error(`Operation ${operation} failed`, enriched);
+           return fallback();
+         }
+       }
+     }
+     ```
+
+6. **Obsidian Notice Integration**
+   - Integrate with Obsidian's Notice API for user-facing error messages:
+     ```typescript
+     export function showUserError(message: string, error?: Error, timeout = 5000): void {
+       if (error) {
+         // Log the full error details
+         LoggerService.getInstance().error(message, error);
+       }
+       
+       // Show user-friendly message
+       new Notice(message, timeout);
+     }
+     
+     export function showValidationError(message: string, details?: any): void {
+       new Notice(`Validation Error: ${message}`, 4000);
+       
+       if (details) {
+         LoggerService.getInstance().warn(`Validation failed: ${message}`, {
+           details
+         });
+       }
+     }
+     ```
+
 ### 2.2 Reorganize Modal Components
 - Move all modals to the `src/dom/modals/` directory:
   - `OneiroMetricsModal` → `src/dom/modals/ScrapeModal.ts`
@@ -182,6 +585,120 @@ This approach combines human insight with automated detection while accounting f
 - Implement observer pattern for state changes
 - Create dedicated state slices for different functionality areas
 
+#### 2.3.1 State Management Implementation
+
+To improve the state management architecture, we will enhance the current DreamMetricsState with a more robust observable pattern:
+
+1. **Domain-Specific State Classes**
+   - Create separate state classes for different domains:
+     ```typescript
+     // Base state class with common functionality
+     abstract class BaseState<T> {
+       protected state: T;
+       protected listeners: StateChangeListener<T>[] = [];
+       
+       subscribe(listener: StateChangeListener<T>): () => void {
+         this.listeners.push(listener);
+         return () => this.unsubscribe(listener);
+       }
+       
+       unsubscribe(listener: StateChangeListener<T>): void {
+         this.listeners = this.listeners.filter(l => l !== listener);
+       }
+       
+       protected notify(changes: Partial<T>): void {
+         this.listeners.forEach(listener => listener(changes));
+       }
+     }
+     
+     // Example domain-specific state classes
+     export class MetricsState extends BaseState<MetricsStateData> { ... }
+     export class UIState extends BaseState<UIStateData> { ... }
+     export class SettingsState extends BaseState<PluginSettings> { ... }
+     ```
+
+2. **Observable Pattern Implementation**
+   - Implement a common base observable pattern for all state classes:
+     ```typescript
+     export type StateChangeListener<T> = (changes: Partial<T>) => void;
+     
+     export interface IObservableState<T> {
+       subscribe(listener: StateChangeListener<T>): () => void;
+       unsubscribe(listener: StateChangeListener<T>): void;
+       getState(): Readonly<T>;
+     }
+     ```
+
+3. **Specific State Change Notifications**
+   - Enable subscribing to specific state changes:
+     ```typescript
+     // Select specific parts of state to observe
+     export function selectState<T, K extends keyof T>(
+       state: IObservableState<T>,
+       selector: K | K[],
+       onChange: (selected: Pick<T, K>) => void
+     ): () => void {
+       const listener: StateChangeListener<T> = (changes) => {
+         const keys = Array.isArray(selector) ? selector : [selector];
+         if (keys.some(key => key in changes)) {
+           const selected = keys.reduce((acc, key) => {
+             acc[key] = state.getState()[key];
+             return acc;
+           }, {} as Pick<T, K>);
+           onChange(selected);
+         }
+       };
+       
+       return state.subscribe(listener);
+     }
+     ```
+
+4. **State Persistence**
+   - Add serialization/deserialization for state persistence:
+     ```typescript
+     export interface IPersistableState<T> extends IObservableState<T> {
+       serialize(): string;
+       deserialize(data: string): void;
+     }
+     
+     // Implementation example
+     serialize(): string {
+       return JSON.stringify(this.state);
+     }
+     
+     deserialize(data: string): void {
+       try {
+         const parsed = JSON.parse(data);
+         this.setState(parsed);
+       } catch (e) {
+         console.error("Failed to deserialize state:", e);
+       }
+     }
+     ```
+
+5. **Immutable State Access**
+   - Create accessor methods that enforce immutability:
+     ```typescript
+     getState(): Readonly<T> {
+       return Object.freeze({...this.state});
+     }
+     
+     setState(newState: Partial<T>): void {
+       const prevState = {...this.state};
+       this.state = {...this.state, ...newState};
+       this.notify(newState);
+     }
+     
+     // For nested updates with immutability
+     updateNestedState<K extends keyof T>(
+       key: K, 
+       updater: (currentValue: T[K]) => T[K]
+     ): void {
+       const newValue = updater(this.state[key]);
+       this.setState({ [key]: newValue } as Partial<T>);
+     }
+     ```
+
 ### 2.4 Backward Compatibility Approach
 
 To ensure backward compatibility throughout the refactoring process, we will:
@@ -192,7 +709,249 @@ To ensure backward compatibility throughout the refactoring process, we will:
 - Maintain settings compatibility with data migration utilities
 - Preserve user data with automatic backup and validation tools
 
-This approach minimizes user-visible changes during refactoring while allowing for incremental component replacement.
+#### 2.4.1 Migration Strategy Implementation
+
+For handling breaking changes during refactoring, we will implement the following approach:
+
+1. **Interface Stability**
+   - Define stable public interfaces for all key components:
+     ```typescript
+     // Example: Before extracting metrics processing functionality
+     export interface IMetricsProcessor {
+       processMetrics(text: string): Record<string, number>;
+       calculateSummaryStatistics(metrics: Record<string, number[]>): SummaryStats;
+       generateMetricsTable(metrics: Record<string, number[]>): HTMLElement;
+     }
+     ```
+
+2. **Adapter Pattern Implementation**
+   - Create adapter classes that maintain the same public API while delegating to new implementations:
+     ```typescript
+     // Old API interface that external code depends on
+     export interface ILegacyMetricsProcessor {
+       processMetrics(text: string): Record<string, number>;
+     }
+     
+     // New implementation with improved design
+     export class ModernMetricsService {
+       parseMetricsText(text: string, options?: ParseOptions): MetricsResult {
+         // New, improved implementation
+         const result: MetricsResult = {
+           metrics: {},
+           warnings: []
+         };
+         
+         // ... implementation ...
+         
+         return result;
+       }
+     }
+     
+     // Adapter maintains backward compatibility
+     export class MetricsProcessorAdapter implements ILegacyMetricsProcessor {
+       private modernService: ModernMetricsService;
+       
+       constructor(modernService: ModernMetricsService) {
+         this.modernService = modernService;
+       }
+       
+       processMetrics(text: string): Record<string, number> {
+         // Adapt new implementation to old interface
+         const result = this.modernService.parseMetricsText(text);
+         
+         // Transform new result format to old format
+         const legacyResult: Record<string, number> = {};
+         Object.entries(result.metrics).forEach(([key, values]) => {
+           // Take the last value from each metric array as the current value
+           if (values.length > 0) {
+             legacyResult[key] = values[values.length - 1];
+           }
+         });
+         
+         return legacyResult;
+       }
+     }
+     ```
+
+3. **Settings Migration Utilities**
+   - Create tools for migrating settings formats:
+     ```typescript
+     export interface SettingsMigrator {
+       canMigrate(settings: any): boolean;
+       migrate(settings: any): any;
+     }
+     
+     export class SettingsMigrationV1toV2 implements SettingsMigrator {
+       canMigrate(settings: any): boolean {
+         // Check if settings are in the old format (v1)
+         return settings && !settings.version;
+       }
+       
+       migrate(oldSettings: any): any {
+         // Create new settings format
+         const newSettings = {
+           version: 2,
+           metrics: {},
+           ui: {},
+           journal: {}
+         };
+         
+         // Migrate settings from old to new format
+         if (oldSettings.metricsEnabled !== undefined) {
+           newSettings.metrics.enabled = oldSettings.metricsEnabled;
+         }
+         
+         if (oldSettings.dateFormat) {
+           newSettings.ui.dateFormat = oldSettings.dateFormat;
+         }
+         
+         // ... migrate other settings ...
+         
+         return newSettings;
+       }
+     }
+     
+     // Usage in plugin
+     loadSettings(): Promise<void> {
+       return this.loadData()
+         .then(data => {
+           // Check if migration is needed
+           const migrators: SettingsMigrator[] = [
+             new SettingsMigrationV1toV2()
+           ];
+           
+           let settings = data || {};
+           
+           // Apply migrations if needed
+           for (const migrator of migrators) {
+             if (migrator.canMigrate(settings)) {
+               // Backup original settings
+               this.backupSettings(settings);
+               
+               // Apply migration
+               settings = migrator.migrate(settings);
+             }
+           }
+           
+           this.settings = settings;
+         });
+     }
+     ```
+
+4. **User Data Protection**
+   - Implement backup and validation for user data:
+     ```typescript
+     export class DataBackupService {
+       private plugin: DreamMetricsPlugin;
+       
+       constructor(plugin: DreamMetricsPlugin) {
+         this.plugin = plugin;
+       }
+       
+       async backupSettings(settings: any): Promise<void> {
+         try {
+           // Create backup file name with timestamp
+           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+           const backupFileName = `dream-metrics-settings-backup-${timestamp}.json`;
+           
+           // Get plugin data directory
+           const dataDir = this.plugin.app.vault.configDir + '/plugins/dream-metrics/backups';
+           
+           // Ensure directory exists
+           if (!await this.plugin.app.vault.adapter.exists(dataDir)) {
+             await this.plugin.app.vault.adapter.mkdir(dataDir);
+           }
+           
+           // Write backup file
+           await this.plugin.app.vault.adapter.write(
+             `${dataDir}/${backupFileName}`,
+             JSON.stringify(settings, null, 2)
+           );
+           
+           console.log(`Settings backup created: ${backupFileName}`);
+         } catch (error) {
+           console.error('Failed to backup settings:', error);
+         }
+       }
+       
+       async validateSettings(settings: any): Promise<boolean> {
+         // Perform validation on settings object
+         try {
+           // Check required fields
+           if (!settings) return false;
+           
+           // Validate settings structure based on version
+           if (settings.version === 2) {
+             return (
+               typeof settings.metrics === 'object' &&
+               typeof settings.ui === 'object' &&
+               typeof settings.journal === 'object'
+             );
+           } else {
+             // Legacy format validation
+             return true; // Assume valid for legacy format
+           }
+         } catch (error) {
+           console.error('Settings validation failed:', error);
+           return false;
+         }
+       }
+     }
+     ```
+
+5. **Thorough Testing**
+   - Implement comprehensive testing for data migration:
+     ```typescript
+     describe('Settings Migration', () => {
+       it('should correctly migrate v1 settings to v2', () => {
+         // Arrange
+         const v1Settings = {
+           metricsEnabled: true,
+           dateFormat: 'YYYY-MM-DD',
+           selectedNotes: ['note1.md', 'note2.md'],
+           journalFile: 'journal.md'
+         };
+         
+         const migrator = new SettingsMigrationV1toV2();
+         
+         // Act
+         const result = migrator.migrate(v1Settings);
+         
+         // Assert
+         expect(result.version).toBe(2);
+         expect(result.metrics.enabled).toBe(true);
+         expect(result.ui.dateFormat).toBe('YYYY-MM-DD');
+         expect(result.journal.selectedNotes).toEqual(['note1.md', 'note2.md']);
+         expect(result.journal.file).toBe('journal.md');
+       });
+       
+       it('should handle missing fields in v1 settings', () => {
+         // Arrange
+         const incompleteV1Settings = {
+           metricsEnabled: true
+           // Missing other fields
+         };
+         
+         const migrator = new SettingsMigrationV1toV2();
+         
+         // Act
+         const result = migrator.migrate(incompleteV1Settings);
+         
+         // Assert
+         expect(result.version).toBe(2);
+         expect(result.metrics.enabled).toBe(true);
+         // Should have default values for missing fields
+         expect(result.ui.dateFormat).toBe('YYYY-MM-DD'); // default
+       });
+     });
+     ```
+
+6. **Version Update Strategy**
+   - Prepare for a clean major version update:
+     - Increment to v2.0.0 for the refactored codebase
+     - Create comprehensive release notes documenting architecture changes
+     - Provide guidance for users on potential changes
+     - Include fallback instructions if issues are encountered
 
 ## Phase 3: Feature Module Extraction (3 weeks)
 
@@ -213,6 +972,151 @@ This approach minimizes user-visible changes during refactoring while allowing f
   - Summary views
   - Filter controls
   - Expandable content sections
+
+#### 3.3.1 UI Component Architecture Implementation
+
+To improve testability and separation of concerns for complex UI components, we will implement a presentation/container component split:
+
+1. **Identifying Complex Components**
+   - Focus on complex UI components that would benefit most from this pattern:
+     - `DateNavigatorModal` and related components
+     - `MetricsVisualization` components
+     - `SettingsTabs` and settings UI elements
+     - `DreamJournalManager` UI components
+
+2. **Standardized Component Communication**
+   - Create standardized interfaces for component communication:
+     ```typescript
+     // Example: Props interface for DateNavigatorView
+     export interface DateNavigatorViewProps {
+       selectedDate: Date;
+       highlightedDates: Date[];
+       onDateSelect: (date: Date) => void;
+       onMonthChange: (month: number, year: number) => void;
+       onConfirm: () => void;
+       onCancel: () => void;
+     }
+     
+     // Example: Callback interface for MetricsVisualization
+     export interface MetricsVisualizationCallbacks {
+       onFilterChange: (filter: MetricsFilter) => void;
+       onMetricSelect: (metricName: string) => void;
+       onTimeRangeChange: (range: DateRange) => void;
+     }
+     ```
+
+3. **Component Separation**
+   - Refactor complex components by separating logic (container) from presentation:
+     ```typescript
+     // Before: Mixed presentation and logic
+     export class DateNavigatorModal extends Modal {
+       constructor(app: App, plugin: DreamMetricsPlugin) {
+         super(app);
+         this.plugin = plugin;
+         // Mixed presentation setup and business logic
+       }
+       
+       onOpen() {
+         // Rendering logic
+         // Event handling
+         // Date calculation
+         // DOM manipulation
+       }
+     }
+     
+     // After: Separated container and presentation
+     // Container component (handles logic)
+     export class DateNavigatorContainer {
+       private view: DateNavigatorView;
+       private selectedDate: Date;
+       
+       constructor(
+         initialDate: Date, 
+         private onDateSelected: (date: Date) => void
+       ) {
+         this.selectedDate = initialDate;
+         this.view = new DateNavigatorView({
+           selectedDate: this.selectedDate,
+           highlightedDates: [],
+           onDateSelect: this.handleDateSelect.bind(this),
+           onMonthChange: this.handleMonthChange.bind(this),
+           onConfirm: this.handleConfirm.bind(this),
+           onCancel: this.handleCancel.bind(this)
+         });
+       }
+       
+       // Business logic methods
+       private handleDateSelect(date: Date) {
+         this.selectedDate = date;
+         this.updateView();
+       }
+       
+       private updateView() {
+         this.view.update({
+           selectedDate: this.selectedDate,
+           highlightedDates: this.getHighlightedDates()
+         });
+       }
+       
+       private getHighlightedDates(): Date[] {
+         // Business logic to determine highlighted dates
+         return [];
+       }
+     }
+     
+     // Presentation component (handles rendering)
+     export class DateNavigatorView {
+       private containerEl: HTMLElement;
+       private props: DateNavigatorViewProps;
+       
+       constructor(props: DateNavigatorViewProps) {
+         this.props = props;
+         this.containerEl = createDiv('date-navigator');
+         this.render();
+       }
+       
+       update(newProps: Partial<DateNavigatorViewProps>) {
+         this.props = { ...this.props, ...newProps };
+         this.render();
+       }
+       
+       private render() {
+         // Pure rendering logic - no business logic
+         this.containerEl.empty();
+         // Create UI elements based on props
+         // Attach event handlers that call props callbacks
+       }
+     }
+     ```
+
+4. **Data Flow Patterns**
+   - Implement clear data flow patterns between containers and presentation:
+     - Container components own and manage state
+     - Presentation components receive data via props
+     - User interactions trigger callbacks defined by container
+     - Container updates state and passes new props to presentation
+     - Presentation rerenders with new props
+
+5. **Component Organization**
+   - Define conventions for component file organization and naming:
+     ```
+     src/dom/components/
+       date-navigator/
+         DateNavigatorContainer.ts
+         DateNavigatorView.ts
+         DateNavigatorTypes.ts
+       metrics-visualization/
+         MetricsVisualizationContainer.ts
+         MetricsVisualizationView.ts
+         MetricsVisualizationTypes.ts
+     ```
+
+6. **Simplicity for Simpler Components**
+   - Keep simpler UI components in their current form when the split would add unnecessary complexity:
+     - Simple modals with minimal logic
+     - Notification components
+     - Static UI elements
+     - Components with fewer than ~100 lines of code
 
 ### 3.4 Data Processing Pipeline
 - Create a clear pipeline for data flow:
@@ -306,1243 +1210,482 @@ This systematic approach will improve maintainability, reduce code duplication, 
 - Implement integration tests for key workflows
 - Add snapshot tests for UI components
 
+#### 5.1.1 Error Handling Testing
+
+As part of our testing strategy, we will specifically address error handling:
+
+1. **Error Propagation Tests**
+   - Verify that errors are properly enriched with context as they bubble up:
+     ```typescript
+     describe('Error handling', () => {
+       it('should enrich errors with context', () => {
+         // Arrange
+         const originalError = new Error('Original error');
+         
+         // Act
+         const enriched = enrichError(originalError, {
+           component: 'TestComponent',
+           operation: 'testOperation'
+         });
+         
+         // Assert
+         expect(enriched.message).toBe('Original error');
+         expect(enriched.context?.component).toBe('TestComponent');
+         expect(enriched.context?.operation).toBe('testOperation');
+         expect(enriched.context?.timestamp).toBeDefined();
+       });
+       
+       it('should wrap errors and preserve stack traces', () => {
+         // Arrange
+         const originalError = new Error('Database error');
+         
+         // Act
+         const wrapped = wrapError(originalError, 'Failed to load metrics', {
+           component: 'MetricsService',
+           operation: 'loadMetrics'
+         });
+         
+         // Assert
+         expect(wrapped.message).toBe('Failed to load metrics');
+         expect(wrapped.originalError).toBe(originalError);
+         expect(wrapped.stack).toContain('Caused by: Error: Database error');
+       });
+     });
+     ```
+
+2. **Error Boundary Tests**
+   - Test that error boundaries properly catch and handle errors:
+     ```typescript
+     describe('ErrorBoundaryComponent', () => {
+       let component: TestErrorBoundary;
+       let loggerSpy: jest.SpyInstance;
+       
+       beforeEach(() => {
+         component = new TestErrorBoundary();
+         loggerSpy = jest.spyOn(LoggerService.getInstance(), 'error');
+       });
+       
+       it('should catch errors and execute fallback', () => {
+         // Arrange
+         const error = new Error('Test error');
+         const throwingOperation = () => { throw error; };
+         const fallback = jest.fn();
+         
+         // Act
+         component.testHandleError(error, fallback);
+         
+         // Assert
+         expect(fallback).toHaveBeenCalled();
+         expect(loggerSpy).toHaveBeenCalledWith('Component error', expect.any(Object));
+       });
+       
+       it('should wrap operations and use fallback on error', () => {
+         // Arrange
+         const throwingOperation = () => { throw new Error('Operation failed'); };
+         const fallback = jest.fn().mockReturnValue('fallback result');
+         
+         // Act
+         const result = component.testWrapOperation('testOp', throwingOperation, fallback);
+         
+         // Assert
+         expect(result).toBe('fallback result');
+         expect(fallback).toHaveBeenCalled();
+         expect(loggerSpy).toHaveBeenCalledWith(
+           'Operation testOp failed',
+           expect.any(Object)
+         );
+       });
+     });
+     ```
+
+3. **Error Type Tests**
+   - Verify custom error types work as expected:
+     ```typescript
+     describe('Custom error types', () => {
+       it('should create ValidationError with details', () => {
+         // Arrange & Act
+         const details = { field: 'date', message: 'Invalid date format' };
+         const error = new ValidationError('Validation failed', details);
+         
+         // Assert
+         expect(error.name).toBe('ValidationError');
+         expect(error.details).toEqual(details);
+       });
+       
+       it('should create ServiceError with service name', () => {
+         // Arrange & Act
+         const error = new ServiceError('Failed to process metrics', 'MetricsService');
+         
+         // Assert
+         expect(error.name).toBe('ServiceError');
+         expect(error.service).toBe('MetricsService');
+       });
+     });
+     ```
+
+4. **Logger Integration Tests**
+   - Test that errors are properly logged with context:
+     ```typescript
+     describe('Logger error handling', () => {
+       let consoleErrorSpy: jest.SpyInstance;
+       let logger: LoggerService;
+       
+       beforeEach(() => {
+         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+         logger = new LoggerService(LogLevel.DEBUG);
+       });
+       
+       afterEach(() => {
+         consoleErrorSpy.mockRestore();
+       });
+       
+       it('should log enriched errors with full context', () => {
+         // Arrange
+         const originalError = new Error('Database connection failed');
+         const enriched = enrichError(originalError, {
+           component: 'DatabaseService',
+           operation: 'connect',
+           metadata: { host: 'localhost', port: 5432 }
+         });
+         
+         // Act
+         logger.error('Failed to initialize database', enriched);
+         
+         // Assert
+         expect(consoleErrorSpy).toHaveBeenCalled();
+         expect(consoleErrorSpy.mock.calls[0][0]).toContain('[ERROR] Failed to initialize database');
+         expect(consoleErrorSpy.mock.calls[0][1]).toContain('Component: DatabaseService');
+       });
+     });
+     ```
+
 ### 5.2 Performance Optimization
 - Measure and improve startup time
 - Optimize rendering performance
 - Reduce memory usage
 
-### 5.3 Documentation
-- Update technical documentation using the continuous documentation approach
-- Create architecture diagrams
-- Document module boundaries and interfaces
-- Document component interfaces and usage examples
-- Ensure all documentation reflects the refactored architecture
-
-### 5.4 Regression Testing Strategy
-
-To ensure refactoring doesn't break existing functionality, we will use a structured manual testing approach:
-
-- Create comprehensive test scenarios for all core plugin functionality
-- Establish a regression testing checklist for verification after each significant change
-- Prepare a dedicated test vault with sample journal entries covering all use cases
-- Integrate testing into our workflow with clear checkpoints throughout the refactoring process
-
-This approach focuses on practical verification of actual user experience within Obsidian.
-
-## Implementation Strategy
-
-### Incremental Approach
-1. Start with high-impact, low-risk extractions
-2. Use the "strangler pattern" to gradually replace functionality
-3. Keep main.ts working throughout the refactoring process
-4. Implement one module at a time with thorough testing
-
-### Modular Structure
-```
-src/
-  analysis/       # Dream content analysis
-  dom/            # UI components and DOM manipulation
-    components/   # Reusable UI components
-    modals/       # Modal dialogs
-    views/        # Main view components
-  events/         # Event system and dispatchers
-  file-ops/       # File operations and vault access
-  journal_check/  # Journal validation and checking
-  metrics/        # Metrics collection and processing
-  parsing/        # Content parsing and extraction
-  state/          # State management
-  templates/      # Template system
-  utils/          # Utility functions
-```
-
-### Testing Guidelines
-- Each module should have corresponding test files
-- Use mocks for Obsidian API dependencies
-- Implement both unit and integration tests
-- Establish CI/CD pipeline for continuous testing
-
-### Version Control Strategy
-
-The refactoring will use a development branch approach with a single long-lived refactoring branch:
-
-- Create a single `refactoring` branch from `main`
-- Perform all refactoring work in this branch
-- Only merge back to `main` when the entire refactoring is complete
-- Use atomic commits with descriptive messages following a consistent format
-- Create tags at the completion of each major phase as "savepoints"
-
-This approach simplifies branch management while keeping all refactoring work isolated from the main branch.
-
-### Documentation Approach
-
-Documentation will be updated continuously alongside code changes:
-
-- Store documentation in version control alongside code
-- Update relevant documentation in the same commit as code changes
-- Use markdown for all documentation for consistency
-- Maintain documentation of module structure, interfaces, data flows, and architectural decisions
-- Use a documentation update checklist for each component extraction
-- Create documentation templates for common components
-
-This ensures documentation remains current throughout the refactoring process and captures architectural decisions while context is fresh.
-
-### Feature Management During Refactoring
-
-During the refactoring process, we will implement a partial feature freeze with branch-based development for non-critical features:
-
-- Only critical bug fixes, compatibility updates, and documentation will be allowed during refactoring
-- Changes will be evaluated using a "Refactoring Impact Assessment" template
-- Critical fixes will go to both `main` and `refactoring` branches
-- Non-critical features will be developed in feature branches to be integrated later
-- The freeze will begin at Phase 2 and end when refactoring is complete
-
-This maintains focus on refactoring while allowing critical work to continue.
-
-## Timeline and Milestones
-
-1. **Week 1-2**: Complete Phases 1 & 2
-   - Architecture definition
-   - Core services extraction
-   - Initial testing setup
-
-2. **Week 3-5**: Complete Phase 3
-   - Feature module extraction
-   - Component refactoring
-   - Initial integration tests
-
-3. **Week 6**: Complete Phase 4
-   - Main plugin refactoring
-   - Command and settings reorganization
-
-4. **Week 7-9**: Complete Phase 5
-   - Comprehensive testing
-   - Performance optimization
-   - Documentation updates
-
-### Release Strategy
-
-We will use a big bang release approach to deploy all refactored components at once:
-
-- Complete all refactoring work on the dedicated `refactoring` branch
-- Perform full regression testing on the entire refactored codebase
-- Increment to a new major version number (e.g., v2.0.0)
-- Establish clear "go/no-go" criteria for the release
-- Prepare comprehensive release notes documenting architectural changes
-
-This approach creates a clean break between old and new architecture while simplifying deployment.
-
-## Risk Assessment
-
-### Potential Challenges
-- Maintaining backward compatibility during refactoring
-- Handling complex state dependencies
-- Obsidian API limitations
-- Edge cases in user data
-
-### Mitigation Strategies
-- Progressive feature flags
-- Careful interface design
-- Comprehensive testing
-- Regular user feedback cycles
-
-### User Impact Management
-
-Given the plugin's current limited user base, we'll focus on transparent communication:
-
-- Add a dedicated section in README.md about the ongoing refactoring
-- Use GitHub release notes as the primary communication channel
-- Tag releases during refactoring as "Technical Preview" versions
-- Document the technical goals and expected benefits
-- Take advantage of the early stage to establish better architecture without complex transition strategies
-
-This approach focuses resources on technical improvements rather than complex rollout strategies.
-
-## Implementation Examples
-
-To illustrate the refactoring approach more concretely, this section provides practical examples of how specific components will be extracted from the main file.
-
-### Example 1: Modal Extraction
-
-This example shows how the `OneiroMetricsModal` component will be extracted from `main.ts` into its own module.
-
-#### Current Implementation (in main.ts)
-
-```typescript
-class OneiroMetricsModal extends Modal {
-    private plugin: DreamMetricsPlugin;
-    private selectionMode: 'notes' | 'folder';
-    private selectedNotes: string[];
-    private selectedFolder: string;
-    private progressContent: HTMLElement;
-    private statusText: HTMLElement;
-    private progressBar: HTMLElement;
-    private progressFill: HTMLElement;
-    private detailsText: HTMLElement;
-    private scrapeButton: HTMLButtonElement;
-    private isScraping: boolean = false;
-    private noteDismissed: boolean = false;
-    public hasScraped: boolean = false;
-    public openNoteButton: HTMLButtonElement;
-    public static activeModal: OneiroMetricsModal | null = null;
-
-    constructor(app: App, plugin: DreamMetricsPlugin) {
-        super(app);
-        this.plugin = plugin;
-        this.selectionMode = plugin.settings.selectionMode || 'notes';
-        this.selectedNotes = plugin.settings.selectedNotes || [];
-        this.selectedFolder = plugin.settings.selectedFolder || '';
-    }
-
-    // ...rest of implementation...
-    
-    onOpen() {
-        // ...implementation...
-    }
-    
-    onClose() {
-        // ...implementation...
-    }
-}
-```
-
-#### Refactored Implementation
-
-##### 1. Create New File: src/dom/modals/ScrapeModal.ts
-
-```typescript
-import { App, Modal, Notice, TFile } from 'obsidian';
-import type { DreamMetricsPlugin } from '../../../main';
-import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
-import { ModalEvents } from '../../events/ModalEvents';
-
-/**
- * Modal for initiating dream journal scraping operations
- */
-export class ScrapeModal extends Modal {
-    private plugin: DreamMetricsPlugin;
-    private selectionMode: 'notes' | 'folder';
-    private selectedNotes: string[];
-    private selectedFolder: string;
-    private progressContent: HTMLElement;
-    private statusText: HTMLElement;
-    private progressBar: HTMLElement;
-    private progressFill: HTMLElement;
-    private detailsText: HTMLElement;
-    private scrapeButton: HTMLButtonElement;
-    private isScraping: boolean = false;
-    private noteDismissed: boolean = false;
-    public hasScraped: boolean = false;
-    public openNoteButton: HTMLButtonElement;
-    
-    // Track the active instance for plugin access
-    public static activeModal: ScrapeModal | null = null;
-
-    // Events that can be subscribed to
-    public events = {
-        onScrapeStart: new ModalEvents<void>(),
-        onScrapeComplete: new ModalEvents<void>(),
-        onSettingsOpen: new ModalEvents<void>()
-    };
-
-    constructor(app: App, plugin: DreamMetricsPlugin) {
-        super(app);
-        this.plugin = plugin;
-        this.selectionMode = plugin.settings.selectionMode || 'notes';
-        this.selectedNotes = plugin.settings.selectedNotes || [];
-        this.selectedFolder = plugin.settings.selectedFolder || '';
-    }
-
-    /**
-     * Update the progress UI with current status
-     */
-    public updateProgress(percent: number, statusText: string, detailsText?: string): void {
-        if (this.progressFill && this.statusText) {
-            this.progressFill.style.width = `${percent}%`;
-            this.statusText.setText(statusText);
-            
-            if (detailsText && this.detailsText) {
-                this.detailsText.setText(detailsText);
-            }
-        }
-    }
-
-    /**
-     * Enable the "Open OneiroMetrics" button after scraping
-     */
-    public enableOpenButton(): void {
-        if (this.openNoteButton) {
-            this.openNoteButton.disabled = false;
-            this.openNoteButton.title = 'Open the OneiroMetrics note';
-            this.openNoteButton.addClass('enabled');
-        }
-    }
-
-    /**
-     * Reset the scrape button state
-     */
-    public resetScrapeButton(): void {
-        if (this.scrapeButton) {
-            this.scrapeButton.disabled = false;
-            this.isScraping = false;
-        }
-    }
-
-    onOpen() {
-        ScrapeModal.activeModal = this;
-        const { contentEl } = this;
-        
-        // Reset scrape state when modal is opened
-        this.hasScraped = false;
-        
-        // Configure modal container
-        this.modalEl.style.width = '600px';
-        this.modalEl.style.maxHeight = '80vh';
-        this.modalEl.addClass('oom-modal');
-        
-        // Clear and set up content container
-        contentEl.empty();
-        contentEl.className = 'modal-content oom-modal';
-
-        // Create title
-        contentEl.createEl('h2', { text: 'OneiroMetrics Dream Scrape', cls: 'oom-modal-title' });
-
-        // Add dismissible note
-        if (!this.noteDismissed) {
-            const noteEl = contentEl.createEl('div', { cls: 'oom-modal-note' });
-            noteEl.createEl('strong', { text: 'Note: ' });
-            noteEl.createEl('span', { 
-                text: 'This is where you kick off the "scraping" process, which searches your selected notes or folder and gathers up dream entries and metrics. Click the Scrape button to begin, or change your files/folder selection, below.'
-            });
-        }
-
-        this.buildSelectionModeRow(contentEl);
-        this.buildSelectorRow(contentEl);
-        this.buildActionRow(contentEl);
-        this.buildProgressRow(contentEl);
-    }
-
-    // Additional methods...
-}
-```
-
-##### 2. Create Events Module: src/events/ModalEvents.ts
-
-```typescript
-/**
- * Simple event system for modal components
- */
-export class ModalEvents<T = void> {
-    private listeners: Array<(data: T) => void> = [];
-    
-    /**
-     * Add an event listener
-     */
-    public subscribe(callback: (data: T) => void): () => void {
-        this.listeners.push(callback);
-        
-        // Return unsubscribe function
-        return () => {
-            const index = this.listeners.indexOf(callback);
-            if (index > -1) {
-                this.listeners.splice(index, 1);
-            }
-        };
-    }
-    
-    /**
-     * Trigger the event
-     */
-    public emit(data: T): void {
-        this.listeners.forEach(listener => listener(data));
-    }
-    
-    /**
-     * Remove all listeners
-     */
-    public clear(): void {
-        this.listeners = [];
-    }
-}
-```
-
-##### 3. Update Main Plugin File
-
-```typescript
-// Import the new modal
-import { ScrapeModal } from './src/dom/modals/ScrapeModal';
-
-export default class DreamMetricsPlugin extends Plugin {
-    // Other plugin code...
-    
-    /**
-     * Open the scrape modal
-     */
-    openScrapeModal(): void {
-        const modal = new ScrapeModal(this.app, this);
-        
-        // Set up event listeners
-        const unsubscribe = modal.events.onScrapeStart.subscribe(() => {
-            this.scrapeMetrics();
-        });
-        
-        // Clean up on modal close
-        const originalOnClose = modal.onClose;
-        modal.onClose = () => {
-            unsubscribe();
-            originalOnClose.call(modal);
-        };
-        
-        modal.open();
-    }
-    
-    // Rest of plugin implementation...
-}
-```
-
-#### Benefits of This Approach
-
-1. **Separation of Concerns**: The modal is now self-contained and focused on UI responsibilities
-2. **Improved Maintainability**: Smaller, focused files are easier to understand and modify
-3. **Enhanced Testability**: The modal can be tested in isolation
-4. **Event-Driven Communication**: Clear interfaces between components
-5. **Type Safety**: Better type checking with explicit interfaces
-6. **Code Reuse**: Modal can be reused in different contexts
-
-### Example 2: Metrics Service Extraction
-
-Another critical component to extract is the metrics processing logic. This example shows how to move metric processing from main.ts to a dedicated service.
-
-#### Current Implementation (in main.ts)
-
-```typescript
-private processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number> {
-    const result: Record<string, number> = {};
-    const metricsRegex = /([^:,]+):\s*(\d+(?:\.\d+)?)/g;
-    let match;
-    
-    while ((match = metricsRegex.exec(metricsText)) !== null) {
-        const metricName = match[1].trim();
-        const metricValue = parseFloat(match[2]);
-        
-        if (!isNaN(metricValue)) {
-            result[metricName] = metricValue;
-            
-            // Record for summary statistics
-            if (!metrics[metricName]) {
-                metrics[metricName] = [];
-            }
-            metrics[metricName].push(metricValue);
-        }
-    }
-    
-    return result;
-}
-
-private processDreamContent(content: string): string {
-    // Remove markdown formatting
-    content = content.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
-    content = content.replace(/\*(.*?)\*/g, '$1');     // Italic
-    content = content.replace(/~~(.*?)~~/g, '$1');     // Strikethrough
-    content = content.replace(/\[(.*?)\]\(.*?\)/g, '$1'); // Links
-    content = content.replace(/^\s*#{1,6}\s+(.*)$/gm, '$1'); // Headings
-    content = content.replace(/^>\s*(.*?)$/gm, '$1');  // Blockquotes
-    
-    // Truncate to a reasonable preview length
-    if (content.length > 300) {
-        content = content.substring(0, 297) + '...';
-    }
-    
-    return content;
-}
-```
-
-#### Refactored Implementation
-
-##### 1. Create New Files: src/metrics/MetricsService.ts
-
-```typescript
-import { DreamMetric } from '../../types';
-
-/**
- * Service for processing and managing dream metrics
- */
-export class MetricsService {
-    /**
-     * Process raw metrics text and extract numeric values
-     * 
-     * @param metricsText The raw metrics text from a callout
-     * @param aggregateMetrics Optional record to update with aggregate metrics data
-     * @returns A record of metric names to their values
-     */
-    public processMetrics(
-        metricsText: string, 
-        aggregateMetrics?: Record<string, number[]>
-    ): Record<string, number> {
-        const result: Record<string, number> = {};
-        const metricsRegex = /([^:,]+):\s*(\d+(?:\.\d+)?)/g;
-        let match;
-        
-        while ((match = metricsRegex.exec(metricsText)) !== null) {
-            const metricName = match[1].trim();
-            const metricValue = parseFloat(match[2]);
-            
-            if (!isNaN(metricValue)) {
-                result[metricName] = metricValue;
-                
-                // Record for summary statistics if provided
-                if (aggregateMetrics) {
-                    if (!aggregateMetrics[metricName]) {
-                        aggregateMetrics[metricName] = [];
-                    }
-                    aggregateMetrics[metricName].push(metricValue);
-                }
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Generate summary statistics for a set of metrics
-     * 
-     * @param metrics Record of metric names to arrays of values
-     * @returns Summary statistics including average, min, max, and count
-     */
-    public generateSummaryStatistics(
-        metrics: Record<string, number[]>
-    ): Record<string, { avg: number, min: number, max: number, count: number }> {
-        const result: Record<string, { avg: number, min: number, max: number, count: number }> = {};
-        
-        for (const metricName in metrics) {
-            const values = metrics[metricName];
-            if (values.length) {
-                const sum = values.reduce((a, b) => a + b, 0);
-                const avg = Math.round((sum / values.length) * 10) / 10;
-                const min = Math.min(...values);
-                const max = Math.max(...values);
-                
-                result[metricName] = {
-                    avg,
-                    min,
-                    max,
-                    count: values.length
-                };
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Validate a metric value against its defined range
-     * 
-     * @param metricName The name of the metric
-     * @param value The value to validate
-     * @param metrics A map of available metrics definitions
-     * @returns Whether the value is valid for the given metric
-     */
-    public validateMetricValue(
-        metricName: string, 
-        value: number, 
-        metrics: Record<string, DreamMetric>
-    ): boolean {
-        const metric = metrics[metricName];
-        if (!metric) return false;
-        
-        return value >= metric.range.min && value <= metric.range.max;
-    }
-}
-```
-
-##### 2. Create New Files: src/parsing/ContentProcessor.ts
-
-```typescript
-/**
- * Service for processing and sanitizing dream content
- */
-export class ContentProcessor {
-    /**
-     * Clean and format dream content for display
-     * 
-     * @param content The raw dream content
-     * @param maxLength Maximum length for preview content
-     * @returns Sanitized content
-     */
-    public processDreamContent(content: string, maxLength: number = 300): string {
-        // Remove markdown formatting
-        content = this.removeMarkdownFormatting(content);
-        
-        // Truncate to a reasonable preview length
-        if (content.length > maxLength) {
-            content = content.substring(0, maxLength - 3) + '...';
-        }
-        
-        return content;
-    }
-    
-    /**
-     * Remove markdown formatting from text
-     * 
-     * @param text Text with markdown formatting
-     * @returns Clean text
-     */
-    private removeMarkdownFormatting(text: string): string {
-        // Remove bold formatting
-        text = text.replace(/\*\*(.*?)\*\*/g, '$1');
-        
-        // Remove italic formatting
-        text = text.replace(/\*(.*?)\*/g, '$1');
-        
-        // Remove strikethrough
-        text = text.replace(/~~(.*?)~~/g, '$1');
-        
-        // Remove links, keeping only the link text
-        text = text.replace(/\[(.*?)\]\(.*?\)/g, '$1');
-        
-        // Remove headings
-        text = text.replace(/^\s*#{1,6}\s+(.*)$/gm, '$1');
-        
-        // Remove blockquotes
-        text = text.replace(/^>\s*(.*?)$/gm, '$1');
-        
-        // Remove code blocks
-        text = text.replace(/```[\s\S]*?```/g, '');
-        
-        // Remove inline code
-        text = text.replace(/`(.*?)`/g, '$1');
-        
-        return text;
-    }
-    
-    /**
-     * Extract only text content from HTML
-     * 
-     * @param html HTML string
-     * @returns Plain text content
-     */
-    public extractTextFromHtml(html: string): string {
-        // Create temporary element to parse HTML
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        
-        // Extract text content
-        const text = temp.textContent || temp.innerText || '';
-        
-        // Clean up
-        return text.trim();
-    }
-}
-```
-
-##### 3. Update Main Plugin File
-
-```typescript
-import { MetricsService } from './src/metrics/MetricsService';
-import { ContentProcessor } from './src/parsing/ContentProcessor';
-
-export default class DreamMetricsPlugin extends Plugin {
-    private metricsService: MetricsService;
-    private contentProcessor: ContentProcessor;
-    
-    async onload() {
-        // Initialize services
-        this.metricsService = new MetricsService();
-        this.contentProcessor = new ContentProcessor();
-        
-        // Rest of onload...
-    }
-    
-    async scrapeMetrics() {
-        // Instead of using the embedded methods, use the services
-        const metricsData: Record<string, number[]> = {};
-        const dreamEntries: DreamMetricData[] = [];
-        
-        // Process files...
-        
-        // When processing metrics text:
-        const metrics = this.metricsService.processMetrics(metricsText, metricsData);
-        
-        // When processing dream content:
-        const cleanContent = this.contentProcessor.processDreamContent(content);
-        
-        // Generate summary statistics:
-        const summaryStats = this.metricsService.generateSummaryStatistics(metricsData);
-        
-        // Update project note...
-    }
-    
-    // Rest of plugin implementation...
-}
-```
-
-#### Benefits of This Service-Based Approach
-
-1. **Focused Responsibility**: Each service has a single responsibility
-2. **Enhanced Reusability**: Services can be used by multiple components
-3. **Improved Testability**: Services are easily unit testable
-4. **Cleaner Abstraction**: Main plugin focuses on coordination, not implementation
-5. **Better Maintainability**: Changes to processing logic only affect the relevant service
-6. **Future Extensibility**: New processing features can be added to services without changing consumer code
-
-### Example 3: Further Extraction Strategies
-
-As the refactoring progresses, similar extraction patterns will be applied to:
-
-1. **File Operations Service**: For reading, writing, and backing up files
-2. **Table Generation Components**: For creating and updating metric tables
-3. **Filter Management**: For date filtering and range selection
-4. **Settings Management**: For handling plugin configuration
-
-Each extraction will follow similar principles:
-- Identify clear component boundaries
-- Extract to appropriate modules
-- Create clean interfaces
-- Implement event-driven communication
-- Reduce dependencies between components
-
-## Pre-Implementation Questions
-
-Before beginning the implementation of this refactoring plan, the following questions should be addressed to ensure a smooth process. Each question includes options and recommendations to guide the decision-making process.
-
-### Q1: Technical Dependencies
-
-**Question:** How should we identify and manage the technical dependencies between components during extraction?
-
-**Options:**
-1. **Manual dependency mapping**: Developers identify dependencies through code analysis.
-2. **Automated dependency analysis**: Use tools to generate dependency graphs.
-3. **Incremental discovery**: Map dependencies for each component just before extraction.
-4. **Obsidian-specific custom analysis**: Creating tailored tooling that understands Obsidian plugin architecture.
-
-**Decision:** Use a hybrid approach with initial manual dependency mapping supplemented by a lightweight Obsidian-specific analysis tool.
-
-**Implementation details:**
-1. Begin with a manual high-level dependency map of the main components
-- Create a visual diagram documenting relationships between:
-  - Modal components
-  - Service classes
-  - Data processing functions
-  - UI rendering systems
-- Identify both direct dependencies (imports) and indirect dependencies (shared state)
-
-2. Develop a simple Obsidian-specific analysis script that:
-- Scans for Obsidian API usage patterns (e.g., `this.app`, `this.plugin`)
-- Identifies plugin lifecycle hooks and their consumers
-- Maps event emitters and subscribers
-- Highlights potential circular dependencies
-
-3. Maintain the dependency documentation as a living document:
-- Update the diagram after each component extraction
-- Include the dependency map in technical documentation
-- Use the map to validate extraction order decisions
-
-**Benefits of this approach:**
-- Combines human insight with automated detection
-- Accounts for Obsidian-specific patterns that generic tools might miss
-- Provides immediate value without significant tooling investment
-- Creates useful documentation for current and future developers
-- Helps identify non-obvious dependencies that could complicate extraction
-
-**Next actions:**
-1. Create initial manual dependency map for the first set of components to be extracted
-2. Develop simple script to scan for Obsidian-specific API usage patterns
-3. Establish standard for documenting dependencies in component extraction PRs
-
-### Q2: Backward Compatibility Strategy
-
-**Question:** How will we ensure backward compatibility throughout the refactoring process?
-
-**Options:**
-1. **Shadow implementation**: Maintain old implementations while building new ones, switching over when complete.
-2. **Feature flags**: Use feature flags to toggle between old and new implementations.
-3. **Interface stability**: Keep public interfaces stable while refactoring internals.
-
-**Decision:** Use the interface stability approach with adapter classes for complex components.
-
-**Implementation details:**
-1. Define stable public interfaces for key components:
-   - Document all public methods and properties that are accessed by other parts of the plugin
-   - Create formal TypeScript interfaces for each major component being refactored
-   - Implement backward compatibility checks in the build process
-
-2. Implement the adapter pattern for complex components:
-   - Create adapter classes that maintain the same public API
-   - Internally, adapters delegate to the new implementation
-   - Example: 
+#### 5.2.1 Performance Monitoring Implementation
+
+To ensure performance during and after refactoring, we will implement a user-focused performance strategy with developer tooling:
+
+1. **Performance-Critical Operations**
+   - Identify key operations that impact user experience:
+     - Journal parsing (especially with large journals)
+     - Metrics calculation (particularly for long time periods)
+     - UI rendering during updates and data filtering
+     - Modal initialization and content loading
+     - Data persistence operations
+
+2. **Timing Measurement Implementation**
+   - Implement simple timing measurements using `performance.now()`:
      ```typescript
-     // Old API that external code depends on
-     class OriginalMetricsProcessor {
-         processMetrics(text: string): Record<string, number> { /* ... */ }
-     }
-     
-     // New implementation with improved design
-     class ModernMetricsService {
-         parseMetricsText(text: string, options?: ParseOptions): MetricsResult { /* ... */ }
-     }
-     
-     // Adapter maintains backward compatibility
-     class MetricsProcessorAdapter extends OriginalMetricsProcessor {
-         private modernService = new ModernMetricsService();
-         
-         processMetrics(text: string): Record<string, number> {
-             // Adapt new implementation to old interface
-             const result = this.modernService.parseMetricsText(text);
-             return result.metrics;
+     export class PerformanceMonitor {
+       private static instance: PerformanceMonitor;
+       private measurements: Record<string, PerformanceMeasurement[]> = {};
+       private isEnabled: boolean = false;
+       
+       static getInstance(): PerformanceMonitor {
+         if (!PerformanceMonitor.instance) {
+           PerformanceMonitor.instance = new PerformanceMonitor();
          }
+         return PerformanceMonitor.instance;
+       }
+       
+       enable(): void {
+         this.isEnabled = true;
+       }
+       
+       disable(): void {
+         this.isEnabled = false;
+       }
+       
+       startMeasurement(operation: string, metadata?: Record<string, any>): () => void {
+         if (!this.isEnabled) return () => {};
+         
+         const start = performance.now();
+         return () => {
+           const end = performance.now();
+           const duration = end - start;
+           
+           if (!this.measurements[operation]) {
+             this.measurements[operation] = [];
+           }
+           
+           this.measurements[operation].push({
+             timestamp: Date.now(),
+             duration,
+             metadata
+           });
+           
+           // Keep only the last 100 measurements per operation
+           if (this.measurements[operation].length > 100) {
+             this.measurements[operation].shift();
+           }
+           
+           console.debug(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
+         };
+       }
+       
+       getMeasurements(operation?: string): Record<string, PerformanceMeasurement[]> {
+         if (operation) {
+           return { [operation]: this.measurements[operation] || [] };
+         }
+         return {...this.measurements};
+       }
+       
+       getAverageDuration(operation: string): number {
+         const measurements = this.measurements[operation];
+         if (!measurements || measurements.length === 0) {
+           return 0;
+         }
+         
+         const sum = measurements.reduce((acc, m) => acc + m.duration, 0);
+         return sum / measurements.length;
+       }
+       
+       clearMeasurements(operation?: string): void {
+         if (operation) {
+           this.measurements[operation] = [];
+         } else {
+           this.measurements = {};
+         }
+       }
+     }
+     
+     export interface PerformanceMeasurement {
+       timestamp: number;
+       duration: number;
+       metadata?: Record<string, any>;
      }
      ```
 
-3. Maintain settings compatibility:
-   - Create data migration utilities for any changes to settings format
-   - Support both old and new settings formats during transition
-   - Add deprecation warnings for settings that will change in future
-
-4. User data preservation strategy:
-   - Implement automatic backup of user data before applying migrations
-   - Create validation tools to ensure data integrity after migration
-   - Test migration paths thoroughly with sample data sets
-
-**Benefits of this approach:**
-- Minimizes user-visible changes during refactoring
-- Allows for incremental component replacement
-- Provides clear interfaces for both old and new code
-- Reduces risk by isolating changes
-- Creates a clean transition path without disruption
-
-**Next actions:**
-1. Document existing public interfaces for initial extraction targets
-2. Create interface definitions and add to source control
-3. Implement first adapter class for the OneiroMetricsModal extraction
-
-**API versioning decision:** We will not implement formal API versioning at this time, but will maintain interface stability through adapter classes. We will revisit API versioning as a separate task after refactoring is complete.
-
-### Q3: Feature Freeze Requirements
-
-**Question:** Do we need a feature freeze during refactoring, and if so, what are its parameters?
-
-**Options:**
-1. **Complete feature freeze**: No new features until refactoring is complete.
-2. **Partial freeze**: Only critical features/fixes allowed during refactoring.
-3. **Branch-based development**: New features developed in separate branches to be integrated after refactoring.
-
-**Decision:** Implement a partial freeze with branch-based development for non-critical features.
-
-**Implementation details:**
-1. Establish clear criteria for changes allowed during refactoring:
-   - **Critical bug fixes**: Security issues, data loss prevention, crashes
-   - **Compatibility updates**: Required changes for new Obsidian versions
-   - **Documentation improvements**: Non-code changes to documentation
-
-2. Define process for evaluating change requests:
-   - Create a "Refactoring Impact Assessment" template for proposed changes
-   - Require impact assessment to answer:
-     - How critical is this change? (High/Medium/Low)
-     - Which components does it affect?
-     - What is the risk to refactoring work?
-     - Can it be deferred until after refactoring?
-   - Changes with "High" criticality and "Low" refactoring impact get approved
-   - Other changes are developed in feature branches to be integrated later
-
-3. Branch management strategy:
-   - Maintain the `refactoring` branch as the main integration target
-   - Critical fixes go to both `main` and `refactoring` branches
-   - Non-critical features are developed in `feature/*` branches
-   - Feature branches start from `main` but aren't merged until after refactoring
-   - Track deferred features in a dedicated project board
-
-4. Timeline considerations:
-   - Partial freeze begins at the start of Phase 2 (Core Infrastructure Refactoring)
-   - Critical-only period during Phase 3 (Feature Module Extraction)
-   - End freeze when refactoring branch is merged back to main
-
-**Benefits of this approach:**
-- Maintains focus on refactoring without blocking critical work
-- Provides clear decision framework for new changes
-- Allows parallel development for non-critical features
-- Reduces merge conflicts during refactoring
-- Keeps project momentum without derailing refactoring effort
-
-**Next actions:**
-1. Create the Refactoring Impact Assessment template
-2. Set up project board for tracking deferred features
-3. Communicate freeze parameters to all developers
-4. Schedule regular review meetings to assess change requests
-
-### Q4: User Impact Assessment
-
-**Question:** What user-facing impacts might occur during refactoring, and how will we manage them?
-
-**Options:**
-1. **Zero impact goal**: Structure refactoring to ensure users experience no changes.
-2. **Staged rollout**: Release refactored components to beta users first.
-3. **Transparent communication**: Clearly communicate potential issues to users.
-
-**Decision:** Focus on transparent communication (Option 3), given the plugin's current limited user base.
-
-**Implementation details:**
-1. Create transparent documentation about the refactoring:
-   - Add a dedicated section in README.md about the ongoing refactoring
-   - Document the technical goals and expected benefits
-   - Maintain a "Current Status" section that's updated with each release
-
-2. Simplify the communication approach:
-   - Use GitHub release notes as the primary communication channel
-   - Tag releases during refactoring as "Technical Preview" versions
-   - Provide clear documentation of any known issues or changes
-
-3. Leverage the small user base as an advantage:
-   - Invite early adopters to provide direct feedback
-   - Create an informal beta testing group if interest emerges
-   - Use the low-profile nature to make more ambitious refactoring choices
-
-4. Prepare for future growth:
-   - Document all decisions for future maintainers
-   - Focus on creating a solid foundation rather than backward compatibility
-   - Prioritize clean interfaces that will support future users
-
-**Benefits of this approach:**
-- Focuses resources on technical improvements rather than complex rollout strategies
-- Takes advantage of the early stage to establish better architecture
-- Avoids unnecessary complexity in managing user transitions
-- Creates transparent history of the project's evolution
-- Sets foundation for more formal processes as user base grows
-
-**Next actions:**
-1. Create the refactoring documentation section in README.md
-2. Set up a simple feedback mechanism for early users
-3. Establish a release notes template for refactoring updates
-
-### Q5: Incremental Deployment Strategy
-
-**Question:** How should the refactored code be deployed to users?
-
-**Options:**
-1. **Big bang release**: Deploy all refactored components in one major version update.
-2. **Incremental releases**: Release refactored components as they're completed.
-3. **Opt-in beta program**: Allow users to test refactored components before general release.
-
-**Decision:** Use a big bang release approach (Option 1) to deploy all refactored components at once.
-
-**Implementation details:**
-1. Comprehensive preparation for the release:
-   - Complete all refactoring work on a dedicated long-lived branch
-   - Perform full regression testing on the entire refactored codebase
-   - Create thorough release notes documenting all architectural changes
-   - Develop comprehensive migration tools for any data format changes
-
-2. Version strategy:
-   - Increment to a new major version number (e.g., v2.0.0)
-   - Create a clear cut-off point between old and new architecture
-   - Ensure the version bump is clearly visible to users and in documentation
-
-3. Release readiness criteria:
-   - Establish clear "go/no-go" criteria for the release
-   - Require all tests to pass on the refactored branch
-   - Verify all critical user flows work as expected
-   - Complete all documentation updates before release
-
-4. Post-release support:
-   - Maintain ability to create critical fixes for the previous version if needed
-   - Focus team resources on the new version after release
-   - Create a quick-response plan for addressing any critical issues after release
-
-**Benefits of this approach:**
-- Simplifies the deployment strategy
-- Avoids maintaining multiple versions of components
-- Creates a clean break from old to new architecture
-- Allows for more comprehensive testing of the entire system
-- Fits well with the plugin's current limited user base
-- Avoids complex compatibility layers between old and new components
-
-**Next actions:**
-1. Create the refactoring branch in the repository
-2. Establish the release readiness criteria
-3. Set up the comprehensive testing plan for the final release
-4. Begin documenting expected changes for the release notes
-
-### Q6: Extraction Priorities
-
-**Question:** Which specific components have the highest extraction priority?
-
-**Options:**
-1. **Complexity-based prioritization**: Extract the most complex components first.
-2. **Dependency-based prioritization**: Extract components with fewest dependencies first.
-3. **Impact-based prioritization**: Extract components with highest user impact first.
-
-**Decision:** Use dependency-based prioritization (Option 2) to extract components with the fewest dependencies first.
-
-**Implementation details:**
-1. First extraction wave - independent utility components:
-   - Standalone utility functions (e.g., date formatting, content processing)
-   - Modal components (OneiroMetricsModal, ConfirmModal)
-   - Simple data processing functions (processDreamContent, processMetrics)
-   - Logging system (already partially modularized)
-
-2. Second extraction wave - service modules:
-   - File operation utilities
-   - Event handling systems
-   - Content parsing services
-   - Table generation functions
-
-3. Third extraction wave - state management:
-   - Data filtering system
-   - Settings management
-   - Project state management
-   - Component interaction orchestration
-
-4. Final extraction - core plugin functionality:
-   - Plugin lifecycle management
-   - Command registration and handling
-   - Central coordination logic
-   - Public API surface
-
-**Component-specific extraction order:**
-1. ModalSystem: OneiroMetricsModal → ConfirmModal → other modals
-2. ContentProcessing: processDreamContent → processMetrics → generateSummaryTable
-3. UIComponents: table generation → expandable sections → filters
-4. CoreServices: file operations → event system → state management
-
-**Benefits of this approach:**
-- Reduces refactoring risk by starting with the most isolated components
-- Creates early successes and momentum for the refactoring effort
-- Establishes patterns for extraction that can be reused for more complex components
-- Allows for incremental testing of extracted components
-- Aligns with the strangler pattern mentioned in the implementation strategy
-- Builds a foundation of well-tested modules before tackling core functionality
-
-**Next actions:**
-1. Create detailed dependency map for components in the first extraction wave
-2. Establish extraction templates and patterns (folder structure, naming conventions)
-3. Begin extraction of the modal components as described in Example 1
-4. Create unit tests for the first wave of utility functions to be extracted
-
-### Q7: Test Coverage Requirements
-
-**Question:** What test coverage thresholds are required for refactored code?
-
-**Options:**
-1. **Comprehensive coverage**: 80%+ coverage for all code.
-2. **Critical path coverage**: Focus testing on the most critical functionality.
-3. **Incremental improvement**: Set coverage thresholds slightly above existing levels.
-
-**Decision:** Use critical path coverage (Option 2) with a practical manual testing approach suited for Obsidian plugin development by a solo developer.
-
-**Implementation details:**
-1. Manual testing workflow for critical functionality:
-   - Create a test vault dedicated to plugin testing
-   - Document step-by-step test scenarios for critical features
-   - Establish testing checklists for key user workflows:
-     - Dream journal entry creation
-     - Metrics calculation and display
-     - Project note generation and updates
-     - Template usage and management
-   - Test each refactored component directly in Obsidian as it's completed
-
-2. Pragmatic automated testing where feasible:
-   - Add basic unit tests for easily testable utility functions
-   - Focus on functions that process data or perform calculations
-   - Use simple test harnesses that can run outside of Obsidian
-   - Prioritize testing code with complex logic or important data handling
-
-3. Test documentation as a primary deliverable:
-   - Create a `TESTING.md` document with detailed test procedures
-   - Include screenshots of expected results where appropriate
-   - Document edge cases and potential failure modes
-   - Update test documentation alongside code changes
-
-4. Tiered testing priorities:
-   - **Essential (must test thoroughly)**: Data processing, metrics calculation, settings management
-   - **Important (test main workflows)**: UI components, modal interactions, project note generation
-   - **Basic (smoke test)**: Visual elements, formatting utilities, documentation helpers
-
-**Benefits of this approach:**
-- Practical for a solo developer workflow
-- Focuses testing effort on the most critical functionality
-- Creates reusable test documentation for future development
-- Balances manual and automated testing appropriately
-- Acknowledges the realities of Obsidian plugin development
-- Prevents testing overhead from stalling refactoring progress
-
-**Next actions:**
-1. Create the dedicated test vault with sample dream journal entries
-2. Document the critical test scenarios in TESTING.md
-3. Establish a testing checklist template for component extraction
-4. Set up a minimal test harness for key utility functions
-
-### Q8: Version Control Strategy
-
-**Question:** What branching and merging strategy should be used for the refactoring?
-
-**Options:**
-1. **Feature branches**: Create branches for each component extraction.
-2. **Development branch**: Perform all refactoring in a single long-lived branch.
-3. **Trunk-based development**: Make small, incremental changes to main branch.
-
-**Decision:** Use a development branch approach (Option 2) with a single long-lived refactoring branch.
-
-**Implementation details:**
-1. Branch structure:
-   - Create a single `refactoring` branch from `main`
-   - Perform all refactoring work in this branch
-   - Only merge back to `main` when the entire refactoring is complete
-   - Use the commit history to document progress rather than multiple branches
-
-2. Commit strategy:
-   - Use atomic commits focused on specific changes
-   - Group commits logically by component or feature
-   - Use descriptive commit messages with consistent format:
+3. **Developer UI for Performance Metrics**
+   - Create a developer-only UI panel for visualizing performance data:
+     ```typescript
+     export class PerformanceDebugView extends Modal {
+       constructor(app: App) {
+         super(app);
+       }
+       
+       onOpen() {
+         const {contentEl} = this;
+         contentEl.empty();
+         
+         contentEl.createEl('h2', {text: 'Performance Metrics'});
+         
+         const monitor = PerformanceMonitor.getInstance();
+         const measurements = monitor.getMeasurements();
+         
+         // Create operation tabs
+         const tabContainer = contentEl.createEl('div', {cls: 'performance-tabs'});
+         const contentContainer = contentEl.createEl('div', {cls: 'performance-content'});
+         
+         Object.keys(measurements).forEach((operation, index) => {
+           const operationMeasurements = measurements[operation];
+           const avgDuration = monitor.getAverageDuration(operation);
+           
+           // Create tab
+           const tab = tabContainer.createEl('div', {
+             cls: 'performance-tab',
+             text: `${operation} (${avgDuration.toFixed(2)}ms avg)`
+           });
+           
+           // Create content panel
+           const panel = contentContainer.createEl('div', {
+             cls: 'performance-panel'
+           });
+           
+           if (index === 0) {
+             tab.addClass('active');
+             panel.addClass('active');
+           }
+           
+           // Add event listener
+           tab.addEventListener('click', () => {
+             tabContainer.querySelectorAll('.performance-tab').forEach(t => 
+               t.removeClass('active')
+             );
+             contentContainer.querySelectorAll('.performance-panel').forEach(p => 
+               p.removeClass('active')
+             );
+             tab.addClass('active');
+             panel.addClass('active');
+           });
+           
+           // Create table of measurements
+           const table = panel.createEl('table', {cls: 'performance-table'});
+           
+           // Header row
+           const thead = table.createEl('thead');
+           const headerRow = thead.createEl('tr');
+           headerRow.createEl('th', {text: '#'});
+           headerRow.createEl('th', {text: 'Time'});
+           headerRow.createEl('th', {text: 'Duration (ms)'});
+           headerRow.createEl('th', {text: 'Metadata'});
+           
+           // Body rows
+           const tbody = table.createEl('tbody');
+           operationMeasurements.forEach((measurement, idx) => {
+             const row = tbody.createEl('tr');
+             row.createEl('td', {text: String(idx + 1)});
+             row.createEl('td', {
+               text: new Date(measurement.timestamp).toLocaleTimeString()
+             });
+             row.createEl('td', {text: measurement.duration.toFixed(2)});
+             row.createEl('td', {
+               text: measurement.metadata ? 
+                 JSON.stringify(measurement.metadata) : '-'
+             });
+           });
+         });
+       }
+     }
      ```
-     extract: [component name] - Brief description
+
+4. **Toggleable Performance Logging**
+   - Add a developer setting to enable detailed performance logging:
+     ```typescript
+     // In settings.ts
+     interface DeveloperSettings {
+       enablePerformanceMonitoring: boolean;
+       logPerformanceToConsole: boolean;
+       performanceLogLevel: 'debug' | 'info';
+     }
      
-     - Detailed description of changes
-     - Mention any implementation details or decisions
-     - Reference any relevant documentation
-     ```
-   - Include refactoring stage in commit message (e.g., "Phase 1: Extract modal components")
-
-3. Documentation within commits:
-   - Document why decisions were made, not just what changed
-   - Include reference to this refactoring plan when appropriate
-   - Link to relevant architectural discussions or examples
-   - Note any deviations from the plan and the reasoning
-
-4. Quality checkpoints:
-   - Create tags at the completion of each major phase
-   - Ensure the plugin builds and works at each checkpoint
-   - Consider each phase a "savepoint" in the refactoring process
-   - Document testing performed at each checkpoint
-
-**Benefits of this approach:**
-- Simplifies branch management for a solo developer
-- Keeps all refactoring work isolated from the main branch
-- Maintains a clean history of the refactoring process
-- Aligns well with the chosen "big bang release" deployment strategy
-- Makes it easier to track progress through the refactoring plan
-- Reduces context switching between branches
-
-**Next actions:**
-1. Create the `refactoring` branch from current `main`
-2. Add initial refactoring plan documentation to the branch
-3. Establish commit message template for the refactoring work
-4. Set up initial phase checkpoint tag
-
-### Q9: Regression Testing Approach
-
-**Question:** How will we ensure that refactoring doesn't break existing functionality?
-
-**Options:**
-1. **Manual testing**: Follow test scripts for critical functionality.
-2. **Automated end-to-end tests**: Create comprehensive automated tests.
-3. **User beta testing**: Rely on user feedback to catch regression issues.
-
-**Decision:** Use manual testing (Option 1) with structured test scripts for critical functionality.
-
-**Implementation details:**
-1. Create comprehensive test scenarios:
-   - Document all core plugin functionality with step-by-step test procedures
-   - Focus on critical user flows that must continue to work correctly:
-     - Creating and editing dream journal entries
-     - Extracting metrics from journal entries
-     - Generating and updating project notes
-     - Using templates for journal entries
-   - Include test cases for edge cases and error handling
-
-2. Establish a regression testing checklist:
-   - Create a checklist of core features to test after each significant refactoring step
-   - Include verification of UI elements, data processing, and file operations
-   - Use a structured format for tracking test results:
-     ```
-     ## Core Functionality Test Checklist
+     // Usage in plugin
+     if (this.settings.developer.enablePerformanceMonitoring) {
+       PerformanceMonitor.getInstance().enable();
+     }
      
-     | Feature | Steps | Expected Result | Status | Notes |
-     |---------|-------|-----------------|--------|-------|
-     | Dream metrics extraction | 1. Open test note<br>2. Add callout with metrics<br>3. Run extraction | Metrics appear in project note | ✅ | |
+     // Add to settings tab
+     new Setting(containerEl)
+       .setName('Enable Performance Monitoring')
+       .setDesc('Track and display performance metrics (developer feature)')
+       .addToggle(toggle => toggle
+         .setValue(this.plugin.settings.developer.enablePerformanceMonitoring)
+         .onChange(async (value) => {
+           this.plugin.settings.developer.enablePerformanceMonitoring = value;
+           await this.plugin.saveSettings();
+           
+           if (value) {
+             PerformanceMonitor.getInstance().enable();
+           } else {
+             PerformanceMonitor.getInstance().disable();
+           }
+         }));
      ```
 
-3. Test vault preparation:
-   - Create a dedicated test vault with sample journal entries
-   - Include examples of all supported formats and edge cases
-   - Maintain consistent test data throughout the refactoring process
-   - Document the structure and purpose of test files
+5. **Informal Performance Budgets**
+   - Establish guidelines for performance targets:
+     - Journal loading: < 500ms for 100 entries
+     - Metrics calculation: < 1000ms for 1000 entries
+     - UI rendering: < 100ms for updates
+     - Filter operations: < 200ms for applying filters
+     - Plugin initialization: < 300ms
 
-4. Testing workflow integration:
-   - Perform structured testing at each checkpoint in the refactoring process
-   - Document test results directly in commit messages
-   - Address any regressions immediately before proceeding
-   - Retest affected features after fixing regressions
-
-**Benefits of this approach:**
-- Practical for a solo developer without a testing team
-- Focuses on actual user experience within Obsidian
-- Creates valuable documentation of expected behavior
-- Avoids overhead of maintaining complex automated tests
-- Builds confidence in the refactoring process
-- Provides clear verification of continued functionality
-
-**Next actions:**
-1. Create the regression testing checklist document
-2. Set up the dedicated test vault with sample journal entries
-3. Document test scenarios for core functionality
-4. Establish the testing workflow to integrate with refactoring checkpoints
-
-### Q10: Documentation Update Plan
-
-**Question:** How will technical documentation be kept in sync with code changes?
-
-**Options:**
-1. **Post-refactoring update**: Update all documentation after refactoring is complete.
-2. **Continuous documentation**: Update documentation alongside code changes.
-3. **Auto-generated documentation**: Use tools to generate documentation from code.
-
-**Decision:** Use continuous documentation (Option 2) to update documentation alongside code changes.
-
-**Implementation details:**
-1. Documentation-as-code workflow:
-   - Store documentation in version control alongside code
-   - Update relevant documentation in the same commit as code changes
-   - Use markdown for all documentation for consistency and ease of updating
-   - Establish a clear documentation structure that mirrors code organization
-
-2. Key documentation to maintain:
-   - Module structure and responsibilities
-   - Public interfaces between components
-   - Data flow diagrams for key processes
-   - Configuration options and formats
-   - Test scenarios and expected results
-   - Architectural decisions and rationales
-
-3. Documentation update checklist:
-   - For each component extraction, update:
-     - Component interface documentation
-     - Architecture overview diagrams
-     - Module dependency documentation
-     - Usage examples where relevant
-   - Use a simple checklist in commit messages:
+6. **Before/After Comparisons**
+   - Create a process for comparing performance between versions:
+     ```typescript
+     export function comparePerformance(
+       beforeData: Record<string, PerformanceMeasurement[]>,
+       afterData: Record<string, PerformanceMeasurement[]>
+     ): PerformanceComparison {
+       const comparison: PerformanceComparison = {
+         operations: {},
+         summary: {
+           improved: 0,
+           degraded: 0,
+           unchanged: 0
+         }
+       };
+       
+       // Combine all operation keys
+       const operations = new Set([
+         ...Object.keys(beforeData),
+         ...Object.keys(afterData)
+       ]);
+       
+       operations.forEach(operation => {
+         const beforeMeasurements = beforeData[operation] || [];
+         const afterMeasurements = afterData[operation] || [];
+         
+         const beforeAvg = beforeMeasurements.length > 0 ?
+           beforeMeasurements.reduce((sum, m) => sum + m.duration, 0) / 
+           beforeMeasurements.length : 0;
+           
+         const afterAvg = afterMeasurements.length > 0 ?
+           afterMeasurements.reduce((sum, m) => sum + m.duration, 0) / 
+           afterMeasurements.length : 0;
+         
+         const percentChange = beforeAvg > 0 ?
+           ((afterAvg - beforeAvg) / beforeAvg) * 100 : 0;
+         
+         comparison.operations[operation] = {
+           beforeAvg,
+           afterAvg,
+           percentChange,
+           status: percentChange < -5 ? 'improved' :
+                  percentChange > 5 ? 'degraded' : 'unchanged'
+         };
+         
+         comparison.summary[comparison.operations[operation].status]++;
+       });
+       
+       return comparison;
+     }
+     
+     interface PerformanceComparison {
+       operations: Record<string, {
+         beforeAvg: number;
+         afterAvg: number;
+         percentChange: number;
+         status: 'improved' | 'degraded' | 'unchanged';
+       }>;
+       summary: {
+         improved: number;
+         degraded: number;
+         unchanged: number;
+       };
+     }
      ```
-     - [x] Updated interface documentation
-     - [x] Updated architecture diagram
-     - [x] Updated usage examples
+
+7. **Event System Performance Monitoring**
+   - Add event tracking to monitor propagation delays:
+     ```typescript
+     // Add performance monitoring to EventEmitter
+     emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): void {
+       if (!this.listeners[event]) return;
+       
+       const endMeasurement = PerformanceMonitor.getInstance()
+         .startMeasurement('event:emit', {
+           event: String(event),
+           listenerCount: this.listeners[event]?.length || 0
+         });
+       
+       this.listeners[event]?.forEach(listener => {
+         const endListenerMeasurement = PerformanceMonitor.getInstance()
+           .startMeasurement('event:listener', {
+             event: String(event),
+             listener: listener.name || 'anonymous'
+           });
+           
+         try {
+           listener(payload);
+         } catch (error) {
+           console.error(`Error in event listener for ${String(event)}:`, error);
+         } finally {
+           endListenerMeasurement();
+         }
+       });
+       
+       endMeasurement();
+     }
      ```
 
-4. Practical implementation for a solo developer:
-   - Create documentation templates for common components
-   - Set aside dedicated time for documentation after each significant change
-   - Use simple tools (markdown, basic diagrams) to reduce overhead
-   - Focus on documenting what will be most useful for future maintenance
+### 5.3 Documentation
 
-**Benefits of this approach:**
-- Documentation remains current throughout the refactoring process
-- Reduces the burden of large documentation updates at the end
-- Captures architectural decisions while context is fresh
-- Serves as a developer note system during complex refactoring
-- Creates a valuable record of the transformation process
-- Provides reference material for future development
-
-**Next actions:**
-1. Create templates for component documentation
-2. Update the architecture overview diagram to reflect planned changes
-3. Establish standard locations for different types of documentation
-4. Add documentation review to the checkpoint process
+```docs/developer/implementation/refactoring-plan-2025.md
+```
 
 ## Conclusion
 
