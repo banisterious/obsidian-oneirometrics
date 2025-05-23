@@ -11,6 +11,9 @@ export interface DreamMetricData {
         type: string;
         id?: string;
     };
+    id?: string;
+    path?: string;
+    tags?: string[];
 }
 
 export interface DreamMetricsSettings {
@@ -33,6 +36,7 @@ export interface DreamMetricsSettings {
         maxBackups?: number;
     };
     linting: LintingSettings;
+    _stateStorage?: Record<string, any>; // For storing arbitrary state data
 }
 
 export interface DreamMetric {

@@ -6421,7 +6421,7 @@ tr.oom-dream-row {
 .oom-modal {
   --modal-padding: 20px;
   --modal-border-radius: 8px;
-  --modal-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --modal-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   --modal-background: var(--background-primary);
   --modal-border-color: var(--background-modifier-border);
   
@@ -6728,3 +6728,644 @@ tr.oom-dream-row {
         transition: none;
     }
 }
+
+/* ==========================================================================
+   Date Navigator Component Styles
+   ========================================================================== */
+
+/* 
+ * Date Navigator is a calendar component used for selecting and navigating dates
+ * It supports year, month, and day views with date selection functionality
+ * Used in various modals and the date filter controls
+ */
+
+.oom-date-navigator {
+    --month-bg: var(--background-primary);
+    --month-border: var(--background-modifier-border);
+    --month-text: var(--text-normal);
+    --month-header: var(--text-accent);
+    --day-bg: var(--background-primary);
+    --day-border: var(--background-modifier-border);
+    --day-text: var(--text-normal);
+    --day-today: var(--interactive-accent);
+    --day-selected: var(--interactive-accent-hover);
+    --day-dream: var(--text-accent);
+    --day-no-dream: var(--text-muted);
+    --day-other-month: var(--background-secondary);
+    --day-hover: var(--background-modifier-hover);
+    --day-with-entry-bg: rgba(var(--interactive-accent-rgb), 0.1);
+    
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--month-border);
+    border-radius: 4px;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Date Navigator Modal Styles */
+.oom-date-navigator-modal {
+    width: 100%;
+    max-width: 600px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.oom-date-navigator-modal .oom-modal-title {
+    margin-bottom: 12px;
+    text-align: center;
+    color: var(--text-accent);
+}
+
+.oom-date-navigator-modal .oom-modal-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 8px 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-date-navigator-modal .oom-modal-button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oom-date-navigator-modal .oom-modal-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-date-navigator-modal .oom-apply-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-date-navigator-modal .oom-apply-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+/* Breadcrumb Navigation */
+.oom-breadcrumb-container {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background-color: var(--background-secondary-alt);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.oom-breadcrumb {
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.oom-breadcrumb:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-breadcrumb-separator {
+    color: var(--text-muted);
+    margin: 0 4px;
+}
+
+.oom-breadcrumb-current {
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+    cursor: default;
+}
+
+.oom-breadcrumb-current:hover {
+    background-color: transparent;
+}
+
+/* Year View */
+.oom-year-view-container,
+.oom-month-view-container {
+    padding: 12px;
+    background-color: var(--background-primary);
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 16px;
+}
+
+.oom-view-title {
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 1.1em;
+    color: var(--text-accent);
+}
+
+.oom-years-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.oom-year-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.oom-year-cell:hover {
+    background-color: var(--background-modifier-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.oom-year-cell.is-current {
+    border: 2px solid var(--day-today);
+}
+
+.oom-year-cell.is-selected {
+    background-color: var(--day-selected);
+    color: var(--text-on-accent);
+}
+
+.oom-year-number {
+    font-size: 1.2em;
+    font-weight: var(--font-bold);
+}
+
+.oom-year-indicator {
+    width: 24px;
+    height: 4px;
+    background-color: var(--day-dream);
+    border-radius: 2px;
+    margin-top: 8px;
+}
+
+/* Month View */
+.oom-months-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.oom-month-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oom-month-cell:hover {
+    background-color: var(--background-modifier-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.oom-month-cell.is-current {
+    border: 2px solid var(--day-today);
+}
+
+.oom-month-name {
+    font-weight: var(--font-bold);
+}
+
+.oom-month-density {
+    margin-top: 8px;
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background-color: var(--background-modifier-border);
+    border-radius: 2px;
+}
+
+.oom-month-density::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-color: var(--day-dream);
+    border-radius: 2px;
+    min-width: 2px;
+}
+
+.oom-view-transition {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.oom-month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--month-bg);
+    border-bottom: 1px solid var(--month-border);
+}
+
+.oom-month-title {
+    font-weight: var(--font-bold);
+    color: var(--month-header);
+    font-size: 1.1em;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.oom-month-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    background: transparent;
+    border: 1px solid var(--month-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--month-text);
+}
+
+.oom-month-button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-month-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--text-accent);
+}
+
+.oom-today-button {
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 0.85em;
+}
+
+.oom-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(40px, auto);
+    border-top: 1px solid var(--month-border);
+}
+
+.oom-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    background: var(--background-secondary-alt);
+    border-bottom: 1px solid var(--month-border);
+    color: var(--text-muted);
+    font-size: 0.85em;
+    font-weight: var(--font-medium);
+}
+
+.oom-day-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 6px 4px;
+    border-right: 1px solid var(--month-border);
+    border-bottom: 1px solid var(--month-border);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    background: var(--day-bg);
+}
+
+.oom-day-cell:hover {
+    background: var(--day-hover);
+}
+
+.oom-day-cell:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--text-accent);
+    z-index: 1;
+}
+
+.oom-day-number {
+    font-size: 0.95em;
+    font-weight: var(--font-normal);
+    margin-bottom: 4px;
+}
+
+.oom-dream-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.oom-dream-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: var(--day-dream);
+}
+
+.oom-day-cell.is-today {
+    border: 2px solid var(--day-today);
+}
+
+.oom-day-cell.is-selected {
+    background-color: var(--day-selected);
+    color: var(--text-on-accent);
+}
+
+.oom-day-cell.other-month {
+    background-color: var(--day-other-month);
+    color: var(--text-faint);
+}
+
+.oom-day-cell.has-entries {
+    background-color: var(--day-with-entry-bg);
+}
+
+.oom-day-cell.highlight-pulse {
+    animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--interactive-accent-rgb), 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(var(--interactive-accent-rgb), 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--interactive-accent-rgb), 0);
+    }
+}
+
+.oom-day-preview {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: -50%;
+    right: -50%;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 8px;
+    z-index: 10;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 250px;
+    pointer-events: none;
+}
+
+.oom-day-cell:hover .oom-day-preview {
+    display: block;
+}
+
+.oom-preview-content {
+    font-size: 0.9em;
+}
+
+.oom-day-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.oom-filter-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: var(--text-accent);
+}
+
+.oom-filter-section {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background-color: var(--background-secondary-alt);
+    border-radius: 4px;
+}
+
+.oom-year-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 12px;
+    padding: 8px;
+    background-color: var(--background-secondary-alt);
+    border-radius: 4px;
+}
+
+.oom-month-dot {
+    width: 16px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: var(--background-modifier-border);
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.oom-month-dot.active {
+    background-color: var(--text-accent);
+    width: 20px;
+    transform: translateY(-2px);
+}
+
+.oom-month-dot.has-entries {
+    background-color: var(--day-dream);
+}
+
+/* Date Navigator Modal */
+.modal:has(.oom-date-navigator-modal) {
+    max-width: 680px;
+    width: 80vw;
+    height: auto;
+    max-height: 90vh;
+}
+
+.oom-date-navigator-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.oom-date-navigator-modal .oom-date-navigator {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.oom-date-navigator-modal .oom-modal-title {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.2em;
+    font-weight: var(--font-bold);
+    color: var(--text-accent);
+}
+
+.oom-date-navigator-modal .oom-day-cell {
+    min-height: 50px;
+}
+
+.oom-modal-button-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-modal-button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oom-apply-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: var(--font-medium);
+    min-width: 100px;
+}
+
+.oom-apply-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-today-button:hover,
+.oom-modal-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-selected {
+    position: relative;
+    background-color: var(--day-selected);
+    color: white;
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-selected::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid var(--interactive-accent);
+    z-index: 1;
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-today {
+    border: 2px solid var(--day-today);
+    font-weight: var(--font-bold);
+}
+
+.oom-date-navigator-modal .oom-day-cell.is-today.is-selected {
+    background-color: var(--day-selected);
+    color: white;
+    border: 2px solid var(--day-today);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .oom-date-navigator-modal {
+        max-width: 100%;
+    }
+    
+    .oom-day-cell {
+        min-height: 42px;
+        padding: 4px 2px;
+    }
+    
+    .oom-dream-dot {
+        width: 4px;
+        height: 4px;
+    }
+    
+    .oom-day-preview {
+        max-width: 180px;
+    }
+    
+    .oom-modal-button-container {
+        flex-wrap: wrap;
+    }
+    
+    .oom-modal-button {
+        flex: 1 0 auto;
+    }
+    
+    .oom-years-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .oom-months-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .oom-years-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .oom-months-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .oom-breadcrumb-container {
+        flex-wrap: wrap;
+    }
+}
+
+/* ==========================================================================
+   [EXISTING CSS CONTINUES HERE]
+   ========================================================================== */
+
+/**
+ * ExpandableContent Component
+ * 
+ * Provides collapsible/expandable content sections with smooth animations
+ * and accessibility features.
+ */
+
+.oom-expandable-content {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oom-expandable-content,
+    .oom-expandable-content-text,
+    .oom-expandable-content-button,
+    .oom-expandable-content-icon {
+        transition-duration: 0.1s;
+    }
+}
+
+/* The duplicate DateNavigator styles have been removed - consolidation complete. */

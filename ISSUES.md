@@ -223,9 +223,15 @@
    - Progress: Major UI and logic restoration underway. Dismissible note, two-column layout, helper text, and progress bar have been added. Folder autocomplete and layout refinements are in progress.
    - Remaining: Folder autocomplete not visible/working, section order/layout needs adjustment, progress bar label/placement, and two-column alignment. Modal dimensions under review.
    - Next Steps: Complete layout fixes, ensure all autocompletes work, finalize progress bar, and polish for release.
-   - Status: 🚧 In Progress
+   - Status: �� In Progress
 
-6. **Custom Date Range Modal Issues**
+6. **Settings Redirection Bug**
+   - Issue: When no note is defined in Settings > OneiroMetrics Note, and the user clicks "Scrape" and then "View Metrics", they are taken to Obsidian Settings instead of OneiroMetrics Settings.
+   - Investigation: The plugin is likely using the generic app.setting.open() call instead of targeting the specific plugin settings tab.
+   - Next Steps: Update the settings redirection code to ensure it opens the OneiroMetrics Settings tab specifically.
+   - Status: 🐛 Open
+   
+7. **Custom Date Range Modal Issues**
    - Issue: The Custom Date Range modal has several UX and functionality issues:
      - Default date range incorrectly shows the previous day instead of the current day
      - Input format mismatch: displays dates in a user-friendly format but expects ISO format for manual entry, creating a confusing user experience

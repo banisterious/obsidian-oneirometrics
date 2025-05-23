@@ -1,4 +1,4 @@
-import { App, Notice } from 'obsidian';
+import { App } from 'obsidian';
 import { DreamMetricsState } from '../../../state/DreamMetricsState';
 import { DreamMetricData } from '../../../types';
 import { SummaryViewView } from './SummaryViewView';
@@ -9,6 +9,7 @@ import {
   TimeSeriesPoint
 } from './SummaryViewTypes';
 import { OneiroMetricsEvents } from '../../../events';
+import { IPluginAPI } from '../../../plugin/IPluginAPI';
 
 /**
  * Interface for filtered entries event data
@@ -27,7 +28,7 @@ interface FilteredEntriesEventData {
  */
 export class SummaryViewContainer {
   // Dependencies
-  private app: App;
+  private pluginApi: IPluginAPI;
   private state: DreamMetricsState;
   private events: OneiroMetricsEvents;
   
@@ -47,16 +48,16 @@ export class SummaryViewContainer {
   
   /**
    * Constructor
-   * @param app Obsidian app instance
+   * @param pluginApi Plugin API for accessing plugin functionality
    * @param container DOM element to render into
    * @param state Plugin state
    */
   constructor(
-    app: App, 
+    pluginApi: IPluginAPI, 
     container: HTMLElement, 
     state: DreamMetricsState
   ) {
-    this.app = app;
+    this.pluginApi = pluginApi;
     this.state = state;
     this.events = OneiroMetricsEvents.getInstance();
     
@@ -161,7 +162,7 @@ export class SummaryViewContainer {
   private handleExportRequest(format: 'csv' | 'json'): void {
     if (this.entries.length === 0) {
       // Show notification if no data to export
-      new Notice('No data to export');
+      this.pluginApi.createNotice('No data to export');
       return;
     }
     
@@ -472,7 +473,7 @@ export class SummaryViewContainer {
   private exportToCsv(): void {
     // Only export if there's a metric selected
     if (!this.selectedMetricKey) {
-      new Notice('Please select a metric to export');
+      this.pluginApi.createNotice('Please select a metric to export');
       return;
     }
     
@@ -509,10 +510,10 @@ export class SummaryViewContainer {
       link.click();
       document.body.removeChild(link);
       
-      new Notice(`Exported ${relevantEntries.length} entries to CSV`);
+      this.pluginApi.createNotice(`Exported ${relevantEntries.length} entries to CSV`);
     } catch (e) {
       console.error('Error exporting CSV:', e);
-      new Notice('Error exporting CSV: ' + e.message);
+      this.pluginApi.createNotice('Error exporting CSV: ' + e.message);
     }
   }
   
@@ -522,7 +523,7 @@ export class SummaryViewContainer {
   private exportToJson(): void {
     // Only export if there's a metric selected
     if (!this.selectedMetricKey) {
-      new Notice('Please select a metric to export');
+      this.pluginApi.createNotice('Please select a metric to export');
       return;
     }
     
@@ -580,10 +581,10 @@ export class SummaryViewContainer {
       link.click();
       document.body.removeChild(link);
       
-      new Notice(`Exported ${relevantEntries.length} entries to JSON`);
+      this.pluginApi.createNotice(`Exported ${relevantEntries.length} entries to JSON`);
     } catch (e) {
       console.error('Error exporting JSON:', e);
-      new Notice('Error exporting JSON: ' + e.message);
+      this.pluginApi.createNotice('Error exporting JSON: ' + e.message);
     }
   }
 } 

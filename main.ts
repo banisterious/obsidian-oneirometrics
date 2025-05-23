@@ -11,6 +11,13 @@ import { lucideIconMap } from './settings';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
 import { LoggingAdapter } from './src/logging'; // Import our new LoggingAdapter
+
+// Import our new plugin infrastructure
+import { PluginAdapter, CommandRegistry } from './src/plugin';
+
+// Import state adapter
+import { StateAdapter } from './src/state/adapters';
+
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
 // Import refactored modal components
@@ -466,6 +473,11 @@ export default class DreamMetricsPlugin extends Plugin {
     private summaryViewContainer: SummaryViewContainer | null = null;
     private advancedFilterContainer: AdvancedFilterContainer | null = null;
     
+    // New plugin infrastructure
+    pluginApi: PluginAdapter;
+    commandRegistry: CommandRegistry;
+    stateAdapter: StateAdapter;
+    
     state: DreamMetricsState;
     
     loadedSettings: boolean = false;
@@ -474,7 +486,7 @@ export default class DreamMetricsPlugin extends Plugin {
     expandedStates: Set<string>;
     private ribbonIcons: HTMLElement[] = [];
     private container: HTMLElement | null = null;
-        private journalManagerRibbonEl: HTMLElement | null = null;
+    private journalManagerRibbonEl: HTMLElement | null = null;
     private memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
     private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
@@ -482,6 +494,12 @@ export default class DreamMetricsPlugin extends Plugin {
 
     async onload() {
         await this.loadSettings();
+        
+        // Initialize our plugin API adapter (dependency injection)
+        this.pluginApi = new PluginAdapter(this);
+        
+        // Initialize command registry with plugin and api
+        this.commandRegistry = new CommandRegistry(this, this.pluginApi);
         
         // Initialize our new logging adapter
         this.logger = new LoggingAdapter(this.app);
@@ -527,7 +545,7 @@ export default class DreamMetricsPlugin extends Plugin {
             });
         };
 
-        // Initialize components
+        // Initialize components using pluginApi instead of direct plugin reference
         this.templaterIntegration = new TemplaterIntegration(this);
         
         // Initialize LintingEngineContainer with dependencies
@@ -541,10 +559,6 @@ export default class DreamMetricsPlugin extends Plugin {
             setFileContent: async (file: TFile, content: string) => await this.app.vault.modify(file, content),
             createNotice: (message: string, duration?: number) => new Notice(message, duration)
         });
-        
-        // Initialize FilterControlsContainer
-        const filterContainerEl = document.createElement('div');
-        filterContainerEl.addClass('oom-filter-controls-container');
         
         // Create state if not already created
         if (!this.state) {
@@ -573,29 +587,32 @@ export default class DreamMetricsPlugin extends Plugin {
             
             // Initialize the state with adapted settings
             this.state = new DreamMetricsState(settingsAdapter as any);
+            
+            // Initialize the state adapter
+            this.stateAdapter = new StateAdapter(this.state, this.pluginApi);
         }
         
-        // Initialize FilterControlsContainer with the state
+        // Initialize UI components with pluginApi
+        const filterContainerEl = document.createElement('div');
+        filterContainerEl.addClass('oom-filter-controls-container');
         this.filterControlsContainer = new FilterControlsContainer(
-            this.app,
+            this.pluginApi,
             filterContainerEl,
             this.state
         );
         
-        // Initialize SummaryViewContainer
         const summaryContainerEl = document.createElement('div');
         summaryContainerEl.addClass('oom-summary-view-container');
         this.summaryViewContainer = new SummaryViewContainer(
-            this.app,
+            this.pluginApi,
             summaryContainerEl,
             this.state
         );
         
-        // Initialize AdvancedFilterContainer
         const advancedFilterContainerEl = document.createElement('div');
         advancedFilterContainerEl.addClass('oom-advanced-filter-container');
         this.advancedFilterContainer = new AdvancedFilterContainer(
-            this.app,
+            this.pluginApi,
             advancedFilterContainerEl,
             this.state
         );
@@ -618,20 +635,165 @@ export default class DreamMetricsPlugin extends Plugin {
         // --- Only manage ribbon icons through updateRibbonIcons() ---
         this.updateRibbonIcons();
 
-        // Add command to open modal
-        this.addCommand({
+        // Register commands using the command registry
+        this.registerCommands();
+
+        // Register global event handlers
+        this.registerGlobalEventHandlers();
+        
+        // Update test ribbon
+        this.updateTestRibbon();
+    }
+    
+    /**
+     * Register all plugin commands using the command registry
+     */
+    private registerCommands(): void {
+        // Register the main command to open the Dream Journal Manager
+        this.commandRegistry.register({
             id: 'open-oneirometrics-modal',
             name: 'Open Dream Journal Manager',
             callback: () => {
                 new DreamJournalManager(this.app, this).open();
             }
         });
+        
+        // Add command to open dream scrape tab
+        this.commandRegistry.register({
+            id: 'open-dream-scrape',
+            name: 'Open Dream Scrape Tool',
+            callback: () => {
+                new DreamJournalManager(this.app, this, 'dream-scrape').open();
+            }
+        });
 
+        // Add command for journal structure
+        this.commandRegistry.register({
+            id: 'open-journal-structure',
+            name: 'Open Journal Structure Settings',
+            callback: () => {
+                new DreamJournalManager(this.app, this, 'journal-structure').open();
+            }
+        });
+
+        // Add command to open settings
+        this.commandRegistry.register({
+            id: 'open-oneirometrics-settings',
+            name: 'Open OneiroMetrics Settings',
+            callback: () => {
+                (this.app as any).setting.open();
+                (this.app as any).setting.openTabById('oneirometrics');
+            }
+        });
+
+        // Add command to open metrics note
+        this.commandRegistry.register({
+            id: 'open-metrics-note',
+            name: 'Open Metrics Note',
+            callback: () => {
+                const file = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
+                if (file instanceof TFile) {
+                    this.app.workspace.openLinkText(this.settings.projectNote, '', true);
+                } else {
+                    new Notice('Metrics note not found. Please set the path in settings.');
+                    // Open settings to the OneiroMetrics tab
+                    (this.app as any).setting.open('oneirometrics');
+                }
+            }
+        });
+
+        // Add command to scrape metrics
+        this.commandRegistry.register({
+            id: 'scrape-metrics',
+            name: 'Scrape Metrics',
+            callback: () => this.scrapeMetrics()
+        });
+
+        // Add command to copy console logs
+        this.commandRegistry.register({
+            id: 'copy-console-logs',
+            name: 'Copy Console Logs to Debug File',
+            callback: () => this.copyConsoleLogs()
+        });
+        
+        // Add commands for log management
+        this.commandRegistry.register({
+            id: 'clear-debug-log',
+            name: 'Clear Debug Log',
+            callback: () => this.clearDebugLog()
+        });
+
+        this.commandRegistry.register({
+            id: 'backup-debug-log',
+            name: 'Backup Debug Log',
+            callback: () => this.backupDebugLog()
+        });
+
+        // Add journal structure validation commands
+        this.commandRegistry.register({
+            id: 'validate-dream-journal',
+            name: 'Validate Dream Journal Structure',
+            callback: () => this.validateCurrentFile()
+        });
+        
+        this.commandRegistry.register({
+            id: 'open-validation-test',
+            name: 'Open Validation Test Modal',
+            callback: () => new TestModal(this.app, this).open()
+        });
+        
+        this.commandRegistry.register({
+            id: 'create-journal-template',
+            name: 'Create Journal Template',
+            callback: () => new TemplateWizard(this.app, this, this.templaterIntegration).open()
+        });
+        
+        // Register command to insert dream journal template
+        this.commandRegistry.register({
+            id: 'insert-journal-template',
+            name: 'Insert Journal Template',
+            editorCallback: (editor: Editor, view: MarkdownView) => {
+                this.insertTemplate(editor);
+            }
+        });
+        
+        // Register DateNavigator command
+        this.commandRegistry.register({
+            id: 'open-date-navigator',
+            name: 'Open Date Navigator',
+            callback: () => {
+                this.dateNavigator.showDateNavigator();
+            }
+        });
+
+        // Add command to run metrics tests
+        this.commandRegistry.register({
+            id: 'run-metrics-tests',
+            name: 'Run Metrics Module Tests',
+            callback: () => this.runMetricsTests()
+        });
+        
+        // Add command to toggle active file only mode
+        this.commandRegistry.register({
+            id: 'toggle-active-file-only',
+            name: 'Toggle Active File Only Mode',
+            callback: () => {
+                this.onlyActiveFile = !this.onlyActiveFile;
+                this.logger.log('Filter', `Toggled Active File Only mode to ${this.onlyActiveFile}`);
+                this.validateCurrentFile();
+            }
+        });
+    }
+
+    /**
+     * Register global event handlers for date filter controls and other UI elements
+     */
+    private registerGlobalEventHandlers(): void {
         // Add global event handlers for date filter controls
         this.registerDomEvent(document, 'change', (e) => {
             const target = e.target as HTMLElement;
             if (target.id === 'oom-date-range-filter') {
-                console.log('[OOM-DEBUG] Date range dropdown changed via global handler:', (target as HTMLSelectElement).value);
+                this.logger.log('UI', `Date range dropdown changed via global handler: ${(target as HTMLSelectElement).value}`);
                 
                 // Check if this was triggered programmatically from the Date Navigator
                 // If it's "custom" value and customDateRange exists, don't clear it
@@ -639,10 +801,10 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 if (dropdownValue !== 'custom' || !customDateRange) {
                     // Only clear customDateRange for non-custom ranges or if it's already null
-                    console.log('[OOM-DEBUG] Clearing customDateRange for dropdown change to:', dropdownValue);
+                    this.logger.log('UI', `Clearing customDateRange for dropdown change to: ${dropdownValue}`);
                     customDateRange = null;
                 } else {
-                    console.log('[OOM-DEBUG] Keeping customDateRange for programmatic custom selection:', customDateRange);
+                    this.logger.log('UI', `Keeping customDateRange for programmatic custom selection: ${JSON.stringify(customDateRange)}`);
                 }
                 
                 // Reset custom range button active state
@@ -662,7 +824,7 @@ export default class DreamMetricsPlugin extends Plugin {
                     setTimeout(() => {
                         // For custom date selection, use applyCustomDateRangeFilter directly
                         if (dropdownValue === 'custom' && customDateRange) {
-                            console.log('[OOM-DEBUG] Applying custom date filter directly');
+                            this.logger.log('UI', `Applying custom date filter directly`);
                             applyCustomDateRangeFilter();
                         } else {
                             // Use the instance method for standard dropdown options
@@ -677,78 +839,20 @@ export default class DreamMetricsPlugin extends Plugin {
         this.registerDomEvent(document, 'click', (e) => {
             const target = e.target as HTMLElement;
             if (target.id === 'oom-custom-range-btn' || target.closest('#oom-custom-range-btn')) {
-                console.log('[OOM-DEBUG] Custom range button clicked via global handler');
+                this.logger.log('UI', `Custom range button clicked via global handler`);
                 // Get the current Obsidian app instance
                 openCustomRangeModal(this.app);
             }
         });
-
-        // Add command to open dream scrape tab
-        this.addCommand({
-            id: 'open-dream-scrape',
-            name: 'Open Dream Scrape Tool',
-            callback: () => {
-                new DreamJournalManager(this.app, this, 'dream-scrape').open();
-            }
-        });
-
-        // Add command for journal structure
-        this.addCommand({
-            id: 'open-journal-structure',
-            name: 'Open Journal Structure Settings',
-            callback: () => {
-                new DreamJournalManager(this.app, this, 'journal-structure').open();
-            }
-        });
-
-        // Add command to open settings
-        this.addCommand({
-            id: 'open-oneirometrics-settings',
-            name: 'Open OneiroMetrics Settings',
-            callback: () => {
-                (this.app as any).setting.open();
-                (this.app as any).setting.openTabById('oneirometrics');
-            }
-        });
-
-        // Add command to open metrics note
-        this.addCommand({
-            id: 'open-metrics-note',
-            name: 'Open Metrics Note',
-            callback: () => {
-                const file = this.app.vault.getAbstractFileByPath(this.settings.projectNote);
-                if (file instanceof TFile) {
-                    this.app.workspace.openLinkText(this.settings.projectNote, '', true);
-                } else {
-                    new Notice('Metrics note not found. Please set the path in settings.');
-                    // Open settings to the OneiroMetrics tab
-                    (this.app as any).setting.open('oneirometrics');
-                }
-            }
-        });
-
-        // Update ribbon icons based on settings
-        this.updateRibbonIcons();
-
-        this.addCommand({
-            id: 'scrape-metrics',
-            name: 'Scrape Metrics',
-            callback: () => this.scrapeMetrics(),
-        });
-
-        // Add command to copy console logs
-        this.addCommand({
-            id: 'copy-console-logs',
-            name: 'Copy Console Logs to Debug File',
-            callback: () => this.copyConsoleLogs()
-        });
-
+        
         // Register event handlers for project note view
         this.registerEvent(
             this.app.workspace.on('layout-change', () => {
                 this.updateProjectNoteView();
                 // Initialize table row classes when layout changes
                 initializeTableRowClasses();
+                // Update ribbon icons when layout changes
+                this.updateRibbonIcons();
             })
         );
 
@@ -808,59 +912,12 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             })
         );
-
-        // Add commands for log management
-        this.addCommand({
-            id: 'clear-debug-log',
-            name: 'Clear Debug Log',
-            callback: () => this.clearDebugLog()
-        });
-
-        this.addCommand({
-            id: 'backup-debug-log',
-            name: 'Backup Debug Log',
-            callback: () => this.backupDebugLog()
-        });
-
-        // Add journal structure validation commands
-        this.addCommand({
-            id: 'validate-dream-journal',
-            name: 'Validate Dream Journal Structure',
-            callback: () => this.validateCurrentFile()
-        });
-        
-        this.addCommand({
-            id: 'open-validation-test',
-            name: 'Open Validation Test Modal',
-            callback: () => new TestModal(this.app, this).open()
-        });
-        
-        this.addCommand({
-            id: 'create-journal-template',
-            name: 'Create Journal Template',
-            callback: () => new TemplateWizard(this.app, this, this.templaterIntegration).open()
-        });
         
         // Check log file size periodically
         this.registerInterval(
             window.setInterval(() => this.checkLogFileSize(), 5 * 60 * 1000) // Check every 5 minutes
         );
-
-        // Add to onload (after other settings loaded):
-        // this.updateTestRibbon();
-
-        this.updateTestRibbon(); // Call after settings loaded
-
-        // After the validation commands in onload() method
-        this.addCommand({
-            id: 'insert-journal-template',
-            name: 'Insert Journal Template',
-            editorCallback: (editor: Editor, view: MarkdownView) => {
-                this.insertTemplate(editor);
-            }
-        });
-
-        // Add to the onload method, before the "Check log file size periodically" code
+        
         // Register editor menu for template insertion
         this.registerEvent(
             this.app.workspace.on('editor-menu', (menu: Menu, editor: Editor) => {
@@ -874,36 +931,12 @@ export default class DreamMetricsPlugin extends Plugin {
                 });
             })
         );
-
+        
         // Register the DateNavigatorView
         this.registerView(
             DATE_NAVIGATOR_VIEW_TYPE,
             (leaf) => new DateNavigatorView(leaf)
         );
-        
-                // Date Navigator is now integrated into the Journal Manager
-        
-        this.registerEvent(
-            this.app.workspace.on('layout-change', () => {
-                this.updateRibbonIcons();
-            })
-        );
-
-        // Register DateNavigator command
-        this.addCommand({
-            id: 'open-date-navigator',
-            name: 'Open Date Navigator',
-            callback: () => {
-                this.dateNavigator.showDateNavigator();
-            }
-        });
-
-        // Add command to run metrics tests
-        this.addCommand({
-            id: 'run-metrics-tests',
-            name: 'Run Metrics Module Tests',
-            callback: () => this.runMetricsTests()
-        });
     }
 
     onunload() {
@@ -1656,8 +1689,11 @@ export default class DreamMetricsPlugin extends Plugin {
         }
 
         try {
+            // Get the file operations service
+            const fileOps = this.pluginApi.getFileOperations();
+            
             // Read the file content
-            const content = await this.app.vault.read(file);
+            const content = await fileOps.readFile(file.path);
             
             // Generate timestamp in a more readable format
             const now = new Date();
@@ -1668,41 +1704,32 @@ export default class DreamMetricsPlugin extends Plugin {
             const fileName = file.basename;
             const backupPath = `${this.settings.backupFolderPath}/${fileName}.backup-${timestamp}.bak`;
             
-            // Check if backup folder exists
-            const backupFolder = this.app.vault.getAbstractFileByPath(this.settings.backupFolderPath);
-            if (!backupFolder) {
-                try {
-                    await this.app.vault.createFolder(this.settings.backupFolderPath);
-                    console.log(`[OneiroMetrics] Created backup folder: ${this.settings.backupFolderPath}`);
-                } catch (error) {
-                    console.error('[OneiroMetrics] Error creating backup folder:', error);
-                    throw new Error(`Failed to create backup folder: ${error.message}`);
-                }
-            }
+            // Create backup folder if it doesn't exist
+            await fileOps.createDirectory(this.settings.backupFolderPath);
             
-            // Check if backup file already exists
-            const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
-            if (existingBackup) {
-                console.log(`[OneiroMetrics] Backup file already exists: ${backupPath}`);
-                throw new Error('Backup file already exists');
-            }
-            
-            // Create the backup file
-            await this.app.vault.create(backupPath, content);
+            // Write the backup file
+            await fileOps.writeFile(backupPath, content);
             console.log(`[OneiroMetrics] Created backup at: ${backupPath}`);
             
             // Clean up old backups (keep last 5)
             try {
-                const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith(this.settings.backupFolderPath ?? '') && 
-                        f.basename.startsWith(fileName) && 
-                        f.basename.includes('.backup-'))
-                    .sort((a, b) => b.stat.mtime - a.stat.mtime);
+                // Get all files in the backup folder that match our pattern
+                const allFiles = await fileOps.getMarkdownFiles(this.settings.backupFolderPath);
+                
+                // Filter and sort backup files
+                const backupFiles = allFiles
+                    .filter(path => path.startsWith(this.settings.backupFolderPath ?? '') && 
+                        path.includes(`${fileName}.backup-`))
+                    .sort()
+                    .reverse();
                 
                 // Delete backups older than the 5 most recent
                 for (let i = 5; i < backupFiles.length; i++) {
-                    await this.app.vault.delete(backupFiles[i]);
-                    console.log(`[OneiroMetrics] Deleted old backup: ${backupFiles[i].path}`);
+                    const backupFile = await fileOps.getFile(backupFiles[i]);
+                    if (backupFile) {
+                        await this.app.vault.delete(backupFile);
+                        console.log(`[OneiroMetrics] Deleted old backup: ${backupFiles[i]}`);
+                    }
                 }
             } catch (error) {
                 console.warn('[OneiroMetrics] Error cleaning up old backups:', error);
@@ -2408,67 +2435,99 @@ Applied: ${new Date().toLocaleTimeString()}`;
     }
 
     private async clearDebugLog() {
+        // Use a fixed path for logs
+        const logPath = 'logs/oom-debug-log.txt';
+        
         try {
-            const logPath = 'logs/oom-debug-log.txt';
-            const logFile = this.app.vault.getAbstractFileByPath(logPath);
+            const fileOps = this.pluginApi.getFileOperations();
             
-            if (logFile instanceof TFile) {
-                // Create backup before clearing
-                const backupPath = `logs/oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-                const content = await this.app.vault.read(logFile);
-                await this.app.vault.create(backupPath, content);
-                
-                // Clear the log file
-                await this.app.vault.modify(logFile, '');
-                this.logger.log('Log', 'Debug log cleared and backed up');
-                
-                // Clean up old backups (keep last 5)
-                const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith('logs/oom-debug-log.backup-'))
-                    .sort((a, b) => b.stat.mtime - a.stat.mtime);
-                
-                for (let i = 5; i < backupFiles.length; i++) {
-                    await this.app.vault.delete(backupFiles[i]);
-                }
+            // Check if log file exists
+            const exists = await fileOps.fileExists(logPath);
+            if (!exists) {
+                // Create empty log file
+                await fileOps.writeFile(logPath, '');
+                console.log('[OneiroMetrics] Created empty debug log file');
+                return;
             }
+            
+            // Create backup first
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}`;
+            const backupPath = `${logPath}.${timestamp}.bak`;
+            
+            // Read current log content
+            const content = await fileOps.readFile(logPath);
+            
+            // Create backup
+            await fileOps.writeFile(backupPath, content);
+            
+            // Clear log file by writing empty string
+            await fileOps.writeFile(logPath, '');
+            
+            console.log('[OneiroMetrics] Debug log cleared and backed up to', backupPath);
+            new Notice('Debug log cleared');
         } catch (error) {
-            this.logger.error('Log', 'Failed to clear debug log', error as Error);
-            new Notice('Failed to clear debug log. See console for details.');
+            console.error('[OneiroMetrics] Error clearing debug log:', error);
+            new Notice('Error clearing debug log: ' + error.message);
         }
     }
 
     private async backupDebugLog() {
         try {
             const logPath = 'logs/oom-debug-log.txt';
-            const logFile = this.app.vault.getAbstractFileByPath(logPath);
+            const fileOps = this.pluginApi.getFileOperations();
             
-            if (logFile instanceof TFile) {
-                const backupPath = `logs/oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-                const content = await this.app.vault.read(logFile);
-                await this.app.vault.create(backupPath, content);
-                this.logger.log('Log', 'Debug log backed up');
-                new Notice('Debug log backed up successfully');
+            // Check if log file exists
+            const exists = await fileOps.fileExists(logPath);
+            if (!exists) {
+                console.log('[OneiroMetrics] Debug log file does not exist, nothing to backup');
+                return;
             }
+            
+            // Create backup with timestamp
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}`;
+            const backupPath = `logs/oom-debug-log.backup-${timestamp}.txt`;
+            
+            // Make sure logs directory exists
+            await fileOps.createDirectory('logs');
+            
+            // Read current log content
+            const content = await fileOps.readFile(logPath);
+            
+            // Create backup
+            await fileOps.writeFile(backupPath, content);
+            
+            this.pluginApi.log('info', 'Log', `Debug log backed up to ${backupPath}`);
+            return backupPath;
         } catch (error) {
-            this.logger.error('Log', 'Failed to backup debug log', error as Error);
-            new Notice('Failed to backup debug log. See console for details.');
+            this.pluginApi.log('error', 'Log', 'Failed to backup debug log', error);
+            return null;
         }
     }
 
     private async checkLogFileSize() {
         try {
             const logPath = 'logs/oom-debug-log.txt';
-            const logFile = this.app.vault.getAbstractFileByPath(logPath);
+            const fileOps = this.pluginApi.getFileOperations();
             
+            // Check if file exists
+            const exists = await fileOps.fileExists(logPath);
+            if (!exists) {
+                return; // Nothing to check
+            }
+            
+            // Get the file via vault for size info
+            const logFile = this.app.vault.getAbstractFileByPath(logPath);
             if (logFile instanceof TFile) {
-                const MAX_SIZE = 1024 * 1024; // 1MB
+                const MAX_SIZE = this.settings.logging?.maxLogSize || 1024 * 1024; // Default to 1MB
                 if (logFile.stat.size > MAX_SIZE) {
                     await this.clearDebugLog();
-                    new Notice('Debug log exceeded size limit and was cleared');
+                    this.pluginApi.createNotice('Debug log exceeded size limit and was cleared');
                 }
             }
         } catch (error) {
-            this.logger.error('Log', 'Failed to check log file size', error as Error);
+            this.pluginApi.log('error', 'Log', 'Failed to check log file size', error);
         }
     }
 

@@ -4,7 +4,7 @@ This module provides components for managing dream journal templates, including 
 
 ## Module Structure
 
-- **interfaces/** - Contains interfaces defining the module's API
+- **interfaces/** - Contains interfaces defining the module's internal contracts
   - `ITemplateManager` - Template management operations
   - `ITemplateProcessor` - Template processing and Templater integration
   
@@ -23,7 +23,7 @@ This module provides components for managing dream journal templates, including 
 During refactoring, we're taking a gradual approach to extracting template functionality from the main plugin:
 
 1. **Create New Types**: We've defined template-related types in `types.ts`
-2. **Define Interfaces**: We've created interfaces to establish clear APIs
+2. **Define Interfaces**: We've created interfaces to establish clear internal contracts
 3. **Implement Core Services**: We're implementing services that follow these interfaces
 4. **Migrate UI Components**: We'll migrate UI components in a way that preserves functionality
 5. **Update Imports**: We'll update imports in all modules that use template functionality

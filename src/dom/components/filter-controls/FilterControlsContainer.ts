@@ -10,6 +10,7 @@ import {
   FilterResult
 } from './FilterControlsTypes';
 import { OneiroMetricsEvents } from '../../../events';
+import { IPluginAPI } from '../../../plugin/IPluginAPI';
 
 /**
  * Container component for filter controls
@@ -19,7 +20,7 @@ import { OneiroMetricsEvents } from '../../../events';
  */
 export class FilterControlsContainer {
   // Dependencies
-  private app: App;
+  private pluginApi: IPluginAPI;
   private state: DreamMetricsState;
   private events: OneiroMetricsEvents;
   
@@ -34,16 +35,16 @@ export class FilterControlsContainer {
   
   /**
    * Constructor
-   * @param app Obsidian app instance
+   * @param pluginApi Plugin API for accessing plugin functionality
    * @param container DOM element to render into
    * @param state Plugin state
    */
   constructor(
-    app: App, 
+    pluginApi: IPluginAPI, 
     container: HTMLElement, 
     state: DreamMetricsState
   ) {
-    this.app = app;
+    this.pluginApi = pluginApi;
     this.state = state;
     this.events = OneiroMetricsEvents.getInstance();
     
@@ -237,7 +238,7 @@ export class FilterControlsContainer {
     
     // Publish filtered entries to other components
     // We use Obsidian's event system to notify other components
-    this.app.workspace.trigger('oneirometrics:entries-filtered', {
+    this.pluginApi.getApp().workspace.trigger('oneirometrics:entries-filtered', {
       entries: this.filteredEntries,
       totalCount: result.totalCount,
       filteredCount: result.filteredCount

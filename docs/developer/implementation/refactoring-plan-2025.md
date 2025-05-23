@@ -198,19 +198,17 @@ As part of our refactoring effort, we have created the following new files:
 | BaseModal.ts | src/dom/modals | 177 | Base modal class implementing common functionality |
 | ConfirmModal.ts | src/dom/modals | 99 | Modal for confirming actions with Yes/No options |
 | AlertModal.ts | src/dom/modals | 82 | Modal for displaying alerts with an OK button |
+| IPluginAPI.ts | src/plugin | 57 | Interface defining the plugin's public API |
+| PluginAdapter.ts | src/plugin | 89 | Implementation of the plugin API that wraps the plugin |
+| CommandRegistry.ts | src/plugin | 49 | Registry for centralized command management |
+| index.ts | src/plugin | 3 | Exports for plugin infrastructure |
 | index.ts | src/dom/modals | 16 | Exports for modal components |
-| IMetricsProcessor.ts | src/metrics/interfaces | 76 | Interface for metrics processing |
-| MetricsProcessor.ts | src/metrics/services | 310 | Implementation of metrics processing |
 | index.ts | src/metrics | 11 | Exports for metrics module |
 | index.ts | src/metrics/interfaces | 1 | Exports for metrics interfaces |
 | index.ts | src/metrics/services | 1 | Exports for metrics implementations |
-| IContentParser.ts | src/parsing/interfaces | 61 | Interface for content parsing |
-| ContentParser.ts | src/parsing/services | 191 | Implementation of content parsing |
 | index.ts | src/parsing | 11 | Exports for parsing module |
 | index.ts | src/parsing/interfaces | 1 | Exports for parsing interfaces |
 | index.ts | src/parsing/services | 1 | Exports for parsing implementations |
-| IFileOperations.ts | src/file-operations/interfaces | 73 | Interface for file operations |
-| FileOperations.ts | src/file-operations/services | 190 | Implementation of file operations |
 | index.ts | src/file-operations | 12 | Exports for file operations module |
 | index.ts | src/file-operations/interfaces | 1 | Exports for file operations interfaces |
 | index.ts | src/file-operations/services | 1 | Exports for file operations implementations |
@@ -235,6 +233,7 @@ As part of our refactoring effort, we have created the following new files:
 | ExpandableContentView.ts | src/dom/components/expandable-content | 237 | Presentation component for expandable content UI |
 | ExpandableContentContainer.ts | src/dom/components/expandable-content | 154 | Container component for expandable content with state management |
 | index.ts | src/dom/components/expandable-content | 11 | Exports for expandable content components |
+| StateAdapter.ts | src/state/adapters | 115 | Service for managing arbitrary state data |
 
 This structured approach has helped organize the codebase into clear modules with separation of concerns, following the interface-first design pattern.
 
@@ -935,273 +934,95 @@ This reduces refactoring risk by starting with the most isolated components firs
 
 ### 3.6 CSS Refactoring
 
-As part of the UI components extraction, will conduct a comprehensive CSS refactoring effort:
+#### Objective
+Modernize the CSS architecture by implementing a component-based approach that aligns with the new React architecture.
 
-1. Audit inline styles:
-   - Systematically identify all inline styles in the codebase
-   - Document each instance with its associated component
-   - Categorize styles by purpose (layout, appearance, animation, etc.)
-   - Prioritize based on usage frequency and impact
+#### Approach
+1. Analyze current CSS to identify patterns, redundancies, and inconsistencies
+2. Define a new CSS architecture based on BEM methodology
+3. Establish a naming convention for all components
+4. Create a new set of CSS variables for theming
+5. Implement a component-specific style approach
+6. Add proper documentation and guidelines
 
-2. Consolidate styles in styles.css:
-   - Create a well-organized structure within styles.css:
-     ```css
-     /* Component: Modal Dialogs */
-     .oom-modal { ... }
-     .oom-modal-header { ... }
-     
-     /* Component: Metrics Tables */
-     .oom-table { ... }
-     .oom-table-cell { ... }
-     ```
-   - Implement CSS custom properties (variables) for consistent values
-   - Add clear comments documenting the purpose of each style section
+#### Progress
+- ✅ Consolidated component-specific CSS files into main stylesheet
+  - Removed DateNavigatorStyles.css and merged styles into main stylesheet
+  - Added comprehensive documentation for all component styles
+- ✅ Identified CSS duplication issues
+  - Documented duplicate DateNavigator styles in CSS_REFACTORING.md
+  - Created a backlog task for comprehensive CSS cleanup
+- ⏳ Create a style guide for component development
+- ⏳ Implement CSS modules for new components
+- ⏳ Add comprehensive responsive design support
 
-3. Migration strategy:
-   - Replace inline styles in batches, aligned with component extraction
-   - Test visual consistency after each batch of changes
-   - Maintain a checklist of migrated styles to track progress
-   - Document any style dependencies between components
+- ✅ **Implementation Notes**
+  - Follow BEM (Block Element Modifier) naming convention for all components
+  - Use CSS variables for theming (colors, spacing, etc.)
+  - Add proper documentation for all components
 
-4. CSS organization principles:
-   - Group styles by component
-   - Use BEM (Block Element Modifier) naming convention for clarity
-   - Implement responsive design patterns consistently
-   - Minimize style specificity to reduce cascade issues
-   - Ensure dark/light theme compatibility
+### Phase 4: Main Plugin Refactoring
 
-This systematic approach will improve maintainability, reduce code duplication, and enable consistent styling across components.
+- ✅ **Plugin Infrastructure** (`src/plugin/`) - Completed 2025-05-24 |
+  - Created `IPluginAPI` interface for clean dependency injection
+  - Implemented `PluginAdapter` class to implement the API and wrap the plugin
+  - Created `CommandRegistry` for centralized command management
+  - Added module exports in index.ts
+  - Updated main.ts to use the plugin infrastructure
+  - Created registerCommands() method for command registration
+  - Created registerGlobalEventHandlers() method for event handlers
+  - Added clean plugin component initialization
 
-## Phase 4: Main Plugin Refactoring (1 week)
+- ✅ **Main Component Integration**
+  - Integrated refactored components into main.ts
+  - Replaced direct LintingEngineService usage with LintingEngineContainer
+  - Added and initialized FilterControlsContainer, SummaryViewContainer, and AdvancedFilterContainer
+  - Created a DreamMetricsState adapter to handle type differences
+  - Improved component lifecycle handling with proper cleanup methods
+  - Removed legacy imports and references
+  - Ensured proper event wiring between components
 
-### 4.1 Rebuild Main Plugin Class
-- Refactor `DreamMetricsPlugin` to be a thin coordinator
-- Implement dependency injection for services
-- Reduce direct DOM manipulation
-- Use event-driven architecture for UI updates
+- ✅ **Main Plugin Class Refactoring** - Completed 2025-05-24
+  - Refactoring DreamMetricsPlugin to be a thin coordinator
+  - Migrating component initialization to use plugin API
+  - Converting direct component references to dependency injection
 
-### 4.2 Command Registration
-- Create a dedicated command registry
-- Move command definitions and handlers to appropriate modules
+- ✅ **Event System Integration** - Completed 2025-05-24
+  - Replacing direct method calls with event-based communication
+  - Implementing global event listeners
+  - Converting DOM handlers to use proper events
 
-### 4.3 Settings Management
-- Improve settings organization
-- Add runtime validation for settings
-- Implement modular settings sections
+- ✅ **Plugin Initialization Refactoring** - Completed 2025-05-24
+  - Reorganizing onload and onunload methods
+  - Implementing proper cleanup for all components
+  - Ensuring plugin state is properly managed
 
-## Phase 5: Testing and Finalization (2 weeks)
+- ✅ **Component API Integration** - Completed 2025-05-24
+  - Updated FilterControlsContainer to use IPluginAPI instead of direct App reference
+  - Updated SummaryViewContainer to use IPluginAPI instead of direct App reference 
+  - Updated AdvancedFilterContainer to use IPluginAPI instead of direct App reference
+  - Replaced direct Notice creation with pluginApi.createNotice()
+  - Ensured proper constructor parameter passing in main.ts
 
-### 5.1 Unit Testing
-- Write unit tests for core services
-- Implement integration tests for key workflows
-- Add snapshot tests for UI components
+- ✅ **State Persistence Adapter** - Completed 2025-05-25
+  - Created StateAdapter for managing arbitrary state data
+  - Added _stateStorage field to DreamMetricsSettings
+  - Integrated with AdvancedFilterContainer for preset storage
+  - Updated PluginAPI to expose getStateAdapter method
+  - Added initialization in main.ts plugin load sequence
 
-### 5.2 Performance Optimization
-- Analyze performance bottlenecks
-- Optimize critical path operations
-- Implement progressive loading for large datasets
-
-### 5.3 Documentation
-- Update API documentation
-- Create architecture diagrams
-- Write migration guides for plugin users
-- Document extension points for future development
-
-### 5.4 Regression Testing Strategy
-- Create comprehensive test suites
-- Implement automated smoke tests
-- Conduct manual verification of key user workflows
-- Perform cross-validation against the previous version
-
-## Implementation Progress Tracking
-
-This section serves as a living record of the refactoring progress. It will be updated as I complete each milestone.
-
-### Status Overview (as of 2025-05-22)
-
-| Phase | Section | Status | Completion Date |
-|-------|---------|--------|----------------|
-| 1     | 1.1 Component Inventory | ✅ Complete | - |
-| 1     | 1.2 Define New Architecture | ✅ Complete | - |
-| 1     | 1.3 Testing Infrastructure | ✅ Complete | - |
-| 1     | 1.4 Dependency Analysis | ✅ Complete | - |
-| 2     | 2.1 Extract Core Services | ✅ Complete | - |
-| 2     | 2.2 Reorganize Modal Components | ✅ Complete | - |
-| 2     | 2.3 Refactor State Management | ✅ Complete | - |
-| 2     | 2.4 Backward Compatibility | ✅ Complete | - |
-| 3     | 3.1 Dream Journal Analysis | ✅ Complete | - |
-| 3     | 3.2 Template System | ✅ Complete | - |
-| 3     | 3.3-3.6 Feature Module Extraction | ⏳ In Progress | - |
-| 4     | 4.1-4.3 Main Plugin Refactoring | ⏳ Not Started | - |
-| 5     | 5.1-5.4 Testing and Finalization | ⏳ Not Started | - |
-
-### Detailed Progress
-
-#### Phase 2.1: Extract Core Services
-- ✅ **Event Management System** (`src/events/`) - Completed - |
-- ✅ **Logging System** (`src/logging/`) - Completed - |
-- ✅ **State Management System** (`src/state/`) - Completed - |
-- ✅ **Metrics Module** (`src/metrics/`) - Completed - |
-  - Created interface-first structure with `IMetricsProcessor` 
-  - Implemented key functionality for metrics analysis
-- ✅ **Parsing Module** (`src/parsing/`) - Completed - |
-  - Created interface-first structure with `IContentParser`
-  - Implemented methods for content extraction and processing
-- ✅ **File Operations Module** (`src/file-operations/`) - Completed - |
-  - Created interface-first structure with `IFileOperations`
-  - Implemented file management and backup services
-
-#### Phase 2.2: Reorganize Modal Components
-- ✅ **Modal Interface** (`src/dom/modals/IModal.ts`) - Completed - |
-  - Defined consistent contract for all modal dialogs
-  - Created compatibility with Obsidian's Modal class
-- ✅ **Base Modal Class** (`src/dom/modals/BaseModal.ts`) - Completed - |
-  - Implemented IModal interface
-  - Added enhanced functionality like title and content management
-  - Created proper lifecycle management
-- ✅ **Modal Components** - Completed - |
-  - Implemented ConfirmModal for Yes/No confirmations
-  - Implemented AlertModal for notifications
-  - Created consistent styling using "oom-" prefixed CSS classes
-  - Added static helper methods for common use cases
-
-#### Phase 2.3: Refactor State Management
-- ✅ **Observable State Pattern** (`src/state/interfaces/`) - Completed - |
-  - Created interface-first structure with `IObservableState` and `IMutableState`
-  - Defined interfaces for state persistence and selection
-- ✅ **Core State Implementation** (`src/state/core/`) - Completed - |
-  - Implemented base classes for observable and mutable state
-  - Created state selector system for efficient state updates
-  - Implemented state persistence mechanisms
-- ✅ **Metrics State** (`src/state/metrics/`) - Completed - |
-  - Implemented specialized state for metrics management
-  - Created methods for metrics operations (add, update, remove)
-  - Added functionality for selection management
-- ✅ **Documentation** - Completed - |
-  - Created comprehensive state management documentation
-  - Provided usage examples for all key patterns
-
-#### Phase 2.4: Backward Compatibility
-- ✅ **Adapter Creation** (`src/state/adapters/`) - Completed - |
-  - Created `MetricsStateAdapter` for backward compatibility with legacy state
-  - Implemented a clean migration path from old to new API
-  - Ensured all legacy code can continue to work with new state system
-- ✅ **Settings Migration** (`src/state/adapters/SettingsMigrator.ts`) - Completed - |
-  - Created settings migrator for upgrading from v1 to v2 format
-  - Implemented utilities for converting legacy settings
-  - Added validation to ensure proper state structure
-- ✅ **User Data Protection** (`src/state/adapters/DataBackupService.ts`) - Completed - |
-  - Implemented backup and restore functionality
-  - Added automated backup before migration
-  - Created tools for settings validation
-- ✅ **Documentation** - Completed - |
-  - Created comprehensive migration guide
-  - Added examples for both legacy and new code
-  - Documented best practices for state migration
-
-#### Phase 3.1: Dream Journal Analysis
-- ✅ **Component Interfaces** (`src/analysis/interfaces/`) - Completed - |
-  - Created `IDreamAnalyzer` interface for dream content analysis
-  - Created `IContentExtractor` interface for content extraction
-- ✅ **Implementation Classes** (`src/analysis/services/`) - Completed - |
-  - Implemented `DreamAnalyzer` with metrics extraction and pattern finding
-  - Implemented `ContentExtractor` with dream content and date extraction
-- ✅ **Module Organization** - Completed - |
-  - Created clean module structure with interfaces and implementations
-  - Added comprehensive documentation and examples in README.md
-
-#### Phase 3.2: Template System
-- ✅ **Component Interfaces** (`src/templates/interfaces/`) - Completed - |
-  - Created `ITemplateManager` interface for template management
-  - Created `ITemplateProcessor` interface for templating systems
-- ✅ **Implementation Classes** (`src/templates/services/`) - Completed - |
-  - Implemented `TemplateProcessor` for template processing and Templater integration
-  - Implemented `TemplateManager` for template lifecycle management
-- ✅ **Type Definitions** - Completed - |
-  - Created comprehensive type definitions for template-related data structures
-  - Documented refactoring approach for handling duplicate types
-- ✅ **Module Organization** - Completed - |
-  - Created clean module structure with interfaces and implementations
-  - Added comprehensive documentation and examples in README.md
-
-#### Phase 3.3: UI Components
-- ✅ **Component Architecture** (`src/dom/components/`) - Completed - |
-  - Created `IComponent` interface for component contract
-  - Implemented `BaseComponent` abstract class with lifecycle methods
-  - Created documentation in `README.md` for component patterns
-- ✅ **Metrics Table Component** (`src/dom/components/metrics-table/`) - Completed - |
-  - Created container/presentation pattern with `MetricsTableContainer` and `MetricsTableView`
-  - Implemented virtualized scrolling for performance
-  - Added expandable content functionality
-  - Created type definitions with `MetricsTableTypes`
-- ✅ **Filter Controls Component** (`src/dom/components/filter-controls/`) - Completed - |
-  - Created filter UI with date range and metric value filtering
-  - Implemented date presets for common filtering scenarios
-  - Added filter statistics display
-  - Built detailed type definitions with `FilterControlsTypes`
-  - Connected with Obsidian events system for coordination with other components
-- ✅ **Summary View Component** (`src/dom/components/summary-view/`) - Completed - |
-  - Created component for displaying metrics statistics and visualizations
-  - Implemented various visualization types (histogram, time series, data table)
-  - Built interactive metric selection UI
-  - Added data export functionality (CSV and JSON formats)
-  - Implemented statistical calculations (average, median, standard deviation, trends)
-
-- ✅ **Expandable Content Component**
-  - Created container/presentation pattern with `ExpandableContentContainer` and `ExpandableContentView`
-  - Implemented collapsible/expandable content sections with customizable options
-  - Added support for custom header content and formatting
-  - Built in paragraph preservation and text formatting options
-  - Implemented "show more/less" buttons with custom positioning
-  - Created responsive design with smooth animations
-  - Integrated into central style system through styles.css
-
-- ✅ **Dashboard Component**
-  - Created container/presentation pattern with `DashboardContainer` and `DashboardView`
-  - Implemented statistics overview with key metrics display
-  - Built quick action buttons for common operations
-  - Added recent activity tracking and display
-  - Integrated with event system for real-time updates
-
-- ✅ **Tabs Component**
-  - Created container/presentation pattern with `TabsContainer` and `TabsView`
-  - Implemented tab navigation with active state management
-  - Built support for tab content rendering using callback registration
-  - Added features for adding, removing, and updating tabs
-  - Implemented tab state persistence with localStorage integration
-  - Added support for tab events and configuration options
-
-- ✅ **Dream Journal Manager Component**
-  - Created container/presentation pattern with `DreamJournalManagerContainer` and `DreamJournalManagerView`
-  - Implemented tabbed interface with multiple functional areas (dashboard, dream scraping, templates, etc.)
-  - Built feature-rich dashboard with quick actions, recent activities, and status overview
-  - Added comprehensive dream scraping functionality with progress tracking
-  - Implemented placeholders for journal structure, templates, and content isolation
-  - Added customizable interface with flexible layout and icon support
-
-- ✅ **LintingEngine Component**
-  - Created container/presentation pattern with `LintingEngineContainer` and `LintingEngineView`
-  - Built service layer with `LintingEngineService` for business logic
-  - Implemented linting rule management and validation functionality
-  - Added customizable rule sets and priorities
-  - Integrated error reporting and suggestion system
-  - Implemented highlighting and auto-correction capabilities
-
-- ✅ **Advanced Filter Component**
-  - Created container/presentation pattern with `AdvancedFilterContainer` and `AdvancedFilterView`
-  - Implemented complex filtering system with logical operators (AND/OR)
-  - Built type-specific condition builders for text, numbers, dates, and booleans
-  - Added support for nested filter groups for complex queries
-  - Implemented filter preset saving and management system
-  - Integrated with existing date range filtering and metrics
+- ✅ **File Operations Service Integration** - Completed 2025-05-25
+  - Implemented IFileOperations interface for file system operations
+  - Created FileOperations service with vault operations
+  - Updated PluginAPI to expose the FileOperations service
+  - Refactored main.ts to use FileOperations service
+  - Removed direct vault calls from backupProjectNote and log methods
 
 #### Next Target
-- 🎯 **Main Component Integration**
-  - Integrate refactored components into main.ts
-  - Replace legacy code with new component instantiations
-  - Ensure proper event wiring between components
-  - Update plugin initialization sequence
-  - Add backward compatibility for existing user data
+- 🎯 **Complete Plugin Infrastructure Integration**
+  - Implement proper error handling and graceful failure
+  - Add comprehensive tests for plugin infrastructure
+  - Update remaining components to use plugin API
 
 ## Implementation Strategy
 

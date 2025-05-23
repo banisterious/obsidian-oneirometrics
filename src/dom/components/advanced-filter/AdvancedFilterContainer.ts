@@ -1,4 +1,4 @@
-import { App, Notice } from 'obsidian';
+import { App } from 'obsidian';
 import { AdvancedFilterView } from './AdvancedFilterView';
 import { DreamMetricsState } from '../../../state/DreamMetricsState';
 import { DreamMetricData } from '../../../types';
@@ -14,7 +14,9 @@ import {
   FilterResult
 } from './AdvancedFilterTypes';
 import { DateRange } from '../filter-controls';
-import { OneiroMetricsEvents } from '../../../events';
+import { OneiroMetricsEvents, EventType, EventData } from '../../../events';
+import { IPluginAPI } from '../../../plugin/IPluginAPI';
+import { StateAdapter } from '../../../state/adapters/StateAdapter';
 
 /**
  * Container component for the advanced filter
@@ -24,9 +26,10 @@ import { OneiroMetricsEvents } from '../../../events';
  */
 export class AdvancedFilterContainer {
   // Dependencies
-  private app: App;
+  private pluginApi: IPluginAPI;
   private state: DreamMetricsState;
   private events: OneiroMetricsEvents;
+  private stateAdapter: StateAdapter;
   
   // Component references
   private view: AdvancedFilterView;
@@ -46,39 +49,45 @@ export class AdvancedFilterContainer {
   
   /**
    * Constructor
-   * @param app Obsidian app instance
+   * @param pluginApi Plugin API for accessing plugin functionality
    * @param container DOM element to render into
    * @param state Plugin state
    */
   constructor(
-    app: App, 
+    pluginApi: IPluginAPI, 
     container: HTMLElement, 
     state: DreamMetricsState
   ) {
-    this.app = app;
+    this.pluginApi = pluginApi;
     this.state = state;
     this.events = OneiroMetricsEvents.getInstance();
     
-    // Initialize data
+    // Initialize state adapter
+    this.stateAdapter = new StateAdapter(state, pluginApi as any);
+    
+    // Initialize entries from state
     this.entries = this.state.getDreamEntries();
+    
+    // Ensure each entry has a unique ID
+    this.entries = this.entries.map(entry => {
+      if (!entry.id) {
+        // Generate an ID if not present
+        entry.id = `entry-${entry.date}-${Math.random().toString(36).substring(2, 11)}`;
+      }
+      return entry;
+    });
+    
+    // Initialize available fields and metrics
     this.initializeAvailableFields();
     this.initializeAvailableMetrics();
-    this.loadPresets();
     
-    // Create default filter group
+    // Create default filter group if none exists
     this.createDefaultFilterGroup();
     
-    // Create props
-    const props: AdvancedFilterProps = {
-      availableFields: this.availableFields,
-      availableMetrics: this.availableMetrics,
-      filterGroup: this.filterGroup,
-      presets: this.presets,
-      selectedPresetId: this.selectedPresetId,
-      dateRange: this.dateRange
-    };
+    // Load saved presets
+    this.loadPresets();
     
-    // Create callbacks
+    // Create view component
     const callbacks: AdvancedFilterCallbacks = {
       onApplyFilter: this.handleApplyFilter.bind(this),
       onResetFilter: this.handleResetFilter.bind(this),
@@ -94,10 +103,19 @@ export class AdvancedFilterContainer {
       onDateRangeChange: this.handleDateRangeChange.bind(this)
     };
     
-    // Create view
-    this.view = new AdvancedFilterView(props, callbacks);
+    this.view = new AdvancedFilterView(
+      {
+        filterGroup: this.filterGroup,
+        availableFields: this.availableFields,
+        availableMetrics: this.availableMetrics,
+        presets: this.presets,
+        selectedPresetId: this.selectedPresetId,
+        dateRange: this.dateRange
+      },
+      callbacks
+    );
     
-    // Render view
+    // Render the view
     this.view.render(container);
     
     // Subscribe to events
@@ -187,35 +205,31 @@ export class AdvancedFilterContainer {
   }
   
   /**
-   * Load saved presets from storage
+   * Load saved presets from the state
    */
   private loadPresets(): void {
     try {
-      // In a real implementation, this would load from Obsidian storage
-      // For now, we'll use a simple mock implementation
-      const savedPresets = this.state.get('advancedFilterPresets') as FilterPreset[] | undefined;
+      // Use state adapter instead of direct state access
+      const savedPresets = this.stateAdapter.get<FilterPreset[]>('advancedFilterPresets');
       
       if (savedPresets && Array.isArray(savedPresets)) {
         this.presets = savedPresets;
-      } else {
-        this.presets = [];
       }
     } catch (error) {
-      console.error('Error loading filter presets:', error);
-      this.presets = [];
+      console.error('Failed to load filter presets', error);
     }
   }
   
   /**
-   * Save presets to storage
+   * Save presets to the state
    */
   private savePresets(): void {
     try {
-      // In a real implementation, this would save to Obsidian storage
-      this.state.set('advancedFilterPresets', this.presets);
+      // Use state adapter instead of direct state access
+      this.stateAdapter.set('advancedFilterPresets', this.presets);
     } catch (error) {
-      console.error('Error saving filter presets:', error);
-      new Notice('Failed to save filter presets');
+      console.error('Failed to save filter presets', error);
+      this.pluginApi.createNotice('Failed to save filter presets');
     }
   }
   
@@ -231,55 +245,63 @@ export class AdvancedFilterContainer {
   }
   
   /**
-   * Handle applying the filter
-   * @param filter Filter to apply
+   * Handle apply filter button click
+   * @param filter Filter group to apply
    */
   private handleApplyFilter(filter: FilterGroup): void {
-    // Apply the filter to entries
+    // Apply filter to all entries
     const result = this.applyFilter(filter);
     
+    // Update filter state
+    this.filterGroup = filter;
+    
+    // Show notification
     if (result.success) {
+      this.pluginApi.createNotice(`Filter applied: ${result.matchCount} of ${result.totalCount} entries match`);
+      
       // Emit filtered entries event
       this.events.emit('entries:filtered', {
-        entries: this.entries.filter(entry => result.matches.includes(entry.id)),
+        // Filter out entries without an id and use non-null assertion for those that have one
+        entries: this.entries.filter(entry => entry.id != null)
+          .filter(entry => result.matches.includes(entry.id!)),
         totalCount: this.entries.length,
         filteredCount: result.matchCount
       });
-      
-      // Show success message
-      new Notice(`Filter applied: ${result.matchCount} of ${result.totalCount} entries match`);
-    } else {
-      // Show error message
-      new Notice(`Error applying filter: ${result.error}`);
+    } else if (result.error) {
+      this.pluginApi.createNotice(`Error applying filter: ${result.error}`);
     }
   }
   
   /**
    * Apply filter to entries
-   * @param filter Filter to apply
+   * @param filter Filter group to apply
    * @returns Filter result
    */
   private applyFilter(filter: FilterGroup): FilterResult {
     try {
-      // Skip if filter is disabled
-      if (!filter.enabled) {
+      // If no conditions, return all entries
+      if (filter.conditions.length === 0) {
         return {
           success: true,
           matchCount: this.entries.length,
           totalCount: this.entries.length,
-          matches: this.entries.map(entry => entry.id)
+          // Map to get ids, ensuring all entries have ids
+          matches: this.entries
+            .filter(entry => entry.id != null)
+            .map(entry => entry.id!)
         };
       }
       
-      // Apply date range filter first if set
-      let filteredEntries = this.entries;
-      if (this.dateRange && (this.dateRange.startDate || this.dateRange.endDate)) {
-        filteredEntries = this.filterByDateRange(filteredEntries, this.dateRange);
-      }
+      // Apply date range if specified
+      let filteredEntries = this.dateRange 
+        ? this.filterByDateRange(this.entries, this.dateRange)
+        : [...this.entries];
       
       // Apply advanced filter
-      const matches = filteredEntries.filter(entry => this.evaluateFilterGroup(filter, entry))
-        .map(entry => entry.id);
+      const matches = filteredEntries
+        .filter(entry => this.evaluateFilterGroup(filter, entry))
+        .filter(entry => entry.id != null)
+        .map(entry => entry.id!);
       
       return {
         success: true,
@@ -289,13 +311,12 @@ export class AdvancedFilterContainer {
       };
     } catch (error) {
       console.error('Error applying filter:', error);
-      
       return {
         success: false,
+        error: error.message,
         matchCount: 0,
         totalCount: this.entries.length,
-        matches: [],
-        error: error instanceof Error ? error.message : String(error)
+        matches: []
       };
     }
   }
@@ -607,7 +628,7 @@ export class AdvancedFilterContainer {
     });
     
     // Show message
-    new Notice('Filter reset');
+    this.pluginApi.createNotice('Filter reset');
   }
   
   /**
@@ -715,7 +736,7 @@ export class AdvancedFilterContainer {
       this.dateRange = { ...preset.dateRange };
       
       // Emit date range event
-      this.events.emit('dateRange:updated', this.dateRange);
+      this.events.emit('dateRange:updated', this.dateRange as unknown as EventData);
     }
     
     // Update view
@@ -726,7 +747,7 @@ export class AdvancedFilterContainer {
     });
     
     // Show message
-    new Notice(`Preset "${preset.name}" selected`);
+    this.pluginApi.createNotice(`Preset "${preset.name}" selected`);
   }
   
   /**
@@ -764,7 +785,7 @@ export class AdvancedFilterContainer {
     });
     
     // Show message
-    new Notice(`Preset "${preset.name}" saved`);
+    this.pluginApi.createNotice(`Preset "${preset.name}" saved`);
   }
   
   /**
@@ -798,7 +819,7 @@ export class AdvancedFilterContainer {
     });
     
     // Show message
-    new Notice(`Preset "${preset.name}" deleted`);
+    this.pluginApi.createNotice(`Preset "${preset.name}" deleted`);
   }
   
   /**
@@ -808,7 +829,12 @@ export class AdvancedFilterContainer {
   private handleDateRangeChange(dateRange: DateRange): void {
     this.dateRange = dateRange;
     
+    // Update view
+    this.view.update({
+      dateRange
+    });
+    
     // Emit date range event
-    this.events.emit('dateRange:updated', dateRange);
+    this.events.emit('dateRange:updated', dateRange as unknown as EventData);
   }
 } 

@@ -62,10 +62,14 @@
 - Updated and fixed main.ts to properly handle the loadStyles method (which is now just a stub for backwards compatibility)
 - Standardized documentation file naming to lowercase-with-hyphens convention
 - Fixed various CSS issues for better theme compatibility and user experience
+- Added new developer documentation structure with separate folders for architecture, implementation, and testing
 
 ### Removed
 - Archived completed CSS refactoring plan to docs/archive/
 - Removed unnecessary documentation redirect files after migrating content
+- Removed src/dom/DateNavigatorStyles.css after consolidating into main stylesheet
+- Unused legacy code in `utils/abandoned-experiments.ts`
+- Deprecated API endpoints for V1 metrics collection system
 
 ## Released Versions
 
