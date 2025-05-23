@@ -1,0 +1,122 @@
+@startuml Component Architecture
+
+skinparam {
+  componentStyle rectangle
+  defaultFontSize 14
+  defaultFontName Arial
+  shadowing false
+  componentBackgroundColor #f5f5f5
+  componentBorderColor #999999
+  interfaceBackgroundColor #e0f7fa
+  interfaceBorderColor #0097a7
+  arrowColor #555555
+  packageBackgroundColor #fafafa
+  packageBorderColor #bbbbbb
+}
+
+title OneiroMetrics Component Architecture
+
+' Main Plugin Component
+component [OneiroMetricsPlugin] as MainPlugin
+
+package "State Management" {
+  component [StateManager] as StateManager
+  component [MetricsStore] as MetricsStore
+  component [ConfigStore] as ConfigStore
+  component [JournalStore] as JournalStore
+  
+  JournalStore -up-> StateManager : updates
+  MetricsStore -up-> StateManager : updates
+  ConfigStore -up-> StateManager : updates
+}
+
+package "Services" {
+  component [FileService] as FileService
+  component [JournalService] as JournalService
+  component [MetricsService] as MetricsService
+  component [TemplateService] as TemplateService
+  component [LoggingService] as LoggingService
+  
+  JournalService --> FileService : uses
+  JournalService --> TemplateService : uses
+  MetricsService --> JournalService : uses
+}
+
+package "UI Components" {
+  component [RibbonButton] as RibbonButton
+  component [SettingsTab] as SettingsTab
+  component [DashboardView] as DashboardView
+  
+  component [JournalEntryView] as JournalEntryView
+  component [MetricsPanel] as MetricsPanel
+  component [FilterPanel] as FilterPanel
+  component [ExportModal] as ExportModal
+  component [TestRunnerModal] as TestRunnerModal
+
+  DashboardView --> JournalEntryView : contains
+  DashboardView --> MetricsPanel : contains
+  DashboardView --> FilterPanel : contains
+}
+
+package "Testing" {
+  component [TestRunner] as TestRunner
+  component [TestCase] as TestCase
+  component [TestFixture] as TestFixture
+  
+  TestRunner --> TestCase : executes
+  TestCase --> TestFixture : uses
+  
+  TestRunnerModal --> TestRunner : displays
+}
+
+package "Core" {
+  component [Parser] as Parser
+  component [Filters] as Filters
+  component [Analytics] as Analytics
+  component [Utils] as Utils
+  
+  JournalService --> Parser : uses
+  MetricsService --> Analytics : uses
+  MetricsService --> Filters : uses
+}
+
+' Main relationships
+MainPlugin --> StateManager : initializes
+MainPlugin --> RibbonButton : registers
+MainPlugin --> SettingsTab : registers
+MainPlugin --> DashboardView : registers
+
+StateManager --> ServiceRelationsMainPlugin: provides state to
+ServiceRelationsMainPlugin --> JournalService : initializes
+ServiceRelationsMainPlugin --> MetricsService : initializes
+ServiceRelationsMainPlugin --> TemplateService : initializes
+ServiceRelationsMainPlugin --> LoggingService : initializes
+ServiceRelationsMainPlugin --> FileService : initializes
+
+JournalService --> JournalStore : updates
+MetricsService --> MetricsStore : updates
+TemplateService --> ConfigStore : reads
+
+' UI data flow
+DashboardView --> StateManager : subscribes
+SettingsTab --> ConfigStore : updates
+RibbonButton --> DashboardView : opens
+
+' Interface 
+interface ServiceRelationsMainPlugin {
+  initialize()
+  getState()
+  registerEvents()
+}
+MainPlugin -down- ServiceRelationsMainPlugin
+
+interface StateManagedComponent {
+  onStateChange()
+  render()
+}
+DashboardView -up- StateManagedComponent
+MetricsPanel -up- StateManagedComponent
+FilterPanel -up- StateManagedComponent
+JournalEntryView -up- StateManagedComponent
+
+@enduml 
