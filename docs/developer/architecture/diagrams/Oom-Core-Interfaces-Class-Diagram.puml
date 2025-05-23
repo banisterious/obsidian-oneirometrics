@@ -1,0 +1,180 @@
+@startuml Core Interfaces Class Diagram
+
+skinparam {
+  classBackgroundColor #f5f5f5
+  classBorderColor #999999
+  interfaceBackgroundColor #e0f7fa
+  interfaceBorderColor #0097a7
+  packageBackgroundColor #fafafa
+  packageBorderColor #bbbbbb
+  arrowColor #555555
+  defaultFontSize 14
+  defaultFontName Arial
+}
+
+title OneiroMetrics Core Interfaces
+
+package "Core Interfaces" {
+  interface IPlugin {
+    + initialize(): void
+    + onload(): void
+    + onunload(): void
+    + registerEvents(): void
+    + registerCommands(): void
+    + loadSettings(): Promise<void>
+    + saveSettings(): Promise<void>
+  }
+  
+  interface IStateManager {
+    + getState(): State
+    + setState(newState: Partial<State>): void
+    + subscribe(listener: StateListener): () => void
+    + getStore<T>(storeKey: string): IStore<T>
+    + registerStore<T>(storeKey: string, store: IStore<T>): void
+  }
+  
+  interface IStore<T> {
+    + getState(): T
+    + setState(newState: Partial<T>): void
+    + subscribe(listener: StoreListener<T>): () => void
+    + reset(): void
+  }
+  
+  interface IService {
+    + initialize(): Promise<void>
+    + getName(): string
+    + getDependencies(): string[]
+    + onStateChange(state: State): void
+  }
+  
+  interface IParser {
+    + parse(content: string): ParsedContent
+    + parseEntry(content: string): JournalEntry
+    + parseMetrics(content: string): MetricValues
+    + parseDate(dateString: string): moment.Moment | null
+    + parseTags(content: string): string[]
+  }
+  
+  interface IComponent {
+    + render(): HTMLElement
+    + update(data: any): void
+    + destroy(): void
+    + initialize(): void
+    + getId(): string
+  }
+  
+  interface IEventBus {
+    + emit(eventName: string, payload?: any): void
+    + on(eventName: string, handler: EventHandler): () => void
+    + off(eventName: string, handler: EventHandler): void
+    + once(eventName: string, handler: EventHandler): () => void
+  }
+  
+  interface ILogger {
+    + debug(message: string, ...args: any[]): void
+    + info(message: string, ...args: any[]): void
+    + warn(message: string, ...args: any[]): void
+    + error(message: string, ...args: any[]): void
+    + setLevel(level: LogLevel): void
+    + getLevel(): LogLevel
+  }
+  
+  interface IFileManager {
+    + readFile(path: string): Promise<string>
+    + writeFile(path: string, content: string): Promise<void>
+    + createBackup(path: string): Promise<string>
+    + fileExists(path: string): Promise<boolean>
+    + deleteFile(path: string): Promise<void>
+    + listFiles(directory: string): Promise<string[]>
+  }
+  
+  interface ITemplateManager {
+    + registerTemplate(name: string, template: string): void
+    + renderTemplate(name: string, data: any): string
+    + listTemplates(): string[]
+    + getTemplate(name: string): string | null
+    + hasTemplater(): boolean
+  }
+}
+
+package "Model Interfaces" {
+  interface IJournalEntry {
+    + id: string
+    + date: moment.Moment
+    + title: string
+    + content: string
+    + metrics: Record<string, any>
+    + tags: string[]
+    + path: string
+  }
+  
+  interface IMetric {
+    + id: string
+    + name: string
+    + description: string
+    + type: MetricType
+    + min?: number
+    + max?: number
+    + options?: string[]
+    + defaultValue: any
+    + validate(value: any): boolean
+    + format(value: any): string
+  }
+}
+
+package "View Interfaces" {
+  interface IModal {
+    + open(): void
+    + close(): void
+    + render(): void
+    + getTitle(): string
+    + setTitle(title: string): void
+  }
+  
+  interface ISettingsTab {
+    + display(): void
+    + hide(): void
+    + getContainerEl(): HTMLElement
+    + getName(): string
+  }
+  
+  interface IView {
+    + getViewType(): string
+    + getDisplayText(): string
+    + getIcon(): string
+    + onClose(): Promise<void>
+    + onOpen(): Promise<void>
+  }
+}
+
+' Relationships
+IPlugin --> IStateManager : uses
+IPlugin --> IService : manages
+IPlugin --> IComponent : registers
+
+IStateManager --> IStore : manages
+IStateManager --> IEventBus : uses
+
+IService --> IStateManager : interacts with
+IService --> ILogger : uses
+IService --> IEventBus : uses
+
+IParser --> IJournalEntry : produces
+IParser --> IMetric : extracts
+
+IComponent --> IEventBus : subscribes to
+IComponent --> ILogger : uses
+
+IFileManager --> ILogger : uses
+
+ITemplateManager --> IFileManager : uses
+
+IModal --|> IComponent
+ISettingsTab --|> IComponent
+IView --|> IComponent
+
+note "Each interface defines a contract\nthat implementations must follow" as N1
+note "Services and components use\ndependency injection for loose coupling" as N2
+note "All interfaces support testing\nthrough mock implementations" as N3
+
+@enduml 

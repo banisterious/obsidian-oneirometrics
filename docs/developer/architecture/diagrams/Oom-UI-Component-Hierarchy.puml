@@ -1,0 +1,169 @@
+@startuml UI Component Hierarchy
+
+skinparam {
+  componentStyle rectangle
+  defaultFontSize 14
+  defaultFontName Arial
+  shadowing false
+  componentBackgroundColor #f5f5f5
+  componentBorderColor #999999
+  packageBackgroundColor #fafafa
+  packageBorderColor #bbbbbb
+  arrowColor #555555
+}
+
+title OneiroMetrics UI Component Hierarchy
+
+package "App Integration" {
+  component [Plugin Main] as Main
+  component [Ribbon Button] as RibbonButton
+  component [Settings Tab] as SettingsTab
+  component [Command Palette] as CommandPalette
+  
+  Main --> RibbonButton : registers
+  Main --> SettingsTab : registers
+  Main --> CommandPalette : registers commands
+}
+
+package "Views" {
+  component [Dashboard View] as DashboardView
+  component [Journal Entry View] as JournalEntryView
+  component [Analytics View] as AnalyticsView
+  
+  Main --> DashboardView : registers
+  Main --> JournalEntryView : registers
+  Main --> AnalyticsView : registers
+}
+
+package "Modals" {
+  component [Base Modal] as BaseModal
+  component [Scrape Modal] as ScrapeModal
+  component [Export Modal] as ExportModal
+  component [Settings Modal] as SettingsModal
+  component [Date Filter Modal] as DateFilterModal
+  component [Test Runner Modal] as TestRunnerModal
+  component [Metrics Editor Modal] as MetricsEditorModal
+  
+  BaseModal <|-- ScrapeModal : extends
+  BaseModal <|-- ExportModal : extends
+  BaseModal <|-- SettingsModal : extends
+  BaseModal <|-- DateFilterModal : extends
+  BaseModal <|-- TestRunnerModal : extends
+  BaseModal <|-- MetricsEditorModal : extends
+  
+  DashboardView --> ScrapeModal : opens
+  DashboardView --> ExportModal : opens
+  DashboardView --> DateFilterModal : opens
+  AnalyticsView --> MetricsEditorModal : opens
+}
+
+package "Dashboard Components" {
+  component [Header] as Header
+  component [Toolbar] as Toolbar
+  component [Journal Table] as JournalTable
+  component [Metrics Summary] as MetricsSummary
+  component [Filter Panel] as FilterPanel
+  
+  DashboardView --> Header : contains
+  DashboardView --> Toolbar : contains
+  DashboardView --> JournalTable : contains
+  DashboardView --> MetricsSummary : contains
+  DashboardView --> FilterPanel : contains
+}
+
+package "Table Components" {
+  component [Table Header] as TableHeader
+  component [Table Row] as TableRow
+  component [Table Cell] as TableCell
+  component [Sortable Header] as SortableHeader
+  component [Expandable Cell] as ExpandableCell
+  
+  JournalTable --> TableHeader : contains
+  JournalTable --> TableRow : contains multiple
+  TableRow --> TableCell : contains multiple
+  TableHeader --> SortableHeader : contains multiple
+  TableCell <|-- ExpandableCell : extends
+}
+
+package "Filter Components" {
+  component [Date Filter] as DateFilter
+  component [Metric Filter] as MetricFilter
+  component [Text Filter] as TextFilter
+  component [Filter Button] as FilterButton
+  component [Active Filters] as ActiveFilters
+  
+  FilterPanel --> DateFilter : contains
+  FilterPanel --> MetricFilter : contains
+  FilterPanel --> TextFilter : contains
+  FilterPanel --> FilterButton : contains
+  FilterPanel --> ActiveFilters : contains
+  
+  DateFilter --> DateFilterModal : opens
+}
+
+package "Settings Components" {
+  component [General Settings] as GeneralSettings
+  component [Metrics Settings] as MetricsSettings
+  component [Template Settings] as TemplateSettings
+  component [Display Settings] as DisplaySettings
+  component [Advanced Settings] as AdvancedSettings
+  
+  SettingsTab --> GeneralSettings : contains
+  SettingsTab --> MetricsSettings : contains
+  SettingsTab --> TemplateSettings : contains
+  SettingsTab --> DisplaySettings : contains
+  SettingsTab --> AdvancedSettings : contains
+  
+  MetricsSettings --> MetricsEditorModal : opens
+}
+
+package "Common UI Elements" {
+  component [Button] as Button
+  component [Icon Button] as IconButton
+  component [Toggle] as Toggle
+  component [Dropdown] as Dropdown
+  component [Input Field] as InputField
+  component [Tooltip] as Tooltip
+  component [Notice] as Notice
+  
+  Button <|-- IconButton : extends
+  
+  Toolbar --> Button : uses
+  FilterPanel --> Dropdown : uses
+  MetricsSettings --> Toggle : uses
+  SettingsTab --> InputField : uses
+  IconButton --> Tooltip : uses
+  MetricsEditorModal --> Notice : uses
+}
+
+package "State-Connected Components" {
+  component [StateAwareComponent] as StateAwareComponent
+  
+  JournalTable --|> StateAwareComponent : implements
+  MetricsSummary --|> StateAwareComponent : implements
+  FilterPanel --|> StateAwareComponent : implements
+  DashboardView --|> StateAwareComponent : implements
+}
+
+note bottom of StateAwareComponent
+  All state-aware components subscribe to
+  relevant state changes and update their
+  rendering accordingly
+end note
+
+note right of BaseModal
+  All modals extend BaseModal which
+  provides common modal functionality:
+  - Open/close transitions
+  - Title bar
+  - Content container
+  - Button container
+end note
+
+note right of FilterPanel
+  The Filter Panel orchestrates all filtering
+  components and coordinates with the state
+  management system
+end note
+
+@enduml 
