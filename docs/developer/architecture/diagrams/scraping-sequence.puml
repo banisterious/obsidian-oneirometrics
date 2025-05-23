@@ -1,0 +1,123 @@
+@startuml Scraping Sequence
+
+skinparam {
+  sequenceBackgroundColor #FFFFFF
+  sequenceArrowColor #555555
+  sequenceParticipantBackgroundColor #f5f5f5
+  sequenceParticipantBorderColor #999999
+  sequenceActorBackgroundColor #e3f2fd
+  sequenceActorBorderColor #1976d2
+  sequenceLifeLineBorderColor #cccccc
+  defaultFontSize 14
+  defaultFontName Arial
+}
+
+title OneiroMetrics Scraping Sequence
+
+actor User
+participant "UI" as UI
+participant "ScrapingService" as ScrapingService
+participant "JournalService" as JournalService
+participant "FileService" as FileService
+participant "Parser" as Parser
+participant "MetricsService" as MetricsService
+participant "StateManager" as StateManager
+database "Journal Files" as JournalFiles
+
+== Scraping Initialization ==
+
+User -> UI: Trigger Scraping
+activate UI
+
+UI -> ScrapingService: startScraping(options)
+activate ScrapingService
+
+ScrapingService -> JournalService: getSelectedJournals()
+activate JournalService
+
+JournalService -> FileService: listFiles(journalDirectory)
+activate FileService
+FileService --> JournalService: fileList
+deactivate FileService
+
+JournalService -> JournalService: filterJournalFiles(fileList)
+JournalService --> ScrapingService: selectedJournalFiles
+deactivate JournalService
+
+== File Processing Loop ==
+
+loop for each journal file
+    ScrapingService -> FileService: readFile(filePath)
+    activate FileService
+    FileService -> JournalFiles: read
+    activate JournalFiles
+    JournalFiles --> FileService: fileContent
+    deactivate JournalFiles
+    FileService --> ScrapingService: fileContent
+    deactivate FileService
+    
+    ScrapingService -> Parser: parseJournalEntries(fileContent)
+    activate Parser
+    
+    loop for each potential entry
+        Parser -> Parser: extractEntryContent()
+        Parser -> Parser: validateEntryStructure()
+        
+        alt valid entry
+            Parser -> Parser: processEntryDetails()
+        else invalid entry
+            Parser -> Parser: logIssue()
+        end
+    end
+    
+    Parser --> ScrapingService: parsedEntries
+    deactivate Parser
+    
+    ScrapingService -> ScrapingService: validateAndNormalizeEntries(parsedEntries)
+end
+
+== Metrics Extraction ==
+
+ScrapingService -> MetricsService: calculateMetrics(allEntries)
+activate MetricsService
+
+loop for each entry
+    MetricsService -> MetricsService: extractMetricsFromContent(entry)
+    MetricsService -> MetricsService: applyMetricDefinitions()
+    MetricsService -> MetricsService: calculateDerivedMetrics()
+end
+
+MetricsService -> MetricsService: aggregateMetrics(allEntries)
+MetricsService --> ScrapingService: processedMetrics
+deactivate MetricsService
+
+== Results Processing ==
+
+ScrapingService -> StateManager: updateJournalStore(entries)
+activate StateManager
+StateManager --> ScrapingService: storeUpdated
+deactivate StateManager
+
+ScrapingService -> StateManager: updateMetricsStore(metrics)
+activate StateManager
+StateManager --> ScrapingService: metricsUpdated
+deactivate StateManager
+
+ScrapingService --> UI: scrapingComplete(summary)
+deactivate ScrapingService
+
+UI -> UI: updateDisplayWithResults()
+UI --> User: Display Scraping Results
+deactivate UI
+
+== Error Handling ==
+
+note over ScrapingService, MetricsService
+  At any point, errors are caught and:
+  1. Logged to the console
+  2. Reported to the user if critical
+  3. Non-critical errors allow continuation
+  4. Service state is reset on critical errors
+end note
+
+@enduml 
