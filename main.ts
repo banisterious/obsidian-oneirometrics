@@ -21,6 +21,7 @@ import { SummaryViewContainer, SummaryViewView } from './src/dom/components/summ
 import { LintingEngineContainer, LintingEngineService } from './src/dom/components/linting-engine';
 import { AdvancedFilterContainer, AdvancedFilterView, FilterOperator, LogicalOperator, FilterFieldType } from './src/dom/components/advanced-filter';
 import { ExpandableContentContainer } from './src/dom/components/expandable-content';
+import { FilterControlsContainer } from './src/dom/components/filter-controls';
 
 // Import journal structure check modules
 import { LintingEngine } from './src/journal_check/LintingEngine';
@@ -227,10 +228,16 @@ class OneiroMetricsModal extends Modal {
             });
             
             // Initialize folder autocomplete
-            createFolderAutocomplete(this.app, folderInput, (folder) => {
-                this.selectedFolder = folder;
-                this.plugin.settings.selectedFolder = folder;
-                this.plugin.saveSettings();
+            createFolderAutocomplete({
+                app: this.app, 
+                plugin: this.plugin,
+                containerEl: selectorRight,
+                selectedFolder: this.selectedFolder,
+                onChange: (folder: string) => {
+                    this.selectedFolder = folder;
+                    this.plugin.settings.selectedFolder = folder;
+                    this.plugin.saveSettings();
+                }
             });
         } else {
             filesInput = selectorRight.createEl('textarea', {
@@ -239,14 +246,20 @@ class OneiroMetricsModal extends Modal {
                     placeholder: 'Select notes (one per line)',
                     rows: '3'
                 }
-            });
+            }) as any as HTMLInputElement; // Type cast to satisfy linter
             filesInput.value = this.selectedNotes.join('\n');
             
             // Initialize note autocomplete
-            createSelectedNotesAutocomplete(this.app, filesInput, (notes) => {
-                this.selectedNotes = notes;
-                this.plugin.settings.selectedNotes = notes;
-                this.plugin.saveSettings();
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: selectorRight,
+                selectedNotes: this.selectedNotes,
+                onChange: (notes: string[]) => {
+                    this.selectedNotes = notes;
+                    this.plugin.settings.selectedNotes = notes;
+                    this.plugin.saveSettings();
+                }
             });
         }
         
@@ -371,24 +384,24 @@ class OneiroMetricsModal extends Modal {
             // Update the status
             this.statusText.textContent = `Scraping ${filesToScrape.length} files...`;
             
-            // Make sure plugin instance's scrapeMetrics method is used
-            await this.plugin.scrapeMetrics(
-                filesToScrape,
-                (progress, status, details) => {
-                    // Update progress bar
-                    this.progressFill.style.width = `${progress * 100}%`;
-                    
-                    // Update status text if provided
-                    if (status) {
-                        this.statusText.textContent = status;
-                    }
-                    
-                    // Update details text if provided
-                    if (details) {
-                        this.detailsText.textContent = details;
-                    }
+            // Create a progress callback that can be used with scrapeMetrics
+            const progressCallback = (progress: number, status?: string, details?: string) => {
+                // Update progress bar
+                this.progressFill.style.width = `${progress * 100}%`;
+                
+                // Update status text if provided
+                if (status) {
+                    this.statusText.textContent = status;
                 }
-            );
+                
+                // Update details text if provided
+                if (details) {
+                    this.detailsText.textContent = details;
+                }
+            };
+            
+            // Make sure plugin instance's scrapeMetrics method is used
+            await this.plugin.scrapeMetrics();
             
             // Scraping completed successfully
             this.endScraping('Scraping completed successfully!', true);
@@ -448,6 +461,10 @@ export default class DreamMetricsPlugin extends Plugin {
     private dreamJournalManager: DreamJournalManager;
     private dateNavigator: DateNavigatorIntegration;
     private timeFilterManager: TimeFilterManager;
+    
+    // Refactored UI Components
+    private filterControlsContainer: FilterControlsContainer | null = null;
+    private summaryViewContainer: SummaryViewContainer | null = null;
     
     state: DreamMetricsState;
     
@@ -524,6 +541,55 @@ export default class DreamMetricsPlugin extends Plugin {
             setFileContent: async (file: TFile, content: string) => await this.app.vault.modify(file, content),
             createNotice: (message: string, duration?: number) => new Notice(message, duration)
         });
+        
+        // Initialize FilterControlsContainer
+        const filterContainerEl = document.createElement('div');
+        filterContainerEl.addClass('oom-filter-controls-container');
+        
+        // Create state if not already created
+        if (!this.state) {
+            // Create an adapter for our settings to match what DreamMetricsState expects
+            const settingsAdapter = {
+                projectNotePath: this.settings.projectNote,
+                metrics: this.settings.metrics || {},
+                selectedNotes: this.settings.selectedNotes || [],
+                folderOptions: {
+                    enabled: !!this.settings.selectedFolder,
+                    path: this.settings.selectedFolder || '',
+                },
+                selectionMode: this.settings.selectionMode === 'folder' ? 'automatic' : 'manual',
+                calloutName: this.settings.calloutName || 'dream-metrics',
+                backup: {
+                    enabled: this.settings.backupEnabled || false,
+                    maxBackups: 5,
+                },
+                logging: {
+                    level: this.settings.logging?.level || 'info',
+                    maxSize: this.settings.logging?.maxLogSize,
+                    maxBackups: this.settings.logging?.maxBackups,
+                },
+                linting: this.settings.linting || DEFAULT_LINTING_SETTINGS
+            };
+            
+            // Initialize the state with adapted settings
+            this.state = new DreamMetricsState(settingsAdapter as any);
+        }
+        
+        // Initialize FilterControlsContainer with the state
+        this.filterControlsContainer = new FilterControlsContainer(
+            this.app,
+            filterContainerEl,
+            this.state
+        );
+        
+        // Initialize SummaryViewContainer
+        const summaryContainerEl = document.createElement('div');
+        summaryContainerEl.addClass('oom-summary-view-container');
+        this.summaryViewContainer = new SummaryViewContainer(
+            this.app,
+            summaryContainerEl,
+            this.state
+        );
         
         // Load linting styles
         this.loadStyles();
@@ -838,6 +904,18 @@ export default class DreamMetricsPlugin extends Plugin {
         if (this.dateNavigatorIntegration) {
             this.dateNavigatorIntegration.destroy();
             this.dateNavigatorIntegration = null;
+        }
+        
+        // Clean up FilterControls
+        if (this.filterControlsContainer) {
+            this.filterControlsContainer.cleanup();
+            this.filterControlsContainer = null;
+        }
+        
+        // Clean up SummaryView
+        if (this.summaryViewContainer) {
+            this.summaryViewContainer.cleanup();
+            this.summaryViewContainer = null;
         }
         
         // Execute all cleanup functions
