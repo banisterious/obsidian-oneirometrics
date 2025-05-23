@@ -117,7 +117,7 @@ The following inventory captures all significant TypeScript files in the codebas
 | logger.ts | utils | 108 | Logging system with file rotation and log levels |
 | types.ts | Root | ~120 | Core type definitions used throughout the plugin |
 | settings.ts | Root | ~100 | Plugin settings definitions and management |
-| DreamMetricsState.ts | src/state | 71 | State management for dream metrics data |
+| DreamMetricsState.ts | src/state | 71 | Legacy state management for dream metrics data |
 | FilterManager.ts | src | 73 | Manages filter state and date range selection |
 | BaseModal.ts | src/dom/modals | 177 | Base modal class implementing common functionality |
 | ConfirmModal.ts | src/dom/modals | 99 | Modal for confirming actions with Yes/No options |
@@ -132,22 +132,22 @@ The following inventory captures all significant TypeScript files in the codebas
 | constants.ts | src | 24 | Default metrics and logging configuration |
 | types.ts | src | 52 | Type definitions specific to the src modules |
 | events.ts | src | 16 | Singleton event bus for application-wide events |
-| ObservableState.ts | src/state/core | 66 | Base observable state implementation |
-| MutableState.ts | src/state/core | 53 | Mutable state implementation extending ObservableState |
-| StateSelector.ts | src/state/core | 42 | Selects specific parts of state |
-| SelectorObservable.ts | src/state/core | 67 | Observable implementation for state selectors |
-| LocalStoragePersistence.ts | src/state/core | 57 | Persists state to localStorage |
-| ObsidianStorageAdapter.ts | src/state/adapters | 49 | Adapter for Obsidian API storage |
-| IObservableState.ts | src/state/interfaces | 16 | Interface for observable state pattern |
+| ObservableState.ts | src/state/core | 66 | Base observable state implementation with subscription system |
+| MutableState.ts | src/state/core | 53 | Mutable state implementation with immutable state updates |
+| StateSelector.ts | src/state/core | 42 | Selects specific parts of state for efficient updates |
+| SelectorObservable.ts | src/state/core | 67 | Observable implementation for state selectors with memoization |
+| LocalStoragePersistence.ts | src/state/core | 57 | Persists state to localStorage for development |
+| ObsidianStorageAdapter.ts | src/state/adapters | 49 | Adapter for Obsidian API storage persistence |
+| IObservableState.ts | src/state/interfaces | 16 | Interface defining observable state pattern |
 | IMutableState.ts | src/state/interfaces | 20 | Interface for mutable state operations |
-| IStatePersistence.ts | src/state/interfaces | 23 | Interface for state persistence |
+| IStatePersistence.ts | src/state/interfaces | 23 | Interface for state persistence operations |
 | IStateSelector.ts | src/state/interfaces | 19 | Interface for selecting portions of state |
-| IMetricsState.ts | src/state/metrics/interfaces | 42 | Interface for metrics state shape |
-| MetricsState.ts | src/state/metrics | 165 | Metrics-specific state implementation |
-| index.ts | src/state | 11 | Exports for state module |
+| IMetricsState.ts | src/state/metrics/interfaces | 42 | Interface defining metrics state shape |
+| MetricsState.ts | src/state/metrics | 165 | Metrics-specific state implementation with domain methods |
+| index.ts | src/state | 10 | Main exports for state management module |
 | index.ts | src/state/core | 5 | Exports for core state classes |
 | index.ts | src/state/interfaces | 4 | Exports for state interfaces |
-| index.ts | src/state/adapters | 1 | Exports for state adapters |
+| index.ts | src/state/adapters | 4 | Exports for state adapters |
 | index.ts | src/state/metrics | 2 | Exports for metrics state |
 | index.ts | src/state/metrics/interfaces | 1 | Exports for metrics state interfaces |
 | MetricsStateAdapter.ts | src/state/adapters | 167 | Adapter for legacy state API compatibility |
@@ -155,6 +155,14 @@ The following inventory captures all significant TypeScript files in the codebas
 | DataBackupService.ts | src/state/adapters | 164 | Service for backing up and restoring user data |
 | README.md | src/state | 112 | Documentation and migration guide for state management |
 | state-management.md | docs/developer/implementation | 118 | Documentation for state management system |
+| IDreamAnalyzer.ts | src/analysis/interfaces | 58 | Interface for dream content analysis |
+| IContentExtractor.ts | src/analysis/interfaces | 41 | Interface for extracting content from journal entries |
+| DreamAnalyzer.ts | src/analysis/services | 196 | Implementation of dream content analysis and metrics processing |
+| ContentExtractor.ts | src/analysis/services | 162 | Implementation for extracting dream content from journals |
+| index.ts | src/analysis | 9 | Main exports for analysis module |
+| index.ts | src/analysis/interfaces | 2 | Exports for analysis interfaces |
+| index.ts | src/analysis/services | 2 | Exports for analysis implementations |
+| README.md | src/analysis | 76 | Documentation for dream analysis module |
 
 Additionally, the following CSS files require refactoring:
 
@@ -984,7 +992,8 @@ This section serves as a living record of the refactoring progress. It will be u
 | 2     | 2.2 Reorganize Modal Components | ✅ Complete | 2025-05-22 |
 | 2     | 2.3 Refactor State Management | ✅ Complete | 2025-05-22 |
 | 2     | 2.4 Backward Compatibility | ✅ Complete | 2025-05-22 |
-| 3     | 3.1-3.6 Feature Module Extraction | ⏳ Not Started | - |
+| 3     | 3.1 Dream Journal Analysis | ✅ Complete | 2025-05-22 |
+| 3     | 3.2-3.6 Feature Module Extraction | ⏳ In Progress | - |
 | 4     | 4.1-4.3 Main Plugin Refactoring | ⏳ Not Started | - |
 | 5     | 5.1-5.4 Testing and Finalization | ⏳ Not Started | - |
 
@@ -1017,9 +1026,6 @@ This section serves as a living record of the refactoring progress. It will be u
   - Implemented AlertModal for notifications
   - Created consistent styling using "oom-" prefixed CSS classes
   - Added static helper methods for common use cases
-
-#### Next Target
-- 🎯 **Section 3.1: Dream Journal Analysis** - Planned for 2025-05-23
 
 #### Phase 2.3: Refactor State Management
 - ✅ **Observable State Pattern** (`src/state/interfaces/`) - Completed 2025-05-22
@@ -1054,6 +1060,20 @@ This section serves as a living record of the refactoring progress. It will be u
   - Created comprehensive migration guide
   - Added examples for both legacy and new code
   - Documented best practices for state migration
+
+#### Phase 3.1: Dream Journal Analysis
+- ✅ **Component Interfaces** (`src/analysis/interfaces/`) - Completed 2025-05-22
+  - Created `IDreamAnalyzer` interface for dream content analysis
+  - Created `IContentExtractor` interface for content extraction
+- ✅ **Implementation Classes** (`src/analysis/services/`) - Completed 2025-05-22
+  - Implemented `DreamAnalyzer` with metrics extraction and pattern finding
+  - Implemented `ContentExtractor` with dream content and date extraction
+- ✅ **Module Organization** - Completed 2025-05-22
+  - Created clean module structure with interfaces and implementations
+  - Added comprehensive documentation and examples in README.md
+
+#### Next Target
+- 🎯 **Section 3.2: Template System** - Planned for 2025-05-23
 
 ## Implementation Strategy
 
