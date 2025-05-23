@@ -107,6 +107,12 @@ The following inventory captures all significant TypeScript files in the codebas
 | autocomplete.ts | Root | 317 | File and folder autocomplete utilities for UI components |
 | DreamMetricsEvents.ts | src/events | 317 | Event handling for metrics-related operations |
 | TestModal.ts | src/journal_check/ui | 309 | Modal dialog for test operations |
+| SummaryViewView.ts | src/dom/components/summary-view | 591 | View component for metrics summary with visualizations |
+| SummaryViewContainer.ts | src/dom/components/summary-view | 518 | Container component for summary view with statistics calculation |
+| FilterControlsView.ts | src/dom/components/filter-controls | 343 | View component for filter controls with date and metric filtering |
+| FilterControlsContainer.ts | src/dom/components/filter-controls | 249 | Container component for filter controls with filtering logic |
+| MetricsTableView.ts | src/dom/components/metrics-table | 342 | View component for metrics table with virtualized scrolling |
+| MetricsTableContainer.ts | src/dom/components/metrics-table | 256 | Container component for metrics table with business logic |
 | timeFilters.ts | src | ~270 | Date-based filtering system (day/week/month granularity) |
 | DateNavigatorView.ts | src/dom | ~300 | Rendering logic for date navigator component |
 | DateNavigatorIntegration.ts | src/dom | ~250 | Integration of date navigator with other components |
@@ -118,10 +124,15 @@ The following inventory captures all significant TypeScript files in the codebas
 | types.ts | Root | ~120 | Core type definitions used throughout the plugin |
 | settings.ts | Root | ~100 | Plugin settings definitions and management |
 | DreamMetricsState.ts | src/state | 71 | Legacy state management for dream metrics data |
+| SummaryViewTypes.ts | src/dom/components/summary-view | 110 | Type definitions for summary view components |
+| FilterControlsTypes.ts | src/dom/components/filter-controls | 87 | Type definitions for filter controls components |
+| MetricsTableTypes.ts | src/dom/components/metrics-table | 67 | Type definitions for metrics table components |
 | FilterManager.ts | src | 73 | Manages filter state and date range selection |
+| BaseComponent.ts | src/dom/components | 78 | Base component class with lifecycle management |
 | BaseModal.ts | src/dom/modals | 177 | Base modal class implementing common functionality |
 | ConfirmModal.ts | src/dom/modals | 99 | Modal for confirming actions with Yes/No options |
 | AlertModal.ts | src/dom/modals | 82 | Modal for displaying alerts with an OK button |
+| IComponent.ts | src/dom/components | 25 | Interface defining component contracts |
 | IModal.ts | src/dom/modals | 44 | Interface defining modal component contracts |
 | IMetricsProcessor.ts | src/metrics/interfaces | 76 | Interface for metrics processing |
 | MetricsProcessor.ts | src/metrics/services | 310 | Implementation of metrics processing |
@@ -149,11 +160,16 @@ The following inventory captures all significant TypeScript files in the codebas
 | index.ts | src/state/interfaces | 4 | Exports for state interfaces |
 | index.ts | src/state/adapters | 4 | Exports for state adapters |
 | index.ts | src/state/metrics | 2 | Exports for metrics state |
+| index.ts | src/dom/components/summary-view | 14 | Exports for summary view components |
+| index.ts | src/dom/components/filter-controls | 14 | Exports for filter controls components |
+| index.ts | src/dom/components/metrics-table | 6 | Exports for metrics table components |
+| index.ts | src/dom/components | 35 | Exports for UI components |
 | index.ts | src/state/metrics/interfaces | 1 | Exports for metrics state interfaces |
 | MetricsStateAdapter.ts | src/state/adapters | 167 | Adapter for legacy state API compatibility |
 | SettingsMigrator.ts | src/state/adapters | 91 | Utilities for migrating between settings versions |
 | DataBackupService.ts | src/state/adapters | 164 | Service for backing up and restoring user data |
 | README.md | src/state | 112 | Documentation and migration guide for state management |
+| README.md | src/dom/components | 100 | Documentation for UI component architecture |
 | state-management.md | docs/developer/implementation | 118 | Documentation for state management system |
 | IDreamAnalyzer.ts | src/analysis/interfaces | 58 | Interface for dream content analysis |
 | IContentExtractor.ts | src/analysis/interfaces | 41 | Interface for extracting content from journal entries |
@@ -198,6 +214,18 @@ As part of our refactoring effort, we have created the following new files:
 | index.ts | src/file-operations | 12 | Exports for file operations module |
 | index.ts | src/file-operations/interfaces | 1 | Exports for file operations interfaces |
 | index.ts | src/file-operations/services | 1 | Exports for file operations implementations |
+| DashboardTypes.ts | src/dom/components/dashboard | 87 | Type definitions for dashboard components |
+| DashboardView.ts | src/dom/components/dashboard | 310 | Presentation component for dashboard UI |
+| DashboardContainer.ts | src/dom/components/dashboard | 245 | Container component for dashboard with business logic |
+| index.ts | src/dom/components/dashboard | 12 | Exports for dashboard components |
+| TabsTypes.ts | src/dom/components/tabs | 65 | Type definitions for tabs component |
+| TabsView.ts | src/dom/components/tabs | 215 | Presentation component for tabs UI |
+| TabsContainer.ts | src/dom/components/tabs | 175 | Container component for tabs with state management |
+| index.ts | src/dom/components/tabs | 14 | Exports for tabs components |
+| DreamJournalManagerTypes.ts | src/dom/components/dream-journal-manager | 128 | Type definitions for dream journal manager |
+| DreamJournalManagerView.ts | src/dom/components/dream-journal-manager | 619 | Presentation component for dream journal manager UI |
+| DreamJournalManagerContainer.ts | src/dom/components/dream-journal-manager | 490 | Container component for dream journal manager |
+| index.ts | src/dom/components/dream-journal-manager | 19 | Exports for dream journal manager components |
 
 This structured approach has helped organize the codebase into clear modules with separation of concerns, following the interface-first design pattern.
 
@@ -984,16 +1012,16 @@ This section serves as a living record of the refactoring progress. It will be u
 
 | Phase | Section | Status | Completion Date |
 |-------|---------|--------|----------------|
-| 1     | 1.1 Component Inventory | ✅ Complete | 2025-05-20 |
-| 1     | 1.2 Define New Architecture | ✅ Complete | 2025-05-20 |
-| 1     | 1.3 Testing Infrastructure | ✅ Complete | 2025-05-21 |
-| 1     | 1.4 Dependency Analysis | ✅ Complete | 2025-05-21 |
-| 2     | 2.1 Extract Core Services | ✅ Complete | 2025-05-22 |
-| 2     | 2.2 Reorganize Modal Components | ✅ Complete | 2025-05-22 |
-| 2     | 2.3 Refactor State Management | ✅ Complete | 2025-05-22 |
-| 2     | 2.4 Backward Compatibility | ✅ Complete | 2025-05-22 |
-| 3     | 3.1 Dream Journal Analysis | ✅ Complete | 2025-05-22 |
-| 3     | 3.2 Template System | ✅ Complete | 2025-05-22 |
+| 1     | 1.1 Component Inventory | ✅ Complete | - |
+| 1     | 1.2 Define New Architecture | ✅ Complete | - |
+| 1     | 1.3 Testing Infrastructure | ✅ Complete | - |
+| 1     | 1.4 Dependency Analysis | ✅ Complete | - |
+| 2     | 2.1 Extract Core Services | ✅ Complete | - |
+| 2     | 2.2 Reorganize Modal Components | ✅ Complete | - |
+| 2     | 2.3 Refactor State Management | ✅ Complete | - |
+| 2     | 2.4 Backward Compatibility | ✅ Complete | - |
+| 3     | 3.1 Dream Journal Analysis | ✅ Complete | - |
+| 3     | 3.2 Template System | ✅ Complete | - |
 | 3     | 3.3-3.6 Feature Module Extraction | ⏳ In Progress | - |
 | 4     | 4.1-4.3 Main Plugin Refactoring | ⏳ Not Started | - |
 | 5     | 5.1-5.4 Testing and Finalization | ⏳ Not Started | - |
@@ -1001,94 +1029,154 @@ This section serves as a living record of the refactoring progress. It will be u
 ### Detailed Progress
 
 #### Phase 2.1: Extract Core Services
-- ✅ **Event Management System** (`src/events/`) - Completed 2025-05-21
-- ✅ **Logging System** (`src/logging/`) - Completed 2025-05-21
-- ✅ **State Management System** (`src/state/`) - Completed 2025-05-21
-- ✅ **Metrics Module** (`src/metrics/`) - Completed 2025-05-22
+- ✅ **Event Management System** (`src/events/`) - Completed - |
+- ✅ **Logging System** (`src/logging/`) - Completed - |
+- ✅ **State Management System** (`src/state/`) - Completed - |
+- ✅ **Metrics Module** (`src/metrics/`) - Completed - |
   - Created interface-first structure with `IMetricsProcessor` 
   - Implemented key functionality for metrics analysis
-- ✅ **Parsing Module** (`src/parsing/`) - Completed 2025-05-22
+- ✅ **Parsing Module** (`src/parsing/`) - Completed - |
   - Created interface-first structure with `IContentParser`
   - Implemented methods for content extraction and processing
-- ✅ **File Operations Module** (`src/file-operations/`) - Completed 2025-05-22
+- ✅ **File Operations Module** (`src/file-operations/`) - Completed - |
   - Created interface-first structure with `IFileOperations`
   - Implemented file management and backup services
 
 #### Phase 2.2: Reorganize Modal Components
-- ✅ **Modal Interface** (`src/dom/modals/IModal.ts`) - Completed 2025-05-22
+- ✅ **Modal Interface** (`src/dom/modals/IModal.ts`) - Completed - |
   - Defined consistent contract for all modal dialogs
   - Created compatibility with Obsidian's Modal class
-- ✅ **Base Modal Class** (`src/dom/modals/BaseModal.ts`) - Completed 2025-05-22
+- ✅ **Base Modal Class** (`src/dom/modals/BaseModal.ts`) - Completed - |
   - Implemented IModal interface
   - Added enhanced functionality like title and content management
   - Created proper lifecycle management
-- ✅ **Modal Components** - Completed 2025-05-22
+- ✅ **Modal Components** - Completed - |
   - Implemented ConfirmModal for Yes/No confirmations
   - Implemented AlertModal for notifications
   - Created consistent styling using "oom-" prefixed CSS classes
   - Added static helper methods for common use cases
 
 #### Phase 2.3: Refactor State Management
-- ✅ **Observable State Pattern** (`src/state/interfaces/`) - Completed 2025-05-22
+- ✅ **Observable State Pattern** (`src/state/interfaces/`) - Completed - |
   - Created interface-first structure with `IObservableState` and `IMutableState`
   - Defined interfaces for state persistence and selection
-- ✅ **Core State Implementation** (`src/state/core/`) - Completed 2025-05-22
+- ✅ **Core State Implementation** (`src/state/core/`) - Completed - |
   - Implemented base classes for observable and mutable state
   - Created state selector system for efficient state updates
   - Implemented state persistence mechanisms
-- ✅ **Metrics State** (`src/state/metrics/`) - Completed 2025-05-22
+- ✅ **Metrics State** (`src/state/metrics/`) - Completed - |
   - Implemented specialized state for metrics management
   - Created methods for metrics operations (add, update, remove)
   - Added functionality for selection management
-- ✅ **Documentation** - Completed 2025-05-22
+- ✅ **Documentation** - Completed - |
   - Created comprehensive state management documentation
   - Provided usage examples for all key patterns
 
 #### Phase 2.4: Backward Compatibility
-- ✅ **Adapter Creation** (`src/state/adapters/`) - Completed 2025-05-22
+- ✅ **Adapter Creation** (`src/state/adapters/`) - Completed - |
   - Created `MetricsStateAdapter` for backward compatibility with legacy state
   - Implemented a clean migration path from old to new API
   - Ensured all legacy code can continue to work with new state system
-- ✅ **Settings Migration** (`src/state/adapters/SettingsMigrator.ts`) - Completed 2025-05-22
+- ✅ **Settings Migration** (`src/state/adapters/SettingsMigrator.ts`) - Completed - |
   - Created settings migrator for upgrading from v1 to v2 format
   - Implemented utilities for converting legacy settings
   - Added validation to ensure proper state structure
-- ✅ **User Data Protection** (`src/state/adapters/DataBackupService.ts`) - Completed 2025-05-22
+- ✅ **User Data Protection** (`src/state/adapters/DataBackupService.ts`) - Completed - |
   - Implemented backup and restore functionality
   - Added automated backup before migration
   - Created tools for settings validation
-- ✅ **Documentation** - Completed 2025-05-22
+- ✅ **Documentation** - Completed - |
   - Created comprehensive migration guide
   - Added examples for both legacy and new code
   - Documented best practices for state migration
 
 #### Phase 3.1: Dream Journal Analysis
-- ✅ **Component Interfaces** (`src/analysis/interfaces/`) - Completed 2025-05-22
+- ✅ **Component Interfaces** (`src/analysis/interfaces/`) - Completed - |
   - Created `IDreamAnalyzer` interface for dream content analysis
   - Created `IContentExtractor` interface for content extraction
-- ✅ **Implementation Classes** (`src/analysis/services/`) - Completed 2025-05-22
+- ✅ **Implementation Classes** (`src/analysis/services/`) - Completed - |
   - Implemented `DreamAnalyzer` with metrics extraction and pattern finding
   - Implemented `ContentExtractor` with dream content and date extraction
-- ✅ **Module Organization** - Completed 2025-05-22
+- ✅ **Module Organization** - Completed - |
   - Created clean module structure with interfaces and implementations
   - Added comprehensive documentation and examples in README.md
 
 #### Phase 3.2: Template System
-- ✅ **Component Interfaces** (`src/templates/interfaces/`) - Completed 2025-05-22
+- ✅ **Component Interfaces** (`src/templates/interfaces/`) - Completed - |
   - Created `ITemplateManager` interface for template management
   - Created `ITemplateProcessor` interface for templating systems
-- ✅ **Implementation Classes** (`src/templates/services/`) - Completed 2025-05-22
+- ✅ **Implementation Classes** (`src/templates/services/`) - Completed - |
   - Implemented `TemplateProcessor` for template processing and Templater integration
   - Implemented `TemplateManager` for template lifecycle management
-- ✅ **Type Definitions** - Completed 2025-05-22
+- ✅ **Type Definitions** - Completed - |
   - Created comprehensive type definitions for template-related data structures
   - Documented refactoring approach for handling duplicate types
-- ✅ **Module Organization** - Completed 2025-05-22
+- ✅ **Module Organization** - Completed - |
   - Created clean module structure with interfaces and implementations
   - Added comprehensive documentation and examples in README.md
 
+#### Phase 3.3: UI Components
+- ✅ **Component Architecture** (`src/dom/components/`) - Completed - |
+  - Created `IComponent` interface for component contract
+  - Implemented `BaseComponent` abstract class with lifecycle methods
+  - Created documentation in `README.md` for component patterns
+- ✅ **Metrics Table Component** (`src/dom/components/metrics-table/`) - Completed - |
+  - Created container/presentation pattern with `MetricsTableContainer` and `MetricsTableView`
+  - Implemented virtualized scrolling for performance
+  - Added expandable content functionality
+  - Created type definitions with `MetricsTableTypes`
+- ✅ **Filter Controls Component** (`src/dom/components/filter-controls/`) - Completed - |
+  - Created filter UI with date range and metric value filtering
+  - Implemented date presets for common filtering scenarios
+  - Added filter statistics display
+  - Built detailed type definitions with `FilterControlsTypes`
+  - Connected with Obsidian events system for coordination with other components
+- ✅ **Summary View Component** (`src/dom/components/summary-view/`) - Completed - |
+  - Created component for displaying metrics statistics and visualizations
+  - Implemented various visualization types (histogram, time series, data table)
+  - Built interactive metric selection UI
+  - Added data export functionality (CSV and JSON formats)
+  - Implemented statistical calculations (average, median, standard deviation, trends)
+
+- ✅ **Expandable Content Component** 
+  - Created container/presentation pattern with `ExpandableContentContainer` and `ExpandableContentView`
+  - Implemented animated expand/collapse transitions
+  - Built header and content sections with customizable styling
+  - Added support for dynamic content switching
+  - Implemented comprehensive event callbacks system
+
+- ✅ **Advanced Filter Component**
+  - Created complex filtering system with logical operators (AND/OR)
+  - Implemented type-specific condition builders for text, numbers, dates, and booleans
+  - Added support for nested filter groups for complex queries
+  - Built filter preset saving and management system
+  - Integrated with existing date range filtering
+
+- ✅ **Dashboard Component**
+  - Created container/presentation pattern with `DashboardContainer` and `DashboardView`
+  - Implemented statistics overview with key metrics display
+  - Built quick action buttons for common operations
+  - Added recent activity tracking and display
+  - Integrated with event system for real-time updates
+
+- ✅ **Tabs Component**
+  - Created container/presentation pattern with `TabsContainer` and `TabsView`
+  - Implemented tab navigation with active state management
+  - Built support for tab content rendering using callback registration
+  - Added features for adding, removing, and updating tabs
+  - Implemented tab state persistence with localStorage integration
+  - Added support for tab events and configuration options
+
+- ✅ **Dream Journal Manager Component**
+  - Created container/presentation pattern with `DreamJournalManagerContainer` and `DreamJournalManagerView`
+  - Implemented tabbed interface with multiple functional areas (dashboard, dream scraping, templates, etc.)
+  - Built feature-rich dashboard with quick actions, recent activities, and status overview
+  - Added comprehensive dream scraping functionality with progress tracking
+  - Implemented placeholders for journal structure, templates, and content isolation
+  - Added customizable interface with flexible layout and icon support
+
 #### Next Target
-- 🎯 **Section 3.3: UI Components** - Planned for 2025-05-23
+- 🎯 **LintingEngine Component**
 
 ## Implementation Strategy
 
