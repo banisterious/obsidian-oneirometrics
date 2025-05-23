@@ -35,6 +35,11 @@
 - Backup system for your data
 - Powerful logging and debug tools
 
+<p align="center">
+  <img src="docs/images/oom-metrics-note-001.png" alt="A screenshot of the OneiroMetrics metrics view" width="600"/>
+</p>
+<p align="center"><em>OneiroMetrics metrics view showing dream journal analysis</em></p>
+
 ### Ribbon Button
 - The plugin now uses a single ribbon button (Dream Journal Manager) to access journal management features. This streamlined interface replaces the previous multiple-button approach for a cleaner user experience.
 
