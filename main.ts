@@ -13,6 +13,15 @@ import { Logger as LogManager } from './utils/logger';
 import { LoggingAdapter } from './src/logging'; // Import our new LoggingAdapter
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
+// Import refactored modal components
+import { BaseModal, ConfirmModal, AlertModal } from './src/dom/modals';
+
+// Import refactored UI components
+import { SummaryViewContainer, SummaryViewView } from './src/dom/components/summary-view';
+import { LintingEngineContainer, LintingEngineService } from './src/dom/components/linting-engine';
+import { AdvancedFilterContainer, AdvancedFilterView, FilterOperator, LogicalOperator, FilterFieldType } from './src/dom/components/advanced-filter';
+import { ExpandableContentContainer } from './src/dom/components/expandable-content';
+
 // Import journal structure check modules
 import { LintingEngine } from './src/journal_check/LintingEngine';
 import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
@@ -198,211 +207,227 @@ class OneiroMetricsModal extends Modal {
         const selectorLeft = selectorRow.createEl('div', { cls: 'oom-modal-col-left' });
         if (this.selectionMode === 'folder') {
             selectorLeft.createEl('label', { text: 'Selected Folder', cls: 'oom-modal-label' });
-            selectorLeft.createEl('div', { text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)', cls: 'oom-modal-helper' });
         } else {
             selectorLeft.createEl('label', { text: 'Selected Notes', cls: 'oom-modal-label' });
-            selectorLeft.createEl('div', { text: 'Notes to search for dream metrics (select one or more)', cls: 'oom-modal-helper' });
         }
+        selectorLeft.createEl('div', { text: 'Choose which files to analyze for dream journal entries', cls: 'oom-modal-helper' });
         const selectorRight = selectorRow.createEl('div', { cls: 'oom-modal-col-right' });
+        
+        let filesInput: HTMLInputElement;
+        let folderInput: HTMLInputElement;
+        
         if (this.selectionMode === 'folder') {
-            // Restore folder autocomplete
-            const folderAutocompleteContainer = selectorRight.createDiv('oom-folder-autocomplete-container');
-            import('./autocomplete').then(({ createFolderAutocomplete }) => {
-                createFolderAutocomplete({
-                    app: this.app,
-                    plugin: this,
-                    containerEl: folderAutocompleteContainer,
-                    selectedFolder: this.selectedFolder,
-                    onChange: async (folder) => {
-                        this.selectedFolder = folder;
-                        this.plugin.settings.selectedFolder = folder;
-                        await this.plugin.saveSettings();
-                    }
-                });
+            folderInput = selectorRight.createEl('input', {
+                cls: 'oom-input',
+                attr: {
+                    type: 'text',
+                    placeholder: 'Select a folder',
+                    value: this.selectedFolder
+                }
+            });
+            
+            // Initialize folder autocomplete
+            createFolderAutocomplete(this.app, folderInput, (folder) => {
+                this.selectedFolder = folder;
+                this.plugin.settings.selectedFolder = folder;
+                this.plugin.saveSettings();
             });
         } else {
-            // Restore notes autocomplete
-            const notesAutocompleteContainer = selectorRight.createDiv('oom-notes-autocomplete-container');
-            import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
-                createSelectedNotesAutocomplete({
-                    app: this.app,
-                    plugin: this,
-                    containerEl: notesAutocompleteContainer,
-                    selectedNotes: this.selectedNotes,
-                    onChange: async (selected) => {
-                        this.selectedNotes = selected;
-                        this.plugin.settings.selectedNotes = selected;
-                        await this.plugin.saveSettings();
-                    }
-                });
+            filesInput = selectorRight.createEl('textarea', {
+                cls: 'oom-input oom-textarea',
+                attr: {
+                    placeholder: 'Select notes (one per line)',
+                    rows: '3'
+                }
+            });
+            filesInput.value = this.selectedNotes.join('\n');
+            
+            // Initialize note autocomplete
+            createSelectedNotesAutocomplete(this.app, filesInput, (notes) => {
+                this.selectedNotes = notes;
+                this.plugin.settings.selectedNotes = notes;
+                this.plugin.saveSettings();
             });
         }
-
-        // --- Scrape Button Row ---
-        const scrapeRow = contentEl.createEl('div', { cls: 'oom-modal-section oom-modal-row' });
-        const scrapeLeft = scrapeRow.createEl('div', { cls: 'oom-modal-col-left' });
-        scrapeLeft.createEl('label', { text: 'Scrape Files or Folder', cls: 'oom-modal-label' });
-        scrapeLeft.createEl('div', { text: 'Begin the scraping operation', cls: 'oom-modal-helper' });
-        const scrapeRight = scrapeRow.createEl('div', { cls: 'oom-modal-col-right' });
-        this.scrapeButton = scrapeRight.createEl('button', {
-            text: 'Scrape Notes',
-            cls: 'mod-cta oom-modal-button oom-scrape-button'
-        });
-        this.scrapeButton.addEventListener('click', () => {
-            if (!this.isScraping) {
-                this.isScraping = true;
-                this.scrapeButton.disabled = true;
-                this.plugin.scrapeMetrics();
-            }
-        });
-
-        // Add Settings button directly after Scrape Metrics
-        const settingsButton = scrapeRight.createEl('button', {
-            text: 'Open Settings',
-            cls: 'mod-cta oom-modal-button oom-settings-button'
-        });
-        settingsButton.addEventListener('click', () => {
-            (this.app as any).setting.open();
-            (this.app as any).setting.openTabById('oneirometrics');
-        });
-
-        // Add Open OneiroMetrics button directly after Settings
-        this.openNoteButton = scrapeRight.createEl('button', {
-            text: 'Open OneiroMetrics',
-            cls: 'mod-cta oom-modal-button oom-open-note-button',
-            attr: { title: 'Run a scrape to enable this' }
-        });
-        this.openNoteButton.disabled = true;
-        this.openNoteButton.classList.remove('enabled');
-        this.openNoteButton.addEventListener('click', () => {
-            if (this.openNoteButton.disabled) return;
-            const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.projectNote);
-            if (file instanceof TFile) {
-                this.app.workspace.openLinkText(this.plugin.settings.projectNote, '', true);
-            } else {
-                new Notice('Metrics note not found. Please set the path in settings.');
-                (this.app as any).setting.open('oneirometrics');
-            }
+        
+        // Handle selection mode changes
+        modeDropdown.addEventListener('change', () => {
+            this.selectionMode = modeDropdown.value as 'notes' | 'folder';
+            this.plugin.settings.selectionMode = this.selectionMode;
+            this.plugin.saveSettings();
+            this.onOpen(); // Reopen to refresh UI
         });
 
         // --- Progress Section ---
-        const progressSection = contentEl.createEl('div', { cls: 'oom-modal-section oom-modal-progress' });
-        this.progressContent = progressSection.createEl('div', { cls: 'oom-progress-content' });
-        this.statusText = this.progressContent.createEl('div', { cls: 'oom-status-text' });
-        this.progressBar = this.progressContent.createEl('div', { cls: 'oom-progress-bar' });
-        this.progressFill = this.progressBar.createEl('div', { cls: 'oom-progress-fill' });
-        this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
+        this.progressContent = contentEl.createEl('div', { cls: 'oom-modal-section oom-progress-section' });
+        this.progressContent.style.display = 'none';
+        
+        this.statusText = this.progressContent.createEl('div', { cls: 'oom-progress-status' });
+        
+        const barContainer = this.progressContent.createEl('div', { cls: 'oom-progress-bar-container' });
+        this.progressBar = barContainer.createEl('div', { cls: 'oom-progress-bar' });
+        this.progressFill = this.progressBar.createEl('div', { cls: 'oom-progress-bar-fill' });
+        
+        this.detailsText = this.progressContent.createEl('div', { cls: 'oom-progress-details' });
 
-        // --- Dropdown Change Handler ---
-        modeDropdown.addEventListener('change', async (e) => {
-            const value = (e.target as HTMLSelectElement).value as 'notes' | 'folder';
-            this.selectionMode = value;
-            this.plugin.settings.selectionMode = value;
-            if (value === 'folder') {
-                this.plugin.settings.selectedNotes = [];
-            } else {
-                this.plugin.settings.selectedFolder = '';
-            }
-            await this.plugin.saveSettings();
-            // Re-render selector row
-            selectorLeft.empty();
-            selectorRight.empty();
-            if (value === 'folder') {
-                selectorLeft.createEl('label', { text: 'Selected Folder', cls: 'oom-modal-label' });
-                selectorLeft.createEl('div', { text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)', cls: 'oom-modal-helper' });
-                // Restore folder autocomplete
-                const folderAutocompleteContainer = selectorRight.createDiv('oom-folder-autocomplete-container');
-                import('./autocomplete').then(({ createFolderAutocomplete }) => {
-                    createFolderAutocomplete({
-                        app: this.app,
-                        plugin: this,
-                        containerEl: folderAutocompleteContainer,
-                        selectedFolder: this.selectedFolder,
-                        onChange: async (folder) => {
-                            this.selectedFolder = folder;
-                            this.plugin.settings.selectedFolder = folder;
-                            await this.plugin.saveSettings();
-                        }
-                    });
-                });
-            } else {
-                selectorLeft.createEl('label', { text: 'Selected Notes', cls: 'oom-modal-label' });
-                selectorLeft.createEl('div', { text: 'Notes to search for dream metrics (select one or more)', cls: 'oom-modal-helper' });
-                // Restore notes autocomplete
-                const notesAutocompleteContainer = selectorRight.createDiv('oom-notes-autocomplete-container');
-                import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
-                    createSelectedNotesAutocomplete({
-                        app: this.app,
-                        plugin: this,
-                        containerEl: notesAutocompleteContainer,
-                        selectedNotes: this.selectedNotes,
-                        onChange: async (selected) => {
-                            this.selectedNotes = selected;
-                            this.plugin.settings.selectedNotes = selected;
-                            await this.plugin.saveSettings();
-                        }
-                    });
-                });
+        // --- Buttons ---
+        const buttonSection = contentEl.createEl('div', { cls: 'oom-modal-section oom-button-section' });
+        
+        const cancelButton = buttonSection.createEl('button', {
+            cls: 'oom-button oom-button-secondary',
+            text: 'Cancel'
+        });
+        cancelButton.addEventListener('click', () => {
+            this.close();
+        });
+        
+        this.scrapeButton = buttonSection.createEl('button', {
+            cls: 'oom-button oom-button-primary',
+            text: 'Scrape Metrics'
+        });
+        
+        let hasValidSelection = false;
+        if (this.selectionMode === 'folder') {
+            hasValidSelection = !!this.selectedFolder;
+        } else {
+            hasValidSelection = this.selectedNotes.length > 0;
+        }
+        
+        if (!hasValidSelection) {
+            this.scrapeButton.disabled = true;
+            this.scrapeButton.title = 'Select files or a folder first';
+        }
+        
+        this.scrapeButton.addEventListener('click', async () => {
+            if (this.isScraping) return;
+            await this.startScraping();
+        });
+        
+        // Add button to open metrics note (disabled by default)
+        this.openNoteButton = buttonSection.createEl('button', {
+            cls: 'oom-button',
+            text: 'Open Metrics Note'
+        });
+        this.openNoteButton.disabled = true;
+        this.openNoteButton.title = 'Run a scrape to enable this';
+        
+        this.openNoteButton.addEventListener('click', () => {
+            this.close();
+            const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.projectNote);
+            if (file instanceof TFile) {
+                this.app.workspace.getLeaf().openFile(file);
             }
         });
+    }
+
+    async startScraping() {
+        this.isScraping = true;
+        this.hasScraped = false;
+        this.scrapeButton.disabled = true;
+        this.scrapeButton.textContent = 'Scraping...';
+        this.progressContent.style.display = 'block';
+        this.statusText.textContent = 'Preparing to scrape metrics...';
+        this.progressFill.style.width = '0%';
+        this.detailsText.textContent = '';
+        
+        // Initialize the file targets based on selection mode
+        let filesToScrape: string[] = [];
+        if (this.selectionMode === 'folder') {
+            if (!this.selectedFolder) {
+                this.endScraping('No folder selected');
+                return;
+            }
+            
+            // Get all markdown files in the folder
+            const folder = this.app.vault.getAbstractFileByPath(this.selectedFolder);
+            if (!(folder instanceof TFolder)) {
+                this.endScraping(`Invalid folder: ${this.selectedFolder}`);
+                return;
+            }
+            
+            // Recursively gather files
+            const gatherFiles = (folder: TFolder, acc: string[]) => {
+                for (const child of folder.children) {
+                    if (child instanceof TFile && child.extension === 'md') {
+                        acc.push(child.path);
+                    } else if (child instanceof TFolder) {
+                        gatherFiles(child, acc);
+                    }
+                }
+            };
+            
+            gatherFiles(folder, filesToScrape);
+        } else {
+            filesToScrape = this.selectedNotes;
+        }
+        
+        if (filesToScrape.length === 0) {
+            this.endScraping('No files to scrape');
+            return;
+        }
+        
+        // Start the scraping process
+        try {
+            // Update the status
+            this.statusText.textContent = `Scraping ${filesToScrape.length} files...`;
+            
+            // Make sure plugin instance's scrapeMetrics method is used
+            await this.plugin.scrapeMetrics(
+                filesToScrape,
+                (progress, status, details) => {
+                    // Update progress bar
+                    this.progressFill.style.width = `${progress * 100}%`;
+                    
+                    // Update status text if provided
+                    if (status) {
+                        this.statusText.textContent = status;
+                    }
+                    
+                    // Update details text if provided
+                    if (details) {
+                        this.detailsText.textContent = details;
+                    }
+                }
+            );
+            
+            // Scraping completed successfully
+            this.endScraping('Scraping completed successfully!', true);
+            this.hasScraped = true;
+            
+            // Enable the open note button
+            this.openNoteButton.disabled = false;
+            this.openNoteButton.title = 'Open the metrics note';
+            this.openNoteButton.classList.add('enabled');
+        } catch (error) {
+            // Handle errors
+            this.endScraping(`Error during scraping: ${error.message}`);
+            console.error('Scraping error:', error);
+        }
+    }
+    
+    endScraping(message: string, success: boolean = false) {
+        this.isScraping = false;
+        this.statusText.textContent = message;
+        
+        if (success) {
+            // Show success status
+            this.progressFill.classList.add('oom-progress-success');
+        } else {
+            // Show error status
+            this.progressFill.classList.add('oom-progress-error');
+        }
+        
+        // Reset the button
+        this.scrapeButton.disabled = false;
+        this.scrapeButton.textContent = 'Scrape Metrics';
     }
 
     onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
-        if (OneiroMetricsModal.activeModal === this) {
-            OneiroMetricsModal.activeModal = null;
-        }
+        OneiroMetricsModal.activeModal = null;
     }
 }
 
-class ConfirmModal extends Modal {
-    private onConfirmCallback: () => void;
-    private onCancelCallback: () => void;
-
-    constructor(app: App, title: string, message: string) {
-        super(app);
-        this.titleEl.setText(title);
-        this.contentEl.createEl('p', { text: message });
-    }
-
-    set onConfirm(callback: () => void) {
-        this.onConfirmCallback = callback;
-    }
-
-    set onCancel(callback: () => void) {
-        this.onCancelCallback = callback;
-    }
-
-    open(): void {
-        super.open();
-        const buttonContainer = this.contentEl.createEl('div', {
-            cls: 'oom-modal-button-container'
-        });
-
-        const cancelButton = buttonContainer.createEl('button', {
-            text: 'Cancel',
-            cls: 'mod-warning'
-        });
-        cancelButton.addEventListener('click', () => {
-            if (this.onCancelCallback) this.onCancelCallback();
-            this.close();
-        });
-
-        const confirmButton = buttonContainer.createEl('button', {
-            text: 'Confirm',
-            cls: 'mod-cta'
-        });
-        confirmButton.addEventListener('click', () => {
-            if (this.onConfirmCallback) this.onConfirmCallback();
-            this.close();
-        });
-    }
-
-    close(): void {
-        super.close();
-    }
-}
+// ConfirmModal has been removed - we're now using the refactored version from src/dom/modals
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -414,7 +439,8 @@ export default class DreamMetricsPlugin extends Plugin {
     // Logger property - adding LoggingAdapter type
     logger: LogManager | LoggingAdapter;
     
-    lintingEngine: LintingEngine;
+    // Replace LintingEngine with LintingEngineContainer
+    lintingEngineContainer: LintingEngineContainer;
     templaterIntegration: TemplaterIntegration;
     
     // New for the plugin API
@@ -486,7 +512,18 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Initialize components
         this.templaterIntegration = new TemplaterIntegration(this);
-        this.lintingEngine = new LintingEngine(this, this.settings.linting || DEFAULT_LINTING_SETTINGS);
+        
+        // Initialize LintingEngineContainer with dependencies
+        const lintingContainerEl = document.createElement('div');
+        lintingContainerEl.addClass('oom-linting-container');
+        this.lintingEngineContainer = new LintingEngineContainer(lintingContainerEl, {
+            getSettings: () => this.settings.linting || DEFAULT_LINTING_SETTINGS,
+            saveSettings: async () => { await this.saveSettings(); return; },
+            getActiveFile: () => this.app.workspace.getActiveFile(),
+            getFileContent: async (file: TFile) => await this.app.vault.read(file),
+            setFileContent: async (file: TFile, content: string) => await this.app.vault.modify(file, content),
+            createNotice: (message: string, duration?: number) => new Notice(message, duration)
+        });
         
         // Load linting styles
         this.loadStyles();
@@ -898,27 +935,42 @@ export default class DreamMetricsPlugin extends Plugin {
      * Validate the structure of the current file
      */
     private async validateCurrentFile() {
+        // Get the active file
         const activeFile = this.app.workspace.getActiveFile();
         if (!activeFile) {
-            new Notice('No file is active');
+            new Notice('No active file to validate');
             return;
         }
-        
-        // Get the content of the file
-        const content = await this.app.vault.read(activeFile);
-        
-        // Validate content
-        const results = this.lintingEngine.validate(content);
-        
-        // If no issues, show a success notice
-        if (results.length === 0) {
-            new Notice('No structure issues found! 🎉');
-            return;
+
+        try {
+            // Read the file content
+            const content = await this.app.vault.read(activeFile);
+            
+            // Create a service instance for validation
+            const lintingService = new LintingEngineService(this.settings.linting || DEFAULT_LINTING_SETTINGS);
+            
+            // Validate content
+            const results = lintingService.validate(content);
+            
+            // If no issues, show a success notice
+            if (results.length === 0) {
+                new Notice('No linting issues found.');
+                return;
+            }
+            
+            // Count issues by severity
+            const errorCount = results.filter(r => r.severity === 'error').length;
+            const warningCount = results.filter(r => r.severity === 'warning').length;
+            const infoCount = results.filter(r => r.severity === 'info').length;
+            
+            // Show a notice with the results
+            new Notice(`Validation results: ${errorCount} errors, ${warningCount} warnings, ${infoCount} info`);
+            
+            // TODO: Open the linting UI to show detailed results
+        } catch (error) {
+            console.error('Error validating file:', error);
+            new Notice('Error validating file');
         }
-        
-        // Otherwise, show the validation modal with the results
-        const modal = new TestModal(this.app, this);
-        modal.open();
     }
     
     public async showMetrics() {
@@ -1581,57 +1633,23 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private async confirmOverwrite(): Promise<boolean> {
-        return new Promise((resolve) => {
-            const modal = new ConfirmModal(
-                this.app,
-                'Update Metrics Tables',
-                'This will overwrite the current metrics tables. A backup will be created before proceeding. Continue?'
-            );
-            
-            modal.onConfirm = () => {
-                resolve(true);
-            };
-            
-            modal.onCancel = () => {
-                resolve(false);
-            };
-            
-            modal.open();
-        });
+        return ConfirmModal.show(
+            this.app,
+            'Update Metrics Tables',
+            'This will overwrite the current metrics tables. A backup will be created before proceeding. Continue?',
+            'Continue',
+            'Cancel'
+        );
     }
 
     private async confirmProceedWithoutBackup(): Promise<boolean> {
-        return new Promise((resolve) => {
-            const modal = new Modal(this.app);
-            modal.titleEl.setText('Backup Failed');
-            modal.contentEl.createEl('p', {
-                text: 'Failed to create a backup. Would you like to proceed without a backup?'
-            });
-            
-            const buttonContainer = modal.contentEl.createEl('div', {
-                cls: 'oom-modal-button-container'
-            });
-            
-            const cancelButton = buttonContainer.createEl('button', {
-                text: 'Cancel',
-                cls: 'mod-warning'
-            });
-            cancelButton.addEventListener('click', () => {
-                modal.close();
-                resolve(false);
-            });
-            
-            const proceedButton = buttonContainer.createEl('button', {
-                text: 'Proceed',
-                cls: 'mod-cta'
-            });
-            proceedButton.addEventListener('click', () => {
-                modal.close();
-                resolve(true);
-            });
-            
-            modal.open();
-        });
+        return ConfirmModal.show(
+            this.app,
+            'Backup Failed',
+            'Failed to create a backup. Would you like to proceed without a backup?',
+            'Proceed',
+            'Cancel'
+        );
     }
 
     private generateSummaryTable(metrics: Record<string, number[]>): string {
