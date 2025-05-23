@@ -9,6 +9,7 @@ import { DreamMetricsSettingTab } from './settings';
 import { lucideIconMap } from './settings';
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
 import { Logger as LogManager } from './utils/logger';
+import { LoggingAdapter } from './src/logging'; // Import our new LoggingAdapter
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from './autocomplete';
 
 // Import journal structure check modules
@@ -24,7 +25,7 @@ import { DateNavigatorIntegration } from './src/dom/DateNavigatorIntegration';
 import { TimeFilterManager } from './src/timeFilters';
 import { DreamMetricsState } from './src/state/DreamMetricsState';
 import { DateNavigatorView, DATE_NAVIGATOR_VIEW_TYPE } from './src/dom/DateNavigatorView';
-import { DateNavigatorModal } from './src/dom/DateNavigatorModal';
+import { DateNavigatorModal, NavigatorViewMode } from './src/dom/DateNavigatorModal';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -402,26 +403,51 @@ class ConfirmModal extends Modal {
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
+    ribbonIconEl: HTMLElement;
+    statusBarItemEl: HTMLElement;
+    timeline: Timeline;
+    calendar: CalendarView;
+    
+    // Logger property - adding LoggingAdapter type
+    logger: LogManager | LoggingAdapter;
+    
+    lintingEngine: LintingEngine;
+    templaterIntegration: TemplaterIntegration;
+    
+    // New for the plugin API
+    activeJournal: ActiveJournal = null;
+    private dreamJournalManager: DreamJournalManager;
+    private dateNavigator: DateNavigatorIntegration;
+    private timeFilterManager: TimeFilterManager;
+    
+    state: DreamMetricsState;
+    
     loadedSettings: boolean = false;
     ribbons: Map<string, HTMLElement> = new Map();
     onlyActiveFile: boolean = false;
-    lintingEngine: LintingEngine;
-    templaterIntegration: TemplaterIntegration;
-    startPage: boolean = true;
-    logger: LogManager;
     expandedStates: Set<string>;
     private ribbonIcons: HTMLElement[] = [];
     private container: HTMLElement | null = null;
         private journalManagerRibbonEl: HTMLElement | null = null;
     private memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
-    private timeFilterManager: TimeFilterManager = new TimeFilterManager();
     private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
         await this.loadSettings();
-        this.logger = LogManager.getInstance(this.app);
+        
+        // Initialize our new logging adapter
+        this.logger = new LoggingAdapter(this.app);
+        
+        // Configure the logger from settings
+        const logLevel = this.settings?.logging?.level || 'info';
+        const maxLogSize = this.settings?.logging?.maxLogSize || 1024 * 1024;
+        const maxBackups = this.settings?.logging?.maxBackups || 5;
+        this.logger.configure(logLevel, maxLogSize, maxBackups);
+        
+        // Log a test message with our new logger
+        this.logger.info('Plugin', 'OneiroMetrics plugin loaded with new logging system');
         
         // Initialize components
         this.templaterIntegration = new TemplaterIntegration(this);
@@ -2458,7 +2484,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
 
         // Add journal manager button if enabled in settings
         if (this.settings.showRibbonButtons) {
-            this.journalManagerRibbonEl = this.addRibbonIcon('book-open-check', 'Dream Journal Manager', () => {
+            this.journalManagerRibbonEl = this.addRibbonIcon('moon', 'Dream Journal Manager', () => {
                 new DreamJournalManager(this.app, this, 'dashboard').open();
             });
             this.journalManagerRibbonEl.addClass('oom-journal-manager-button');
@@ -2705,58 +2731,12 @@ Applied: ${new Date().toLocaleTimeString()}`;
     }
 
     /**
-     * Show the Date Navigator UI
+     * Opens the settings tab and shows a notice prompting the user to click "View Metrics Descriptions"
      */
-    async showDateNavigator() {
-        // Create a standalone state for the Date Navigator
-        const state = new DreamMetricsState({
-            metrics: {},
-            projectNotePath: '',
-            selectedNotes: [],
-            folderOptions: { enabled: false, path: '' },
-            selectionMode: 'manual',
-            calloutName: 'dream',
-            backup: { enabled: false, maxBackups: 3 },
-            logging: { level: 'info' },
-            linting: {
-                enabled: false,
-                rules: [],
-                structures: [],
-                templates: [],
-                templaterIntegration: {
-                    enabled: false,
-                    folderPath: '',
-                    defaultTemplate: ''
-                },
-                contentIsolation: {
-                    ignoreImages: true,
-                    ignoreLinks: false,
-                    ignoreFormatting: true,
-                    ignoreHeadings: false,
-                    ignoreCodeBlocks: true,
-                    ignoreFrontmatter: true,
-                    ignoreComments: true,
-                    customIgnorePatterns: []
-                },
-                userInterface: {
-                    showInlineValidation: false,
-                    severityIndicators: {
-                        error: '❌',
-                        warning: '⚠️',
-                        info: 'ℹ️'
-                    },
-                    quickFixesEnabled: false
-                }
-            }
-        });
-        
-        // Open the modal
-        const modal = new DateNavigatorModal(
-            this.app,
-            state,
-            this.timeFilterManager
-        );
-        modal.open();
+    public openMetricsDescriptionsModal(): void {
+        (this.app as any).setting.open();
+        (this.app as any).setting.openTabById('oneirometrics');
+        new Notice('Click on "View Metrics Descriptions" in the settings panel');
     }
 }
 
