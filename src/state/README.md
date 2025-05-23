@@ -1,97 +1,160 @@
 # State Management System
 
-This directory contains the implementation of the OneiroMetrics state management system. The system is designed following the observable pattern and provides a unidirectional data flow that makes state changes predictable and easier to debug.
+The OOM plugin uses a unidirectional data flow state management pattern, similar to Redux but lighter weight and tailored to the Obsidian plugin environment.
 
-## Core Concepts
+## Core Components
 
-- **Observable State**: The foundation of the system, allowing components to subscribe to state changes.
-- **State Selectors**: Allow components to subscribe to specific parts of the state rather than the entire state.
-- **Actions and Dispatchers**: Implement unidirectional data flow where state changes happen through explicit actions.
-- **Adapters**: Bridge between legacy code and the new state management system.
+### Base State System
 
-## Architecture
+The state management system is built on several key components:
 
-The state management system is built with layered architecture:
+- **ObservableState**: Base implementation of the observable pattern
+- **MutableState**: Extension of observable state with methods for state updates
+- **StateSelector**: Component for selecting specific parts of state
+- **SelectorObservable**: Observable for specific state slices
 
-1. **Core Interfaces** (`StateInterfaces.ts`): Define the contract for all state classes
-2. **Base Implementation** (`ObservableState.ts`, etc.): Provide reusable implementation of the interfaces
-3. **Application-Specific State** (`MetricsState.ts`): Implement domain-specific state
-4. **Legacy Compatibility** (`MetricsStateAdapter.ts`): Bridge to legacy code
+### Domain-Specific State
 
-## Class Hierarchy
+- **MetricsState**: Application-specific state for metrics data
+- **MetricsStateAdapter**: Adapter for backward compatibility with legacy code
+
+### Persistence
+
+- **LocalStoragePersistence**: Persists state to localStorage (for development)
+- **ObsidianStorageAdapter**: Persists state using Obsidian's data API
+
+### Migration Utilities
+
+- **SettingsMigratorV1toV2**: Migrates settings from v1 to v2 format
+- **LegacySettingsToStateConverter**: Converts legacy settings to new state format
+- **DataBackupService**: Provides backup and restore functionality for user data
+
+## Directory Structure
 
 ```
-ObservableState
-├── MutableState
-│   └── PersistableState
-│       └── MetricsState
-└── StateSelector
+src/state/
+├── interfaces/         # Core interfaces
+│   ├── IObservableState.ts
+│   ├── IMutableState.ts
+│   ├── IStatePersistence.ts
+│   ├── IStateSelector.ts
+│   └── index.ts
+├── core/              # Core implementations
+│   ├── ObservableState.ts
+│   ├── MutableState.ts
+│   ├── StateSelector.ts
+│   ├── SelectorObservable.ts
+│   ├── LocalStoragePersistence.ts
+│   └── index.ts
+├── adapters/          # Backward compatibility
+│   ├── ObsidianStorageAdapter.ts
+│   ├── MetricsStateAdapter.ts
+│   ├── SettingsMigrator.ts
+│   ├── DataBackupService.ts
+│   └── index.ts
+├── metrics/           # Domain-specific state
+│   ├── interfaces/
+│   │   ├── IMetricsState.ts
+│   │   └── index.ts
+│   ├── MetricsState.ts
+│   └── index.ts
+├── index.ts           # Public exports
+└── README.md          # This file
 ```
-
-## Usage Examples
-
-### Basic State Management
-
-```typescript
-// Create a mutable state
-const state = new MutableState({ count: 0, name: 'Example' });
-
-// Subscribe to state changes
-const unsubscribe = state.subscribe(changes => {
-  console.log('State changed:', changes);
-});
-
-// Update state
-state.setState({ count: 1 });
-
-// Unsubscribe when done
-unsubscribe();
-```
-
-### Using Selectors
-
-```typescript
-// Create a selector for a specific part of state
-const countSelector = new StateSelector(state, 'count');
-
-// Subscribe to only that part
-countSelector.subscribe(selected => {
-  console.log('Count changed:', selected.count);
-});
-```
-
-### Using Dispatcher
-
-```typescript
-// Create a dispatcher for structured state changes
-const dispatcher = new StateDispatcher(state);
-
-// Register reducers for specific actions
-dispatcher.registerReducer('increment', (state, amount = 1) => ({
-  count: state.count + amount
-}));
-
-// Dispatch actions to change state
-dispatcher.dispatch('increment', 2);
-```
-
-### Working with MetricsState
-
-See `StateUsageExample.ts` for a complete example of using the metrics state in a component.
 
 ## Migration Guide
 
 When migrating from the old `DreamMetricsState` to the new state management system:
 
-1. Replace constructor calls to `DreamMetricsState` with `MetricsStateAdapter`
-2. For new components, use `MetricsState.getInstance()` directly
-3. Prefer subscribing to specific parts of state using selectors
-4. Use dispatched actions instead of direct setters
+1. Replace constructor calls to `DreamMetricsState` with `MetricsStateAdapter`:
+
+```typescript
+// Old code
+const state = new DreamMetricsState(settings);
+
+// New code
+const stateAdapter = new MetricsStateAdapter(settings);
+```
+
+2. For new UI components, use the new `MetricsState` directly:
+
+```typescript
+// Create a metrics state instance
+const metricsState = new MetricsState(initialState);
+
+// Subscribe to state changes
+const unsubscribe = metricsState.subscribe(state => {
+  // Update UI based on new state
+});
+```
+
+3. Use selectors for observing specific parts of state:
+
+```typescript
+// Create a selector for metrics
+const metricsSelector = new StateSelector<IMetricsState, Record<string, DreamMetric>>(
+  state => state.metrics
+);
+
+// Create an observable for the selected state
+const metricsObservable = metricsSelector.observe(metricsState);
+
+// Subscribe to changes in the metrics only
+const unsubscribe = metricsObservable.subscribe(metrics => {
+  // Update UI with new metrics
+});
+```
+
+## Settings Migration
+
+The plugin now supports automatic migration of settings between versions:
+
+1. When loading settings, we check for outdated formats:
+
+```typescript
+async loadSettings(): Promise<void> {
+  const data = await this.loadData();
+  const migrators = [new SettingsMigratorV1toV2()];
+  
+  let settings = data || {};
+  
+  // Check if migration is needed
+  for (const migrator of migrators) {
+    if (migrator.canMigrate(settings)) {
+      // Backup original settings
+      await this.backupService.backupSettings(settings);
+      
+      // Apply migration
+      settings = migrator.migrate(settings);
+    }
+  }
+  
+  this.settings = settings;
+}
+```
+
+2. The settings are automatically backed up before migration:
+
+```typescript
+async backupSettings(settings: any): Promise<void> {
+  // Create timestamped backup file
+  // ...
+}
+```
+
+3. If problems occur, settings can be restored from backup:
+
+```typescript
+async restoreFromBackup(backupId?: string): Promise<any | null> {
+  // Restore settings from backup file
+  // ...
+}
+```
 
 ## Best Practices
 
-1. **Immutability**: Never mutate state objects directly
-2. **Single Source of Truth**: Keep state centralized in the MetricsState
-3. **Unidirectional Data Flow**: Changes flow in one direction through actions
-4. **Clean Subscriptions**: Always unsubscribe when components are destroyed
-5. **Minimal State Updates**: Only update what has changed 
+1. **Keep state normalized**: Avoid deeply nested state objects.
+2. **Use selectors**: Create selectors that select only the specific parts of state a component needs.
+3. **Subscribe judiciously**: Unsubscribe when components are unmounted.
+4. **Use the appropriate update method**: Use `setState` for simple updates, `updateState` for updates that depend on the current state.
+5. **Persist state only when necessary**: Don't persist transient UI state. 
