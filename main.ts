@@ -836,8 +836,8 @@ export default class DreamMetricsPlugin extends Plugin {
         // Create proper settings object for TemplaterIntegration
         const templaterSettings = {
             enabled: true,
-            templateFolder: this.settings.journalStructure?.templates?.folderPath || 'templates/dreams',
-            defaultTemplate: this.settings.journalStructure?.templates?.defaultTemplate || ''
+            templateFolder: this.settings.journalStructure?.templaterIntegration?.folderPath || 'templates/dreams',
+            defaultTemplate: this.settings.journalStructure?.templaterIntegration?.defaultTemplate || ''
         };
         
         // Use type-safe property access for integration components
@@ -1419,13 +1419,13 @@ export default class DreamMetricsPlugin extends Plugin {
             return true;
         }
         
-        const backupPath = getBackupFolderPath(this.settings);
+        const backupFolderPath = getBackupFolderPath(this.settings);
         
-        if (!backupPath) {
+        if (!backupFolderPath) {
             new Notice("Backup folder path not set. Please configure in settings.");
             return false;
         }
-        
+
         try {
             // Read the file content
             const content = await this.app.vault.read(file);
@@ -1437,14 +1437,14 @@ export default class DreamMetricsPlugin extends Plugin {
             
             // Create backup filename with original filename and timestamp
             const fileName = file.basename;
-            const backupPath = `${backupPath}/${fileName}.backup-${timestamp}.bak`;
+            const backupFilePath = `${backupFolderPath}/${fileName}.backup-${timestamp}.bak`;
             
             // Check if backup folder exists
-            const backupFolderObj = this.app.vault.getAbstractFileByPath(backupPath);
+            const backupFolderObj = this.app.vault.getAbstractFileByPath(backupFolderPath);
             if (!backupFolderObj) {
                 try {
-                    await this.app.vault.createFolder(backupPath);
-                    globalLogger?.info('Backup', `Created backup folder: ${backupPath}`);
+                    await this.app.vault.createFolder(backupFolderPath);
+                    globalLogger?.info('Backup', `Created backup folder: ${backupFolderPath}`);
                 } catch (error) {
                     globalLogger?.error('Backup', 'Error creating backup folder', error as Error);
                     throw new Error(`Failed to create backup folder: ${error.message}`);
@@ -1452,20 +1452,20 @@ export default class DreamMetricsPlugin extends Plugin {
             }
             
             // Check if backup file already exists
-            const existingBackup = this.app.vault.getAbstractFileByPath(backupPath);
+            const existingBackup = this.app.vault.getAbstractFileByPath(backupFilePath);
             if (existingBackup) {
-                globalLogger?.warn('Backup', `Backup file already exists: ${backupPath}`);
+                globalLogger?.warn('Backup', `Backup file already exists: ${backupFilePath}`);
                 throw new Error('Backup file already exists');
             }
             
             // Create the backup file
-            await this.app.vault.create(backupPath, content);
-            globalLogger?.info('Backup', `Created backup at: ${backupPath}`);
+            await this.app.vault.create(backupFilePath, content);
+            globalLogger?.info('Backup', `Created backup at: ${backupFilePath}`);
             
             // Clean up old backups (keep last 5)
             try {
                 const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith(backupPath) && 
+                    .filter(f => f.path.startsWith(backupFolderPath) && 
                         f.basename.startsWith(fileName) && 
                         f.basename.includes('.backup-'))
                     .sort((a, b) => b.stat.mtime - a.stat.mtime);
@@ -1480,7 +1480,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 // Don't throw here, as the main backup was successful
             }
             
-            new Notice(`Backup created: ${backupPath}`);
+            new Notice(`Backup created: ${backupFilePath}`);
         } catch (error) {
             globalLogger?.error('Backup', 'Error creating backup', error as Error);
             throw new Error(`Failed to create backup: ${error.message}`);
@@ -2327,10 +2327,10 @@ Applied: ${new Date().toLocaleTimeString()}`;
 
     private removeRibbonIcons(): void {
         // Remove icons if they exist
-        this.ribbonIconRefs.forEach(icon => {
+        this.ribbonIcons.forEach(icon => {
             icon.remove();
         });
-        this.ribbonIconRefs = [];
+        this.ribbonIcons = [];
     }
 
     private addRibbonIcons(): void {
@@ -3584,4 +3584,14 @@ function expandAllContentSections(previewEl: HTMLElement) {
 function safeSettingsAccess(settings: any, propName: string, defaultValue: any = undefined) {
     if (!settings) return defaultValue;
     return settings[propName] !== undefined ? settings[propName] : defaultValue;
+}
+
+// Helper function for icon rendering
+function getIcon(iconName: string): string | null {
+    if (!iconName) return null;
+    // Check if it's a Lucide icon
+    const lucideIcon = lucideIconMap?.[iconName];
+    if (lucideIcon) return lucideIcon;
+    // Return a simple span as fallback
+    return `<span class="icon">${iconName}</span>`;
 }

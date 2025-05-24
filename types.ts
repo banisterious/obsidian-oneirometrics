@@ -4,7 +4,7 @@
  */
 
 import * as NewTypes from './src/types';
-import { SelectionMode as CoreSelectionMode } from './src/types/core';
+import { DreamMetricsSettings as CoreDreamMetricsSettings, SelectionMode as CoreSelectionMode } from './src/types/core';
 
 // Log deprecation warning at runtime if this file is imported
 console.warn(
@@ -19,7 +19,15 @@ export * from './src/types';
 export type LogLevel = NewTypes.LogLevel;
 export type DreamMetric = NewTypes.DreamMetric;
 export type DreamMetricData = NewTypes.DreamMetricData;
-export type DreamMetricsSettings = NewTypes.DreamMetricsSettings;
+
+// Make DreamMetricsSettings extend the core interface for proper compatibility
+export interface DreamMetricsSettings extends CoreDreamMetricsSettings {
+  /**
+   * @deprecated - This interface extends CoreDreamMetricsSettings from src/types/core.
+   * For new code, use DreamMetricsSettings from src/types instead.
+   */
+}
+
 export type SelectionMode = CoreSelectionMode;
 
 // Match the old LintingSettings name with the new JournalStructureSettings type

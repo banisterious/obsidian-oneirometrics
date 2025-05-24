@@ -176,6 +176,15 @@ export interface DreamMetricsSettings {
     /** Whether to show ribbon buttons in the sidebar */
     showRibbonButtons: boolean;
     
+    /** @deprecated Use showRibbonButtons instead */
+    showTestRibbonButton?: boolean;
+    
+    /** Whether backup functionality is enabled */
+    backupEnabled: boolean;
+    
+    /** Path to the backup folder */
+    backupFolderPath: string;
+    
     /** Configuration for logging */
     logging: {
         /** Log level */
@@ -197,51 +206,58 @@ export interface DreamMetricsSettings {
     /** Journal structure validation settings */
     journalStructure?: JournalStructureSettings;
     
-    /** Linting settings (legacy or alternative name for journal structure) */
+    /** @deprecated Use journalStructure instead */
     linting?: LintingSettings;
     
-    /** Backup settings */
-    backupEnabled: boolean;
-    
-    /** Path to folder for storing backups */
-    backupFolderPath: string;
-    
-    /** Version of the metrics system (for migrations) */
-    metricsVersion?: string;
-    
-    /** Map of expanded UI states */
-    expandedStates?: Record<string, boolean>;
-    
-    /** 
-     * Whether to show the test ribbon button 
-     * @deprecated Use showRibbonButtons instead
-     */
-    showTestRibbonButton?: boolean;
-    
-    /** 
-     * UI state and presentation preferences
-     */
+    /** UI state for persisting UI configurations across sessions */
     uiState?: {
-        /** Last selected tab in settings */
-        lastTab?: string;
-        /** Custom CSS overrides */
-        customCss?: string;
-        /** Theme preferences */
-        theme?: 'light' | 'dark' | 'system';
-        /** Other UI state properties */
-        [key: string]: any;
+        /** Active tab in settings */
+        activeTab?: string;
+        
+        /** Last used filter settings */
+        lastFilter?: string;
+        
+        /** Custom date ranges */
+        customRanges?: Record<string, {start: string, end: string}>;
+        
+        /** UI layout preferences */
+        layout?: Record<string, any>;
     };
     
-    /**
-     * Developer mode settings - only used in development
-     */
+    /** Record of expanded states for UI elements by ID */
+    expandedStates?: Record<string, boolean>;
+    
+    /** Developer mode settings */
     developerMode?: {
-        /** Enable developer mode features */
-        enabled?: boolean;
-        /** Enable performance monitoring */
-        performanceMonitoring?: boolean;
-        /** Show debug info in UI */
-        showDebugInfo?: boolean;
+        /** Whether developer mode is enabled */
+        enabled: boolean;
+        
+        /** Show debug ribbon button */
+        showDebugRibbon?: boolean;
+        
+        /** Whether to trace function calls */
+        traceFunctionCalls?: boolean;
+        
+        /** Experimental features to enable */
+        experimentalFeatures?: string[];
+    };
+    
+    /** Version of the metrics format */
+    metricsVersion?: string;
+    
+    /** Backup settings */
+    backup?: {
+        /** Whether to automatically backup before changes */
+        enabled: boolean;
+        
+        /** Path to store backups */
+        folderPath: string;
+        
+        /** Maximum number of backups to keep */
+        maxBackups?: number;
+        
+        /** Frequency of automatic backups */
+        frequency?: 'onEdit' | 'onSave' | 'daily' | 'hourly';
     };
 }
 

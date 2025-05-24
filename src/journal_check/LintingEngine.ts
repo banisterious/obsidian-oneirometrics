@@ -14,16 +14,16 @@ export class LintingEngine {
     private templaterIntegration: TemplaterIntegration | null;
     
     constructor(
-        private plugin: DreamMetricsPlugin, 
-        private settings: LintingSettings
+        private plugin?: DreamMetricsPlugin, 
+        private settings: LintingSettings = { enabled: true, rules: [], structures: [], templates: [], templaterIntegration: { enabled: false, folderPath: '', defaultTemplate: '' }, contentIsolation: { ignoreImages: true, ignoreLinks: false, ignoreFormatting: true, ignoreHeadings: false, ignoreCodeBlocks: true, ignoreFrontmatter: true, ignoreComments: true, customIgnorePatterns: [] }, userInterface: { showInlineValidation: true, severityIndicators: { error: '❌', warning: '⚠️', info: 'ℹ️' }, quickFixesEnabled: true } }
     ) {
-        this.rules = settings.rules;
-        this.structures = settings.structures;
-        this.templates = settings.templates;
+        this.rules = settings.rules || [];
+        this.structures = settings.structures || [];
+        this.templates = settings.templates || [];
         this.contentParser = new ContentParser(settings.contentIsolation);
         
-        // Initialize Templater integration if enabled
-        if (settings.templaterIntegration.enabled) {
+        // Initialize Templater integration if enabled and plugin is provided
+        if (plugin && settings.templaterIntegration?.enabled) {
             this.templaterIntegration = new TemplaterIntegration(plugin);
             if (!this.templaterIntegration.isTemplaterInstalled()) {
                 this.templaterIntegration = null;
