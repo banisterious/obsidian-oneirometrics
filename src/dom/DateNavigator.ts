@@ -1,20 +1,29 @@
-import { 
-    startOfMonth, 
-    endOfMonth, 
+import { App } from 'obsidian';
+import { DreamMetricsState } from '../state/DreamMetricsState';
+import { DreamMetricData } from '../types/core';
+import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
+import {
+    startOfMonth,
+    endOfMonth,
+    startOfWeek,
+    endOfWeek,
+    eachDayOfInterval,
+    addDays,
+    subDays,
+    addMonths,
+    subMonths,
+    format,
+    isToday,
+    isSameMonth,
+    isSameDay,
+    isWithinInterval,
     startOfDay,
     endOfDay,
-    addMonths, 
-    subMonths, 
-    format, 
-    isToday, 
-    isSameMonth, 
+    differenceInDays,
     getDaysInMonth,
     getDay,
-    isWithinInterval,
     parse
 } from 'date-fns';
-import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../types';
 
 // Core interfaces
 export interface Day {

@@ -4,6 +4,8 @@
 
 > **Ribbon Button Visibility Bug:** [RESOLVED] This issue is now resolved. The root cause was an Obsidian API limitation. The plugin now uses a single toggle for both ribbon buttons. See the archived plan: [docs/archive/RIBBON_BUTTON_BUG_PLAN.md].
 
+> **Types System Documentation:** The architecture diagrams need to be updated to include information about the consolidated types system implemented in Phase 1 of the Post-Refactoring Roadmap. See the tracking issue: [docs/developer/architecture/diagrams/types-refactoring-note.md]. Will be completed in Phase 3 (Documentation Enhancement).
+
 ## Table of Contents
 
 - [Recent Issues and Status](#recent-issues-and-fixes)
@@ -461,6 +463,12 @@ Please report any issues or suggest improvements through the GitHub repository. 
    - [ ] Update feature documentation
    - [ ] Add troubleshooting guide
    - [ ] Include examples
+
+3. **Types System Documentation**
+   - [ ] Update architecture diagrams to include consolidated types system
+   - [ ] Create a new diagram showing types organization hierarchy
+   - [ ] Document type migration strategy
+   - [ ] See tracking document: [docs/developer/architecture/diagrams/types-refactoring-note.md]
 
 ## Testing
 1. **Automated Testing**

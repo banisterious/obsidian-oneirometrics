@@ -44,6 +44,42 @@ The post-refactoring improvements are organized into four sequential phases, eac
    - Eliminate any remaining `any` types
    - Add explicit return types to all functions
 
+5. **TypeScript Error Resolution**
+   - Fix approximately 150+ TypeScript errors across the codebase
+   - Address interface definition inconsistencies (see [typescript-issues.md](./typescript-issues.md))
+   - Resolve type compatibility issues with SelectionMode and LogLevel
+   - Fix missing or incorrectly referenced properties in interfaces
+   - Install missing dependencies
+   - Address object property access issues
+   - Follow step-by-step plan in [typescript-issues-next-steps.md](./typescript-issues-next-steps.md)
+
+### Current Progress:
+
+- ✅ Created documentation of TypeScript issues in `typescript-issues.md`
+- ✅ Added `build:force` script to bypass TypeScript errors during development
+- ✅ Added missing `ts-debounce` dependency
+- ✅ Modified tsconfig.json to allow development to continue
+- ✅ Updated the root-level types.ts file to ensure better compatibility
+- ✅ Created detailed plan for addressing TypeScript issues in `typescript-issues-next-steps.md`
+- ✅ Created type guard utilities for safer property access
+- ✅ Added mapping functions for SelectionMode type compatibility
+- ✅ Fixed calloutMetadata array type definition
+- ✅ Added backward compatibility helpers for logging configuration
+- ✅ Created settings-helpers.ts with utilities for safe settings access
+- ✅ Made DreamMetricsSettings properties required to match usage throughout codebase
+- ✅ Created metric-helpers.ts with utilities for handling legacy metric properties
+- ✅ Added proper documentation for deprecated properties
+- ✅ Fixed callout-utils.ts to handle both array and single object formats
+- ✅ Enhanced selection-mode-helpers.ts with more comprehensive comparison functions
+- ✅ Expanded settings-helpers.ts with additional utility functions
+- ✅ Created TestRunner stub in testing directory
+- ✅ Created ContentParser, state, and template stubs to satisfy imports
+- ✅ Updated build-force.cmd script to bypass TypeScript errors for Windows users
+- ✅ Created type-adapters.ts to help safely adapt between legacy and new type systems
+- ✅ Completed ContentParser implementation with full error handling and robust functionality
+- ✅ Fixed test function signatures to support both sync and async tests with improved error handling
+- ⬜ Systematically update main codebase files using the new utilities
+
 ## Phase 2: Performance Optimization
 
 **Goal:** Enhance the overall performance and responsiveness of the plugin.
@@ -190,6 +226,24 @@ The success of these improvements will be measured through:
    - Static analysis scores
    - Technical debt reduction
    - Maintainability index improvement
+
+## Post-Refactoring Cleanup
+
+Once the refactoring process is fully completed and the improvements outlined in this roadmap are implemented, the following cleanup tasks should be performed:
+
+1. **Documentation Cleanup**
+   - TODO: Archive all refactoring-related documentation to the docs/archive/legacy directory
+   - Move temporary guides like typescript-issues.md and typescript-issues-next-steps.md to the archive
+   - Archive component migration guides and examples once all components are migrated
+   - Keep only the documentation needed for ongoing development and maintenance
+   - Follow the detailed steps in [Post-Refactoring Cleanup Checklist](./post-refactoring-cleanup-checklist.md)
+
+2. **Code Cleanup**
+   - Remove temporary adapter functions and compatibility layers 
+   - Clean up any remaining migration utilities that are no longer needed
+   - Consolidate helper functions that have overlapping functionality
+   - Remove deprecated APIs after ensuring no components depend on them
+   - Use the [cleanup checklist](./post-refactoring-cleanup-checklist.md) to track progress
 
 ---
 

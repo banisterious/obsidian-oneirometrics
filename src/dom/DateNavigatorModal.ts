@@ -5,6 +5,21 @@ import { DateNavigatorIntegration } from './DateNavigatorIntegration';
 import { TimeFilterManager } from '../timeFilters';
 import { startOfDay, endOfDay } from 'date-fns';
 
+// Import the global logger from main.ts - will be initialized when plugin loads
+declare const globalLogger: any;
+
+/**
+ * Enum for the different view modes of the date navigator
+ */
+export enum NavigatorViewMode {
+    /** Calendar view showing a monthly calendar */
+    CALENDAR = 'calendar',
+    /** List view showing a list of dates with dreams */
+    LIST = 'list',
+    /** Timeline view showing dates on a horizontal timeline */
+    TIMELINE = 'timeline'
+}
+
 export class DateNavigatorModal extends Modal {
     private dateNavigator: DateNavigator | null = null;
     private integration: DateNavigatorIntegration | null = null;
@@ -116,11 +131,11 @@ export class DateNavigatorModal extends Modal {
                     // Close the modal
                     this.close();
                 } catch (error) {
-                    console.error('[DateNavigatorModal] Error applying filter:', error);
+                    globalLogger?.error('UI', 'Error applying date filter', error);
                     new Notice('Error applying filter. Please try again.');
                 }
             } else {
-                console.error('[DateNavigatorModal] forceApplyDateFilter function not found');
+                globalLogger?.error('UI', 'forceApplyDateFilter function not found');
                 new Notice('Filter application not available. Please update the plugin.');
             }
         });

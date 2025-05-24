@@ -1,8 +1,14 @@
 import { App } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
+import { DreamMetricData } from '../types/core';
 import { DateRangeFilter } from '../filters/DateRangeFilter';
 import { OneiroMetricsEvents } from '../events';
-import { DreamMetricData } from '../types';
+import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
+import { debounce } from 'ts-debounce';
+import { format } from 'date-fns';
+
+// Import the global logger from main.ts - will be initialized when plugin loads
+declare const globalLogger: any;
 
 export class DreamMetricsDOM {
     private container: HTMLElement;
@@ -25,7 +31,7 @@ export class DreamMetricsDOM {
     }
 
     public render(): void {
-        console.log('[DEBUG] DreamMetricsDOM.render called');
+        globalLogger?.debug('DOM', 'DreamMetricsDOM.render called');
         this.app.workspace.trigger('oneirometrics:debug', {
             event: 'DreamMetricsDOM render called',
             timestamp: new Date().toISOString(),
@@ -159,7 +165,7 @@ export class DreamMetricsDOM {
                 const row = rowTemplate.cloneNode(true) as HTMLElement;
                 row.style.display = 'table-row';
                 row.style.top = `${i * this.ROW_HEIGHT}px`;
-                row.setAttribute('data-source', entry.source);
+                row.setAttribute('data-source', getSourceFile(entry));
 
                 // Add date cell
                 const dateCell = document.createElement('td');
@@ -196,10 +202,11 @@ export class DreamMetricsDOM {
 
                 const expandButton = document.createElement('button');
                 expandButton.className = 'oom-button oom-button--expand';
-                expandButton.textContent = this.expandedRows.has(entry.source) ? 'Show less' : 'Read more';
-                expandButton.setAttribute('data-content-id', entry.source);
-                expandButton.setAttribute('data-expanded', this.expandedRows.has(entry.source) ? 'true' : 'false');
-                expandButton.setAttribute('aria-expanded', this.expandedRows.has(entry.source) ? 'true' : 'false');
+                const sourceId = getSourceFile(entry);
+                expandButton.textContent = this.expandedRows.has(sourceId) ? 'Show less' : 'Read more';
+                expandButton.setAttribute('data-content-id', sourceId);
+                expandButton.setAttribute('data-expanded', this.expandedRows.has(sourceId) ? 'true' : 'false');
+                expandButton.setAttribute('aria-expanded', this.expandedRows.has(sourceId) ? 'true' : 'false');
                 expandButton.setAttribute('aria-label', 'Toggle dream content visibility');
 
                 // Attach expand/collapse event listener
@@ -207,13 +214,13 @@ export class DreamMetricsDOM {
                     e.preventDefault();
                     e.stopPropagation();
                     const isExpanded = expandButton.getAttribute('data-expanded') === 'true';
-                    this.updateContentVisibility(entry.source, !isExpanded);
+                    this.updateContentVisibility(sourceId, !isExpanded);
                 });
 
                 contentCell.appendChild(expandButton);
                 row.appendChild(contentCell);
 
-                if (this.expandedRows.has(entry.source)) {
+                if (this.expandedRows.has(sourceId)) {
                     contentWrapper.classList.add('expanded');
                 }
 
@@ -229,7 +236,7 @@ export class DreamMetricsDOM {
                 const row = rowsContainer.querySelector(`tr[data-source="${this.scrollToRowId}"]`);
                 const container = table.parentElement as HTMLElement;
                 if (row instanceof HTMLElement && container) {
-                    const idx = entries.findIndex(e => e.source === this.scrollToRowId);
+                    const idx = entries.findIndex(e => getSourceFile(e) === this.scrollToRowId);
                     if (idx !== -1) {
                         const containerHeight = container.clientHeight;
                         const scrollTop = Math.max(0, idx * this.ROW_HEIGHT - containerHeight / 2);
@@ -300,11 +307,104 @@ export class DreamMetricsDOM {
     }
 
     public applyFilters(previewEl: HTMLElement): void {
-        console.log('[DEBUG] DreamMetricsDOM.applyFilters called', previewEl);
+        globalLogger?.debug('DOM', 'DreamMetricsDOM.applyFilters called', { element: previewEl });
+        this.app.workspace.trigger('oneirometrics:debug', {
+            event: 'DreamMetricsDOM applyFilters called',
+            timestamp: new Date().toISOString(),
+            stack: new Error().stack
+        });
         if ((window as any).oneiroMetricsPlugin && typeof (window as any).oneiroMetricsPlugin.applyFilters === 'function') {
             (window as any).oneiroMetricsPlugin.applyFilters(previewEl);
         } else {
             console.warn('applyFilters: Could not find main plugin filtering logic.');
+        }
+    }
+    
+    /**
+     * Apply a custom date range filter to the entries
+     * @param previewEl The container element with the entries
+     * @param dateRange The custom date range to apply
+     */
+    public applyCustomDateRangeFilter(previewEl: HTMLElement, dateRange: { start: string, end: string }): void {
+        globalLogger?.debug('DOM', 'DreamMetricsDOM.applyCustomDateRangeFilter called', { 
+            element: previewEl, 
+            dateRange 
+        });
+        
+        this.app.workspace.trigger('oneirometrics:debug', {
+            event: 'DreamMetricsDOM applyCustomDateRangeFilter called',
+            timestamp: new Date().toISOString(),
+            dateRange,
+            stack: new Error().stack
+        });
+        
+        // Check if the global custom date range filter function exists
+        if ((window as any).customDateRange && (window as any).applyCustomDateRangeFilter) {
+            // Set the global customDateRange variable
+            (window as any).customDateRange = dateRange;
+            
+            // Call the global filter function
+            (window as any).applyCustomDateRangeFilter();
+        } else if ((window as any).oneiroMetricsPlugin && typeof (window as any).oneiroMetricsPlugin.applyCustomDateRangeFilter === 'function') {
+            // Alternative: use the plugin's method directly
+            (window as any).oneiroMetricsPlugin.applyCustomDateRangeFilter(dateRange);
+        } else {
+            // Fallback implementation if global function isn't available
+            globalLogger?.warn('DOM', 'Could not find global applyCustomDateRangeFilter function, using fallback');
+            
+            try {
+                // Parse the date strings to Date objects
+                const startDate = new Date(dateRange.start);
+                const endDate = new Date(dateRange.end);
+                
+                // Set end date to end of day
+                endDate.setHours(23, 59, 59, 999);
+                
+                // Get all rows
+                const rows = previewEl.querySelectorAll('.oom-dream-row');
+                
+                let visibleCount = 0;
+                
+                // Process each row
+                rows.forEach(row => {
+                    const dateCell = row.querySelector('.column-date');
+                    if (!dateCell || !dateCell.textContent) return;
+                    
+                    try {
+                        // Parse date from cell
+                        const dateText = dateCell.textContent.trim();
+                        const rowDate = new Date(dateText);
+                        
+                        // Check if the date is within the range
+                        const isVisible = rowDate >= startDate && rowDate <= endDate;
+                        
+                        // Update row visibility
+                        if (isVisible) {
+                            (row as HTMLElement).classList.remove('oom-row--hidden');
+                            (row as HTMLElement).classList.add('oom-row--visible');
+                            visibleCount++;
+                        } else {
+                            (row as HTMLElement).classList.add('oom-row--hidden');
+                            (row as HTMLElement).classList.remove('oom-row--visible');
+                        }
+                    } catch (error) {
+                        globalLogger?.error('DOM', 'Error processing row date', error);
+                    }
+                });
+                
+                // Update filter display
+                const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
+                if (filterDisplay) {
+                    (filterDisplay as HTMLElement).textContent = `Custom Range: ${dateRange.start} to ${dateRange.end} (${visibleCount} entries)`;
+                }
+                
+                // Also show a notice
+                if ((window as any).Notice) {
+                    new (window as any).Notice(`Custom date filter applied: ${visibleCount} entries visible`);
+                }
+            } catch (error) {
+                globalLogger?.error('DOM', 'Error applying custom date range filter', error);
+            }
         }
     }
 } 

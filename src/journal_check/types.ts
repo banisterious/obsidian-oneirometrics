@@ -1,4 +1,18 @@
 /**
+ * @deprecated This file is being phased out. Import types from src/types instead.
+ * Example: import { JournalStructureSettings } from '../types';
+ */
+
+// Re-export journal structure check types from new location
+export * from '../types/journal-check';
+
+// Log deprecation warning
+console.warn(
+  "DEPRECATION WARNING: Importing from src/journal_check/types.ts is deprecated. " +
+  "Import from src/types instead. This file will be removed in a future version."
+);
+
+/**
  * Types for the journal structure validation system
  */
 
