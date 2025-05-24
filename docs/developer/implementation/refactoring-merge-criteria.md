@@ -10,7 +10,9 @@
 
 ## Overview
 
-This document outlines the criteria for merging the TypeScript refactoring branch back to the main branch. Instead of using a time-based approach, we've adopted a test-completion-based approach to ensure the refactored code meets quality standards before merging.
+This document outlines the criteria for merging the `refactoring/2025-typescript` branch back to the `main` branch. Instead of using a time-based approach, we've adopted a test-completion-based approach to ensure the refactored code meets quality standards before merging.
+
+> **Note:** The `refactoring/2025-typescript` branch is the current active development branch for the TypeScript refactoring effort, superseding the earlier `refactoring/2025` branch.
 
 ## Core Test Completion Requirements
 

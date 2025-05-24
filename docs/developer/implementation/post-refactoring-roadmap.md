@@ -161,7 +161,9 @@ Each test should be documented with:
 
 ### Merge Criteria:
 
-**The criteria for merging the refactoring branch back to the main branch has moved from a time-based approach to a test-completion-based approach.** The detailed merge criteria, including core test requirements and approval process, are documented in [Refactoring Merge Criteria](./refactoring-merge-criteria.md).
+**The criteria for merging the `refactoring/2025-typescript` branch back to the `main` branch has moved from a time-based approach to a test-completion-based approach.** The detailed merge criteria, including core test requirements and approval process, are documented in [Refactoring Merge Criteria](./refactoring-merge-criteria.md).
+
+> **Note:** The `refactoring/2025-typescript` branch is the current active development branch for the TypeScript refactoring effort, superseding the earlier `refactoring/2025` branch. All testing and merge criteria apply specifically to the `refactoring/2025-typescript` branch.
 
 ### Testing Timeline:
 
@@ -304,8 +306,8 @@ Additional test plans will be created for other components following the same st
   - Update daily during the testing phase
 
 - [ ] **Branch Protection Rules**
-  - Set up protection rules for the main branch
-  - Require reviews before merging the refactoring branch
+  - Set up protection rules for the `main` branch
+  - Require reviews before merging the `refactoring/2025-typescript` branch
   - Enforce test completion requirements via GitHub branch rules
 
 - [ ] **Automated Testing Setup**
