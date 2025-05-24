@@ -667,6 +667,14 @@ Update documentation in the following scenarios:
   - Use "Phase 1: Initial Implementation" instead of "July 2025: Initial Implementation"
   - Structure timelines as dependency relationships rather than calendar dates
   - Example: "Worker prototype development → CSS optimization → Multi-day selection → Performance testing"
+- **Contemporaneous Updates and Drafts (Session-Specific Dates):**
+    - This guideline applies when adding content that reflects an update as of a specific working session, such as drafting changelog entries, version notes, meeting summaries, or recording progress updates directly within documentation (whether by a human author or an AI assistant).
+    - **Prioritize Provided Session Date:** Utilize the specific date explicitly provided or established for that working session (e.g., if an author or assistant is operating under the context of "Today is YYYY-MM-DD" for that session's work). This session-provided date is the authoritative source for these contemporaneous timestamps.
+    - **Application:** Use this date for any documentation content generated or modified during the session that requires a timestamp to reflect its "as-of" status (e.g., "Progress as of YYYY-MM-DD," or dating a new entry in a list of updates).
+    - **Date Formatting:** Unless otherwise specified by this style guide for a particular document type, format these dates as YYYY-MM-DD.
+    - **Fallback for Missing Session Date:** If a timestamp for such an update is contextually necessary but no specific date has been provided or established for the working session:
+        - Insert a clear placeholder (e.g., `[Date: YYYY-MM-DD]`, `[Confirm Date for this update]`, or `[Timestamp]`) and ensure the item is flagged for review to insert the correct date.
+        - Avoid inventing dates or using ambiguous terms like "today," "now," or "current," which lose their meaning outside the specific context of the working session. The goal is an explicit date tied to the information.
 
 ## 15. Documentation Templates
 
