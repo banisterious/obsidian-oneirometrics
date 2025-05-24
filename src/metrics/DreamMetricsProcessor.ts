@@ -1,4 +1,4 @@
-import { DreamMetricData, DreamMetricsSettings } from '../types';
+import { DreamMetricData, DreamMetricsSettings } from '../types/core';
 
 export class DreamMetricsProcessor {
     constructor(private settings: DreamMetricsSettings) {}
@@ -19,7 +19,10 @@ export class DreamMetricsProcessor {
                 if (!metrics[key]) {
                     metrics[key] = 0;
                 }
-                metrics[key] += value;
+                // Handle numeric values only
+                if (typeof value === 'number') {
+                    metrics[key] += value;
+                }
             });
         });
 
@@ -33,16 +36,19 @@ export class DreamMetricsProcessor {
         };
 
         // Calculate word count
-        processedEntry.metrics['Words'] = this.calculateWordCount(entry.content);
+        const wordCount = this.calculateWordCount(entry.content);
+        processedEntry.metrics['Words'] = wordCount;
+        // Ensure wordCount property is set for compatibility
+        processedEntry.wordCount = wordCount;
 
         // Calculate reading time (assuming average reading speed of 200 words per minute)
-        processedEntry.metrics['Reading Time'] = Math.ceil(processedEntry.metrics['Words'] / 200);
+        processedEntry.metrics['Reading Time'] = Math.ceil(wordCount / 200);
 
-        // Calculate sentiment (placeholder - implement actual sentiment analysis)
+        // Calculate sentiment
         processedEntry.metrics['Sentiment'] = this.calculateSentiment(entry.content);
 
         // Calculate dream length category
-        processedEntry.metrics['Length Category'] = this.calculateLengthCategory(processedEntry.metrics['Words']);
+        processedEntry.metrics['Length Category'] = this.calculateLengthCategory(wordCount);
 
         return processedEntry;
     }
@@ -52,9 +58,60 @@ export class DreamMetricsProcessor {
     }
 
     private calculateSentiment(content: string): number {
-        // Placeholder for sentiment analysis
-        // TODO: Implement actual sentiment analysis
-        return 0;
+        // Basic sentiment analysis implementation
+        // Returns a value between -1 (negative) and 1 (positive)
+        
+        // Define basic positive and negative word lists
+        const positiveWords = [
+            "happy", "joy", "love", "peaceful", "beautiful", "wonderful", "amazing", 
+            "good", "great", "excellent", "pleasant", "delight", "calm", "safe", 
+            "clarity", "flying", "float", "success", "achieve", "accomplish"
+        ];
+        
+        const negativeWords = [
+            "sad", "fear", "anxious", "angry", "terrified", "nightmare", "falling", 
+            "chase", "dark", "scary", "bad", "awful", "terrible", "horror", 
+            "trapped", "confused", "lost", "danger", "threat", "panic", "death"
+        ];
+        
+        // Convert to lowercase for case-insensitive matching
+        const lowerContent = content.toLowerCase();
+        
+        // Count occurrences of positive and negative words
+        let positiveCount = 0;
+        let negativeCount = 0;
+        
+        // Check positive words
+        positiveWords.forEach(word => {
+            // Use regex with word boundaries to match whole words only
+            const regex = new RegExp(`\\b${word}\\b`, 'g');
+            const matches = lowerContent.match(regex);
+            if (matches) {
+                positiveCount += matches.length;
+            }
+        });
+        
+        // Check negative words
+        negativeWords.forEach(word => {
+            // Use regex with word boundaries to match whole words only
+            const regex = new RegExp(`\\b${word}\\b`, 'g');
+            const matches = lowerContent.match(regex);
+            if (matches) {
+                negativeCount += matches.length;
+            }
+        });
+        
+        // Calculate sentiment score
+        if (positiveCount === 0 && negativeCount === 0) {
+            return 0; // Neutral if no sentiment words found
+        }
+        
+        // Normalize to a value between -1 and 1
+        const total = positiveCount + negativeCount;
+        const sentiment = (positiveCount - negativeCount) / total;
+        
+        // Round to 2 decimal places for readability
+        return Math.round(sentiment * 100) / 100;
     }
 
     private calculateLengthCategory(wordCount: number): number {
@@ -89,6 +146,9 @@ export class DreamMetricsProcessor {
 
         entries.forEach(entry => {
             const date = new Date(entry.date);
+            const wordsValue = typeof entry.metrics['Words'] === 'number' 
+                ? entry.metrics['Words'] 
+                : entry.wordCount || 0;
             
             // Monthly metrics
             const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
@@ -99,7 +159,7 @@ export class DreamMetricsProcessor {
                 };
             }
             timeMetrics.byMonth[monthKey].count++;
-            timeMetrics.byMonth[monthKey].totalWords += entry.metrics['Words'];
+            timeMetrics.byMonth[monthKey].totalWords += wordsValue;
 
             // Day of week metrics
             const dayKey = date.getDay();
@@ -110,7 +170,7 @@ export class DreamMetricsProcessor {
                 };
             }
             timeMetrics.byDayOfWeek[dayKey].count++;
-            timeMetrics.byDayOfWeek[dayKey].totalWords += entry.metrics['Words'];
+            timeMetrics.byDayOfWeek[dayKey].totalWords += wordsValue;
 
             // Hour metrics
             const hourKey = date.getHours();
@@ -121,7 +181,7 @@ export class DreamMetricsProcessor {
                 };
             }
             timeMetrics.byHour[hourKey].count++;
-            timeMetrics.byHour[hourKey].totalWords += entry.metrics['Words'];
+            timeMetrics.byHour[hourKey].totalWords += wordsValue;
         });
 
         return timeMetrics;

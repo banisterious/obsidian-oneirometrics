@@ -1,5 +1,8 @@
 import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../types';
+import { DreamMetricData } from '../types/core';
+
+// Import the global logger from main.ts - will be initialized when plugin loads
+declare const globalLogger: any;
 
 export class DateRangeFilter {
     private state: DreamMetricsState;
@@ -149,7 +152,7 @@ export class DateRangeFilter {
         if (this.isFiltering) return;
         this.isFiltering = true;
         
-        console.log('[DateRangeFilter] Applying filter with date range:', {
+        globalLogger?.debug('Filters', 'Applying date range filter', {
             startDate: this.startDate ? this.startDate.toISOString() : null,
             endDate: this.endDate ? this.endDate.toISOString() : null
         });
@@ -183,7 +186,10 @@ export class DateRangeFilter {
                     
                     return yearMonthInRange;
                 } catch (e) {
-                    console.error('[DateRangeFilter] Error parsing date:', dateStr, e);
+                    globalLogger?.error('Filters', 'Error parsing date', {
+                        date: dateStr,
+                        error: e
+                    });
                     return false;
                 }
             });
@@ -210,12 +216,15 @@ export class DateRangeFilter {
                 
                 return true;
             } catch (e) {
-                console.error('[DateRangeFilter] Error processing entry date:', entry.date, e);
+                globalLogger?.error('Filters', 'Error processing entry date', {
+                    date: entry.date,
+                    error: e
+                });
                 return false;
             }
         });
 
-        console.log(`[DateRangeFilter] Filtered ${entries.length} entries to ${filteredEntries.length} entries`);
+        globalLogger?.debug('Filters', `Filtered ${entries.length} entries to ${filteredEntries.length} entries`);
         this.state.updateDreamEntries(filteredEntries);
         this.isFiltering = false;
     }

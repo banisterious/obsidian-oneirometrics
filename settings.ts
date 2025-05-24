@@ -1,11 +1,45 @@
 import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon } from "obsidian";
-import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings, LogLevel } from "./types";
+import { DEFAULT_METRICS, DreamMetric } from "./types";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
-import { LintingSettings } from "./src/journal_check/types";
-import { TestModal } from "./src/journal_check/ui/TestModal";
-import { TemplateWizard } from "./src/journal_check/ui/TemplateWizard";
-import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
+
+// Import settings helpers
+import { 
+    getProjectNotePath, 
+    setProjectNotePath,
+    getSelectedFolder, 
+    setSelectedFolder,
+    isBackupEnabled,
+    setBackupEnabled,
+    getBackupFolderPath,
+    setBackupFolderPath,
+    shouldShowRibbonButtons,
+    setShowRibbonButtons,
+    getSelectionMode,
+    setSelectionMode
+} from './src/utils/settings-helpers';
+
+// Import metric helpers
+import {
+    isMetricEnabled,
+    setMetricEnabled,
+    getMetricMinValue,
+    getMetricMaxValue,
+    setMetricRange,
+    getMetricRange
+} from './src/utils/metric-helpers';
+
+// Import selection mode helpers
+import {
+    isFolderMode,
+    isNotesMode,
+    areSelectionModesEquivalent,
+    getSelectionModeLabel,
+    normalizeSelectionMode
+} from './src/utils/selection-mode-helpers';
+
+// Import utilities 
+import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
 
 interface IconCategory {
     name: string;
@@ -243,43 +277,41 @@ class MetricEditorModal extends Modal {
         };
 
         const rangeSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
-        let rangeSetting: Setting | undefined;
+        let rangeSetting: Setting | null = null;
         const renderRangeSection = () => {
-            rangeSection.empty();
-            const isAnyWholeNumber = ["Lost Segments", "Familiar People"].includes(this.metric.name);
-            if (!isAnyWholeNumber) {
-                rangeSetting = new Setting(rangeSection)
-                    .setName('Range')
-                    .setDesc('The valid range for this metric')
-                    .addText(text => {
-                        text.setValue(this.metric.range.min.toString())
-                            .setPlaceholder('Min')
-                            .onChange(value => {
-                                const min = parseInt(value);
-                                const error = validateMetricRange(min, this.metric.range.max);
-                                rangeSetting!.setDesc(error || 'The valid range for this metric');
-                                rangeSetting!.controlEl.classList.toggle('is-invalid', !!error);
-                                if (!isNaN(min)) this.metric.range.min = min;
-                                this.updatePreview();
-                            });
-                    })
-                    .addText(text => {
-                        text.setValue(this.metric.range.max.toString())
-                            .setPlaceholder('Max')
-                            .onChange(value => {
-                                const max = parseInt(value);
-                                const error = validateMetricRange(this.metric.range.min, max);
-                                rangeSetting!.setDesc(error || 'The valid range for this metric');
-                                rangeSetting!.controlEl.classList.toggle('is-invalid', !!error);
-                                if (!isNaN(max)) this.metric.range.max = max;
-                                this.updatePreview();
-                            });
-                    });
-            } else {
-                new Setting(rangeSection)
-                    .setName('Valid values')
-                    .setDesc('Any whole number (integer)');
-            }
+            const { min, max } = getMetricRange(this.metric);
+            
+            rangeSetting = new Setting(rangeSection)
+                .setName('Range')
+                .setDesc('The valid range for this metric')
+                .addText(text => {
+                    text.setValue(min.toString())
+                        .setPlaceholder('Min')
+                        .onChange(value => {
+                            const minVal = parseInt(value);
+                            const error = validateMetricRange(minVal, getMetricMaxValue(this.metric));
+                            rangeSetting!.setDesc(error || 'The valid range for this metric');
+                            rangeSetting!.controlEl.classList.toggle('is-invalid', !!error);
+                            if (!isNaN(minVal)) {
+                                setMetricRange(this.metric, minVal, getMetricMaxValue(this.metric));
+                            }
+                            this.updatePreview();
+                        });
+                })
+                .addText(text => {
+                    text.setValue(max.toString())
+                        .setPlaceholder('Max')
+                        .onChange(value => {
+                            const maxVal = parseInt(value);
+                            const error = validateMetricRange(getMetricMinValue(this.metric), maxVal);
+                            rangeSetting!.setDesc(error || 'The valid range for this metric');
+                            rangeSetting!.controlEl.classList.toggle('is-invalid', !!error);
+                            if (!isNaN(maxVal)) {
+                                setMetricRange(this.metric, getMetricMinValue(this.metric), maxVal);
+                            }
+                            this.updatePreview();
+                        });
+                });
         };
         renderRangeSection();
 
@@ -298,16 +330,15 @@ class MetricEditorModal extends Modal {
                     });
             });
 
-        // Add enable/disable toggle
-        const enableSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
-        new Setting(enableSection)
+        // Enabled toggle
+        new Setting(contentEl.createEl('div', { cls: 'oom-metric-editor-section' }))
             .setName('Enabled')
-            .setDesc('Whether this metric should be enabled by default')
+            .setDesc('Whether this metric is visible in the UI')
             .addToggle(toggle => {
                 toggle
-                    .setValue(this.metric.enabled)
+                    .setValue(isMetricEnabled(this.metric))
                     .onChange(value => {
-                        this.metric.enabled = value;
+                        setMetricEnabled(this.metric, value);
                         this.updatePreview();
                     });
             });
@@ -353,54 +384,65 @@ class MetricEditorModal extends Modal {
 
     private updatePreview(previewEl?: HTMLElement) {
         if (!previewEl) {
-            const el = this.contentEl.querySelector('.oom-metric-preview');
-            if (!el) return;
-            previewEl = el as HTMLElement;
+            previewEl = document.querySelector('.oom-metric-preview');
         }
+        
+        if (!previewEl) return;
+        
         previewEl.empty();
-
-        // Create callout header
-        previewEl.createEl('div', { text: `> [!dream-metrics]` });
-
+        
+        // Create preview header
+        previewEl.createEl('h3', { text: 'Preview' });
+        
         // Create metric line with a sample value, including icon if present
-        const sampleValue = Math.floor((this.metric.range.min + this.metric.range.max) / 2);
+        const range = getMetricRange(this.metric);
+        const sampleValue = Math.floor((range.min + range.max) / 2);
         const metricLine = previewEl.createEl('div', { cls: 'oom-metric-preview-line' });
         if (this.metric.icon && lucideIconMap[this.metric.icon]) {
             const iconSpan = document.createElement('span');
-            iconSpan.className = 'oom-metric-icon-svg oom-metric-icon--start';
             iconSpan.innerHTML = lucideIconMap[this.metric.icon];
-            iconSpan.style.verticalAlign = 'middle';
-            iconSpan.style.display = 'inline-block';
-            iconSpan.style.width = '1.2em';
-            iconSpan.style.height = '1.2em';
-            iconSpan.style.marginRight = '0.4em';
+            iconSpan.className = 'oom-metric-icon';
             metricLine.appendChild(iconSpan);
         }
-        metricLine.appendChild(document.createTextNode(`${this.metric.name}: ${sampleValue}`));
-
-        // Add range information
-        if (["Lost Segments", "Familiar People"].includes(this.metric.name)) {
+        
+        metricLine.createEl('span', {
+            cls: 'oom-metric-name',
+            text: this.metric.name + ': '
+        });
+        
+        metricLine.createEl('span', {
+            cls: 'oom-metric-value',
+            text: sampleValue.toString()
+        });
+        
+        if (this.metric.description) {
             previewEl.createEl('div', {
-                cls: 'oom-preview-range',
-                text: `Valid values: Any whole number`
+                cls: 'oom-preview-description',
+                text: this.metric.description
             });
-        } else {
+        }
+        
+        // Show range
+        if (range.min !== undefined && range.max !== undefined) {
             previewEl.createEl('div', {
                 cls: 'oom-preview-range',
-                text: `Valid range: ${this.metric.range.min} to ${this.metric.range.max}`
+                text: `Valid range: ${range.min} to ${range.max}`
             });
         }
     }
 
     private validateAll(): boolean {
         const nameError = validateMetricName(this.metric.name, this.existingMetrics);
-        const rangeError = validateMetricRange(this.metric.range.min, this.metric.range.max);
+        const rangeError = validateMetricRange(
+            getMetricMinValue(this.metric), 
+            getMetricMaxValue(this.metric)
+        );
         const descError = validateMetricDescription(this.metric.description);
 
         if (nameError || rangeError || descError) {
-            new Notice('Please fix all validation errors before saving');
             return false;
         }
+
         return true;
     }
 
@@ -461,30 +503,52 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add Ribbon Button Section (move to top)
         containerEl.createEl('h2', { text: 'Ribbon Button' });
 
-        // Show Ribbon Button Setting
-        const ribbonLabelFrag = document.createDocumentFragment();
-        ribbonLabelFrag.append('Show Ribbon Button ');
-        const bookOpenCheckSvg = getIcon('book-open-check');
-        const iconsSpan = document.createElement('span');
-        iconsSpan.classList.add('oom-example-button');
-        if (bookOpenCheckSvg) {
-            bookOpenCheckSvg.setAttribute('width', '16');
-            bookOpenCheckSvg.setAttribute('height', '16');
-            iconsSpan.append(bookOpenCheckSvg);
-        } else {
-            iconsSpan.append('(?)');
-        }
-        ribbonLabelFrag.append(iconsSpan);
+        // Ribbon buttons setting
         new Setting(containerEl)
-            .setName(ribbonLabelFrag)
+            .setName('Show Ribbon Buttons')
             .setDesc('Add ribbon button for opening the Dream Journal Manager')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showRibbonButtons ?? true)
+                .setValue(shouldShowRibbonButtons(this.plugin.settings))
                 .onChange(async (value) => {
-                    this.plugin.settings.showRibbonButtons = value;
+                    setShowRibbonButtons(this.plugin.settings, value);
                     await this.plugin.saveSettings();
                     this.plugin.updateRibbonIcons();
                 }));
+
+        // Project Note Path
+        new Setting(containerEl)
+            .setName('Project Note')
+            .setDesc('Note for storing your processed metrics data')
+            .addText(text => {
+                // Use the helper function to get the project note path
+                text.setValue(getProjectNotePath(this.plugin.settings))
+                    .setPlaceholder('Path/to/note.md')
+                    .onChange(async (value) => {
+                        // Use the helper function to set the project note path
+                        setProjectNotePath(this.plugin.settings, value);
+                        await this.plugin.saveSettings();
+                    });
+
+                // Create file picker button
+                text.inputEl.style.width = '70%';
+                const button = new ButtonComponent(text.inputEl.parentElement!)
+                    .setButtonText('Choose')
+                    .setClass('oom-browse-button')
+                    .onClick(async () => {
+                        const modal = new FileSuggestModal(this.app);
+                        modal.setPlaceholder('Select project note');
+                        modal.onChooseItem = async (item: string) => {
+                            if (!item.endsWith('.md')) {
+                                item += '.md';
+                            }
+                            text.setValue(item);
+                            // Use the helper function to set the project note path
+                            setProjectNotePath(this.plugin.settings, item);
+                            await this.plugin.saveSettings();
+                        };
+                        modal.open();
+                    });
+            });
 
         // Add section border after button settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
@@ -529,20 +593,31 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add Select Notes/Folders Section
         containerEl.createEl('h2', { text: 'Select Notes/Folders' });
         
-        new Setting(containerEl)
-            .setName('File or Folder Selection')
-            .setDesc('Choose whether to select individual notes or a folder for metrics scraping')
+        // Selection Mode
+        const selectionModeSetting = new Setting(containerEl)
+            .setName('Selection Mode')
+            .setDesc('How to select notes for analyzing')
             .addDropdown(drop => {
-                drop.addOption('notes', 'Notes');
-                drop.addOption('folder', 'Folder');
-                drop.setValue(this.plugin.settings.selectionMode || 'notes');
+                drop.addOption('notes', 'Selected Notes');
+                drop.addOption('folder', 'Selected Folder');
+                
+                // Use the UI representation (notes/folder)
+                const uiMode = getCompatibleSelectionMode(
+                    getSelectionMode(this.plugin.settings), 
+                    'ui'
+                );
+                drop.setValue(uiMode);
+                
                 drop.onChange(async (value) => {
-                    this.plugin.settings.selectionMode = value as 'notes' | 'folder';
+                    // Convert to internal representation (manual/automatic)
+                    const internalMode = getCompatibleSelectionMode(value, 'internal');
+                    this.plugin.settings.selectionMode = internalMode as 'manual' | 'automatic';
+                    
                     // Clear irrelevant selection when switching modes
-                    if (value === 'folder') {
+                    if (isFolderMode(value)) {
                         this.plugin.settings.selectedNotes = [];
                     } else {
-                        this.plugin.settings.selectedFolder = '';
+                        setSelectedFolder(this.plugin.settings, '');
                     }
                     await this.plugin.saveSettings();
                     this.display();
@@ -550,37 +625,27 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
 
         // Dynamic label and field based on selection mode
-        const selectionLabel = this.plugin.settings.selectionMode === 'folder' ? 'Selected Folder' : 'Selected Notes';
-        const selectionDesc = this.plugin.settings.selectionMode === 'folder'
-            ? 'Choose a folder to recursively search for dream metrics (max 200 files)'
-            : 'Notes to search for dream metrics (select one or more)';
+        const uiMode = getCompatibleSelectionMode(
+            getSelectionMode(this.plugin.settings), 
+            'ui'
+        );
+        const selectionLabel = getSelectionModeLabel(uiMode);
+        const selectionDesc = getSelectionModeDescription(uiMode);
         
         const selectionSetting = new Setting(containerEl)
             .setName(selectionLabel)
             .setDesc(selectionDesc);
 
-        if (this.plugin.settings.selectionMode === 'folder') {
+        if (isFolderMode(uiMode)) {
             // Folder autocomplete
             selectionSetting.addSearch(search => {
                 search.setPlaceholder('Choose folder...');
-                search.setValue(this.plugin.settings.selectedFolder || '');
+                search.setValue(getSelectedFolder(this.plugin.settings));
                 const parentForSuggestions = search.inputEl.parentElement || containerEl;
                 const suggestionContainer = parentForSuggestions.createEl('div', {
                     cls: 'suggestion-container oom-suggestion-container',
                     attr: {
-                        style: `
-                            display: none;
-                            position: absolute;
-                            z-index: 1000;
-                            background: var(--background-primary);
-                            border: 1px solid var(--background-modifier-border);
-                            border-radius: 4px;
-                            max-height: 200px;
-                            overflow-y: auto;
-                            min-width: 180px;
-                            width: 100%;
-                            box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
-                        `
+                        style: 'display: none;'
                     }
                 });
 
@@ -643,7 +708,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             item.addEventListener('mousedown', async (e) => {
                                 e.preventDefault();
                                 search.setValue(folder);
-                                this.plugin.settings.selectedFolder = folder;
+                                setSelectedFolder(this.plugin.settings, folder);
+                                this.plugin.settings.backupFolderPath = folder;
                                 await this.plugin.saveSettings();
                                 suggestionContainer.classList.remove('visible');
                                 suggestionContainer.style.display = 'none';
@@ -701,7 +767,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                 const folder = selectedItem.textContent;
                                 if (folder) {
                                     search.setValue(folder);
-                                    this.plugin.settings.selectedFolder = folder;
+                                    setSelectedFolder(this.plugin.settings, folder);
+                                    this.plugin.settings.backupFolderPath = folder;
                                     this.plugin.saveSettings();
                                     suggestionContainer.classList.add('visible');
                                     suggestionContainer.classList.remove('visible');
@@ -733,18 +800,16 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             const searchFieldContainer = containerEl.createEl('div', { cls: 'oom-multiselect-search-container' });
             const chipsContainer = containerEl.createEl('div', { cls: 'oom-multiselect-chips-container' });
             chipsContainer.style.display = (this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0) ? '' : 'none';
-            import('./autocomplete').then(({ createSelectedNotesAutocomplete }) => {
-                createSelectedNotesAutocomplete({
-                    app: this.app,
-                    plugin: this.plugin,
-                    containerEl: searchFieldContainer,
-                    selectedNotes: this.plugin.settings.selectedNotes,
-                    onChange: (selected) => {
-                        this.plugin.settings.selectedNotes = selected;
-                        chipsContainer.style.display = (selected && selected.length > 0) ? '' : 'none';
-                        this.plugin.saveSettings();
-                    }
-                });
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: searchFieldContainer,
+                selectedNotes: this.plugin.settings.selectedNotes,
+                onChange: (selected) => {
+                    this.plugin.settings.selectedNotes = selected;
+                    chipsContainer.style.display = (selected && selected.length > 0) ? '' : 'none';
+                    this.plugin.saveSettings();
+                }
             });
             // Fix: append the search field to the setting's control element
             selectionSetting.controlEl.appendChild(searchFieldContainer);
@@ -790,16 +855,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         {
                             name: '',
                             icon: '',
-                            range: { min: 0, max: 10 },
+                            minValue: 1,
+                            maxValue: 5,
                             description: '',
                             enabled: true,
-                            type: 'number',
-                            category: 'dream',
-                            format: 'number',
-                            options: [],
-                            min: 0,
-                            max: 10,
-                            step: 1
+                            category: 'custom'
                         },
                         Object.values(this.plugin.settings.metrics),
                         async (metric) => {
@@ -815,8 +875,10 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         const metricsContainer = containerEl.createEl('div', { cls: 'oom-metrics-container' });
         
         // Group metrics by enabled state
-        const enabledMetrics = Object.entries(this.plugin.settings.metrics).filter(([_, metric]) => metric.enabled);
-        const disabledMetrics = Object.entries(this.plugin.settings.metrics).filter(([_, metric]) => !metric.enabled);
+        const enabledMetrics = Object.entries(this.plugin.settings.metrics)
+            .filter(([_, metric]) => isMetricEnabled(metric));
+        const disabledMetrics = Object.entries(this.plugin.settings.metrics)
+            .filter(([_, metric]) => !isMetricEnabled(metric));
 
         // Display enabled metrics
         if (enabledMetrics.length > 0) {
@@ -824,11 +886,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             enabledMetrics.forEach(([key, metric]) => {
                 const metricSetting = new Setting(metricsContainer)
                     .setName(metric.name)
-                    .setDesc(metric.description)
+                    .setDesc(metric.description || "")
                     .addToggle(toggle => {
-                        toggle.setValue(metric.enabled)
+                        toggle.setValue(isMetricEnabled(metric))
                             .onChange(async (value) => {
-                                metric.enabled = value;
+                                setMetricEnabled(metric, value);
                                 await this.plugin.saveSettings();
                                 this.display();
                             });
@@ -879,11 +941,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             disabledMetrics.forEach(([key, metric]) => {
                 const metricSetting = new Setting(metricsContainer)
                     .setName(metric.name)
-                    .setDesc(metric.description)
+                    .setDesc(metric.description || "")
                     .addToggle(toggle => {
-                        toggle.setValue(metric.enabled)
+                        toggle.setValue(isMetricEnabled(metric))
                             .onChange(async (value) => {
-                                metric.enabled = value;
+                                setMetricEnabled(metric, value);
                                 await this.plugin.saveSettings();
                                 this.display();
                             });
@@ -918,13 +980,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                 this.display();
                             });
                     });
-
-                // Add drag handle
-                const dragHandle = metricSetting.controlEl.createEl('div', {
-                    cls: 'oom-drag-handle',
-                    attr: { 'data-index': key }
-                });
-                dragHandle.innerHTML = '⋮⋮';
             });
         }
 
@@ -934,27 +989,27 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add Backup Settings Section
         containerEl.createEl('h2', { text: 'Backup Settings' });
 
-        // Enable Backups
+        // Backup Enabled toggle
         new Setting(containerEl)
-            .setName('Enable Backups')
+            .setName('Create Backups')
             .setDesc('Create backups of the project note before making changes')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.backupEnabled)
+                .setValue(isBackupEnabled(this.plugin.settings))
                 .onChange(async (value) => {
-                    this.plugin.settings.backupEnabled = value;
+                    setBackupEnabled(this.plugin.settings, value);
                     await this.plugin.saveSettings();
                     this.display(); // Refresh to show/hide backup folder setting
                 }));
 
         // Backup Folder Path (only shown when backups are enabled)
-        if (this.plugin.settings.backupEnabled) {
+        if (isBackupEnabled(this.plugin.settings)) {
             const backupFolderSetting = new Setting(containerEl)
                 .setName('Backup Folder')
                 .setDesc('Select an existing folder where backups will be stored')
                 .addSearch(search => {
                     search
                         .setPlaceholder('Choose backup folder...')
-                        .setValue(this.plugin.settings.backupFolderPath);
+                        .setValue(getBackupFolderPath(this.plugin.settings));
 
                     // Create suggestion container with fixed positioning
                     const parentForSuggestions = search.inputEl.parentElement || containerEl;
@@ -1040,6 +1095,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                 item.addEventListener('mousedown', async (e) => {
                                     e.preventDefault();
                                     search.setValue(folder);
+                                    setSelectedFolder(this.plugin.settings, folder);
                                     this.plugin.settings.backupFolderPath = folder;
                                     await this.plugin.saveSettings();
                                     suggestionContainer.classList.remove('visible');
@@ -1098,6 +1154,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                     const folder = selectedItem.textContent;
                                     if (folder) {
                                         search.setValue(folder);
+                                        setSelectedFolder(this.plugin.settings, folder);
                                         this.plugin.settings.backupFolderPath = folder;
                                         this.plugin.saveSettings();
                                         suggestionContainer.classList.add('visible');
@@ -1154,11 +1211,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .setName('Maximum Log Size')
             .setDesc('Maximum size of the log file in MB before rotation.')
             .addText(text => text
-                .setValue(String(this.plugin.settings.logging.maxLogSize / (1024 * 1024)))
+                .setValue(String(this.plugin.settings.logging.maxSize / (1024 * 1024)))
                 .onChange(async (value) => {
                     const size = parseInt(value) * 1024 * 1024;
                     if (!isNaN(size) && size > 0) {
-                        this.plugin.settings.logging.maxLogSize = size;
+                        this.plugin.settings.logging.maxSize = size;
                         await this.plugin.saveSettings();
                         this.plugin.setLogConfig(
                             this.plugin.settings.logging.level,
@@ -1180,7 +1237,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                         this.plugin.setLogConfig(
                             this.plugin.settings.logging.level,
-                            this.plugin.settings.logging.maxLogSize,
+                            this.plugin.settings.logging.maxSize,
                             backups
                         );
                     }

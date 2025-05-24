@@ -1,6 +1,11 @@
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DreamMetricsDOM } from '../dom/DreamMetricsDOM';
-import { DreamMetricData } from '../types';
+import { DreamMetricData } from '../types/core';
+import { App } from 'obsidian';
+import { CustomDateRangeModal } from '../CustomDateRangeModal';
+
+// Import the global logger from main.ts - will be initialized when plugin loads
+declare const globalLogger: any;
 
 export class DreamMetricsEvents {
     private state: DreamMetricsState;
@@ -8,16 +13,20 @@ export class DreamMetricsEvents {
     private isAttaching: boolean = false;
     private debounceTimeout: number | null = null;
     private _delegatedExpandHandler: ((event: Event) => void) | null = null;
+    private app: App | undefined;
 
-    constructor(state: DreamMetricsState, dom: DreamMetricsDOM) {
+    constructor(state: DreamMetricsState, dom: DreamMetricsDOM, app?: App) {
         this.state = state;
         this.dom = dom;
+        this.app = app;
     }
 
     attachEventListeners(): void {
-        console.log('[DEBUG] attachEventListeners called');
+        globalLogger?.debug('Events', 'attachEventListeners called');
         const allDropdowns = document.querySelectorAll('#oom-date-range-filter');
-        console.log('[DEBUG] Number of oom-date-range-filter elements in DOM:', allDropdowns.length, allDropdowns);
+        globalLogger?.debug('Events', 'Number of oom-date-range-filter elements in DOM', {
+            count: allDropdowns.length, elements: allDropdowns
+        });
         if (this.isAttaching) return;
         this.isAttaching = true;
 
@@ -62,12 +71,16 @@ export class DreamMetricsEvents {
     private attachFilterListeners(): void {
         // Date range filter
         const dateRangeFilter = document.getElementById('oom-date-range-filter');
-        console.log('[DEBUG] attachFilterListeners: dateRangeFilter', dateRangeFilter);
+        globalLogger?.debug('Events', 'attachFilterListeners: dateRangeFilter', {
+            element: dateRangeFilter
+        });
         if (dateRangeFilter) {
-            console.log('[DEBUG] Attaching change event to oom-date-range-filter');
+            globalLogger?.debug('Events', 'Attaching change event to oom-date-range-filter');
             dateRangeFilter.addEventListener('change', (e) => {
                 const target = e.target as HTMLSelectElement;
-                console.log('[DEBUG] Dropdown change event fired. Selected value:', target.value);
+                globalLogger?.debug('Events', 'Dropdown change event fired. Selected value:', {
+                    value: target.value
+                });
                 this.handleDateRangeChange(target.value);
             });
         }
@@ -82,18 +95,103 @@ export class DreamMetricsEvents {
     }
 
     private handleDateRangeChange(range: string): void {
-        console.log('[DEBUG] handleDateRangeChange called with:', range);
+        globalLogger?.debug('Events', 'handleDateRangeChange called with:', {
+            range: range
+        });
         const previewEl = document.querySelector('.oom-metrics-container') as HTMLElement;
         if (previewEl) {
             this.dom.applyFilters(previewEl);
         } else {
-            console.log('[DEBUG] handleDateRangeChange: .oom-metrics-container not found');
+            globalLogger?.debug('Events', 'handleDateRangeChange: .oom-metrics-container not found');
         }
     }
 
     private handleTimeFilterClick(): void {
-        // TODO: Implement time filter dialog
-        console.log('Time filter clicked');
+        globalLogger?.debug('Events', 'Time filter button clicked, opening custom date range modal');
+        
+        // If app wasn't provided in constructor, try to get it from window
+        const app = this.app || (window as any).app;
+        
+        if (!app) {
+            globalLogger?.error('Events', 'Cannot open time filter dialog: app instance not available');
+            return;
+        }
+        
+        // Load saved favorite ranges from localStorage
+        const loadFavoriteRanges = (): Record<string, { start: string, end: string }> => {
+            const data = localStorage.getItem('oneirometrics-saved-custom-ranges');
+            if (!data) return {};
+            try {
+                return JSON.parse(data);
+            } catch {
+                return {};
+            }
+        };
+        
+        // Save a favorite range
+        const saveFavoriteRange = (name: string, range: { start: string, end: string }) => {
+            const saved = loadFavoriteRanges();
+            saved[name] = range;
+            localStorage.setItem('oneirometrics-saved-custom-ranges', JSON.stringify(saved));
+            globalLogger?.debug('Events', `Saved favorite range: ${name}`, range);
+        };
+        
+        // Delete a favorite range
+        const deleteFavoriteRange = (name: string) => {
+            const saved = loadFavoriteRanges();
+            delete saved[name];
+            localStorage.setItem('oneirometrics-saved-custom-ranges', JSON.stringify(saved));
+            globalLogger?.debug('Events', `Deleted favorite range: ${name}`);
+        };
+
+        // Open the custom date range modal with the app instance
+        const favorites = loadFavoriteRanges();
+        new CustomDateRangeModal(
+            app, 
+            (start: string, end: string, saveName?: string) => {
+                if (start && end) {
+                    // First, update button state before making any layout changes
+                    requestAnimationFrame(() => {
+                        const btn = document.getElementById('oom-custom-range-btn');
+                        if (btn) btn.classList.add('active');
+                    });
+                    
+                    // Set custom date range in localStorage
+                    const newRange = { start, end };
+                    const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
+                    localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(newRange));
+                    
+                    // Save favorite if provided
+                    if (saveName) {
+                        saveFavoriteRange(saveName, newRange);
+                    }
+                    
+                    // Set dropdown to custom
+                    const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
+                    if (dropdown) {
+                        // Add custom option if it doesn't exist
+                        let customOption = dropdown.querySelector('option[value="custom"]') as HTMLOptionElement;
+                        if (!customOption) {
+                            customOption = document.createElement('option');
+                            customOption.value = 'custom';
+                            customOption.text = 'Custom Date';
+                            dropdown.appendChild(customOption);
+                        }
+                        dropdown.value = 'custom';
+                    }
+                    
+                    // Apply the filter
+                    const previewEl = document.querySelector('.oom-metrics-container') as HTMLElement;
+                    if (previewEl) {
+                        this.dom.applyCustomDateRangeFilter(previewEl, newRange);
+                    }
+                    
+                    globalLogger?.debug('Events', 'Applied custom date range filter', newRange);
+                }
+            }, 
+            favorites, 
+            deleteFavoriteRange
+        ).open();
     }
 
     private attachKeyboardListeners(): void {
