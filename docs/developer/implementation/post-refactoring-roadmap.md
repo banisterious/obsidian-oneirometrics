@@ -6,6 +6,7 @@ This document outlines the roadmap for OneiroMetrics development after the compl
 
 - [Overview](#overview)
 - [Phase 1: Code Cleanup](#phase-1-code-cleanup)
+- [Comprehensive Testing Initiative](#comprehensive-testing-initiative)
 - [Phase 2: Performance Optimization](#phase-2-performance-optimization)
 - [Phase 3: Documentation Enhancement](#phase-3-documentation-enhancement)
 - [Phase 4: Advanced Optimization](#phase-4-advanced-optimization)
@@ -79,6 +80,113 @@ The post-refactoring improvements are organized into four sequential phases, eac
 - ✅ Completed ContentParser implementation with full error handling and robust functionality
 - ✅ Fixed test function signatures to support both sync and async tests with improved error handling
 - ⬜ Systematically update main codebase files using the new utilities
+
+## Comprehensive Testing Initiative
+
+**Goal:** Verify the integrity and functionality of the refactored codebase through systematic testing of all components and user-facing features.
+
+### Testing Priorities:
+
+1. **Settings System Testing**
+   - Verify settings persistence and retrieval
+   - Test settings migration between versions
+   - Validate settings adaptation via adaptSettingsToCore
+   - Test default values application
+   - Verify UI interactions with settings components
+   - Test all settings helper functions
+
+2. **Systematic Functional Testing**
+   - Create a comprehensive test matrix of all user features
+   - Test each feature systematically in actual Obsidian environments
+   - Verify all UI components render correctly
+   - Test all user interaction flows from start to finish
+
+3. **Edge Case Testing**
+   - Test with large journals (1000+ entries)
+   - Test with various date formats and range selections
+   - Verify behavior with malformed or incomplete journal entries
+   - Test functionality with missing or corrupted settings
+
+4. **Cross-Environment Verification**
+   - Test on multiple platforms (Windows, macOS, Linux)
+   - Test with different Obsidian versions (current stable, previous, insider builds)
+   - Validate functionality with various plugin configurations
+   - Test with different vault sizes and structures
+
+### Testing Approach:
+
+#### Settings System Tests
+
+| Test Category | Test Cases | Priority | Status |
+|--------------|------------|----------|--------|
+| Default Settings | Verify default settings applied on first run | High | ⬜ Not Started |
+| Settings Persistence | Test saving and loading settings | High | ⬜ Not Started |
+| Settings Migration | Test migration from older versions | High | ⬜ Not Started |
+| Settings UI | Test all settings UI components | Medium | ⬜ Not Started |
+| Helper Functions | Test all settings helper functions | High | ⬜ Not Started |
+| Backward Compatibility | Test compatibility with old settings format | Medium | ⬜ Not Started |
+| Error Handling | Test recovery from corrupted settings | Medium | ⬜ Not Started |
+
+#### Functional Test Matrix
+
+| Feature Category | Test Cases | Priority | Status |
+|------------------|------------|----------|--------|
+| Dream Journal Management | Dream entry creation and editing | High | ⬜ Not Started |
+|                          | Journal structure validation | High | ⬜ Not Started |
+|                          | Template application | High | ⬜ Not Started |
+| Metrics Tracking | Metrics calculation and display | High | ⬜ Not Started |
+|                  | Custom metrics creation | Medium | ⬜ Not Started |
+|                  | Metrics visualization | Medium | ⬜ Not Started |
+| Date Navigation | Calendar view functionality | High | ⬜ Not Started |
+|                 | Date range selection | High | ⬜ Not Started |
+|                 | Custom date range creation | Medium | ⬜ Not Started |
+| Backup System | Manual backup creation | Medium | ⬜ Not Started |
+|               | Automatic backup scheduling | Medium | ⬜ Not Started |
+|               | Backup restoration | High | ⬜ Not Started |
+| Integration Features | Templater integration | Medium | ⬜ Not Started |
+|                      | Calendar plugin compatibility | Medium | ⬜ Not Started |
+|                      | Dataview compatibility | Low | ⬜ Not Started |
+
+### Testing Documentation:
+
+Each test should be documented with:
+- Specific test steps to reproduce
+- Expected outcome
+- Actual outcome
+- Environment details
+- Version information
+
+**Comprehensive test documentation is maintained in the [Testing Documentation Index](./testing/index.md), which contains links to detailed test plans for each component and feature area.**
+
+### Merge Criteria:
+
+**The criteria for merging the refactoring branch back to the main branch has moved from a time-based approach to a test-completion-based approach.** The detailed merge criteria, including core test requirements and approval process, are documented in [Refactoring Merge Criteria](./refactoring-merge-criteria.md).
+
+### Testing Timeline:
+
+- Settings System Tests: 1 week
+- Core Functionality Tests: 2 weeks
+- Extended Feature Tests: 1 week
+- Cross-Environment Tests: 1 week
+- Bug fixing and verification: 1 week
+
+### Success Criteria:
+
+- All critical and high-priority tests passed
+- No critical bugs remaining in core functionality
+- Settings system fully verified across platforms
+- All user workflows validated end-to-end
+- Thorough documentation of test results
+
+### Integration with Existing Work:
+
+This testing initiative complements the TypeScript error resolution work by ensuring that the syntactic correctness of the code (addressed by TypeScript) is matched by functional correctness (addressed by this testing). The testing will also generate real-world examples that can be used in the documentation enhancement phase.
+
+Detailed test plans have been created for key components:
+- [Settings Component Test Plan](./testing/settings-test-plan.md) - Comprehensive testing of the settings system
+- [Dream Journal Management Test Plan](./testing/journal-management-test-plan.md) - End-to-end testing of journal functionality
+
+Additional test plans will be created for other components following the same structure and approach.
 
 ## Phase 2: Performance Optimization
 
@@ -189,15 +297,17 @@ The implementation timeline is structured to deliver meaningful improvements at 
 | Phase | Estimated Duration | Priority | Dependencies |
 |-------|-------------------|----------|--------------|
 | Code Cleanup | 2 weeks | High | None |
-| Performance Optimization | 4 weeks | High | Code Cleanup |
-| Documentation Enhancement | 3 weeks | Medium | Code Cleanup |
+| Comprehensive Testing | 6 weeks | Critical | Code Cleanup |
+| Performance Optimization | 4 weeks | High | Code Cleanup, Comprehensive Testing |
+| Documentation Enhancement | 3 weeks | Medium | Code Cleanup, Comprehensive Testing |
 | Advanced Optimization | 6 weeks | Medium | Performance Optimization |
 
 **Key Milestones:**
 - Code cleanup completion: +2 weeks
-- Performance optimization release: +6 weeks
-- Documentation portal launch: +9 weeks
-- Advanced features release: +15 weeks
+- Comprehensive testing completion: +8 weeks
+- Performance optimization release: +12 weeks
+- Documentation portal launch: +15 weeks
+- Advanced features release: +21 weeks
 
 ## Success Metrics
 
