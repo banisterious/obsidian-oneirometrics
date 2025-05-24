@@ -13,6 +13,7 @@ This document outlines the roadmap for OneiroMetrics development after the compl
 - [Post-Refactoring Management TODOs](#post-refactoring-management-todos)
 - [Timeline and Priorities](#timeline-and-priorities)
 - [Success Metrics](#success-metrics)
+- [Post-Refactoring Priorities](#post-refactoring-priorities)
 
 ## Overview
 
@@ -406,6 +407,29 @@ Once the refactoring process is fully completed and the improvements outlined in
    - Consolidate helper functions that have overlapping functionality
    - Remove deprecated APIs after ensuring no components depend on them
    - Use the [cleanup checklist](./post-refactoring-cleanup-checklist.md) to track progress
+
+## Post-Refactoring Priorities
+
+### Critical Issues
+
+These issues must be addressed before merging to main branch:
+
+- [x] HTML rendering issues in metrics notes - Fixed with proper HTML content wrapping
+- [ ] Filter display issues (incorrect filter counts) - Fixed with improved visibility calculation
+- [x] "Read More" button not working on first load - Fixed with MutationObserver implementation
+- [ ] Summary table not updating when filters are applied - Fixed by ensuring metrics recalculation after filtering
+- [x] Date Navigator command not working properly - Fixed with proper dream entry loading, error handling, and modal styling
+- [ ] Filter persistence between Obsidian reloads
+
+### Future Enhancements
+
+These enhancements are planned for after the refactoring branch is merged:
+
+- [ ] **Date Navigator UX Enhancement**
+  - Implement auto-apply filter when clicking on a day with dream entries
+  - Remove the need for explicitly clicking the Apply button
+  - Improve user flow and reduce friction
+  - Estimated effort: Low (1-2 hours)
 
 ---
 
