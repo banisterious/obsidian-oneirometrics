@@ -10,6 +10,7 @@ This document outlines the roadmap for OneiroMetrics development after the compl
 - [Phase 2: Performance Optimization](#phase-2-performance-optimization)
 - [Phase 3: Documentation Enhancement](#phase-3-documentation-enhancement)
 - [Phase 4: Advanced Optimization](#phase-4-advanced-optimization)
+- [Post-Refactoring Management TODOs](#post-refactoring-management-todos)
 - [Timeline and Priorities](#timeline-and-priorities)
 - [Success Metrics](#success-metrics)
 
@@ -289,6 +290,55 @@ Additional test plans will be created for other components following the same st
    - Add Dataview compatibility
    - Enhance Calendar plugin integration
    - Create API for third-party plugin integration
+
+## Post-Refactoring Management TODOs
+
+**Goal:** Enhance the management of the post-refactoring phase and prepare for successful branch merging.
+
+### Priority Tasks (Next 1-2 Days):
+
+- [ ] **Test Tracking Dashboard**
+  - Create a visual dashboard (markdown file or Obsidian canvas) to track test completion
+  - Include progress bars or checklists for each test category
+  - Link to the relevant test plan documents
+  - Update daily during the testing phase
+
+- [ ] **Branch Protection Rules**
+  - Set up protection rules for the main branch
+  - Require reviews before merging the refactoring branch
+  - Enforce test completion requirements via GitHub branch rules
+
+- [ ] **Automated Testing Setup**
+  - Implement initial automated tests for core components
+  - Focus on the four merge criteria areas: Settings, Scraping, Tables, Filters
+  - Create simple assertion-based tests for critical functions
+  - Document test setup for contributors
+
+- [ ] **User Communication Plan**
+  - Draft announcement for the upcoming merged changes
+  - Prepare release notes for the first post-refactoring release
+  - Create a user-friendly explanation of the improvements
+  - Plan communication channels and timing
+
+### Additional Tasks:
+
+- [ ] **Documentation Review**
+  - Schedule a final documentation review before merging
+  - Ensure consistency across all documents
+  - Check for outdated references or examples
+  - Verify technical accuracy of all documentation
+
+- [ ] **Refactoring Retrospective**
+  - Plan a retrospective session to document lessons learned
+  - Create a template for capturing feedback
+  - Document what went well and areas for improvement
+  - Create recommendations for future major changes
+
+- [ ] **Regular Status Updates**
+  - Establish a regular cadence for CHANGELOG updates
+  - Add brief status updates as testing milestones are reached
+  - Keep users informed of progress without promising specific dates
+  - Include screenshots of any visible improvements
 
 ## Timeline and Priorities
 
