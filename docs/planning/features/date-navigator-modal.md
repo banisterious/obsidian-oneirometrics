@@ -233,6 +233,36 @@ this.dateRibbonEl = this.addRibbonIcon('calendar', 'Date Navigator', (evt: Mouse
 7. When finished, user closes modal
 8. Filters remain applied after modal closes
 
+## Planned UX Enhancement: Direct Day Selection
+
+A UX enhancement is planned to improve the interaction model with the Date Navigator:
+
+### Current Implementation
+- User clicks on a day with dream entries
+- Visual selection indicator appears
+- User must explicitly click "Apply Filter" button to apply the filter
+- Two-step process creates additional friction
+
+### Planned Enhancement
+- User clicks on a day with dream entries
+- Filter is automatically applied without requiring the "Apply" button
+- Modal optionally closes automatically (configurable setting)
+- Provides a more intuitive and streamlined experience
+
+### Implementation Considerations
+- Maintain the "Apply Filter" button for accessibility and user choice
+- Add setting to control auto-application behavior
+- Consider adding a small delay or visual indicator before auto-applying
+- Ensure mobile touch interactions work consistently with this model
+
+### Benefits
+- Reduces clicks required to apply filters
+- Creates a more intuitive interaction pattern
+- Aligns with user expectations based on calendar interactions
+- Improves overall workflow efficiency
+
+This enhancement is scheduled for implementation after the refactoring branch merge.
+
 ## Comparison with Date Filter Modal
 
 The Date Navigator Modal complements the Custom Date Range Modal by providing:
