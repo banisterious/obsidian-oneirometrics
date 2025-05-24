@@ -1,5 +1,5 @@
-import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon } from "obsidian";
-import { DEFAULT_METRICS, DreamMetric } from "./types";
+import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent } from "obsidian";
+import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings, LogLevel, SelectionMode } from "./types";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
 
@@ -16,7 +16,8 @@ import {
     shouldShowRibbonButtons,
     setShowRibbonButtons,
     getSelectionMode,
-    setSelectionMode
+    setSelectionMode,
+    getLogMaxSize
 } from './src/utils/settings-helpers';
 
 // Import metric helpers
@@ -26,7 +27,9 @@ import {
     getMetricMinValue,
     getMetricMaxValue,
     setMetricRange,
-    getMetricRange
+    getMetricRange,
+    adaptMetric,
+    createCompatibleMetric
 } from './src/utils/metric-helpers';
 
 // Import selection mode helpers
@@ -38,8 +41,12 @@ import {
     normalizeSelectionMode
 } from './src/utils/selection-mode-helpers';
 
+import { getCompatibleSelectionMode } from './src/types/core';
+
 // Import utilities 
 import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
+
+import { JournalStructureSettings as LintingSettings } from './src/types/journal-check';
 
 interface IconCategory {
     name: string;
@@ -151,7 +158,7 @@ class MetricEditorModal extends Modal {
 
     constructor(app: App, metric: DreamMetric, existingMetrics: DreamMetric[], onSubmit: (metric: DreamMetric) => void, isEditing: boolean = false) {
         super(app);
-        this.metric = { ...metric };
+        this.metric = adaptMetric({ ...metric });
         this.existingMetrics = existingMetrics;
         this.onSubmit = onSubmit;
         this.isEditing = isEditing;
@@ -863,7 +870,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         },
                         Object.values(this.plugin.settings.metrics),
                         async (metric) => {
-                            this.plugin.settings.metrics[metric.name] = metric;
+                            metric = createCompatibleMetric({
+                                ...DEFAULT_METRICS[metric.name],
+                                name: metric.name
+                            });
+                            this.plugin.settings.metrics[metric.name] = adaptMetric(metric);
                             await this.plugin.saveSettings();
                             this.display();
                         }
@@ -904,7 +915,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                     { ...metric },
                                     Object.values(this.plugin.settings.metrics),
                                     async (updatedMetric) => {
-                                        this.plugin.settings.metrics[updatedMetric.name] = updatedMetric;
+                                        this.plugin.settings.metrics[updatedMetric.name] = adaptMetric(updatedMetric);
                                         // If the name was changed, remove the old key
                                         if (updatedMetric.name !== key) {
                                             delete this.plugin.settings.metrics[key];
@@ -959,7 +970,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                     { ...metric },
                                     Object.values(this.plugin.settings.metrics),
                                     async (updatedMetric) => {
-                                        this.plugin.settings.metrics[updatedMetric.name] = updatedMetric;
+                                        this.plugin.settings.metrics[updatedMetric.name] = adaptMetric(updatedMetric);
                                         // If the name was changed, remove the old key
                                         if (updatedMetric.name !== key) {
                                             delete this.plugin.settings.metrics[key];
@@ -1740,4 +1751,68 @@ class MetricsCalloutCustomizationsModal extends Modal {
                     await this.plugin.saveSettings();
                 }));
     }
+}
+
+// Import for file suggestion modal
+class FileSuggestModal extends Modal {
+    constructor(app: App) { 
+        super(app);
+    }
+    
+    setPlaceholder(placeholder: string) {
+        return this;
+    }
+    
+    onChooseItem: (item: string) => void = () => {};
+    
+    open() {
+        super.open();
+        // This is a stub implementation
+        setTimeout(() => {
+            if (this.onChooseItem) {
+                this.onChooseItem('');
+            }
+            this.close();
+        }, 100);
+    }
+}
+
+// Helper function to get selection mode description
+function getSelectionModeDescription(mode: string): string {
+    if (mode === 'notes' || mode === 'manual') {
+        return 'Select individual notes to include in dream metrics';
+    }
+    if (mode === 'folder' || mode === 'automatic') {
+        return 'Select a folder to recursively search for dream metrics';
+    }
+    return 'Choose how to select notes for metrics processing';
 } 
+
+// Stub implementation of JournalStructureModal
+class JournalStructureModal extends Modal {
+  private plugin: DreamMetricsPlugin;
+  
+  constructor(app: App, plugin: DreamMetricsPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+  
+  open() {
+    super.open();
+    this.contentEl.createEl('h2', { text: 'Journal Structure Settings' });
+    // This is a stub implementation
+  }
+}
+
+// Stub implementation for TemplateWizard
+class TemplateWizard extends Modal {
+    constructor(app: App, plugin: DreamMetricsPlugin, templaterIntegration?: any) {
+        super(app);
+    }
+    
+    open() {
+        super.open();
+        this.contentEl.createEl('h2', { text: 'Template Wizard' });
+        // This is a stub implementation
+    }
+}

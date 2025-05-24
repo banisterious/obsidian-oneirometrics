@@ -31,6 +31,15 @@ interface LegacyDreamMetricsSettings {
     maxBackups?: number;
     logFilePath?: string;
   };
+  backup?: {
+    enabled?: boolean;
+    folderPath?: string;
+    maxBackups?: number;
+    frequency?: string;
+  };
+  uiState?: any;
+  developerMode?: any;
+  metricsVersion?: string;
   [key: string]: any; // Allow any other properties
 }
 
@@ -49,8 +58,8 @@ export function adaptSettingsToCore(settings: any): CoreDreamMetricsSettings {
     selectionMode: settings.selectionMode || 'notes',
     calloutName: settings.calloutName || 'dream',
     showRibbonButtons: settings.showRibbonButtons || !!settings.showTestRibbonButton || false,
-    backupEnabled: settings.backupEnabled || false,
-    backupFolderPath: settings.backupFolderPath || './backups',
+    backupEnabled: settings.backupEnabled || (settings.backup?.enabled) || false,
+    backupFolderPath: settings.backupFolderPath || settings.backup?.folderPath || './backups',
     
     // Ensure logging has the correct structure
     logging: {
@@ -71,22 +80,59 @@ export function adaptSettingsToCore(settings: any): CoreDreamMetricsSettings {
   if (settings.journalStructure) {
     adaptedSettings.journalStructure = settings.journalStructure;
   } else if (settings.linting) {
+    adaptedSettings.journalStructure = settings.linting;
     adaptedSettings.linting = settings.linting;
   }
   
   // Copy UI state if it exists
   if (settings.uiState) {
-    adaptedSettings.uiState = {...settings.uiState};
+    adaptedSettings.uiState = {
+      activeTab: settings.uiState.activeTab || settings.uiState.lastTab || 'general',
+      lastFilter: settings.uiState.lastFilter || 'all',
+      customRanges: settings.uiState.customRanges || {},
+      layout: settings.uiState.layout || {}
+    };
   }
   
   // Copy developer mode settings if they exist
   if (settings.developerMode) {
-    adaptedSettings.developerMode = {...settings.developerMode};
+    adaptedSettings.developerMode = {
+      enabled: settings.developerMode.enabled || false,
+      showDebugRibbon: settings.developerMode.showDebugRibbon || settings.developerMode.showDebugInfo || false,
+      traceFunctionCalls: settings.developerMode.traceFunctionCalls || settings.developerMode.performanceMonitoring || false,
+      experimentalFeatures: settings.developerMode.experimentalFeatures || []
+    };
   }
   
   // Copy metricsVersion if it exists
   if (settings.metricsVersion) {
     adaptedSettings.metricsVersion = settings.metricsVersion;
+  }
+  
+  // Handle backup settings structure
+  if (settings.backup) {
+    adaptedSettings.backup = {
+      enabled: settings.backup.enabled || settings.backupEnabled || false,
+      folderPath: settings.backup.folderPath || settings.backupFolderPath || './backups',
+      maxBackups: settings.backup.maxBackups || 5,
+      frequency: settings.backup.frequency as any || 'onSave'
+    };
+  } else if (settings.backupEnabled) {
+    adaptedSettings.backup = {
+      enabled: settings.backupEnabled,
+      folderPath: settings.backupFolderPath || './backups',
+      maxBackups: 5,
+      frequency: 'onSave'
+    };
+  }
+  
+  // Preserve legacy properties for backward compatibility
+  adaptedSettings.projectNotePath = settings.projectNotePath || settings.projectNote || '';
+  adaptedSettings.showTestRibbonButton = settings.showTestRibbonButton || settings.showRibbonButtons || false;
+  
+  // Handle linting settings
+  if (settings.linting && !settings.journalStructure) {
+    adaptedSettings.linting = settings.linting;
   }
   
   return adaptedSettings;
@@ -129,7 +175,7 @@ export function shouldShowRibbonButtonsSafe(settings: any): boolean {
  * Compatible with both legacy and new settings objects
  */
 export function isBackupEnabledSafe(settings: any): boolean {
-  return settings.backupEnabled || false;
+  return settings.backupEnabled || settings.backup?.enabled || false;
 }
 
 /**
@@ -137,7 +183,7 @@ export function isBackupEnabledSafe(settings: any): boolean {
  * Compatible with both legacy and new settings objects
  */
 export function getBackupFolderPathSafe(settings: any): string {
-  return settings.backupFolderPath || './backups';
+  return settings.backupFolderPath || settings.backup?.folderPath || './backups';
 }
 
 /**
@@ -154,4 +200,28 @@ export function getExpandedStatesSafe(settings: any): Record<string, boolean> {
  */
 export function isDeveloperModeSafe(settings: any): boolean {
   return settings.developerMode?.enabled || false;
+}
+
+/**
+ * Helper to safely get the UI state from settings
+ * Compatible with both legacy and new settings objects
+ */
+export function getUIStateSafe(settings: any): any {
+  return settings.uiState || {};
+}
+
+/**
+ * Helper to safely get the active tab from UI state
+ * Compatible with both legacy and new settings objects
+ */
+export function getActiveTabSafe(settings: any): string {
+  return settings.uiState?.activeTab || settings.uiState?.lastTab || 'general';
+}
+
+/**
+ * Helper to safely get the journal structure settings
+ * Compatible with both legacy and new settings objects
+ */
+export function getJournalStructureSafe(settings: any): any {
+  return settings.journalStructure || settings.linting || {};
 } 

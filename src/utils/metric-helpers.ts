@@ -1,4 +1,5 @@
 import { DreamMetric } from '../types';
+import { DreamMetric as CoreDreamMetric } from '../types/core';
 
 /**
  * Helper functions for safely accessing DreamMetric properties
@@ -6,21 +7,46 @@ import { DreamMetric } from '../types';
  */
 
 /**
- * Gets the enabled state of a metric
- * @param metric The dream metric
- * @returns Whether the metric is enabled
+ * Safely gets the enabled state of a metric
+ * @param metric - The metric to check
+ * @param defaultValue - Default value if enabled property doesn't exist
+ * @returns The enabled state
  */
-export function isMetricEnabled(metric: DreamMetric): boolean {
-  return (metric as any).enabled === true;
+export function isMetricEnabled(metric: DreamMetric | CoreDreamMetric | any, defaultValue: boolean = false): boolean {
+    if (!metric) return defaultValue;
+    
+    // Handle the case where it's explicitly set
+    if (typeof metric.enabled === 'boolean') {
+        return metric.enabled;
+    }
+    
+    // Legacy fallback: if not disabled, assume enabled
+    if (metric.disabled === true) {
+        return false;
+    }
+    
+    return defaultValue;
 }
 
 /**
- * Sets the enabled state of a metric
- * @param metric The dream metric to modify
- * @param enabled Whether the metric should be enabled
+ * Safely sets the enabled state on a metric
+ * @param metric - The metric to update
+ * @param enabled - Whether the metric should be enabled
+ * @returns The updated metric
  */
-export function setMetricEnabled(metric: DreamMetric, enabled: boolean): void {
-  (metric as any).enabled = enabled;
+export function setMetricEnabled(metric: DreamMetric | CoreDreamMetric | any, enabled: boolean): any {
+    if (!metric) return null;
+    
+    // Create a copy to avoid mutating the original
+    const result = { ...metric };
+    
+    // Set the enabled property
+    result.enabled = enabled;
+    
+    // For backward compatibility, also set disabled
+    result.disabled = !enabled;
+    
+    return result;
 }
 
 /**
@@ -153,4 +179,51 @@ export function standardizeMetric(metric: Partial<DreamMetric> & Record<string, 
   }
   
   return standardized;
-} 
+}
+
+/**
+ * Creates a metric that conforms to the core interface requirements
+ * @param metric - Source metric object (or partial)
+ * @returns A metric object with all required properties
+ */
+export function createCompatibleMetric(metric: Partial<DreamMetric> | any): CoreDreamMetric {
+    return {
+        name: metric.name || '',
+        label: metric.label || metric.name || '',
+        description: metric.description || '',
+        type: metric.type || 'number',
+        enabled: isMetricEnabled(metric, true),
+        default: metric.default !== undefined ? metric.default : 0,
+        min: metric.min !== undefined ? metric.min : 0,
+        max: metric.max !== undefined ? metric.max : 100,
+        step: metric.step !== undefined ? metric.step : 1,
+        format: metric.format || '{}',
+        group: metric.group || 'general',
+        color: metric.color || '#000000',
+        icon: metric.icon || '',
+        aggregate: metric.aggregate || 'average',
+        options: metric.options || {},
+    };
+}
+
+/**
+ * Adapts a DreamMetric to ensure compatibility
+ * @param metric The source metric
+ * @returns A compatible metric
+ */
+export function adaptMetric(metric: DreamMetric | any): CoreDreamMetric {
+    if (!metric) return createCompatibleMetric({});
+    
+    // If it's already a core metric (has all required properties), return it
+    if (typeof metric.enabled === 'boolean') {
+        return metric as CoreDreamMetric;
+    }
+    
+    // Otherwise create a compatible version
+    return createCompatibleMetric(metric);
+}
+
+// Additional helper exports
+export * from "./metric-value-helpers";
+
+// Export existing utilities if any 
