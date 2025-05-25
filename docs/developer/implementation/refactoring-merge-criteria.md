@@ -19,33 +19,33 @@ This document outlines the criteria for merging the `refactoring/2025-typescript
 The following core test requirements must be met before the refactoring branch can be merged to main:
 
 ### 1. Settings System Verification
-- [ ] All settings persistence tests pass
-- [ ] Settings migration tests from previous versions pass
-- [ ] Settings adaptation via adaptSettingsToCore verified
-- [ ] Default values application works correctly
-- [ ] All settings UI components render and function properly
-- [ ] Settings helper functions pass all tests
+- [x] All settings persistence tests pass
+- [x] Settings migration tests from previous versions pass
+- [x] Settings adaptation via adaptSettingsToCore verified
+- [x] Default values application works correctly
+- [x] All settings UI components render and function properly
+- [x] Settings helper functions pass all tests
 
 ### 2. Basic Scraping Functionality
-- [ ] Scrape functionality works in both notes and folder modes
-- [ ] Progress reporting during scraping is accurate
-- [ ] Metrics extraction works correctly
-- [ ] Batch processing for large datasets functions properly
-- [ ] Error handling during scraping is appropriate
+- [x] Scrape functionality works in both notes and folder modes
+- [x] Progress reporting during scraping is accurate
+- [x] Metrics extraction works correctly
+- [x] Batch processing for large datasets functions properly
+- [x] Error handling during scraping is appropriate
 
 ### 3. Metrics Tables Generation
-- [ ] Summary metrics table generates correctly
-- [ ] Detailed metrics table renders correctly
-- [ ] All metrics calculations are accurate
-- [ ] Table sorting and filtering work as expected
-- [ ] Lazy loading for large datasets functions properly
+- [x] Summary metrics table generates correctly
+- [x] Detailed metrics table renders correctly
+- [x] All metrics calculations are accurate
+- [x] Table sorting and filtering work as expected
+- [x] Lazy loading for large datasets functions properly
 
 ### 4. Basic Filters
-- [ ] Date range filtering works correctly
-- [ ] Custom date filters function properly
+- [x] Date range filtering works correctly
+- [x] Custom date filters function properly
 - [ ] Metric value filtering works as expected
-- [ ] Filter combinations produce correct results
-- [ ] Filter UI components render and function properly
+- [x] Filter combinations produce correct results
+- [x] Filter UI components render and function properly
 
 ## Testing Priority Sequence
 
