@@ -25,6 +25,8 @@ component [StateManager] as StateManager
 component [UI Components] as UI
 component [Parser] as Parser
 component [Analytics] as Analytics
+component [TypeAdapters] as TypeAdapters
+component [TypeValidation] as TypeValidation
 
 ' Journal Entry Processing Flow
 User -> MainPlugin: Create/Edit Journal Entry
@@ -33,6 +35,8 @@ FileService -> Vault: Read/Write File
 FileService --> JournalService: Return File Content
 JournalService -> Parser: Parse Journal Content
 Parser --> JournalService: Return Structured Data
+JournalService -> TypeValidation: Validate Data Structure
+TypeValidation --> JournalService: Validated Data
 JournalService -> StateManager: Update Journal Store
 StateManager -> UI: Update UI Components
 
@@ -41,6 +45,8 @@ User -> UI: Request Metrics Calculation
 UI -> MetricsService: Request Metrics
 MetricsService -> JournalService: Get Journal Data
 JournalService --> MetricsService: Return Journal Data
+MetricsService -> TypeAdapters: Adapt Legacy Data
+TypeAdapters --> MetricsService: Type-Safe Data
 MetricsService -> Analytics: Process Data
 Analytics --> MetricsService: Return Metrics Data
 MetricsService -> StateManager: Update Metrics Store
@@ -48,7 +54,8 @@ StateManager -> UI: Update Metrics Display
 
 ' Settings Flow
 User -> UI: Change Settings
-UI -> StateManager: Update Config Store
+UI -> TypeAdapters: Normalize Settings Format
+TypeAdapters -> StateManager: Update Config Store
 StateManager --> JournalService: Notify of Config Change
 StateManager --> MetricsService: Notify of Config Change
 JournalService -> Parser: Update Parser Config
@@ -84,6 +91,22 @@ note bottom of StateManager
   - MetricsStore (calculated metrics)
   - ConfigStore (user settings)
   - Handles state change notifications
+end note
+
+note right of TypeAdapters
+  TypeAdapters handle:
+  - Interface version conversion
+  - Data structure normalization
+  - Backward compatibility
+  - Property name mapping
+end note
+
+note right of TypeValidation
+  TypeValidation ensures:
+  - Type safety for all data
+  - Runtime validation of structures
+  - Default values for missing properties
+  - Error prevention through guards
 end note
 
 @enduml 

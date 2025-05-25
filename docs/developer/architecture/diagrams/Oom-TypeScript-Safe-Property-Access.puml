@@ -1,0 +1,166 @@
+@startuml Oom-TypeScript-Safe-Property-Access
+
+header
+OneiroMetrics Safe Property Access Pattern
+Version 0.6.0 - May 2025
+endheader
+
+title OneiroMetrics TypeScript Safe Property Access Pattern
+
+package "Data Objects" {
+  class "Settings Object" as Settings {
+    +projectNote?: string
+    +projectNotePath?: string
+    +selectedNotes?: string[]
+    +metrics?: Record<string, any> | any[]
+    +selectionMode?: string
+    +logging?: any
+  }
+  
+  class "Metric Object" as Metric {
+    +name?: string
+    +key?: string
+    +range?: {min: number, max: number}
+    +min?: number
+    +max?: number
+    +enabled?: boolean
+    +disabled?: boolean
+  }
+  
+  class "Journal Entry" as JournalEntry {
+    +date?: string
+    +title?: string
+    +content?: string
+    +metrics?: Record<string, any>
+    +tags?: string[]
+  }
+}
+
+package "Property Access Helpers" {
+  class "Settings Helpers" as SettingsHelpers {
+    +getProjectNotePath(settings: any): string
+    +getSelectedNotes(settings: any): string[]
+    +getSelectionMode(settings: any): string
+    +getCalloutName(settings: any): string
+    +getMetrics(settings: any): Record<string, any>
+  }
+  
+  class "Metric Helpers" as MetricHelpers {
+    +isMetricEnabled(metric: any): boolean
+    +getMetricRange(metric: any): {min: number, max: number}
+    +getMetricName(metric: any): string
+    +getMetricKey(metric: any): string
+    +getMetricDescription(metric: any): string
+  }
+  
+  class "Journal Helpers" as JournalHelpers {
+    +getJournalDate(entry: any): Date | null
+    +getJournalTitle(entry: any): string
+    +getJournalContent(entry: any): string
+    +getJournalTags(entry: any): string[]
+    +getMetricValue(entry: any, metricKey: string): any
+  }
+}
+
+package "Application Code" {
+  class "Component" as Component {
+    +render()
+    +update()
+  }
+  
+  class "Service" as Service {
+    +processData()
+    +storeData()
+  }
+}
+
+' Relationships
+Settings --> SettingsHelpers : accessed via
+Metric --> MetricHelpers : accessed via
+JournalEntry --> JournalHelpers : accessed via
+
+Component --> SettingsHelpers : uses
+Component --> MetricHelpers : uses
+Component --> JournalHelpers : uses
+
+Service --> SettingsHelpers : uses
+Service --> MetricHelpers : uses
+Service --> JournalHelpers : uses
+
+' Flow descriptions
+note right of SettingsHelpers
+  Instead of direct property access like:
+  settings.projectNote || settings.projectNotePath || ""
+  
+  Use helper:
+  getProjectNotePath(settings)
+endnote
+
+note right of MetricHelpers
+  Instead of complex conditions like:
+  metric && (metric.enabled || 
+  (metric.enabled === undefined && !metric.disabled))
+  
+  Use helper:
+  isMetricEnabled(metric)
+endnote
+
+note right of JournalHelpers
+  Safe access with proper type conversion:
+  - Date parsing with fallbacks
+  - String normalization
+  - Default empty arrays
+  - Metric value extraction
+endnote
+
+' Property access process
+note bottom of Component
+  Safe Property Access Pattern:
+  1. Never access properties directly
+  2. Use helper functions for all access
+  3. Get proper defaults for missing values
+  4. Handle different property names
+  5. Perform type conversion if needed
+endnote
+
+' Examples of access patterns
+package "Implementation Examples" {
+  class "Safe Access" as SafeAccess {
+    +getProperty(obj: any, path: string, defaultValue: any): any
+    +hasProperty(obj: any, key: string): boolean
+    +setProperty(obj: any, key: string, value: any): void
+    +deleteProperty(obj: any, key: string): void
+    +getNestedProperty(obj: any, path: string, defaultValue: any): any
+  }
+  
+  class "Type Guards" as TypeGuards {
+    +isString(value: unknown): value is string
+    +isNumber(value: unknown): value is number
+    +isBoolean(value: unknown): value is boolean
+    +isObject(value: unknown): value is object
+    +isArray(value: unknown): value is Array<any>
+    +isValidDate(value: unknown): boolean
+  }
+  
+  class "Value Normalizers" as Normalizers {
+    +toNumber(value: any, defaultValue: number): number
+    +toString(value: any, defaultValue: string): string
+    +toBoolean(value: any, defaultValue: boolean): boolean
+    +toDate(value: any, defaultValue: Date): Date
+    +toArray(value: any, defaultValue: any[]): any[]
+  }
+  
+  Component ..> SafeAccess : implements
+  Component ..> TypeGuards : uses
+  Component ..> Normalizers : uses
+  
+  Service ..> SafeAccess : implements
+  Service ..> TypeGuards : uses
+  Service ..> Normalizers : uses
+}
+
+footer
+This diagram illustrates the Safe Property Access Pattern used throughout the OneiroMetrics plugin to ensure type safety and handle property evolution
+endfooter
+
+@enduml 

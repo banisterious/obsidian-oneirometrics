@@ -80,18 +80,44 @@ package "Core" {
   MetricsService --> Filters : uses
 }
 
+package "TypeScript Utilities" {
+  component [TypeAdapters] as TypeAdapters
+  component [PropertyHelpers] as PropertyHelpers
+  component [TypeGuards] as TypeGuards
+  component [EventSystem] as EventSystem
+  
+  TypeAdapters --> PropertyHelpers : uses
+  TypeAdapters --> TypeGuards : uses
+  EventSystem --> TypeGuards : uses
+  
+  note right of TypeAdapters
+    Converts between different
+    interface versions
+  end note
+  
+  note right of PropertyHelpers
+    Safe property access with
+    backward compatibility
+  end note
+}
+
+' Interface definitions - using correct PlantUML interface notation
+interface "ServiceInterface" as SRInterface
+interface "ComponentInterface" as SMCInterface
+interface "AdapterInterface" as TSAInterface
+
 ' Main relationships
 MainPlugin --> StateManager : initializes
 MainPlugin --> RibbonButton : registers
 MainPlugin --> SettingsTab : registers
 MainPlugin --> DashboardView : registers
 
-StateManager --> ServiceRelationsMainPlugin: provides state to
-ServiceRelationsMainPlugin --> JournalService : initializes
-ServiceRelationsMainPlugin --> MetricsService : initializes
-ServiceRelationsMainPlugin --> TemplateService : initializes
-ServiceRelationsMainPlugin --> LoggingService : initializes
-ServiceRelationsMainPlugin --> FileService : initializes
+MainPlugin -down- SRInterface
+StateManager --> JournalService : provides state
+StateManager --> MetricsService : provides state
+StateManager --> TemplateService : provides state
+StateManager --> LoggingService : provides state
+StateManager --> FileService : provides state
 
 JournalService --> JournalStore : updates
 MetricsService --> MetricsStore : updates
@@ -102,21 +128,41 @@ DashboardView --> StateManager : subscribes
 SettingsTab --> ConfigStore : updates
 RibbonButton --> DashboardView : opens
 
-' Interface 
-interface ServiceRelationsMainPlugin {
-  initialize()
-  getState()
-  registerEvents()
-}
-MainPlugin -down- ServiceRelationsMainPlugin
+' TypeScript Utilities relationships
+StateManager --> TypeAdapters : uses
+StateManager --> EventSystem : uses
+JournalService --> PropertyHelpers : uses
+MetricsService --> PropertyHelpers : uses
+SettingsTab --> TypeAdapters : uses
+Utils --> TypeGuards : contains
+Utils --> PropertyHelpers : contains
 
-interface StateManagedComponent {
-  onStateChange()
-  render()
-}
-DashboardView -up- StateManagedComponent
-MetricsPanel -up- StateManagedComponent
-FilterPanel -up- StateManagedComponent
-JournalEntryView -up- StateManagedComponent
+' Component to Interface relationships
+DashboardView -up- SMCInterface
+MetricsPanel -up- SMCInterface
+FilterPanel -up- SMCInterface
+JournalEntryView -up- SMCInterface
+
+TypeAdapters -down- TSAInterface
+
+note right of SRInterface
+  Service Interface:
+  - initialize()
+  - getState()
+  - registerEvents()
+end note
+
+note right of SMCInterface
+  Component Interface:
+  - onStateChange()
+  - render()
+end note
+
+note right of TSAInterface
+  Adapter Interface:
+  - adaptToInterface()
+  - getProperty()
+  - validateType()
+end note
 
 @enduml 
