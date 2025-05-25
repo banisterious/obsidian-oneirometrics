@@ -233,6 +233,281 @@ The Settings page provides a comprehensive interface for managing dream metrics 
    - Date comparison tools
    - Pattern analysis
 
+## TypeScript Architecture
+
+### Type System Organization
+
+The OneiroMetrics plugin uses a structured TypeScript type system organized into several key areas:
+
+1. **Core Interfaces** (`src/types/core.ts`)
+   - Contains foundational interface definitions
+   - Serves as the source of truth for type definitions
+   - Includes comprehensive JSDoc documentation
+
+2. **Root-Level Types** (`types.ts`)
+   - Extends core interfaces for backward compatibility
+   - Acts as a bridge between the core types and legacy code
+
+3. **Domain-Specific Types**
+   - Specialized types for specific domains (e.g., `src/types/callout-types.ts`, `src/types/logging.ts`)
+   - Extends core types with domain-specific properties
+
+### Adapter Pattern Implementation
+
+To ensure compatibility between different interface versions and handle property changes, the plugin implements the adapter pattern:
+
+1. **Type Adapters** (`src/utils/type-adapters.ts`)
+   - Provides utility functions to convert between different interface versions
+   - Ensures backward compatibility with older plugin versions
+   - Handles default values and property mapping
+
+```typescript
+// Example of a strong adapter function
+export function adaptToCoreDreamMetricsSettings(settings: any): CoreDreamMetricsSettings {
+  return {
+    projectNote: settings.projectNote || settings.projectNotePath || '',
+    selectedNotes: settings.selectedNotes || [],
+    selectedFolder: settings.selectedFolder || '',
+    selectionMode: settings.selectionMode || 'notes',
+    calloutName: settings.calloutName || 'dream',
+    metrics: settings.metrics || {},
+    // Additional properties with defaults
+    showRibbonButtons: settings.showRibbonButtons || false,
+    backupEnabled: settings.backupEnabled || false,
+    backupFolderPath: settings.backupFolderPath || './backups',
+    logging: {
+      level: settings.logging?.level || 'info',
+      maxSize: settings.logging?.maxSize || settings.logging?.maxLogSize || 1024 * 1024,
+      maxBackups: settings.logging?.maxBackups || 3
+    }
+  };
+}
+```
+
+2. **Helper Utilities**
+   - `settings-helpers.ts`: Safe property access for settings
+   - `metric-helpers.ts`: Type-safe metric property access
+   - `selection-mode-helpers.ts`: Compatibility for selection mode values
+
+```typescript
+// Example of a safe property access helper
+export function getProjectNotePath(settings: any): string {
+  const typedSettings = settings as Partial<DreamMetricsSettings>;
+  return typedSettings.projectNote || typedSettings.projectNotePath || '';
+}
+```
+
+### Safe Property Access Pattern
+
+To handle potentially undefined properties and different property names across interface versions, the plugin uses a safe property access pattern:
+
+1. **Type Guards**
+   - Functions that check types before property access
+   - Ensures runtime safety for property access
+
+```typescript
+// Example type guard for source property
+export function isObjectSource(entry: DreamMetricData): boolean {
+  return typeof entry.source !== 'string';
+}
+
+export function getSourceFile(entry: DreamMetricData): string {
+  if (typeof entry.source === 'string') {
+    return entry.source;
+  }
+  return entry.source?.file || '';
+}
+```
+
+2. **Default Value Handling**
+   - Provides sensible defaults for missing properties
+   - Ensures consistent behavior across the codebase
+
+### Error Handling Implementation
+
+The plugin implements a standardized error handling approach with context enrichment:
+
+1. **Error Context Interface**
+   - Standardized interface for adding metadata to errors
+   - Includes component, operation, timestamp, and custom metadata
+
+```typescript
+export interface ErrorContext {
+  component: string;
+  operation: string;
+  timestamp: number;
+  metadata?: Record<string, any>;
+}
+
+export class OneiroMetricsError extends Error {
+  context: ErrorContext;
+  
+  constructor(message: string, context: ErrorContext) {
+    super(message);
+    this.name = 'OneiroMetricsError';
+    this.context = context;
+  }
+}
+```
+
+2. **Error Bubbling with Context**
+   - Errors are enriched with context as they bubble up through the component hierarchy
+   - Each layer adds relevant context information
+   - Error logging includes full context for debugging
+
+```typescript
+export class ContentParser {
+  parseContent(content: string): ParsedContent {
+    try {
+      // Parsing logic
+    } catch (error) {
+      // Add context and re-throw
+      throw new OneiroMetricsError(
+        `Failed to parse content: ${error.message}`,
+        {
+          component: 'ContentParser',
+          operation: 'parseContent',
+          timestamp: Date.now(),
+          metadata: { contentLength: content.length }
+        }
+      );
+    }
+  }
+}
+```
+
+3. **Centralized Error Handling**
+   - LoggingService captures all errors with context
+   - Error recovery strategies based on error type and context
+   - User-friendly error messages with debugging information when needed
+
+```typescript
+export class LoggingService {
+  logError(error: OneiroMetricsError): void {
+    console.error(`[${error.context.component}] ${error.message}`, {
+      operation: error.context.operation,
+      timestamp: new Date(error.context.timestamp).toISOString(),
+      metadata: error.context.metadata
+    });
+    
+    // Optionally store in log file or send to monitoring service
+  }
+}
+```
+
+4. **Graceful Degradation**
+   - UI components handle errors gracefully
+   - Fallback strategies for critical operations
+   - Recovery mechanisms for persistent data
+
+### Event Communication System
+
+The plugin implements a typed event communication system to facilitate component interaction while maintaining separation of concerns:
+
+1. **Base Event Emitter**
+   - Generic event emitter with type safety
+   - Support for multiple event types with typed payloads
+   - Built-in error handling for event listeners
+
+```typescript
+export type EventListener<T> = (payload: T) => void;
+
+export class EventEmitter<EventMap extends Record<string, any>> {
+  private listeners: {
+    [K in keyof EventMap]?: Array<EventListener<EventMap[K]>>;
+  } = {};
+  
+  on<K extends keyof EventMap>(
+    event: K, 
+    listener: EventListener<EventMap[K]>
+  ): () => void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    
+    this.listeners[event]?.push(listener);
+    
+    return () => this.off(event, listener);
+  }
+  
+  emit<K extends keyof EventMap>(
+    event: K, 
+    payload: EventMap[K]
+  ): void {
+    if (!this.listeners[event]) return;
+    
+    this.listeners[event]?.forEach(listener => {
+      try {
+        listener(payload);
+      } catch (error) {
+        console.error(`Error in event listener for ${String(event)}:`, error);
+      }
+    });
+  }
+}
+```
+
+2. **Functional Area Event Emitters**
+   - Specialized emitters for specific functional areas:
+     - `MetricsEventEmitter`: For metrics-related events
+     - `UIEventEmitter`: For UI-related events
+     - `JournalEventEmitter`: For journal processing events
+
+```typescript
+// Metrics events
+export interface MetricsEvents {
+  'metrics:calculated': { metrics: Record<string, number[]>, source: string };
+  'metrics:display': { target: HTMLElement, metrics: Record<string, number[]> };
+  'metrics:filter': { filter: MetricsFilter };
+}
+
+export class MetricsEventEmitter extends EventEmitter<MetricsEvents> {
+  notifyMetricsCalculated(metrics: Record<string, number[]>, source: string): void {
+    this.emit('metrics:calculated', { metrics, source });
+  }
+}
+```
+
+3. **Subscription Management**
+   - Proper cleanup of event subscriptions to prevent memory leaks
+   - Subscription tracking within components
+
+```typescript
+export class MetricsVisualization {
+  private subscriptions: Array<() => void> = [];
+  
+  constructor(private metricsEvents: MetricsEventEmitter) {
+    // Subscribe to events
+    this.subscriptions.push(
+      metricsEvents.on('metrics:calculated', this.handleMetricsCalculated.bind(this))
+    );
+  }
+  
+  // Clean up subscriptions when component is destroyed
+  destroy(): void {
+    this.subscriptions.forEach(unsubscribe => unsubscribe());
+    this.subscriptions = [];
+  }
+}
+```
+
+### UI Component Architecture
+
+The UI components follow a structured TypeScript architecture:
+
+1. **Component Base Classes**
+   - `BaseComponent`: Foundation class with lifecycle methods
+   - `EventableComponent`: Extends BaseComponent with event handling
+
+2. **Component Migration Approaches**
+   - Component Wrapper: For simple components without significant changes
+   - Component Extension: For components benefiting from new lifecycle methods
+   - Complete Rewrite: For complex components requiring full reimplementation
+
+3. **DOM Helpers**
+   - Type-safe wrappers for DOM manipulation
+   - Consistent pattern for creating and manipulating UI elements
+
 ## Technical Requirements
 
 ### 1. Obsidian API
@@ -403,6 +678,10 @@ The Settings page provides a comprehensive interface for managing dream metrics 
 
 ## Testing Strategy
 
+### Testing Approach
+
+The OneiroMetrics plugin uses a comprehensive testing approach that covers both automated and manual testing processes:
+
 1. **Unit Tests**
    - Metric parsing
    - Data validation
@@ -420,12 +699,84 @@ The Settings page provides a comprehensive interface for managing dream metrics 
    - Mobile responsiveness
    - Accessibility compliance
 
+3. **Test-Completion-Based Approach**
+   - Core test requirements must be met before merging feature branches
+   - Functional correctness is prioritized over schedule-based releases
+   - Detailed testing matrix for each feature area
+
+### Testing Infrastructure
+
+The plugin includes a robust testing infrastructure:
+
+1. **TestRunner**
+   - Executes test cases in both synchronous and asynchronous modes
+   - Provides detailed test results with error reporting
+   - Supports both in-app and automated test execution
+
+2. **Test Case Framework**
+   - Abstract base class for all tests
+   - Standardized success/failure reporting
+   - Support for both synchronous and asynchronous tests
+
+3. **Test Fixture**
+   - Provides test environment and mock data
+   - Ensures consistent test conditions
+   - Simplifies test setup and teardown
+
+4. **Test Registry**
+   - Registers and organizes tests by category
+   - Allows selective test execution
+   - Provides test discovery capabilities
+
+### Core Test Requirements
+
+For each major release, the following core test requirements must be satisfied:
+
+1. **Settings System Verification**
+   - Settings persistence and retrieval
+   - Settings migration from previous versions
+   - Settings adaptation via utility functions
+   - Default values application
+   - UI interactions with settings components
+   - Settings helper function testing
+
+2. **Scraping Functionality**
+   - Scrape operation in both notes and folder modes
+   - Progress reporting during scraping
+   - Metrics extraction accuracy
+   - Batch processing for large datasets
+   - Error handling during scraping
+
+3. **Metrics Tables Generation**
+   - Summary metrics table generation
+   - Detailed metrics table rendering
+   - Metrics calculation accuracy
+   - Table sorting and filtering
+   - Lazy loading for large datasets
+
+4. **Filters and UI Components**
+   - Date range filtering functionality
+   - Custom date filters operation
+   - Metric value filtering
+   - Filter combinations and UI components
+   - UI rendering and interactions
+
+### Test Documentation
+
+Each test includes comprehensive documentation:
+
+- Test steps to reproduce
+- Expected and actual outcomes
+- Environment details and version information
+- Screenshots or recordings for UI tests
+- Error logs for failed tests
+
 3. **User Testing**
    - Different vault sizes
    - Various note structures
    - Edge cases
    - Performance benchmarks
-   - Accessibility testing 
+   - Accessibility testing
 
 ## Recent Fixes
 - The "Show more" button for dream content now reliably expands and collapses content in the Dream Entries table across all tested themes and with/without custom CSS snippets.
