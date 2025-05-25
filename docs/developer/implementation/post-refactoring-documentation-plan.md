@@ -8,8 +8,8 @@
 **Key Milestones**: 
 - Document audit: ✅ Completed (8/8 documents reviewed)
 - Architecture documentation updates: In progress
-- Diagram updates: Not started
-- TypeScript architecture documentation: In progress
+- Diagram updates: 🔄 In progress
+- TypeScript architecture documentation: 🔄 In progress
 - Archive directory created: ✅ Completed
 
 This plan outlines the necessary documentation updates following the successful TypeScript refactoring project. It includes tasks for reorganizing documentation, updating architecture diagrams, and creating new TypeScript-specific documentation. Progress is tracked through various tables throughout this document, with an overall status summary at the end.
@@ -73,11 +73,11 @@ This document outlines the plan for reorganizing documentation and updating diag
 ## Architecture Documentation Updates
 
 ### Update Overview Document
-- [ ] Update `docs/developer/architecture/overview.md`:
-  - [ ] Add section on TypeScript architecture
-  - [ ] Add references to new TypeScript diagrams
-  - [ ] Update component descriptions to reflect TypeScript implementation
-  - [ ] Verify all architectural principles still apply
+- [x] Update `docs/developer/architecture/overview.md`:
+  - [x] Add section on TypeScript architecture
+  - [x] Add references to new TypeScript diagrams
+  - [x] Update component descriptions to reflect TypeScript implementation
+  - [x] Verify all architectural principles still apply
 
 ### Update Specification Document
 - [ ] Add TypeScript architecture section to `docs/developer/architecture/specification.md`:
@@ -231,20 +231,20 @@ This document outlines the plan for reorganizing documentation and updating diag
 
 ### Overall Progress Summary
 - [ ] Phase 1: Initial Organization - 75% complete
-- [ ] Phase 2: Documentation Updates - 60% complete 
+- [ ] Phase 2: Documentation Updates - 75% complete 
 - [ ] Phase 3: Final Cleanup - 0% complete
 
 ### Weekly Status Updates
 | Date | Progress Summary | Completed Items | Blockers | Next Steps |
 |------|-----------------|----------------|----------|------------|
-| 2025-05-25 | Documentation plan initiated; Archive directory created; Document audit completed; Architecture documentation updates in progress; Created TypeScript Adapter Pattern and Helper Utilities documentation | Created archive directory at `docs/archive/refactoring-2025/`; Reviewed 8/8 documents; Added TypeScript architecture sections to specification.md; Created comprehensive `typescript-adapter-patterns.md` and `typescript-helper-utilities.md` guides; Referenced and integrated TypeScript diagrams | None | Begin TypeScript best practices guide; Update architecture overview document |
+| 2025-05-25 | Documentation plan initiated; Archive directory created; Document audit completed; Architecture documentation updates in progress; Created TypeScript Adapter Pattern and Helper Utilities documentation; Updated architecture overview | Created archive directory at `docs/archive/refactoring-2025/`; Reviewed 8/8 documents; Added TypeScript architecture sections to specification.md; Created comprehensive `typescript-adapter-patterns.md` and `typescript-helper-utilities.md` guides; Updated architecture overview with TypeScript implementation details; Referenced and integrated TypeScript diagrams | None | Begin TypeScript best practices guide |
 
 ### Milestone Tracking
 | Milestone | Target Date | Status | Notes |
 |-----------|------------|--------|-------|
 | Document Audit Complete | 2025-05-25 | ✅ Completed | All 8 refactoring documents reviewed and content categorized |
 | Archive Directory Created | 2025-05-25 | ✅ Completed | `docs/archive/refactoring-2025/` directory created |
-| Architecture Docs Updated | 2025-05-25 | 🔄 In Progress | Added TypeScript architecture sections to specification.md (Type System, Adapter Pattern, Safe Property Access, Error Handling, Event Communication, Testing) |
+| Architecture Docs Updated | 2025-05-25 | 🔄 In Progress | Added TypeScript architecture sections to specification.md and overview.md (Type System, Adapter Pattern, Safe Property Access, Error Handling, Event Communication, Testing) |
 | Diagrams Updated | 2025-05-25 | 🔄 In Progress | TypeScript diagrams referenced in the adapter pattern documentation |
 | TypeScript Architecture Docs Created | 2025-05-25 | 🔄 In Progress | Added TypeScript architecture documentation including new `typescript-adapter-patterns.md` guide |
 | Final Cleanup Complete | | Not Started | |
