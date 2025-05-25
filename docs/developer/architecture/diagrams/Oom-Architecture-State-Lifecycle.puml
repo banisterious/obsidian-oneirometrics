@@ -23,12 +23,16 @@ state "Render UI" as RenderUI
 state "Handle User Input" as UserInput
 state "Update State" as UpdateState
 state "Persist Changes" as Persist
+state "Type Validation" as TypeValidation
+state "Type Adaptation" as TypeAdaptation
 
 [*] --> Init
 Init --> LoadConfig : Plugin loaded
-LoadConfig --> InitServices : Config loaded
+LoadConfig --> TypeAdaptation : Config loaded
+TypeAdaptation --> InitServices : Type-safe config
 InitServices --> LoadData : Services ready
-LoadData --> ProcessData : Journal files loaded
+LoadData --> TypeValidation : Journal files loaded
+TypeValidation --> ProcessData : Validated data
 ProcessData --> CalcMetrics : Journal data processed
 CalcMetrics --> RenderUI : Metrics calculated
 RenderUI --> UserInput : UI displayed
@@ -45,9 +49,11 @@ state UserInputHandling {
   UserInput --> ExportData : Export request
 }
 
-ModifyJournal --> UpdateState : Journal modification
+ModifyJournal --> TypeValidation : Journal modification
+TypeValidation --> UpdateState : Validated changes
 UpdateMetrics --> UpdateState : Metrics filter changed
-ChangeSettings --> UpdateState : Settings updated
+ChangeSettings --> TypeAdaptation : Settings updated
+TypeAdaptation --> UpdateState : Normalized settings
 ExportData --> UpdateState : Export completed
 
 UpdateState --> ProcessData : Journal data changed
@@ -61,12 +67,16 @@ state ErrorHandling {
   state "Logger" as Logger
   state "Error UI" as ErrorUI
   state "Recovery" as Recovery
+  state "Type Error Handler" as TypeErrorHandler
   
   Init -down-> Logger : Initialization error
   LoadConfig -down-> Logger : Config error
   LoadData -down-> Logger : File read error
   ProcessData -down-> Logger : Parse error
+  TypeValidation -down-> TypeErrorHandler : Type validation error
+  TypeAdaptation -down-> TypeErrorHandler : Adaptation error
   
+  TypeErrorHandler --> Logger : Log type error
   Logger --> ErrorUI : Display error
   ErrorUI --> Recovery : User action
   Recovery --> LoadConfig : Retry
@@ -90,6 +100,22 @@ note right of ProcessData
   - Tag extraction
   - Date normalization
   - Content parsing
+end note
+
+note right of TypeValidation
+  Type Validation ensures:
+  - Interface compliance
+  - Runtime type checking
+  - Property existence verification
+  - Error prevention
+end note
+
+note right of TypeAdaptation
+  Type Adaptation handles:
+  - Converting between interface versions
+  - Normalizing property names
+  - Setting default values
+  - Providing backward compatibility
 end note
 
 @enduml 

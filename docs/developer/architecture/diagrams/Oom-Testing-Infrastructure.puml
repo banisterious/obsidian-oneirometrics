@@ -106,12 +106,67 @@ package "Test Categories" {
     + testErrorHandling()
   }
   
+  class TypeSystemTests {
+    + testTypeGuards()
+    + testAdapterFunctions()
+    + testInterfaceCompatibility()
+    + testPropertyAccessHelpers()
+  }
+  
   ParserTests --|> TestCase
   JournalServiceTests --|> TestCase
   MetricsServiceTests --|> TestCase
   StateManagerTests --|> TestCase
   UIComponentTests --|> TestCase
   IntegrationTests --|> TestCase
+  TypeSystemTests --|> TestCase
+}
+
+package "Synchronous Testing" {
+  class SyncTestExecutor {
+    + runSync(test: TestCase)
+    + setupTestContext()
+    + assertResults()
+  }
+  
+  class TypeGuardTester {
+    + testGuardFunction(guard: Function, cases: any[])
+    + validateTypeAssertions()
+  }
+  
+  class PropertyTester {
+    + testPropertyAccess(helper: Function, objects: any[])
+    + validatePropertyResults()
+  }
+  
+  SyncTestExecutor -> TestCase : executes synchronously
+  TypeGuardTester -> TypeSystemTests : provides utilities for
+  PropertyTester -> TypeSystemTests : provides utilities for
+}
+
+package "Asynchronous Testing" {
+  class AsyncTestExecutor {
+    + runAsync(test: TestCase): Promise<TestResult>
+    + queueTest(test: TestCase)
+    + awaitCompletion(): Promise<TestResult[]>
+  }
+  
+  class EventEmitterTester {
+    + subscribeToEvent(emitter: EventEmitter, event: string)
+    + awaitEvent(timeout: number): Promise<any>
+    + validateEventSequence(events: string[]): Promise<boolean>
+  }
+  
+  class ServiceTester {
+    + mockAsyncOperation(service: any, method: string)
+    + simulateDelay(ms: number)
+    + chainedOperations(operations: Function[]): Promise<any>
+  }
+  
+  AsyncTestExecutor -> TestCase : executes asynchronously
+  EventEmitterTester -> StateManagerTests : provides utilities for
+  ServiceTester -> JournalServiceTests : provides utilities for
+  ServiceTester -> MetricsServiceTests : provides utilities for
 }
 
 package "Test UI" {
@@ -132,9 +187,16 @@ package "Test UI" {
     + onSelect()
   }
   
+  class TestProgressIndicator {
+    + showProgress(completed: number, total: number)
+    + updateStatus(status: string)
+    + indicateAsyncTests(running: number)
+  }
+  
   TestRunnerModal --> TestRunner : uses
   TestRunnerModal --> TestResultView : contains
   TestRunnerModal --> TestCategorySelector : contains
+  TestRunnerModal --> TestProgressIndicator : contains
 }
 
 package "Mock Utilities" {
@@ -155,9 +217,17 @@ package "Mock Utilities" {
     + resetServices()
   }
   
+  class TypeValidationMock {
+    + mockTypeGuard(guardName: string, returnValue: boolean)
+    + mockAdapterFunction(adapterName: string, returnValue: any)
+    + simulateTypeError(errorType: string)
+  }
+  
   TestFixture --> MockFileSystem : uses
   TestFixture --> MockObsidianAPI : uses
   TestFixture --> MockServiceContainer : uses
+  TestFixture --> TypeValidationMock : uses
+  TypeSystemTests --> TypeValidationMock : uses for mocking
 }
 
 class TestingModule {
@@ -170,17 +240,32 @@ TestingModule --> TestRunner : initializes
 TestingModule --> TestRegistry : registers tests
 TestingModule --> TestRunnerModal : shows
 
-note bottom of TestCase
-  Test cases implement the actual
-  test logic for each component
-  or functionality.
+note bottom of TypeSystemTests
+  TypeSystemTests verify the TypeScript 
+  infrastructure including type guards,
+  adapter functions, interface compatibility,
+  and safe property access.
 end note
 
-note right of MockUtilities
-  Mock utilities provide isolated
-  environments for testing without
-  affecting real data or requiring
-  the full Obsidian environment.
+note bottom of AsyncTestExecutor
+  AsyncTestExecutor handles tests that
+  involve Promises, async/await, and
+  event-based operations, particularly
+  important for testing UI updates and
+  file operations.
+end note
+
+note bottom of SyncTestExecutor
+  SyncTestExecutor handles synchronous tests
+  like type validations, data transformations,
+  and pure function behaviors.
+end note
+
+note right of TypeValidationMock
+  TypeValidationMock provides utilities
+  for testing TypeScript-specific features
+  by simulating type guards, adapters, and
+  generating controlled type errors.
 end note
 
 @enduml 
