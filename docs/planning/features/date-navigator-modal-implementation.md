@@ -173,6 +173,12 @@ All critical issues have been resolved:
 - Add support for multi-date and date range selection
 - Explore the web worker architecture detailed in this document
 - Add tooltips and hover previews for entries on calendar view
+- Auto-apply filtering on day selection:
+  - Eliminate the need for explicitly clicking the Apply button
+  - Implement direct filtering when clicking on days with dream entries
+  - Add setting to control whether filter is auto-applied
+  - Provide visual feedback during the filtering process
+  - Estimated effort: Low (1-2 hours)
 
 ## Architectural Review and Open Questions
 

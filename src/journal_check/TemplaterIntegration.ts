@@ -1,17 +1,52 @@
 import { App, Notice, TFile } from 'obsidian';
 import { TemplaterVariable } from './types';
 
+interface TemplaterIntegrationSettings {
+    enabled?: boolean;
+    templateFolder?: string;
+    defaultTemplate?: string;
+    options?: Record<string, any>;
+}
+
 /**
  * Integration with the Templater plugin for advanced template support
  */
 export class TemplaterIntegration {
-    constructor(private plugin: any) {}
+    private settings: TemplaterIntegrationSettings;
+    
+    constructor(
+        private app: App,
+        private plugin: any,
+        settings?: TemplaterIntegrationSettings
+    ) {
+        this.settings = settings || {};
+    }
     
     /**
      * Check if Templater plugin is installed and enabled
      */
     isTemplaterInstalled(): boolean {
-        return this.plugin.app.plugins.plugins['templater-obsidian'] !== undefined;
+        // Use the plugin instance to check for Templater
+        // @ts-ignore - Accessing internal plugin registry
+        return Boolean(this.plugin && this.plugin.app && this.plugin.app.plugins && 
+                      this.plugin.app.plugins.plugins['templater-obsidian']);
+    }
+    
+    /**
+     * Get the Templater plugin instance
+     */
+    private getTemplaterPlugin(): any {
+        if (!this.isTemplaterInstalled()) {
+            return null;
+        }
+        
+        try {
+            // @ts-ignore - Plugin API access
+            return this.plugin.app.plugins.plugins['templater-obsidian'];
+        } catch (error) {
+            console.error('Error accessing Templater plugin:', error);
+            return null;
+        }
     }
     
     /**
@@ -23,7 +58,9 @@ export class TemplaterIntegration {
         }
         
         try {
-            const templaterPlugin = this.plugin.app.plugins.plugins['templater-obsidian'];
+            const templaterPlugin = this.getTemplaterPlugin();
+            if (!templaterPlugin) return [];
+            
             const templateFolder = templaterPlugin.settings.template_folder;
             
             if (!templateFolder) {
@@ -45,6 +82,7 @@ export class TemplaterIntegration {
      * Recursively get template files from a folder
      */
     private getTemplateFilesInFolder(folderPath: string, results: string[]): void {
+        // Use the plugin's app reference
         const folder = this.plugin.app.vault.getAbstractFileByPath(folderPath);
         
         if (!folder || folder instanceof TFile) {
@@ -68,6 +106,7 @@ export class TemplaterIntegration {
      */
     getTemplateContent(templatePath: string): string {
         try {
+            // Use the plugin's app reference
             const file = this.plugin.app.vault.getAbstractFileByPath(templatePath);
             
             if (!file || !(file instanceof TFile)) {
@@ -187,7 +226,11 @@ export class TemplaterIntegration {
         }
         
         try {
-            const templaterPlugin = this.plugin.app.plugins.plugins['templater-obsidian'];
+            const templaterPlugin = this.getTemplaterPlugin();
+            if (!templaterPlugin) {
+                throw new Error("Templater plugin not found");
+            }
+            
             const templater = templaterPlugin.templater;
             
             // Get the template file

@@ -1,3 +1,17 @@
+/**
+ * @deprecated This file is being phased out. Import types from types/index.ts instead.
+ * Example: import { DreamMetric, LogLevel } from './types';
+ */
+
+// Re-export all types from the new location
+export * from './types/index';
+
+// Log deprecation warning
+console.warn(
+  "DEPRECATION WARNING: Importing from src/types.ts is deprecated. " +
+  "Import from src/types/ instead. This file will be removed in a future version."
+);
+
 import { LintingSettings } from './journal_check/types';
 
 export interface DreamMetricData {

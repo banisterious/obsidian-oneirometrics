@@ -3,14 +3,14 @@ import { App } from 'obsidian';
 /**
  * Represents the available logging levels from least verbose to most verbose.
  */
-export type LogLevel = 'off' | 'errors' | 'warn' | 'info' | 'debug' | 'trace';
+export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 /**
  * Represents the numeric values for log levels, used for comparison.
  */
 export enum LogLevelValue {
   OFF = 0,
-  ERRORS = 1,
+  ERROR = 1,
   WARN = 2,
   INFO = 3,
   DEBUG = 4,
@@ -41,6 +41,7 @@ export interface EnrichedError extends Error {
 export interface LoggerConfig {
   level: LogLevel;
   maxLogSize?: number;
+  maxSize?: number;
   maxBackups?: number;
   logFilePath?: string;
 }

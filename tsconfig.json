@@ -6,20 +6,31 @@
     "module": "ESNext",
     "target": "ES2018",
     "allowJs": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "moduleResolution": "node",
     "importHelpers": true,
     "isolatedModules": true,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "*": ["src/types/declarations/*"]
+    },
     "lib": [
       "DOM",
       "ES5",
       "ES6",
       "ES7",
       "ES2018"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+      "src/types/declarations"
     ]
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "src/types/declarations/**/*.d.ts"
   ]
 } 

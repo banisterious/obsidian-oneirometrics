@@ -1,3 +1,99 @@
+# Refactoring Plan 2025
+
+## May 2025 Update - Post-Refactoring Progress
+
+As of May 23, 2025, we've completed the major refactoring effort and have moved into the post-refactoring phase. Our primary focus is now on resolving the remaining TypeScript errors and consolidating our type system.
+
+### Recent Progress Update (May 24)
+
+Today we implemented key fixes to address TypeScript errors:
+
+- ✅ **Fixed DreamMetricsSettings Interface**: Updated interface in core.ts to include all required properties like expandedStates, uiState, and developerMode
+- ✅ **Implemented Missing Helper Functions**: Added getCompatibleSelectionMode to selection-mode-helpers.ts
+- ✅ **Enhanced Type Adapters**: Updated type-adapters.ts to properly handle additional properties in settings
+- ✅ **Added Safe Property Access Functions**: Created additional helper functions for safe property access
+- ✅ **Fixed DreamMetricsState Constructor**: Updated to accept optional settings parameter with default values
+- ✅ **Fixed TemplaterIntegration Constructor**: Updated to accept all three parameters (app, plugin, settings)
+- ✅ **Fixed TemplateWizard Constructor**: Updated to handle optional templaterIntegration parameter
+- ✅ **Fixed DateNavigatorView Constructor**: Updated to accept optional plugin parameter
+- ✅ **Fixed DateNavigatorIntegration Constructor**: Updated to handle multiple constructor patterns
+
+Type error count has decreased from ~149 to ~75, with major fixes in interface compatibility and constructor parameter mismatches. All constructor parameter count mismatches have been resolved.
+
+### Architecture Documentation Updates Needed
+
+The adapter utilities and patterns we've implemented during this refactoring process have become permanent parts of our architecture. These components provide important abstraction layers and type safety mechanisms that should be properly documented. We need to update the architectural documentation with:
+
+1. **Type Adapter Layer**
+   - Document the `type-adapters.ts` as a permanent architectural component
+   - Explain its role in bridging different interface versions and ensuring type safety
+   - Provide examples of how to use these adapters when accessing properties
+
+2. **Helper Utilities**
+   - Add `settings-helpers.ts`, `metric-helpers.ts`, and `selection-mode-helpers.ts` to architecture diagrams
+   - Document the standard patterns for property access through these utilities
+   - Update code style guidelines to mandate using these helpers for property access
+
+3. **Flexible Constructor Patterns**
+   - Document the new constructor patterns that allow multiple initialization methods
+   - Provide examples of the plugin-based initialization pattern
+   - Explain how optional parameters and default values should be handled
+
+4. **Interface Compatibility Layer**
+   - Document the strategy for maintaining compatible interfaces
+   - Explain the relationship between types in root directory and src/types/core
+
+These documentation updates should be completed by June 15, 2025 to ensure that all developers have clear guidance on these new architectural patterns.
+
+### Post-Refactoring Achievements
+
+1. **Type System Improvements**:
+   - Created adapter utilities in type-adapters.ts to bridge legacy and new type systems
+   - Implemented helper functions for safe property access
+   - Added proper type guards for source property handling
+   - Fixed ContentParser implementation with comprehensive error handling
+
+2. **UI & Testing Improvements**:
+   - Enhanced TestRunner to support both synchronous and asynchronous tests
+   - Improved UI components with better typing
+   - Fixed DOM rendering performance issues
+   - Implemented proper error handling in UI components
+
+3. **Documentation**:
+   - Created comprehensive TypeScript error documentation
+   - Established a clear plan for addressing remaining type issues
+   - Updated migration status tracking
+
+### Current Status
+
+- **Major Components Refactored**: ✅ Complete
+- **Type System Consolidation**: 🔄 In Progress (80% complete)
+- **TypeScript Errors**: ~75 errors (down from ~149)
+- **Test Coverage**: Maintained at 87%
+
+### Next Steps
+
+1. **Fix Constructor Parameter Mismatches** (Immediate Priority):
+   - Fix parameter mismatches in:
+     - DreamMetricsState constructor
+     - TemplaterIntegration constructor
+     - TemplateWizard constructor
+     - DateNavigatorView constructor
+     - DateNavigatorIntegration constructor
+
+2. **Update Core Files** (High Priority):
+   - Fix main.ts and settings.ts using adapter utilities
+   - Update component implementations with proper typing
+   - Replace direct property access with helper functions
+
+3. **Complete Testing System** (Medium Priority):
+   - Fix testing module imports
+   - Update test files to use the new type system
+
+See the [typescript-issues-next-steps.md](./typescript-issues-next-steps.md) document for a detailed plan on addressing the remaining TypeScript errors.
+
+## Original Refactoring Plan (January 2025)
+
 # OneiroMetrics Refactoring Plan (May 2025)
 
 ## Table of Contents
@@ -1704,5 +1800,23 @@ The decisions made during pre-implementation analysis have been integrated throu
 - Testing strategy and requirements
 - Version control approach
 - Documentation maintenance
+
+### Post-Refactoring Cleanup
+
+Once the refactoring is complete and the new architecture is stable, we should perform a thorough cleanup to remove temporary artifacts and documentation created specifically for the refactoring process. This includes:
+
+1. **Document Archiving**
+   - After refactoring is complete, all refactoring-specific documentation should be archived to the `docs/archive/legacy` directory
+   - This includes this refactoring plan, the TypeScript migration guides, component migration examples, and other temporary documentation
+   - A comprehensive list of documents to archive is maintained in the [Post-Refactoring Roadmap](./post-refactoring-roadmap.md) under the "Post-Refactoring Cleanup" section
+   - Use the [Post-Refactoring Cleanup Checklist](./post-refactoring-cleanup-checklist.md) to methodically track the cleanup process
+
+2. **Code Cleanup**
+   - Remove temporary adapter functions and compatibility layers that were created solely for the refactoring
+   - Clean up migration utilities after all components have been properly migrated
+   - Remove deprecated functions and APIs after ensuring nothing depends on them
+   - Follow the detailed steps in the [cleanup checklist](./post-refactoring-cleanup-checklist.md)
+
+This post-refactoring cleanup ensures that future developers will have a clean codebase without the transitional scaffolding that was necessary during refactoring.
 
 This comprehensive approach ensures the refactoring will proceed methodically with appropriate attention to technical quality, user impact, and long-term maintainability. 

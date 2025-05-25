@@ -1,20 +1,29 @@
-import { 
-    startOfMonth, 
-    endOfMonth, 
+import { App } from 'obsidian';
+import { DreamMetricsState } from '../state/DreamMetricsState';
+import { DreamMetricData } from '../types/core';
+import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
+import {
+    startOfMonth,
+    endOfMonth,
+    startOfWeek,
+    endOfWeek,
+    eachDayOfInterval,
+    addDays,
+    subDays,
+    addMonths,
+    subMonths,
+    format,
+    isToday,
+    isSameMonth,
+    isSameDay,
+    isWithinInterval,
     startOfDay,
     endOfDay,
-    addMonths, 
-    subMonths, 
-    format, 
-    isToday, 
-    isSameMonth, 
+    differenceInDays,
     getDaysInMonth,
     getDay,
-    isWithinInterval,
     parse
 } from 'date-fns';
-import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../types';
 
 // Core interfaces
 export interface Day {
@@ -189,15 +198,28 @@ export class DateNavigator {
                 // Create a simple visualization based on the indicator value
                 let starsHtml = '';
                 if (day.metrics.indicator === 'high') {
-                    starsHtml = '★★★';
+                    starsHtml = '<span class="oom-star-high">★★★</span>';
                 } else if (day.metrics.indicator === 'medium') {
-                    starsHtml = '★★';
+                    starsHtml = '<span class="oom-star-medium">★★</span>';
                 } else if (day.metrics.indicator === 'low') {
-                    starsHtml = '★';
+                    starsHtml = '<span class="oom-star-low">★</span>';
                 }
                 
                 if (starsHtml) {
                     metricsEl.innerHTML = starsHtml;
+                    
+                    // Add tooltip with metric info
+                    const metricName = day.metrics.key || 'entries';
+                    const metricValue = day.metrics.value;
+                    const metricLabel = metricName === 'entries' ? 'entries' : `${metricName}: ${metricValue}`;
+                    metricsEl.setAttribute('title', `${day.metrics.count} dream ${metricLabel}`);
+                    metricsEl.setAttribute('aria-label', `${day.metrics.count} dream ${metricLabel}`);
+                    
+                    // Add a CSS class based on the metric indicator
+                    metricsEl.addClass(`oom-metric-${day.metrics.indicator}`);
+                    
+                    // Log for debugging
+                    console.log(`[OOM-DEBUG] Adding metrics display for ${day.date.toISOString()}:`, day.metrics);
                 }
             }
             
@@ -345,23 +367,62 @@ export class DateNavigator {
             return;
         }
         
-        // For now, we'll just use the entry count as a simple metric
-        // Later, this can be expanded to include actual dream metrics
+        // For now, we'll use the entry count as a simple metric
+        // but also check for dream quality metrics like clarity, vividness, etc.
         
         let indicator: 'high' | 'medium' | 'low' | 'none' = 'none';
+        let value = 0;
+        let metricKey = 'entries';
         
+        // First, check entry count
         if (entries.length >= 3) {
             indicator = 'high';
+            value = entries.length;
         } else if (entries.length === 2) {
             indicator = 'medium';
+            value = entries.length;
         } else if (entries.length === 1) {
             indicator = 'low';
+            value = entries.length;
         }
+        
+        // Now check for quality metrics in the entries
+        const qualityMetrics = ['Clarity', 'Vividness', 'Coherence', 'Intensity', 'Recall'];
+        
+        entries.forEach(entry => {
+            qualityMetrics.forEach(metricName => {
+                if (entry.metrics && entry.metrics[metricName] !== undefined) {
+                    const metricValue = entry.metrics[metricName] as number;
+                    // If we find a high quality metric value, upgrade the indicator
+                    if (metricValue >= 8) {
+                        indicator = 'high';
+                        value = metricValue;
+                        metricKey = metricName;
+                    } else if (metricValue >= 5 && indicator !== 'high') {
+                        indicator = 'medium';
+                        value = metricValue;
+                        metricKey = metricName;
+                    } else if (metricValue > 0 && indicator === 'none') {
+                        indicator = 'low';
+                        value = metricValue;
+                        metricKey = metricName;
+                    }
+                }
+            });
+        });
+        
+        // Log the calculated metrics for debugging
+        console.log(`[OOM-DEBUG] Calculated metrics for ${dateKey}:`, { 
+            count: entries.length, 
+            key: metricKey, 
+            value: value, 
+            indicator: indicator 
+        });
         
         this.metrics.set(dateKey, {
             count: entries.length,
-            key: 'entries',
-            value: entries.length,
+            key: metricKey,
+            value: value,
             indicator: indicator
         });
     }
@@ -448,15 +509,28 @@ export class DateNavigator {
             
             let starsHtml = '';
             if (day.metrics.indicator === 'high') {
-                starsHtml = '★★★';
+                starsHtml = '<span class="oom-star-high">★★★</span>';
             } else if (day.metrics.indicator === 'medium') {
-                starsHtml = '★★';
+                starsHtml = '<span class="oom-star-medium">★★</span>';
             } else if (day.metrics.indicator === 'low') {
-                starsHtml = '★';
+                starsHtml = '<span class="oom-star-low">★</span>';
             }
             
             if (starsHtml) {
                 newMetricsEl.innerHTML = starsHtml;
+                
+                // Add tooltip with metric info
+                const metricName = day.metrics.key || 'entries';
+                const metricValue = day.metrics.value;
+                const metricLabel = metricName === 'entries' ? 'entries' : `${metricName}: ${metricValue}`;
+                newMetricsEl.setAttribute('title', `${day.metrics.count} dream ${metricLabel}`);
+                newMetricsEl.setAttribute('aria-label', `${day.metrics.count} dream ${metricLabel}`);
+                
+                // Add a CSS class based on the metric indicator
+                newMetricsEl.addClass(`oom-metric-${day.metrics.indicator}`);
+                
+                // Log for debugging
+                console.log(`[OOM-DEBUG] Updating metrics display for ${day.date.toISOString()}:`, day.metrics);
             }
         }
         

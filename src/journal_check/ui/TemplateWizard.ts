@@ -34,10 +34,15 @@ export class TemplateWizard extends Modal {
     constructor(
         app: App,
         private plugin: any,
-        private templaterIntegration: TemplaterIntegration,
+        private templaterIntegration?: TemplaterIntegration,
         private editingTemplate?: JournalTemplate
     ) {
         super(app);
+        
+        // Initialize templaterIntegration if not provided
+        if (!this.templaterIntegration && this.plugin.templaterIntegration) {
+            this.templaterIntegration = this.plugin.templaterIntegration;
+        }
         
         // If editing an existing template, populate the fields
         if (editingTemplate) {
@@ -230,168 +235,131 @@ export class TemplateWizard extends Modal {
     }
     
     /**
-     * Step 3: Templater integration
+     * Step 3: Template content
      */
     private buildStep3() {
         const container = this.stepContainers[2];
         
-        container.createEl('h3', { text: 'Step 3: Templater Integration' });
+        container.createEl('h3', { text: 'Step 3: Template Content' });
         container.createEl('p', { 
-            text: 'Templater provides powerful dynamic content capabilities for your templates.' 
+            text: 'Create the content for your template.' 
         });
         
-        // Information icon with note about Templater
-        const infoEl = container.createDiv({ cls: 'oom-templater-info-note' });
-        infoEl.innerHTML = `<span class="oom-info-icon">ℹ️</span> Templater is recommended for creating dynamic templates with date formatting, user prompts, and conditional content.`;
-        
-        // Check if Templater plugin is available
+        // Check if Templater is available
         const templaterEnabled = this.templaterIntegration && this.templaterIntegration.isTemplaterInstalled();
         
+        // Templater toggle
         new Setting(container)
-            .setName('Template Source')
-            .setDesc('Choose whether to use existing Templater template or create a new one')
+            .setName('Use Templater')
+            .setDesc('Use a Templater template for dynamic content')
             .addToggle(toggle => {
                 toggle.setValue(this.useTemplater)
+                    .setDisabled(!templaterEnabled)
                     .onChange(value => {
                         this.useTemplater = value;
                         this.updateTemplaterSection(value);
                         this.updatePreview();
                     });
-                
-                // Disable toggle if Templater is not available
-                if (!templaterEnabled) {
-                    toggle.setDisabled(true);
-                    toggle.setValue(false);
-                    this.useTemplater = false;
-                }
             });
         
-        // Templater template selection section
+        // Templater template selection
         const templaterSection = container.createDiv({ cls: 'oom-templater-section' });
         
         if (!templaterEnabled) {
-            templaterSection.style.display = 'none';
-            
-            const warningEl = container.createEl('div', {
-                cls: 'oom-templater-warning'
+            const warningEl = templaterSection.createDiv({ cls: 'oom-templater-warning' });
+            warningEl.createEl('p', { 
+                text: 'Templater plugin is not installed or enabled. You can still create a template, but without dynamic content.' 
             });
-            warningEl.innerHTML = '⚠️ Templater plugin is not installed or enabled. <a href="https://github.com/SilentVoid13/Templater">Install Templater</a> to use this feature.';
-            
-            // Add explanation about fallback mechanism
-            const fallbackEl = container.createEl('div', {
-                cls: 'oom-templater-fallback-info'
-            });
-            fallbackEl.innerHTML = 'Your templates will use a static version with placeholders when Templater is not available.';
-        } else {
-            // Assume compatible and perform simple check
-            const hasTemplaterSupport = this.templaterIntegration.isTemplaterInstalled();
-            
-            if (!hasTemplaterSupport) {
-                templaterSection.style.display = 'none';
-                templaterSection.createEl('div', {
-                    text: `Warning: Templater plugin is not properly configured.`,
-                    cls: 'oom-templater-warning'
-                });
-            } else {
-                // Hide by default if not using Templater
-                templaterSection.style.display = this.useTemplater ? 'block' : 'none';
+        }
+        
+        new Setting(templaterSection)
+            .setName('Templater Template')
+            .setDesc('Select a Templater template to use')
+            .addDropdown(dropdown => {
+                this.templaterDropdown = dropdown;
                 
-                // Get available Templater templates
-                const templates = this.templaterIntegration.getTemplaterTemplates();
+                // Add empty option
+                dropdown.addOption('', 'Select a template...');
                 
-                new Setting(templaterSection)
-                    .setName('Templater Template')
-                    .setDesc('Select a Templater template to use')
-                    .addDropdown(dropdown => {
-                        this.templaterDropdown = dropdown;
+                // Get Templater templates if available
+                if (templaterEnabled) {
+                    const hasTemplaterSupport = this.templaterIntegration?.isTemplaterInstalled();
+                    
+                    if (hasTemplaterSupport) {
+                        const templates = this.templaterIntegration?.getTemplaterTemplates() || [];
                         
-                        for (const template of templates) {
-                            dropdown.addOption(template, template.split('/').pop() || template);
+                        if (templates.length === 0) {
+                            dropdown.addOption('no-templates', 'No templates found');
+                            dropdown.setDisabled(true);
+                        } else {
+                            for (const template of templates) {
+                                dropdown.addOption(template, template);
+                            }
                         }
                         
+                        // Set the current value
                         if (this.templaterFile) {
-                            dropdown.setValue(this.templaterFile);
-                        } else if (templates.length > 0) {
-                            this.templaterFile = templates[0];
                             dropdown.setValue(this.templaterFile);
                         }
                         
                         dropdown.onChange(value => {
                             this.templaterFile = value;
                             
-                            // Load the template content
-                            const content = this.templaterIntegration.getTemplateContent(value);
-                            if (content) {
+                            // Load the content from the templater file
+                            if (value && this.templaterIntegration) {
+                                const content = this.templaterIntegration.getTemplateContent(value);
                                 this.content = content;
+                                this.contentArea.setValue(content);
                                 this.updatePreview();
-                                
-                                // Also update the static preview
-                                this.updateStaticPreview(content);
                             }
                         });
-                    });
-                    
-                // Add a button to refresh the templates list
-                new Setting(templaterSection)
-                    .setName('Refresh Templates')
-                    .setDesc('Refresh the list of Templater templates')
-                    .addButton(button => {
-                        button.setButtonText('Refresh')
-                            .onClick(() => {
-                                const templates = this.templaterIntegration.getTemplaterTemplates();
-                                
-                                // Clear and rebuild dropdown options
-                                const dropdown = this.templaterDropdown;
-                                const selectEl = dropdown.selectEl;
-                                selectEl.innerHTML = ''; // Clear options
-                                
-                                for (const template of templates) {
-                                    dropdown.addOption(template, template.split('/').pop() || template);
-                                }
-                                new Notice('Template list refreshed');
-                            });
-                    });
-                
-                // Add preview section for static version
-                const staticPreviewSection = container.createDiv({ cls: 'oom-static-preview-section' });
-                staticPreviewSection.createEl('h4', { 
-                    text: 'Static Fallback Preview (when Templater is not installed):',
-                    cls: 'oom-static-preview-heading'
-                });
-                
-                // Add static preview container
-                staticPreviewSection.createDiv({ 
-                    cls: 'oom-static-preview-content',
-                    attr: { id: 'static-preview-content' }
-                });
-                
-                // Initially update the static preview if content exists
-                if (this.content) {
-                    this.updateStaticPreview(this.content);
+                    }
+                } else {
+                    dropdown.addOption('templater-disabled', 'Templater not available');
+                    dropdown.setDisabled(true);
                 }
-            }
-        }
+            });
+        
+        // Make sure the templater section is initially hidden if not using templater
+        templaterSection.style.display = this.useTemplater ? 'block' : 'none';
+        
+        // Content area for manual editing
+        const contentSection = container.createDiv({ cls: 'oom-content-section' });
+        
+        new Setting(contentSection)
+            .setName('Template Content')
+            .setDesc('Create the content for your template')
+            .setHeading();
+        
+        const contentAreaContainer = contentSection.createDiv({
+            cls: 'oom-template-content-container'
+        });
+        
+        this.contentArea = new TextAreaComponent(contentAreaContainer);
+        this.contentArea.inputEl.addClass('oom-template-content');
+        this.contentArea.setValue(this.content || this.getDefaultContent());
+        this.contentArea.onChange(value => {
+            this.content = value;
+            this.updatePreview();
+        });
     }
     
     /**
      * Update the static preview with converted template content
      */
     private updateStaticPreview(content: string) {
-        if (!content) return;
-        
-        const staticContent = this.templaterIntegration.convertToStaticTemplate(content);
-        const previewEl = document.getElementById('static-preview-content');
-        
-        if (previewEl) {
-            previewEl.innerHTML = '';
-            previewEl.createEl('pre', { 
-                text: staticContent,
-                cls: 'oom-static-preview-code'
-            });
+        if (!content) {
+            this.staticContent = '';
+            return;
         }
         
-        // Store static content for the template
-        this.staticContent = staticContent;
+        // Convert to static content if using Templater
+        if (this.useTemplater && this.templaterIntegration) {
+            const staticContent = this.templaterIntegration.convertToStaticTemplate(content);
+            this.staticContent = staticContent;
+        } else {
+            this.staticContent = content;
+        }
     }
     
     /**
@@ -811,7 +779,12 @@ export class TemplateWizard extends Modal {
         
         // Ensure we have static content
         if (!this.staticContent && this.useTemplater) {
-            this.staticContent = this.templaterIntegration.convertToStaticTemplate(this.content);
+            if (this.templaterIntegration) {
+                this.staticContent = this.templaterIntegration.convertToStaticTemplate(this.content);
+            } else {
+                // If templaterIntegration is unavailable, use the content as-is
+                this.staticContent = this.content;
+            }
         }
         
         // Create template object
