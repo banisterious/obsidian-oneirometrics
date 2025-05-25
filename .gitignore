@@ -44,3 +44,7 @@ docs/TODO_NPM_UPGRADE.md
 
 # Backup files
 *.bak 
+
+# Refactoring cleanup scripts
+docs/developer/implementation/refactoring-cleanup.ps1
+docs/developer/implementation/refactoring-cleanup.sh 
