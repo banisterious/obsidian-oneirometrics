@@ -1,5 +1,5 @@
 import DreamMetricsPlugin from '../../main';
-import { LintingSettings, LintingRule, ValidationResult, CalloutStructure, JournalTemplate, QuickFix } from './types';
+import { LintingSettings, LintingRule, ValidationResult, CalloutStructure, JournalTemplate, QuickFix, CalloutBlock } from './types';
 import { ContentParser } from './ContentParser';
 import { TemplaterIntegration } from './TemplaterIntegration';
 
@@ -14,17 +14,25 @@ export class LintingEngine {
     private templaterIntegration: TemplaterIntegration | null;
     
     constructor(
-        private plugin: DreamMetricsPlugin, 
-        private settings: LintingSettings
+        private plugin?: DreamMetricsPlugin, 
+        private settings: LintingSettings = { enabled: true, rules: [], structures: [], templates: [], templaterIntegration: { enabled: false, folderPath: '', defaultTemplate: '' }, contentIsolation: { ignoreImages: true, ignoreLinks: false, ignoreFormatting: true, ignoreHeadings: false, ignoreCodeBlocks: true, ignoreFrontmatter: true, ignoreComments: true, customIgnorePatterns: [] }, userInterface: { showInlineValidation: true, severityIndicators: { error: '❌', warning: '⚠️', info: 'ℹ️' }, quickFixesEnabled: true } }
     ) {
-        this.rules = settings.rules;
-        this.structures = settings.structures;
-        this.templates = settings.templates;
+        this.rules = settings.rules || [];
+        this.structures = settings.structures || [];
+        this.templates = settings.templates || [];
         this.contentParser = new ContentParser(settings.contentIsolation);
         
-        // Initialize Templater integration if enabled
-        if (settings.templaterIntegration.enabled) {
-            this.templaterIntegration = new TemplaterIntegration(plugin);
+        // Initialize Templater integration if enabled and plugin is provided
+        if (plugin && settings.templaterIntegration?.enabled) {
+            this.templaterIntegration = new TemplaterIntegration(
+                plugin.app,
+                plugin,
+                {
+                    enabled: settings.templaterIntegration.enabled,
+                    templateFolder: settings.templaterIntegration.folderPath,
+                    defaultTemplate: settings.templaterIntegration.defaultTemplate
+                }
+            );
             if (!this.templaterIntegration.isTemplaterInstalled()) {
                 this.templaterIntegration = null;
                 console.warn('Templater plugin not found. Templater integration disabled.');
@@ -209,7 +217,7 @@ export class LintingEngine {
      */
     private validateStructure(
         content: string, 
-        calloutBlocks: any[], 
+        calloutBlocks: CalloutBlock[], 
         structure: CalloutStructure
     ): ValidationResult[] {
         const results: ValidationResult[] = [];
@@ -287,7 +295,7 @@ export class LintingEngine {
      */
     private validateNestedStructure(
         content: string,
-        calloutBlocks: any[],
+        calloutBlocks: CalloutBlock[],
         structure: CalloutStructure
     ): ValidationResult[] {
         const results: ValidationResult[] = [];
@@ -324,7 +332,7 @@ export class LintingEngine {
     /**
      * Check if a block is properly nested inside a parent block
      */
-    private isBlockNestedProperly(block: any, parentBlock: any): boolean {
+    private isBlockNestedProperly(block: CalloutBlock, parentBlock: CalloutBlock): boolean {
         return block.position.start > parentBlock.position.start && 
                block.position.end < parentBlock.position.end;
     }
@@ -334,7 +342,7 @@ export class LintingEngine {
      */
     private validateCalloutContent(
         content: string,
-        block: any,
+        block: CalloutBlock,
         structure: CalloutStructure
     ): ValidationResult[] {
         const results: ValidationResult[] = [];
@@ -475,7 +483,7 @@ export class LintingEngine {
     /**
      * Create a quick fix to fix nesting of a callout
      */
-    private createFixNestingFix(block: any, rootCallout: any): QuickFix {
+    private createFixNestingFix(block: CalloutBlock, rootCallout: CalloutBlock): QuickFix {
         return {
             title: 'Fix callout nesting',
             action: (content: string) => {

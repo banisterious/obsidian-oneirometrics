@@ -16,7 +16,7 @@ The refactored architecture follows these key principles:
 
 The OneiroMetrics plugin is organized into the following major component groups:
 
-![Component Architecture](./diagrams/component-architecture.png)
+![Component Architecture](./diagrams/Oom-Architecture-Component-Overview.png)
 
 ### Core Plugin Component
 
@@ -59,7 +59,7 @@ The OneiroMetrics plugin is organized into the following major component groups:
 
 The data flow within OneiroMetrics follows a predictable pattern:
 
-![Data Flow Diagram](./diagrams/data-flow.png)
+![Data Flow Diagram](./diagrams/Oom-Architecture-Data-Flow.png)
 
 1. User interacts with the UI
 2. UI components dispatch actions to services
@@ -71,7 +71,7 @@ The data flow within OneiroMetrics follows a predictable pattern:
 
 The state management system follows this lifecycle:
 
-![State Lifecycle](./diagrams/state-lifecycle.png)
+![State Lifecycle](./diagrams/Oom-Architecture-State-Lifecycle.png)
 
 1. Plugin initialization loads configuration
 2. Services initialize based on configuration
@@ -85,7 +85,7 @@ The state management system follows this lifecycle:
 
 The plugin includes a comprehensive testing infrastructure:
 
-![Test Infrastructure](./diagrams/test-infrastructure.png)
+![Test Infrastructure](./diagrams/Oom-Testing-Infrastructure.png)
 
 - **TestRunner**: Executes test cases
 - **TestCase**: Abstract base class for all tests
@@ -93,7 +93,7 @@ The plugin includes a comprehensive testing infrastructure:
 - **TestRegistry**: Registers and organizes tests
 - **TestRunnerModal**: UI for running tests and viewing results
 
-See the [Test Data Flow](./diagrams/test-data-flow.png) diagram for more details on how tests are executed.
+See the [Test Data Flow](./diagrams/Oom-Testing-Execution-Flow.png) diagram for more details on how tests are executed.
 
 ## Key Interfaces
 

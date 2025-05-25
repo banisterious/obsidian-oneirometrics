@@ -1,4 +1,4 @@
-import { LogLevel } from '../types';
+import { LogLevel } from '../src/types/logging';
 import { Notice, App, TFile } from 'obsidian';
 
 export class Logger {
@@ -28,7 +28,7 @@ export class Logger {
 
     private shouldLog(category: string): boolean {
         if (this.logLevel === 'off') return false;
-        if (this.logLevel === 'errors' && category !== 'Error') return false;
+        if (this.logLevel === 'error' && category !== 'Error') return false;
         return true;
     }
 

@@ -14,7 +14,7 @@ import {
  */
 const LOG_LEVEL_MAP: Record<LogLevel, LogLevelValue> = {
   'off': LogLevelValue.OFF,
-  'errors': LogLevelValue.ERRORS,
+  'error': LogLevelValue.ERROR,
   'warn': LogLevelValue.WARN,
   'info': LogLevelValue.INFO,
   'debug': LogLevelValue.DEBUG,
@@ -28,7 +28,7 @@ export class LoggingService implements ILoggingService {
   private static instance: LoggingService;
   private logLevel: LogLevel = 'off';
   private logFile: string = 'logs/oom-debug-log.txt';
-  private maxLogSize: number = 1024 * 1024; // 1MB
+  private maxSize: number = 1024 * 1024; // 1MB
   private maxBackups: number = 5;
   private app: App;
 
@@ -59,8 +59,11 @@ export class LoggingService implements ILoggingService {
   configure(config: LoggerConfig): void {
     this.logLevel = config.level;
     
-    if (config.maxLogSize !== undefined) {
-      this.maxLogSize = config.maxLogSize;
+    // Support both maxSize and maxLogSize for backward compatibility
+    if (config.maxSize !== undefined) {
+      this.maxSize = config.maxSize;
+    } else if (config.maxLogSize !== undefined) {
+      this.maxSize = config.maxLogSize;
     }
     
     if (config.maxBackups !== undefined) {
@@ -71,7 +74,7 @@ export class LoggingService implements ILoggingService {
       this.logFile = config.logFilePath;
     }
     
-    this.debug('Logger', `Logger configured with level=${config.level}, maxLogSize=${this.maxLogSize}, maxBackups=${this.maxBackups}, logFile=${this.logFile}`);
+    this.debug('Logger', `Logger configured with level=${config.level}, maxSize=${this.maxSize}, maxBackups=${this.maxBackups}, logFile=${this.logFile}`);
   }
 
   /**
@@ -103,7 +106,7 @@ export class LoggingService implements ILoggingService {
       const logExists = await this.app.vault.adapter.exists(this.logFile);
       if (logExists) {
         const logSize = (await this.app.vault.adapter.read(this.logFile)).length;
-        if (logSize > this.maxLogSize) {
+        if (logSize > this.maxSize) {
           await this.rotateLog();
         }
       }
@@ -156,14 +159,14 @@ export class LoggingService implements ILoggingService {
   private log(level: LogLevel, category: string, message: string, data?: any): void {
     if (!this.shouldLog(level)) return;
 
-    const prefix = level === 'errors' ? 'ERROR' : 
+    const prefix = level === 'error' ? 'ERROR' : 
                    level === 'warn' ? 'WARNING' : 
                    level.toUpperCase();
     
     const logMessage = `[${prefix}][${category}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}`;
     
     // Log to console with appropriate method
-    if (level === 'errors') {
+    if (level === 'error') {
       console.error(logMessage);
     } else if (level === 'warn') {
       console.warn(logMessage);
@@ -175,7 +178,7 @@ export class LoggingService implements ILoggingService {
     this.writeToLog(logMessage);
     
     // Show notice for errors
-    if (level === 'errors') {
+    if (level === 'error') {
       new Notice(`OneiroMetrics Error: ${message}`);
     }
   }
@@ -217,7 +220,7 @@ export class LoggingService implements ILoggingService {
    * @param error Optional error to include in the log
    */
   error(category: string, message: string, error?: any): void {
-    this.log('errors', category, message, error);
+    this.log('error', category, message, error);
   }
 
   /**

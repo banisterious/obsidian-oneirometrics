@@ -1,4 +1,4 @@
-import { DreamMetric, DreamMetricData, DreamMetricsSettings } from '../types';
+import { DreamMetric, DreamMetricData, DreamMetricsSettings } from '../types/core';
 
 export class DreamMetricsState {
     private expandedStates: Map<string, boolean> = new Map();
@@ -7,12 +7,31 @@ export class DreamMetricsState {
     private listeners: Set<() => void> = new Set();
     private settings: DreamMetricsSettings;
 
-    constructor(settings: DreamMetricsSettings) {
+    constructor(settings?: Partial<DreamMetricsSettings>) {
         this.expandedStates = new Map();
-        this.metrics = settings.metrics;
+        // Create default empty settings if none provided
+        const defaultSettings: DreamMetricsSettings = {
+            projectNote: '',
+            selectedNotes: [],
+            selectedFolder: '',
+            selectionMode: 'notes',
+            calloutName: 'dream',
+            metrics: {},
+            showRibbonButtons: false,
+            backupEnabled: false,
+            backupFolderPath: '',
+            logging: {
+                level: 'info'
+            }
+        };
+        
+        // Merge provided settings with defaults
+        this.settings = {...defaultSettings, ...settings} as DreamMetricsSettings;
+        
+        // Use settings from merged object
+        this.metrics = this.settings.metrics || {};
         this.dreamEntries = [];
         this.listeners = new Set();
-        this.settings = settings;
     }
 
     toggleExpandedState(contentId: string, isExpanded: boolean): void {
@@ -49,23 +68,5 @@ export class DreamMetricsState {
 
     private notifyListeners(): void {
         this.listeners.forEach(listener => listener());
-    }
-
-    // Debug helper
-    getStateSummary(): string {
-        return JSON.stringify({
-            expandedStatesCount: this.expandedStates.size,
-            metricsCount: Object.keys(this.metrics).length,
-            dreamEntriesCount: this.dreamEntries.length,
-            listenersCount: this.listeners.size
-        }, null, 2);
-    }
-
-    public saveSettings(): void {
-        // Implementation for saving settings
-    }
-
-    public loadSettings(): void {
-        // Implementation for loading settings
     }
 } 
