@@ -3,7 +3,7 @@
 ## Test Date: 2025-05-24
 
 ## Overview
-This document assesses the current state of the OneiroMetrics plugin refactoring against the established merge criteria. The assessment is based on manual testing of core functionality identified in the [Refactoring Merge Criteria](../refactoring-merge-criteria.md) document.
+This document assesses the current state of the OneiroMetrics plugin refactoring against the established merge criteria. The assessment is based on manual testing of core functionality identified in the [Testing Documentation - Merge Criteria](./index.md#merge-criteria) document.
 
 ## Test Environment
 - Obsidian v1.4.0+

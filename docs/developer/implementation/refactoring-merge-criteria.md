@@ -1,5 +1,7 @@
 # OneiroMetrics TypeScript Refactoring Merge Criteria
 
+> **DEPRECATION NOTICE**: This document has been deprecated. The content has been consolidated into the [Testing Documentation](../implementation/testing/index.md) document. Please refer to the [Merge Criteria](../implementation/testing/index.md#merge-criteria) and [Test Validation Process](../implementation/testing/index.md#test-validation-process) sections of that document for current information.
+
 ## Table of Contents
 - [Overview](#overview)
 - [Core Test Completion Requirements](#core-test-completion-requirements)
