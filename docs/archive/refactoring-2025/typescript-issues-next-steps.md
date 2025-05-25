@@ -36,7 +36,7 @@ As of May 23, 2025, we've identified the following critical TypeScript errors th
      Property 'projectNote' does not exist on type 'DreamMetricsSettings'
      ```
 
-## Progress Report (June 2025)
+## Progress Report (May 2025)
 
 Several key fixes have been implemented to address TypeScript errors:
 

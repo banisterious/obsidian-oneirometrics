@@ -1,0 +1,129 @@
+@startuml Oom-TypeScript-Event-Communication
+
+header
+OneiroMetrics Event Communication System
+Version 0.6.0 - May 2025
+endheader
+
+title OneiroMetrics TypeScript Event Communication
+
+package "Event System" {
+  class "EventEmitter<T>" as EventEmitter {
+    -listeners: Map<string, Function[]>
+    +on(event: string, callback: Function): Function
+    +off(event: string, callback: Function): void
+    +emit(event: string, payload: any): void
+    +clear(): void
+  }
+  
+  class "MetricsEventEmitter" as MetricsEmitter {
+    +notifyMetricsCalculated()
+    +notifyMetricsFiltered()
+    +notifyMetricsRendered()
+  }
+  
+  class "UIEventEmitter" as UIEmitter {
+    +notifyModalOpened()
+    +notifyModalClosed()
+    +notifyViewChanged()
+  }
+  
+  class "JournalEventEmitter" as JournalEmitter {
+    +notifyEntryProcessed()
+    +notifyScanCompleted()
+    +notifyEntryFailed()
+  }
+}
+
+package "Event Interfaces" {
+  class "MetricsEvents" as MetricsEvents << interface >> {
+    'metrics:calculated': {metrics, source}
+    'metrics:display': {target, metrics}
+    'metrics:filter': {filter}
+  }
+  
+  class "UIEvents" as UIEvents << interface >> {
+    'ui:modalOpened': {modalType, modal}
+    'ui:modalClosed': {modalType}
+    'ui:viewChanged': {view, previousView}
+  }
+  
+  class "JournalEvents" as JournalEvents << interface >> {
+    'journal:entryProcessed': {path, date, content}
+    'journal:entryFailed': {path, error}
+    'journal:scanCompleted': {totalEntries, processedEntries}
+  }
+}
+
+package "Components" {
+  class "MetricsVisualization" as Visualization {
+    -subscriptions: Function[]
+    +initialize()
+    +render()
+    +destroy()
+    -handleMetricsCalculated()
+  }
+  
+  class "JournalProcessor" as Processor {
+    -subscriptions: Function[]
+    +processJournals()
+    +extractMetrics()
+    +destroy()
+  }
+  
+  class "UIController" as Controller {
+    -subscriptions: Function[]
+    +openModal()
+    +closeModal()
+    +changeView()
+    +destroy()
+  }
+}
+
+' Inheritance relationships
+EventEmitter <|-- MetricsEmitter
+EventEmitter <|-- UIEmitter
+EventEmitter <|-- JournalEmitter
+
+' Implementation relationships
+MetricsEmitter ..|> MetricsEvents : implements
+UIEmitter ..|> UIEvents : implements
+JournalEmitter ..|> JournalEvents : implements
+
+' Component relationships
+Visualization ..> MetricsEmitter : subscribes to
+Processor ..> JournalEmitter : subscribes to
+Controller ..> UIEmitter : subscribes to
+
+Processor ..> MetricsEmitter : emits events on
+Controller ..> MetricsEmitter : emits events on
+Controller ..> JournalEmitter : emits events on
+
+' Example event flow
+note bottom of Processor
+  Example event flow:
+  1. Processor extracts metrics from journals
+  2. Processor emits 'metrics:calculated' event
+  3. Visualization receives event via subscription
+  4. Visualization updates display with new metrics
+endnote
+
+note top of EventEmitter
+  Generic base class with type safety:
+  - Typed event payloads
+  - Subscription management
+  - Built-in error handling
+endnote
+
+note right of Visualization
+  Components store subscription references:
+  - Return value from .on() stored in array
+  - Each subscription cancelled in destroy()
+  - Prevents memory leaks
+endnote
+
+footer
+This diagram illustrates the TypeScript event communication system that enables loose coupling between components
+endfooter
+
+@enduml

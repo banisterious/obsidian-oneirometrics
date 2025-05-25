@@ -1,0 +1,137 @@
+@startuml Oom-TypeScript-Adapter-Pattern
+
+header
+OneiroMetrics Adapter Pattern Implementation
+Version 0.6.0 - May 2025
+endheader
+
+title OneiroMetrics TypeScript Adapter Pattern
+
+package "Types" {
+  class "LegacySettings" as Legacy {
+    +projectNotePath: string
+    +selectedNotes: string[]
+    +calloutName: string
+    +metrics: any[]
+    +selectionMode: string
+  }
+  
+  class "ModernSettings" as Modern {
+    +projectNote: string
+    +selectedNotes: string[]
+    +calloutName: string
+    +metrics: Record<string, any>
+    +selectionMode: string
+  }
+  
+  class "LegacyMetric" as LegacyMetric {
+    +name: string
+    +icon: string
+    +min: number
+    +max: number
+    +description: string
+  }
+  
+  class "ModernMetric" as ModernMetric {
+    +name: string
+    +icon: string
+    +range: Range
+    +description: string
+    +enabled: boolean
+  }
+  
+  class "Range" as Range {
+    +min: number
+    +max: number
+  }
+}
+
+package "Adapter Utilities" {
+  class "TypeAdapters" as Adapters {
+    +adaptToCoreDreamMetricsSettings()
+    +adaptMetric()
+    +adaptLoggingConfig()
+    +createCompatibleObject()
+  }
+  
+  class "PropertyAccessHelpers" as PropHelpers {
+    +getPropertySafely()
+    +setPropertySafely()
+    +hasProperty()
+    +getDefaultValue()
+  }
+  
+  class "TypeGuards" as Guards {
+    +isObjectSource()
+    +isCalloutMetadataArray()
+    +isMetricEnabled()
+    +isPromise()
+  }
+}
+
+package "Client Code" {
+  class "PluginMain" as Main {
+    -settings: any
+    +loadSettings()
+    +saveSettings()
+    +updateSettings()
+  }
+  
+  class "UIComponents" as UI {
+    +renderMetricsList()
+    +createMetricEditor()
+    +saveMetricChanges()
+  }
+  
+  class "MetricsProcessor" as Processor {
+    +processMetrics()
+    +calculateStatistics()
+    +generateTables()
+  }
+}
+
+' Legacy to Modern adaptation
+Legacy ..> Adapters : input to
+Adapters ..> Modern : produces
+LegacyMetric ..> Adapters : input to
+Adapters ..> ModernMetric : produces
+
+' Property access helpers
+PropHelpers ..> Legacy : safely accesses
+PropHelpers ..> Modern : safely accesses
+Guards ..> Legacy : validates
+Guards ..> Modern : validates
+
+' Client code using adapters
+Main ..> Adapters : uses
+UI ..> PropHelpers : uses
+Processor ..> Guards : uses
+Main ..> PropHelpers : uses
+
+' Sequence of adaptation
+note bottom of Adapters
+  Adapters convert between different interface versions:
+  1. Accept any object as input
+  2. Extract properties with safe access
+  3. Apply validation and defaults
+  4. Return properly typed object
+endnote
+
+note right of PropHelpers
+  Property access helpers provide:
+  - Type-safe property access
+  - Default values
+  - Backward compatibility
+  - Error prevention
+endnote
+
+note right of Main
+  Client code no longer needs to know
+  which version of the interface it's using
+endnote
+
+footer
+This diagram shows how the Adapter Pattern is implemented to handle interface evolution and backward compatibility
+endfooter
+
+@enduml

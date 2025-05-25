@@ -148,9 +148,11 @@ We've implemented a comprehensive interface standardization approach:
 
 ## References
 
-- [TypeScript Migration Status](../implementation/typescript-migration-status.md)
-- [Refactoring Plan 2025](../implementation/refactoring-plan-2025.md)
-- [TypeScript Issues Next Steps](../implementation/typescript-issues-next-steps.md)
+- [TypeScript Migration Status](../../archive/refactoring-2025/typescript-migration-status.md)
+- [Refactoring Plan 2025](../../archive/refactoring-2025/refactoring-plan-2025.md)
+- [TypeScript Issues Next Steps](../../archive/refactoring-2025/typescript-issues-next-steps.md)
+- [TypeScript Interface Standards](../implementation/typescript-interface-standards.md)
+- [Refactoring Summary 2025](../implementation/refactoring-summary-2025.md)
 
 ## Adapter Components to Document
 

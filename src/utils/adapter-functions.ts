@@ -1,4 +1,13 @@
 /**
+ * MIGRATION NOTICE
+ * 
+ * This file is part of the phased migration plan and will eventually be replaced.
+ * Do not add new dependencies on this file. Instead, use the permanent replacements
+ * as documented in the TypeScript architecture documentation.
+ * 
+ * See post-refactoring-cleanup-checklist.md for the detailed migration plan.
+ */
+/**
  * Adapter Functions for Type Compatibility
  * 
  * This file contains adapter functions to help bridge incompatible function

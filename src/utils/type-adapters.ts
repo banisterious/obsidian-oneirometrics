@@ -1,4 +1,13 @@
 /**
+ * MIGRATION NOTICE
+ * 
+ * This file is part of the phased migration plan and will eventually be replaced.
+ * Do not add new dependencies on this file. Instead, use the permanent replacements
+ * as documented in the TypeScript architecture documentation.
+ * 
+ * See post-refactoring-cleanup-checklist.md for the detailed migration plan.
+ */
+/**
  * Type Adapters - Utilities for handling type conversions between legacy and new types
  * 
  * This file provides adapter functions to help transition between legacy type definitions

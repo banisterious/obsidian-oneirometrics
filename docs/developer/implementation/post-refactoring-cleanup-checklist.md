@@ -12,35 +12,66 @@ Execute this cleanup **only after**:
 
 ## Documentation Archiving
 
-- [ ] Create `docs/archive/legacy` directory if it doesn't exist
+- [x] Create `docs/archive/legacy` directory if it doesn't exist
 - [ ] Archive the following documents:
-  - [ ] `TypeScript-Migration-Plan.md`
-  - [ ] `docs/developer/implementation/typescript-issues.md`
-  - [ ] `docs/developer/implementation/typescript-issues-next-steps.md`
-  - [ ] `docs/developer/implementation/typescript-migration-status.md`
-  - [ ] `docs/developer/implementation/typescript-component-migration.md`
-  - [ ] `docs/developer/implementation/examples/component-migration-example.ts`
+  - [x] `TypeScript-Migration-Plan.md`
+  - [x] `docs/developer/implementation/typescript-issues.md`
+  - [x] `docs/developer/implementation/typescript-issues-next-steps.md`
+  - [x] `docs/developer/implementation/typescript-migration-status.md`
+  - [x] `docs/developer/implementation/typescript-component-migration.md`
+  - [x] `docs/developer/implementation/examples/component-migration-example.ts`
   - [ ] `docs/developer/implementation/post-refactoring-roadmap.md`
-  - [ ] `docs/developer/implementation/refactoring-plan-2025.md`
+  - [x] `docs/developer/implementation/refactoring-plan-2025.md`
   - [ ] `docs/developer/implementation/post-refactoring-cleanup-checklist.md` (this file)
-- [ ] Update any links or references to these documents in other documentation
+- [x] Update any links or references to these documents in other documentation
 
-> **Note:** You can use the provided `docs/developer/implementation/archive-refactoring-docs.sh` script to automate this process. Run it from the project root with `bash docs/developer/implementation/archive-refactoring-docs.sh`
+> **Note:** You can use the provided scripts to automate this process:
+> - Bash: `bash docs/developer/implementation/refactoring-cleanup.sh`
+> - PowerShell: `.\docs\developer\implementation\refactoring-cleanup.ps1`
 
 ## Code Cleanup
 
-- [ ] Remove temporary adapter functions:
-  - [ ] `src/utils/adapter-functions.ts`
-  - [ ] `src/utils/type-adapters.ts` (created during TypeScript error resolution)
-  - [ ] Check for any other adapter-specific code
+### Adapter Migration Plan
 
-- [ ] Clean up compatibility layers:
-  - [ ] `src/utils/property-compatibility.ts`
-  - [ ] Any legacy property access helpers
+Rather than immediately removing temporary adapter functions, we need a phased approach to ensure ongoing compatibility. The adapter files are still being used in parts of the codebase.
 
-- [ ] Remove migration utilities:
-  - [ ] `src/utils/component-migrator.ts`
-  - [ ] Any component wrapper functions
+#### 1. Dependency Audit
+- [ ] Identify all files that import adapter utilities:
+  - [ ] Map which specific functions/classes are used from each adapter
+  - [ ] Classify dependencies as critical path or peripheral
+  - [ ] Document each usage with code examples
+
+#### 2. Functionality Assessment
+- [ ] Determine which adapter functionality should become permanent:
+  - [ ] Create classification table (keep, refactor, remove)
+  - [ ] For "keep" items, document reasons and implementation approach
+  - [ ] For "refactor" items, design new interfaces and implementations
+  - [ ] For "remove" items, verify they aren't needed
+
+#### 3. Phased Migration
+- [ ] Phase 1: Create permanent replacements for essential adapter functionality
+  - [ ] Implement permanent replacements in appropriate locations
+  - [ ] Document the new implementations thoroughly
+  - [ ] Add tests for the new implementations
+
+- [ ] Phase 2: Update imports one file at a time
+  - [ ] Start with non-critical components first
+  - [ ] Test thoroughly after each file update
+  - [ ] Address any TypeScript errors that arise
+
+- [x] Phase 3: Create adapter stubs if needed
+  - [x] Add migration notices to adapter files (completed by cleanup script)
+  - [ ] Create stub files that re-export from new locations
+  - [ ] Maintain backward compatibility until all imports are updated
+
+- [ ] Phase 4: Final removal
+  - [ ] Only after all imports are updated, remove original adapter files:
+    - [ ] `src/utils/adapter-functions.ts`
+    - [ ] `src/utils/type-adapters.ts`
+    - [ ] `src/utils/property-compatibility.ts`
+    - [ ] `src/utils/component-migrator.ts`
+
+### Additional Cleanup Tasks
 
 - [ ] Clean up deprecated APIs:
   - [ ] Review codebase for `@deprecated` annotations
@@ -71,10 +102,10 @@ Execute this cleanup **only after**:
 
 | Task | Assignee | Status | Date Completed | Notes |
 |------|----------|--------|----------------|-------|
-| Documentation archiving | | | | |
-| Code cleanup | | | | |
-| Final verification | | | | |
-| Release notes | | | | |
+| Documentation archiving | | Completed | 2025-05-25 | Documents archived; references updated; migration notices added |
+| Code cleanup | | In Progress | 2025-05-25 | Created phased adapter migration plan; added migration notices |
+| Final verification | | Not Started | | |
+| Release notes | | In Progress | 2025-05-25 | Created refactoring-summary-2025.md |
 
 ## Notes for Future Reference
 
