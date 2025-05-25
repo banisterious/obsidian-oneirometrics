@@ -1,0 +1,159 @@
+@startuml Logging System Architecture
+
+skinparam componentStyle rectangle
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam componentBackgroundColor #f5f5f5
+skinparam componentBorderColor #999999
+skinparam interfaceBackgroundColor #e0f7fa
+skinparam interfaceBorderColor #0097a7
+skinparam arrowColor #555555
+skinparam packageBackgroundColor #fafafa
+skinparam packageBorderColor #bbbbbb
+
+header
+OneiroMetrics Logging System Architecture
+Version 0.6.0 - May 2025
+endheader
+
+title OneiroMetrics Logging System Architecture
+
+package "Core Logging Components" {
+  component [LogManager] as LogManager
+  component [LoggerFactory] as LoggerFactory
+  component [LoggerConfiguration] as LogConfiguration
+  
+  LogManager --> LoggerFactory : creates loggers
+  LogManager --> LogConfiguration : manages
+}
+
+package "Logger Implementations" {
+  component [ConsoleLogger] as ConsoleLogger
+  component [FileLogger] as FileLogger
+  component [DebugLogger] as DebugLogger
+  component [CompositeLogger] as CompositeLogger
+  
+  LoggerFactory --> ConsoleLogger : creates
+  LoggerFactory --> FileLogger : creates
+  LoggerFactory --> DebugLogger : creates
+  LoggerFactory --> CompositeLogger : creates
+}
+
+package "Log Levels" {
+  component [DEBUG] as DEBUG
+  component [INFO] as INFO
+  component [WARN] as WARN
+  component [ERROR] as ERROR
+  component [CRITICAL] as CRITICAL
+  
+  ConsoleLogger --> DEBUG : filters by
+  ConsoleLogger --> INFO : filters by
+  ConsoleLogger --> WARN : filters by
+  ConsoleLogger --> ERROR : filters by
+  ConsoleLogger --> CRITICAL : filters by
+}
+
+package "Output Destinations" {
+  component [Console] as Console
+  component [LogFile] as LogFile
+  component [DevTools] as DevTools
+  component [NotificationSystem] as Notifications
+  
+  ConsoleLogger --> Console : writes to
+  FileLogger --> LogFile : writes to
+  DebugLogger --> DevTools : writes to
+  CompositeLogger --> Console : writes to
+  CompositeLogger --> LogFile : writes to
+  CompositeLogger --> Notifications : critical events
+}
+
+package "Log Formatting" {
+  component [Formatter] as Formatter
+  component [TimestampFormatter] as TimestampFormatter
+  component [JSONFormatter] as JSONFormatter
+  component [PlainTextFormatter] as PlainTextFormatter
+  
+  Formatter <|-- TimestampFormatter
+  Formatter <|-- JSONFormatter
+  Formatter <|-- PlainTextFormatter
+  
+  ConsoleLogger --> Formatter : uses
+  FileLogger --> Formatter : uses
+  DebugLogger --> Formatter : uses
+}
+
+package "Log Management" {
+  component [LogRotation] as LogRotation
+  component [LogArchiving] as LogArchiving
+  component [LogPruning] as LogPruning
+  
+  FileLogger --> LogRotation : configures
+  LogRotation --> LogArchiving : triggers
+  LogRotation --> LogPruning : triggers
+}
+
+interface "ILogger"
+
+ConsoleLogger --|> ILogger : implements
+FileLogger --|> ILogger : implements
+DebugLogger --|> ILogger : implements
+CompositeLogger --|> ILogger : implements
+
+package "Service Integration" {
+  component [StateService] as StateService
+  component [ParserService] as ParserService
+  component [FileService] as FileService
+  component [MetricsService] as MetricsService
+  component [UIComponents] as UIComponents
+  
+  StateService --> ILogger : uses
+  ParserService --> ILogger : uses
+  FileService --> ILogger : uses
+  MetricsService --> ILogger : uses
+  UIComponents --> ILogger : uses
+}
+
+package "Settings Integration" {
+  component [LoggingSettings] as LoggingSettings
+  component [SettingsUI] as SettingsUI
+  
+  LoggingSettings --> LogConfiguration : configures
+  SettingsUI --> LoggingSettings : modifies
+}
+
+note right of LogManager
+  LogManager is the central coordinator
+  that initializes the logging system
+  based on configuration and provides
+  logger instances to components
+end note
+
+note right of CompositeLogger
+  CompositeLogger delegates log messages
+  to multiple logger implementations,
+  allowing flexible logging to different
+  destinations simultaneously
+end note
+
+note bottom of LogRotation
+  Log rotation ensures log files don't
+  grow indefinitely:
+  - Rotates logs when size limit reached
+  - Creates dated backup files
+  - Maintains a configurable number of backups
+  - Prunes oldest logs when limit reached
+end note
+
+note right of ILogger
+  All loggers implement the common
+  ILogger interface, allowing components
+  to use any logger implementation
+  interchangeably
+end note
+
+footer
+This diagram illustrates the logging architecture for OneiroMetrics, including components, interfaces, and data flow
+endfooter
+
+@enduml 
