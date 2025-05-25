@@ -1,6 +1,8 @@
 import { TestRunner } from './TestRunner';
 import { ITemplateProcessor } from '../templates/interfaces';
-import { JournalTemplate, TemplaterVariable } from '../templates/types';
+import { JournalTemplate } from '../templates/types';
+// Import the correct TemplaterVariable type for compatibility
+import { TemplaterVariable } from '../journal_check/types';
 
 // Mock template processor for testing
 class MockTemplateProcessor implements ITemplateProcessor {
@@ -51,18 +53,35 @@ class MockTemplateProcessor implements ITemplateProcessor {
     while ((match = regex.exec(content)) !== null) {
       const fullMatch = match[0];
       const variableName = match[1];
+      const startIndex = match.index;
       
-      // Create a simplified variable and cast to TemplaterVariable
-      // This bypasses type checking which is fine for tests
-      const variable = {
+      // Create a template variable that matches the journal_check/types.ts interface
+      const variable: TemplaterVariable = {
         name: variableName,
-        type: 'custom'
-      } as TemplaterVariable;
+        type: 'custom',
+        // Add the required position property
+        position: {
+          start: { line: this.getLineNumber(content, startIndex), column: this.getColumnNumber(content, startIndex) },
+          end: { line: this.getLineNumber(content, startIndex + fullMatch.length), column: this.getColumnNumber(content, startIndex + fullMatch.length) }
+        }
+      };
       
       variables.push(variable);
     }
     
     return variables;
+  }
+  
+  // Helper methods to calculate line and column numbers
+  private getLineNumber(content: string, index: number): number {
+    const lines = content.substring(0, index).split('\n');
+    return lines.length;
+  }
+  
+  private getColumnNumber(content: string, index: number): number {
+    const lines = content.substring(0, index).split('\n');
+    if (lines.length === 0) return 0;
+    return lines[lines.length - 1].length;
   }
   
   convertToStaticTemplate(content: string): string {
@@ -101,7 +120,10 @@ export function registerTemplateSystemTests(
         description: 'A test template',
         content: 'This is a static template',
         isTemplaterTemplate: false,
-        structure: 'flat'
+        structure: 'flat',
+        // Add required properties
+        isBuiltIn: false,
+        lastModified: Date.now()
       };
       
       const result = await processor.processTemplate(template);
@@ -123,7 +145,10 @@ export function registerTemplateSystemTests(
         content: 'Date: <% tp.date.now() %>',
         staticContent: 'Date: [[placeholder:date]]',
         isTemplaterTemplate: true,
-        structure: 'flat'
+        structure: 'flat',
+        // Add required properties
+        isBuiltIn: false,
+        lastModified: Date.now()
       };
       
       const result = await processor.processTemplate(template);
@@ -145,7 +170,10 @@ export function registerTemplateSystemTests(
         content: 'Date: <% date %>\nUser: <% user %>',
         staticContent: 'Date: [[placeholder:date]]\nUser: [[placeholder:user]]',
         isTemplaterTemplate: true,
-        structure: 'flat'
+        structure: 'flat',
+        // Add required properties
+        isBuiltIn: false,
+        lastModified: Date.now()
       };
       
       const data = {

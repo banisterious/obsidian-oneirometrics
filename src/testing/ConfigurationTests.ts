@@ -1,6 +1,11 @@
 import { TestRunner } from './TestRunner';
 import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from '../../types';
 
+// Define an extended settings interface for testing
+interface TestDreamMetricsSettings extends DreamMetricsSettings {
+  _persistentExclusions: Record<string, any>;
+}
+
 /**
  * Register configuration tests to the test runner
  * @param testRunner The test runner instance
@@ -53,8 +58,8 @@ export function registerConfigurationTests(
       };
       
       // Simulate a migration function (this would typically be in the settings handler)
-      const migrateToV2 = (settings: Record<string, any>): DreamMetricsSettings => {
-        const newSettings = { ...settings } as DreamMetricsSettings;
+      const migrateToV2 = (settings: Record<string, any>): TestDreamMetricsSettings => {
+        const newSettings = { ...settings } as TestDreamMetricsSettings;
         
         // Add version field if it doesn't exist
         if (!newSettings.metricsVersion) {
@@ -84,15 +89,15 @@ export function registerConfigurationTests(
     'Configuration - Should provide defaults for missing settings',
     async () => {
       // Create incomplete settings object
-      const incompleteSettings: Partial<DreamMetricsSettings> = {
+      const incompleteSettings: Partial<TestDreamMetricsSettings> = {
         projectNote: 'DreamMetrics.md',
         // Many fields missing
       };
       
       // Function to provide defaults (this would typically be in the settings handler)
-      const withDefaults = (settings: Partial<DreamMetricsSettings>): DreamMetricsSettings => {
+      const withDefaults = (settings: Partial<TestDreamMetricsSettings>): TestDreamMetricsSettings => {
         // Start with complete defaults
-        const defaults: DreamMetricsSettings = {
+        const defaults: TestDreamMetricsSettings = {
           projectNote: 'OneiroMetrics.md',
           showRibbonButtons: true,
           metrics: Object.fromEntries(DEFAULT_METRICS.map(m => [m.name, m])),
@@ -136,13 +141,15 @@ export function registerConfigurationTests(
     'Configuration - Should validate metric ranges',
     async () => {
       // Create settings with invalid metric ranges
-      const invalidSettings: DreamMetricsSettings = {
+      const invalidSettings: TestDreamMetricsSettings = {
         projectNote: 'DreamMetrics.md',
         showRibbonButtons: true,
         metrics: {
           'Invalid Range': {
             name: 'Invalid Range',
             icon: 'alert-triangle',
+            minValue: 10,
+            maxValue: 5,
             range: { min: 10, max: 5 }, // Invalid: min > max
             description: 'This has an invalid range',
             enabled: true,
@@ -157,6 +164,8 @@ export function registerConfigurationTests(
           'Valid Range': {
             name: 'Valid Range',
             icon: 'check',
+            minValue: 1,
+            maxValue: 5,
             range: { min: 1, max: 5 },
             description: 'This has a valid range',
             enabled: true,
@@ -186,7 +195,7 @@ export function registerConfigurationTests(
       };
       
       // Function to validate settings
-      const validateSettings = (settings: DreamMetricsSettings): { valid: boolean; errors: string[] } => {
+      const validateSettings = (settings: TestDreamMetricsSettings): { valid: boolean; errors: string[] } => {
         const errors: string[] = [];
         
         // Check metric ranges

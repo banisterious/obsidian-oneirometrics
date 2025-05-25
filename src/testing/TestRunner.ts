@@ -5,8 +5,12 @@
  * and provides better error handling and reporting.
  */
 
+// Import the legacy TestResult interface from journal-check types for compatibility
+import { TestResult as JournalCheckTestResult } from '../types/journal-check';
+import { ValidationResult } from '../journal_check/types';
+
 /**
- * Test result interface
+ * Test result interface for the modern test runner
  */
 export interface TestResult {
   name: string;
@@ -19,6 +23,62 @@ export interface TestResult {
  * Types of test callback functions supported
  */
 type TestCallback = (() => boolean | Promise<boolean>) | (() => void | Promise<void>);
+
+/**
+ * Convert a TestRunner TestResult to a JournalCheck TestResult
+ * 
+ * This is used for compatibility with code that expects the journal-check format
+ */
+export function adaptToJournalCheckTestResult(result: TestResult): JournalCheckTestResult {
+  return {
+    testName: result.name,
+    passed: result.passed,
+    expectedResults: {
+      errorCount: 0,
+      warningCount: 0,
+      infoCount: 0
+    },
+    actualResults: {
+      errorCount: result.passed ? 0 : 1,
+      warningCount: 0,
+      infoCount: 0,
+      allErrors: result.error ? [{
+        id: `error-${Date.now()}`,
+        severity: 'error',
+        message: result.error.message,
+        position: { start: { line: 0, column: 0 }, end: { line: 0, column: 0 } },
+        rule: {
+          id: 'test-error',
+          name: 'Test Error',
+          description: 'Error during test execution',
+          type: 'custom',
+          severity: 'error',
+          enabled: true,
+          pattern: '',
+          message: result.error.message,
+          priority: 0
+        }
+      } as ValidationResult] : []
+    },
+    duration: result.duration
+  };
+}
+
+/**
+ * Convert a JournalCheck TestResult to a TestRunner TestResult
+ * 
+ * This is used for compatibility with code that expects the modern format
+ */
+export function adaptFromJournalCheckTestResult(result: JournalCheckTestResult): TestResult {
+  const errorMessage = result.actualResults.allErrors[0]?.message || 'Unknown error';
+  
+  return {
+    name: result.testName,
+    passed: result.passed,
+    error: !result.passed ? new Error(errorMessage) : undefined,
+    duration: result.duration
+  };
+}
 
 export class TestRunner {
   private tests: Array<{name: string, callback: TestCallback}> = [];
@@ -105,6 +165,15 @@ export class TestRunner {
     console.log(`Test run complete: ${passedCount}/${results.length} tests passed`);
     
     return results;
+  }
+
+  /**
+   * Executes all registered tests and returns results in the JournalCheck format
+   * @returns A promise that resolves to an array of JournalCheck test results
+   */
+  async runJournalCheckTests(): Promise<JournalCheckTestResult[]> {
+    const results = await this.runTests();
+    return results.map(adaptToJournalCheckTestResult);
   }
 
   /**

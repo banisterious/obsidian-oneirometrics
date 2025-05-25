@@ -14,6 +14,7 @@ export interface JournalTemplate {
   description?: string;
   isTemplaterTemplate?: boolean;
   staticContent?: string;
+  structure?: string;
 }
 
 export interface TemplaterVariable {

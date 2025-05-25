@@ -147,8 +147,8 @@ This shouldn't be included.
       
       return (
         callouts.length === 2 &&
-        callouts[0].includes('This is the first dream.') &&
-        callouts[1].includes('This is the second dream.')
+        callouts[0].content.includes('This is the first dream.') &&
+        callouts[1].content.includes('This is the second dream.')
       );
     }
   );
