@@ -188,6 +188,7 @@ The detailed merge criteria, including specific test requirements and the approv
 
 ## Additional Resources
 
-- [TypeScript Migration Status](../typescript-migration-status.md)
+- [TypeScript Interface Standards](../typescript-interface-standards.md)
+- [Refactoring Summary 2025](../refactoring-summary-2025.md)
 - [Post-Refactoring Roadmap](../post-refactoring-roadmap.md)
 - [Adapter Documentation](../../architecture/adapter-documentation-tasks.md) 

@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.6.x](#060---2025-05-25)
   - [Version 0.5.x](#050---2025-05-20)
   - [Version 0.4.x](#043---2025-05-19)
   - [Version 0.3.x](#037---2025-05-15)
@@ -12,14 +13,23 @@
 
 ## [Unreleased]
 ### Added
-- **TypeScript Refactoring Progress:** Completed major architectural refactoring with modular, maintainable codebase
-  - Implemented service-oriented architecture with clear separation of concerns
-  - Converted legacy JavaScript to strongly-typed TypeScript codebase
-  - Restructured monolithic components into focused, maintainable modules
-  - Established comprehensive documentation for the refactored architecture
-  - Created test-completion-based merge criteria for quality assurance
-  - Currently in post-refactoring phase with focus on testing and stabilization
-  - Branches will be merged upon completion of core test requirements
+- (To be filled with future developments)
+
+## Released Versions
+
+## [0.6.0] - 2025-05-25
+### Added
+- **Complete TypeScript Refactoring:** Major architectural improvement to the codebase
+  - Transformed from a monolithic structure with a 5,000+ line main file into a well-organized component system
+  - Added comprehensive TypeScript typing throughout the codebase
+  - Improved error handling and reporting with better recovery mechanisms
+  - Optimized performance for rendering and data processing
+  - Enhanced test infrastructure supporting both synchronous and asynchronous tests
+  - Fixed interface incompatibilities and constructor parameter issues
+  - Implemented proper separation of concerns through modular design
+  - Created a more stable foundation for future features while maintaining backward compatibility
+
+### Changed
 - **Refactoring Plan Document:** Created comprehensive refactoring plan for modernizing codebase architecture
   - Detailed assessment of current monolithic structure and challenges
   - Five-phase implementation strategy with clear timelines and milestones
@@ -28,7 +38,7 @@
   - Structured CSS refactoring strategy to eliminate inline styles
   - Version control and documentation strategies for maintaining quality
   - Comprehensive TypeScript File Inventory with line counts and purpose descriptions
-  - Located at `docs/developer/implementation/refactoring-plan-2025.md`
+  - Located at `docs/archive/refactoring-2025/refactoring-plan-2025.md`
 - **Web Worker Plan Document:** Created technical plan to use web workers
   - Plan to offload date filtering operations from the UI thread
   - Will eliminate performance issues with large datasets
@@ -101,8 +111,6 @@
 - Archived completed CSS refactoring plan to docs/archive/
 - Removed unnecessary documentation redirect files after migrating content
 - Eliminated hundreds of console.log statements with proper structured logging
-
-## Released Versions
 
 ## [0.5.0] - 2025-05-20
 ### Added

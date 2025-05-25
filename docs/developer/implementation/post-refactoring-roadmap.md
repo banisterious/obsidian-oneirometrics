@@ -49,21 +49,21 @@ The post-refactoring improvements are organized into four sequential phases, eac
 
 5. **TypeScript Error Resolution**
    - Fix approximately 150+ TypeScript errors across the codebase
-   - Address interface definition inconsistencies (see [typescript-issues.md](./typescript-issues.md))
+   - Address interface definition inconsistencies (see archived docs in `docs/archive/refactoring-2025/`)
    - Resolve type compatibility issues with SelectionMode and LogLevel
    - Fix missing or incorrectly referenced properties in interfaces
    - Install missing dependencies
    - Address object property access issues
-   - Follow step-by-step plan in [typescript-issues-next-steps.md](./typescript-issues-next-steps.md)
+   - Follow standardized interface patterns in [typescript-interface-standards.md](./typescript-interface-standards.md)
 
 ### Current Progress:
 
-- ✅ Created documentation of TypeScript issues in `typescript-issues.md`
+- ✅ Created documentation of TypeScript issues (now archived in `docs/archive/refactoring-2025/`)
 - ✅ Added `build:force` script to bypass TypeScript errors during development
 - ✅ Added missing `ts-debounce` dependency
 - ✅ Modified tsconfig.json to allow development to continue
 - ✅ Updated the root-level types.ts file to ensure better compatibility
-- ✅ Created detailed plan for addressing TypeScript issues in `typescript-issues-next-steps.md`
+- ✅ Created TypeScript interface standards in `typescript-interface-standards.md`
 - ✅ Created type guard utilities for safer property access
 - ✅ Added mapping functions for SelectionMode type compatibility
 - ✅ Fixed calloutMetadata array type definition
@@ -396,7 +396,7 @@ Once the refactoring process is fully completed and the improvements outlined in
 
 1. **Documentation Cleanup**
    - TODO: Archive all refactoring-related documentation to the docs/archive/legacy directory
-   - Move temporary guides like typescript-issues.md and typescript-issues-next-steps.md to the archive
+   - ✅ Moved temporary refactoring guides to `docs/archive/refactoring-2025/`
    - Archive component migration guides and examples once all components are migrated
    - Keep only the documentation needed for ongoing development and maintenance
    - Follow the detailed steps in [Post-Refactoring Cleanup Checklist](./post-refactoring-cleanup-checklist.md)

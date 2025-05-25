@@ -266,7 +266,7 @@ export function registerUIComponentTests(
         });
       };
       
-      // Apply combined filter: June 2025 with high Sensory Detail (4-5)
+      // Apply combined filter: May 2025 with high Sensory Detail (4-5)
       const filteredEntries = applyCombinedFilter(
         entries,
         '2025-06-01',

@@ -1,0 +1,119 @@
+@startuml Oom-TypeScript-Type-System
+
+header
+OneiroMetrics Key Interfaces and Services
+Version 0.6.0 - May 2025
+endheader
+
+title OneiroMetrics TypeScript Type System
+
+package "src/types/core" {
+  class CoreDreamMetricsSettings {
+    +projectNote: string
+    +selectedNotes: string[]
+    +selectedFolder: string
+    +selectionMode: SelectionMode
+    +calloutName: string
+    +metrics: Record
+    +showRibbonButtons: boolean
+    +backupEnabled: boolean
+    +backupFolderPath: string
+    +logging: LoggingConfig
+  }
+  
+  enum CoreSelectionMode {
+    NOTES
+    FOLDER
+  }
+  
+  class CoreMetric {
+    +name: string
+    +icon: string
+    +range: Range
+    +description: string
+    +enabled: boolean
+  }
+  
+  class CoreLogging {
+    +level: LogLevel
+    +maxSize: number
+    +maxBackups: number
+  }
+  
+  enum CoreLogLevel {
+    DEBUG
+    INFO
+    WARN
+    ERROR
+  }
+}
+
+package "Root Level" {
+  class RootSettings {
+    +projectNotePath: string
+    +metrics: DreamMetric[]
+    +selectedNotes: string[]
+    +calloutName: string
+    +weekStartDay: number
+    +overrideReadableLineLength: boolean
+  }
+  
+  enum RootSelectionMode {
+    MANUAL
+    AUTOMATIC
+  }
+}
+
+package "Helper Utilities" {
+  class SettingsHelpers {
+    +getProjectNotePath()
+    +getSelectedFolder()
+    +getSelectionMode()
+    +isBackupEnabled()
+  }
+  
+  class MetricHelpers {
+    +isMetricEnabled()
+    +getMetricRange()
+    +createCompatibleMetric()
+  }
+  
+  class SelectionHelpers {
+    +getCompatibleSelectionMode()
+    +isSelectionModeNotes()
+    +isSelectionModeFolder()
+  }
+  
+  class TypeAdapters {
+    +adaptToCoreDreamMetricsSettings()
+    +adaptMetric()
+    +adaptLoggingConfig()
+  }
+}
+
+RootSettings --|> CoreDreamMetricsSettings
+
+SettingsHelpers ..> RootSettings
+SettingsHelpers ..> CoreDreamMetricsSettings
+
+MetricHelpers ..> CoreMetric
+
+SelectionHelpers ..> CoreSelectionMode
+SelectionHelpers ..> RootSelectionMode
+
+TypeAdapters ..> CoreDreamMetricsSettings
+TypeAdapters ..> RootSettings
+TypeAdapters ..> CoreMetric
+TypeAdapters ..> CoreLogging
+
+note right of TypeAdapters: Adapter utilities convert between different interface versions
+
+note bottom of RootSettings: Legacy settings interface
+
+note top of CoreDreamMetricsSettings: Core interface - source of truth
+
+footer
+This diagram illustrates the TypeScript type system architecture of OneiroMetrics
+endfooter
+
+@enduml
