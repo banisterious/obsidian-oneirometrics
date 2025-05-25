@@ -47,4 +47,6 @@ docs/TODO_NPM_UPGRADE.md
 
 # Refactoring cleanup scripts
 docs/developer/implementation/refactoring-cleanup.ps1
-docs/developer/implementation/refactoring-cleanup.sh 
+docs/developer/implementation/refactoring-cleanup.sh
+docs/developer/implementation/archive-refactoring-docs.sh
+archive-additional-refactoring-docs.ps1 
