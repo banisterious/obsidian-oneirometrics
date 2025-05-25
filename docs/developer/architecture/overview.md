@@ -570,6 +570,18 @@ Components communicate through a type-safe event system:
 
 This system ensures that events carry properly typed data between components, making the communication robust and self-documenting.
 
+### Best Practices and Standards
+
+The plugin follows a comprehensive set of TypeScript best practices to ensure code quality and maintainability:
+
+- **Type Safety**: Explicit typing and avoidance of `any` type
+- **Interface Design**: Evolution-friendly interface design with proper inheritance
+- **Property Access**: Safe property access patterns with null handling
+- **Error Handling**: Context-enriched error handling with appropriate recovery
+- **Component Development**: Consistent component patterns with proper lifecycle management
+
+For a complete guide to TypeScript best practices in the OneiroMetrics codebase, see the [TypeScript Best Practices Guide](../implementation/typescript-best-practices.md).
+
 ### Logging System
 
 The plugin implements a comprehensive logging system:

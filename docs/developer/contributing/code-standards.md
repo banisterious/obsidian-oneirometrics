@@ -75,24 +75,82 @@ This document establishes guidelines for code formatting, naming conventions, an
   - Use `PascalCase` for class names (e.g., `MyClass`, `DataManager`).
 - **Interfaces/Types (TypeScript):**
   - Use `PascalCase` for interface and type names (e.g., `UserData`, `TableOptions`).
+- **Type Guards:**
+  - Prefix type guard functions with `is` (e.g., `isMetric`, `isValidSettings`).
+- **Adapter Functions:**
+  - Prefix adapter functions with `adaptTo` or `convertTo` (e.g., `adaptToCoreDreamMetricsSettings`).
+- **Helper Utilities:**
+  - Use descriptive verbs that indicate the action being performed (e.g., `getProjectNotePath`, `calculateMetricAverage`).
 
-### 2.3. Best Practices
+### 2.3. TypeScript Best Practices
 
-- **`any` Type (TypeScript):**
+> **Note:** For comprehensive TypeScript guidelines, refer to our detailed guides:
+> - [TypeScript Best Practices](../implementation/typescript-best-practices.md)
+> - [TypeScript Adapter Patterns](../implementation/typescript-adapter-patterns.md)
+> - [TypeScript Helper Utilities](../implementation/typescript-helper-utilities.md)
+
+#### Type Safety
+
+- **Use Explicit Types:**
+  - Always use explicit type annotations for function parameters and return types.
+  - Avoid implicit typing whenever possible.
+
+- **Avoid `any` Type:**
   - Avoid using the `any` type whenever possible.
+  - Use `unknown` for values of uncertain type, then validate and narrow the type.
   - Be explicit with type annotations to improve code clarity and catch type-related errors.
-- **`const` and `let` (TypeScript/JavaScript):**
+
+- **Use Type Guards:**
+  - Create and use type guards to validate object shapes at runtime.
+  - Use type predicates (`param is Type`) for proper type narrowing.
+
+#### Interface Design
+
+- **Design for Evolution:**
+  - Create interfaces that can evolve over time through extension.
+  - Use inheritance to build upon base interfaces.
+
+- **Use Optional Properties Carefully:**
+  - Only mark properties as optional when they are truly optional.
+  - Consider the implications of optional properties on type safety.
+
+- **Use Readonly for Immutable Data:**
+  - Mark properties that shouldn't be modified as `readonly`.
+
+#### Safe Property Access
+
+- **Use Safe Access Patterns:**
+  - Implement helper functions for accessing potentially undefined properties.
+  - Use optional chaining (`?.`) and nullish coalescing (`??`) operators.
+  - Handle edge cases explicitly.
+
+#### Adapter Pattern
+
+- **Implement Strong Adapters:**
+  - Use adapter functions to convert between different interface versions.
+  - Design adapters to handle missing or renamed properties.
+  - Ensure adapters provide sensible defaults for missing data.
+
+#### Error Handling
+
+- **Use Context-Enriched Errors:**
+  - Enrich errors with context information as they bubble up.
+  - Implement a consistent error handling approach across the codebase.
+  - Consider using the Result pattern for recoverable errors.
+
+#### Variable Declarations
+
+- **`const` and `let`:**
   - Use `const` for variables that will not be reassigned.
   - Use `let` for variables that will be reassigned.
   - Avoid using `var`.
-- **Error Handling:**
-  - Use `try...catch` blocks for error handling.
-  - Log errors appropriately.
-  - Provide informative error messages.
-- **Code Organization:**
-  - Organize code into modular components.
-  - Use clear file and folder structure.
-  - Write comments to explain complex logic.
+
+#### Component Architecture
+
+- **Follow Component Patterns:**
+  - Use consistent patterns for UI component implementation.
+  - Implement proper lifecycle methods and cleanup.
+  - Ensure event handlers are properly cleaned up to prevent memory leaks.
 
 ### 2.4. Commenting
 
