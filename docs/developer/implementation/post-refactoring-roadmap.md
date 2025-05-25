@@ -1,19 +1,53 @@
 # OneiroMetrics Post-Refactoring Roadmap
 
+## Executive Summary
+**Status**: In Progress
+
+**Last Updated**: 2025-05-30
+
+**Key Milestones**: 
+- Documentation reorganization: ✅ Completed
+- Legacy documentation archived: ✅ Completed
+- TypeScript Architecture document: ✅ Completed
+- Adapter migration plan: 🔄 In Progress (20%)
+- Code cleanup (main.ts): 🔄 In Progress (15%)
+- Comprehensive testing: ⬜ Not Started
+- Performance optimization: ⬜ Not Started
+
 This document outlines the roadmap for OneiroMetrics development after the completion of the 2025 refactoring project. It focuses on further improvements to build upon the newly refactored architecture.
 
 ## Table of Contents
 
+- [Executive Summary](#executive-summary)
 - [Overview](#overview)
-- [Phase 1: Code Cleanup](#phase-1-code-cleanup)
+- [Phase 1: Code Cleanup and Adapter Migration](#phase-1-code-cleanup-and-adapter-migration)
+  - [Tasks](#tasks)
+  - [Current Progress](#current-progress)
+  - [Adapter Files Dependency Tracking](#adapter-files-dependency-tracking)
 - [Comprehensive Testing Initiative](#comprehensive-testing-initiative)
-- [Phase 2: Performance Optimization](#phase-2-performance-optimization)
+  - [Testing Priorities](#testing-priorities)
+  - [Testing Approach](#testing-approach)
+  - [Testing Documentation](#testing-documentation)
+  - [Merge Criteria](#merge-criteria)
+  - [Testing Timeline](#testing-timeline)
+  - [Success Criteria](#success-criteria)
+  - [Integration with Existing Work](#integration-with-existing-work)
+- [Phase 2: TypeScript Improvements and Performance Optimization](#phase-2-typescript-improvements-and-performance-optimization)
+  - [TypeScript Improvement Tasks](#typescript-improvement-tasks)
+  - [Performance Optimization Tasks](#performance-optimization-tasks)
 - [Phase 3: Documentation Enhancement](#phase-3-documentation-enhancement)
+  - [Tasks](#tasks-1)
 - [Phase 4: Advanced Optimization](#phase-4-advanced-optimization)
+  - [Tasks](#tasks-2)
 - [Post-Refactoring Management TODOs](#post-refactoring-management-todos)
+  - [Priority Tasks (Next 1-2 Days)](#priority-tasks-next-1-2-days)
+  - [Additional Tasks](#additional-tasks)
 - [Timeline and Priorities](#timeline-and-priorities)
 - [Success Metrics](#success-metrics)
+- [Post-Refactoring Cleanup](#post-refactoring-cleanup)
 - [Post-Refactoring Priorities](#post-refactoring-priorities)
+- [Weekly Status Updates](#weekly-status-updates)
+- [Milestone Tracking](#milestone-tracking)
 
 ## Overview
 
@@ -21,40 +55,58 @@ With the major architectural refactoring complete, OneiroMetrics now has a modul
 
 The post-refactoring improvements are organized into four sequential phases, each building upon the previous one. These improvements aim to leverage the new architecture while addressing remaining technical debt and enhancing user experience.
 
-## Phase 1: Code Cleanup
+## Phase 1: Code Cleanup and Adapter Migration
 
-**Goal:** Ensure consistency and quality across the codebase following the major refactoring.
+**Goal:** Ensure consistency, quality, and modularity across the codebase following the major refactoring.
 
 ### Tasks:
 
 1. **Naming Standardization**
-   - Ensure consistent naming conventions across all modules
-   - Rename any remaining ambiguous variables and functions
-   - Update file names to better reflect their contents
+   - [ ] Ensure consistent naming conventions across all modules
+   - [ ] Rename any remaining ambiguous variables and functions
+   - [ ] Update file names to better reflect their contents
 
 2. **Code Style Consistency**
-   - Apply consistent indentation and formatting
-   - Standardize comment style and documentation
-   - Run linting tools across the entire codebase
+   - [ ] Apply consistent indentation and formatting
+   - [ ] Standardize comment style and documentation
+   - [ ] Run linting tools across the entire codebase
 
 3. **Dead Code Elimination**
-   - Remove commented-out code sections
-   - Delete unused functions and variables
-   - Clean up redundant imports
+   - [ ] Remove commented-out code sections
+   - [ ] Delete unused functions and variables
+   - [ ] Clean up redundant imports
 
 4. **Type Definition Refinement**
-   - Strengthen type definitions
-   - Eliminate any remaining `any` types
-   - Add explicit return types to all functions
+   - [ ] Strengthen type definitions
+   - [ ] Eliminate any remaining `any` types
+   - [ ] Add explicit return types to all functions
 
 5. **TypeScript Error Resolution**
-   - Fix approximately 150+ TypeScript errors across the codebase
-   - Address interface definition inconsistencies (see archived docs in `docs/archive/refactoring-2025/`)
-   - Resolve type compatibility issues with SelectionMode and LogLevel
-   - Fix missing or incorrectly referenced properties in interfaces
-   - Install missing dependencies
-   - Address object property access issues
-   - Follow standardized interface patterns in [typescript-interface-standards.md](./typescript-interface-standards.md)
+   - [x] Fix approximately 150+ TypeScript errors across the codebase
+   - [x] Address interface definition inconsistencies (see archived docs in `docs/archive/refactoring-2025/`)
+   - [x] Resolve type compatibility issues with SelectionMode and LogLevel
+   - [x] Fix missing or incorrectly referenced properties in interfaces
+   - [x] Install missing dependencies
+   - [x] Address object property access issues
+   - [x] Follow standardized interface patterns in [typescript-interface-standards.md](./typescript-interface-standards.md)
+
+6. **Dependency Audit and Adapter Migration**
+   - [ ] Identify all places using adapter files (adapter-functions.ts, type-adapters.ts, etc.)
+   - [ ] Map legacy functions in main.ts to their module counterparts
+   - [ ] Classify adapter functions with a keep/refactor/remove strategy
+   - [ ] Document dependencies between components for safe migration
+
+7. **Main.ts Cleanup**
+   - [ ] Identify deprecated code in main.ts that duplicates module functionality
+   - [ ] Replace direct usage of legacy functions with module counterparts
+   - [ ] Remove unnecessary code superseded by the modular architecture
+   - [ ] Ensure proper initialization and integration with modules
+
+8. **Adapter Migration Implementation**
+   - [ ] Implement permanent replacements for essential adapter functionality
+   - [ ] Update imports one file at a time, starting with non-critical components
+   - [ ] Verify functionality after each migration step
+   - [ ] Remove temporary adapter code once dependencies are updated
 
 ### Current Progress:
 
@@ -81,7 +133,23 @@ The post-refactoring improvements are organized into four sequential phases, eac
 - ✅ Created type-adapters.ts to help safely adapt between legacy and new type systems
 - ✅ Completed ContentParser implementation with full error handling and robust functionality
 - ✅ Fixed test function signatures to support both sync and async tests with improved error handling
+- ✅ Created a comprehensive TypeScript Architecture and Lessons document
+- 🔄 Conducting dependency audit for adapter files (20% complete)
+- ⬜ Classify adapter functions (keep/refactor/remove)
+- 🔄 Clean up main.ts by replacing legacy functions with module counterparts (15% complete)
 - ⬜ Systematically update main codebase files using the new utilities
+
+### Adapter Files Dependency Tracking
+
+| Adapter File | Used In | Function Dependencies | Migration Status | Complexity |
+|--------------|---------|------------------------|-----------------|------------|
+| adapter-functions.ts | main.ts, DateNavigator.ts | getProjectNotePath, adaptSettingsToCore, convertSourceToFormat | 🔄 In Progress | High |
+| type-adapters.ts | main.ts, DreamMetricsState.ts | getSelectionModeSafe, getProjectNotePathSafe, isBackupEnabledSafe | 🔄 In Progress | Medium |
+| property-compatibility.ts | DreamMetricsProcessor.ts | getCalloutMetadata, extractMetricValue, applyPropertyDefaults | ⬜ Not Started | Medium |
+| component-migrator.ts | DreamMetricsDOM.ts, TimeFilterManager.ts | createFilterElement, adaptModalConfig, convertEventHandlers | ⬜ Not Started | High |
+| selection-mode-helpers.ts | multiple files | isFolderMode, isNotesMode, areSelectionModesEquivalent | ✅ Permanent | Low |
+| settings-helpers.ts | multiple files | getProjectNotePath, getSelectionMode, getBackupFolderPath | ✅ Permanent | Low |
+| metric-helpers.ts | multiple files | isMetricEnabled, getMetricRange, standardizeMetric | ✅ Permanent | Low |
 
 ## Comprehensive Testing Initiative
 
@@ -192,11 +260,31 @@ Detailed test plans have been created for key components:
 
 Additional test plans will be created for other components following the same structure and approach.
 
-## Phase 2: Performance Optimization
+## Phase 2: TypeScript Improvements and Performance Optimization
 
-**Goal:** Enhance the overall performance and responsiveness of the plugin.
+**Goal:** Enhance the overall performance, type safety, and responsiveness of the plugin.
 
-### Tasks:
+### TypeScript Improvement Tasks:
+
+1. **Fix Remaining TypeScript Errors**
+   - Address type inconsistencies in interfaces
+   - Implement proper type guards where needed
+   - Fix incorrect property access patterns
+   - Ensure consistent typing across components
+
+2. **Enhance Type Safety**
+   - Add stronger typing to function parameters and returns
+   - Replace any types with more specific definitions
+   - Document complex type relationships
+   - Implement proper nullable handling
+
+3. **Type System Architecture Refinement**
+   - Standardize type imports across codebase
+   - Create consolidated type libraries for related domains
+   - Improve interface inheritance patterns
+   - Document type relationships with diagrams
+
+### Performance Optimization Tasks:
 
 1. **CSS Optimization**
    - Optimize CSS selectors for performance
@@ -347,20 +435,20 @@ Additional test plans will be created for other components following the same st
 
 The implementation timeline is structured to deliver meaningful improvements at regular intervals:
 
-| Phase | Estimated Duration | Priority | Dependencies |
-|-------|-------------------|----------|--------------|
-| Code Cleanup | 2 weeks | High | None |
-| Comprehensive Testing | 6 weeks | Critical | Code Cleanup |
-| Performance Optimization | 4 weeks | High | Code Cleanup, Comprehensive Testing |
-| Documentation Enhancement | 3 weeks | Medium | Code Cleanup, Comprehensive Testing |
-| Advanced Optimization | 6 weeks | Medium | Performance Optimization |
+| Phase | Estimated Duration | Priority | Dependencies | Current Status |
+|-------|-------------------|----------|--------------|----------------|
+| Code Cleanup and Adapter Migration | 3 weeks | Critical | None | 🔄 In Progress (25%) |
+| Comprehensive Testing | 6 weeks | Critical | Code Cleanup and Adapter Migration | ⬜ Not Started |
+| TypeScript Improvements and Performance Optimization | 5 weeks | High | Code Cleanup and Adapter Migration, Comprehensive Testing | ⬜ Not Started |
+| Documentation Enhancement | 3 weeks | Medium | Code Cleanup and Adapter Migration, Comprehensive Testing | ⬜ Not Started |
+| Advanced Optimization | 6 weeks | Medium | TypeScript Improvements and Performance Optimization | ⬜ Not Started |
 
 **Key Milestones:**
-- Code cleanup completion: +2 weeks
-- Comprehensive testing completion: +8 weeks
-- Performance optimization release: +12 weeks
-- Documentation portal launch: +15 weeks
-- Advanced features release: +21 weeks
+- Code cleanup and adapter migration completion: +3 weeks
+- Comprehensive testing completion: +9 weeks
+- TypeScript improvements and performance optimization release: +14 weeks
+- Documentation portal launch: +17 weeks
+- Advanced features release: +23 weeks
 
 ## Success Metrics
 
@@ -395,18 +483,22 @@ The success of these improvements will be measured through:
 Once the refactoring process is fully completed and the improvements outlined in this roadmap are implemented, the following cleanup tasks should be performed:
 
 1. **Documentation Cleanup**
-   - TODO: Archive all refactoring-related documentation to the docs/archive/legacy directory
+   - ✅ Archive all refactoring-related documentation to the docs/archive/refactoring-2025 directory
    - ✅ Moved temporary refactoring guides to `docs/archive/refactoring-2025/`
-   - Archive component migration guides and examples once all components are migrated
-   - Keep only the documentation needed for ongoing development and maintenance
-   - Follow the detailed steps in [TypeScript Architecture and Lessons](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist)
+   - ✅ Created consolidated TypeScript architecture lessons document
+   - ✅ Updated adapter files with migration notices
+   - ✅ Created a phased approach for adapter migration
+   - ⬜ Archive component migration guides and examples once all components are migrated
+   - ⬜ Keep only the documentation needed for ongoing development and maintenance
+   - ⬜ Follow the detailed steps in [TypeScript Architecture and Lessons](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist)
 
 2. **Code Cleanup**
-   - Remove temporary adapter functions and compatibility layers 
-   - Clean up any remaining migration utilities that are no longer needed
-   - Consolidate helper functions that have overlapping functionality
-   - Remove deprecated APIs after ensuring no components depend on them
-   - Use the [cleanup checklist](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist) to track progress
+   - ⬜ Remove temporary adapter functions and compatibility layers after dependency audit
+   - ⬜ Clean up main.ts to use proper module functions
+   - ⬜ Consolidate helper functions that have overlapping functionality
+   - ⬜ Remove deprecated APIs after ensuring no components depend on them
+   - ⬜ Complete adapter migration using the phased approach
+   - ⬜ Use the [cleanup checklist](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist) to track progress
 
 ## Post-Refactoring Priorities
 
@@ -433,6 +525,30 @@ These enhancements are planned for after the refactoring branch is merged:
   - Estimated effort: Low (1-2 hours)
 - [ ] **Metric value filtering**
   - Ensure that metric value filters are present and working
+
+## Weekly Status Updates
+
+| Date | Progress Summary | Completed Items | Blockers | Next Steps |
+|------|-----------------|----------------|----------|------------|
+| 2025-05-30 | Completed documentation cleanup and archiving; Started adapter dependency audit | Created consolidated TypeScript Architecture and Lessons document; Archived all refactoring documentation; Added migration notices to adapter files; Created phased adapter migration plan | None | Continue adapter dependency audit; Begin cleanup of main.ts; Conduct adapter functions classification |
+| 2025-05-28 | Improved type definitions and fixed build issues | Created SelectionMode type for compatibility; Updated DreamMetricData.source to support both formats; Fixed calloutMetadata property typing; Added missing properties to interfaces; Created backwards compatibility aliases | None | Complete documentation reorganization; Archive refactoring documentation; Start adapter migration plan |
+| 2025-05-27 | Replaced console.log statements with structured logging in main.ts; Updated dependencies | Added domain-specific logging categories; Used consistent log levels; Fixed security vulnerability in esbuild dependency; Fixed duplicate variable declaration causing build errors | None | Continue type definition refinement; Update remaining log statements |
+| 2025-05-25 | Created type-specific adapter and helper utilities; Improved TypeScript compatibility | Created settings-helpers.ts, metric-helpers.ts, and selection-mode-helpers.ts; Added type guards for safer property access; Created backward compatibility layers | None | Replace console.log statements with structured logging; Address remaining TypeScript errors |
+
+## Milestone Tracking
+
+| Milestone | Target Date | Status | Notes |
+|-----------|------------|--------|-------|
+| TypeScript Errors Fixed | 2025-05-25 | ✅ Completed | Created helper utilities and adapter functions for type safety |
+| Documentation Cleanup | 2025-05-30 | ✅ Completed | Consolidated and archived all refactoring documentation |
+| Adapter Dependency Audit | 2025-06-05 | 🔄 In Progress | Mapping usage across codebase and identifying migration paths |
+| main.ts Cleanup | 2025-06-10 | 🔄 In Progress | Replacing legacy code with module functions |
+| Adapter Migration Implementation | 2025-06-15 | ⬜ Not Started | |
+| Comprehensive Testing Complete | 2025-06-30 | ⬜ Not Started | |
+| TypeScript Improvements | 2025-07-15 | ⬜ Not Started | |
+| Performance Optimization | 2025-07-20 | ⬜ Not Started | |
+| Documentation Portal | 2025-07-30 | ⬜ Not Started | |
+| Advanced Features | 2025-08-30 | ⬜ Not Started | |
 
 ---
 
