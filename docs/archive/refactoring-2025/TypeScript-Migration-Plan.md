@@ -1,7 +1,5 @@
 # TypeScript Migration Plan for OneiroMetrics (OOM)
 
-> **DEPRECATION NOTICE**: This document has been deprecated. The key architectural patterns and migration strategies have been consolidated into the [TypeScript Architecture and Lessons](../../architecture/typescript-architecture-lessons.md) document. This file has been archived for historical reference in `docs/archive/refactoring-2025/`.
-
 ## Overview of Issues
 Based on our analysis, the 134+ TypeScript errors can be grouped into several major categories:
 
