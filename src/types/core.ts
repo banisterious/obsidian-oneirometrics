@@ -185,6 +185,12 @@ export interface DreamMetricsSettings {
     /** Path to the backup folder */
     backupFolderPath: string;
     
+    /** Last applied filter value to persist filter selection between reloads */
+    lastAppliedFilter?: string;
+    
+    /** Custom date range for filter persistence */
+    customDateRange?: { start: string, end: string };
+    
     /** Configuration for logging */
     logging: {
         /** Log level */
@@ -224,7 +230,7 @@ export interface DreamMetricsSettings {
         layout?: Record<string, any>;
     };
     
-    /** Record of expanded states for UI elements by ID */
+    /** Expanded states for content sections */
     expandedStates?: Record<string, boolean>;
     
     /** Developer mode settings */
@@ -294,6 +300,149 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         minValue: 0,
         maxValue: 10,
         enabled: true,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Descriptiveness",
+        description: "Level of detail in the dream description",
+        icon: "pen-tool",
+        minValue: 1,
+        maxValue: 5,
+        enabled: true,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Characters Role",
+        description: "Significance of familiar characters in the dream narrative",
+        icon: "user-cog",
+        minValue: 1,
+        maxValue: 5,
+        enabled: true,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Confidence Score",
+        description: "Confidence level in the completeness of dream recall",
+        icon: "check-circle",
+        minValue: 1,
+        maxValue: 5,
+        enabled: true,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Characters Count",
+        description: "Total number of characters appearing in the dream",
+        icon: "users",
+        minValue: 0,
+        maxValue: 30,
+        enabled: false,
+        category: "characters",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Familiar Count",
+        description: "Number of familiar characters in the dream",
+        icon: "user-check",
+        minValue: 0,
+        maxValue: 20,
+        enabled: false,
+        category: "characters",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Unfamiliar Count",
+        description: "Number of unfamiliar characters in the dream",
+        icon: "user-x",
+        minValue: 0,
+        maxValue: 20,
+        enabled: false,
+        category: "characters",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Characters List",
+        description: "List of characters that appeared in the dream",
+        icon: "users-round",
+        minValue: 0,
+        maxValue: 0,
+        enabled: false,
+        category: "characters",
+        type: "string",
+        format: "list"
+    },
+    {
+        name: "Dream Theme",
+        description: "Dominant themes present in the dream",
+        icon: "sparkles",
+        minValue: 0,
+        maxValue: 0,
+        enabled: false,
+        category: "theme",
+        type: "string",
+        format: "tags"
+    },
+    {
+        name: "Lucidity Level",
+        description: "Degree of awareness that you were dreaming during the dream",
+        icon: "wand-2",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Dream Coherence",
+        description: "Logical consistency and narrative flow of the dream",
+        icon: "link",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Setting Familiarity",
+        description: "How familiar the dream locations were from waking life",
+        icon: "glasses",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Ease of Recall",
+        description: "How easily you could remember the dream upon waking",
+        icon: "zap",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Recall Stability",
+        description: "How well your memory of the dream held up after waking",
+        icon: "layers",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
         category: "dream",
         type: "number",
         format: "number"

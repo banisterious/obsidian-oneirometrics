@@ -208,9 +208,48 @@
     align-items: center;
     justify-content: center;
     margin-top: auto;
-    font-size: 0.8em;
+    font-size: 0.9em;
     color: var(--day-dream);
     padding-top: 4px;
+}
+
+/* Star indicators with enhanced visibility */
+.oom-star-high, .oom-star-medium, .oom-star-low {
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.1em;
+}
+
+.oom-star-high {
+    color: var(--interactive-accent);
+    font-weight: bold;
+}
+
+.oom-star-medium {
+    color: #c2a0ff;
+    font-weight: bold;
+}
+
+.oom-star-low {
+    color: #d9c0ff;
+}
+
+/* Metric indicators */
+.oom-metric-high {
+    background-color: rgba(var(--interactive-accent-rgb), 0.15);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.oom-metric-medium {
+    background-color: rgba(var(--interactive-accent-rgb), 0.1);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.oom-metric-low {
+    background-color: rgba(var(--interactive-accent-rgb), 0.05);
+    border-radius: 4px;
+    padding: 2px 4px;
 }
 
 /* Responsive adjustments */

@@ -415,11 +415,11 @@ Once the refactoring process is fully completed and the improvements outlined in
 These issues must be addressed before merging to main branch:
 
 - [x] HTML rendering issues in metrics notes - Fixed with proper HTML content wrapping
-- [ ] Filter display issues (incorrect filter counts) - Fixed with improved visibility calculation
+- [x] Filter display issues (incorrect filter counts) - Fixed with improved visibility calculation
 - [x] "Read More" button not working on first load - Fixed with MutationObserver implementation
-- [ ] Summary table not updating when filters are applied - Fixed by ensuring metrics recalculation after filtering
+- [x] Summary table not updating when filters are applied - Fixed by ensuring metrics recalculation after filtering
 - [x] Date Navigator command not working properly - Fixed with proper dream entry loading, error handling, and modal styling
-- [ ] Filter persistence between Obsidian reloads
+- [x] Filter persistence between Obsidian reloads
 
 ### Future Enhancements
 
@@ -429,6 +429,7 @@ These enhancements are planned for after the refactoring branch is merged:
   - Implement auto-apply filter when clicking on a day with dream entries
   - Remove the need for explicitly clicking the Apply button
   - Improve user flow and reduce friction
+  - Restore missing star icons for days that have dream entries
   - Estimated effort: Low (1-2 hours)
 
 ---
