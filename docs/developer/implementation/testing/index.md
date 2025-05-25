@@ -12,6 +12,8 @@
 - [Integration with Development Process](#integration-with-development-process)
 - [Collaborative Testing Protocol](#collaborative-testing-protocol)
 - [Merge Criteria](#merge-criteria)
+- [Test Validation Process](#test-validation-process)
+- [Comprehensive Testing Initiative](#comprehensive-testing-initiative)
 - [Additional Resources](#additional-resources)
 
 ## Overview
@@ -175,20 +177,156 @@ This collaborative approach ensures both thorough coverage and efficient use of 
 
 The criteria for merging the TypeScript refactoring branch back to the main branch follows a test-completion-based approach rather than a time-based approach. This ensures that the refactored code meets quality standards before merging.
 
-### Core Test Requirements
+### Core Test Completion Requirements
 
 Before merging the refactoring branch to main, the following core areas must be thoroughly tested and verified:
 
-1. **Settings System** - All settings functionality verified
-2. **Basic Scraping** - File and folder scraping functionality verified
-3. **Metrics Tables** - Table generation and display functionality verified
-4. **Basic Filters** - Date and metrics filtering functionality verified
+1. **Settings System Verification**
+   - All settings persistence tests pass
+   - Settings migration tests from previous versions pass
+   - Settings adaptation via adaptSettingsToCore verified
+   - Default values application works correctly
+   - All settings UI components render and function properly
+   - Settings helper functions pass all tests
 
-The detailed merge criteria, including specific test requirements and the approval process, are documented in [Refactoring Merge Criteria](../refactoring-merge-criteria.md).
+2. **Basic Scraping Functionality**
+   - Scrape functionality works in both notes and folder modes
+   - Progress reporting during scraping is accurate
+   - Metrics extraction works correctly
+   - Batch processing for large datasets functions properly
+   - Error handling during scraping is appropriate
+
+3. **Metrics Tables Generation**
+   - Summary metrics table generates correctly
+   - Detailed metrics table renders correctly
+   - All metrics calculations are accurate
+   - Table sorting and filtering work as expected
+   - Lazy loading for large datasets functions properly
+
+4. **Basic Filters**
+   - Date range filtering works correctly
+   - Custom date filters function properly
+   - Metric value filtering works as expected
+   - Filter combinations produce correct results
+   - Filter UI components render and function properly
+
+### Testing Priority Sequence
+
+Tests are conducted in the following sequence of priority:
+
+1. **Settings Interface**
+   - Core settings storage and retrieval
+   - Settings UI components
+   - Settings migration
+
+2. **Basic Scraping**
+   - File and folder scraping
+   - Metrics extraction
+   - Progress reporting
+
+3. **Metrics Tables**
+   - Table generation
+   - Data display
+   - Performance with large datasets
+
+4. **Basic Filters**
+   - Date filtering
+   - Metrics filtering
+   - UI components
+
+## Test Validation Process
+
+Each test area is validated using the following process:
+
+1. **Automated Testing**
+   - Run unit tests where available
+   - Document test coverage and results
+
+2. **Manual Testing**
+   - Follow test plans in the testing documentation
+   - Document test steps and outcomes
+   - Include screenshots or recordings of functionality
+
+3. **Edge Case Verification**
+   - Test with boundary conditions
+   - Test with unexpected inputs
+   - Verify error handling
+
+### Merge Approval Process
+
+1. **Test Completion Report**
+   - Document results of all core tests
+   - Note any remaining minor issues
+   - Provide evidence of test passage
+
+2. **Code Review**
+   - Complete final code review of critical components
+   - Verify TypeScript errors have been addressed
+   - Check for any remaining code quality issues
+
+3. **Approval Sign-off**
+   - Obtain sign-off from project maintainers
+   - Document approval in the merge request
+
+### Post-Merge Verification
+
+After merging to main:
+
+1. **Deployment Verification**
+   - Verify the plugin builds correctly from main
+   - Test installation in a clean Obsidian vault
+   - Verify all core functionality works in production
+
+2. **Monitoring**
+   - Monitor for any regression issues
+   - Track performance metrics
+   - Address any critical issues immediately
+
+## Comprehensive Testing Initiative
+
+As part of the post-refactoring roadmap, a comprehensive testing initiative has been established with the following goals:
+
+1. **Verify Integrity**: Ensure the refactored codebase functions correctly
+2. **Validate User Experience**: Confirm all user-facing features work as expected
+3. **Identify Edge Cases**: Discover and address boundary conditions
+4. **Establish Baselines**: Set performance and reliability benchmarks
+
+### Testing Categories and Test Matrices
+
+#### Settings System Tests
+
+| Test Category | Test Cases | Priority | Status |
+|--------------|------------|----------|--------|
+| Default Settings | Verify default settings applied on first run | High | ⬜ Not Started |
+| Settings Persistence | Test saving and loading settings | High | ⬜ Not Started |
+| Settings Migration | Test migration from older versions | High | ⬜ Not Started |
+| Settings UI | Test all settings UI components | Medium | ⬜ Not Started |
+| Helper Functions | Test all settings helper functions | High | ⬜ Not Started |
+| Backward Compatibility | Test compatibility with old settings format | Medium | ⬜ Not Started |
+| Error Handling | Test recovery from corrupted settings | Medium | ⬜ Not Started |
+
+#### Functional Test Matrix
+
+| Feature Category | Test Cases | Priority | Status |
+|------------------|------------|----------|--------|
+| Dream Journal Management | Dream entry creation and editing | High | ⬜ Not Started |
+|                          | Journal structure validation | High | ⬜ Not Started |
+|                          | Template application | High | ⬜ Not Started |
+| Metrics Tracking | Metrics calculation and display | High | ⬜ Not Started |
+|                  | Custom metrics creation | Medium | ⬜ Not Started |
+|                  | Metrics visualization | Medium | ⬜ Not Started |
+| Date Navigation | Calendar view functionality | High | ⬜ Not Started |
+|                 | Date range selection | High | ⬜ Not Started |
+|                 | Custom date range creation | Medium | ⬜ Not Started |
+| Backup System | Manual backup creation | Medium | ⬜ Not Started |
+|               | Automatic backup scheduling | Medium | ⬜ Not Started |
+|               | Backup restoration | High | ⬜ Not Started |
+| Integration Features | Templater integration | Medium | ⬜ Not Started |
+|                      | Calendar plugin compatibility | Medium | ⬜ Not Started |
+|                      | Dataview compatibility | Low | ⬜ Not Started |
 
 ## Additional Resources
 
+- [TypeScript Architecture and Lessons](../../architecture/typescript-architecture-lessons.md)
 - [TypeScript Interface Standards](../typescript-interface-standards.md)
-- [Refactoring Summary 2025](../refactoring-summary-2025.md)
-- [Post-Refactoring Roadmap](../post-refactoring-roadmap.md)
 - [Adapter Documentation](../../architecture/adapter-documentation-tasks.md) 
