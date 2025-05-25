@@ -5,6 +5,7 @@ This document consolidates key architectural patterns, lessons learned, and best
 ## Table of Contents
 - [Architectural Patterns](#architectural-patterns)
 - [Adapter Migration Strategy](#adapter-migration-strategy)
+- [Cleanup and Verification Checklist](#cleanup-and-verification-checklist)
 - [Lessons Learned](#lessons-learned)
 - [Future Recommendations](#future-recommendations)
 
@@ -111,6 +112,76 @@ Rather than immediately removing temporary adapter functions, we implemented a p
   - `src/utils/type-adapters.ts`
   - `src/utils/property-compatibility.ts`
   - `src/utils/component-migrator.ts`
+
+## Cleanup and Verification Checklist
+
+To ensure a complete and successful post-refactoring cleanup, follow this structured approach. Only perform these cleanup tasks after the refactored codebase has been stable in production for 2-3 releases with no major issues reported.
+
+### Dependency Audit
+
+Before removing any adapter code or temporary migration utilities:
+
+1. **Identify Usage**
+   - Map which specific functions/classes are used from each adapter file
+   - Classify dependencies as critical path or peripheral
+   - Document each usage with code examples
+
+2. **Functionality Assessment**
+   - Create classification table (keep, refactor, remove) for adapter functionality
+   - For "keep" items, document reasons and implementation approach
+   - For "refactor" items, design new interfaces and implementations
+   - For "remove" items, verify they aren't needed
+
+3. **Additional Cleanup Tasks**
+   - Clean up deprecated APIs (review `@deprecated` annotations)
+   - Check dependency usage before removing any code
+   - Remove temporary type interfaces created just for migration
+   - Remove temporary type casting functions
+
+### Final Verification Process
+
+Before considering the TypeScript migration complete, perform these verification steps:
+
+1. **Compile with Strict Checks**
+   - Run full TypeScript compilation with strict settings enabled
+   - Verify zero TypeScript errors
+
+2. **Test Suite Execution**
+   - Run the complete test suite
+   - Ensure all tests pass with no regression
+
+3. **Manual Testing**
+   - Manually test all critical plugin functionality
+   - Verify proper functioning in both light and dark themes
+   - Test across different operating systems if applicable
+
+4. **Performance Verification**
+   - Check that performance metrics match or exceed pre-refactoring baselines
+   - Test with large datasets to ensure no performance regressions
+
+### Documentation and Release Notes
+
+1. **Release Notes**
+   - Create release notes entry documenting the cleanup
+   - Note that the codebase is now fully migrated to TypeScript
+   - Include information about deleted compatibility/adapter code
+   - Thank contributors who helped with the migration effort
+
+2. **Update Documentation**
+   - Ensure all references to deprecated or removed components are updated
+   - Update architecture diagrams to reflect the final state
+   - Update developer guides with current best practices
+
+### Cleanup Tracking
+
+Maintain a tracking table for cleanup progress:
+
+| Task | Status | Date Completed | Notes |
+|------|--------|----------------|-------|
+| Documentation archiving | Completed | 2025-05-25 | Documents archived; references updated; migration notices added |
+| Code cleanup | In Progress | 2025-05-25 | Created phased adapter migration plan; added migration notices |
+| Final verification | Not Started | | |
+| Release notes | In Progress | 2025-05-25 | Created refactoring-summary-2025.md |
 
 ## Lessons Learned
 

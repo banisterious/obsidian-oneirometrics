@@ -1,11 +1,11 @@
 /**
- * MIGRATION NOTICE
+ * MIGRATION NOTICE: This adapter file is maintained for backward compatibility.
+ * New code should not directly use functions from this file.
  * 
- * This file is part of the phased migration plan and will eventually be replaced.
- * Do not add new dependencies on this file. Instead, use the permanent replacements
- * as documented in the TypeScript architecture documentation.
+ * This file contains utility functions for adapting between different type systems
+ * during the TypeScript migration.
  * 
- * See post-refactoring-cleanup-checklist.md for the detailed migration plan.
+ * See docs/developer/architecture/typescript-architecture-lessons.md for the detailed migration plan.
  */
 /**
  * Type Adapters - Utilities for handling type conversions between legacy and new types
