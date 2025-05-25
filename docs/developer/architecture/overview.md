@@ -511,4 +511,74 @@ The following features are documented in detail in separate files:
 - **Templates**: Template functionality including the new Templater integration is documented in `docs/planning/features/templater-integration.md`.
 - **CSS**: The CSS architecture is documented in `docs/CSS_REFACTORING.md`. All plugin-specific CSS classes now use the "oom-" prefix to avoid conflicts.
 - **Testing**: Testing procedures are documented in `docs/TESTING.md`.
-- **Development**: Development workflows are documented in `docs/CONTRIBUTING.md`. 
+- **Development**: Development workflows are documented in `docs/CONTRIBUTING.md`.
+
+## TypeScript Architecture
+
+The OneiroMetrics plugin is implemented in TypeScript, following a structured approach to ensure type safety, interface consistency, and robust error handling. The TypeScript architecture provides several key benefits:
+
+1. **Type Safety**: Strong typing across component boundaries
+2. **Interface Consistency**: Well-defined interfaces for all components
+3. **Error Prevention**: Compile-time error detection
+4. **Code Maintainability**: Better intellisense and documentation
+5. **Refactoring Support**: Type-aware refactoring tools
+
+### Type System Organization
+
+The plugin organizes types into several key categories:
+
+![TypeScript Type System](./diagrams/Oom-TypeScript-Type-System.png)
+
+- **Core Types**: Located in `src/types/core`, these are the fundamental interfaces used throughout the application
+- **Domain-Specific Types**: Specialized types for specific areas (metrics, journals, UI)
+- **Helper Types**: Utility types for common patterns and transformations
+- **Adapter Types**: Types that bridge between different interface versions
+
+For detailed information on the type system, see the [TypeScript Adapter Pattern Guide](../implementation/typescript-adapter-patterns.md).
+
+### Adapter Pattern Implementation
+
+To handle interface evolution and backward compatibility, the plugin implements the adapter pattern:
+
+![TypeScript Adapter Pattern](./diagrams/Oom-TypeScript-Adapter-Pattern.png)
+
+- **Type Adapters**: Convert between different interface versions
+- **Property Access Helpers**: Safely access properties across interface versions
+- **Type Guards**: Validate object shapes at runtime
+
+This pattern allows the codebase to evolve while maintaining compatibility with existing data structures and third-party code. For implementation details, see the [TypeScript Adapter Pattern Guide](../implementation/typescript-adapter-patterns.md).
+
+### Helper Utilities
+
+The plugin uses several helper utility libraries to ensure type safety and consistent behavior:
+
+- **settings-helpers.ts**: Safe access to configuration settings with backward compatibility
+- **metric-helpers.ts**: Type-safe handling of metric objects and their properties
+- **selection-mode-helpers.ts**: Compatibility layer for selection mode values
+
+These utilities provide a robust interface between application code and data structures. For usage patterns and examples, see the [TypeScript Helper Utilities Guide](../implementation/typescript-helper-utilities.md).
+
+### Event Communication System
+
+Components communicate through a type-safe event system:
+
+![TypeScript Event Communication](./diagrams/Oom-TypeScript-Event-Communication.png)
+
+- **EventEmitter**: Base class for all event communication
+- **Typed Events**: Events with typed payloads
+- **Event Subscriptions**: Type-safe event subscription management
+
+This system ensures that events carry properly typed data between components, making the communication robust and self-documenting.
+
+### Logging System
+
+The plugin implements a comprehensive logging system:
+
+![Logging System Architecture](./diagrams/Oom-Logging-System-Architecture.png)
+
+- **LogManager**: Central coordination point for all logging
+- **Logger Implementations**: Console, file, and debug loggers
+- **Log Levels**: Configurable verbosity levels
+- **Formatters**: Consistent log message formatting
+
+For more information about the logging implementation, see [Logging Documentation](../implementation/logging.md). 
