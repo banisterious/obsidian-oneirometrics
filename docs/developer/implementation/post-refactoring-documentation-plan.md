@@ -14,6 +14,13 @@ This document outlines the plan for reorganizing documentation and updating diag
 
 ## Document Reorganization
 
+### Audit Documents for Unique Content
+- [ ] Review all refactoring documents to identify unique information:
+  - [ ] Catalog key information, decisions, and patterns in each document
+  - [ ] Identify content that should be preserved in permanent documentation
+  - [ ] Create a migration plan for valuable content from each document
+  - [ ] Ensure architecture docs capture all important design decisions
+
 ### Create Archive Directory
 - [ ] Create `docs/archive/refactoring-2025/` directory
 
@@ -153,7 +160,8 @@ This document outlines the plan for reorganizing documentation and updating diag
 ## Action Plan Timeline
 
 ### Phase 1: Initial Organization
-- [ ] Create archive directory and move completed documents
+- [ ] Audit refactoring documents for unique content to preserve
+- [ ] Create archive directory
 - [ ] Update post-refactoring roadmap
 - [ ] Begin audit of existing diagrams
 
