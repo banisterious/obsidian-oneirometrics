@@ -252,6 +252,16 @@ The OneiroMetrics plugin uses a structured TypeScript type system organized into
    - Specialized types for specific domains (e.g., `src/types/callout-types.ts`, `src/types/logging.ts`)
    - Extends core types with domain-specific properties
 
+4. **Utility Types**
+   - Type transformations for specific use cases
+   - Generic type utilities for reusability
+   - Type guards for runtime validation
+
+5. **Interface Evolution**
+   - Versioned interfaces for backward compatibility
+   - Extension patterns for interface evolution
+   - Property inheritance through interface composition
+
 ### Adapter Pattern Implementation
 
 To ensure compatibility between different interface versions and handle property changes, the plugin implements the adapter pattern:
@@ -260,42 +270,60 @@ To ensure compatibility between different interface versions and handle property
    - Provides utility functions to convert between different interface versions
    - Ensures backward compatibility with older plugin versions
    - Handles default values and property mapping
+   - Creates standardized objects from various input formats
 
 ```typescript
 // Example of a strong adapter function
 export function adaptToCoreDreamMetricsSettings(settings: any): CoreDreamMetricsSettings {
   return {
-    projectNote: settings.projectNote || settings.projectNotePath || '',
-    selectedNotes: settings.selectedNotes || [],
-    selectedFolder: settings.selectedFolder || '',
-    selectionMode: settings.selectionMode || 'notes',
-    calloutName: settings.calloutName || 'dream',
-    metrics: settings.metrics || {},
+    projectNote: getProjectNotePath(settings),
+    selectedNotes: getSelectedNotes(settings) || [],
+    selectedFolder: getSelectedFolder(settings) || '',
+    selectionMode: getCompatibleSelectionMode(settings),
+    calloutName: getCalloutName(settings) || 'dream',
+    metrics: adaptMetrics(settings),
     // Additional properties with defaults
-    showRibbonButtons: settings.showRibbonButtons || false,
-    backupEnabled: settings.backupEnabled || false,
-    backupFolderPath: settings.backupFolderPath || './backups',
-    logging: {
-      level: settings.logging?.level || 'info',
-      maxSize: settings.logging?.maxSize || settings.logging?.maxLogSize || 1024 * 1024,
-      maxBackups: settings.logging?.maxBackups || 3
-    }
+    showRibbonButtons: getShowRibbonButtons(settings),
+    backupEnabled: isBackupEnabled(settings),
+    backupFolderPath: getBackupFolderPath(settings) || './backups',
+    logging: adaptLoggingConfig(settings)
   };
 }
 ```
 
 2. **Helper Utilities**
-   - `settings-helpers.ts`: Safe property access for settings
+   - `settings-helpers.ts`: Safe property access for settings objects
    - `metric-helpers.ts`: Type-safe metric property access
    - `selection-mode-helpers.ts`: Compatibility for selection mode values
+   - `journal-helpers.ts`: Safe access to journal entry properties
 
 ```typescript
 // Example of a safe property access helper
 export function getProjectNotePath(settings: any): string {
-  const typedSettings = settings as Partial<DreamMetricsSettings>;
-  return typedSettings.projectNote || typedSettings.projectNotePath || '';
+  return settings?.projectNote || 
+         settings?.projectNotePath || 
+         '';
+}
+
+// Example of a type-safe metric helper
+export function isMetricEnabled(metric: any): boolean {
+  if (!metric) return false;
+  if (metric.enabled !== undefined) return !!metric.enabled;
+  return !metric.disabled; // Legacy compatibility
 }
 ```
+
+3. **Adapter Functions**
+   - Pure functions that don't modify input objects
+   - Return new objects with standardized properties
+   - Handle various input formats consistently
+   - Provide sensible defaults for missing properties
+
+4. **Migration Strategy**
+   - Graduated approach to interface standardization
+   - Legacy code support through adapters
+   - Clear documentation of migration paths
+   - Type guard checks for runtime safety
 
 ### Safe Property Access Pattern
 
@@ -304,24 +332,40 @@ To handle potentially undefined properties and different property names across i
 1. **Type Guards**
    - Functions that check types before property access
    - Ensures runtime safety for property access
+   - Provides type narrowing for the TypeScript compiler
+   - Enables more precise type checking in subsequent code
 
 ```typescript
 // Example type guard for source property
-export function isObjectSource(entry: DreamMetricData): boolean {
-  return typeof entry.source !== 'string';
+export function isObjectSource(entry: DreamMetricData): entry is DreamMetricData & { source: { file: string } } {
+  return typeof entry.source !== 'string' && !!entry.source;
 }
 
 export function getSourceFile(entry: DreamMetricData): string {
-  if (typeof entry.source === 'string') {
-    return entry.source;
+  if (isObjectSource(entry)) {
+    return entry.source.file;
   }
-  return entry.source?.file || '';
+  return typeof entry.source === 'string' ? entry.source : '';
 }
 ```
 
 2. **Default Value Handling**
    - Provides sensible defaults for missing properties
    - Ensures consistent behavior across the codebase
+   - Enables graceful handling of incomplete data
+   - Preserves backward compatibility
+
+3. **Property Access Helpers**
+   - Centralized functions for accessing common properties
+   - Consistent pattern for safe property access
+   - Handles both new and legacy property names
+   - Provides appropriate type conversion when needed
+
+4. **Nested Property Access**
+   - Safe access to deeply nested properties
+   - Path-based property access utilities
+   - Fallback values for missing nested properties
+   - Type-safe retrieval of complex object structures
 
 ### Error Handling Implementation
 
@@ -330,6 +374,8 @@ The plugin implements a standardized error handling approach with context enrich
 1. **Error Context Interface**
    - Standardized interface for adding metadata to errors
    - Includes component, operation, timestamp, and custom metadata
+   - Enables detailed error tracking and debugging
+   - Provides structured context for error analysis
 
 ```typescript
 export interface ErrorContext {
@@ -354,6 +400,7 @@ export class OneiroMetricsError extends Error {
    - Errors are enriched with context as they bubble up through the component hierarchy
    - Each layer adds relevant context information
    - Error logging includes full context for debugging
+   - Original error information is preserved
 
 ```typescript
 export class ContentParser {
@@ -380,6 +427,7 @@ export class ContentParser {
    - LoggingService captures all errors with context
    - Error recovery strategies based on error type and context
    - User-friendly error messages with debugging information when needed
+   - Configurable logging levels for different environments
 
 ```typescript
 export class LoggingService {
@@ -399,6 +447,40 @@ export class LoggingService {
    - UI components handle errors gracefully
    - Fallback strategies for critical operations
    - Recovery mechanisms for persistent data
+   - User-friendly error messages with appropriate details
+
+5. **Result Type Pattern**
+   - For recoverable errors, Result objects are used instead of exceptions
+   - Clear success/failure indication with appropriate typing
+   - Detailed error information in failure case
+   - Type-safe handling of operation results
+
+```typescript
+interface Success<T> {
+  success: true;
+  data: T;
+}
+
+interface Failure {
+  success: false;
+  error: string;
+}
+
+type Result<T> = Success<T> | Failure;
+
+function parseMetric(input: unknown): Result<DreamMetric> {
+  if (!input || typeof input !== 'object') {
+    return { success: false, error: 'Invalid input' };
+  }
+  
+  // Validation and parsing...
+  
+  return { 
+    success: true, 
+    data: /* parsed metric */ 
+  };
+}
+```
 
 ### Event Communication System
 
@@ -408,6 +490,7 @@ The plugin implements a typed event communication system to facilitate component
    - Generic event emitter with type safety
    - Support for multiple event types with typed payloads
    - Built-in error handling for event listeners
+   - Subscription management for proper cleanup
 
 ```typescript
 export type EventListener<T> = (payload: T) => void;
@@ -471,6 +554,8 @@ export class MetricsEventEmitter extends EventEmitter<MetricsEvents> {
 3. **Subscription Management**
    - Proper cleanup of event subscriptions to prevent memory leaks
    - Subscription tracking within components
+   - Automatic unsubscription during component destruction
+   - Typed subscription handlers for type safety
 
 ```typescript
 export class MetricsVisualization {
@@ -491,6 +576,34 @@ export class MetricsVisualization {
 }
 ```
 
+### Testing TypeScript Components
+
+The plugin includes a comprehensive testing approach for TypeScript components:
+
+1. **Testing Infrastructure**
+   - Specialized test runners for TypeScript code
+   - Mock utilities for TypeScript interfaces
+   - Type validation testing utilities
+   - Both synchronous and asynchronous test execution
+
+2. **Type Guards Testing**
+   - Dedicated utilities for testing type guards
+   - Test cases with varying input types
+   - Validation of type guard behavior
+   - Coverage for edge cases
+
+3. **Adapter Function Testing**
+   - Testing of adapter functions with various input formats
+   - Validation of output object structure
+   - Property mapping verification
+   - Default value testing
+
+4. **UI Component Testing**
+   - Type-safe component rendering tests
+   - Event handling testing with typed events
+   - User interaction simulation
+   - Accessibility testing
+
 ### UI Component Architecture
 
 The UI components follow a structured TypeScript architecture:
@@ -498,6 +611,7 @@ The UI components follow a structured TypeScript architecture:
 1. **Component Base Classes**
    - `BaseComponent`: Foundation class with lifecycle methods
    - `EventableComponent`: Extends BaseComponent with event handling
+   - `StatefulComponent`: Extends EventableComponent with state management
 
 2. **Component Migration Approaches**
    - Component Wrapper: For simple components without significant changes
@@ -507,6 +621,8 @@ The UI components follow a structured TypeScript architecture:
 3. **DOM Helpers**
    - Type-safe wrappers for DOM manipulation
    - Consistent pattern for creating and manipulating UI elements
+   - Proper cleanup of event listeners
+   - Accessibility attributes handling
 
 ## Technical Requirements
 
