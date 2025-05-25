@@ -81,8 +81,8 @@ export function registerStateManagementTests(
         newState = s;
       });
       
-      // Update state
-      state.setState({ count: 1 });
+      // Update state - include all required properties
+      state.setState({ count: 1, name: 'test' });
       
       // Verify state was updated and notification was sent
       const result = notified && newState.count === 1 && newState.name === 'test';

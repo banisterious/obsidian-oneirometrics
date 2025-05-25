@@ -431,6 +431,8 @@ These enhancements are planned for after the refactoring branch is merged:
   - Improve user flow and reduce friction
   - Restore missing star icons for days that have dream entries
   - Estimated effort: Low (1-2 hours)
+- [ ] **Metric value filtering**
+  - Ensure that metric value filters are present and working
 
 ---
 

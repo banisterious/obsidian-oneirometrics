@@ -54,18 +54,18 @@ export function setMetricEnabled(metric: DreamMetric | CoreDreamMetric | any, en
  * @param metric The dream metric
  * @returns The minimum value
  */
-export function getMetricMinValue(metric: DreamMetric): number {
+export function getMetricMinValue(metric: DreamMetric | CoreDreamMetric | any): number {
   // Look for minValue first, then fallback to range.min, then min, then default to 1
-  if (metric.minValue !== undefined) {
+  if (typeof metric.minValue === 'number') {
     return metric.minValue;
   }
   
-  if ((metric as any).range && typeof (metric as any).range.min === 'number') {
-    return (metric as any).range.min;
+  if (metric.range && typeof metric.range.min === 'number') {
+    return metric.range.min;
   }
   
-  if ((metric as any).min !== undefined) {
-    return (metric as any).min;
+  if (typeof metric.min === 'number') {
+    return metric.min;
   }
   
   return 1;
@@ -76,18 +76,18 @@ export function getMetricMinValue(metric: DreamMetric): number {
  * @param metric The dream metric
  * @returns The maximum value
  */
-export function getMetricMaxValue(metric: DreamMetric): number {
+export function getMetricMaxValue(metric: DreamMetric | CoreDreamMetric | any): number {
   // Look for maxValue first, then fallback to range.max, then max, then default to 5
-  if (metric.maxValue !== undefined) {
+  if (typeof metric.maxValue === 'number') {
     return metric.maxValue;
   }
   
-  if ((metric as any).range && typeof (metric as any).range.max === 'number') {
-    return (metric as any).range.max;
+  if (metric.range && typeof metric.range.max === 'number') {
+    return metric.range.max;
   }
   
-  if ((metric as any).max !== undefined) {
-    return (metric as any).max;
+  if (typeof metric.max === 'number') {
+    return metric.max;
   }
   
   return 5;
@@ -99,22 +99,22 @@ export function getMetricMaxValue(metric: DreamMetric): number {
  * @param min The minimum value
  * @param max The maximum value
  */
-export function setMetricRange(metric: DreamMetric, min: number, max: number): void {
+export function setMetricRange(metric: DreamMetric | CoreDreamMetric | any, min: number, max: number): void {
   // Set all properties for backward compatibility
   metric.minValue = min;
   metric.maxValue = max;
   
   // Legacy range property
-  if ((metric as any).range) {
-    (metric as any).range.min = min;
-    (metric as any).range.max = max;
+  if (metric.range) {
+    metric.range.min = min;
+    metric.range.max = max;
   } else {
-    (metric as any).range = { min, max };
+    metric.range = { min, max };
   }
   
   // Legacy min/max properties
-  (metric as any).min = min;
-  (metric as any).max = max;
+  metric.min = min;
+  metric.max = max;
 }
 
 /**
@@ -122,7 +122,7 @@ export function setMetricRange(metric: DreamMetric, min: number, max: number): v
  * @param metric The dream metric
  * @returns The range object with min and max properties
  */
-export function getMetricRange(metric: DreamMetric): { min: number, max: number } {
+export function getMetricRange(metric: DreamMetric | CoreDreamMetric | any): { min: number, max: number } {
   return {
     min: getMetricMinValue(metric),
     max: getMetricMaxValue(metric)
@@ -139,7 +139,7 @@ export function getMetricRange(metric: DreamMetric): { min: number, max: number 
  * @param metric Potentially partial or legacy metric format
  * @returns A standardized DreamMetric with all required fields
  */
-export function standardizeMetric(metric: Partial<DreamMetric> & Record<string, any>): DreamMetric & Record<string, any> {
+export function standardizeMetric(metric: Partial<DreamMetric | CoreDreamMetric> & Record<string, any>): DreamMetric & Record<string, any> {
   // Set default values
   const standardized: DreamMetric & Record<string, any> = {
     name: metric.name || 'Unnamed Metric',
@@ -160,22 +160,22 @@ export function standardizeMetric(metric: Partial<DreamMetric> & Record<string, 
   
   // Preserve but normalize legacy properties for backward compatibility
   if (metric.range || metric.min !== undefined || metric.max !== undefined) {
-    (standardized as any).range = {
+    standardized.range = {
       min: standardized.minValue,
       max: standardized.maxValue
     };
   }
   
   if (metric.min !== undefined) {
-    (standardized as any).min = standardized.minValue;
+    standardized.min = standardized.minValue;
   }
   
   if (metric.max !== undefined) {
-    (standardized as any).max = standardized.maxValue;
+    standardized.max = standardized.maxValue;
   }
   
   if (metric.step !== undefined) {
-    (standardized as any).step = metric.step;
+    standardized.step = metric.step;
   }
   
   return standardized;
@@ -186,8 +186,10 @@ export function standardizeMetric(metric: Partial<DreamMetric> & Record<string, 
  * @param metric - Source metric object (or partial)
  * @returns A metric object with all required properties
  */
-export function createCompatibleMetric(metric: Partial<DreamMetric> | any): CoreDreamMetric {
-    return {
+export function createCompatibleMetric(metric: Partial<DreamMetric | CoreDreamMetric> | any): CoreDreamMetric {
+    // Create an object with the core properties, then cast to CoreDreamMetric
+    // Using the unknown intermediate cast to avoid type checking errors
+    const compatibleMetric = {
         name: metric.name || '',
         label: metric.label || metric.name || '',
         description: metric.description || '',
@@ -204,6 +206,9 @@ export function createCompatibleMetric(metric: Partial<DreamMetric> | any): Core
         aggregate: metric.aggregate || 'average',
         options: metric.options || {},
     };
+    
+    // Use a two-step type assertion to avoid TypeScript errors
+    return compatibleMetric as unknown as CoreDreamMetric;
 }
 
 /**
@@ -211,7 +216,7 @@ export function createCompatibleMetric(metric: Partial<DreamMetric> | any): Core
  * @param metric The source metric
  * @returns A compatible metric
  */
-export function adaptMetric(metric: DreamMetric | any): CoreDreamMetric {
+export function adaptMetric(metric: DreamMetric | CoreDreamMetric | any): CoreDreamMetric {
     if (!metric) return createCompatibleMetric({});
     
     // If it's already a core metric (has all required properties), return it

@@ -4,6 +4,7 @@ import { CalloutStructure, JournalTemplate, LintingRule, ContentIsolationSetting
 import { TemplaterIntegration } from '../TemplaterIntegration';
 import { TemplateWizard } from './TemplateWizard';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
+import { getSelectionMode, getSelectedFolder } from '../../../src/utils/settings-helpers';
 
 /**
  * Dream Journal Manager Modal
@@ -46,10 +47,10 @@ export class DreamJournalManager extends Modal {
         super(app);
         this.templaterIntegration = this.plugin.templaterIntegration;
         
-        // Initialize Dream Scrape properties
-        this.selectionMode = plugin.settings.selectionMode || 'notes';
+        // Initialize Dream Scrape properties using safe accessors
+        this.selectionMode = getSelectionMode(plugin.settings);
         this.selectedNotes = plugin.settings.selectedNotes || [];
-        this.selectedFolder = plugin.settings.selectedFolder || '';
+        this.selectedFolder = getSelectedFolder(plugin.settings);
     }
     
     onOpen() {
