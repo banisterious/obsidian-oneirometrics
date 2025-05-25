@@ -1,5 +1,7 @@
 # Post-Refactoring Cleanup Checklist
 
+> **DEPRECATION NOTICE**: This document has been deprecated. The content has been consolidated into the [TypeScript Architecture and Lessons](../../architecture/typescript-architecture-lessons.md) document. Please refer to the [Cleanup and Verification Checklist](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist) section of that document for current information.
+
 This checklist outlines the specific tasks to complete once the TypeScript migration and refactoring effort is fully behind us. Use this document to track progress and ensure no cleanup task is missed.
 
 ## When to Perform Cleanup

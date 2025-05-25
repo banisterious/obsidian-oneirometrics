@@ -399,14 +399,14 @@ Once the refactoring process is fully completed and the improvements outlined in
    - ✅ Moved temporary refactoring guides to `docs/archive/refactoring-2025/`
    - Archive component migration guides and examples once all components are migrated
    - Keep only the documentation needed for ongoing development and maintenance
-   - Follow the detailed steps in [Post-Refactoring Cleanup Checklist](./post-refactoring-cleanup-checklist.md)
+   - Follow the detailed steps in [TypeScript Architecture and Lessons](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist)
 
 2. **Code Cleanup**
    - Remove temporary adapter functions and compatibility layers 
    - Clean up any remaining migration utilities that are no longer needed
    - Consolidate helper functions that have overlapping functionality
    - Remove deprecated APIs after ensuring no components depend on them
-   - Use the [cleanup checklist](./post-refactoring-cleanup-checklist.md) to track progress
+   - Use the [cleanup checklist](../../architecture/typescript-architecture-lessons.md#cleanup-and-verification-checklist) to track progress
 
 ## Post-Refactoring Priorities
 
