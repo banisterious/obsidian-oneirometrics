@@ -522,41 +522,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     this.plugin.updateRibbonIcons();
                 }));
 
-        // Project Note Path
-        new Setting(containerEl)
-            .setName('Project Note')
-            .setDesc('Note for storing your processed metrics data')
-            .addText(text => {
-                // Use the helper function to get the project note path
-                text.setValue(getProjectNotePath(this.plugin.settings))
-                    .setPlaceholder('Path/to/note.md')
-                    .onChange(async (value) => {
-                        // Use the helper function to set the project note path
-                        setProjectNotePath(this.plugin.settings, value);
-                        await this.plugin.saveSettings();
-                    });
-
-                // Create file picker button
-                text.inputEl.style.width = '70%';
-                const button = new ButtonComponent(text.inputEl.parentElement!)
-                    .setButtonText('Choose')
-                    .setClass('oom-browse-button')
-                    .onClick(async () => {
-                        const modal = new FileSuggestModal(this.app);
-                        modal.setPlaceholder('Select project note');
-                        modal.onChooseItem = async (item: string) => {
-                            if (!item.endsWith('.md')) {
-                                item += '.md';
-                            }
-                            text.setValue(item);
-                            // Use the helper function to set the project note path
-                            setProjectNotePath(this.plugin.settings, item);
-                            await this.plugin.saveSettings();
-                        };
-                        modal.open();
-                    });
-            });
-
         // Add section border after button settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
@@ -569,9 +534,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .setDesc('The note where OneiroMetrics tables will be written')
             .addText(text => {
                 text.setPlaceholder('Journals/Dream Diary/Metrics/Metrics.md')
-                    .setValue(this.plugin.settings.projectNote)
+                    .setValue(getProjectNotePath(this.plugin.settings))
                     .onChange(async (value) => {
-                        this.plugin.settings.projectNote = value;
+                        setProjectNotePath(this.plugin.settings, value);
                         await this.plugin.saveSettings();
                     });
             });
@@ -621,7 +586,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     this.plugin.settings.selectionMode = internalMode as 'manual' | 'automatic';
                     
                     // Clear irrelevant selection when switching modes
-                    if (isFolderMode(value)) {
+                    if (isFolderMode(value as SelectionMode)) {
                         this.plugin.settings.selectedNotes = [];
                     } else {
                         setSelectedFolder(this.plugin.settings, '');
@@ -635,7 +600,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         const uiMode = getCompatibleSelectionMode(
             getSelectionMode(this.plugin.settings), 
             'ui'
-        );
+        ) as SelectionMode;
         const selectionLabel = getSelectionModeLabel(uiMode);
         const selectionDesc = getSelectionModeDescription(uiMode);
         
@@ -643,7 +608,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .setName(selectionLabel)
             .setDesc(selectionDesc);
 
-        if (isFolderMode(uiMode)) {
+        if (isFolderMode(uiMode as SelectionMode)) {
             // Folder autocomplete
             selectionSetting.addSearch(search => {
                 search.setPlaceholder('Choose folder...');
@@ -864,9 +829,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             icon: '',
                             minValue: 1,
                             maxValue: 5,
-                            description: '',
-                            enabled: true,
-                            category: 'custom'
+                            description: ''
                         },
                         Object.values(this.plugin.settings.metrics),
                         async (metric) => {
@@ -882,119 +845,99 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 });
         });
 
-        // Add Metrics List
-        const metricsContainer = containerEl.createEl('div', { cls: 'oom-metrics-container' });
+        // Add the metrics section
+        containerEl.createEl('h2', { text: 'Metrics' });
         
-        // Group metrics by enabled state
-        const enabledMetrics = Object.entries(this.plugin.settings.metrics)
-            .filter(([_, metric]) => isMetricEnabled(metric));
-        const disabledMetrics = Object.entries(this.plugin.settings.metrics)
-            .filter(([_, metric]) => !isMetricEnabled(metric));
+        // Helper function to add metric toggles
+        const addMetricToggle = (metric: DreamMetric, key: string, container: HTMLElement) => {
+            const metricSetting = new Setting(container)
+                .setName(metric.name)
+                .setDesc(metric.description || '')
+                .addToggle(toggle => {
+                    toggle.setValue(isMetricEnabled(metric))
+                        .onChange(async (value) => {
+                            setMetricEnabled(metric, value);
+                            await this.plugin.saveSettings();
+                            this.display();
+                        });
+                })
+                .addExtraButton(button => {
+                    button.setIcon('pencil')
+                        .setTooltip('Edit metric')
+                        .onClick(() => {
+                            new MetricEditorModal(
+                                this.app,
+                                { ...metric },
+                                Object.values(this.plugin.settings.metrics),
+                                async (updatedMetric) => {
+                                    this.plugin.settings.metrics[updatedMetric.name] = adaptMetric(updatedMetric);
+                                    // If the name was changed, remove the old key
+                                    if (updatedMetric.name !== key) {
+                                        delete this.plugin.settings.metrics[key];
+                                    }
+                                    await this.plugin.saveSettings();
+                                    this.display();
+                                },
+                                true // isEditing
+                            ).open();
+                        });
+                })
+                .addExtraButton(button => {
+                    button.setIcon('trash')
+                        .setTooltip('Delete metric')
+                        .onClick(() => {
+                            delete this.plugin.settings.metrics[key];
+                            this.plugin.saveSettings();
+                            this.display();
+                        });
+                });
+                
+            // Add drag handle
+            const dragHandle = metricSetting.controlEl.createEl('div', {
+                cls: 'oom-drag-handle',
+                attr: { 'data-index': key }
+            });
+            dragHandle.innerHTML = '⋮⋮';
+        };
+
+        // Group metrics by enabled/disabled
+        const groupedMetrics = Object.entries(this.plugin.settings.metrics || {})
+            .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+            .reduce((acc: { enabled: [string, DreamMetric][], disabled: [string, DreamMetric][] }, [key, metric]) => {
+                if (isMetricEnabled(metric)) {
+                    acc.enabled.push([key, metric]);
+                } else {
+                    acc.disabled.push([key, metric]);
+                }
+                return acc;
+            }, { enabled: [], disabled: [] });
+
+        // Create container for metrics settings
+        const metricsContainer = containerEl.createDiv({ cls: 'oom-metrics-container' });
 
         // Display enabled metrics
-        if (enabledMetrics.length > 0) {
-            metricsContainer.createEl('h2', { text: 'Enabled Metrics' });
-            enabledMetrics.forEach(([key, metric]) => {
-                const metricSetting = new Setting(metricsContainer)
-                    .setName(metric.name)
-                    .setDesc(metric.description || "")
-                    .addToggle(toggle => {
-                        toggle.setValue(isMetricEnabled(metric))
-                            .onChange(async (value) => {
-                                setMetricEnabled(metric, value);
-                                await this.plugin.saveSettings();
-                                this.display();
-                            });
-                    })
-                    .addExtraButton(button => {
-                        button.setIcon('pencil')
-                            .setTooltip('Edit metric')
-                            .onClick(() => {
-                                new MetricEditorModal(
-                                    this.app,
-                                    { ...metric },
-                                    Object.values(this.plugin.settings.metrics),
-                                    async (updatedMetric) => {
-                                        this.plugin.settings.metrics[updatedMetric.name] = adaptMetric(updatedMetric);
-                                        // If the name was changed, remove the old key
-                                        if (updatedMetric.name !== key) {
-                                            delete this.plugin.settings.metrics[key];
-                                        }
-                                        await this.plugin.saveSettings();
-                                        this.display();
-                                    },
-                                    true // isEditing
-                                ).open();
-                            });
-                    })
-                    .addExtraButton(button => {
-                        button.setIcon('trash')
-                            .setTooltip('Delete metric')
-                            .onClick(() => {
-                                delete this.plugin.settings.metrics[key];
-                                this.plugin.saveSettings();
-                                this.display();
-                            });
-                    });
-
-                // Add drag handle
-                const dragHandle = metricSetting.controlEl.createEl('div', {
-                    cls: 'oom-drag-handle',
-                    attr: { 'data-index': key }
-                });
-                dragHandle.innerHTML = '⋮⋮';
+        if (groupedMetrics.enabled.length > 0) {
+            metricsContainer.createEl('h3', { text: 'Enabled Metrics' });
+            groupedMetrics.enabled.forEach(([key, metric]) => {
+                addMetricToggle(metric, key, metricsContainer);
             });
         }
 
         // Display disabled metrics
-        if (disabledMetrics.length > 0) {
-            metricsContainer.createEl('h2', { text: 'Disabled Metrics' });
-            disabledMetrics.forEach(([key, metric]) => {
-                const metricSetting = new Setting(metricsContainer)
-                    .setName(metric.name)
-                    .setDesc(metric.description || "")
-                    .addToggle(toggle => {
-                        toggle.setValue(isMetricEnabled(metric))
-                            .onChange(async (value) => {
-                                setMetricEnabled(metric, value);
-                                await this.plugin.saveSettings();
-                                this.display();
-                            });
-                    })
-                    .addExtraButton(button => {
-                        button.setIcon('pencil')
-                            .setTooltip('Edit metric')
-                            .onClick(() => {
-                                new MetricEditorModal(
-                                    this.app,
-                                    { ...metric },
-                                    Object.values(this.plugin.settings.metrics),
-                                    async (updatedMetric) => {
-                                        this.plugin.settings.metrics[updatedMetric.name] = adaptMetric(updatedMetric);
-                                        // If the name was changed, remove the old key
-                                        if (updatedMetric.name !== key) {
-                                            delete this.plugin.settings.metrics[key];
-                                        }
-                                        await this.plugin.saveSettings();
-                                        this.display();
-                                    },
-                                    true // isEditing
-                                ).open();
-                            });
-                    })
-                    .addExtraButton(button => {
-                        button.setIcon('trash')
-                            .setTooltip('Delete metric')
-                            .onClick(() => {
-                                delete this.plugin.settings.metrics[key];
-                                this.plugin.saveSettings();
-                                this.display();
-                            });
-                    });
+        if (groupedMetrics.disabled.length > 0) {
+            metricsContainer.createEl('h3', { text: 'Disabled Metrics' });
+            groupedMetrics.disabled.forEach(([key, metric]) => {
+                addMetricToggle(metric, key, metricsContainer);
             });
         }
 
         // Add section border after metrics settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+        
+        // Check for missing metrics and add restore options
+        this.addMissingMetrics(containerEl);
+        
+        // Add section border after missing metrics section
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
         // Add Backup Settings Section
@@ -1210,12 +1153,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 .addOption('warn', 'Warnings')
                 .addOption('info', 'Info')
                 .addOption('debug', 'Debug')
-                .addOption('trace', 'Trace')
-                .setValue(this.plugin.settings.logging.level || 'off')
-                .onChange(async (value: LogLevel) => {
-                    this.plugin.settings.logging.level = value;
+                // Cast to any to avoid type issues with LogLevel
+                .setValue((this.plugin.settings.logging.level || 'off') as any)
+                .onChange(async (value) => {
+                    this.plugin.settings.logging.level = value as any;
                     await this.plugin.saveSettings();
-                    this.plugin.setLogLevel(value);
+                    this.plugin.setLogLevel(value as any);
                 }));
 
         new Setting(containerEl)
@@ -1229,7 +1172,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         this.plugin.settings.logging.maxSize = size;
                         await this.plugin.saveSettings();
                         this.plugin.setLogConfig(
-                            this.plugin.settings.logging.level,
+                            this.plugin.settings.logging.level as any,
                             size,
                             this.plugin.settings.logging.maxBackups
                         );
@@ -1247,7 +1190,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         this.plugin.settings.logging.maxBackups = backups;
                         await this.plugin.saveSettings();
                         this.plugin.setLogConfig(
-                            this.plugin.settings.logging.level,
+                            this.plugin.settings.logging.level as any,
                             this.plugin.settings.logging.maxSize,
                             backups
                         );
@@ -1385,7 +1328,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 cls: 'oom-template-edit-button'
             });
             editButton.addEventListener('click', () => {
-                new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration, template).open();
+                new TemplateWizard(this.app, this.plugin).open();
                 
                 // Close the template manager (will be refreshed when reopened)
                 (templateListContainer as HTMLElement).style.display = 'none';
@@ -1600,6 +1543,79 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         `;
         
         document.head.appendChild(styleEl);
+    }
+
+    addMissingMetrics(containerEl: HTMLElement) {
+        // Define the metrics that should be present
+        const requiredMetrics = [
+            "Sensory Detail", "Emotional Recall", "Lost Segments", "Descriptiveness", 
+            "Confidence Score", "Characters Role", "Characters Count", "Familiar Count", 
+            "Unfamiliar Count", "Characters List", "Dream Theme", "Lucidity Level", 
+            "Dream Coherence", "Setting Familiarity", "Ease of Recall", "Recall Stability"
+        ];
+        
+        // Check if any required metrics are missing
+        const missingMetrics = requiredMetrics.filter(
+            metricName => !this.plugin.settings.metrics[metricName]
+        );
+        
+        if (missingMetrics.length > 0) {
+            // Add a section explaining the issue
+            containerEl.createEl('h3', { text: 'Missing Metrics Detected' });
+            
+            // Create a notice
+            const noticeEl = containerEl.createEl('div', { cls: 'oom-notice oom-notice-warning' });
+            noticeEl.createEl('p', { 
+                text: `${missingMetrics.length} metrics are missing from your settings. This may happen after plugin updates or configuration changes.`
+            });
+            
+            noticeEl.createEl('p', { 
+                text: `Missing metrics: ${missingMetrics.join(', ')}`
+            });
+            
+            noticeEl.createEl('p', { 
+                text: 'These metrics should be automatically restored the next time you restart Obsidian.'
+            });
+            
+            // Add a restart button
+            new Setting(noticeEl)
+                .addButton(button => button
+                    .setButtonText('Restart Obsidian')
+                    .setCta()
+                    .onClick(() => {
+                        // Create a confirmation dialog
+                        const modal = new Modal(this.plugin.app);
+                        modal.titleEl.setText('Restart Obsidian?');
+                        modal.contentEl.createEl('p', {
+                            text: 'Would you like to restart Obsidian now to restore missing metrics?'
+                        });
+                        
+                        const buttonContainer = modal.contentEl.createEl('div', {
+                            cls: 'oom-button-container'
+                        });
+                        
+                        const cancelButton = buttonContainer.createEl('button', {
+                            text: 'Cancel',
+                            cls: 'mod-warning'
+                        });
+                        cancelButton.addEventListener('click', () => {
+                            modal.close();
+                        });
+                        
+                        const confirmButton = buttonContainer.createEl('button', {
+                            text: 'Restart Now',
+                            cls: 'mod-cta'
+                        });
+                        confirmButton.addEventListener('click', () => {
+                            // Close Obsidian - will trigger a restart
+                            (this.plugin.app as any).commands.executeCommandById('app:reload');
+                            modal.close();
+                        });
+                        
+                        modal.open();
+                    })
+                );
+        }
     }
 }
 
