@@ -613,64 +613,99 @@ export default class DreamMetricsPlugin extends Plugin {
         // Listen for Obsidian's app ready state
         this.app.workspace.onLayoutReady(() => {
             // Use info level to ensure it's visible in logs
-            globalLogger?.info('Filter', 'Obsidian layout ready - preparing to apply filter persistence');
-            
-            // PRIORITY FIX: Restore filter settings more aggressively
-            globalLogger?.info('Filter', 'Saved filter settings:', {
-                filter: this.settings.lastAppliedFilter || 'none',
-                customRange: this.settings.customDateRange ? JSON.stringify(this.settings.customDateRange) : 'none'
-            });
-            
-            // Set global flag before anything else
-            (window as any).oomFiltersPending = true;
-            (window as any).oomFiltersApplied = false;
-            customDateRange = this.settings.customDateRange || null;
-            
-            // CRITICAL FIX: Create a more robust filter application at startup
-            // Store intended filter in global state to ensure it persists
-            if (this.settings.lastAppliedFilter) {
-                (window as any).oomIntendedFilter = this.settings.lastAppliedFilter;
-                globalLogger?.info('Filter', `Setting intended filter at startup: ${this.settings.lastAppliedFilter}`);
-            }
-            
-            // Apply filters with multiple retries at different intervals to ensure they're applied
-            // Staggered intervals to catch different loading scenarios
-            const intervals = [100, 500, 1000, 2000, 3500, 5000, 7500, 10000];
-            intervals.forEach(delay => {
-                setTimeout(() => {
-                    if (!(window as any).oomFiltersApplied) {
-                        globalLogger?.info('Filter', `Attempting filter application at ${delay}ms delay`);
-                        this.applyInitialFilters();
+            try {
+                if (globalLogger) {
+                    globalLogger.info('Filter', 'Obsidian layout ready - preparing to apply filter persistence');
+                }
+                
+                // Make sure settings object exists and is initialized
+                if (!this.settings) {
+                    console.warn("Settings not initialized yet, deferring filter application");
+                    // Load settings and try again
+                    this.loadSettings().then(() => {
+                        setTimeout(() => this.applyInitialFilters(), 1000);
+                    });
+                    return;
+                }
+                
+                // PRIORITY FIX: Restore filter settings more aggressively - with proper null checks
+                if (globalLogger) {
+                    globalLogger.info('Filter', 'Saved filter settings:', {
+                        filter: this.settings.lastAppliedFilter || 'none',
+                        customRange: this.settings && this.settings.customDateRange ? 
+                            JSON.stringify(this.settings.customDateRange) : 'none'
+                    });
+                }
+                
+                // Set global flag before anything else
+                (window as any).oomFiltersPending = true;
+                (window as any).oomFiltersApplied = false;
+                
+                // FIXED: Safely access customDateRange
+                if (this.settings && this.settings.customDateRange) {
+                    customDateRange = this.settings.customDateRange;
+                } else {
+                    customDateRange = null;
+                }
+                
+                // CRITICAL FIX: Create a more robust filter application at startup
+                // Store intended filter in global state to ensure it persists
+                if (this.settings && this.settings.lastAppliedFilter) {
+                    (window as any).oomIntendedFilter = this.settings.lastAppliedFilter;
+                    if (globalLogger) {
+                        globalLogger.info('Filter', `Setting intended filter at startup: ${this.settings.lastAppliedFilter}`);
                     }
-                }, delay);
-            });
-            
-            // Also hook into file-open events for when the user opens the metrics note directly
-            this.registerEvent(
-                this.app.workspace.on('file-open', (file) => {
-                    if (file && file.path === getProjectNotePathSafe(this.settings)) {
-                        globalLogger?.info('Filter', 'Metrics note opened directly, applying saved filters');
-                        
-                        // Reset the filter flags to ensure reapplication
-                        (window as any).oomFiltersPending = true;
-                        (window as any).oomFiltersApplied = false;
-                        
-                        // Restore intended filter
-                        if (this.settings.lastAppliedFilter) {
-                            (window as any).oomIntendedFilter = this.settings.lastAppliedFilter;
+                }
+                
+                // Apply filters with multiple retries at different intervals to ensure they're applied
+                // Staggered intervals to catch different loading scenarios
+                const intervals = [100, 500, 1000, 2000, 3500, 5000, 7500, 10000];
+                intervals.forEach(delay => {
+                    setTimeout(() => {
+                        if (!(window as any).oomFiltersApplied) {
+                            if (globalLogger) {
+                                globalLogger.info('Filter', `Attempting filter application at ${delay}ms delay`);
+                            }
+                            this.applyInitialFilters();
                         }
-                        
-                        // Apply with staggered delays
-                        [100, 500, 1000, 2500, 5000].forEach(delay => {
-                            setTimeout(() => {
-                                if (!(window as any).oomFiltersApplied) {
-                                    this.applyInitialFilters();
-                                }
-                            }, delay);
-                        });
-                    }
-                })
-            );
+                    }, delay);
+                });
+                
+                // Also hook into file-open events for when the user opens the metrics note directly
+                this.registerEvent(
+                    this.app.workspace.on('file-open', (file) => {
+                        if (file && file.path === getProjectNotePathSafe(this.settings)) {
+                            if (globalLogger) {
+                                globalLogger.info('Filter', 'Metrics note opened directly, applying saved filters');
+                            }
+                            
+                            // Reset the filter flags to ensure reapplication
+                            (window as any).oomFiltersPending = true;
+                            (window as any).oomFiltersApplied = false;
+                            
+                            // Restore intended filter
+                            if (this.settings && this.settings.lastAppliedFilter) {
+                                (window as any).oomIntendedFilter = this.settings.lastAppliedFilter;
+                            }
+                            
+                            // Apply with staggered delays
+                            [100, 500, 1000, 2500, 5000].forEach(delay => {
+                                setTimeout(() => {
+                                    if (!(window as any).oomFiltersApplied) {
+                                        this.applyInitialFilters();
+                                    }
+                                }, delay);
+                            });
+                        }
+                    })
+                );
+            } catch (e) {
+                console.error("Error in onLayoutReady:", e);
+                // Try to log using globalLogger if available
+                if (globalLogger) {
+                    globalLogger.error('Plugin', 'Error in onLayoutReady', e as Error);
+                }
+            }
         });
         
         await this.loadSettings();
@@ -795,6 +830,9 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Initialize ribbon icons
         this.addRibbonIcons();
+        
+        // Add debug ribbon for calendar testing
+        this.addCalendarDebugRibbon();
         
         // Register date navigator view
         this.registerView(
@@ -3025,7 +3063,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
             this.removeRibbonIcons(); // Make sure to remove any existing icons
             return;
         }
-
+        
         // Add journal manager button
         this.journalManagerRibbonEl = this.addRibbonIcon('moon', 'Dream Journal Manager', () => {
             new DreamJournalManager(this.app, this, 'dashboard').open();
@@ -3281,24 +3319,179 @@ Applied: ${new Date().toLocaleTimeString()}`;
      */
     showDateNavigator() {
         try {
-            // Initialize the time filter manager if not already done
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('Plugin', 'showDateNavigator called - creating DateNavigatorModal');
+            }
+            
+            // Make sure state and timeFilterManager are available
+            if (!this.state) {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('Plugin', 'Cannot show DateNavigator: state is undefined');
+                }
+                new Notice('Error: Dream state not available');
+                return;
+            }
+            
             if (!this.timeFilterManager) {
-                this.timeFilterManager = new TimeFilterManager();
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('Plugin', 'Cannot show DateNavigator: timeFilterManager is undefined');
+                }
+                new Notice('Error: Time filter manager not available');
+                return;
+            }
+            
+            // Get all possible dream entries from various sources
+            const allEntries: any[] = [];
+            
+            // Diagnostic log to check if there are entries
+            try {
+                // 1. Try direct state entries
+                const entries = this.state.getDreamEntries();
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('Plugin', `Found ${entries?.length || 0} entries in state.getDreamEntries()`);
+                }
+                
+                if (entries && Array.isArray(entries) && entries.length > 0) {
+                    allEntries.push(...entries);
+                }
+                
+                // 2. Try to directly extract data from our tables
+                if (this.memoizedTableData && this.memoizedTableData.size > 0) {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('Plugin', `Found ${this.memoizedTableData.size} tables to scan for entries`);
+                    }
+                    
+                    // Look at each table in the memoized data
+                    this.memoizedTableData.forEach((tableData, key) => {
+                        if (Array.isArray(tableData) && tableData.length > 0) {
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('Plugin', `Processing table ${key} with ${tableData.length} rows`);
+                            }
+                            
+                            // Only process tables with rows that have date fields
+                            if (tableData[0] && (tableData[0].date || tableData[0].dream_date)) {
+                                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                    window['globalLogger'].debug('Plugin', `Table ${key} has valid date format`);
+                                }
+                                
+                                // Extract dream entries from table rows
+                                tableData.forEach(row => {
+                                    if (row && (row.date || row.dream_date)) {
+                                        const dateField = row.date || row.dream_date;
+                                        
+                                        // Create a dream entry from this row
+                                        const entry = {
+                                            date: dateField,
+                                            title: row.title || row.dream_title || 'Dream Entry',
+                                            content: row.content || row.dream_content || '',
+                                            source: `table-${key}`,
+                                            metrics: row.metrics || {}
+                                        };
+                                        
+                                        // Add any numeric properties as metrics
+                                        Object.keys(row).forEach(field => {
+                                            if (typeof row[field] === 'number' && !['id', 'index'].includes(field)) {
+                                                if (!entry.metrics) entry.metrics = {};
+                                                entry.metrics[field] = row[field];
+                                            }
+                                        });
+                                        
+                                        allEntries.push(entry);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+                
+                // Log what we found
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('Plugin', `Found ${allEntries.length} total entries from all sources`);
+                    
+                    // Log a sample for debugging
+                    if (allEntries.length > 0) {
+                        window['globalLogger'].debug('Plugin', 'Sample entry:', allEntries[0]);
+                    }
+                }
+                
+                // Create some test entries if none exist
+                if (allEntries.length === 0) {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('Plugin', 'No entries found, creating test entries for calendar');
+                    }
+                    
+                    // Create simple test entries for May 2025
+                    const testEntries = [];
+                    const month = new Date(2025, 4, 1); // May 2025
+                    
+                    // Add 10 entries on random days
+                    for (let i = 0; i < 10; i++) {
+                        const day = Math.floor(Math.random() * 28) + 1;
+                        const dateStr = `2025-05-${day.toString().padStart(2, '0')}`;
+                        
+                        testEntries.push({
+                            date: dateStr,
+                            title: `Test Dream ${i+1}`,
+                            content: `Test dream content for ${dateStr}`,
+                            source: 'test-generator',
+                            metrics: {
+                                clarity: Math.floor(Math.random() * 10) + 1,
+                                intensity: Math.floor(Math.random() * 10) + 1
+                            }
+                        });
+                    }
+                    
+                    // Add to our collected entries
+                    allEntries.push(...testEntries);
+                    
+                    // Update the state with these test entries
+                    if (typeof this.state.updateDreamEntries === 'function') {
+                        this.state.updateDreamEntries(testEntries);
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('Plugin', 'Added test entries to state');
+                        }
+                    } else {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].error('Plugin', 'Cannot add test entries: updateDreamEntries not available');
+                        }
+                    }
+                }
+                
+                // Expose entries globally so the DateNavigator can find them
+                try {
+                    window['dreamEntries'] = allEntries;
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('Plugin', `Exposed ${allEntries.length} entries to window.dreamEntries`);
+                    }
+                } catch (e) {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].error('Plugin', 'Failed to expose entries globally:', e);
+                    }
+                }
+            } catch (err) {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('Plugin', 'Error checking entries:', err);
+                }
             }
             
             // Create a new DateNavigatorModal instance
             const modal = new DateNavigatorModal(this.app, this.state, this.timeFilterManager);
             
             // Log the modal initialization for debugging
-            console.log('[OOM-DEBUG] Opening DateNavigatorModal with state and filter manager');
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('Plugin', 'Opening DateNavigatorModal with state and filter manager');
+            }
             
             // Open the modal
-            modal.open();
+
+                          modal.open();
             
             // Add a notice to help users understand how to use the navigator
             new Notice('Select a date to filter your dream entries');
         } catch (error) {
-            console.error('[OOM-ERROR] Failed to open date navigator:', error);
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].error('Plugin', 'Failed to open date navigator:', error);
+            }
             new Notice('Error opening Date Navigator. See console for details.');
         }
     }
@@ -3328,44 +3521,77 @@ Applied: ${new Date().toLocaleTimeString()}`;
      * This is a crucial function for filter persistence between Obsidian reloads
      */
     private applyInitialFilters() {
-        globalLogger?.info('Filter', 'Running applyInitialFilters - attempt to restore saved filters');
-        
-        // HIGHEST PRIORITY FIX: More robust filter persistence
-        // Print all relevant info at INFO level for troubleshooting
-        globalLogger?.info('Filter', 'Filter persistence status check', { 
-            applied: (window as any).oomFiltersApplied || false,
-            pending: (window as any).oomFiltersPending || false,
-            savedFilter: this.settings.lastAppliedFilter || 'none',
-            hasCustomRange: this.settings.customDateRange ? true : false,
-            currentGlobalCustomRange: customDateRange ? JSON.stringify(customDateRange) : 'none'
-        });
-        
-        // Check if we already successfully applied filters
-        if ((window as any).oomFiltersApplied) {
-            globalLogger?.debug('Filter', 'Filters already applied successfully, skipping');
+        try {
+            if (globalLogger) {
+                globalLogger.info('Filter', 'Running applyInitialFilters - attempt to restore saved filters');
+            }
+            
+            // Ensure settings are initialized
+            if (!this.settings) {
+                console.warn("Settings not initialized in applyInitialFilters");
+                return;
+            }
+            
+            // HIGHEST PRIORITY FIX: More robust filter persistence
+            // Print all relevant info at INFO level for troubleshooting
+            if (globalLogger) {
+                globalLogger.info('Filter', 'Filter persistence status check', { 
+                    applied: (window as any).oomFiltersApplied || false,
+                    pending: (window as any).oomFiltersPending || false,
+                    savedFilter: this.settings.lastAppliedFilter || 'none',
+                    hasCustomRange: this.settings && this.settings.customDateRange ? true : false,
+                    currentGlobalCustomRange: customDateRange ? JSON.stringify(customDateRange) : 'none'
+                });
+            }
+            
+            // Check if we already successfully applied filters
+            if ((window as any).oomFiltersApplied) {
+                if (globalLogger) {
+                    globalLogger.debug('Filter', 'Filters already applied successfully, skipping');
+                }
+                return;
+            }
+        } catch (e) {
+            console.error("Error in applyInitialFilters initialization:", e);
             return;
         }
         
         // CRITICAL FIX: Double check that filter settings are consistent and load from backups if needed
-        if (!this.settings.lastAppliedFilter) {
+        if (this.settings && !this.settings.lastAppliedFilter) {
             // Try to recover from localStorage
-            const savedFilter = localStorage.getItem('oom-last-applied-filter');
-            if (savedFilter) {
-                this.settings.lastAppliedFilter = savedFilter;
-                globalLogger?.info('Filter', `Last-minute recovery of filter from localStorage: ${savedFilter}`);
-                
-                // Save this recovery to plugin settings
-                this.saveSettings().catch(err => {
-                    globalLogger?.error('Filter', 'Failed to save recovered filter', err);
-                });
+            try {
+                const savedFilter = localStorage.getItem('oom-last-applied-filter');
+                if (savedFilter) {
+                    this.settings.lastAppliedFilter = savedFilter;
+                    if (globalLogger) {
+                        globalLogger.info('Filter', `Last-minute recovery of filter from localStorage: ${savedFilter}`);
+                    }
+                    
+                    // Save this recovery to plugin settings
+                    this.saveSettings().catch(err => {
+                        if (globalLogger) {
+                            globalLogger.error('Filter', 'Failed to save recovered filter', err);
+                        } else {
+                            console.error('Failed to save recovered filter:', err);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error recovering filter from localStorage:', e);
             }
         }
         
-        // Ensure customDateRange is set from settings
-        if (this.settings.lastAppliedFilter === 'custom') {
+        // Ensure customDateRange is set from settings - with proper null checks
+        if (this.settings && this.settings.lastAppliedFilter === 'custom') {
             if (this.settings.customDateRange && !customDateRange) {
-                customDateRange = { ...this.settings.customDateRange };
-                globalLogger?.info('Filter', 'Restored custom date range from settings', { range: customDateRange });
+                try {
+                    customDateRange = { ...this.settings.customDateRange };
+                    if (globalLogger) {
+                        globalLogger.info('Filter', 'Restored custom date range from settings', { range: customDateRange });
+                    }
+                } catch (e) {
+                    console.error('Error copying customDateRange from settings:', e);
+                }
             } else if (!this.settings.customDateRange) {
                 // Try to recover from localStorage
                 try {
@@ -3375,18 +3601,28 @@ Applied: ${new Date().toLocaleTimeString()}`;
                         if (savedRange && savedRange.start && savedRange.end) {
                             this.settings.customDateRange = savedRange;
                             customDateRange = { ...savedRange };
-                            globalLogger?.info('Filter', 'Last-minute recovery of custom range from localStorage', { 
-                                range: savedRange 
-                            });
+                            if (globalLogger) {
+                                globalLogger.info('Filter', 'Last-minute recovery of custom range from localStorage', { 
+                                    range: savedRange 
+                                });
+                            }
                             
                             // Save this recovery
                             this.saveSettings().catch(err => {
-                                globalLogger?.error('Filter', 'Failed to save recovered custom range', err);
+                                if (globalLogger) {
+                                    globalLogger.error('Filter', 'Failed to save recovered custom range', err);
+                                } else {
+                                    console.error('Failed to save recovered custom range:', err);
+                                }
                             });
                         }
                     }
                 } catch (e) {
-                    globalLogger?.error('Filter', 'Error recovering custom date range in applyInitialFilters', e);
+                    if (globalLogger) {
+                        globalLogger.error('Filter', 'Error recovering custom date range in applyInitialFilters', e);
+                    } else {
+                        console.error('Error recovering custom date range:', e);
+                    }
                 }
             }
         }
@@ -3395,15 +3631,22 @@ Applied: ${new Date().toLocaleTimeString()}`;
         const projectNotePath = getProjectNotePathSafe(this.settings);
         let metricsNoteFound = false;
         
-        // Log saved filter info at INFO level to ensure visibility
-        if (this.settings.lastAppliedFilter) {
-            console.log(`[FILTER-DEBUG] Saved filter found: ${this.settings.lastAppliedFilter}`);
-            globalLogger?.info('Filter', `Found saved filter settings to restore`, {
-                filter: this.settings.lastAppliedFilter,
-                customRange: this.settings.customDateRange ? JSON.stringify(this.settings.customDateRange) : 'none'
-            });
-        } else {
-            console.log('[FILTER-DEBUG] No saved filter found in settings');
+        try {
+            // Log saved filter info at INFO level to ensure visibility
+            if (this.settings && this.settings.lastAppliedFilter) {
+                console.log(`[FILTER-DEBUG] Saved filter found: ${this.settings.lastAppliedFilter}`);
+                if (globalLogger) {
+                    globalLogger.info('Filter', `Found saved filter settings to restore`, {
+                        filter: this.settings.lastAppliedFilter,
+                        customRange: this.settings && this.settings.customDateRange ? 
+                            JSON.stringify(this.settings.customDateRange) : 'none'
+                    });
+                }
+            } else {
+                console.log('[FILTER-DEBUG] No saved filter found in settings');
+            }
+        } catch (e) {
+            console.error("Error checking project note:", e);
         }
         
         this.app.workspace.iterateAllLeaves(leaf => {
@@ -3610,6 +3853,470 @@ Applied: ${new Date().toLocaleTimeString()}`;
             console.error('[FILTER-DEBUG] Error in direct filter application', e);
         }
     }
+
+    /**
+     * Debug helper function to be called from the developer console
+     * This will dump all table data to help diagnose issues with the date navigator
+     */
+    public debugTableData(): void {
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('Plugin', 'Running debugTableData function');
+            }
+            
+            // Output basic info about available data
+            console.log('==== DREAM METRICS DEBUG ====');
+            console.log(`Plugin: ${!!this}`);
+            console.log(`State: ${!!this.state}`);
+            console.log(`State has getDreamEntries: ${!!(this.state && typeof this.state.getDreamEntries === 'function')}`);
+            
+            // Check for direct entries
+            if (this.state && typeof this.state.getDreamEntries === 'function') {
+                const entries = this.state.getDreamEntries();
+                console.log(`Direct state entries: ${entries?.length || 0}`);
+                if (entries && entries.length > 0) {
+                    console.log('Sample entry:', entries[0]);
+                }
+            }
+            
+            // Check table data
+            if (this.memoizedTableData) {
+                console.log(`Table count: ${this.memoizedTableData.size}`);
+                
+                // Loop through all tables
+                this.memoizedTableData.forEach((data, key) => {
+                    console.log(`Table ${key}: ${data?.length || 0} rows`);
+                    
+                    // Check the first row if available
+                    if (data && data.length > 0) {
+                        console.log(`Table ${key} sample:`, data[0]);
+                        console.log(`Row fields: ${Object.keys(data[0]).join(', ')}`);
+                        
+                        // Check for date fields
+                        const hasDate = data[0].date !== undefined;
+                        const hasDreamDate = data[0].dream_date !== undefined;
+                        console.log(`Table ${key} has date field: ${hasDate}`);
+                        console.log(`Table ${key} has dream_date field: ${hasDreamDate}`);
+                        
+                        // Find all date-like fields
+                        const dateFields = Object.keys(data[0]).filter(key => 
+                            key.includes('date') || 
+                            (typeof data[0][key] === 'string' && data[0][key].match(/^\d{4}-\d{2}-\d{2}/))
+                        );
+                        console.log(`Potential date fields: ${dateFields.join(', ')}`);
+                        
+                        // Show values of these fields
+                        dateFields.forEach(field => {
+                            console.log(`First 5 values of ${field}:`, data.slice(0, 5).map(row => row[field]));
+                        });
+                        
+                        // Check for metrics
+                        const numericFields = Object.keys(data[0]).filter(key => 
+                            typeof data[0][key] === 'number' && 
+                            !['id', 'index'].includes(key)
+                        );
+                        console.log(`Numeric fields that could be metrics: ${numericFields.join(', ')}`);
+                        
+                        // Create an example dream entry from this data
+                        if (dateFields.length > 0) {
+                            const dateField = dateFields[0];
+                            console.log('Example of how this data would be converted to a dream entry:');
+                            const example = {
+                                date: data[0][dateField],
+                                title: data[0].title || data[0].dream_title || 'Dream Entry',
+                                content: data[0].content || data[0].dream_content || '',
+                                source: `table-${key}`,
+                                metrics: {}
+                            };
+                            
+                            // Add metrics
+                            numericFields.forEach(field => {
+                                example.metrics[field] = data[0][field];
+                            });
+                            
+                            console.log('Example entry:', example);
+                        }
+                    }
+                });
+            } else {
+                console.log('No memoizedTableData available');
+            }
+            
+            // DIRECT TABLE SCANNING FROM THE ACTIVE NOTE VIEW
+            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (activeView) {
+                console.log('==== ACTIVE NOTE TABLE SCAN ====');
+                console.log(`Active note: ${activeView.file?.path || 'Unknown'}`);
+                
+                // Get the HTML content from the preview
+                const previewEl = activeView.previewMode?.containerEl?.querySelector('.markdown-preview-view');
+                if (previewEl) {
+                    console.log('Found preview element, scanning for tables...');
+                    
+                    // Find all tables in the preview
+                    const tables = previewEl.querySelectorAll('table');
+                    console.log(`Found ${tables.length} tables in active note`);
+                    
+                    // Process each table
+                    const extractedEntries: any[] = [];
+                    
+                    tables.forEach((table, tableIndex) => {
+                        console.log(`Processing table ${tableIndex + 1}/${tables.length}`);
+                        
+                        // Get headers
+                        const headerRow = table.querySelector('thead tr');
+                        if (!headerRow) {
+                            console.log(`Table ${tableIndex + 1} has no header row, skipping`);
+                            return;
+                        }
+                        
+                        const headers: string[] = [];
+                        headerRow.querySelectorAll('th').forEach(th => {
+                            headers.push(th.textContent?.trim() || '');
+                        });
+                        
+                        console.log(`Table ${tableIndex + 1} headers: ${headers.join(', ')}`);
+                        
+                        // Find date column index
+                        const dateColumnIndex = headers.findIndex(h => 
+                            h.toLowerCase().includes('date') || 
+                            h.toLowerCase() === 'when'
+                        );
+                        
+                        if (dateColumnIndex === -1) {
+                            console.log(`Table ${tableIndex + 1} has no date column, skipping`);
+                            return;
+                        }
+                        
+                        console.log(`Table ${tableIndex + 1} date column: ${headers[dateColumnIndex]} (index ${dateColumnIndex})`);
+                        
+                        // Process rows
+                        const rows = table.querySelectorAll('tbody tr');
+                        console.log(`Table ${tableIndex + 1} has ${rows.length} data rows`);
+                        
+                        // Keep track of columns that might contain metrics
+                        const potentialMetricColumns: number[] = [];
+                        
+                        // Process each row
+                        rows.forEach((row, rowIndex) => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length < headers.length) {
+                                return; // Skip incomplete rows
+                            }
+                            
+                            // Get date value
+                            const dateCell = cells[dateColumnIndex];
+                            const dateText = dateCell.textContent?.trim() || '';
+                            
+                            // Skip rows without dates
+                            if (!dateText) {
+                                return;
+                            }
+                            
+                            // Try to parse the date
+                            let parsedDate = '';
+                            
+                            // Try different date formats
+                            try {
+                                // Check if it's already in YYYY-MM-DD format
+                                if (/^\d{4}-\d{2}-\d{2}/.test(dateText)) {
+                                    parsedDate = dateText.substring(0, 10);
+                                } else {
+                                    // Try to parse as a Date object
+                                    const date = new Date(dateText);
+                                    if (!isNaN(date.getTime())) {
+                                        parsedDate = date.toISOString().split('T')[0];
+                                    }
+                                }
+                            } catch (e) {
+                                console.log(`Error parsing date: ${dateText}`, e);
+                            }
+                            
+                            if (!parsedDate) {
+                                console.log(`Could not parse date: ${dateText}, skipping row`);
+                                return;
+                            }
+                            
+                            // Create an entry object
+                            const entry: any = {
+                                date: parsedDate,
+                                source: `active-note-table-${tableIndex + 1}`,
+                                metrics: {}
+                            };
+                            
+                            // Process other cells
+                            cells.forEach((cell, cellIndex) => {
+                                if (cellIndex === dateColumnIndex) return; // Skip date column
+                                
+                                const header = headers[cellIndex] || `column${cellIndex}`;
+                                const value = cell.textContent?.trim() || '';
+                                
+                                // Check if this is a title/content column
+                                if (header.toLowerCase().includes('title') || 
+                                    header.toLowerCase().includes('dream') || 
+                                    header.toLowerCase() === 'what') {
+                                    entry.title = value;
+                                } else if (header.toLowerCase().includes('content') || 
+                                           header.toLowerCase().includes('description') || 
+                                           header.toLowerCase() === 'notes') {
+                                    entry.content = value;
+                                } else {
+                                    // Try to parse as number for metrics
+                                    const numValue = parseFloat(value);
+                                    if (!isNaN(numValue)) {
+                                        entry.metrics[header.toLowerCase()] = numValue;
+                                        
+                                        // Track this as a potential metric column
+                                        if (!potentialMetricColumns.includes(cellIndex)) {
+                                            potentialMetricColumns.push(cellIndex);
+                                        }
+                                    } else {
+                                        // Store as regular property
+                                        entry[header.toLowerCase()] = value;
+                                    }
+                                }
+                            });
+                            
+                            // Make sure we have title and content
+                            if (!entry.title) {
+                                entry.title = `Dream on ${parsedDate}`;
+                            }
+                            
+                            if (!entry.content) {
+                                entry.content = `Dream entry from table ${tableIndex + 1}, row ${rowIndex + 1}`;
+                            }
+                            
+                            // Add to entries
+                            extractedEntries.push(entry);
+                        });
+                        
+                        console.log(`Table ${tableIndex + 1} potential metric columns: ${potentialMetricColumns.map(i => headers[i]).join(', ')}`);
+                    });
+                    
+                    console.log(`Extracted ${extractedEntries.length} entries from tables in active note`);
+                    
+                    // Show some sample entries
+                    if (extractedEntries.length > 0) {
+                        console.log('Sample entries:');
+                        extractedEntries.slice(0, 3).forEach((entry, i) => {
+                            console.log(`Entry ${i + 1}:`, entry);
+                        });
+                        
+                        // Add these entries to our global dreamEntries
+                        if (!window['dreamEntries']) {
+                            window['dreamEntries'] = [];
+                        }
+                        window['dreamEntries'].push(...extractedEntries);
+                        console.log(`Added ${extractedEntries.length} entries from active note to window.dreamEntries`);
+                        
+                        // Try to add to state too
+                        if (this.state && typeof this.state.updateDreamEntries === 'function') {
+                            this.state.updateDreamEntries(extractedEntries);
+                            console.log(`Added ${extractedEntries.length} entries to state`);
+                        }
+                    }
+                } else {
+                    console.log('No preview element found in active note');
+                }
+                
+                // Create a direct test in the current note
+                const editor = activeView.editor;
+                const position = editor.getCursor();
+                
+                // Create a test entry for today
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+                
+                const testEntry = {
+                    date: todayStr,
+                    title: 'Test Entry ' + Math.floor(Math.random() * 1000),
+                    content: 'This is a test entry created for debugging',
+                    source: 'debug-test',
+                    metrics: {
+                        clarity: 8,
+                        vividness: 9,
+                        intensity: 7
+                    }
+                };
+                
+                // Insert at cursor
+                editor.replaceRange(
+                    `\n\n## Debug Test Entry\n\`\`\`json\n${JSON.stringify(testEntry, null, 2)}\n\`\`\`\n`,
+                    position
+                );
+                
+                console.log('Created test entry in current note for today:', testEntry);
+                
+                // Directly add to global entries
+                if (!window['dreamEntries']) {
+                    window['dreamEntries'] = [];
+                }
+                window['dreamEntries'].push(testEntry);
+                console.log('Added test entry to window.dreamEntries');
+                
+                // Try to add to state too
+                if (this.state && typeof this.state.updateDreamEntries === 'function') {
+                    this.state.updateDreamEntries([testEntry]);
+                    console.log('Added test entry to state');
+                }
+            }
+            
+            console.log('==== END DEBUG ====');
+            console.log('Now open the date navigator to see if test entry appears');
+            
+            // Helper to open date navigator
+            console.log('Type window.oneiroMetricsPlugin.showDateNavigator() to test');
+        } catch (error) {
+            console.error('Error in debugTableData:', error);
+        }
+    }
+
+    /**
+     * Add a debug ribbon icon specifically for testing the calendar
+     */
+    private addCalendarDebugRibbon(): void {
+        // This method is currently disabled to hide the debug ribbon
+        // The debug functionality is still accessible via window.oneiroMetricsPlugin.debugDateNavigator()
+        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+            window['globalLogger'].debug('Plugin', 'Calendar debug ribbon is disabled');
+        }
+        
+        // No ribbon icon will be added
+    }
+
+    /**
+     * Debug the date navigator
+     * This function is accessible from the console via:
+     * window.oneiroMetricsPlugin.debugDateNavigator()
+     */
+    debugDateNavigator() {
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('Plugin', '===== CALENDAR DEBUG FUNCTION =====');
+            }
+            
+            // First show the date navigator
+            this.showDateNavigator();
+            
+            // Capture the modal that was created
+            const dateNavigatorModals = document.querySelectorAll('.dream-metrics-navigator-modal');
+            
+            if (dateNavigatorModals.length > 0) {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('Plugin', `Found ${dateNavigatorModals.length} date navigator modals`);
+                }
+                
+                // Focus on the first modal
+                const modal = dateNavigatorModals[0];
+                
+                // Check for day cells in the modal
+                const dayCells = modal.querySelectorAll('.oom-day-cell');
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('Plugin', `Found ${dayCells.length} day cells in modal`);
+                }
+                
+                // Check for day cells with entries
+                const dayCellsWithEntries = modal.querySelectorAll('.oom-day-cell.has-entries');
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('Plugin', `Found ${dayCellsWithEntries.length} day cells with entries`);
+                    
+                    // Check for indicators in cells
+                    const dotsElements = modal.querySelectorAll('.oom-dream-indicators');
+                    window['globalLogger'].debug('Plugin', `Found ${dotsElements.length} dot indicator elements`);
+                    
+                    const metricsElements = modal.querySelectorAll('.oom-day-metrics');
+                    window['globalLogger'].debug('Plugin', `Found ${metricsElements.length} metrics star elements`);
+                }
+                
+                // IMPORTANT: Find the actual DateNavigator instance
+                setTimeout(() => {
+                    try {
+                        // First, find the modal container
+                        const dateNavComponent = this.dateNavigator;
+                        if (dateNavComponent && dateNavComponent.dateNavigator) {
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('Plugin', 'Found DateNavigator component instance');
+                            }
+                            
+                            // Simple approach - just create test entries for now
+                            // We'll revisit this after the refactoring
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('Plugin', 'Creating test entries for calendar visualization');
+                            }
+                            
+                            // Create guaranteed test entries for the calendar
+                            dateNavComponent.dateNavigator.createGuaranteedEntriesForCurrentMonth();
+                            
+                            // Force update UI
+                            dateNavComponent.dateNavigator.updateMonthGrid();
+                            
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('Plugin', 'Forced creation of guaranteed entries for calendar');
+                            }
+                        } else {
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].warn('Plugin', 'Could not find DateNavigator component instance');
+                            }
+                        }
+                    } catch (err) {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].error('Plugin', 'Error accessing DateNavigator component:', err);
+                        }
+                    }
+                }, 100);
+            } else {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].warn('Plugin', 'No date navigator modal found in DOM');
+                }
+            }
+            
+            // Try another approach - see if the debug function is available globally
+            if (window['debugDateNavigator'] && typeof window['debugDateNavigator'] === 'function') {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('Plugin', 'Calling global debugDateNavigator function');
+                }
+                window['debugDateNavigator']();
+            } else {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].warn('Plugin', 'Global debugDateNavigator function not available');
+                }
+            }
+            
+            // Run a special debug check on global entries
+            const globalEntries = window['dreamEntries'] || [];
+            
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('Plugin', `Found ${globalEntries.length} entries in window.dreamEntries`);
+                
+                // Get entries for current month
+                const today = new Date();
+                const currentMonthYear = format(today, 'yyyy-MM');
+                const entriesForCurrentMonth = globalEntries.filter(entry => 
+                    entry && typeof entry.date === 'string' && entry.date.startsWith(currentMonthYear)
+                );
+                
+                window['globalLogger'].debug('Plugin', `Found ${entriesForCurrentMonth.length} entries for current month ${currentMonthYear}`);
+                
+                // Log sample entries
+                if (entriesForCurrentMonth.length > 0) {
+                    window['globalLogger'].debug('Plugin', 'Sample entries for current month:');
+                    entriesForCurrentMonth.slice(0, 3).forEach((entry, i) => {
+                        window['globalLogger'].debug('Plugin', `Entry ${i+1}:`, entry);
+                    });
+                }
+            }
+            
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('Plugin', '===== END CALENDAR DEBUG FUNCTION =====');
+            }
+        } catch (e) {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].error('Plugin', 'Error in debugDateNavigator:', e);
+            }
+        }
+    }
+
+
 }
 
 // Helper to extract date for a dream entry

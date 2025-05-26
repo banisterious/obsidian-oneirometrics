@@ -32,5 +32,8 @@
   "include": [
     "**/*.ts",
     "src/types/declarations/**/*.d.ts"
+  ],
+  "exclude": [
+    "docs/**/*.ts"
   ]
 } 

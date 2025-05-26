@@ -28,6 +28,7 @@
   - [Implementation Details](#implementation-details)
   - [Filter Application](#filter-application)
 - [How to Use](#how-to-use)
+  - [Known Issues](#known-issues)
   - [Different Usage Contexts](#different-usage-contexts)
 - [Recent Progress on Filtering and Metrics Display](#recent-progress-on-filtering-and-metrics-display)
   - [Implemented Changes](#implemented-changes-1)
@@ -653,6 +654,10 @@ Once open, users can:
 - Click Apply Filter to apply the date filter and close the modal
 - Use the Today button to quickly navigate to the current month
 - Clear selection to remove date filters 
+
+### Known Issues
+
+**Date Navigator Display Issue**: The calendar component currently has a known issue where it fails to correctly display dots and stars representing dream entries, even though the entries exist in the system. This is being tracked as a priority issue for post-refactoring resolution. For detailed analysis and planned solutions, see [docs/developer/implementation/date-navigator-display-issue.md](../../developer/implementation/date-navigator-display-issue.md).
 
 ### Different Usage Contexts
 
