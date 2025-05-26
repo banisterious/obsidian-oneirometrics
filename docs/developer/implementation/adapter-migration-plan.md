@@ -16,9 +16,9 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
 | Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (97%) |
-| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (50%) |
+| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (80%) |
 | Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
-| Testing and Verification | 2025-07-25 | 🔄 In Progress (50%) |
+| Testing and Verification | 2025-07-25 | 🔄 In Progress (60%) |
 | Adapter Files Removal | 2025-08-01 | ⬜ Not Started |
 
 ## Table of Contents
@@ -290,7 +290,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Update main.ts event handling | ✅ Completed | 2025-05-26 | ✅ EventHandling |
 | Update settings.ts | ✅ Completed | 2025-06-01 | ✅ SettingsAdapter |
 | Resolve DreamMetric type inconsistencies | ✅ Completed | 2025-06-01 | DreamMetric in types.ts vs core.ts |
-| Update DreamMetricsState.ts | ⬜ Not Started | 2025-07-03 | ✅ SettingsAdapter |
+| Update DreamMetricsState.ts | ✅ Completed | 2025-05-26 | ✅ SettingsAdapter |
 
 ### Phase 3: Update Peripheral Files (Target: 2025-07-15)
 - Update imports in non-critical components
@@ -426,9 +426,9 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-06-01 | Created and validated tests for settings-helpers.ts (22/22 passing), metric-helpers.ts (11/13 passing with 2 known issues), selection-mode-helpers.ts (9/9 passing), type-guards.ts (10/10 passing), property-helpers.ts (10/10 passing), ContentParser parameter variations (7/7 passing), SettingsAdapter (11/11 passing), EventHandling (10/10 passing), and ComponentFactory (5/5 passing). Successfully tested main.ts settings handling and event handling changes with all tests passing. |
+| Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22/22 passing), metric-helpers.ts (11/13 passing with 2 known issues), selection-mode-helpers.ts (9/9 passing), type-guards.ts (10/10 passing), property-helpers.ts (10/10 passing), ContentParser parameter variations (7/7 passing), SettingsAdapter (11/11 passing), EventHandling (10/10 passing), ComponentFactory (5/5 passing), and DreamMetricsState (5/5 passing). Successfully tested main.ts settings handling and event handling changes with all tests passing. |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | 🔄 In Progress | 2025-06-01 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. |
+| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. |
 | Performance testing | ⬜ Not Started | - | - |
 | Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md |
 | Final approval | ⬜ Not Started | - | - |

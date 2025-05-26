@@ -16,6 +16,7 @@ import { registerContentParserParameterTests } from './ContentParserParameterTes
 import { registerSettingsAdapterTests } from './utils/SettingsAdapterTests';
 import { registerEventHandlingTests } from './utils/EventHandlingTests';
 import { registerComponentFactoryTests } from './utils/ComponentFactoryTests';
+import { registerDreamMetricsStateTests } from './DreamMetricsStateTests';
 
 /**
  * Registers all tests with the test runner
@@ -44,6 +45,9 @@ export function registerAllTests(testRunner: TestRunner): void {
   
   // Register ComponentFactory tests
   registerComponentFactoryTests(testRunner);
+  
+  // Register DreamMetricsState tests
+  registerDreamMetricsStateTests(testRunner);
   
   // Add other test registration functions here as they are implemented
 }
@@ -93,12 +97,14 @@ export { registerContentParserParameterTests };
 export { registerSettingsAdapterTests };
 export { registerEventHandlingTests };
 export { registerComponentFactoryTests };
+export { registerDreamMetricsStateTests };
 export { runSettingsHelpersTests } from './utils/SettingsHelpersTests';
 export { runMetricHelpersTests } from './utils/MetricHelpersTests';
 export { runSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
 export { runTypeGuardsTests } from './utils/TypeGuardsTests';
 export { runPropertyHelpersTests } from './utils/PropertyHelpersTests';
 export { runEventHandlingTests } from './utils/EventHandlingTests';
+export { runDreamMetricsStateTests } from './DreamMetricsStateTests';
 
 // Allow direct execution of tests
 if (require.main === module) {
