@@ -8,6 +8,7 @@ import { TestRunner } from './TestRunner';
 import { registerUIComponentTests } from './UIComponentTests';
 import { registerSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
 import { registerSettingsHelpersTests } from './utils/SettingsHelpersTests';
+import { registerMetricHelpersTests } from './utils/MetricHelpersTests';
 
 /**
  * Registers all tests with the test runner
@@ -20,6 +21,7 @@ export function registerAllTests(testRunner: TestRunner): void {
   // Register utility tests
   registerSelectionModeHelperTests(testRunner);
   registerSettingsHelpersTests(testRunner);
+  registerMetricHelpersTests(testRunner);
   
   // Add other test registration functions here as they are implemented
 }
@@ -60,4 +62,5 @@ export async function runAllTests(): Promise<void> {
 export { TestRunner };
 export { registerUIComponentTests };
 export { registerSelectionModeHelperTests };
-export { registerSettingsHelpersTests }; 
+export { registerSettingsHelpersTests };
+export { registerMetricHelpersTests }; 
