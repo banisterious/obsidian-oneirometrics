@@ -16,15 +16,19 @@ export class ContentParser {
   /**
    * Parses content from a note to extract dream entries and metadata
    * @param content The content to parse
-   * @param calloutType The type of callout to look for
-   * @param source The source file path
+   * @param calloutTypeOrSource The callout type or source file path
+   * @param source Optional source file if first parameter is callout type
    * @returns Parsed content with entries and metadata
    */
-  parseContent(content: string, calloutType: string = 'dream', source: string = ''): { 
+  parseContent(
+    content: string, 
+    calloutTypeOrSource?: string, 
+    source?: string
+  ): { 
     entries: DreamMetricData[], 
     metadata: Record<string, any> 
   } {
-    const entries = this.extractDreamEntries(content, calloutType, source);
+    const entries = this.extractDreamEntries(content, calloutTypeOrSource, source);
     return {
       entries,
       metadata: { totalEntries: entries.length }
@@ -34,11 +38,40 @@ export class ContentParser {
   /**
    * Extracts dream entries from content
    * @param content The content to extract from
-   * @param calloutType The type of callout to look for
-   * @param source The source file path
+   * @param calloutTypeOrSource The callout type or source file path
+   * @param source Optional source file if first parameter is callout type
    * @returns Array of dream entries
    */
-  extractDreamEntries(content: string, calloutType: string = 'dream', source: string = ''): DreamMetricData[] {
+  extractDreamEntries(
+    content: string, 
+    calloutTypeOrSource?: string, 
+    source?: string
+  ): DreamMetricData[] {
+    // Handle different parameter variations
+    let calloutType: string = 'dream';
+    let sourcePath: string = '';
+    
+    if (!calloutTypeOrSource) {
+      // Only content provided, use defaults
+      calloutType = 'dream';
+      sourcePath = '';
+    } else if (!source) {
+      // Two parameters - could be (content, type) or (content, source)
+      if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
+        // Likely a file path
+        calloutType = 'dream';
+        sourcePath = calloutTypeOrSource;
+      } else {
+        // Likely a callout type
+        calloutType = calloutTypeOrSource;
+        sourcePath = '';
+      }
+    } else {
+      // Three parameters - standard call
+      calloutType = calloutTypeOrSource;
+      sourcePath = source;
+    }
+    
     if (!content) return [];
     
     // Find all dream callouts in the content
@@ -49,7 +82,7 @@ export class ContentParser {
     while ((match = calloutRegex.exec(content)) !== null) {
       const calloutContent = match[1].trim();
       try {
-        const entry = this.processCallout(calloutContent, source);
+        const entry = this.processCallout(calloutContent, sourcePath);
         entries.push(entry);
       } catch (error) {
         console.error("Error processing callout:", error);
@@ -332,7 +365,7 @@ export class ContentParser {
   }
 
   /**
-   * Factory method to create a ContentParser instance
+   * Factory method to create a new ContentParser instance
    * @returns A new ContentParser instance
    */
   static create(): ContentParser {

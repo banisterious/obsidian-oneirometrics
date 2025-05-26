@@ -1,0 +1,309 @@
+/**
+ * SettingsAdapter Class
+ * 
+ * This class handles adapting between different settings formats and ensures
+ * backward compatibility while providing a clean API for accessing settings.
+ */
+
+import { DreamMetricsSettings } from '../../types/core';
+import { LogLevel } from '../../types/logging';
+
+/**
+ * Adapter for converting between different settings formats and ensuring
+ * all required properties are present with appropriate default values.
+ */
+export class SettingsAdapter {
+  private _legacySettings: any = {};
+
+  /**
+   * Creates a new settings adapter
+   * @param settings The initial settings to adapt (legacy or partial format)
+   */
+  constructor(settings: any = {}) {
+    this._legacySettings = settings;
+  }
+
+  /**
+   * Creates a SettingsAdapter instance from a settings object
+   * @param settings The settings object to adapt
+   * @returns A new SettingsAdapter instance
+   */
+  static fromSettings(settings: any = {}): SettingsAdapter {
+    return new SettingsAdapter(settings);
+  }
+
+  /**
+   * Adapts legacy settings to the core settings format by filling in
+   * missing properties with default values
+   * @returns Complete settings object with all required properties
+   */
+  toCoreSettings(): DreamMetricsSettings {
+    const settings = this._legacySettings;
+    
+    // Create a base settings object with defaults
+    const adaptedSettings: DreamMetricsSettings = {
+      // Set defaults for required properties that might be missing
+      projectNote: settings.projectNote || settings.projectNotePath || '',
+      metrics: settings.metrics || {},
+      selectedNotes: settings.selectedNotes || [],
+      selectedFolder: settings.selectedFolder || '',
+      selectionMode: settings.selectionMode || 'notes',
+      calloutName: settings.calloutName || 'dream',
+      showRibbonButtons: settings.showRibbonButtons || !!settings.showTestRibbonButton || false,
+      backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,
+      backupFolderPath: settings.backup?.folderPath ?? settings.backupFolderPath ?? './backups',
+      
+      // Ensure logging has the correct structure
+      logging: {
+        level: this.getLogLevel(settings),
+        maxSize: settings.logging?.maxSize || settings.logging?.maxLogSize || 1024 * 1024, // 1MB default
+        maxBackups: settings.logging?.maxBackups || 3,
+      }
+    };
+    
+    // Handle optional properties with explicit type checking
+    this.applyExpandedStates(adaptedSettings, settings);
+    this.applyJournalStructure(adaptedSettings, settings);
+    this.applyUIState(adaptedSettings, settings);
+    this.applyDeveloperMode(adaptedSettings, settings);
+    this.applyMetricsVersion(adaptedSettings, settings);
+    this.applyBackupSettings(adaptedSettings, settings);
+    
+    // Preserve legacy properties for backward compatibility
+    adaptedSettings.projectNotePath = settings.projectNotePath || settings.projectNote || '';
+    adaptedSettings.showTestRibbonButton = settings.showTestRibbonButton || settings.showRibbonButtons || false;
+    
+    return adaptedSettings;
+  }
+
+  /**
+   * Gets a properly typed log level from settings
+   * @param settings The settings object
+   * @returns Valid log level
+   */
+  private getLogLevel(settings: any): LogLevel {
+    const level = settings.logging?.level || 'info';
+    if (this.isValidLogLevel(level)) {
+      return level;
+    }
+    return 'info';
+  }
+
+  /**
+   * Checks if a string is a valid log level
+   * @param level The level to check
+   * @returns Whether the level is valid
+   */
+  private isValidLogLevel(level: string): level is LogLevel {
+    return ['trace', 'debug', 'info', 'warn', 'error', 'silent'].includes(level);
+  }
+
+  /**
+   * Applies expanded states to settings if they exist
+   * @param adaptedSettings The target settings object
+   * @param settings The source settings object
+   */
+  private applyExpandedStates(adaptedSettings: DreamMetricsSettings, settings: any): void {
+    if (settings.expandedStates) {
+      adaptedSettings.expandedStates = {...settings.expandedStates};
+    }
+  }
+
+  /**
+   * Applies journal structure settings from either journalStructure or linting
+   * @param adaptedSettings The target settings object
+   * @param settings The source settings object
+   */
+  private applyJournalStructure(adaptedSettings: DreamMetricsSettings, settings: any): void {
+    if (settings.journalStructure) {
+      // Deep copy to avoid reference issues
+      adaptedSettings.journalStructure = JSON.parse(JSON.stringify(settings.journalStructure));
+      
+      // If linting is also provided, preserve it
+      if (settings.linting) {
+        adaptedSettings.linting = JSON.parse(JSON.stringify(settings.linting));
+      }
+    } else if (settings.linting) {
+      // Use linting as journal structure if journalStructure not available
+      adaptedSettings.journalStructure = JSON.parse(JSON.stringify(settings.linting));
+      adaptedSettings.linting = JSON.parse(JSON.stringify(settings.linting));
+    }
+  }
+
+  /**
+   * Applies UI state settings if they exist
+   * @param adaptedSettings The target settings object
+   * @param settings The source settings object
+   */
+  private applyUIState(adaptedSettings: DreamMetricsSettings, settings: any): void {
+    if (settings.uiState) {
+      adaptedSettings.uiState = {
+        activeTab: settings.uiState.activeTab || settings.uiState.lastTab || 'general',
+        lastFilter: settings.uiState.lastFilter || 'all',
+        customRanges: settings.uiState.customRanges || {},
+        layout: settings.uiState.layout || {}
+      };
+    }
+  }
+
+  /**
+   * Applies developer mode settings if they exist
+   * @param adaptedSettings The target settings object
+   * @param settings The source settings object
+   */
+  private applyDeveloperMode(adaptedSettings: DreamMetricsSettings, settings: any): void {
+    if (settings.developerMode) {
+      adaptedSettings.developerMode = {
+        enabled: settings.developerMode.enabled || false,
+        showDebugRibbon: settings.developerMode.showDebugRibbon || settings.developerMode.showDebugInfo || false,
+        traceFunctionCalls: settings.developerMode.traceFunctionCalls || settings.developerMode.performanceMonitoring || false,
+        experimentalFeatures: settings.developerMode.experimentalFeatures || []
+      };
+    }
+  }
+
+  /**
+   * Applies metrics version if it exists
+   * @param adaptedSettings The target settings object
+   * @param settings The source settings object
+   */
+  private applyMetricsVersion(adaptedSettings: DreamMetricsSettings, settings: any): void {
+    if (settings.metricsVersion) {
+      adaptedSettings.metricsVersion = settings.metricsVersion;
+    }
+  }
+
+  /**
+   * Applies backup settings structure
+   * @param adaptedSettings The target settings object
+   * @param settings The source settings object
+   */
+  private applyBackupSettings(adaptedSettings: DreamMetricsSettings, settings: any): void {
+    if (settings.backup) {
+      // Create the backup object with backup.* properties taking precedence
+      adaptedSettings.backup = {
+        enabled: settings.backup.enabled ?? settings.backupEnabled ?? false,
+        folderPath: settings.backup.folderPath ?? settings.backupFolderPath ?? './backups',
+        maxBackups: settings.backup.maxBackups || 5,
+        frequency: settings.backup.frequency as any || 'onSave'
+      };
+      
+      // Update the main settings properties to match the backup object for consistency
+      adaptedSettings.backupEnabled = adaptedSettings.backup.enabled;
+      adaptedSettings.backupFolderPath = adaptedSettings.backup.folderPath;
+    } else if (settings.backupEnabled !== undefined || settings.backupFolderPath !== undefined) {
+      // No backup object, but we have legacy properties
+      adaptedSettings.backup = {
+        enabled: settings.backupEnabled ?? false,
+        folderPath: settings.backupFolderPath ?? './backups',
+        maxBackups: 5,
+        frequency: 'onSave'
+      };
+      
+      // Ensure consistency
+      adaptedSettings.backupEnabled = adaptedSettings.backup.enabled;
+      adaptedSettings.backupFolderPath = adaptedSettings.backup.folderPath;
+    }
+  }
+  
+  /**
+   * Gets a specific property value from settings with fallbacks
+   * @param propertyName The property name to get
+   * @param defaultValue Optional default value if property doesn't exist
+   * @returns The property value or default
+   */
+  getProperty<T>(propertyName: string, defaultValue?: T): T {
+    const coreSettings = this.toCoreSettings();
+    
+    // Access the property dynamically
+    return (coreSettings as any)[propertyName] ?? defaultValue;
+  }
+  
+  /**
+   * Gets the project note path with appropriate fallbacks
+   * @returns The project note path
+   */
+  getProjectNotePath(): string {
+    return this._legacySettings.projectNote || this._legacySettings.projectNotePath || '';
+  }
+  
+  /**
+   * Gets the selection mode with appropriate fallbacks
+   * @returns The selection mode
+   */
+  getSelectionMode(): string {
+    return this._legacySettings.selectionMode || 'notes';
+  }
+  
+  /**
+   * Gets the selected folder with appropriate fallbacks
+   * @returns The selected folder
+   */
+  getSelectedFolder(): string {
+    return this._legacySettings.selectedFolder || '';
+  }
+  
+  /**
+   * Checks if ribbon buttons should be shown
+   * @returns Whether ribbon buttons should be shown
+   */
+  shouldShowRibbonButtons(): boolean {
+    return this._legacySettings.showRibbonButtons || !!this._legacySettings.showTestRibbonButton || false;
+  }
+  
+  /**
+   * Checks if backups are enabled
+   * @returns Whether backups are enabled
+   */
+  isBackupEnabled(): boolean {
+    return this._legacySettings.backupEnabled || this._legacySettings.backup?.enabled || false;
+  }
+  
+  /**
+   * Gets the backup folder path with appropriate fallbacks
+   * @returns The backup folder path
+   */
+  getBackupFolderPath(): string {
+    return this._legacySettings.backupFolderPath || this._legacySettings.backup?.folderPath || './backups';
+  }
+  
+  /**
+   * Gets the expanded states with appropriate fallbacks
+   * @returns The expanded states
+   */
+  getExpandedStates(): Record<string, boolean> {
+    return this._legacySettings.expandedStates || {};
+  }
+  
+  /**
+   * Checks if developer mode is enabled
+   * @returns Whether developer mode is enabled
+   */
+  isDeveloperModeEnabled(): boolean {
+    return this._legacySettings.developerMode?.enabled || false;
+  }
+  
+  /**
+   * Gets the UI state with appropriate fallbacks
+   * @returns The UI state
+   */
+  getUIState(): any {
+    return this._legacySettings.uiState || {};
+  }
+  
+  /**
+   * Gets the active tab with appropriate fallbacks
+   * @returns The active tab
+   */
+  getActiveTab(): string {
+    return this._legacySettings.uiState?.activeTab || this._legacySettings.uiState?.lastTab || 'general';
+  }
+  
+  /**
+   * Gets the journal structure settings with appropriate fallbacks
+   * @returns The journal structure settings
+   */
+  getJournalStructure(): any {
+    return this._legacySettings.journalStructure || this._legacySettings.linting || {};
+  }
+} 

@@ -154,6 +154,9 @@ import { runMetricHelpersTests } from './src/testing/utils/MetricHelpersTests';
 import { runSelectionModeHelperTests } from './src/testing/utils/SelectionModeHelpersTests';
 import { runTypeGuardsTests } from './src/testing/utils/TypeGuardsTests';
 import { runPropertyHelpersTests } from './src/testing/utils/PropertyHelpersTests';
+import { runContentParserParameterTests } from './src/testing/run-content-parser-tests';
+import { ContentParser } from './src/parsing/services/ContentParser';
+import { runSettingsAdapterTests } from './src/testing/utils/SettingsAdapterTests';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -912,6 +915,36 @@ export default class DreamMetricsPlugin extends Plugin {
                 runPropertyHelpersTests().then(() => {
                     new Notice('Property helpers tests complete - check console for results');
                 });
+            }
+        });
+
+        // Command to run Content Parser parameter tests
+        this.addCommand({
+            id: 'run-content-parser-parameter-tests',
+            name: 'Run Content Parser Parameter Tests',
+            callback: async () => {
+                await runContentParserParameterTests();
+                new Notice('Content Parser parameter tests complete - check console for results');
+            }
+        });
+        
+        // Command to run Settings Adapter tests
+        this.addCommand({
+            id: 'run-settings-adapter-tests',
+            name: 'Run Settings Adapter Tests',
+            callback: async () => {
+                await runSettingsAdapterTests();
+                new Notice('Settings Adapter tests complete - check console for results');
+            }
+        });
+
+        // Add this method to the plugin class
+        this.addCommand({
+            id: 'test-content-parser-directly',
+            name: 'Test Content Parser Directly',
+            callback: () => {
+                const result = this.testContentParserDirectly();
+                new Notice(result);
             }
         });
     }
@@ -4374,6 +4407,50 @@ Applied: ${new Date().toLocaleTimeString()}`;
         }
     }
 
+    // Add this method to the plugin class
+    private testContentParserDirectly() {
+        // Create a ContentParser instance
+        const parser = new ContentParser();
+        
+        // Test note content with a dream callout
+        const testContent = `
+# Test Note
+
+[!dream] Test Dream
+This is a test dream.
+Clarity: 4, Vividness: 3
+
+[!memory] Memory Entry
+This is a memory.
+Emotional Impact: 5, Detail: 4
+`;
+
+        // Test parameter variations
+        console.log("=== CONTENT PARSER PARAMETER VARIATION TESTS ===");
+        
+        // Test 1: content only
+        const test1 = parser.extractDreamEntries(testContent);
+        console.log("Test 1 (content only):", test1);
+        
+        // Test 2: content + callout type
+        const test2 = parser.extractDreamEntries(testContent, 'memory');
+        console.log("Test 2 (content, type):", test2);
+        
+        // Test 3: content + source
+        const test3 = parser.extractDreamEntries(testContent, 'test.md');
+        console.log("Test 3 (content, source):", test3);
+        
+        // Test 4: content + type + source
+        const test4 = parser.extractDreamEntries(testContent, 'dream', 'test.md');
+        console.log("Test 4 (content, type, source):", test4);
+        
+        // Test 5: static factory method
+        const parser2 = ContentParser.create();
+        const test5 = parser2.extractDreamEntries(testContent);
+        console.log("Test 5 (factory method):", test5);
+        
+        return "ContentParser direct tests complete - check console for results";
+    }
 
 }
 

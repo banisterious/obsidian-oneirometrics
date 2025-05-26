@@ -10,6 +10,10 @@ import { registerSelectionModeHelperTests } from './utils/SelectionModeHelpersTe
 import { registerSettingsHelpersTests } from './utils/SettingsHelpersTests';
 import { registerMetricHelpersTests } from './utils/MetricHelpersTests';
 import { registerTypeGuardsTests } from './utils/TypeGuardsTests';
+import { registerPropertyHelpersTests } from './utils/PropertyHelpersTests';
+import { registerErrorHandlingContentParserTests } from './ErrorHandlingContentParserTests';
+import { registerContentParserParameterTests } from './ContentParserParameterTests';
+import { registerSettingsAdapterTests } from './utils/SettingsAdapterTests';
 
 /**
  * Registers all tests with the test runner
@@ -24,6 +28,14 @@ export function registerAllTests(testRunner: TestRunner): void {
   registerSettingsHelpersTests(testRunner);
   registerMetricHelpersTests(testRunner);
   registerTypeGuardsTests(testRunner);
+  registerPropertyHelpersTests(testRunner);
+  
+  // Register ContentParser tests
+  registerErrorHandlingContentParserTests(testRunner);
+  registerContentParserParameterTests(testRunner);
+  
+  // Register SettingsAdapter tests
+  registerSettingsAdapterTests(testRunner);
   
   // Add other test registration functions here as they are implemented
 }
@@ -67,6 +79,10 @@ export { registerSelectionModeHelperTests };
 export { registerSettingsHelpersTests };
 export { registerMetricHelpersTests };
 export { registerTypeGuardsTests };
+export { registerPropertyHelpersTests };
+export { registerErrorHandlingContentParserTests };
+export { registerContentParserParameterTests };
+export { registerSettingsAdapterTests };
 export { runSettingsHelpersTests } from './utils/SettingsHelpersTests';
 export { runMetricHelpersTests } from './utils/MetricHelpersTests';
 export { runSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
