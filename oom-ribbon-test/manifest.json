@@ -1,9 +1,0 @@
-{
-  "id": "oom-ribbon-test",
-  "name": "OOM Ribbon Test",
-  "version": "0.0.1",
-  "minAppVersion": "0.15.0",
-  "description": "Minimal plugin to test ribbon button toggling.",
-  "author": "Your Name",
-  "main": "main.js"
-} 
