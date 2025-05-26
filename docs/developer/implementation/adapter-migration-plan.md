@@ -6,7 +6,7 @@ This document provides a comprehensive plan for migrating away from temporary ad
 
 **Last Updated**: 2025-05-30
 
-**Current Status**: In Progress (25%)
+**Current Status**: In Progress (30%)
 
 ### Key Milestones
 
@@ -63,7 +63,7 @@ This plan outlines our strategy for:
 | File | Purpose | Status |
 |------|---------|--------|
 | src/utils/settings-helpers.ts | Safe settings access | ✅ Permanent with Tests |
-| src/utils/metric-helpers.ts | Metric property handling | ✅ Permanent |
+| src/utils/metric-helpers.ts | Metric property handling | ✅ Permanent with Tests |
 | src/utils/selection-mode-helpers.ts | Selection mode compatibility | ✅ Permanent with Tests |
 | src/utils/type-guards.ts | Type checking utilities | ✅ Permanent |
 
@@ -152,6 +152,7 @@ Functions that were created solely for the migration and can be safely removed o
 |----------|----------------|-----------|------------|
 | ContentParserAdapter.adaptExtractDreamEntries | Remove | Temporary bridge for parameter mismatches | Update ContentParser to handle parameter variations directly |
 | UIComponentAdapter.adaptMetricForUI | Refactor | Core functionality, poor location | Move to MetricComponent as a proper method |
+| UIComponentAdapter.adaptEntryForUI | Refactor | Core functionality, poor location | Move to EntryComponent as a proper method |
 | SettingsAdapter.adaptSelectionMode | Keep | Critical for backward compatibility | Move to selection-mode-helpers.ts |
 | adaptSettingsToCore | Refactor | Core functionality, should be in state/adapters | Create proper SettingsAdapter class in state/adapters |
 | getProjectNotePathSafe | Keep | Essential for backward compatibility | Already properly placed in settings-helpers.ts |
@@ -391,7 +392,7 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-05-30 | Created and validated tests for settings-helpers.ts |
+| Unit tests | 🔄 In Progress | 2025-05-25 | Created and validated tests for settings-helpers.ts |
 | Integration tests | ⬜ Not Started | - | - |
 | Manual testing | ⬜ Not Started | - | - |
 | Performance testing | ⬜ Not Started | - | - |
