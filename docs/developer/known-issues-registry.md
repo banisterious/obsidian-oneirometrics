@@ -90,7 +90,7 @@ Issues can be resolved in multiple ways:
 
 ## References
 
-- [Adapter Migration Plan](./implementation/adapter-migration-plan.md)
+- [Adapter Migration Plan (Archived)](../archive/refactoring-2025/adapter-migration-plan.md)
 - [TypeScript Architecture Lessons](./architecture/typescript-architecture-lessons.md)
 
 *Last Updated: 2025-05-26* 
