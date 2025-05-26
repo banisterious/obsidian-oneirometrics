@@ -429,4 +429,3 @@ For each adapter function, we document:
 - How it's used in those files
 - What would be required to replace it
 - Potential risks in migration
-</rewritten_file> 
