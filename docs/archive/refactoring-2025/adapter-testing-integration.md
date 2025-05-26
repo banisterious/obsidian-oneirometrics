@@ -8,18 +8,18 @@ This document explains how our adapter testing approach integrates with the broa
 
 Our adapter testing work builds upon these foundational documents:
 
-1. [TypeScript Helper Utilities Guide](./typescript-helper-utilities.md) - Documents the API and usage patterns for helper utilities
+1. [TypeScript Helper Utilities Guide](../../developer/implementation/typescript-helper-utilities.md) - Documents the API and usage patterns for helper utilities
 2. [Adapter Testing Patterns](./testing/adapter-testing-patterns.md) - Details our specific testing methodology for adapters
-3. [TypeScript Best Practices Guide](./typescript-best-practices.md) - Provides general TypeScript development guidelines
-4. [TypeScript Adapter Pattern Guide](./typescript-adapter-patterns.md) - Explains the adapter pattern implementation
-5. [TypeScript Interface Standards](./typescript-interface-standards.md) - Outlines standards for interface design
-6. [TypeScript Unified Interface Plan](./typescript-unified-interface-plan.md) - Describes the interface standardization approach
+3. [TypeScript Best Practices Guide](../../developer/implementation/typescript-best-practices.md) - Provides general TypeScript development guidelines
+4. [TypeScript Adapter Pattern Guide](../../developer/implementation/typescript-adapter-patterns.md) - Explains the adapter pattern implementation
+5. [TypeScript Interface Standards](../../developer/implementation/typescript-interface-standards.md) - Outlines standards for interface design
+6. [TypeScript Unified Interface Plan](../../developer/implementation/typescript-unified-interface-plan.md) - Describes the interface standardization approach
 
 ## Integration Points
 
 ### Type Safety and Testing
 
-Our adapter testing methodology directly implements the type safety principles outlined in the [TypeScript Best Practices Guide](./typescript-best-practices.md):
+Our adapter testing methodology directly implements the type safety principles outlined in the [TypeScript Best Practices Guide](../../developer/implementation/typescript-best-practices.md):
 
 ```typescript
 // From TypeScript Best Practices Guide:
@@ -45,7 +45,7 @@ This demonstrates how our tests directly verify the type safety principles estab
 
 ### Adapter Pattern Verification
 
-Our testing approach verifies the adapter patterns described in [TypeScript Adapter Pattern Guide](./typescript-adapter-patterns.md):
+Our testing approach verifies the adapter patterns described in [TypeScript Adapter Pattern Guide](../../developer/implementation/typescript-adapter-patterns.md):
 
 ```typescript
 // From TypeScript Adapter Pattern Guide:
@@ -77,7 +77,7 @@ These tests validate that our adapter functions correctly implement the property
 
 ### Interface Standards Compliance
 
-Our tests ensure compliance with the [TypeScript Interface Standards](./typescript-interface-standards.md) by verifying that our adapters properly handle both required and optional properties:
+Our tests ensure compliance with the [TypeScript Interface Standards](../../developer/implementation/typescript-interface-standards.md) by verifying that our adapters properly handle both required and optional properties:
 
 ```typescript
 // From our metric-helpers.ts tests:
@@ -91,7 +91,7 @@ This test validates that our adapters provide sensible defaults as recommended i
 
 ### Unified Interface Plan Implementation
 
-Our testing validates the approach outlined in the [TypeScript Unified Interface Plan](./typescript-unified-interface-plan.md) by ensuring bidirectional compatibility:
+Our testing validates the approach outlined in the [TypeScript Unified Interface Plan](../../developer/implementation/typescript-unified-interface-plan.md) by ensuring bidirectional compatibility:
 
 ```typescript
 // From our settings-helpers.ts tests:
