@@ -1,88 +1,130 @@
 /**
  * ContentParser implementation
- * This updated implementation fixes TypeScript errors and adds proper type definitions.
+ * 
+ * This module provides comprehensive content parsing functionality for dream entries.
+ * It handles the extraction, processing, and validation of dream callouts from markdown content.
  */
 
-import { DreamMetricData } from '../../types/core';
+import { DreamMetricData, DreamMetric } from '../../types/core';
 import { CalloutMetadata } from '../../types/callout-types';
 import { getSourceFile, createSource, isCalloutMetadata } from '../../utils/type-guards';
+import { DreamEntry } from '../../types/declarations/dream-entry';
 
 // Define an extended version of CalloutMetadata that can include error information
 interface ExtendedCalloutMetadata extends CalloutMetadata {
   error?: boolean;
+  warnings?: string[];
 }
 
+/**
+ * Content parsing options
+ */
+export interface ContentParsingOptions {
+  /** The callout type to search for (defaults to 'dream') */
+  calloutType?: string;
+  /** Whether to include validation of entries */
+  validate?: boolean;
+  /** Whether to include nested callouts */
+  includeNested?: boolean;
+  /** Whether to sanitize content */
+  sanitize?: boolean;
+}
+
+/**
+ * ContentParser provides utilities for parsing Obsidian content to extract dream entries
+ */
 export class ContentParser {
   /**
    * Parses content from a note to extract dream entries and metadata
+   * 
    * @param content The content to parse
    * @param calloutTypeOrSource The callout type or source file path
    * @param source Optional source file if first parameter is callout type
+   * @param options Additional parsing options
    * @returns Parsed content with entries and metadata
    */
   parseContent(
     content: string, 
     calloutTypeOrSource?: string, 
-    source?: string
+    source?: string,
+    options?: ContentParsingOptions
   ): { 
     entries: DreamMetricData[], 
     metadata: Record<string, any> 
   } {
-    const entries = this.extractDreamEntries(content, calloutTypeOrSource, source);
+    const entries = this.extractDreamEntries(content, calloutTypeOrSource, source, options);
+    
+    // Calculate additional metadata
+    const wordCounts = entries.map(entry => entry.wordCount || 0);
+    const totalWordCount = wordCounts.reduce((sum, count) => sum + count, 0);
+    const avgWordCount = entries.length > 0 ? totalWordCount / entries.length : 0;
+    
     return {
       entries,
-      metadata: { totalEntries: entries.length }
+      metadata: { 
+        totalEntries: entries.length,
+        totalWordCount,
+        averageWordCount: avgWordCount.toFixed(1),
+        calloutType: this.resolveCalloutType(calloutTypeOrSource)
+      }
     };
   }
 
   /**
    * Extracts dream entries from content
+   * 
    * @param content The content to extract from
    * @param calloutTypeOrSource The callout type or source file path
    * @param source Optional source file if first parameter is callout type
+   * @param options Additional parsing options
    * @returns Array of dream entries
    */
   extractDreamEntries(
     content: string, 
     calloutTypeOrSource?: string, 
-    source?: string
+    source?: string,
+    options?: ContentParsingOptions
   ): DreamMetricData[] {
-    // Handle different parameter variations
-    let calloutType: string = 'dream';
-    let sourcePath: string = '';
+    // Set default options
+    const opts: ContentParsingOptions = {
+      calloutType: 'dream',
+      validate: true,
+      includeNested: false,
+      sanitize: true,
+      ...options
+    };
     
-    if (!calloutTypeOrSource) {
-      // Only content provided, use defaults
-      calloutType = 'dream';
-      sourcePath = '';
-    } else if (!source) {
-      // Two parameters - could be (content, type) or (content, source)
-      if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
-        // Likely a file path
-        calloutType = 'dream';
-        sourcePath = calloutTypeOrSource;
-      } else {
-        // Likely a callout type
-        calloutType = calloutTypeOrSource;
-        sourcePath = '';
-      }
-    } else {
-      // Three parameters - standard call
-      calloutType = calloutTypeOrSource;
-      sourcePath = source;
-    }
+    // Handle different parameter variations
+    const calloutType = this.resolveCalloutType(calloutTypeOrSource);
+    const sourcePath = this.resolveSourcePath(calloutTypeOrSource, source);
     
     if (!content) return [];
+    
+    // Sanitize content if requested
+    const processedContent = opts.sanitize ? this.sanitizeContent(content) : content;
     
     // Find all dream callouts in the content
     const entries: DreamMetricData[] = [];
     const calloutRegex = new RegExp(`\\[!${calloutType}\\]([\\s\\S]*?)(?=\\[!|$)`, 'gi');
     
     let match;
-    while ((match = calloutRegex.exec(content)) !== null) {
+    while ((match = calloutRegex.exec(processedContent)) !== null) {
       const calloutContent = match[1].trim();
       try {
         const entry = this.processCallout(calloutContent, sourcePath);
+        
+        // Validate if requested
+        if (opts.validate) {
+          const validation = this.validateDreamEntry(entry);
+          if (!validation.valid) {
+            console.warn(`Validation warnings for entry: ${validation.errors.join(', ')}`);
+            // Add validation warnings to the entry's metadata
+            if (isCalloutMetadata(entry.calloutMetadata)) {
+              (entry.calloutMetadata as ExtendedCalloutMetadata).warnings = validation.errors;
+            }
+          }
+        }
+        
         entries.push(entry);
       } catch (error) {
         console.error("Error processing callout:", error);
@@ -90,11 +132,73 @@ export class ContentParser {
       }
     }
     
+    // Include nested callouts if requested
+    if (opts.includeNested) {
+      try {
+        const nestedCallouts = this.processNestedCallouts(processedContent, calloutType);
+        for (const nestedCallout of nestedCallouts) {
+          try {
+            const entry = this.processCallout(nestedCallout.content, sourcePath);
+            entry.calloutMetadata = nestedCallout.metadata;
+            entries.push(entry);
+          } catch (error) {
+            console.error("Error processing nested callout:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error processing nested callouts:", error);
+      }
+    }
+    
     return entries;
   }
 
   /**
+   * Resolves the callout type from the input parameters
+   * 
+   * @param calloutTypeOrSource The callout type or source file path
+   * @returns The resolved callout type
+   */
+  private resolveCalloutType(calloutTypeOrSource?: string): string {
+    if (!calloutTypeOrSource) {
+      return 'dream';
+    }
+    
+    // If it looks like a file path, assume default callout type
+    if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
+      return 'dream';
+    }
+    
+    return calloutTypeOrSource;
+  }
+  
+  /**
+   * Resolves the source path from the input parameters
+   * 
+   * @param calloutTypeOrSource The callout type or source file path
+   * @param source Optional source file
+   * @returns The resolved source path
+   */
+  private resolveSourcePath(calloutTypeOrSource?: string, source?: string): string {
+    if (source) {
+      return source;
+    }
+    
+    if (!calloutTypeOrSource) {
+      return '';
+    }
+    
+    // If it looks like a file path, use it as the source
+    if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
+      return calloutTypeOrSource;
+    }
+    
+    return '';
+  }
+
+  /**
    * Processes a callout into a dream entry
+   * 
    * @param calloutContent The content of the callout
    * @param source The source file path
    * @returns A dream entry
@@ -145,13 +249,14 @@ export class ContentParser {
         source: createSource(source),
         wordCount: 0,
         metrics: {},
-        calloutMetadata: { type: 'dream' } as ExtendedCalloutMetadata // Use type assertion to avoid type error
+        calloutMetadata: { type: 'dream', error: true } as ExtendedCalloutMetadata
       };
     }
   }
 
   /**
    * Parses a callout to extract its type and content
+   * 
    * @param callout The callout text to parse
    * @returns Parsed callout object with type and content
    */
@@ -179,6 +284,7 @@ export class ContentParser {
 
   /**
    * Extracts metrics text from a callout
+   * 
    * @param calloutContent The content of the callout
    * @returns The text containing metrics
    */
@@ -211,6 +317,7 @@ export class ContentParser {
 
   /**
    * Parses a date string into a standardized format
+   * 
    * @param dateString The date string to parse
    * @returns A standardized date string (YYYY-MM-DD)
    */
@@ -257,6 +364,7 @@ export class ContentParser {
 
   /**
    * Cleans dream content by removing metadata and formatting
+   * 
    * @param content The content to clean
    * @param calloutType The type of callout
    * @returns Cleaned dream content
@@ -295,6 +403,7 @@ export class ContentParser {
 
   /**
    * Extracts a title from content
+   * 
    * @param content The content to extract from
    * @returns The extracted title
    */
@@ -328,6 +437,7 @@ export class ContentParser {
 
   /**
    * Processes nested callouts in content
+   * 
    * @param content The content to process
    * @param calloutType The type of callout to look for
    * @returns Array of processed callouts
@@ -366,6 +476,7 @@ export class ContentParser {
 
   /**
    * Factory method to create a new ContentParser instance
+   * 
    * @returns A new ContentParser instance
    */
   static create(): ContentParser {
@@ -374,6 +485,7 @@ export class ContentParser {
   
   /**
    * Handles unusual or corrupted formatting in dream entries
+   * 
    * @param content The potentially corrupted content
    * @returns Cleaned up content
    */
@@ -413,6 +525,7 @@ export class ContentParser {
   
   /**
    * Extracts metrics from multiple callouts and combines them
+   * 
    * @param callouts Array of callout contents
    * @returns Combined metrics from all callouts
    */
@@ -447,6 +560,7 @@ export class ContentParser {
   
   /**
    * Validates a dream entry for required fields and formats
+   * 
    * @param entry The dream entry to validate
    * @returns Object with validation status and any error messages
    */
@@ -490,5 +604,52 @@ export class ContentParser {
       valid: errors.length === 0,
       errors
     };
+  }
+  
+  /**
+   * Converts a DreamMetricData object to a DreamEntry
+   * 
+   * @param metricData The DreamMetricData object to convert
+   * @returns A DreamEntry object
+   */
+  convertToEntry(metricData: DreamMetricData): DreamEntry {
+    // Create metrics array from metrics record
+    const metrics: DreamMetric[] = Object.entries(metricData.metrics).map(([name, value]) => ({
+      name,
+      value: typeof value === 'number' ? value : 0,
+      icon: '', // We don't have icon information in the metrics record
+      enabled: true,
+      minValue: 1,  // Add required properties
+      maxValue: 5,  // Add required properties
+      description: `${name} metric` // Add required property with default value
+    }));
+    
+    return {
+      date: metricData.date,
+      title: metricData.title,
+      content: metricData.content,
+      source: metricData.source,
+      wordCount: metricData.wordCount,
+      metrics
+    };
+  }
+  
+  /**
+   * Extracts callout metadata from a callout
+   * 
+   * @param callout The callout text
+   * @returns The extracted callout metadata
+   */
+  getCalloutMetadata(callout: string): CalloutMetadata {
+    try {
+      const parsed = this.parseCallout(callout);
+      return {
+        type: parsed.type,
+        id: parsed.id
+      };
+    } catch (error) {
+      console.error("Error getting callout metadata:", error);
+      return { type: 'unknown' };
+    }
   }
 } 

@@ -303,7 +303,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
 | Update UI components | 🔄 In Progress (80%) | 2025-05-26 | ComponentFactory |
-| Update service modules | ⬜ Not Started | 2025-07-12 | All Phase 1 items |
+| Update service modules | 🔄 In Progress (50%) | 2025-07-12 | All Phase 1 items |
 | Update utility modules | ⬜ Not Started | 2025-07-14 | PropertyAccessor |
 
 ### Phase 4: Testing and Verification (Target: 2025-07-25)
@@ -428,9 +428,9 @@ Before considering the adapter migration complete, we will perform these verific
 | TypeScript compilation | ⬜ Not Started | - | - |
 | Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22/22 passing), metric-helpers.ts (11/13 passing with 2 known issues), selection-mode-helpers.ts (9/9 passing), type-guards.ts (10/10 passing), property-helpers.ts (10/10 passing), ContentParser parameter variations (7/7 passing), SettingsAdapter (11/11 passing), EventHandling (10/10 passing), ComponentFactory (5/5 passing), and DreamMetricsState (6/6 passing). Successfully tested main.ts settings handling and event handling changes with all tests passing. |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. Created FilterFactory.ts to replace createFilterElement and updated DateRangeFilter to use it. Tested the Date Navigator UI components and identified usability issues with custom date range input fields - documented as ISSUE-25-004 in the Known Issues Registry. Quick filter buttons (This Week, Last Month, etc.) work correctly. Tested new components: MetricComponent, EntryComponent, and ModalFactory - all functioning correctly with minor UI refinements needed (metric icons not displaying properly). DateRangeFilter and FilterFactory implementations are functionally working despite the input field usability issues. |
+| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. Created FilterFactory.ts to replace createFilterElement and updated DateRangeFilter to use it. Tested the Date Navigator UI components and identified usability issues with custom date range input fields - documented as ISSUE-25-004 in the Known Issues Registry. Quick filter buttons (This Week, Last Month, etc.) work correctly. Tested new components: MetricComponent, EntryComponent, and ModalFactory - all functioning correctly with minor UI refinements needed (metric icons not displaying properly - documented as ISSUE-25-005). Updated ContentParser service module with enhanced TypeScript support, added new features (content parsing options, validation), and implemented methods to support adapter migration. |
 | Performance testing | ⬜ Not Started | - | - |
-| Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md. Updated issues documentation to reflect DateRangeFilter usability issues. |
+| Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md. Updated issues documentation to reflect DateRangeFilter usability issues and metric icon display issues. |
 | Final approval | ⬜ Not Started | - | - |
 
 ## Appendix
