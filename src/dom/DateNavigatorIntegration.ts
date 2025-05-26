@@ -4,14 +4,18 @@ import { TimeFilterManager, DateRange } from '../timeFilters';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { format } from 'date-fns';
 
-// Import the global logger from main.ts - will be initialized when plugin loads
-declare const globalLogger: any;
+// Safely reference global logger without causing errors if it's not defined
+declare global {
+    interface Window {
+        globalLogger?: any;
+    }
+}
 
 export class DateNavigatorIntegration {
     private app: App;
     private state: DreamMetricsState;
     private timeFilterManager: TimeFilterManager;
-    private dateNavigator: DateNavigator | null = null;
+    public dateNavigator: DateNavigator | null = null;
     private container: HTMLElement | null = null;
     private isUpdatingSelection: boolean = false; // Add a flag to prevent recursive updates
     private rangeSelectionMode: boolean = false;
@@ -34,14 +38,41 @@ export class DateNavigatorIntegration {
         
         // Create default TimeFilterManager if none provided
         if (!this.timeFilterManager) {
-            console.warn('DateNavigatorIntegration: No TimeFilterManager provided, creating a default one');
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].warn('DateNavigatorIntegration: No TimeFilterManager provided, creating a default one');
+                }
+            } catch (e) {
+                // Silent failure
+            }
             this.timeFilterManager = new TimeFilterManager();
         }
         
-        // Listen for filter changes
-        this.timeFilterManager.onFilterChange = (filter) => {
-            this.handleFilterChange(filter.getDateRange());
-        };
+        // Check if the timeFilterManager is properly initialized before setting up listeners
+        if (this.timeFilterManager && typeof this.timeFilterManager.onFilterChange === 'function') {
+            // Listen for filter changes - safely with null checks
+            this.timeFilterManager.onFilterChange = (filter) => {
+                if (filter && typeof filter.getDateRange === 'function') {
+                    this.handleFilterChange(filter.getDateRange());
+                } else {
+                    try {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].warn('DateNavigatorIntegration: Filter object is invalid or missing getDateRange method');
+                        }
+                    } catch (e) {
+                        // Silent failure
+                    }
+                }
+            };
+        } else {
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('DateNavigatorIntegration: TimeFilterManager is not properly initialized');
+                }
+            } catch (e) {
+                // Silent failure
+            }
+        }
     }
     
     /**
@@ -54,9 +85,22 @@ export class DateNavigatorIntegration {
         this.dateNavigator = new DateNavigator(container, this.state);
         
         // Apply any active filter
-        const currentRange = this.timeFilterManager.getCurrentRange();
-        if (currentRange) {
-            this.handleFilterChange(currentRange);
+        try {
+            if (this.timeFilterManager && typeof this.timeFilterManager.getCurrentRange === 'function') {
+                const currentRange = this.timeFilterManager.getCurrentRange();
+                if (currentRange) {
+                    this.handleFilterChange(currentRange);
+                }
+            }
+        } catch (e) {
+            // Safely log the error
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('DateNavigatorIntegration: Error applying current filter range', e);
+                }
+            } catch (err) {
+                // Silent failure
+            }
         }
         
         // Set up selection handler
@@ -65,7 +109,237 @@ export class DateNavigatorIntegration {
         // Add a range selection toggle button
         this.addRangeSelectionToggle();
         
+        // Check if we need to populate entries from plugin
+        this.checkAndPopulateEntries();
+        
+        // Make debug function globally accessible
+        try {
+            // Add a global function to trigger debug display
+            window['debugDateNavigator'] = () => {
+                if (this.dateNavigator && typeof this.dateNavigator.debugDisplay === 'function') {
+                    this.dateNavigator.debugDisplay();
+                } else {
+                    console.error('DateNavigator debugDisplay function not available');
+                }
+            };
+        } catch (e) {
+            console.error('Error setting up global debug function:', e);
+        }
+        
         return this.dateNavigator;
+    }
+    
+    /**
+     * Check if state has entries, and if not, try to get them from plugin
+     */
+    private checkAndPopulateEntries(): void {
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigatorIntegration', 'Starting entries check');
+                window['globalLogger'].debug('DateNavigatorIntegration', 'Checking for entries in state');
+            }
+            
+            // First check if state already has entries
+            const stateEntries = this.state?.getDreamEntries?.() || [];
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigatorIntegration', `State has ${stateEntries.length} entries`);
+            }
+            
+            if (stateEntries && stateEntries.length > 0) {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigatorIntegration', `State already has ${stateEntries.length} entries`);
+                }
+                
+                // Even if state has entries, let's also try to make sure the DateNavigator has them
+                if (this.dateNavigator && stateEntries.length > 0) {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Explicitly setting ${stateEntries.length} entries from state to DateNavigator`);
+                    }
+                    this.dateNavigator.setDreamEntries(stateEntries);
+                }
+                
+                return; // State already has entries
+            }
+            
+            // If we're here, we need to check for entries in other places
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigatorIntegration', 'No entries in state, checking for alternative sources');
+                window['globalLogger'].debug('DateNavigatorIntegration', 'No entries in state, checking plugin');
+            }
+            
+            // Try to get entries from window.oneiroMetricsPlugin
+            if (window['oneiroMetricsPlugin']) {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigatorIntegration', 'Found window.oneiroMetricsPlugin, checking for entries');
+                }
+                
+                // Use 'any' type to bypass type checking for the global plugin
+                const globalPlugin = window['oneiroMetricsPlugin'] as any;
+                
+                // Try to get entries from the global plugin instance
+                let globalEntries = null;
+                
+                if (globalPlugin.state && typeof globalPlugin.state.getDreamEntries === 'function') {
+                    globalEntries = globalPlugin.state.getDreamEntries();
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${globalEntries?.length || 0} entries from global plugin state`);
+                    }
+                } else if (globalPlugin.entries && Array.isArray(globalPlugin.entries)) {
+                    // Using any type to bypass type checking
+                    globalEntries = globalPlugin.entries;
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${globalEntries.length} entries from global plugin entries`);
+                    }
+                }
+                
+                if (globalEntries && globalEntries.length > 0) {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Using ${globalEntries.length} entries from global plugin`);
+                    }
+                    
+                    // Update DateNavigator with entries
+                    if (this.dateNavigator) {
+                        this.dateNavigator.setDreamEntries(globalEntries);
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigatorIntegration', 'Updated entries using global plugin entries');
+                        }
+                    }
+                    
+                    return; // Successfully used global plugin entries
+                }
+            }
+            
+            // If state was passed as part of plugin, try to get entries from plugin
+            if (this.state && !(this.state instanceof DreamMetricsState) && typeof this.state === 'object') {
+                // Cast to any to access potential plugin properties
+                const plugin: any = this.state;
+                
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigatorIntegration', 'State might be plugin, checking its properties');
+                }
+                
+                // Try to get entries directly
+                let entries = null;
+                
+                // Dump available properties for debugging
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigatorIntegration', 'Plugin properties:', Object.keys(plugin));
+                    if (plugin.state) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', 'Plugin state properties:', Object.keys(plugin.state));
+                    }
+                }
+                
+                // Try different potential sources of entries
+                if (plugin.entries && Array.isArray(plugin.entries) && plugin.entries.length > 0) {
+                    entries = plugin.entries;
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${entries.length} entries in plugin.entries`);
+                    }
+                } else if (plugin.state && plugin.state.entries && Array.isArray(plugin.state.entries)) {
+                    entries = plugin.state.entries;
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${entries.length} entries in plugin.state.entries`);
+                    }
+                } else if (plugin.state && typeof plugin.state.getDreamEntries === 'function') {
+                    entries = plugin.state.getDreamEntries();
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${entries?.length || 0} entries from plugin.state.getDreamEntries()`);
+                    }
+                } else if (plugin.dreamEntries && Array.isArray(plugin.dreamEntries)) {
+                    entries = plugin.dreamEntries;
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${entries.length} entries in plugin.dreamEntries`);
+                    }
+                }
+                
+                // FALLBACK: Try to extract entries from any tables in the UI
+                if ((!entries || entries.length === 0) && typeof document !== 'undefined') {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', 'No entries found through API, trying to extract from UI tables');
+                    }
+                    
+                    try {
+                        const dreamRows = document.querySelectorAll('.oom-dream-row');
+                        if (dreamRows && dreamRows.length > 0) {
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('DateNavigatorIntegration', `Found ${dreamRows.length} dream rows in tables`);
+                            }
+                            
+                            // Extract entries from rows
+                            const tableEntries = [];
+                            dreamRows.forEach((row, idx) => {
+                                try {
+                                    const dateCell = row.querySelector('td:first-child');
+                                    const titleCell = row.querySelector('td:nth-child(2)');
+                                    
+                                    if (dateCell && titleCell) {
+                                        const dateText = dateCell.textContent?.trim();
+                                        const titleText = titleCell.textContent?.trim();
+                                        
+                                        if (dateText) {
+                                            tableEntries.push({
+                                                date: dateText,
+                                                title: titleText || 'Unknown title',
+                                                content: titleText || 'Unknown content',
+                                                source: 'table-extraction',
+                                                metrics: {}
+                                            });
+                                        }
+                                    }
+                                } catch (rowErr) {
+                                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                        window['globalLogger'].error('DateNavigatorIntegration', `Error extracting entry from row ${idx}:`, rowErr);
+                                    }
+                                }
+                            });
+                            
+                            if (tableEntries.length > 0) {
+                                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                    window['globalLogger'].debug('DateNavigatorIntegration', `Extracted ${tableEntries.length} entries from UI tables`);
+                                }
+                                entries = tableEntries;
+                            }
+                        }
+                    } catch (tableErr) {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].error('DateNavigatorIntegration', 'Error extracting entries from tables:', tableErr);
+                        }
+                    }
+                }
+                
+                // If we found entries, update the state
+                if (entries && entries.length > 0) {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Updating state with ${entries.length} entries`);
+                        // Sample the first entry for debugging
+                        window['globalLogger'].debug('DateNavigatorIntegration', 'First entry sample:', entries[0]);
+                    }
+                    
+                    // Use the new setDreamEntries method if available
+                    if (this.dateNavigator) {
+                        this.dateNavigator.setDreamEntries(entries);
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigatorIntegration', 'Updated entries using dateNavigator.setDreamEntries()');
+                        }
+                    }
+                    // If no DateNavigator but state has updateDreamEntries method, use it
+                    else if (this.state && typeof (this.state as any).updateDreamEntries === 'function') {
+                        (this.state as any).updateDreamEntries(entries);
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigatorIntegration', 'Updated entries using state.updateDreamEntries()');
+                        }
+                    }
+                } else {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].warn('DateNavigatorIntegration', 'Could not find any entries in plugin object');
+                    }
+                }
+            }
+        } catch (e) {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].error('DateNavigatorIntegration', 'Error checking for entries', e);
+            }
+        }
     }
     
     /**
@@ -106,7 +380,14 @@ export class DateNavigatorIntegration {
                 this.rangeStartDate = null;
                 this.rangeEndDate = null;
                 
-                globalLogger?.debug('DateNavigator', 'Range selection mode enabled');
+                // Safely log - range mode enabled
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigator', 'Range selection mode enabled');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
             } else {
                 rangeToggleBtn.classList.remove('oom-range-active');
                 
@@ -120,7 +401,14 @@ export class DateNavigatorIntegration {
                     }
                 }
                 
-                globalLogger?.debug('DateNavigator', 'Range selection mode disabled');
+                // Safely log - range mode disabled
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigator', 'Range selection mode disabled');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
             }
         });
     }
@@ -149,25 +437,51 @@ export class DateNavigatorIntegration {
                 if (this.isUpdatingSelection) return;
                 
                 this.isUpdatingSelection = true;
-                // Set custom filter in TimeFilterManager
-                this.timeFilterManager.setCustomRange(startDate, endDate);
                 
-                // Show a notice
-                const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
-                if (this.isSameDay(startDate, endDate)) {
-                    new Notice(`Filtered to ${formatDate(startDate)}`);
+                // Make sure timeFilterManager exists and has the required method
+                if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
+                    // Set custom filter in TimeFilterManager
+                    this.timeFilterManager.setCustomRange(startDate, endDate);
+                    
+                    // Show a notice
+                    const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
+                    if (this.isSameDay(startDate, endDate)) {
+                        new Notice(`Filtered to ${formatDate(startDate)}`);
+                    } else {
+                        new Notice(`Filtered from ${formatDate(startDate)} to ${formatDate(endDate)}`);
+                    }
                 } else {
-                    new Notice(`Filtered from ${formatDate(startDate)} to ${formatDate(endDate)}`);
+                    try {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].error('DateNavigatorIntegration: Cannot set custom range - timeFilterManager is invalid');
+                        }
+                    } catch (e) {
+                        // Silent failure
+                    }
                 }
+                
                 this.isUpdatingSelection = false;
             } else {
                 // Prevent recursive updates
                 if (this.isUpdatingSelection) return;
                 
                 this.isUpdatingSelection = true;
-                // Clear filter
-                this.timeFilterManager.clearCurrentFilter();
-                new Notice('Date filter cleared');
+                
+                // Make sure timeFilterManager exists and has the required method
+                if (this.timeFilterManager && typeof this.timeFilterManager.clearCurrentFilter === 'function') {
+                    // Clear filter
+                    this.timeFilterManager.clearCurrentFilter();
+                    new Notice('Date filter cleared');
+                } else {
+                    try {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].error('DateNavigatorIntegration: Cannot clear filter - timeFilterManager is invalid');
+                        }
+                    } catch (e) {
+                        // Silent failure
+                    }
+                }
+                
                 this.isUpdatingSelection = false;
             }
         };
@@ -182,7 +496,15 @@ export class DateNavigatorIntegration {
         // If no start date is selected yet, set it
         if (!this.rangeStartDate) {
             this.rangeStartDate = new Date(selectedDate);
-            globalLogger?.debug('DateNavigator', 'Range start date selected', { date: this.rangeStartDate });
+            
+            // Safely log - range start date selected
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigator', 'Range start date selected', { date: this.rangeStartDate });
+                }
+            } catch (e) {
+                // Silent failure
+            }
             
             // Show notice
             new Notice(`Range start: ${format(this.rangeStartDate, 'MMM d, yyyy')} - Now select end date`);
@@ -197,10 +519,18 @@ export class DateNavigatorIntegration {
         
         // If we already have a start date, use the selected date as the end date
         this.rangeEndDate = new Date(selectedDate);
-        globalLogger?.debug('DateNavigator', 'Range end date selected', { 
-            start: this.rangeStartDate, 
-            end: this.rangeEndDate 
-        });
+        
+        // Safely log - range end date selected
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'Range end date selected', { 
+                    start: this.rangeStartDate, 
+                    end: this.rangeEndDate 
+                });
+            }
+        } catch (e) {
+            // Silent failure
+        }
         
         // Ensure start date is before end date
         let start = this.rangeStartDate;
@@ -221,11 +551,22 @@ export class DateNavigatorIntegration {
             
             this.isUpdatingSelection = true;
             
-            // Set custom filter in TimeFilterManager
-            this.timeFilterManager.setCustomRange(start, end);
-            
-            // Show a notice
-            new Notice(`Filtered from ${format(start, 'MMM d, yyyy')} to ${format(end, 'MMM d, yyyy')}`);
+            // Make sure timeFilterManager exists and has the required method
+            if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
+                // Set custom filter in TimeFilterManager
+                this.timeFilterManager.setCustomRange(start, end);
+                
+                // Show a notice
+                new Notice(`Filtered from ${format(start, 'MMM d, yyyy')} to ${format(end, 'MMM d, yyyy')}`);
+            } else {
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].error('DateNavigatorIntegration: Cannot set custom range - timeFilterManager is invalid');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
+            }
             
             // Reset range selection
             this.rangeStartDate = null;
@@ -287,11 +628,17 @@ export class DateNavigatorIntegration {
                     dateNavigator.selectedDay = new Date(range.start); // Direct assignment
                     this.dateNavigator.selectDay(range.start); // Then call selectDay
                     
-                    // Log the range for debugging
-                    globalLogger?.debug('DateNavigator', 'Applied filter with range', {
-                        start: format(range.start, 'yyyy-MM-dd'),
-                        end: format(range.end, 'yyyy-MM-dd')
-                    });
+                    // Log the range for debugging - safely
+                    try {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigator', 'Applied filter with range', {
+                                start: format(range.start, 'yyyy-MM-dd'),
+                                end: format(range.end, 'yyyy-MM-dd')
+                            });
+                        }
+                    } catch (e) {
+                        // Silent failure
+                    }
                 }
             }
         } else {
@@ -349,8 +696,23 @@ export class DateNavigatorIntegration {
      */
     public destroy(): void {
         // Remove any event listeners or references
-        this.timeFilterManager.onFilterChange = null;
+        if (this.timeFilterManager) {
+            this.timeFilterManager.onFilterChange = null;
+        }
         this.dateNavigator = null;
         this.container = null;
     }
-} 
+
+    // Add debug method for direct access
+    debug(): void {
+        try {
+            if (this.dateNavigator && typeof this.dateNavigator.debugDisplay === 'function') {
+                this.dateNavigator.debugDisplay();
+            } else {
+                console.error('DateNavigator debugDisplay function not available');
+            }
+        } catch (e) {
+            console.error('Error in debug function:', e);
+        }
+    }
+}

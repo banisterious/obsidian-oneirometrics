@@ -392,6 +392,7 @@ Please report any issues or suggest improvements through the GitHub repository. 
 - UI and event handling for expand/collapse are under investigation.
 - Ongoing testing is focused on interactive elements, accessibility, and event delegation.
 - CSS refactoring is complete, with all styles organized into 14 focused components.
+- **Date Navigator Display Issue**: The DateNavigator calendar component isn't correctly displaying dots and stars for dream entries. While the calendar UI renders properly, it fails to show indicators for dream entries that exist in the system. See detailed documentation: [docs/developer/implementation/date-navigator-display-issue.md](docs/developer/implementation/date-navigator-display-issue.md)
 
 # Current Issues and Status
 
