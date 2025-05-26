@@ -45,27 +45,5 @@ export * from './metric-value-helpers';
 // Re-export callout utilities
 export * from './callout-utils';
 
-// Legacy adapter exports - these will be removed in future updates
-// MIGRATION NOTICE: New code should use the permanent utilities above
-
-// Re-export all property compatibility utilities (legacy)
-// These will be deprecated - prefer property-helpers equivalents
-export {
-  getCompatibleProperty,
-  setCompatibleProperty
-} from './property-compatibility';
-
-// Re-export all adapter functions
-export * from './adapter-functions';
-
-// Re-export UI component adapters
-export * from './ui-component-adapter';
-
-// Re-export component migration utilities
-export * from './component-migrator';
-
-// Re-export type adapters
-export * from './type-adapters';
-
 // Add other utility exports as needed
 // This simplifies imports throughout the codebase 
