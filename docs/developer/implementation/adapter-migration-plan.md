@@ -28,6 +28,7 @@ This document provides a comprehensive plan for migrating away from temporary ad
 - [Adapter Files Inventory](#adapter-files-inventory)
 - [Dependency Tracking](#dependency-tracking)
 - [Classification Strategy](#classification-strategy)
+- [Model Adapter Patterns](#model-adapter-patterns)
 - [Implementation Phases](#implementation-phases)
 - [Testing Strategy](#testing-strategy)
 - [Detailed Timeline](#detailed-timeline)
@@ -156,6 +157,97 @@ Functions that were created solely for the migration and can be safely removed o
 | getProjectNotePathSafe | Keep | Essential for backward compatibility | Already properly placed in settings-helpers.ts |
 | getPropertyCompatibly | Refactor | Core functionality for property access | Create proper PropertyAccessor class |
 | createCompatibleComponent | Remove | Temporary bridge for component creation | Update component creation in UI modules |
+
+## Model Adapter Patterns
+
+To guide our adapter migration work, we've identified selection-mode-helpers.ts as a model adapter implementation that exemplifies best practices for maintaining compatibility while ensuring type safety and usability.
+
+### Reference Implementation: selection-mode-helpers.ts
+
+The selection-mode-helpers.ts file addresses a critical compatibility issue in the codebase: two different naming conventions for selection modes are used throughout the app:
+- Modern/UI naming: 'notes' and 'folder'
+- Legacy/internal naming: 'manual' and 'automatic'
+
+This adapter provides a complete set of utilities for working with these dual naming conventions:
+
+```typescript
+// Basic type checks
+isFolderMode(mode: SelectionMode): boolean
+isNotesMode(mode: SelectionMode): boolean
+
+// Equivalence checking
+areSelectionModesEquivalent(mode1: SelectionMode, mode2: SelectionMode): boolean
+
+// UI presentation
+getSelectionModeLabel(mode: SelectionMode): string
+getSelectionModeDescription(mode: SelectionMode): string
+
+// Normalization
+normalizeSelectionMode(mode: SelectionMode): 'manual' | 'automatic'
+normalizeLegacySelectionMode(mode: SelectionMode): 'notes' | 'folder'
+getCompatibleSelectionMode(mode: string, format: 'ui' | 'internal'): string
+```
+
+### Key Characteristics of Successful Adapters
+
+Based on our analysis of selection-mode-helpers.ts, we've identified these key characteristics that make it a successful adapter pattern:
+
+1. **Narrow focus**: Addresses a single, specific compatibility issue
+2. **Comprehensive coverage**: Provides all operations needed for the domain (checking, converting, displaying)
+3. **Well-documented**: Each function has clear JSDoc comments explaining purpose and parameters
+4. **Type safety**: Uses proper TypeScript types throughout
+5. **Abstraction**: Hides the complexity of dual naming systems from consuming code
+6. **Zero dependencies**: Only depends on core types, not on other adapters
+7. **Symmetrical API**: Provides both "get" and "normalize" operations for bidirectional compatibility
+
+### Usage Patterns to Adopt
+
+When implementing new adapter functions or refactoring existing ones, follow these patterns:
+
+```typescript
+// AVOID direct comparisons with multiple values:
+if (mode === 'notes' || mode === 'manual') {
+  // ...
+}
+
+// PREFER adapter functions:
+if (isNotesMode(mode)) {
+  // ...
+}
+
+// AVOID direct property access with fallbacks:
+const projectPath = settings.projectNote || settings.projectNotePath || '';
+
+// PREFER helper functions:
+const projectPath = getProjectNotePath(settings);
+```
+
+### Adapter Design Guidelines
+
+When creating or refactoring adapters, follow these guidelines:
+
+1. **Function naming**:
+   - Use descriptive names that indicate purpose
+   - Use prefixes like "is", "get", "normalize" to indicate function type
+
+2. **Parameter consistency**:
+   - Keep parameter order consistent across related functions
+   - Use explicit type annotations for parameters and return values
+
+3. **Documentation**:
+   - Include JSDoc comments for all exported functions
+   - Document parameters and return values
+   - Explain any non-obvious behavior or edge cases
+
+4. **Error handling**:
+   - Provide reasonable defaults for missing or invalid values
+   - Use type guards to ensure type safety
+
+5. **Testing**:
+   - Create unit tests for all adapter functions
+   - Test with various input combinations including edge cases
+
+By following these patterns and guidelines, we'll create adapters that are maintainable, type-safe, and facilitate the gradual migration to our new architecture.
 
 ## Implementation Phases
 
