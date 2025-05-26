@@ -7,7 +7,11 @@
 
 import { setIcon } from 'obsidian';
 import { EventableComponent } from '../../templates/ui/BaseComponent';
-import { DreamEntry } from '../../types/declarations/dream-entry';
+import type { DreamEntry } from '../../../src/types/declarations/dream-entry';
+
+// Import directly from absolute path without the .ts extension
+// This matches what main.ts is doing (line 114)
+import { lucideIconMap } from '../../../settings';
 
 /**
  * Configuration options for entry component
@@ -25,7 +29,7 @@ export interface EntryComponentOptions {
 }
 
 /**
- * Default component options
+ * Default options for the EntryComponent
  */
 const DEFAULT_OPTIONS: Partial<EntryComponentOptions> = {
   showDate: true,
@@ -37,16 +41,14 @@ const DEFAULT_OPTIONS: Partial<EntryComponentOptions> = {
 };
 
 /**
- * Component for displaying and interacting with a journal entry
+ * Component for displaying and interacting with a dream entry
  */
 export class EntryComponent extends EventableComponent {
   private entry: DreamEntry;
   private options: EntryComponentOptions;
-  private dateElement: HTMLElement | null = null;
-  private contentElement: HTMLElement | null = null;
-  private metricsElement: HTMLElement | null = null;
-  private expandButton: HTMLElement | null = null;
   private expanded: boolean = false;
+  private contentElement: HTMLElement | null = null;
+  private expandButton: HTMLElement | null = null;
   
   constructor(options: EntryComponentOptions) {
     // Set container and class name
@@ -92,124 +94,148 @@ export class EntryComponent extends EventableComponent {
   render(): void {
     this.container.empty();
     
+    // Create header section
+    const header = this.container.createDiv({
+      cls: 'oom-entry-header'
+    });
+    
     // Create date if enabled
-    if (this.options.showDate && this.entry.date) {
-      this.dateElement = this.container.createDiv({
-        cls: 'oom-entry-date'
+    if (this.options.showDate) {
+      const date = header.createDiv({
+        cls: 'oom-entry-date',
+        text: new Date(this.entry.date).toLocaleDateString()
       });
-      
-      const formattedDate = typeof this.entry.date === 'string' 
-        ? this.entry.date 
-        : this.entry.date.toLocaleDateString();
-      
-      this.dateElement.textContent = formattedDate;
+    }
+    
+    // Create title if available
+    if (this.entry.title) {
+      const title = header.createDiv({
+        cls: 'oom-entry-title',
+        text: this.entry.title
+      });
     }
     
     // Create content if enabled
-    if (this.options.showContent && this.entry.content) {
-      this.contentElement = this.container.createDiv({
-        cls: 'oom-entry-content'
+    if (this.options.showContent) {
+      const contentContainer = this.container.createDiv({
+        cls: 'oom-entry-content-container'
       });
       
-      // Handle content display based on expanded state and max length
-      if (!this.expanded && this.options.maxContentLength && 
-          this.entry.content.length > this.options.maxContentLength) {
-        // Show truncated content
-        this.contentElement.textContent = 
-          this.entry.content.substring(0, this.options.maxContentLength) + '...';
-      } else {
-        // Show full content
-        this.contentElement.textContent = this.entry.content;
+      // Determine if content should be truncated
+      let contentText = this.entry.content;
+      let isTruncated = false;
+      
+      if (!this.expanded && this.options.maxContentLength && contentText.length > this.options.maxContentLength) {
+        contentText = contentText.substring(0, this.options.maxContentLength) + '...';
+        isTruncated = true;
       }
       
-      // Add expand button if needed
-      if (this.options.expandable && 
-          this.entry.content.length > (this.options.maxContentLength || 0)) {
-        this.expandButton = this.container.createDiv({
+      // Create content element
+      this.contentElement = contentContainer.createDiv({
+        cls: 'oom-entry-content',
+        text: contentText
+      });
+      
+      // Add expand button if needed and expandable
+      if ((isTruncated || this.options.expandable) && this.options.expandable) {
+        this.expandButton = contentContainer.createSpan({
           cls: 'oom-entry-expand-button'
         });
         
-        setIcon(this.expandButton, this.expanded ? 'chevron-up' : 'chevron-down');
-        this.expandButton.appendChild(document.createTextNode(
-          this.expanded ? 'Show less' : 'Read more'
-        ));
+        // Use direct HTML approach for expand icon
+        const expandIcon = this.expanded ? 'chevron-up' : 'chevron-down';
+        if (typeof lucideIconMap === 'object' && lucideIconMap && expandIcon in lucideIconMap) {
+          this.expandButton.innerHTML = lucideIconMap[expandIcon];
+        } else {
+          setIcon(this.expandButton, expandIcon);
+        }
         
         this.expandButton.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.toggleExpand();
+          
+          this.expanded = !this.expanded;
+          
+          // Update content
+          if (this.contentElement) {
+            this.contentElement.setText(
+              this.expanded ? this.entry.content : 
+                (this.options.maxContentLength && this.entry.content.length > this.options.maxContentLength 
+                  ? this.entry.content.substring(0, this.options.maxContentLength) + '...' 
+                  : this.entry.content)
+            );
+          }
+          
+          // Update icon with direct HTML approach
+          const newExpandIcon = this.expanded ? 'chevron-up' : 'chevron-down';
+          if (typeof lucideIconMap === 'object' && lucideIconMap && newExpandIcon in lucideIconMap) {
+            this.expandButton!.innerHTML = lucideIconMap[newExpandIcon];
+          } else {
+            setIcon(this.expandButton!, newExpandIcon);
+          }
+          
+          // Trigger callbacks
+          this.options.onExpand?.(this.entry, this.expanded);
+          this.trigger('expand', { entry: this.entry, expanded: this.expanded });
         });
       }
     }
     
-    // Create metrics section if enabled
+    // Create metrics if enabled and available
     if (this.options.showMetrics && this.entry.metrics && this.entry.metrics.length > 0) {
-      this.metricsElement = this.container.createDiv({
+      const metricsContainer = this.container.createDiv({
         cls: 'oom-entry-metrics'
       });
       
-      // Create a list of metrics
-      const metricsList = this.metricsElement.createDiv({
-        cls: 'oom-entry-metrics-list'
-      });
-      
-      for (const metric of this.entry.metrics) {
-        const metricItem = metricsList.createDiv({
+      // Create a metric item for each metric
+      this.entry.metrics.forEach(metric => {
+        const metricItem = metricsContainer.createDiv({
           cls: 'oom-entry-metric-item'
         });
         
         // Metric icon
         if (metric.icon) {
           const iconElement = metricItem.createSpan({
-            cls: 'oom-entry-metric-icon'
+            cls: 'oom-entry-metric-icon oom-metric-icon-svg'
           });
           
-          setIcon(iconElement, metric.icon);
+          // Direct HTML approach (based on main.ts line 2037)
+          if (typeof lucideIconMap === 'object' && lucideIconMap && metric.icon in lucideIconMap) {
+            // Use direct HTML with the SVG content from lucideIconMap
+            iconElement.innerHTML = lucideIconMap[metric.icon];
+          } else {
+            // Fallback if lucideIconMap isn't available or doesn't contain the icon
+            try {
+              setIcon(iconElement, metric.icon);
+              
+              // If setIcon didn't work, use fallback
+              if (!iconElement.querySelector('svg') && !iconElement.innerHTML.trim()) {
+                iconElement.addClass('oom-icon-fallback');
+                iconElement.setText(metric.icon.substring(0, 1).toUpperCase());
+              }
+            } catch (error) {
+              // Fallback: Use the first letter of the icon name
+              console.warn(`Failed to set icon ${metric.icon}:`, error);
+              iconElement.addClass('oom-icon-fallback');
+              iconElement.setText(metric.icon.substring(0, 1).toUpperCase());
+            }
+          }
         }
         
-        // Metric name and value
+        // Metric name
         metricItem.createSpan({
           cls: 'oom-entry-metric-name',
-          text: metric.name + ': '
+          text: metric.name
         });
         
-        metricItem.createSpan({
-          cls: 'oom-entry-metric-value',
-          text: metric.value !== undefined ? metric.value.toString() : 'N/A'
-        });
-      }
+        // Metric value (if available)
+        if ('value' in metric) {
+          metricItem.createSpan({
+            cls: 'oom-entry-metric-value',
+            text: String(metric.value)
+          });
+        }
+      });
     }
-  }
-  
-  /**
-   * Toggle expanded state
-   */
-  toggleExpand(): void {
-    this.expanded = !this.expanded;
-    
-    // Update UI
-    if (this.contentElement && this.entry.content) {
-      if (this.expanded) {
-        // Show full content
-        this.contentElement.textContent = this.entry.content;
-      } else if (this.options.maxContentLength) {
-        // Show truncated content
-        this.contentElement.textContent = 
-          this.entry.content.substring(0, this.options.maxContentLength) + '...';
-      }
-    }
-    
-    // Update expand button
-    if (this.expandButton) {
-      this.expandButton.empty();
-      setIcon(this.expandButton, this.expanded ? 'chevron-up' : 'chevron-down');
-      this.expandButton.appendChild(document.createTextNode(
-        this.expanded ? 'Show less' : 'Read more'
-      ));
-    }
-    
-    // Trigger callbacks
-    this.options.onExpand?.(this.entry, this.expanded);
-    this.trigger('expand', { entry: this.entry, expanded: this.expanded });
   }
   
   /**
@@ -218,6 +244,7 @@ export class EntryComponent extends EventableComponent {
    */
   updateEntry(entry: DreamEntry): void {
     this.entry = entry;
+    this.expanded = false;
     this.render();
   }
   
@@ -230,22 +257,11 @@ export class EntryComponent extends EventableComponent {
   }
   
   /**
-   * Check if entry is expanded
-   * @returns True if expanded
+   * Check if the content is expanded
+   * @returns True if expanded, false otherwise
    */
   isExpanded(): boolean {
     return this.expanded;
-  }
-  
-  /**
-   * Set expanded state
-   * @param expanded New expanded state
-   */
-  setExpanded(expanded: boolean): void {
-    if (this.expanded !== expanded) {
-      this.expanded = expanded;
-      this.render();
-    }
   }
 }
 

@@ -30,7 +30,6 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-004 | Date Range Filter | Custom Date Range Filter has significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Medium - Makes custom date range filtering difficult for users; quick filter buttons work as expected | 2025-05-26 (UI Components Migration) | 2025-07-30 |
-| ISSUE-25-005 | Metric Component | Metric icons not displaying properly in some UI contexts despite proper icon property values | Low - Metrics are still identifiable by name and functional | 2025-05-26 (UI Components Migration) | 2025-06-15 |
 
 ## Implementation Notes
 
@@ -76,20 +75,6 @@ Resolution approach:
 4. Add clear visual indication of valid/invalid states
 5. Consider replacing with a more user-friendly interface like a calendar view
 
-### ISSUE-25-005 (Metric Icons Display)
-The metric icons are not displaying properly in some UI contexts, particularly in the metrics table. 
-This appears to be a styling or rendering issue rather than a data problem, as:
-1. The icon property is correctly set in the metric objects
-2. The issue is consistent across different metric types
-3. The display issue only occurs in certain UI contexts, not all
-
-Resolution approach:
-1. Verify icon property values are being properly passed to the MetricComponent
-2. Check CSS classes and styles for the metric icons
-3. Ensure icon rendering code is using the correct Obsidian API calls
-4. Add additional logging to track icon property values during rendering
-5. Review Obsidian theme integration for possible icon styling conflicts
-
 ## Resolved Issues
 
 Issues can be resolved in multiple ways:
@@ -99,7 +84,7 @@ Issues can be resolved in multiple ways:
 
 | ID | Component | Description | Resolution | Resolved Date |
 |----|-----------|-------------|------------|---------------|
-| | | | | |
+| ISSUE-25-005 | Metric Component | Metric icons not displaying properly in some UI contexts despite proper icon property values | Fully Fixed - Updated icon rendering in MetricComponent and EntryComponent with fallback mechanism | 2025-05-26 |
 
 > Note: Some issues with workarounds (like ISSUE-25-003) remain in the Active Issues section until a proper fix is implemented, even if they are no longer blocking development.
 

@@ -105,7 +105,7 @@ This plan outlines our strategy for:
 | getPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ✅ Completed with Tests | Medium |
 | setPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ✅ Completed with Tests | Medium |
 | createCompatibleObject | DreamMetricsProcessor.ts | src/utils/property-helpers.ts | ✅ Completed with Tests | High |
-| getCalloutMetadata | DreamMetricsDOM.ts | src/parsing/services/CalloutParser.ts | ⬜ Not Started | Medium |
+| getCalloutMetadata | DreamMetricsDOM.ts | src/parsing/services/CalloutParser.ts | ✅ Completed | Medium |
 | extractMetricValue | DreamMetricsProcessor.ts | src/utils/property-helpers.ts | ✅ Completed with Tests | High |
 | applyPropertyDefaults | multiple files | src/utils/property-helpers.ts | ✅ Completed with Tests | Medium |
 
@@ -303,8 +303,8 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
 | Update UI components | 🔄 In Progress (80%) | 2025-05-26 | ComponentFactory |
-| Update service modules | 🔄 In Progress (50%) | 2025-07-12 | All Phase 1 items |
-| Update utility modules | ⬜ Not Started | 2025-07-14 | PropertyAccessor |
+| Update service modules | 🔄 In Progress (75%) | 2025-07-12 | All Phase 1 items |
+| Update utility modules | 🔄 In Progress (40%) | 2025-07-14 | PropertyAccessor |
 
 ### Phase 4: Testing and Verification (Target: 2025-07-25)
 - Run comprehensive tests on the updated codebase

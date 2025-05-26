@@ -2704,6 +2704,22 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     pointer-events: none;
 }
 
+/* Fallback icon style for when Obsidian icon system fails */
+.oom-icon-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--text-muted);
+    color: var(--background-primary);
+    border-radius: 50%;
+    font-size: 0.7em;
+    font-weight: bold;
+    line-height: 1;
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: var(--oom-spacing-xs);
+}
+
 .oom-metric-icon--start {
     margin-left: 0 !important;
     margin-right: var(--oom-spacing-sm) !important;

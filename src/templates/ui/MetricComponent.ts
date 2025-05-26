@@ -10,6 +10,10 @@ import { BaseComponent, EventableComponent } from './BaseComponent';
 import { DreamMetric } from '../../types/core';
 import { standardizeMetric } from '../../utils/metric-helpers';
 
+// Import directly from absolute path without the .ts extension
+// This matches what main.ts is doing (line 114)
+import { lucideIconMap } from '../../../settings';
+
 /**
  * Configuration options for metric component
  */
@@ -27,12 +31,12 @@ export interface MetricComponentOptions {
 }
 
 /**
- * Default component options
+ * Default options for the MetricComponent
  */
 const DEFAULT_OPTIONS: Partial<MetricComponentOptions> = {
   showIcon: true,
-  showName: true,
   showValue: true,
+  showName: true,
   editButton: false,
   toggleButton: false,
   compact: false
@@ -105,10 +109,30 @@ export class MetricComponent extends EventableComponent {
     // Create icon if enabled
     if (this.options.showIcon && this.metric.icon) {
       this.iconElement = this.container.createSpan({
-        cls: 'oom-metric-icon'
+        cls: 'oom-metric-icon-svg oom-metric-icon'
       });
       
-      setIcon(this.iconElement, this.metric.icon);
+      // Direct HTML approach (based on main.ts line 2037)
+      if (typeof lucideIconMap === 'object' && lucideIconMap && this.metric.icon in lucideIconMap) {
+        // Use direct HTML with the SVG content from lucideIconMap
+        this.iconElement.innerHTML = lucideIconMap[this.metric.icon];
+      } else {
+        // Fallback if lucideIconMap isn't available or doesn't contain the icon
+        try {
+          setIcon(this.iconElement, this.metric.icon);
+          
+          // If setIcon didn't work, use fallback
+          if (!this.iconElement.querySelector('svg') && !this.iconElement.innerHTML.trim()) {
+            this.iconElement.addClass('oom-icon-fallback');
+            this.iconElement.setText(this.metric.icon.substring(0, 1).toUpperCase());
+          }
+        } catch (error) {
+          // Fallback: Use the first letter of the icon name
+          console.warn(`Failed to set icon ${this.metric.icon}:`, error);
+          this.iconElement.addClass('oom-icon-fallback');
+          this.iconElement.setText(this.metric.icon.substring(0, 1).toUpperCase());
+        }
+      }
     }
     
     // Create name if enabled
@@ -133,7 +157,12 @@ export class MetricComponent extends EventableComponent {
         cls: 'oom-metric-edit-button'
       });
       
-      setIcon(this.editButton, 'pencil');
+      // Direct HTML approach for the edit button
+      if (typeof lucideIconMap === 'object' && lucideIconMap && 'pencil' in lucideIconMap) {
+        this.editButton.innerHTML = lucideIconMap['pencil'];
+      } else {
+        setIcon(this.editButton, 'pencil');
+      }
       
       this.editButton.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -148,7 +177,14 @@ export class MetricComponent extends EventableComponent {
         cls: 'oom-metric-toggle-button'
       });
       
-      setIcon(this.toggleButton, this.metric.enabled ? 'check-circle' : 'circle');
+      const toggleIcon = this.metric.enabled ? 'check-circle' : 'circle';
+      
+      // Direct HTML approach for the toggle button
+      if (typeof lucideIconMap === 'object' && lucideIconMap && toggleIcon in lucideIconMap) {
+        this.toggleButton.innerHTML = lucideIconMap[toggleIcon];
+      } else {
+        setIcon(this.toggleButton, toggleIcon);
+      }
       
       this.toggleButton.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -157,7 +193,14 @@ export class MetricComponent extends EventableComponent {
         this.metric.enabled = !this.metric.enabled;
         
         // Update icon
-        setIcon(this.toggleButton!, this.metric.enabled ? 'check-circle' : 'circle');
+        const newToggleIcon = this.metric.enabled ? 'check-circle' : 'circle';
+        
+        // Direct HTML approach for updating the toggle button
+        if (typeof lucideIconMap === 'object' && lucideIconMap && newToggleIcon in lucideIconMap) {
+          this.toggleButton!.innerHTML = lucideIconMap[newToggleIcon];
+        } else {
+          setIcon(this.toggleButton!, newToggleIcon);
+        }
         
         // Update container class
         if (this.metric.enabled) {
