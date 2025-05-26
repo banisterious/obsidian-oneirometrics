@@ -1,5 +1,9 @@
 # OneiroMetrics Post-Refactoring Roadmap
 
+> **Note: Adapter Migration Complete** - May 26, 2025  
+> The adapter migration plan has been fully implemented. All adapter modules have been replaced with permanent implementations, and legacy adapter files now redirect to their permanent replacements with proper deprecation notices.
+> See the [Adapter Migration Plan (Archived)](../../archive/refactoring-2025/adapter-migration-plan.md) for historical details.
+
 ## Executive Summary
 **Status**: In Progress
 
@@ -9,7 +13,7 @@
 - Documentation reorganization: ✅ Completed
 - Legacy documentation archived: ✅ Completed
 - TypeScript Architecture document: ✅ Completed
-- Adapter migration plan: 🔄 In Progress (20%)
+- Adapter migration plan: ✅ Completed (100%)
 - Code cleanup (main.ts): 🔄 In Progress (15%)
 - Comprehensive testing: ⬜ Not Started
 - Performance optimization: ⬜ Not Started
@@ -143,10 +147,10 @@ The post-refactoring improvements are organized into four sequential phases, eac
 
 | Adapter File | Used In | Function Dependencies | Migration Status | Complexity |
 |--------------|---------|------------------------|-----------------|------------|
-| adapter-functions.ts | main.ts, DateNavigator.ts | getProjectNotePath, adaptSettingsToCore, convertSourceToFormat | 🔄 In Progress | High |
-| type-adapters.ts | main.ts, DreamMetricsState.ts | getSelectionModeSafe, getProjectNotePathSafe, isBackupEnabledSafe | 🔄 In Progress | Medium |
-| property-compatibility.ts | DreamMetricsProcessor.ts | getCalloutMetadata, extractMetricValue, applyPropertyDefaults | ⬜ Not Started | Medium |
-| component-migrator.ts | DreamMetricsDOM.ts, TimeFilterManager.ts | createFilterElement, adaptModalConfig, convertEventHandlers | ⬜ Not Started | High |
+| adapter-functions.ts | main.ts, DateNavigator.ts | getProjectNotePath, adaptSettingsToCore, convertSourceToFormat | ✅ Completed | High |
+| type-adapters.ts | main.ts, DreamMetricsState.ts | getSelectionModeSafe, getProjectNotePathSafe, isBackupEnabledSafe | ✅ Completed | Medium |
+| property-compatibility.ts | DreamMetricsProcessor.ts | getCalloutMetadata, extractMetricValue, applyPropertyDefaults | ✅ Completed | Medium |
+| component-migrator.ts | DreamMetricsDOM.ts, TimeFilterManager.ts | createFilterElement, adaptModalConfig, convertEventHandlers | ✅ Completed | High |
 | selection-mode-helpers.ts | multiple files | isFolderMode, isNotesMode, areSelectionModesEquivalent | ✅ Permanent | Low |
 | settings-helpers.ts | multiple files | getProjectNotePath, getSelectionMode, getBackupFolderPath | ✅ Permanent | Low |
 | metric-helpers.ts | multiple files | isMetricEnabled, getMetricRange, standardizeMetric | ✅ Permanent | Low |

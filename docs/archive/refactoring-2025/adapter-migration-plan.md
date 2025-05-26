@@ -1,11 +1,5 @@
 # OneiroMetrics Adapter Migration Plan
 
-> **⚠️ NOTICE: This document has been archived**  
-> This plan has been fully implemented. The current version is archived at:  
-> [docs/archive/refactoring-2025/adapter-migration-plan.md](../../archive/refactoring-2025/adapter-migration-plan.md)
->
-> **Status**: ✅ COMPLETED (May 26, 2025)
-
 ## Executive Summary
 
 This document provides a comprehensive plan for migrating away from temporary adapter files created during the 2025 TypeScript refactoring project. It consolidates information from various documents into a single source of truth and establishes a clear framework for completing the adapter migration.
