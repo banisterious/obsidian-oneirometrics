@@ -150,6 +150,7 @@ import { DreamMetricsState } from './src/state/DreamMetricsState';
 
 // Add near the top with other imports
 import { runSettingsHelpersTests } from './src/testing/utils/SettingsHelpersTests';
+import { runMetricHelpersTests } from './src/testing/utils/MetricHelpersTests';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -867,6 +868,16 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => {
                 runSettingsHelpersTests().then(() => {
                     new Notice('Settings helper tests complete - check console for results');
+                });
+            }
+        });
+        
+        this.addCommand({
+            id: 'run-metric-helper-tests',
+            name: 'Run Metric Helper Tests',
+            callback: () => {
+                runMetricHelpersTests().then(() => {
+                    new Notice('Metric helper tests complete - check console for results');
                 });
             }
         });
