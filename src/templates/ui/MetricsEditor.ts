@@ -7,7 +7,7 @@
 import { DreamMetric, DreamMetricData } from '../../types/core';
 import { EventableComponent, ComponentEventHandler } from './BaseComponent';
 import { createMetricSlider, createComponentHeader, createComponentButton } from '../../utils/ui-component-adapter';
-import { UIComponentAdapter } from '../../utils/adapter-functions';
+import { adaptMetricForUI } from './MetricComponent';
 
 /**
  * Properties for the MetricsEditor component
@@ -117,8 +117,8 @@ export class MetricsEditor extends EventableComponent {
     const slidersContainer = this.createElement('div', { className: 'oom-metrics-sliders' });
     
     this.metrics.forEach(metric => {
-      // Use adapter to standardize metric properties
-      const adaptedMetric = UIComponentAdapter.adaptMetricForUI(metric);
+      // Use permanent implementation to standardize metric properties
+      const adaptedMetric = adaptMetricForUI(metric);
       
       // Get initial value from current values or default to minimum
       const initialValue = this.values[metric.name] || adaptedMetric.minValue;
