@@ -10,16 +10,16 @@ This document provides a comprehensive plan for migrating away from temporary ad
 
 ### Key Milestones
 
-| Milestone | Target Date | Status | Owner |
-|-----------|-------------|--------|-------|
-| Comprehensive Plan Creation | 2025-05-25 | ✅ Completed | Team |
-| Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) | - |
-| Adapter Classification | 2025-06-10 | ✅ Completed (100%) | - |
-| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (70%) | - |
-| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) | - |
-| Update Peripheral Files | 2025-07-15 | ⬜ Not Started | - |
-| Testing and Verification | 2025-07-25 | 🔄 In Progress (40%) | - |
-| Adapter Files Removal | 2025-08-01 | ⬜ Not Started | - |
+| Milestone | Target Date | Status |
+|-----------|-------------|--------|
+| Comprehensive Plan Creation | 2025-05-25 | ✅ Completed |
+| Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
+| Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
+| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (70%) |
+| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) |
+| Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
+| Testing and Verification | 2025-07-25 | 🔄 In Progress (40%) |
+| Adapter Files Removal | 2025-08-01 | ⬜ Not Started |
 
 ## Table of Contents
 
@@ -262,13 +262,13 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 #### Task Tracking for Phase 1
 
-| Task | Status | Owner | Target Date | Dependencies |
-|------|--------|-------|-------------|--------------|
-| Create SettingsAdapter class | ⬜ Not Started | - | 2025-06-10 | None |
-| Implement EventHandling module | ⬜ Not Started | - | 2025-06-15 | None |
-| Create PropertyAccessor class | ⬜ Not Started | - | 2025-06-12 | None |
-| Implement ComponentFactory | ⬜ Not Started | - | 2025-06-18 | None |
-| Update ContentParser for parameter variations | 🔄 In Progress | - | 2025-06-08 | None |
+| Task | Status | Target Date | Dependencies |
+|------|--------|-------------|--------------|
+| Create SettingsAdapter class | ⬜ Not Started | 2025-06-10 | None |
+| Implement EventHandling module | ⬜ Not Started | 2025-06-15 | None |
+| Create PropertyAccessor class | ⬜ Not Started | 2025-06-12 | None |
+| Implement ComponentFactory | ⬜ Not Started | 2025-06-18 | None |
+| Update ContentParser for parameter variations | 🔄 In Progress | 2025-06-08 | None |
 
 ### Phase 2: Update Core Files (Target: 2025-07-05)
 - Update imports in critical files (main.ts, settings.ts, etc.)
@@ -278,12 +278,12 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 #### Task Tracking for Phase 2
 
-| Task | Status | Owner | Target Date | Dependencies |
-|------|--------|-------|-------------|--------------|
-| Update main.ts settings handling | 🔄 In Progress | - | 2025-06-25 | SettingsAdapter |
-| Update main.ts event handling | ⬜ Not Started | - | 2025-06-28 | EventHandling |
-| Update settings.ts | ⬜ Not Started | - | 2025-07-01 | SettingsAdapter |
-| Update DreamMetricsState.ts | ⬜ Not Started | - | 2025-07-03 | SettingsAdapter |
+| Task | Status | Target Date | Dependencies |
+|------|--------|-------------|--------------|
+| Update main.ts settings handling | 🔄 In Progress | 2025-06-25 | SettingsAdapter |
+| Update main.ts event handling | ⬜ Not Started | 2025-06-28 | EventHandling |
+| Update settings.ts | ⬜ Not Started | 2025-07-01 | SettingsAdapter |
+| Update DreamMetricsState.ts | ⬜ Not Started | 2025-07-03 | SettingsAdapter |
 
 ### Phase 3: Update Peripheral Files (Target: 2025-07-15)
 - Update imports in non-critical components
@@ -293,11 +293,11 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 #### Task Tracking for Phase 3
 
-| Task | Status | Owner | Target Date | Dependencies |
-|------|--------|-------|-------------|--------------|
-| Update UI components | ⬜ Not Started | - | 2025-07-10 | ComponentFactory |
-| Update service modules | ⬜ Not Started | - | 2025-07-12 | All Phase 1 items |
-| Update utility modules | ⬜ Not Started | - | 2025-07-14 | PropertyAccessor |
+| Task | Status | Target Date | Dependencies |
+|------|--------|-------------|--------------|
+| Update UI components | ⬜ Not Started | 2025-07-10 | ComponentFactory |
+| Update service modules | ⬜ Not Started | 2025-07-12 | All Phase 1 items |
+| Update utility modules | ⬜ Not Started | 2025-07-14 | PropertyAccessor |
 
 ### Phase 4: Testing and Verification (Target: 2025-07-25)
 - Run comprehensive tests on the updated codebase
@@ -307,12 +307,12 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 #### Task Tracking for Phase 4
 
-| Task | Status | Owner | Target Date | Dependencies |
-|------|--------|-------|-------------|--------------|
-| Run unit tests | 🔄 In Progress | - | 2025-07-18 | Phases 1-3 |
-| Manual feature testing | ⬜ Not Started | - | 2025-07-20 | Phases 1-3 |
-| Performance testing | ⬜ Not Started | - | 2025-07-22 | Phases 1-3 |
-| Documentation verification | ⬜ Not Started | - | 2025-07-24 | Phases 1-3 |
+| Task | Status | Target Date | Dependencies |
+|------|--------|-------------|--------------|
+| Run unit tests | 🔄 In Progress | 2025-07-18 | Phases 1-3 |
+| Manual feature testing | ⬜ Not Started | 2025-07-20 | Phases 1-3 |
+| Performance testing | ⬜ Not Started | 2025-07-22 | Phases 1-3 |
+| Documentation verification | ⬜ Not Started | 2025-07-24 | Phases 1-3 |
 
 ### Phase 5: Adapter Files Removal (Target: 2025-08-01)
 - Create stub files that re-export from new locations
@@ -322,13 +322,13 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 #### Task Tracking for Phase 5
 
-| Task | Status | Owner | Target Date | Dependencies |
-|------|--------|-------|-------------|--------------|
-| Create adapter-functions.ts stub | ⬜ Not Started | - | 2025-07-27 | Phase 4 |
-| Create type-adapters.ts stub | ⬜ Not Started | - | 2025-07-28 | Phase 4 |
-| Create property-compatibility.ts stub | ⬜ Not Started | - | 2025-07-29 | Phase 4 |
-| Create component-migrator.ts stub | ⬜ Not Started | - | 2025-07-30 | Phase 4 |
-| Final verification | ⬜ Not Started | - | 2025-08-01 | All stubs created |
+| Task | Status | Target Date | Dependencies |
+|------|--------|-------------|--------------|
+| Create adapter-functions.ts stub | ⬜ Not Started | 2025-07-27 | Phase 4 |
+| Create type-adapters.ts stub | ⬜ Not Started | 2025-07-28 | Phase 4 |
+| Create property-compatibility.ts stub | ⬜ Not Started | 2025-07-29 | Phase 4 |
+| Create component-migrator.ts stub | ⬜ Not Started | 2025-07-30 | Phase 4 |
+| Final verification | ⬜ Not Started | 2025-08-01 | All stubs created |
 
 ## Testing Strategy
 
