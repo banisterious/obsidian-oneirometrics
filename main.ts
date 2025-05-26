@@ -148,6 +148,9 @@ import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
 import { TimeFilterManager } from './src/timeFilters';
 import { DreamMetricsState } from './src/state/DreamMetricsState';
 
+// Add near the top with other imports
+import { runSettingsHelpersTests } from './src/testing/utils/SettingsHelpersTests';
+
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
 
@@ -856,6 +859,17 @@ export default class DreamMetricsPlugin extends Plugin {
         this.registerInterval(
             window.setInterval(() => this.checkLogFileSize(), 1000 * 60 * 60) // Check every hour
         );
+
+        // Add with other commands around line 820
+        this.addCommand({
+            id: 'run-settings-helper-tests',
+            name: 'Run Settings Helper Tests',
+            callback: () => {
+                runSettingsHelpersTests().then(() => {
+                    new Notice('Settings helper tests complete - check console for results');
+                });
+            }
+        });
     }
 
     onunload() {
