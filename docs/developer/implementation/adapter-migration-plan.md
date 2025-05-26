@@ -4,9 +4,9 @@
 
 This document provides a comprehensive plan for migrating away from temporary adapter files created during the 2025 TypeScript refactoring project. It consolidates information from various documents into a single source of truth and establishes a clear framework for completing the adapter migration.
 
-**Last Updated**: 2025-05-26
+**Last Updated**: 2025-06-05
 
-**Current Status**: In Progress (75%)
+**Current Status**: In Progress (80%)
 
 ### Key Milestones
 
@@ -15,10 +15,10 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Comprehensive Plan Creation | 2025-05-25 | ✅ Completed |
 | Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
-| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (70%) |
+| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (85%) |
 | Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) |
 | Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
-| Testing and Verification | 2025-07-25 | 🔄 In Progress (40%) |
+| Testing and Verification | 2025-07-25 | 🔄 In Progress (50%) |
 | Adapter Files Removal | 2025-08-01 | ⬜ Not Started |
 
 ## Table of Contents
@@ -102,12 +102,12 @@ This plan outlines our strategy for:
 
 | Function | Used In | Replacement Path | Migration Status | Priority |
 |----------|---------|------------------|-----------------|----------|
-| getPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ⬜ Not Started | Medium |
-| setPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ⬜ Not Started | Medium |
-| createCompatibleObject | DreamMetricsProcessor.ts | src/utils/property-helpers.ts | ⬜ Not Started | High |
+| getPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ✅ Completed with Tests | Medium |
+| setPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ✅ Completed with Tests | Medium |
+| createCompatibleObject | DreamMetricsProcessor.ts | src/utils/property-helpers.ts | ✅ Completed with Tests | High |
 | getCalloutMetadata | DreamMetricsDOM.ts | src/parsing/services/CalloutParser.ts | ⬜ Not Started | Medium |
-| extractMetricValue | DreamMetricsProcessor.ts | src/metrics/MetricExtractor.ts | ⬜ Not Started | High |
-| applyPropertyDefaults | multiple files | src/utils/defaults-helpers.ts | ⬜ Not Started | Medium |
+| extractMetricValue | DreamMetricsProcessor.ts | src/utils/property-helpers.ts | ✅ Completed with Tests | High |
+| applyPropertyDefaults | multiple files | src/utils/property-helpers.ts | ✅ Completed with Tests | Medium |
 
 ### component-migrator.ts Dependencies
 
@@ -266,7 +266,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 |------|--------|-------------|--------------|
 | Create SettingsAdapter class | ⬜ Not Started | 2025-06-10 | None |
 | Implement EventHandling module | ⬜ Not Started | 2025-06-15 | None |
-| Create PropertyAccessor class | ⬜ Not Started | 2025-06-12 | None |
+| Create PropertyAccessor class | ✅ Completed | 2025-06-05 | None |
 | Implement ComponentFactory | ⬜ Not Started | 2025-06-18 | None |
 | Update ContentParser for parameter variations | 🔄 In Progress | 2025-06-08 | None |
 
@@ -394,7 +394,7 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-06-05 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), and type-guards.ts (10 tests) |
+| Unit tests | 🔄 In Progress | 2025-06-05 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), and property-helpers.ts (10 tests) |
 | Integration tests | ⬜ Not Started | - | - |
 | Manual testing | ⬜ Not Started | - | - |
 | Performance testing | ⬜ Not Started | - | - |
