@@ -4,9 +4,9 @@
 
 This document provides a comprehensive plan for migrating away from temporary adapter files created during the 2025 TypeScript refactoring project. It consolidates information from various documents into a single source of truth and establishes a clear framework for completing the adapter migration.
 
-**Last Updated**: 2025-06-05
+**Last Updated**: 2025-05-26
 
-**Current Status**: In Progress (80%)
+**Current Status**: In Progress (89%)
 
 ### Key Milestones
 
@@ -15,7 +15,7 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Comprehensive Plan Creation | 2025-05-25 | ✅ Completed |
 | Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
-| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (85%) |
+| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (89%) |
 | Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) |
 | Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
 | Testing and Verification | 2025-07-25 | 🔄 In Progress (50%) |
@@ -73,7 +73,7 @@ This plan outlines our strategy for:
 
 | Function | Used In | Replacement Path | Migration Status | Priority |
 |----------|---------|------------------|-----------------|----------|
-| ContentParserAdapter.adaptExtractDreamEntries | main.ts, DateNavigator.ts | src/parsing/services/ContentParser.ts | 🔄 In Progress | High |
+| ContentParserAdapter.adaptExtractDreamEntries | main.ts, DateNavigator.ts | src/parsing/services/ContentParser.ts | ✅ Completed | High |
 | UIComponentAdapter.adaptMetricForUI | src/dom/modals/MetricsModal.ts | src/templates/ui/MetricComponent.ts | ⬜ Not Started | Medium |
 | UIComponentAdapter.adaptEntryForUI | src/journal_check/ui/DreamJournalManager.ts | src/journal_check/ui/EntryComponent.ts | ⬜ Not Started | Medium |
 | SettingsAdapter.adaptSelectionMode | main.ts, src/state/DreamMetricsState.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
@@ -152,7 +152,7 @@ For a complete classification of all adapter functions, see the [Expanded Adapte
 
 | Function | Classification | Rationale | Next Steps |
 |----------|----------------|-----------|------------|
-| ContentParserAdapter.adaptExtractDreamEntries | Remove | Temporary bridge for parameter mismatches | Update ContentParser to handle parameter variations directly |
+| ContentParserAdapter.adaptExtractDreamEntries | Remove | Temporary bridge for parameter mismatches | ✅ Updated ContentParser to handle parameter variations directly |
 | UIComponentAdapter.adaptMetricForUI | Refactor | Core functionality, poor location | Move to MetricComponent as a proper method |
 | UIComponentAdapter.adaptEntryForUI | Refactor | Core functionality, poor location | Move to EntryComponent as a proper method |
 | SettingsAdapter.adaptSelectionMode | Keep | Critical for backward compatibility | Move to selection-mode-helpers.ts |
@@ -266,9 +266,9 @@ By following these patterns and guidelines, we'll create adapters that are maint
 |------|--------|-------------|--------------|
 | Create SettingsAdapter class | ⬜ Not Started | 2025-06-10 | None |
 | Implement EventHandling module | ⬜ Not Started | 2025-06-15 | None |
-| Create PropertyAccessor class | ✅ Completed | 2025-06-05 | None |
+| Create PropertyAccessor class | ✅ Completed | 2025-05-26 | None |
 | Implement ComponentFactory | ⬜ Not Started | 2025-06-18 | None |
-| Update ContentParser for parameter variations | 🔄 In Progress | 2025-06-08 | None |
+| Update ContentParser for parameter variations | ✅ Completed | 2025-05-26 | None |
 
 ### Phase 2: Update Core Files (Target: 2025-07-05)
 - Update imports in critical files (main.ts, settings.ts, etc.)
@@ -351,6 +351,13 @@ By following these patterns and guidelines, we'll create adapters that are maint
 - Test all UI components and user interactions
 - Verify that the plugin works as expected in Obsidian
 - Check compatibility with different Obsidian versions
+- Use Obsidian commands to test adapters directly in the app environment
+
+### Testing Commands
+- Added commands to main.ts to run adapter tests from within Obsidian
+- Created specific testing scripts for complex adapters
+- Added direct testing methods for adapter functionality verification
+- Commands appear in the Obsidian command palette with "Run X Tests" naming
 
 ## Detailed Timeline
 
@@ -394,9 +401,9 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-06-05 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), and property-helpers.ts (10 tests) |
+| Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), property-helpers.ts (10 tests), and ContentParser parameter variations (7 tests) |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | ⬜ Not Started | - | - |
+| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations in Obsidian environment with real test data |
 | Performance testing | ⬜ Not Started | - | - |
 | Documentation review | 🔄 In Progress | 2025-05-25 | Created adapter-testing-patterns.md and adapter-testing-integration.md |
 | Final approval | ⬜ Not Started | - | - |
