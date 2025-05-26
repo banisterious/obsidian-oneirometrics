@@ -102,20 +102,11 @@ import {
   normalizeSelectionMode
 } from './src/utils/selection-mode-helpers';
 
-// Import the adapter utilities we'll use to fix type errors
-import { 
-  adaptSettingsToCore,
-  getProjectNotePathSafe,
-  getSelectionModeSafe,
-  getSelectedFolderSafe,
-  shouldShowRibbonButtonsSafe,
-  isBackupEnabledSafe,
-  getBackupFolderPathSafe,
-  getExpandedStatesSafe
-} from './src/utils/type-adapters';
+// Import the SettingsAdapter from state/adapters
+import { SettingsAdapter } from './src/state/adapters/SettingsAdapter';
 
-// Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
-import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
+// Import EventHandling utilities for event handling
+import { attachClickEvent, attachEvent, createEventHandler, createClickHandler, debounceEventHandler, throttleEventHandler } from './src/templates/ui/EventHandling';
 
 // For backward compatibility with legacy types
 import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types';
@@ -157,6 +148,11 @@ import { runPropertyHelpersTests } from './src/testing/utils/PropertyHelpersTest
 import { runContentParserParameterTests } from './src/testing/run-content-parser-tests';
 import { ContentParser } from './src/parsing/services/ContentParser';
 import { runSettingsAdapterTests } from './src/testing/utils/SettingsAdapterTests';
+import { runEventHandlingTests } from './src/testing/utils/EventHandlingTests';
+import { runComponentFactoryTests } from './src/testing/utils/ComponentFactoryTests';
+
+// Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
+import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -274,26 +270,34 @@ class OneiroMetricsModal extends Modal {
     public hasScraped: boolean = false;
     public openNoteButton: HTMLButtonElement;
     public static activeModal: OneiroMetricsModal | null = null;
-
+    
     constructor(app: App, plugin: DreamMetricsPlugin) {
         super(app);
         this.plugin = plugin;
         
-        // Import settings helpers
-        const { getSelectionMode, getSelectedFolder } = require('./src/utils/settings-helpers');
-        
-        // Use helper functions to safely get settings values
+        // Get the selection mode from settings
         this.selectionMode = getSelectionMode(plugin.settings);
         this.selectedNotes = plugin.settings.selectedNotes || [];
         this.selectedFolder = getSelectedFolder(plugin.settings);
     }
-
+    
     onOpen() {
-        // Import settings helpers
-        const { setSelectedFolder, setSelectionMode, getProjectNotePath } = require('./src/utils/settings-helpers');
+        const {contentEl} = this;
+        contentEl.empty();
         
+        // Store the active instance for access from external functions
         OneiroMetricsModal.activeModal = this;
-        const { contentEl } = this;
+        
+        // Add the container
+        contentEl.createEl('h2', {text: 'Dream Metrics Processor'});
+        
+        // Create selection mode selector
+        const selectionSettingsDiv = contentEl.createDiv({cls: 'selection-settings'});
+        selectionSettingsDiv.createEl('h3', {text: 'Selection Mode'});
+        
+        const selectionModeDiv = selectionSettingsDiv.createDiv({cls: 'selection-mode'});
+        
+        // Create the notes mode option
         // Reset scrape state when modal is opened
         this.hasScraped = false;
         if (this.openNoteButton) {
@@ -387,7 +391,7 @@ class OneiroMetricsModal extends Modal {
             text: 'Scrape Notes',
             cls: 'mod-cta oom-modal-button oom-scrape-button'
         });
-        this.scrapeButton.addEventListener('click', () => {
+        attachClickEvent(this.scrapeButton, () => {
             if (!this.isScraping) {
                 this.isScraping = true;
                 this.scrapeButton.disabled = true;
@@ -400,7 +404,7 @@ class OneiroMetricsModal extends Modal {
             text: 'Open Settings',
             cls: 'mod-cta oom-modal-button oom-settings-button'
         });
-        settingsButton.addEventListener('click', () => {
+        attachClickEvent(settingsButton, () => {
             (this.app as any).setting.open();
             (this.app as any).setting.openTabById('oneirometrics');
         });
@@ -413,9 +417,9 @@ class OneiroMetricsModal extends Modal {
         });
         this.openNoteButton.disabled = true;
         this.openNoteButton.classList.remove('enabled');
-        this.openNoteButton.addEventListener('click', () => {
+        attachClickEvent(this.openNoteButton, () => {
             if (this.openNoteButton.disabled) return;
-            const projPath = getProjectNotePathSafe(this.plugin.settings);
+            const projPath = getProjectNotePath(this.plugin.settings);
             const file = this.app.vault.getAbstractFileByPath(projPath);
             if (file instanceof TFile) {
                 this.app.workspace.openLinkText(projPath, '', true);
@@ -434,7 +438,7 @@ class OneiroMetricsModal extends Modal {
         this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
 
         // --- Dropdown Change Handler ---
-        modeDropdown.addEventListener('change', async (e) => {
+        attachEvent(modeDropdown, 'change', async (e: Event) => {
             const value = (e.target as HTMLSelectElement).value as 'notes' | 'folder';
             this.selectionMode = value;
             setSelectionMode(this.plugin.settings, value);
@@ -524,7 +528,7 @@ class ConfirmModal extends Modal {
             text: 'Cancel',
             cls: 'mod-warning'
         });
-        cancelButton.addEventListener('click', () => {
+        attachClickEvent(cancelButton, () => {
             if (this.onCancelCallback) this.onCancelCallback();
             this.close();
         });
@@ -533,7 +537,7 @@ class ConfirmModal extends Modal {
             text: 'Confirm',
             cls: 'mod-cta'
         });
-        confirmButton.addEventListener('click', () => {
+        attachClickEvent(confirmButton, () => {
             if (this.onConfirmCallback) this.onConfirmCallback();
             this.close();
         });
@@ -611,7 +615,7 @@ export default class DreamMetricsPlugin extends Plugin {
                     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
                     if (view && view.getMode() === 'preview') {
                         const file = view.file;
-                        if (file && file.path === getProjectNotePathSafe(this.settings)) {
+                        if (file && file.path === getProjectNotePath(this.settings)) {
                             globalLogger?.debug('Events', 'Metrics note view detected, attaching event listeners');
                             this.attachProjectNoteEventListeners();
                         }
@@ -684,7 +688,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 // Also hook into file-open events for when the user opens the metrics note directly
                 this.registerEvent(
                     this.app.workspace.on('file-open', (file) => {
-                        if (file && file.path === getProjectNotePathSafe(this.settings)) {
+                        if (file && file.path === getProjectNotePath(this.settings)) {
                             if (globalLogger) {
                                 globalLogger.info('Filter', 'Metrics note opened directly, applying saved filters');
                             }
@@ -937,6 +941,26 @@ export default class DreamMetricsPlugin extends Plugin {
                 new Notice('Settings Adapter tests complete - check console for results');
             }
         });
+        
+        // Command to run EventHandling tests
+        this.addCommand({
+            id: 'run-event-handling-tests',
+            name: 'Run Event Handling Tests',
+            callback: async () => {
+                await runEventHandlingTests();
+                new Notice('Event Handling tests complete - check console for results');
+            }
+        });
+        
+        // Command to run ComponentFactory tests
+        this.addCommand({
+            id: 'run-component-factory-tests',
+            name: 'Run ComponentFactory Tests',
+            callback: async () => {
+                await runComponentFactoryTests();
+                new Notice('ComponentFactory tests complete - check console for results');
+            }
+        });
 
         // Add this method to the plugin class
         this.addCommand({
@@ -997,8 +1021,9 @@ export default class DreamMetricsPlugin extends Plugin {
 
     async loadSettings() {
         const data = await this.loadData();
-        // Apply the adapter to ensure all properties exist with correct types
-        this.settings = adaptSettingsToCore(data || {});
+        // Apply the SettingsAdapter to ensure all properties exist with correct types
+        const settingsAdapter = new SettingsAdapter(data || {});
+        this.settings = settingsAdapter.toCoreSettings();
         this.loadedSettings = true;
         
         // CRITICAL FIX: Load and validate filter persistence settings
@@ -1176,8 +1201,8 @@ export default class DreamMetricsPlugin extends Plugin {
         // Use the expandedStates helper instead of direct access
         this.expandedStates = new Set<string>();
         
-        // Use helper to safely get expanded states
-        const expandedStatesMap = getExpandedStatesSafe(this.settings);
+        // Get expanded states from settings
+        const expandedStatesMap = this.settings.expandedStates || {};
         if (expandedStatesMap) {
             Object.entries(expandedStatesMap).forEach(([id, isExpanded]) => {
                 if (isExpanded) {
@@ -1724,7 +1749,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]) {
-        const projectNotePath = getProjectNotePathSafe(this.settings);
+        const projectNotePath = getProjectNotePath(this.settings);
         
         globalLogger?.debug('ProjectNote', 'updateProjectNote called', { 
             projectNote: projectNotePath,
@@ -2249,24 +2274,6 @@ export default class DreamMetricsPlugin extends Plugin {
     
 
 
-    private debounce<T extends (...args: any[]) => any>(
-        func: T,
-        wait: number
-    ): (...args: Parameters<T>) => void {
-        let timeout: NodeJS.Timeout | null = null;
-        
-        return (...args: Parameters<T>) => {
-            if (timeout) {
-                clearTimeout(timeout);
-            }
-            
-            timeout = setTimeout(() => {
-                func(...args);
-                timeout = null;
-            }, wait);
-        };
-    }
-
     private getContentStateId(contentCell: HTMLElement): string {
         const date = contentCell.closest('.oom-dream-row')?.getAttribute('data-date');
         const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
@@ -2379,8 +2386,8 @@ export default class DreamMetricsPlugin extends Plugin {
         if (rescrapeBtn) {
             console.log('[OOM-DEBUG] Found rescrape button');
             // Remove existing listeners
-            const newRescrapeBtn = rescrapeBtn.cloneNode(true);
-            newRescrapeBtn.addEventListener('click', () => {
+            const newRescrapeBtn = rescrapeBtn.cloneNode(true) as HTMLElement;
+            attachClickEvent(newRescrapeBtn, () => {
                 console.log('[OOM-DEBUG] Rescrape button clicked');
                 new Notice('Rescraping metrics...');
                 this.scrapeMetrics();
@@ -3150,7 +3157,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
 
     private addRibbonIcons(): void {
         // Check if ribbon icons should be shown - exit early if not
-        if (!shouldShowRibbonButtonsSafe(this.settings)) {
+        if (!shouldShowRibbonButtons(this.settings)) {
             this.removeRibbonIcons(); // Make sure to remove any existing icons
             return;
         }
@@ -3719,7 +3726,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
         }
         
         // Find any open metrics notes
-        const projectNotePath = getProjectNotePathSafe(this.settings);
+        const projectNotePath = getProjectNotePath(this.settings);
         let metricsNoteFound = false;
         
         try {

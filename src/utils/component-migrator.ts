@@ -16,7 +16,7 @@
 
 import { BaseComponent, EventableComponent } from '../templates/ui/BaseComponent';
 import { OOMComponentProps, standardizeComponentProps } from './ui-component-adapter';
-import { EventAdapter } from './adapter-functions';
+import { createEventHandler, convertEventHandlers } from '../templates/ui/EventHandling';
 import { createElement } from './dom-helpers';
 
 // Create a type with public-only properties for BaseComponent
@@ -74,24 +74,14 @@ export function wrapLegacyComponent<T extends Record<string, any>>(
  * Adapts event handling for legacy components
  * @param component Component to adapt
  * @param events Map of event names to legacy handler functions
+ * @deprecated Use convertEventHandlers from EventHandling module instead
  */
 export function adaptLegacyEvents<T extends Record<string, any>>(
   component: T,
   events: Record<string, string>
 ): void {
-  // Check if component has event handlers
-  Object.entries(events).forEach(([eventName, handlerMethodName]) => {
-    const handlerKey = handlerMethodName as keyof T;
-    const originalHandler = component[handlerKey];
-    
-    if (typeof originalHandler === 'function') {
-      // Replace with adapter
-      component[handlerKey] = function(event: Event) {
-        // Use event adapter to ensure proper typing
-        EventAdapter.adaptEventHandler(originalHandler.bind(component))(event);
-      } as unknown as T[keyof T];
-    }
-  });
+  // Use the new convertEventHandlers function from EventHandling module
+  convertEventHandlers(component, events);
 }
 
 /**

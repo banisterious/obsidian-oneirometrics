@@ -139,46 +139,46 @@ export function getMetricRange(metric: DreamMetric | CoreDreamMetric | any): { m
  * @param metric Potentially partial or legacy metric format
  * @returns A standardized DreamMetric with all required fields
  */
-export function standardizeMetric(metric: Partial<DreamMetric | CoreDreamMetric> & Record<string, any>): DreamMetric & Record<string, any> {
-  // Set default values
-  const standardized: DreamMetric & Record<string, any> = {
-    name: metric.name || 'Unnamed Metric',
-    icon: metric.icon || 'help-circle',
-    minValue: getMetricMinValue(metric as DreamMetric),
-    maxValue: getMetricMaxValue(metric as DreamMetric),
-    enabled: isMetricEnabled(metric as DreamMetric),
-    description: metric.description || '',
-    category: metric.category || 'general',
-    type: metric.type || 'number',
-    format: metric.format || 'number',
+export function standardizeMetric(metric: Partial<DreamMetric | CoreDreamMetric> & Record<string, any>): CoreDreamMetric {
+  // Handle null or undefined input
+  const input = metric || {};
+  
+  // Create a new object with expected properties in expected order
+  const result: CoreDreamMetric = {
+    name: input.name || 'Unnamed Metric',
+    icon: input.icon || 'help-circle',
+    minValue: getMetricMinValue(input),
+    maxValue: getMetricMaxValue(input),
+    enabled: isMetricEnabled(input),
+    description: input.description || ''
   };
   
-  // Copy any other properties
-  if (metric.options) {
-    standardized.options = [...metric.options];
-  }
+  // Add optional properties
+  if (input.category) result.category = input.category;
+  if (input.type) result.type = input.type;
+  if (input.format) result.format = input.format;
+  if (input.options) result.options = Array.isArray(input.options) ? [...input.options] : [input.options];
   
-  // Preserve but normalize legacy properties for backward compatibility
-  if (metric.range || metric.min !== undefined || metric.max !== undefined) {
-    standardized.range = {
-      min: standardized.minValue,
-      max: standardized.maxValue
+  // Add legacy properties if they exist in the input
+  if (input.range || input.min !== undefined || input.max !== undefined) {
+    result.range = {
+      min: result.minValue,
+      max: result.maxValue
     };
   }
   
-  if (metric.min !== undefined) {
-    standardized.min = standardized.minValue;
+  if (input.min !== undefined) result.min = result.minValue;
+  if (input.max !== undefined) result.max = result.maxValue;
+  if (input.step !== undefined) result.step = input.step;
+  
+  // Copy any other properties from the original
+  for (const key in input) {
+    if (!(key in result) && input[key] !== undefined) {
+      (result as any)[key] = input[key];
+    }
   }
   
-  if (metric.max !== undefined) {
-    standardized.max = standardized.maxValue;
-  }
-  
-  if (metric.step !== undefined) {
-    standardized.step = metric.step;
-  }
-  
-  return standardized;
+  return result;
 }
 
 /**
@@ -187,8 +187,12 @@ export function standardizeMetric(metric: Partial<DreamMetric | CoreDreamMetric>
  * @returns A metric object with all required properties
  */
 export function createCompatibleMetric(metric: Partial<DreamMetric | CoreDreamMetric> | any): CoreDreamMetric {
+    // Handle null or undefined input
+    if (!metric) {
+        metric = {}; // Use empty object instead of null
+    }
+    
     // Create an object with the core properties, then cast to CoreDreamMetric
-    // Using the unknown intermediate cast to avoid type checking errors
     const compatibleMetric = {
         name: metric.name || '',
         label: metric.label || metric.name || '',
@@ -205,6 +209,8 @@ export function createCompatibleMetric(metric: Partial<DreamMetric | CoreDreamMe
         icon: metric.icon || '',
         aggregate: metric.aggregate || 'average',
         options: metric.options || {},
+        minValue: getMetricMinValue(metric), // Ensure minValue is set for consistency
+        maxValue: getMetricMaxValue(metric), // Ensure maxValue is set for consistency
     };
     
     // Use a two-step type assertion to avoid TypeScript errors
@@ -217,15 +223,27 @@ export function createCompatibleMetric(metric: Partial<DreamMetric | CoreDreamMe
  * @returns A compatible metric
  */
 export function adaptMetric(metric: DreamMetric | CoreDreamMetric | any): CoreDreamMetric {
-    if (!metric) return createCompatibleMetric({});
-    
-    // If it's already a core metric (has all required properties), return it
-    if (typeof metric.enabled === 'boolean') {
-        return metric as CoreDreamMetric;
-    }
-    
-    // Otherwise create a compatible version
-    return createCompatibleMetric(metric);
+  // Handle null or undefined input
+  if (!metric) {
+    return createCompatibleMetric({});
+  }
+  
+  // Check if it already has all required properties
+  const hasAllRequiredProps = 
+    typeof metric.name === 'string' && 
+    typeof metric.enabled === 'boolean' &&
+    (typeof metric.minValue === 'number' || typeof metric.min === 'number' || 
+     (metric.range && typeof metric.range.min === 'number')) &&
+    (typeof metric.maxValue === 'number' || typeof metric.max === 'number' || 
+     (metric.range && typeof metric.range.max === 'number'));
+  
+  if (hasAllRequiredProps) {
+    // If it has all required properties, standardize it
+    return standardizeMetric(metric);
+  }
+  
+  // Otherwise create a completely new metric
+  return createCompatibleMetric(metric);
 }
 
 // Additional helper exports

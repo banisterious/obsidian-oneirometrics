@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent } from "obsidian";
-import { DEFAULT_METRICS, DreamMetric, DreamMetricsSettings, LogLevel, SelectionMode } from "./types";
+import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from "./types";
+import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
 
@@ -28,7 +29,7 @@ import {
     getMetricMaxValue,
     setMetricRange,
     getMetricRange,
-    adaptMetric,
+    standardizeMetric,
     createCompatibleMetric
 } from './src/utils/metric-helpers';
 
@@ -41,7 +42,8 @@ import {
     normalizeSelectionMode
 } from './src/utils/selection-mode-helpers';
 
-import { getCompatibleSelectionMode } from './src/types/core';
+// Import SettingsAdapter
+import { SettingsAdapter } from './src/state/adapters/SettingsAdapter';
 
 // Import utilities 
 import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
@@ -90,6 +92,23 @@ export const iconCategories: IconCategory[] = [
 export const lucideIconMap: Record<string, string> = Object.assign({}, 
     ...iconCategories.map(category => category.icons)
 );
+
+// Helper function to ensure a metric has all required properties
+// Uses standardizeMetric under the hood to ensure proper type compatibility
+function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric {
+    // Start with at least these required properties
+    const metricWithRequired = {
+        name: metric.name || '',
+        icon: metric.icon || '',
+        minValue: metric.minValue || 1,
+        maxValue: metric.maxValue || 5,
+        description: metric.description || '',
+        enabled: metric.enabled !== undefined ? metric.enabled : true
+    };
+    
+    // Let standardizeMetric handle all the normalization
+    return standardizeMetric(metricWithRequired);
+}
 
 // Define DEFAULT_LINTING_SETTINGS for the settings tab to use
 const DEFAULT_LINTING_SETTINGS: LintingSettings = {
@@ -158,7 +177,9 @@ class MetricEditorModal extends Modal {
 
     constructor(app: App, metric: DreamMetric, existingMetrics: DreamMetric[], onSubmit: (metric: DreamMetric) => void, isEditing: boolean = false) {
         super(app);
-        this.metric = adaptMetric({ ...metric });
+        // Create a complete metric with all required properties
+        // Then standardize it for consistency
+        this.metric = ensureCompleteMetric(metric);
         this.existingMetrics = existingMetrics;
         this.onSubmit = onSubmit;
         this.isEditing = isEditing;
@@ -574,16 +595,17 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 drop.addOption('folder', 'Selected Folder');
                 
                 // Use the UI representation (notes/folder)
-                const uiMode = getCompatibleSelectionMode(
-                    getSelectionMode(this.plugin.settings), 
-                    'ui'
-                );
+                const settingsAdapter = new SettingsAdapter(this.plugin.settings);
+                const selectionMode = getSelectionMode(this.plugin.settings);
+                // Convert internal mode (manual/automatic) to UI mode (notes/folder)
+                const uiMode = normalizeSelectionMode(selectionMode) === 'manual' ? 'notes' : 'folder';
                 drop.setValue(uiMode);
                 
                 drop.onChange(async (value) => {
                     // Convert to internal representation (manual/automatic)
-                    const internalMode = getCompatibleSelectionMode(value, 'internal');
-                    this.plugin.settings.selectionMode = internalMode as 'manual' | 'automatic';
+                    // 'notes' -> 'manual', 'folder' -> 'automatic'
+                    const internalMode = value === 'notes' ? 'manual' : 'automatic';
+                    this.plugin.settings.selectionMode = internalMode;
                     
                     // Clear irrelevant selection when switching modes
                     if (isFolderMode(value as SelectionMode)) {
@@ -597,10 +619,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
 
         // Dynamic label and field based on selection mode
-        const uiMode = getCompatibleSelectionMode(
-            getSelectionMode(this.plugin.settings), 
-            'ui'
-        ) as SelectionMode;
+        const selectionMode = getSelectionMode(this.plugin.settings);
+        // Convert internal mode (manual/automatic) to UI mode (notes/folder)
+        const uiMode = normalizeSelectionMode(selectionMode) === 'manual' ? 'notes' : 'folder';
         const selectionLabel = getSelectionModeLabel(uiMode);
         const selectionDesc = getSelectionModeDescription(uiMode);
         
@@ -829,15 +850,26 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             icon: '',
                             minValue: 1,
                             maxValue: 5,
-                            description: ''
+                            description: '',
+                            enabled: true
                         },
                         Object.values(this.plugin.settings.metrics),
                         async (metric) => {
-                            metric = createCompatibleMetric({
-                                ...DEFAULT_METRICS[metric.name],
-                                name: metric.name
-                            });
-                            this.plugin.settings.metrics[metric.name] = adaptMetric(metric);
+                            // Create a standardized metric with all required properties
+                            const metricTemplate = DEFAULT_METRICS[metric.name] || {};
+                            // Merge the template with our metric and ensure all required properties
+                            const metricData = {
+                                ...metricTemplate,
+                                name: metric.name,
+                                enabled: true,
+                                icon: metricTemplate.icon || 'help-circle',
+                                minValue: metricTemplate.minValue || 1,
+                                maxValue: metricTemplate.maxValue || 5,
+                                description: metricTemplate.description || ''
+                            };
+                            // Use our helper to ensure the metric is complete
+                            metric = ensureCompleteMetric(metricData);
+                            this.plugin.settings.metrics[metric.name] = metric;
                             await this.plugin.saveSettings();
                             this.display();
                         }
@@ -870,7 +902,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                                 { ...metric },
                                 Object.values(this.plugin.settings.metrics),
                                 async (updatedMetric) => {
-                                    this.plugin.settings.metrics[updatedMetric.name] = adaptMetric(updatedMetric);
+                                    // Use our helper to ensure the metric is complete
+                                    const completeUpdatedMetric = ensureCompleteMetric(updatedMetric);
+                                    this.plugin.settings.metrics[updatedMetric.name] = completeUpdatedMetric;
                                     // If the name was changed, remove the old key
                                     if (updatedMetric.name !== key) {
                                         delete this.plugin.settings.metrics[key];
