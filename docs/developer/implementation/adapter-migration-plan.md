@@ -15,10 +15,10 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Comprehensive Plan Creation | 2025-05-25 | ✅ Completed |
 | Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
-| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (97%) |
+| Implementation of Permanent Replacements | 2025-05-26 | ✅ Completed (100%) |
 | Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (80%) |
 | Update Peripheral Files | 2025-07-15 | 🔄 In Progress (15%) |
-| Testing and Verification | 2025-07-25 | 🔄 In Progress (70%) |
+| Testing and Verification | 2025-07-25 | 🔄 In Progress (80%) |
 | Adapter Files Removal | 2025-08-01 | ⬜ Not Started |
 
 ## Table of Contents
@@ -74,8 +74,8 @@ This plan outlines our strategy for:
 | Function | Used In | Replacement Path | Migration Status | Priority |
 |----------|---------|------------------|-----------------|----------|
 | ContentParserAdapter.adaptExtractDreamEntries | main.ts, DateNavigator.ts | src/parsing/services/ContentParser.ts | ✅ Completed | High |
-| UIComponentAdapter.adaptMetricForUI | src/dom/modals/MetricsModal.ts | src/templates/ui/MetricComponent.ts | ⬜ Not Started | Medium |
-| UIComponentAdapter.adaptEntryForUI | src/journal_check/ui/DreamJournalManager.ts | src/journal_check/ui/EntryComponent.ts | ⬜ Not Started | Medium |
+| UIComponentAdapter.adaptMetricForUI | src/dom/modals/MetricsModal.ts | src/templates/ui/MetricComponent.ts | ✅ Completed | Medium |
+| UIComponentAdapter.adaptEntryForUI | src/journal_check/ui/DreamJournalManager.ts | src/journal_check/ui/EntryComponent.ts | ✅ Completed | Medium |
 | SettingsAdapter.adaptSelectionMode | main.ts, src/state/DreamMetricsState.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
 | SettingsAdapter.adaptSelectionModeToLegacy | main.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
 | EventAdapter.adaptEventHandler | multiple components | src/templates/ui/EventHandling.ts | ✅ Completed | Medium |
@@ -114,7 +114,7 @@ This plan outlines our strategy for:
 | Function | Used In | Replacement Path | Migration Status | Priority |
 |----------|---------|------------------|-----------------|----------|
 | createCompatibleComponent | DreamMetricsDOM.ts | src/templates/ui/ComponentFactory.ts | ✅ Completed | High |
-| adaptModalConfig | multiple modals | src/dom/modals/ModalFactory.ts | ⬜ Not Started | High |
+| adaptModalConfig | multiple modals | src/dom/modals/ModalFactory.ts | ✅ Completed | High |
 | convertEventHandlers | multiple components | src/templates/ui/EventHandling.ts | ✅ Completed | Medium |
 | createFilterElement | TimeFilterManager.ts | src/filters/FilterFactory.ts | ✅ Completed and Tested | Medium |
 
@@ -302,7 +302,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
-| Update UI components | 🔄 In Progress (40%) | 2025-05-26 | ComponentFactory |
+| Update UI components | 🔄 In Progress (80%) | 2025-05-26 | ComponentFactory |
 | Update service modules | ⬜ Not Started | 2025-07-12 | All Phase 1 items |
 | Update utility modules | ⬜ Not Started | 2025-07-14 | PropertyAccessor |
 
@@ -428,7 +428,7 @@ Before considering the adapter migration complete, we will perform these verific
 | TypeScript compilation | ⬜ Not Started | - | - |
 | Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22/22 passing), metric-helpers.ts (11/13 passing with 2 known issues), selection-mode-helpers.ts (9/9 passing), type-guards.ts (10/10 passing), property-helpers.ts (10/10 passing), ContentParser parameter variations (7/7 passing), SettingsAdapter (11/11 passing), EventHandling (10/10 passing), ComponentFactory (5/5 passing), and DreamMetricsState (6/6 passing). Successfully tested main.ts settings handling and event handling changes with all tests passing. |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. Created FilterFactory.ts to replace createFilterElement and updated DateRangeFilter to use it. Tested the Date Navigator UI components and identified usability issues with custom date range input fields - documented as ISSUE-25-004 in the Known Issues Registry. Quick filter buttons (This Week, Last Month, etc.) work correctly. DateRangeFilter and FilterFactory implementations are functionally working despite the input field usability issues. |
+| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. Created FilterFactory.ts to replace createFilterElement and updated DateRangeFilter to use it. Tested the Date Navigator UI components and identified usability issues with custom date range input fields - documented as ISSUE-25-004 in the Known Issues Registry. Quick filter buttons (This Week, Last Month, etc.) work correctly. Tested new components: MetricComponent, EntryComponent, and ModalFactory - all functioning correctly with minor UI refinements needed (metric icons not displaying properly). DateRangeFilter and FilterFactory implementations are functionally working despite the input field usability issues. |
 | Performance testing | ⬜ Not Started | - | - |
 | Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md. Updated issues documentation to reflect DateRangeFilter usability issues. |
 | Final approval | ⬜ Not Started | - | - |
