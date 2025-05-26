@@ -7,7 +7,7 @@
 
 import { TestRunner } from '../TestRunner';
 import { 
-  createComponent,
+  createComponent2 as createComponent,
   createComponentFromLegacy,
   createEventableComponent,
   createComponentFromElement,

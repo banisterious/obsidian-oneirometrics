@@ -6,7 +6,7 @@
  */
 
 import { BaseComponent, EventableComponent } from '../templates/ui/BaseComponent';
-import { createComponent, createUIComponent } from '../templates/ui/ComponentFactory';
+import { createComponent2 as createComponent, createUIComponent } from '../templates/ui/ComponentFactory';
 import { TimeFilter } from '../timeFilters';
 
 export interface FilterElementProps {
