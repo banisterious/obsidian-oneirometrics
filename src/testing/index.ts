@@ -14,6 +14,8 @@ import { registerPropertyHelpersTests } from './utils/PropertyHelpersTests';
 import { registerErrorHandlingContentParserTests } from './ErrorHandlingContentParserTests';
 import { registerContentParserParameterTests } from './ContentParserParameterTests';
 import { registerSettingsAdapterTests } from './utils/SettingsAdapterTests';
+import { registerEventHandlingTests } from './utils/EventHandlingTests';
+import { registerComponentFactoryTests } from './utils/ComponentFactoryTests';
 
 /**
  * Registers all tests with the test runner
@@ -36,6 +38,12 @@ export function registerAllTests(testRunner: TestRunner): void {
   
   // Register SettingsAdapter tests
   registerSettingsAdapterTests(testRunner);
+  
+  // Register EventHandling tests
+  registerEventHandlingTests(testRunner);
+  
+  // Register ComponentFactory tests
+  registerComponentFactoryTests(testRunner);
   
   // Add other test registration functions here as they are implemented
 }
@@ -83,8 +91,16 @@ export { registerPropertyHelpersTests };
 export { registerErrorHandlingContentParserTests };
 export { registerContentParserParameterTests };
 export { registerSettingsAdapterTests };
+export { registerEventHandlingTests };
+export { registerComponentFactoryTests };
 export { runSettingsHelpersTests } from './utils/SettingsHelpersTests';
 export { runMetricHelpersTests } from './utils/MetricHelpersTests';
 export { runSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
 export { runTypeGuardsTests } from './utils/TypeGuardsTests';
-export { runPropertyHelpersTests } from './utils/PropertyHelpersTests'; 
+export { runPropertyHelpersTests } from './utils/PropertyHelpersTests';
+export { runEventHandlingTests } from './utils/EventHandlingTests';
+
+// Allow direct execution of tests
+if (require.main === module) {
+  runAllTests();
+} 
