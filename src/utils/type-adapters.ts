@@ -1,236 +1,148 @@
 /**
- * MIGRATION NOTICE: This adapter file is maintained for backward compatibility.
- * New code should not directly use functions from this file.
+ * TYPE ADAPTERS STUB
  * 
- * This file contains utility functions for adapting between different type systems
- * during the TypeScript migration.
+ * This file is a transitional stub that re-exports functions from their
+ * permanent locations. It will be removed in a future release.
  * 
- * See docs/developer/architecture/typescript-architecture-lessons.md for the detailed migration plan.
+ * @deprecated Use the permanent implementations directly instead of this file.
  */
+
+// Re-export settings helpers
+import {
+  getProjectNotePath,
+  getSelectionMode,
+  getSelectedFolder,
+  shouldShowRibbonButtons,
+  isBackupEnabled,
+  getBackupFolderPath,
+  isDeveloperModeEnabled,
+  getUIState,
+  getActiveTab,
+  getJournalStructure
+} from './settings-helpers';
+
+// Re-export SettingsAdapter
+import { SettingsAdapter } from '../state/adapters/SettingsAdapter';
+
 /**
- * Type Adapters - Utilities for handling type conversions between legacy and new types
- * 
- * This file provides adapter functions to help transition between legacy type definitions
- * and the new type system. These functions ensure type safety while allowing gradual migration.
+ * Legacy function to adapt settings to core format
+ * @param settings The settings to adapt
+ * @returns Adapted settings
+ * @deprecated Use SettingsAdapter instead
  */
-
-import { DreamMetricsSettings as CoreDreamMetricsSettings } from "../types/core";
-
-// Define an interface that captures the shape of the legacy settings object
-// without strict type checking, using any for flexibility during migration
-interface LegacyDreamMetricsSettings {
-  projectNote?: string;
-  projectNotePath?: string;
-  metrics: Record<string, any>;
-  selectedNotes?: string[];
-  selectedFolder?: string;
-  selectionMode?: string;
-  calloutName?: string;
-  showRibbonButtons?: boolean;
-  showTestRibbonButton?: boolean;
-  backupEnabled?: boolean;
-  backupFolderPath?: string;
-  expandedStates?: Record<string, boolean>;
-  journalStructure?: any;
-  linting?: any;
-  logging?: {
-    level?: string;
-    maxSize?: number;
-    maxLogSize?: number;
-    maxBackups?: number;
-    logFilePath?: string;
-  };
-  backup?: {
-    enabled?: boolean;
-    folderPath?: string;
-    maxBackups?: number;
-    frequency?: string;
-  };
-  uiState?: any;
-  developerMode?: any;
-  metricsVersion?: string;
-  [key: string]: any; // Allow any other properties
+export function adaptSettingsToCore(settings: any): any {
+  const adapter = new SettingsAdapter(settings);
+  return adapter.toCoreSettings();
 }
 
 /**
- * Adapts a legacy settings object to match the core settings interface
- * by filling in any missing required properties with default values.
- */
-export function adaptSettingsToCore(settings: any): CoreDreamMetricsSettings {
-  // Create a base settings object with defaults
-  const adaptedSettings: CoreDreamMetricsSettings = {
-    // Set defaults for required properties that might be missing
-    projectNote: settings.projectNote || settings.projectNotePath || '',
-    metrics: settings.metrics || {},
-    selectedNotes: settings.selectedNotes || [],
-    selectedFolder: settings.selectedFolder || '',
-    selectionMode: settings.selectionMode || 'notes',
-    calloutName: settings.calloutName || 'dream',
-    showRibbonButtons: settings.showRibbonButtons || !!settings.showTestRibbonButton || false,
-    backupEnabled: settings.backupEnabled || (settings.backup?.enabled) || false,
-    backupFolderPath: settings.backupFolderPath || settings.backup?.folderPath || './backups',
-    
-    // Ensure logging has the correct structure
-    logging: {
-      level: settings.logging?.level || 'info',
-      maxSize: settings.logging?.maxSize || settings.logging?.maxLogSize || 1024 * 1024, // 1MB default
-      maxBackups: settings.logging?.maxBackups || 3,
-    }
-  };
-  
-  // Handle optional properties with explicit type checking
-  
-  // Copy expandedStates if it exists
-  if (settings.expandedStates) {
-    adaptedSettings.expandedStates = {...settings.expandedStates};
-  }
-  
-  // Copy journalStructure or linting if they exist
-  if (settings.journalStructure) {
-    adaptedSettings.journalStructure = settings.journalStructure;
-  } else if (settings.linting) {
-    adaptedSettings.journalStructure = settings.linting;
-    adaptedSettings.linting = settings.linting;
-  }
-  
-  // Copy UI state if it exists
-  if (settings.uiState) {
-    adaptedSettings.uiState = {
-      activeTab: settings.uiState.activeTab || settings.uiState.lastTab || 'general',
-      lastFilter: settings.uiState.lastFilter || 'all',
-      customRanges: settings.uiState.customRanges || {},
-      layout: settings.uiState.layout || {}
-    };
-  }
-  
-  // Copy developer mode settings if they exist
-  if (settings.developerMode) {
-    adaptedSettings.developerMode = {
-      enabled: settings.developerMode.enabled || false,
-      showDebugRibbon: settings.developerMode.showDebugRibbon || settings.developerMode.showDebugInfo || false,
-      traceFunctionCalls: settings.developerMode.traceFunctionCalls || settings.developerMode.performanceMonitoring || false,
-      experimentalFeatures: settings.developerMode.experimentalFeatures || []
-    };
-  }
-  
-  // Copy metricsVersion if it exists
-  if (settings.metricsVersion) {
-    adaptedSettings.metricsVersion = settings.metricsVersion;
-  }
-  
-  // Handle backup settings structure
-  if (settings.backup) {
-    adaptedSettings.backup = {
-      enabled: settings.backup.enabled || settings.backupEnabled || false,
-      folderPath: settings.backup.folderPath || settings.backupFolderPath || './backups',
-      maxBackups: settings.backup.maxBackups || 5,
-      frequency: settings.backup.frequency as any || 'onSave'
-    };
-  } else if (settings.backupEnabled) {
-    adaptedSettings.backup = {
-      enabled: settings.backupEnabled,
-      folderPath: settings.backupFolderPath || './backups',
-      maxBackups: 5,
-      frequency: 'onSave'
-    };
-  }
-  
-  // Preserve legacy properties for backward compatibility
-  adaptedSettings.projectNotePath = settings.projectNotePath || settings.projectNote || '';
-  adaptedSettings.showTestRibbonButton = settings.showTestRibbonButton || settings.showRibbonButtons || false;
-  
-  // Handle linting settings
-  if (settings.linting && !settings.journalStructure) {
-    adaptedSettings.linting = settings.linting;
-  }
-  
-  return adaptedSettings;
-}
-
-/**
- * Helper to safely get the project note path from settings
- * Compatible with both legacy and new settings objects
+ * Get project note path safely
+ * @param settings Settings object
+ * @returns Project note path
+ * @deprecated Use getProjectNotePath from settings-helpers
  */
 export function getProjectNotePathSafe(settings: any): string {
-  return settings.projectNote || settings.projectNotePath || '';
+  return getProjectNotePath(settings);
 }
 
 /**
- * Helper to safely get the selection mode from settings
- * Compatible with both legacy and new settings objects
+ * Get selection mode safely
+ * @param settings Settings object
+ * @returns Selection mode
+ * @deprecated Use getSelectionMode from settings-helpers
  */
 export function getSelectionModeSafe(settings: any): string {
-  return settings.selectionMode || 'notes';
+  return getSelectionMode(settings);
 }
 
 /**
- * Helper to safely get the selected folder from settings
- * Compatible with both legacy and new settings objects
+ * Get selected folder safely
+ * @param settings Settings object
+ * @returns Selected folder
+ * @deprecated Use getSelectedFolder from settings-helpers
  */
 export function getSelectedFolderSafe(settings: any): string {
-  return settings.selectedFolder || '';
+  return getSelectedFolder(settings);
 }
 
 /**
- * Helper to safely check if ribbon buttons should be shown
- * Compatible with both legacy and new settings objects
+ * Check if ribbon buttons should be shown safely
+ * @param settings Settings object
+ * @returns Whether to show ribbon buttons
+ * @deprecated Use shouldShowRibbonButtons from settings-helpers
  */
 export function shouldShowRibbonButtonsSafe(settings: any): boolean {
-  return settings.showRibbonButtons || !!settings.showTestRibbonButton || false;
+  return shouldShowRibbonButtons(settings);
 }
 
 /**
- * Helper to safely check if backups are enabled
- * Compatible with both legacy and new settings objects
+ * Check if backup is enabled safely
+ * @param settings Settings object
+ * @returns Whether backup is enabled
+ * @deprecated Use isBackupEnabled from settings-helpers
  */
 export function isBackupEnabledSafe(settings: any): boolean {
-  return settings.backupEnabled || settings.backup?.enabled || false;
+  return isBackupEnabled(settings);
 }
 
 /**
- * Helper to safely get the backup folder path
- * Compatible with both legacy and new settings objects
+ * Get backup folder path safely
+ * @param settings Settings object
+ * @returns Backup folder path
+ * @deprecated Use getBackupFolderPath from settings-helpers
  */
 export function getBackupFolderPathSafe(settings: any): string {
-  return settings.backupFolderPath || settings.backup?.folderPath || './backups';
+  return getBackupFolderPath(settings);
 }
 
 /**
- * Helper to safely get the expanded states from settings
- * Compatible with both legacy and new settings objects
+ * Get expanded states safely
+ * @param settings Settings object
+ * @returns Expanded states
+ * @deprecated Use getExpandedStates from settings-helpers
  */
 export function getExpandedStatesSafe(settings: any): Record<string, boolean> {
-  return settings.expandedStates || {};
+  // Use the adapter's method since settings-helpers doesn't expose this
+  const adapter = new SettingsAdapter(settings);
+  return adapter.getExpandedStates();
 }
 
 /**
- * Helper to safely check if developer mode is enabled
- * Compatible with both legacy and new settings objects
+ * Check if developer mode is enabled safely
+ * @param settings Settings object
+ * @returns Whether developer mode is enabled
+ * @deprecated Use isDeveloperMode from settings-helpers
  */
 export function isDeveloperModeSafe(settings: any): boolean {
-  return settings.developerMode?.enabled || false;
+  return isDeveloperModeEnabled(settings);
 }
 
 /**
- * Helper to safely get the UI state from settings
- * Compatible with both legacy and new settings objects
+ * Get UI state safely
+ * @param settings Settings object
+ * @returns UI state
+ * @deprecated Use getUIState from settings-helpers
  */
 export function getUIStateSafe(settings: any): any {
-  return settings.uiState || {};
+  return getUIState(settings);
 }
 
 /**
- * Helper to safely get the active tab from UI state
- * Compatible with both legacy and new settings objects
+ * Get active tab safely
+ * @param settings Settings object
+ * @returns Active tab
+ * @deprecated Use getActiveTab from settings-helpers
  */
 export function getActiveTabSafe(settings: any): string {
-  return settings.uiState?.activeTab || settings.uiState?.lastTab || 'general';
+  return getActiveTab(settings);
 }
 
 /**
- * Helper to safely get the journal structure settings
- * Compatible with both legacy and new settings objects
+ * Get journal structure safely
+ * @param settings Settings object
+ * @returns Journal structure
+ * @deprecated Use getJournalStructure from settings-helpers
  */
 export function getJournalStructureSafe(settings: any): any {
-  return settings.journalStructure || settings.linting || {};
+  return getJournalStructure(settings);
 } 

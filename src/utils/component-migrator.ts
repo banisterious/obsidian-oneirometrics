@@ -1,219 +1,101 @@
 /**
- * MIGRATION NOTICE: This adapter file is maintained for backward compatibility.
- * New code should not directly use functions from this file.
+ * COMPONENT MIGRATOR STUB
  * 
- * This file contains utility functions for migrating components
- * during the TypeScript migration.
+ * This file is a transitional stub that re-exports functions from their
+ * permanent locations. It will be removed in a future release.
  * 
- * See docs/developer/architecture/typescript-architecture-lessons.md for the detailed migration plan.
- */
-/**
- * Component Migration Utilities
- * 
- * This file provides utilities to help migrate existing UI components
- * to the new typed architecture with minimal changes.
+ * @deprecated Use the permanent implementations directly instead of this file.
  */
 
-import { BaseComponent, EventableComponent } from '../templates/ui/BaseComponent';
-import { OOMComponentProps, standardizeComponentProps } from './ui-component-adapter';
-import { createEventHandler, convertEventHandlers } from '../templates/ui/EventHandling';
-import { createElement } from './dom-helpers';
+// Re-export component factory functions
+import { 
+  createComponent2 as createComponent,
+  createComponentFromLegacy,
+  createComponentFromElement,
+  createCompatibleComponent,
+  createMetricSlider,
+  createComponentHeader,
+  createComponentButton
+} from '../templates/ui/ComponentFactory';
 
-// Create a type with public-only properties for BaseComponent
-type PublicBaseComponent = {
-  container: HTMLElement;
-  render(): void;
-  update(): void;
-  show(): void;
-  hide(): void;
-  setVisible(visible: boolean): void;
-  findElement<T extends HTMLElement = HTMLElement>(selector: string): T | null;
-  createElement<K extends keyof HTMLElementTagNameMap>(
-    tag: K,
-    attributes?: Record<string, string>,
-    content?: string | HTMLElement | HTMLElement[]
-  ): HTMLElementTagNameMap[K];
-  destroy(): void;
-};
+// Re-export modal factory
+import { createModal, ModalConfig } from '../dom/modals/ModalFactory';
+
+// Re-export event handling
+import { convertEventHandlers } from '../templates/ui/EventHandling';
+
+// Re-export filter factory
+import { 
+  createFilterDropdown,
+  createDateRangeFilter 
+} from '../filters/FilterFactory';
 
 /**
- * Wraps a legacy component function to maintain backward compatibility
- * @param originalFn Original component constructor function
- * @returns A function that creates a component with proper typing
+ * Creates a new component of a specified type with proper typing
+ * @param componentClass The component class to instantiate
+ * @param options Component options
+ * @returns The created component
+ * @deprecated Use createComponent from ComponentFactory instead
  */
-export function wrapLegacyComponent<T extends Record<string, any>>(
-  originalFn: (container: HTMLElement, ...args: any[]) => T
-): (options: Partial<OOMComponentProps> & Record<string, any>) => PublicBaseComponent & T {
-  return function(options: Partial<OOMComponentProps> & Record<string, any>): PublicBaseComponent & T {
-    // Create base component instance as any to access protected properties
-    const baseComponent = new BaseComponent(options) as unknown as PublicBaseComponent;
-    
-    // Extract parameters for the original function
-    const { container, ...rest } = options;
-    
-    // Create original component
-    const originalComponent = originalFn(baseComponent.container, ...Object.values(rest));
-    
-    // Merge components
-    const mergedComponent = Object.assign(baseComponent, originalComponent);
-    
-    // Override render method to call original render if it exists
-    const originalRender = originalComponent.render;
-    if (typeof originalRender === 'function') {
-      mergedComponent.render = function() {
-        BaseComponent.prototype.render.call(this);
-        originalRender.call(this);
-      };
-    }
-    
-    return mergedComponent;
-  };
+export function createCompatibleComponent2(componentClass: any, options: any): any {
+  return createComponent(componentClass, options);
 }
 
 /**
- * Adapts event handling for legacy components
- * @param component Component to adapt
- * @param events Map of event names to legacy handler functions
- * @deprecated Use convertEventHandlers from EventHandling module instead
+ * Creates a filter element
+ * @param type The filter type
+ * @param options Filter options
+ * @returns The created filter element
+ * @deprecated Use createFilterDropdown or createDateRangeFilter from FilterFactory instead
  */
-export function adaptLegacyEvents<T extends Record<string, any>>(
-  component: T,
-  events: Record<string, string>
-): void {
-  // Use the new convertEventHandlers function from EventHandling module
-  convertEventHandlers(component, events);
+export function createFilterElement(type: string, options: any = {}): any {
+  if (type === 'dropdown' || type === 'select') {
+    return createFilterDropdown(options);
+  } else if (type === 'dateRange' || type === 'date-range') {
+    return createDateRangeFilter(options);
+  }
+  
+  throw new Error(`Filter type "${type}" not supported`);
 }
 
 /**
- * Creates a wrapper BaseComponent around an existing DOM element
- * @param element Existing DOM element
+ * Wraps a legacy component constructor to make it compatible with the new component system
+ * @param legacyConstructor The legacy component constructor
+ * @param options Constructor options
+ * @returns The wrapped component
+ * @deprecated Use createComponentFromLegacy from ComponentFactory instead
+ */
+export function wrapLegacyComponent(legacyConstructor: any, options: any = {}): any {
+  return createComponentFromLegacy(legacyConstructor, options);
+}
+
+/**
+ * Creates a component from an existing DOM element
+ * @param element The DOM element to wrap
  * @param className Optional class name to add
- * @returns A BaseComponent wrapping the element
+ * @returns The wrapped component
+ * @deprecated Use createComponentFromElement from ComponentFactory instead
  */
-export function wrapExistingElement(
-  element: HTMLElement,
-  className?: string
-): PublicBaseComponent {
-  // Create a temporary container for the BaseComponent
-  const tempContainer = document.createElement('div');
-  if (element.parentElement) {
-    element.parentElement.appendChild(tempContainer);
-  }
-  
-  // Create base component with the temporary container
-  const baseComponent = new BaseComponent({
-    container: tempContainer,
-    className
-  }) as unknown as PublicBaseComponent;
-  
-  // Get access to the container
-  const componentContainer = baseComponent.container;
-  
-  // Replace with the existing element
-  if (componentContainer.parentElement) {
-    componentContainer.parentElement.insertBefore(element, componentContainer);
-    componentContainer.parentElement.removeChild(componentContainer);
-    
-    // Update container reference in base component
-    (baseComponent as any).container = element;
-    
-    if (className) {
-      element.classList.add(className);
-    }
-  }
-  
-  return baseComponent;
-}
-
-// Interface for components with event handling
-interface EventHandlingComponent {
-  on(eventName: string, handler: Function): void;
-  off(eventName: string, handler: Function): void;
-  trigger(eventName: string, data?: any): void;
+export function createElementComponent(element: HTMLElement, className?: string): any {
+  return createComponentFromElement(element, className);
 }
 
 /**
- * Migrates a component that uses custom events to EventableComponent
- * @param component Component to migrate
- * @param events List of custom event names
- * @returns Same component with added event methods
+ * Adapts a modal configuration object to the standard format
+ * @param config Original config object
+ * @returns Standardized modal config
+ * @deprecated Use createModal from ModalFactory directly
  */
-export function migrateToEventable<T extends Record<string, any>>(
-  component: T,
-  events: string[]
-): T & EventHandlingComponent {
-  // Create a map for event handlers
-  const eventHandlers = new Map<string, Set<Function>>();
-  
-  // Add event handlers to component
-  (component as any)['eventHandlers'] = eventHandlers;
-  
-  // Create a new object with event handling methods
-  const eventComponent: EventHandlingComponent = {
-    on: function(eventName: string, handler: Function): void {
-      if (!eventHandlers.has(eventName)) {
-        eventHandlers.set(eventName, new Set());
-      }
-      
-      eventHandlers.get(eventName)!.add(handler);
-    },
-    
-    off: function(eventName: string, handler: Function): void {
-      if (!eventHandlers.has(eventName)) {
-        return;
-      }
-      
-      eventHandlers.get(eventName)!.delete(handler);
-    },
-    
-    trigger: function(eventName: string, data?: any): void {
-      if (!eventHandlers.has(eventName)) {
-        return;
-      }
-      
-      for (const handler of eventHandlers.get(eventName)!) {
-        handler(data);
-      }
-    }
+export function adaptModalConfig(config: any): ModalConfig {
+  return {
+    title: config.title,
+    description: config.description || config.message,
+    width: config.width,
+    height: config.height,
+    className: config.className,
+    closeOnEsc: config.closeOnEsc ?? true,
+    closeOnClickOutside: config.closeOnClickOutside ?? false,
+    onOpen: config.onOpen,
+    onClose: config.onClose
   };
-  
-  // Merge the event methods into the component
-  return Object.assign(component, eventComponent);
-}
-
-/**
- * Transforms a standard constructor function to a component class
- * @param constructorFn Original constructor function
- * @returns A new class extending BaseComponent
- */
-export function transformToComponentClass<T>(
-  constructorFn: new (container: HTMLElement, ...args: any[]) => T
-): new (props: Partial<OOMComponentProps>) => PublicBaseComponent & T {
-  return class extends BaseComponent {
-    private originalInstance: T;
-    
-    constructor(props: Partial<OOMComponentProps>) {
-      super(props);
-      
-      // Access container via getter
-      const container = (this as unknown as PublicBaseComponent).container;
-      
-      // Create original instance
-      this.originalInstance = new constructorFn(container);
-      
-      // Copy properties from original instance
-      Object.assign(this, this.originalInstance);
-    }
-    
-    // Override render method
-    render(): void {
-      super.render();
-      
-      // Call original render if it exists
-      const originalRender = this.originalInstance as any;
-      if (typeof originalRender.render === 'function') {
-        originalRender.render();
-      }
-    }
-  } as unknown as new (props: Partial<OOMComponentProps>) => PublicBaseComponent & T;
 } 
