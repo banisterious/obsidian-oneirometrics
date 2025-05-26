@@ -150,6 +150,7 @@ import { ContentParser } from './src/parsing/services/ContentParser';
 import { runSettingsAdapterTests } from './src/testing/utils/SettingsAdapterTests';
 import { runEventHandlingTests } from './src/testing/utils/EventHandlingTests';
 import { runComponentFactoryTests } from './src/testing/utils/ComponentFactoryTests';
+import { runDreamMetricsStateTests } from './src/testing/DreamMetricsStateTests';
 
 // Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
 import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
@@ -959,6 +960,16 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: async () => {
                 await runComponentFactoryTests();
                 new Notice('ComponentFactory tests complete - check console for results');
+            }
+        });
+        
+        // Command to run DreamMetricsState tests
+        this.addCommand({
+            id: 'run-dream-metrics-state-tests',
+            name: 'Run DreamMetricsState Tests',
+            callback: async () => {
+                await runDreamMetricsStateTests();
+                new Notice('DreamMetricsState tests complete - check console for results');
             }
         });
 
