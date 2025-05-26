@@ -2,9 +2,10 @@
 
 ## Overview
 
-This document outlines the testing procedures and requirements for the OneiroMetrics plugin. For UI and accessibility testing, see:
+This document outlines the testing procedures and requirements for the OneiroMetrics plugin. For specialized testing guides, see:
 - [UI Testing Guide](./ui-testing.md)
 - [Accessibility Testing Guide](./accessibility-testing.md)
+- [Adapter Testing Patterns](./adapter-testing-patterns.md)
 
 ## Testing Categories
 
