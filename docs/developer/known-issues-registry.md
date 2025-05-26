@@ -25,6 +25,12 @@ This document tracks technical issues, limitations, and known bugs that have bee
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-003 | DreamMetric Types | Two incompatible DreamMetric interfaces exist (types.ts and src/types/core.ts) | Medium - Was a blocker for adapter migration; temporarily resolved with workarounds but needs proper fix | 2025-05-26 (Adapter Migration) | 2025-07-15 |
 
+### UI Component Issues
+
+| ID | Component | Description | Impact | Discovered | Target Resolution |
+|----|-----------|-------------|--------|------------|-------------------|
+| ISSUE-25-004 | Date Range Filter | Custom Date Range Filter has significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Medium - Makes custom date range filtering difficult for users; quick filter buttons work as expected | 2025-05-26 (UI Components Migration) | 2025-07-30 |
+
 ## Implementation Notes
 
 ### ISSUE-25-001 & ISSUE-25-002
@@ -55,6 +61,20 @@ While these workarounds allowed us to complete the migration, a proper solution 
 3. Remove the dual type system
 4. Ensure all functions return properly typed results
 
+### ISSUE-25-004 (Date Range Filter Usability)
+The current date range filter UI component has several usability issues:
+1. Input fields require exact date formats without clear indication of accepted formats
+2. Validation is strict with poor feedback when input is rejected
+3. Date selection is cumbersome without a date picker component
+4. Error states are not clearly indicated to the user
+
+Resolution approach:
+1. Implement a proper date picker component with clear UI for date selection
+2. Add inline validation with helpful error messages
+3. Support multiple input formats with automatic standardization
+4. Add clear visual indication of valid/invalid states
+5. Consider replacing with a more user-friendly interface like a calendar view
+
 ## Resolved Issues
 
 Issues can be resolved in multiple ways:
@@ -73,4 +93,4 @@ Issues can be resolved in multiple ways:
 - [Adapter Migration Plan](./implementation/adapter-migration-plan.md)
 - [TypeScript Architecture Lessons](./architecture/typescript-architecture-lessons.md)
 
-*Last Updated: 2025-06-01* 
+*Last Updated: 2025-05-26* 

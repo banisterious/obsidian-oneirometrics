@@ -227,14 +227,19 @@
    - Next Steps: Complete layout fixes, ensure all autocompletes work, finalize progress bar, and polish for release.
    - Status: 🚧 In Progress
 
-6. **Custom Date Range Modal Issues**
-   - Issue: The Custom Date Range modal has several UX and functionality issues:
-     - Default date range incorrectly shows the previous day instead of the current day
-     - Input format mismatch: displays dates in a user-friendly format but expects ISO format for manual entry, creating a confusing user experience
-     - Multiple modal instances can be spawned simultaneously, requiring users to close each one individually
-   - Investigation: Initial fixes have improved the clickable favorites functionality and removed the dropdown
-   - Next Steps: Defer fixes until after Month view feature implementation, which may provide alternative date selection approaches
-   - Status: 🚧 Identified, Deferred
+6. **Custom Date Range Filter**
+   - Issue: Custom date range input fields have significant usability issues 
+   - Description: Date inputs require strict format adherence with minimal feedback
+   - Impact: Makes manual date entry difficult for users (quick filter buttons work correctly)
+   - Workaround: Use the preset date filters (This Week, Last Month, etc.) which function properly
+   - Note: The Date Navigator custom date selection works as expected
+
+7. **Journal Manager Open OneiroMetrics Button**
+   - Issue: The "Open OneiroMetrics" button in the Dream Scrape tab provides no feedback while processing
+   - Description: Users have no indication that anything is happening when the button is clicked
+   - Impact: Creates confusion as it takes several seconds for the OneiroMetrics note to open
+   - Recommended Fix: Add a loading indicator or progress animation to provide visual feedback
+   - Status: 🚧 Identified, Not Started
 
 ## Future Features
 

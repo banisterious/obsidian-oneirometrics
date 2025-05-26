@@ -17,8 +17,8 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
 | Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (97%) |
 | Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (80%) |
-| Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
-| Testing and Verification | 2025-07-25 | 🔄 In Progress (60%) |
+| Update Peripheral Files | 2025-07-15 | 🔄 In Progress (15%) |
+| Testing and Verification | 2025-07-25 | 🔄 In Progress (70%) |
 | Adapter Files Removal | 2025-08-01 | ⬜ Not Started |
 
 ## Table of Contents
@@ -116,7 +116,7 @@ This plan outlines our strategy for:
 | createCompatibleComponent | DreamMetricsDOM.ts | src/templates/ui/ComponentFactory.ts | ✅ Completed | High |
 | adaptModalConfig | multiple modals | src/dom/modals/ModalFactory.ts | ⬜ Not Started | High |
 | convertEventHandlers | multiple components | src/templates/ui/EventHandling.ts | ✅ Completed | Medium |
-| createFilterElement | TimeFilterManager.ts | src/filters/FilterFactory.ts | ⬜ Not Started | Medium |
+| createFilterElement | TimeFilterManager.ts | src/filters/FilterFactory.ts | ✅ Completed and Tested | Medium |
 
 ## Classification Strategy
 
@@ -288,8 +288,8 @@ By following these patterns and guidelines, we'll create adapters that are maint
 |------|--------|-------------|--------------|
 | Update main.ts settings handling | ✅ Completed | 2025-05-26 | ✅ SettingsAdapter |
 | Update main.ts event handling | ✅ Completed | 2025-05-26 | ✅ EventHandling |
-| Update settings.ts | ✅ Completed | 2025-06-01 | ✅ SettingsAdapter |
-| Resolve DreamMetric type inconsistencies | ✅ Completed | 2025-06-01 | DreamMetric in types.ts vs core.ts |
+| Update settings.ts | ✅ Completed | 2025-05-26 | ✅ SettingsAdapter |
+| Resolve DreamMetric type inconsistencies | ✅ Completed | 2025-05-26 | ✅ DreamMetric in types.ts vs core.ts |
 | Update DreamMetricsState.ts | ✅ Completed | 2025-05-26 | ✅ SettingsAdapter |
 
 ### Phase 3: Update Peripheral Files (Target: 2025-07-15)
@@ -302,7 +302,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
-| Update UI components | ⬜ Not Started | 2025-07-10 | ComponentFactory |
+| Update UI components | 🔄 In Progress (40%) | 2025-05-26 | ComponentFactory |
 | Update service modules | ⬜ Not Started | 2025-07-12 | All Phase 1 items |
 | Update utility modules | ⬜ Not Started | 2025-07-14 | PropertyAccessor |
 
@@ -426,11 +426,11 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22/22 passing), metric-helpers.ts (11/13 passing with 2 known issues), selection-mode-helpers.ts (9/9 passing), type-guards.ts (10/10 passing), property-helpers.ts (10/10 passing), ContentParser parameter variations (7/7 passing), SettingsAdapter (11/11 passing), EventHandling (10/10 passing), ComponentFactory (5/5 passing), and DreamMetricsState (5/5 passing). Successfully tested main.ts settings handling and event handling changes with all tests passing. |
+| Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22/22 passing), metric-helpers.ts (11/13 passing with 2 known issues), selection-mode-helpers.ts (9/9 passing), type-guards.ts (10/10 passing), property-helpers.ts (10/10 passing), ContentParser parameter variations (7/7 passing), SettingsAdapter (11/11 passing), EventHandling (10/10 passing), ComponentFactory (5/5 passing), and DreamMetricsState (6/6 passing). Successfully tested main.ts settings handling and event handling changes with all tests passing. |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. |
+| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, main.ts settings adapter usage, main.ts event handling. Successfully migrated settings.ts and fixed DreamMetric type compatibility issues between core.ts and types.ts definitions by improving standardizeMetric and createCompatibleMetric functions. Successfully migrated DreamMetricsState.ts to use SettingsAdapter and added tests. Created FilterFactory.ts to replace createFilterElement and updated DateRangeFilter to use it. Tested the Date Navigator UI components and identified usability issues with custom date range input fields - documented as ISSUE-25-004 in the Known Issues Registry. Quick filter buttons (This Week, Last Month, etc.) work correctly. DateRangeFilter and FilterFactory implementations are functionally working despite the input field usability issues. |
 | Performance testing | ⬜ Not Started | - | - |
-| Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md |
+| Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md. Updated issues documentation to reflect DateRangeFilter usability issues. |
 | Final approval | ⬜ Not Started | - | - |
 
 ## Appendix
