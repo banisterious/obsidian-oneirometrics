@@ -6,7 +6,7 @@ This document provides a comprehensive plan for migrating away from temporary ad
 
 **Last Updated**: 2025-05-26
 
-**Current Status**: In Progress (92%)
+**Current Status**: In Progress (97%)
 
 ### Key Milestones
 
@@ -15,7 +15,7 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Comprehensive Plan Creation | 2025-05-25 | ✅ Completed |
 | Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
-| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (92%) |
+| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (97%) |
 | Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) |
 | Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
 | Testing and Verification | 2025-07-25 | 🔄 In Progress (50%) |
@@ -78,8 +78,8 @@ This plan outlines our strategy for:
 | UIComponentAdapter.adaptEntryForUI | src/journal_check/ui/DreamJournalManager.ts | src/journal_check/ui/EntryComponent.ts | ⬜ Not Started | Medium |
 | SettingsAdapter.adaptSelectionMode | main.ts, src/state/DreamMetricsState.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
 | SettingsAdapter.adaptSelectionModeToLegacy | main.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
-| EventAdapter.adaptEventHandler | multiple components | src/templates/ui/EventHandling.ts | ⬜ Not Started | Medium |
-| EventAdapter.adaptClickHandler | multiple components | src/templates/ui/EventHandling.ts | ⬜ Not Started | Medium |
+| EventAdapter.adaptEventHandler | multiple components | src/templates/ui/EventHandling.ts | ✅ Completed | Medium |
+| EventAdapter.adaptClickHandler | multiple components | src/templates/ui/EventHandling.ts | ✅ Completed | Medium |
 
 ### type-adapters.ts Dependencies
 
@@ -113,9 +113,9 @@ This plan outlines our strategy for:
 
 | Function | Used In | Replacement Path | Migration Status | Priority |
 |----------|---------|------------------|-----------------|----------|
-| createCompatibleComponent | DreamMetricsDOM.ts | src/templates/ui/ComponentFactory.ts | ⬜ Not Started | High |
+| createCompatibleComponent | DreamMetricsDOM.ts | src/templates/ui/ComponentFactory.ts | ✅ Completed | High |
 | adaptModalConfig | multiple modals | src/dom/modals/ModalFactory.ts | ⬜ Not Started | High |
-| convertEventHandlers | multiple components | src/templates/ui/EventHandling.ts | ⬜ Not Started | Medium |
+| convertEventHandlers | multiple components | src/templates/ui/EventHandling.ts | ✅ Completed | Medium |
 | createFilterElement | TimeFilterManager.ts | src/filters/FilterFactory.ts | ⬜ Not Started | Medium |
 
 ## Classification Strategy
@@ -265,9 +265,9 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
 | Create SettingsAdapter class | ✅ Completed | 2025-05-26 | None |
-| Implement EventHandling module | ⬜ Not Started | 2025-06-15 | None |
+| Implement EventHandling module | ✅ Completed | 2025-06-15 | None |
 | Create PropertyAccessor class | ✅ Completed | 2025-05-26 | None |
-| Implement ComponentFactory | ⬜ Not Started | 2025-06-18 | None |
+| Implement ComponentFactory | ✅ Completed | 2025-06-15 | None |
 | Update ContentParser for parameter variations | ✅ Completed | 2025-05-26 | None |
 
 ### Phase 2: Update Core Files (Target: 2025-07-05)
@@ -281,7 +281,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
 | Update main.ts settings handling | 🔄 In Progress | 2025-06-25 | ✅ SettingsAdapter |
-| Update main.ts event handling | ⬜ Not Started | 2025-06-28 | EventHandling |
+| Update main.ts event handling | ⬜ Not Started | 2025-06-28 | ✅ EventHandling |
 | Update settings.ts | ⬜ Not Started | 2025-07-01 | ✅ SettingsAdapter |
 | Update DreamMetricsState.ts | ⬜ Not Started | 2025-07-03 | ✅ SettingsAdapter |
 
@@ -318,6 +318,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 - Create stub files that re-export from new locations
 - Replace adapter files with stubs
 - Test thoroughly
+- Remove or hide test commands from the command palette 
 - Eventually remove stubs entirely
 
 #### Task Tracking for Phase 5
@@ -328,7 +329,24 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Create type-adapters.ts stub | ⬜ Not Started | 2025-07-28 | Phase 4 |
 | Create property-compatibility.ts stub | ⬜ Not Started | 2025-07-29 | Phase 4 |
 | Create component-migrator.ts stub | ⬜ Not Started | 2025-07-30 | Phase 4 |
+| Remove/hide test commands | ⬜ Not Started | 2025-07-31 | All tests passing |
 | Final verification | ⬜ Not Started | 2025-08-01 | All stubs created |
+
+#### Handling Test Commands
+
+To keep the command palette clean while still allowing developers to run tests, we'll implement one of the following approaches:
+
+1. **Developer Mode Toggle**: Only show test commands when developer mode is enabled in settings
+   - Modify the command registration to check `this.settings.developerMode` before registering test commands
+   - Add documentation for how to enable developer mode to access tests
+
+2. **Consolidated Test Command**: Replace individual test commands with a single "Run All Tests" command
+   - Create a test selection UI modal that appears when the command is run
+   - Allow users to select which test suite to run from the modal
+
+3. **Test Plugin**: Move test commands to a separate companion plugin
+   - Create a dedicated testing plugin that references the main plugin
+   - Install only during development, not in production releases
 
 ## Testing Strategy
 
@@ -401,9 +419,9 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), property-helpers.ts (10 tests), ContentParser parameter variations (7 tests), and SettingsAdapter (11 tests) |
+| Unit tests | 🔄 In Progress | 2025-06-15 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), property-helpers.ts (10 tests), ContentParser parameter variations (7 tests), SettingsAdapter (11 tests), EventHandling (10 tests), and ComponentFactory (5 tests) |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations in Obsidian environment with real test data |
+| Manual testing | 🔄 In Progress | 2025-06-15 | Verified ContentParser parameter variations and ComponentFactory in Obsidian environment with real test data |
 | Performance testing | ⬜ Not Started | - | - |
 | Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md |
 | Final approval | ⬜ Not Started | - | - |
