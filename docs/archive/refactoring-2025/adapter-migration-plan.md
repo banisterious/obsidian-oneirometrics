@@ -461,16 +461,16 @@ This foundational work enables future development to proceed with a cleaner, mor
 
 ### References
 
-- [TypeScript Architecture and Lessons](../architecture/typescript-architecture-lessons.md)
-- [Post-Refactoring Roadmap](./post-refactoring-roadmap.md)
-- [Post-Refactoring Cleanup Checklist](../../archive/refactoring-2025/post-refactoring-cleanup-checklist.md)
-- [TypeScript Interface Standards](./typescript-interface-standards.md)
-- [TypeScript Helper Utilities Guide](./typescript-helper-utilities.md)
+- [TypeScript Architecture and Lessons](../../developer/architecture/typescript-architecture-lessons.md)
+- [Post-Refactoring Roadmap](../../developer/implementation/post-refactoring-roadmap.md)
+- [Post-Refactoring Cleanup Checklist](./post-refactoring-cleanup-checklist.md)
+- [TypeScript Interface Standards](../../developer/implementation/typescript-interface-standards.md)
+- [TypeScript Helper Utilities Guide](../../developer/implementation/typescript-helper-utilities.md)
 - [Adapter Testing Patterns](./testing/adapter-testing-patterns.md)
 - [Adapter Testing Integration Guide](./adapter-testing-integration.md)
-- [TypeScript Best Practices Guide](./typescript-best-practices.md)
-- [TypeScript Adapter Pattern Guide](./typescript-adapter-patterns.md)
-- [TypeScript Unified Interface Plan](./typescript-unified-interface-plan.md)
+- [TypeScript Best Practices Guide](../../developer/implementation/typescript-best-practices.md)
+- [TypeScript Adapter Pattern Guide](../../developer/implementation/typescript-adapter-patterns.md)
+- [TypeScript Unified Interface Plan](../../developer/implementation/typescript-unified-interface-plan.md)
 - [Expanded Adapter Function Classification](./adapter-classification-expanded.md)
 
 ### Dependency Analysis Methodology
