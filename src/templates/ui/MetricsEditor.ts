@@ -6,7 +6,7 @@
 
 import { DreamMetric, DreamMetricData } from '../../types/core';
 import { EventableComponent, ComponentEventHandler } from './BaseComponent';
-import { createMetricSlider, createComponentHeader, createComponentButton } from '../../utils/ui-component-adapter';
+import { createMetricSlider, createComponentHeader, createComponentButton } from './ComponentFactory';
 import { adaptMetricForUI } from './MetricComponent';
 
 /**
