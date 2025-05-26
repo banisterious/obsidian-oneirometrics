@@ -9,6 +9,7 @@ import { registerUIComponentTests } from './UIComponentTests';
 import { registerSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
 import { registerSettingsHelpersTests } from './utils/SettingsHelpersTests';
 import { registerMetricHelpersTests } from './utils/MetricHelpersTests';
+import { registerTypeGuardsTests } from './utils/TypeGuardsTests';
 
 /**
  * Registers all tests with the test runner
@@ -22,6 +23,7 @@ export function registerAllTests(testRunner: TestRunner): void {
   registerSelectionModeHelperTests(testRunner);
   registerSettingsHelpersTests(testRunner);
   registerMetricHelpersTests(testRunner);
+  registerTypeGuardsTests(testRunner);
   
   // Add other test registration functions here as they are implemented
 }
@@ -63,4 +65,5 @@ export { TestRunner };
 export { registerUIComponentTests };
 export { registerSelectionModeHelperTests };
 export { registerSettingsHelpersTests };
-export { registerMetricHelpersTests }; 
+export { registerMetricHelpersTests };
+export { registerTypeGuardsTests }; 

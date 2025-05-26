@@ -146,4 +146,56 @@ export function setShowRibbonButtons(settings: DreamMetricsSettings, show: boole
     settings.showRibbonButtons = show;
     // Also set legacy property for compatibility
     settings.showTestRibbonButton = show;
-} 
+}
+
+/**
+ * Checks if developer mode is enabled
+ */
+export function isDeveloperModeEnabled(settings: DreamMetricsSettings): boolean {
+    if (!settings.developerMode) return false;
+    return settings.developerMode.enabled || false;
+}
+
+/**
+ * Sets developer mode enabled state
+ */
+export function setDeveloperModeEnabled(settings: DreamMetricsSettings, enabled: boolean): void {
+    if (!settings.developerMode) {
+        settings.developerMode = { enabled: false };
+    }
+    settings.developerMode.enabled = enabled;
+}
+
+/**
+ * Gets the UI state object
+ */
+export function getUIState(settings: DreamMetricsSettings): Record<string, any> {
+    return settings.uiState || {};
+}
+
+/**
+ * Sets the UI state object
+ */
+export function setUIState(settings: DreamMetricsSettings, uiState: Record<string, any>): void {
+    settings.uiState = uiState;
+}
+
+/**
+ * Gets the active tab from UI state
+ */
+export function getActiveTab(settings: DreamMetricsSettings): string {
+    if (!settings.uiState) return 'general';
+    return settings.uiState.activeTab || (settings.uiState as any).lastTab || 'general';
+}
+
+/**
+ * Sets the active tab in UI state
+ */
+export function setActiveTab(settings: DreamMetricsSettings, tab: string): void {
+    if (!settings.uiState) {
+        settings.uiState = {};
+    }
+    settings.uiState.activeTab = tab;
+    // Also set legacy property for compatibility
+    (settings.uiState as any).lastTab = tab;
+}

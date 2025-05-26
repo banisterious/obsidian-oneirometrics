@@ -23,7 +23,13 @@ import {
   getJournalStructure,
   setJournalStructure,
   shouldShowRibbonButtons,
-  setShowRibbonButtons
+  setShowRibbonButtons,
+  isDeveloperModeEnabled,
+  setDeveloperModeEnabled,
+  getUIState,
+  setUIState,
+  getActiveTab,
+  setActiveTab
 } from '../../utils/settings-helpers';
 import { TestRunner } from '../TestRunner';
 
@@ -437,6 +443,210 @@ export function registerSettingsHelpersTests(
       const falseResult = settings.showRibbonButtons === false && settings.showTestRibbonButton === false;
       
       return trueResult && falseResult;
+    }
+  );
+  
+  // Test: isDeveloperModeEnabled functionality
+  testRunner.addTest(
+    'Settings Helpers - isDeveloperModeEnabled correctly handles property',
+    () => {
+      // Test with enabled true
+      const settingsWithDevModeTrue = { 
+        developerMode: { enabled: true } 
+      } as DreamMetricsSettings;
+      
+      // Test with enabled false
+      const settingsWithDevModeFalse = { 
+        developerMode: { enabled: false } 
+      } as DreamMetricsSettings;
+      
+      // Test with developerMode object but no enabled property
+      const settingsWithDevModeNoEnabled = { 
+        developerMode: {} 
+      } as DreamMetricsSettings;
+      
+      // Test with no developerMode object
+      const settingsWithoutDevMode = {} as DreamMetricsSettings;
+      
+      return (
+        isDeveloperModeEnabled(settingsWithDevModeTrue) === true &&
+        isDeveloperModeEnabled(settingsWithDevModeFalse) === false &&
+        isDeveloperModeEnabled(settingsWithDevModeNoEnabled) === false &&
+        isDeveloperModeEnabled(settingsWithoutDevMode) === false
+      );
+    }
+  );
+  
+  // Test: setDeveloperModeEnabled functionality
+  testRunner.addTest(
+    'Settings Helpers - setDeveloperModeEnabled updates property correctly',
+    () => {
+      // Test with existing developerMode object
+      const settingsWithDevMode = { 
+        developerMode: { enabled: false, showDebugRibbon: true } 
+      } as DreamMetricsSettings;
+      
+      // Test with no developerMode object
+      const settingsWithoutDevMode = {} as DreamMetricsSettings;
+      
+      // Set developer mode to true
+      setDeveloperModeEnabled(settingsWithDevMode, true);
+      setDeveloperModeEnabled(settingsWithoutDevMode, true);
+      
+      // Check that properties were set correctly
+      const withDevModeResult = 
+        settingsWithDevMode.developerMode.enabled === true &&
+        settingsWithDevMode.developerMode.showDebugRibbon === true; // Should preserve existing props
+      
+      const withoutDevModeResult = 
+        settingsWithoutDevMode.developerMode?.enabled === true;
+      
+      return withDevModeResult && withoutDevModeResult;
+    }
+  );
+  
+  // Test: getUIState functionality
+  testRunner.addTest(
+    'Settings Helpers - getUIState correctly handles property',
+    () => {
+      // Test with uiState object with properties
+      const settingsWithUIState = { 
+        projectNote: '',
+        metrics: {},
+        selectedNotes: [],
+        selectedFolder: '',
+        selectionMode: 'notes',
+        calloutName: 'dream',
+        showRibbonButtons: false,
+        backupEnabled: false,
+        backupFolderPath: '',
+        logging: { level: 'info' },
+        uiState: { 
+          activeTab: 'metrics',
+          lastFilter: 'today',
+          customRanges: { 'last-week': { start: '2025-05-01', end: '2025-05-07' } }
+        } 
+      } as DreamMetricsSettings;
+      
+      // Test with empty uiState object
+      const settingsWithEmptyUIState = { 
+        uiState: {} 
+      } as DreamMetricsSettings;
+      
+      // Test with no uiState object
+      const settingsWithoutUIState = {} as DreamMetricsSettings;
+      
+      // Get UI state for each case
+      const withUIState = getUIState(settingsWithUIState);
+      const withEmptyUIState = getUIState(settingsWithEmptyUIState);
+      const withoutUIState = getUIState(settingsWithoutUIState);
+      
+      return (
+        withUIState.activeTab === 'metrics' &&
+        withUIState.lastFilter === 'today' &&
+        withUIState.customRanges['last-week'].start === '2025-05-01' &&
+        Object.keys(withEmptyUIState).length === 0 &&
+        Object.keys(withoutUIState).length === 0
+      );
+    }
+  );
+  
+  // Test: setUIState functionality
+  testRunner.addTest(
+    'Settings Helpers - setUIState updates property',
+    () => {
+      // Create settings object
+      const settings = {} as DreamMetricsSettings;
+      
+      // Create UI state to set
+      const uiState = {
+        activeTab: 'settings',
+        lastFilter: 'all',
+        layout: { collapsed: true }
+      };
+      
+      // Set UI state
+      setUIState(settings, uiState);
+      
+      // Check that property was set correctly
+      return (
+        settings.uiState?.activeTab === 'settings' &&
+        settings.uiState?.lastFilter === 'all' &&
+        settings.uiState?.layout?.collapsed === true
+      );
+    }
+  );
+  
+  // Test: getActiveTab functionality
+  testRunner.addTest(
+    'Settings Helpers - getActiveTab correctly handles various property states',
+    () => {
+      // Test with activeTab property
+      const settingsWithActiveTab = { 
+        uiState: { activeTab: 'metrics' } 
+      } as DreamMetricsSettings;
+      
+      // Test with legacy lastTab property
+      const settingsWithLastTab = { 
+        uiState: { lastTab: 'developer' } 
+      } as any; // Using 'any' to bypass TypeScript checks for legacy property
+      
+      // Test with both properties
+      const settingsWithBoth = { 
+        uiState: { 
+          activeTab: 'settings',
+          lastTab: 'developer'
+        } 
+      } as any;
+      
+      // Test with neither property
+      const settingsWithNeither = { 
+        uiState: {} 
+      } as DreamMetricsSettings;
+      
+      // Test with no uiState object
+      const settingsWithoutUIState = {} as DreamMetricsSettings;
+      
+      return (
+        getActiveTab(settingsWithActiveTab) === 'metrics' &&
+        getActiveTab(settingsWithLastTab) === 'developer' &&
+        getActiveTab(settingsWithBoth) === 'settings' && // activeTab takes precedence
+        getActiveTab(settingsWithNeither) === 'general' && // default
+        getActiveTab(settingsWithoutUIState) === 'general' // default
+      );
+    }
+  );
+  
+  // Test: setActiveTab functionality
+  testRunner.addTest(
+    'Settings Helpers - setActiveTab updates property correctly',
+    () => {
+      // Test with existing uiState object
+      const settingsWithUIState = { 
+        uiState: { 
+          activeTab: 'metrics',
+          lastFilter: 'today'
+        } 
+      } as DreamMetricsSettings;
+      
+      // Test with no uiState object
+      const settingsWithoutUIState = {} as DreamMetricsSettings;
+      
+      // Set active tab
+      setActiveTab(settingsWithUIState, 'developer');
+      setActiveTab(settingsWithoutUIState, 'settings');
+      
+      // Check that properties were set correctly
+      const withUIStateResult = 
+        settingsWithUIState.uiState?.activeTab === 'developer' &&
+        (settingsWithUIState.uiState as any).lastTab === 'developer' && // legacy property
+        settingsWithUIState.uiState?.lastFilter === 'today'; // should preserve existing props
+      
+      const withoutUIStateResult = 
+        settingsWithoutUIState.uiState?.activeTab === 'settings' &&
+        (settingsWithoutUIState.uiState as any).lastTab === 'settings';
+      
+      return withUIStateResult && withoutUIStateResult;
     }
   );
 }

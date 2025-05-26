@@ -4,21 +4,21 @@
 
 This document provides a comprehensive plan for migrating away from temporary adapter files created during the 2025 TypeScript refactoring project. It consolidates information from various documents into a single source of truth and establishes a clear framework for completing the adapter migration.
 
-**Last Updated**: 2025-05-30
+**Last Updated**: 2025-05-26
 
-**Current Status**: In Progress (30%)
+**Current Status**: In Progress (75%)
 
 ### Key Milestones
 
 | Milestone | Target Date | Status | Owner |
 |-----------|-------------|--------|-------|
 | Comprehensive Plan Creation | 2025-05-25 | ✅ Completed | Team |
-| Dependency Audit Completion | 2025-06-05 | 🔄 In Progress (40%) | - |
-| Adapter Classification | 2025-06-10 | 🔄 In Progress (10%) | - |
-| Implementation of Permanent Replacements | 2025-06-20 | ⬜ Not Started | - |
-| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (15%) | - |
+| Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) | - |
+| Adapter Classification | 2025-06-10 | ✅ Completed (100%) | - |
+| Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (70%) | - |
+| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) | - |
 | Update Peripheral Files | 2025-07-15 | ⬜ Not Started | - |
-| Testing and Verification | 2025-07-25 | ⬜ Not Started | - |
+| Testing and Verification | 2025-07-25 | 🔄 In Progress (40%) | - |
 | Adapter Files Removal | 2025-08-01 | ⬜ Not Started | - |
 
 ## Table of Contents
@@ -93,9 +93,9 @@ This plan outlines our strategy for:
 | isBackupEnabledSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
 | getBackupFolderPathSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
 | getExpandedStatesSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
-| isDeveloperModeSafe | main.ts, src/metrics/index.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
-| getUIStateSafe | main.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
-| getActiveTabSafe | settings.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Low |
+| isDeveloperModeSafe | main.ts, src/metrics/index.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Medium |
+| getUIStateSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Medium |
+| getActiveTabSafe | settings.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
 | getJournalStructureSafe | main.ts, src/journal_check/LintingEngine.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Medium |
 
 ### property-compatibility.ts Dependencies
@@ -147,6 +147,8 @@ Functions that were created solely for the migration and can be safely removed o
 - Only used in a few specific places that can be easily updated
 
 ### Classification Tracking Table
+
+For a complete classification of all adapter functions, see the [Expanded Adapter Function Classification](./adapter-classification-expanded.md) document. Below is a summary of key functions:
 
 | Function | Classification | Rationale | Next Steps |
 |----------|----------------|-----------|------------|
@@ -392,11 +394,11 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-05-25 | Created and validated tests for settings-helpers.ts |
+| Unit tests | 🔄 In Progress | 2025-06-05 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), and type-guards.ts (10 tests) |
 | Integration tests | ⬜ Not Started | - | - |
 | Manual testing | ⬜ Not Started | - | - |
 | Performance testing | ⬜ Not Started | - | - |
-| Documentation review | ⬜ Not Started | - | - |
+| Documentation review | 🔄 In Progress | 2025-05-25 | Created adapter-testing-patterns.md and adapter-testing-integration.md |
 | Final approval | ⬜ Not Started | - | - |
 
 ## Appendix
@@ -407,6 +409,13 @@ Before considering the adapter migration complete, we will perform these verific
 - [Post-Refactoring Roadmap](./post-refactoring-roadmap.md)
 - [Post-Refactoring Cleanup Checklist](../../archive/refactoring-2025/post-refactoring-cleanup-checklist.md)
 - [TypeScript Interface Standards](./typescript-interface-standards.md)
+- [TypeScript Helper Utilities Guide](./typescript-helper-utilities.md)
+- [Adapter Testing Patterns](./testing/adapter-testing-patterns.md)
+- [Adapter Testing Integration Guide](./adapter-testing-integration.md)
+- [TypeScript Best Practices Guide](./typescript-best-practices.md)
+- [TypeScript Adapter Pattern Guide](./typescript-adapter-patterns.md)
+- [TypeScript Unified Interface Plan](./typescript-unified-interface-plan.md)
+- [Expanded Adapter Function Classification](./adapter-classification-expanded.md)
 
 ### Dependency Analysis Methodology
 

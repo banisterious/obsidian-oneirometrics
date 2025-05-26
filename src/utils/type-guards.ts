@@ -7,8 +7,8 @@ import { DreamMetric } from '../types/core';
  * @param source The source value to check
  * @returns True if source is an object with file property
  */
-export function isObjectSource(source: string | { file: string; id?: string }): source is { file: string; id?: string } {
-  return typeof source !== 'string' && 'file' in source;
+export function isObjectSource(source: string | { file: string; id?: string } | null | undefined): source is { file: string; id?: string } {
+  return source !== null && source !== undefined && typeof source !== 'string' && typeof source === 'object' && 'file' in source;
 }
 
 /**
@@ -108,7 +108,7 @@ export function isMetricEnabled(metric: DreamMetric): boolean {
  * Type guard for callout metadata
  */
 export function isCalloutMetadata(obj: any): obj is CalloutMetadata {
-  return obj && typeof obj === 'object' && 'type' in obj;
+  return obj !== null && obj !== undefined && typeof obj === 'object' && !Array.isArray(obj) && 'type' in obj;
 }
 
 /**
@@ -117,5 +117,5 @@ export function isCalloutMetadata(obj: any): obj is CalloutMetadata {
  * @returns True if the value is a Promise
  */
 export function isPromise<T = any>(value: any): value is Promise<T> {
-  return value && typeof value.then === 'function';
+  return value !== null && value !== undefined && typeof value === 'object' && typeof value.then === 'function';
 } 
