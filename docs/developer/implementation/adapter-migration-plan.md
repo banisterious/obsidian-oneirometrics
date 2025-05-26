@@ -16,7 +16,7 @@ This document provides a comprehensive plan for migrating away from temporary ad
 | Dependency Audit Completion | 2025-05-26 | ✅ Completed (100%) |
 | Adapter Classification | 2025-05-26 | ✅ Completed (100%) |
 | Implementation of Permanent Replacements | 2025-06-20 | 🔄 In Progress (97%) |
-| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (25%) |
+| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (30%) |
 | Update Peripheral Files | 2025-07-15 | ⬜ Not Started |
 | Testing and Verification | 2025-07-25 | 🔄 In Progress (50%) |
 | Adapter Files Removal | 2025-08-01 | ⬜ Not Started |
@@ -265,9 +265,9 @@ By following these patterns and guidelines, we'll create adapters that are maint
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
 | Create SettingsAdapter class | ✅ Completed | 2025-05-26 | None |
-| Implement EventHandling module | ✅ Completed | 2025-06-15 | None |
+| Implement EventHandling module | ✅ Completed | 2025-05-26 | None |
 | Create PropertyAccessor class | ✅ Completed | 2025-05-26 | None |
-| Implement ComponentFactory | ✅ Completed | 2025-06-15 | None |
+| Implement ComponentFactory | ✅ Completed | 2025-05-26 | None |
 | Update ContentParser for parameter variations | ✅ Completed | 2025-05-26 | None |
 
 ### Phase 2: Update Core Files (Target: 2025-07-05)
@@ -280,7 +280,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 | Task | Status | Target Date | Dependencies |
 |------|--------|-------------|--------------|
-| Update main.ts settings handling | 🔄 In Progress | 2025-06-25 | ✅ SettingsAdapter |
+| Update main.ts settings handling | ✅ Completed | 2025-05-26 | ✅ SettingsAdapter |
 | Update main.ts event handling | ⬜ Not Started | 2025-06-28 | ✅ EventHandling |
 | Update settings.ts | ⬜ Not Started | 2025-07-01 | ✅ SettingsAdapter |
 | Update DreamMetricsState.ts | ⬜ Not Started | 2025-07-03 | ✅ SettingsAdapter |
@@ -419,9 +419,9 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | 🔄 In Progress | 2025-06-15 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), property-helpers.ts (10 tests), ContentParser parameter variations (7 tests), SettingsAdapter (11 tests), EventHandling (10 tests), and ComponentFactory (5 tests) |
+| Unit tests | 🔄 In Progress | 2025-05-26 | Created and validated tests for settings-helpers.ts (22 tests), metric-helpers.ts (11 tests), selection-mode-helpers.ts (9 tests), type-guards.ts (10 tests), property-helpers.ts (10 tests), ContentParser parameter variations (7 tests), SettingsAdapter (11 tests), EventHandling (10 tests), and ComponentFactory (5 tests). Successfully tested main.ts settings handling changes with all tests passing. |
 | Integration tests | ⬜ Not Started | - | - |
-| Manual testing | 🔄 In Progress | 2025-06-15 | Verified ContentParser parameter variations and ComponentFactory in Obsidian environment with real test data |
+| Manual testing | 🔄 In Progress | 2025-05-26 | Verified ContentParser parameter variations, ComponentFactory, and main.ts settings adapter usage in Obsidian environment with real test data |
 | Performance testing | ⬜ Not Started | - | - |
 | Documentation review | 🔄 In Progress | 2025-05-26 | Created adapter-testing-patterns.md and adapter-testing-integration.md |
 | Final approval | ⬜ Not Started | - | - |
