@@ -1,0 +1,330 @@
+# OneiroMetrics Adapter Migration Plan
+
+## Executive Summary
+
+This document provides a comprehensive plan for migrating away from temporary adapter files created during the 2025 TypeScript refactoring project. It consolidates information from various documents into a single source of truth and establishes a clear framework for completing the adapter migration.
+
+**Last Updated**: 2025-05-25
+
+**Current Status**: In Progress (20%)
+
+### Key Milestones
+
+| Milestone | Target Date | Status | Owner |
+|-----------|-------------|--------|-------|
+| Comprehensive Plan Creation | 2025-05-25 | ✅ Completed | Team |
+| Dependency Audit Completion | 2025-06-05 | 🔄 In Progress (40%) | - |
+| Adapter Classification | 2025-06-10 | 🔄 In Progress (10%) | - |
+| Implementation of Permanent Replacements | 2025-06-20 | ⬜ Not Started | - |
+| Update Core Files (main.ts, etc.) | 2025-07-05 | 🔄 In Progress (15%) | - |
+| Update Peripheral Files | 2025-07-15 | ⬜ Not Started | - |
+| Testing and Verification | 2025-07-25 | ⬜ Not Started | - |
+| Adapter Files Removal | 2025-08-01 | ⬜ Not Started | - |
+
+## Table of Contents
+
+- [Executive Summary](#executive-summary)
+- [Overview](#overview)
+- [Adapter Files Inventory](#adapter-files-inventory)
+- [Dependency Tracking](#dependency-tracking)
+- [Classification Strategy](#classification-strategy)
+- [Implementation Phases](#implementation-phases)
+- [Testing Strategy](#testing-strategy)
+- [Detailed Timeline](#detailed-timeline)
+- [Verification Process](#verification-process)
+- [Appendix](#appendix)
+
+## Overview
+
+During the 2025 TypeScript refactoring project, we created several adapter files to maintain backward compatibility while transitioning to a more modular, type-safe architecture. These adapter files were intended as temporary bridges but have become tightly integrated into the codebase.
+
+This plan outlines our strategy for:
+1. Identifying all dependencies on adapter files
+2. Classifying adapter functions as permanent or temporary
+3. Creating proper replacements for essential functionality
+4. Systematically updating imports and references
+5. Safely removing temporary adapter code
+6. Verifying functionality throughout the process
+
+## Adapter Files Inventory
+
+### Primary Adapter Files
+
+| File | Purpose | Function Count | Complexity |
+|------|---------|----------------|------------|
+| src/utils/adapter-functions.ts | Adapts function signatures and parameters | 12 | High |
+| src/utils/type-adapters.ts | Converts between interface versions | 14 | Medium |
+| src/utils/property-compatibility.ts | Handles property name changes | 8 | Medium |
+| src/utils/component-migrator.ts | Bridges UI component differences | 6 | High |
+
+### Helper Utilities (Considered Permanent)
+
+| File | Purpose | Status |
+|------|---------|--------|
+| src/utils/settings-helpers.ts | Safe settings access | ✅ Permanent |
+| src/utils/metric-helpers.ts | Metric property handling | ✅ Permanent |
+| src/utils/selection-mode-helpers.ts | Selection mode compatibility | ✅ Permanent |
+| src/utils/type-guards.ts | Type checking utilities | ✅ Permanent |
+
+## Dependency Tracking
+
+### adapter-functions.ts Dependencies
+
+| Function | Used In | Replacement Path | Migration Status | Priority |
+|----------|---------|------------------|-----------------|----------|
+| ContentParserAdapter.adaptExtractDreamEntries | main.ts, DateNavigator.ts | src/parsing/services/ContentParser.ts | 🔄 In Progress | High |
+| UIComponentAdapter.adaptMetricForUI | src/dom/modals/MetricsModal.ts | src/templates/ui/MetricComponent.ts | ⬜ Not Started | Medium |
+| UIComponentAdapter.adaptEntryForUI | src/journal_check/ui/DreamJournalManager.ts | src/journal_check/ui/EntryComponent.ts | ⬜ Not Started | Medium |
+| SettingsAdapter.adaptSelectionMode | main.ts, src/state/DreamMetricsState.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
+| SettingsAdapter.adaptSelectionModeToLegacy | main.ts | src/utils/selection-mode-helpers.ts | ✅ Completed | Low |
+| EventAdapter.adaptEventHandler | multiple components | src/templates/ui/EventHandling.ts | ⬜ Not Started | Medium |
+| EventAdapter.adaptClickHandler | multiple components | src/templates/ui/EventHandling.ts | ⬜ Not Started | Medium |
+
+### type-adapters.ts Dependencies
+
+| Function | Used In | Replacement Path | Migration Status | Priority |
+|----------|---------|------------------|-----------------|----------|
+| adaptSettingsToCore | main.ts, settings.ts | src/state/adapters/SettingsAdapter.ts | 🔄 In Progress | High |
+| getProjectNotePathSafe | main.ts, DateNavigator.ts | src/utils/settings-helpers.ts | ✅ Completed | Medium |
+| getSelectionModeSafe | main.ts, src/state/DreamMetricsState.ts | src/utils/settings-helpers.ts | ✅ Completed | Medium |
+| getSelectedFolderSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
+| shouldShowRibbonButtonsSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
+| isBackupEnabledSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
+| getBackupFolderPathSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
+| getExpandedStatesSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
+| isDeveloperModeSafe | main.ts, src/metrics/index.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
+| getUIStateSafe | main.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
+| getActiveTabSafe | settings.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Low |
+| getJournalStructureSafe | main.ts, src/journal_check/LintingEngine.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
+
+### property-compatibility.ts Dependencies
+
+| Function | Used In | Replacement Path | Migration Status | Priority |
+|----------|---------|------------------|-----------------|----------|
+| getPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ⬜ Not Started | Medium |
+| setPropertyCompatibly | multiple files | src/utils/property-helpers.ts | ⬜ Not Started | Medium |
+| createCompatibleObject | DreamMetricsProcessor.ts | src/utils/property-helpers.ts | ⬜ Not Started | High |
+| getCalloutMetadata | DreamMetricsDOM.ts | src/parsing/services/CalloutParser.ts | ⬜ Not Started | Medium |
+| extractMetricValue | DreamMetricsProcessor.ts | src/metrics/MetricExtractor.ts | ⬜ Not Started | High |
+| applyPropertyDefaults | multiple files | src/utils/defaults-helpers.ts | ⬜ Not Started | Medium |
+
+### component-migrator.ts Dependencies
+
+| Function | Used In | Replacement Path | Migration Status | Priority |
+|----------|---------|------------------|-----------------|----------|
+| createCompatibleComponent | DreamMetricsDOM.ts | src/templates/ui/ComponentFactory.ts | ⬜ Not Started | High |
+| adaptModalConfig | multiple modals | src/dom/modals/ModalFactory.ts | ⬜ Not Started | High |
+| convertEventHandlers | multiple components | src/templates/ui/EventHandling.ts | ⬜ Not Started | Medium |
+| createFilterElement | TimeFilterManager.ts | src/filters/FilterFactory.ts | ⬜ Not Started | Medium |
+
+## Classification Strategy
+
+Each adapter function is classified into one of three categories:
+
+### Keep
+Functions that should remain as permanent parts of the codebase because they provide essential functionality that will be needed long-term.
+
+**Criteria for "Keep":**
+- Used throughout the codebase in critical components
+- Provides backward compatibility that will be needed for user data
+- Implements functionality that has no better alternative
+
+### Refactor
+Functions that should be reimplemented in a more appropriate location with better typing and documentation.
+
+**Criteria for "Refactor":**
+- Currently implemented as an adapter but represents core functionality
+- Would benefit from improved typing and proper integration
+- Should be moved to a more logical module
+
+### Remove
+Functions that were created solely for the migration and can be safely removed once dependencies are updated.
+
+**Criteria for "Remove":**
+- Created specifically to bridge old and new code during migration
+- Has a clear replacement in the new architecture
+- Only used in a few specific places that can be easily updated
+
+### Classification Tracking Table
+
+| Function | Classification | Rationale | Next Steps |
+|----------|----------------|-----------|------------|
+| ContentParserAdapter.adaptExtractDreamEntries | Remove | Temporary bridge for parameter mismatches | Update ContentParser to handle parameter variations directly |
+| UIComponentAdapter.adaptMetricForUI | Refactor | Core functionality, poor location | Move to MetricComponent as a proper method |
+| SettingsAdapter.adaptSelectionMode | Keep | Critical for backward compatibility | Move to selection-mode-helpers.ts |
+| adaptSettingsToCore | Refactor | Core functionality, should be in state/adapters | Create proper SettingsAdapter class in state/adapters |
+| getProjectNotePathSafe | Keep | Essential for backward compatibility | Already properly placed in settings-helpers.ts |
+| getPropertyCompatibly | Refactor | Core functionality for property access | Create proper PropertyAccessor class |
+| createCompatibleComponent | Remove | Temporary bridge for component creation | Update component creation in UI modules |
+
+## Implementation Phases
+
+### Phase 1: Create Permanent Replacements (Target: 2025-06-20)
+- Implement permanent replacements for adapter functions classified as "Keep" or "Refactor"
+- Document the new implementations thoroughly
+- Add tests for the new implementations
+- Update exports in barrel files
+
+#### Task Tracking for Phase 1
+
+| Task | Status | Owner | Target Date | Dependencies |
+|------|--------|-------|-------------|--------------|
+| Create SettingsAdapter class | ⬜ Not Started | - | 2025-06-10 | None |
+| Implement EventHandling module | ⬜ Not Started | - | 2025-06-15 | None |
+| Create PropertyAccessor class | ⬜ Not Started | - | 2025-06-12 | None |
+| Implement ComponentFactory | ⬜ Not Started | - | 2025-06-18 | None |
+| Update ContentParser for parameter variations | 🔄 In Progress | - | 2025-06-08 | None |
+
+### Phase 2: Update Core Files (Target: 2025-07-05)
+- Update imports in critical files (main.ts, settings.ts, etc.)
+- Replace direct usage of adapter functions with new implementations
+- Test thoroughly after each file update
+- Address any TypeScript errors that arise
+
+#### Task Tracking for Phase 2
+
+| Task | Status | Owner | Target Date | Dependencies |
+|------|--------|-------|-------------|--------------|
+| Update main.ts settings handling | 🔄 In Progress | - | 2025-06-25 | SettingsAdapter |
+| Update main.ts event handling | ⬜ Not Started | - | 2025-06-28 | EventHandling |
+| Update settings.ts | ⬜ Not Started | - | 2025-07-01 | SettingsAdapter |
+| Update DreamMetricsState.ts | ⬜ Not Started | - | 2025-07-03 | SettingsAdapter |
+
+### Phase 3: Update Peripheral Files (Target: 2025-07-15)
+- Update imports in non-critical components
+- Start with simpler files first
+- Test functionality after each update
+- Track progress in dependency tables
+
+#### Task Tracking for Phase 3
+
+| Task | Status | Owner | Target Date | Dependencies |
+|------|--------|-------|-------------|--------------|
+| Update UI components | ⬜ Not Started | - | 2025-07-10 | ComponentFactory |
+| Update service modules | ⬜ Not Started | - | 2025-07-12 | All Phase 1 items |
+| Update utility modules | ⬜ Not Started | - | 2025-07-14 | PropertyAccessor |
+
+### Phase 4: Testing and Verification (Target: 2025-07-25)
+- Run comprehensive tests on the updated codebase
+- Verify all features still work as expected
+- Address any issues discovered
+- Prepare for adapter file removal
+
+#### Task Tracking for Phase 4
+
+| Task | Status | Owner | Target Date | Dependencies |
+|------|--------|-------|-------------|--------------|
+| Run unit tests | ⬜ Not Started | - | 2025-07-18 | Phases 1-3 |
+| Manual feature testing | ⬜ Not Started | - | 2025-07-20 | Phases 1-3 |
+| Performance testing | ⬜ Not Started | - | 2025-07-22 | Phases 1-3 |
+| Documentation verification | ⬜ Not Started | - | 2025-07-24 | Phases 1-3 |
+
+### Phase 5: Adapter Files Removal (Target: 2025-08-01)
+- Create stub files that re-export from new locations
+- Replace adapter files with stubs
+- Test thoroughly
+- Eventually remove stubs entirely
+
+#### Task Tracking for Phase 5
+
+| Task | Status | Owner | Target Date | Dependencies |
+|------|--------|-------|-------------|--------------|
+| Create adapter-functions.ts stub | ⬜ Not Started | - | 2025-07-27 | Phase 4 |
+| Create type-adapters.ts stub | ⬜ Not Started | - | 2025-07-28 | Phase 4 |
+| Create property-compatibility.ts stub | ⬜ Not Started | - | 2025-07-29 | Phase 4 |
+| Create component-migrator.ts stub | ⬜ Not Started | - | 2025-07-30 | Phase 4 |
+| Final verification | ⬜ Not Started | - | 2025-08-01 | All stubs created |
+
+## Testing Strategy
+
+### Unit Testing
+- Create unit tests for all new implementations
+- Ensure they match the behavior of the adapter functions
+- Test with a variety of inputs, including edge cases
+
+### Integration Testing
+- Test components that interact with the new implementations
+- Verify that all features work as expected
+- Check for performance issues
+
+### Regression Testing
+- Run the existing test suite
+- Verify no new bugs have been introduced
+- Check functionality with real user data
+
+### Manual Testing
+- Test all UI components and user interactions
+- Verify that the plugin works as expected in Obsidian
+- Check compatibility with different Obsidian versions
+
+## Detailed Timeline
+
+| Week | Focus | Key Deliverables |
+|------|-------|------------------|
+| 2025-05-25 | Planning | Comprehensive plan, initial dependency audit |
+| 2025-06-01 | Dependency Audit | Complete dependency mapping |
+| 2025-06-08 | Classification | Completed classification table |
+| 2025-06-15 | Implementation | Core replacements for critical adapters |
+| 2025-06-22 | Core Files | Update main.ts adapter usage |
+| 2025-06-29 | Core Files | Complete critical file updates |
+| 2025-07-06 | Peripheral Files | Update UI components |
+| 2025-07-13 | Peripheral Files | Complete all file updates |
+| 2025-07-20 | Testing | Comprehensive testing |
+| 2025-07-27 | Removal | Create adapter stubs |
+| 2025-08-03 | Completion | Final verification and cleanup |
+
+## Verification Process
+
+Before considering the adapter migration complete, we will perform these verification steps:
+
+1. **Compile with Strict Checks**
+   - Run full TypeScript compilation with strict settings enabled
+   - Verify zero TypeScript errors
+
+2. **Test Suite Execution**
+   - Run the complete test suite
+   - Ensure all tests pass with no regression
+
+3. **Manual Testing**
+   - Manually test all critical plugin functionality
+   - Verify proper functioning in both light and dark themes
+   - Test across different operating systems if applicable
+
+4. **Performance Verification**
+   - Check that performance metrics match or exceed pre-migration baselines
+   - Test with large datasets to ensure no performance regressions
+
+### Verification Checklist
+
+| Verification Task | Status | Date | Notes |
+|-------------------|--------|------|-------|
+| TypeScript compilation | ⬜ Not Started | - | - |
+| Unit tests | ⬜ Not Started | - | - |
+| Integration tests | ⬜ Not Started | - | - |
+| Manual testing | ⬜ Not Started | - | - |
+| Performance testing | ⬜ Not Started | - | - |
+| Documentation review | ⬜ Not Started | - | - |
+| Final approval | ⬜ Not Started | - | - |
+
+## Appendix
+
+### References
+
+- [TypeScript Architecture and Lessons](../architecture/typescript-architecture-lessons.md)
+- [Post-Refactoring Roadmap](./post-refactoring-roadmap.md)
+- [Post-Refactoring Cleanup Checklist](../../archive/refactoring-2025/post-refactoring-cleanup-checklist.md)
+- [TypeScript Interface Standards](./typescript-interface-standards.md)
+
+### Dependency Analysis Methodology
+
+To identify adapter file dependencies, we use a combination of:
+1. Static code analysis using grep/search
+2. Manual code review for context
+3. Automated TypeScript dependency tracking
+
+For each adapter function, we document:
+- Files that import it
+- How it's used in those files
+- What would be required to replace it
+- Potential risks in migration
+</rewritten_file> 
