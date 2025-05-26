@@ -4,9 +4,9 @@
 
 This document provides a comprehensive plan for migrating away from temporary adapter files created during the 2025 TypeScript refactoring project. It consolidates information from various documents into a single source of truth and establishes a clear framework for completing the adapter migration.
 
-**Last Updated**: 2025-05-25
+**Last Updated**: 2025-05-30
 
-**Current Status**: In Progress (20%)
+**Current Status**: In Progress (25%)
 
 ### Key Milestones
 
@@ -62,9 +62,9 @@ This plan outlines our strategy for:
 
 | File | Purpose | Status |
 |------|---------|--------|
-| src/utils/settings-helpers.ts | Safe settings access | ✅ Permanent |
+| src/utils/settings-helpers.ts | Safe settings access | ✅ Permanent with Tests |
 | src/utils/metric-helpers.ts | Metric property handling | ✅ Permanent |
-| src/utils/selection-mode-helpers.ts | Selection mode compatibility | ✅ Permanent |
+| src/utils/selection-mode-helpers.ts | Selection mode compatibility | ✅ Permanent with Tests |
 | src/utils/type-guards.ts | Type checking utilities | ✅ Permanent |
 
 ## Dependency Tracking
@@ -86,17 +86,17 @@ This plan outlines our strategy for:
 | Function | Used In | Replacement Path | Migration Status | Priority |
 |----------|---------|------------------|-----------------|----------|
 | adaptSettingsToCore | main.ts, settings.ts | src/state/adapters/SettingsAdapter.ts | 🔄 In Progress | High |
-| getProjectNotePathSafe | main.ts, DateNavigator.ts | src/utils/settings-helpers.ts | ✅ Completed | Medium |
-| getSelectionModeSafe | main.ts, src/state/DreamMetricsState.ts | src/utils/settings-helpers.ts | ✅ Completed | Medium |
-| getSelectedFolderSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
-| shouldShowRibbonButtonsSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
-| isBackupEnabledSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
-| getBackupFolderPathSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
-| getExpandedStatesSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed | Low |
+| getProjectNotePathSafe | main.ts, DateNavigator.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Medium |
+| getSelectionModeSafe | main.ts, src/state/DreamMetricsState.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Medium |
+| getSelectedFolderSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
+| shouldShowRibbonButtonsSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
+| isBackupEnabledSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
+| getBackupFolderPathSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
+| getExpandedStatesSafe | main.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Low |
 | isDeveloperModeSafe | main.ts, src/metrics/index.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
 | getUIStateSafe | main.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
 | getActiveTabSafe | settings.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Low |
-| getJournalStructureSafe | main.ts, src/journal_check/LintingEngine.ts | src/utils/settings-helpers.ts | ⬜ Not Started | Medium |
+| getJournalStructureSafe | main.ts, src/journal_check/LintingEngine.ts | src/utils/settings-helpers.ts | ✅ Completed with Tests | Medium |
 
 ### property-compatibility.ts Dependencies
 
@@ -306,7 +306,7 @@ By following these patterns and guidelines, we'll create adapters that are maint
 
 | Task | Status | Owner | Target Date | Dependencies |
 |------|--------|-------|-------------|--------------|
-| Run unit tests | ⬜ Not Started | - | 2025-07-18 | Phases 1-3 |
+| Run unit tests | 🔄 In Progress | - | 2025-07-18 | Phases 1-3 |
 | Manual feature testing | ⬜ Not Started | - | 2025-07-20 | Phases 1-3 |
 | Performance testing | ⬜ Not Started | - | 2025-07-22 | Phases 1-3 |
 | Documentation verification | ⬜ Not Started | - | 2025-07-24 | Phases 1-3 |
@@ -391,7 +391,7 @@ Before considering the adapter migration complete, we will perform these verific
 | Verification Task | Status | Date | Notes |
 |-------------------|--------|------|-------|
 | TypeScript compilation | ⬜ Not Started | - | - |
-| Unit tests | ⬜ Not Started | - | - |
+| Unit tests | 🔄 In Progress | 2025-05-30 | Created and validated tests for settings-helpers.ts |
 | Integration tests | ⬜ Not Started | - | - |
 | Manual testing | ⬜ Not Started | - | - |
 | Performance testing | ⬜ Not Started | - | - |
