@@ -153,6 +153,7 @@ import { runSettingsHelpersTests } from './src/testing/utils/SettingsHelpersTest
 import { runMetricHelpersTests } from './src/testing/utils/MetricHelpersTests';
 import { runSelectionModeHelperTests } from './src/testing/utils/SelectionModeHelpersTests';
 import { runTypeGuardsTests } from './src/testing/utils/TypeGuardsTests';
+import { runPropertyHelpersTests } from './src/testing/utils/PropertyHelpersTests';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -900,6 +901,16 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => {
                 runTypeGuardsTests().then(() => {
                     new Notice('Type guards tests complete - check console for results');
+                });
+            }
+        });
+        
+        this.addCommand({
+            id: 'run-property-helpers-tests',
+            name: 'Run Property Helpers Tests',
+            callback: () => {
+                runPropertyHelpersTests().then(() => {
+                    new Notice('Property helpers tests complete - check console for results');
                 });
             }
         });
