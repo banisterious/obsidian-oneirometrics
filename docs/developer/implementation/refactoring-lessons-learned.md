@@ -18,6 +18,7 @@
 - [Affected Files](#affected-files)
 - [Issue Tracking](#issue-tracking)
 - [Conclusion](#conclusion)
+- [Service Registry Pattern: Addressing Initialization Issues](#service-registry-pattern-addressing-initialization-issues)
 
 ## Overview
 
@@ -380,4 +381,49 @@ The refactoring will be considered successful when:
 
 This section on scraping and metrics note issues provides a structured approach to implementing the refactoring that avoids the pitfalls encountered in the previous attempt. By focusing on initialization order, making dependencies explicit, and implementing robust error handling, we can achieve the architectural improvements while maintaining functionality.
 
-As we continue to refactor other parts of the codebase, additional lessons will be documented in this living document to guide future development efforts. 
+As we continue to refactor other parts of the codebase, additional lessons will be documented in this living document to guide future development efforts.
+
+## Service Registry Pattern: Addressing Initialization Issues
+
+![Service Registry Pattern](../../../assets/images/architecture/Oom-Service-Registry-Pattern.png)
+
+Many of our most challenging refactoring issues stemmed from initialization order problems and implicit dependencies. The Service Registry Pattern directly addresses these issues:
+
+### Previous Issues
+
+Our error logs were filled with issues like:
+- "Service already registered, overwriting"
+- "Cannot read properties of undefined (reading 'log')"
+- "TimeFilterManager not initialized"
+
+These issues occurred because:
+1. Services were accessed before initialization
+2. Initialization order was implicit and fragile
+3. Circular dependencies caused deadlocks
+4. Global variables were used as service instances
+
+### How Service Registry Solves These Problems
+
+The Service Registry pattern provides several key improvements:
+
+1. **Explicit Dependency Declaration**: Services declare their dependencies up front
+2. **Lazy Initialization**: Services are initialized only when needed
+3. **Dependency Resolution**: The registry resolves dependencies in the correct order
+4. **Circular Dependency Detection**: The registry can detect and handle circular dependencies
+5. **Fallback Mechanisms**: Missing services trigger graceful fallbacks rather than crashes
+
+### Implementation Example
+
+```typescript
+// Before: Direct dependency, prone to timing issues
+this.logger = globalLogger;
+this.timeFilterManager = new TimeFilterManager();
+
+// After: Registry-based resolution with fallbacks
+this.logger = serviceRegistry.getService<LoggingService>('logger') 
+  || new ConsoleLogFallback();
+this.timeFilterManager = serviceRegistry.getService<TimeFilterManager>('timeFilter')
+  || new TimeFilterManagerFallback();
+```
+
+This pattern has significantly reduced our initialization-related errors and made the system more robust against timing issues. 

@@ -3,6 +3,7 @@ import { DateNavigator } from './DateNavigator';
 import { TimeFilterManager, DateRange } from '../timeFilters';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { format } from 'date-fns';
+import { getService, registerService, SERVICE_NAMES } from '../state/ServiceRegistry';
 
 // Safely reference global logger without causing errors if it's not defined
 declare global {
@@ -29,49 +30,69 @@ export class DateNavigatorIntegration {
         if (state && !(state instanceof DreamMetricsState) && typeof state === 'object') {
             // Extract state and filter manager from plugin
             this.state = state.state || new DreamMetricsState();
-            this.timeFilterManager = filterManager || state.timeFilterManager;
+            // Use the provided filter manager, or try to get from plugin, or from service registry
+            this.timeFilterManager = filterManager || state.timeFilterManager || getService<TimeFilterManager>(SERVICE_NAMES.TIME_FILTER);
         } else {
             // Normal case - state is provided directly
             this.state = state;
-            this.timeFilterManager = filterManager as TimeFilterManager;
+            // Use the provided filter manager or try to get from service registry
+            this.timeFilterManager = filterManager || getService<TimeFilterManager>(SERVICE_NAMES.TIME_FILTER);
         }
         
-        // Create default TimeFilterManager if none provided
+        // If still no TimeFilterManager, create and register a new one
         if (!this.timeFilterManager) {
             try {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].warn('DateNavigatorIntegration: No TimeFilterManager provided, creating a default one');
+                if (window.globalLogger) {
+                    window.globalLogger.info('DateNavigatorIntegration', 'Creating new TimeFilterManager');
+                } else {
+                    console.info('DateNavigatorIntegration: Creating new TimeFilterManager');
+                }
+                
+                // Create a new TimeFilterManager
+                this.timeFilterManager = new TimeFilterManager();
+                
+                // Register the new TimeFilterManager with the service registry
+                try {
+                    registerService(SERVICE_NAMES.TIME_FILTER, this.timeFilterManager);
+                    console.info('DateNavigatorIntegration: Registered new TimeFilterManager with service registry');
+                } catch (e) {
+                    console.error('DateNavigatorIntegration: Error registering TimeFilterManager with service registry', e);
                 }
             } catch (e) {
-                // Silent failure
+                console.error('DateNavigatorIntegration: Error creating TimeFilterManager', e);
             }
-            this.timeFilterManager = new TimeFilterManager();
         }
         
-        // Check if the timeFilterManager is properly initialized before setting up listeners
-        if (this.timeFilterManager && typeof this.timeFilterManager.onFilterChange === 'function') {
-            // Listen for filter changes - safely with null checks
-            this.timeFilterManager.onFilterChange = (filter) => {
-                if (filter && typeof filter.getDateRange === 'function') {
-                    this.handleFilterChange(filter.getDateRange());
-                } else {
-                    try {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].warn('DateNavigatorIntegration: Filter object is invalid or missing getDateRange method');
-                        }
-                    } catch (e) {
-                        // Silent failure
-                    }
-                }
-            };
-        } else {
+        // Final check to ensure timeFilterManager is properly initialized
+        if (!this.timeFilterManager) {
+            console.error('DateNavigatorIntegration: Failed to initialize TimeFilterManager');
+            // Create a minimal implementation to prevent errors
+            this.timeFilterManager = {
+                onFilterChange: () => {},
+                getCurrentRange: () => null
+            } as unknown as TimeFilterManager; // Use double assertion to bypass type checking
+        }
+        
+        // Set up filter change handler if possible
+        if (this.timeFilterManager && typeof this.timeFilterManager.onFilterChange !== 'undefined') {
             try {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].error('DateNavigatorIntegration: TimeFilterManager is not properly initialized');
-                }
+                // Define the filter change handler function
+                const filterChangeHandler = (filter: any) => {
+                    if (filter && typeof filter.getDateRange === 'function') {
+                        this.handleFilterChange(filter.getDateRange());
+                    } else {
+                        console.warn('DateNavigatorIntegration: Filter object is invalid or missing getDateRange method');
+                    }
+                };
+                
+                // Safely assign the handler
+                this.timeFilterManager.onFilterChange = filterChangeHandler;
+                console.info('DateNavigatorIntegration: Successfully set up filter change handler');
             } catch (e) {
-                // Silent failure
+                console.error('DateNavigatorIntegration: Error setting up filter change handler', e);
             }
+        } else {
+            console.warn('DateNavigatorIntegration: Unable to set up filter change handler - timeFilterManager.onFilterChange is not a function');
         }
     }
     

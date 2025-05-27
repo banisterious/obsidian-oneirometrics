@@ -757,6 +757,11 @@ div#oom-time-filter-display {
     overflow-x: visible;
 }
 
+span.oom-metric-header svg {
+    width: 18px;
+    height: 18px;
+}
+
 /* Accessibility */
 @media (forced-colors: active) {
     .oom-table-container {
@@ -4293,6 +4298,16 @@ input.oom-folder-autocomplete-input {
 .modal:has(.oom-content-parser-test-modal) {
     width: 1000px;
     height: 1000px;
+}
+
+/* Service Registry Test Modal */
+.modal:has(.service-registry-test-results) {
+    width: 800px;
+    height: 600px;
+}
+
+.service-registry-test-results {
+    height: 300px;
 }
 
 /* Template Wizard */

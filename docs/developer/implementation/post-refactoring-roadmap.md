@@ -163,15 +163,15 @@ When implementing these improvements, refer to the [Refactoring Lessons Learned]
 
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
-| Stabilization | 10 | 7 | 70% |
+| Stabilization | 10 | 8 | 80% |
 | Implementation | 8 | 0 | 0% |
 | Validation | 7 | 0 | 0% |
 | Rollout | 5 | 0 | 0% |
-| **Overall** | **30** | **7** | **23%** |
+| **Overall** | **30** | **8** | **27%** |
 
 **Progress Bar:**
 ```
-[==========>             ] 23%
+[=============>          ] 27%
 ```
 
 Current progress is primarily in the documentation and implementation phase, with approximately 50% of the overall refactoring plan completed. Key accomplishments:
@@ -184,6 +184,8 @@ Current progress is primarily in the documentation and implementation phase, wit
 - ✅ Added defensive coding for date utilities with comprehensive testing
 - ✅ Mapped [global dependencies](./global-dependencies-map.md) across the codebase
 - ✅ Created interactive testing modal for critical parsing components
+- ✅ Added Table of Contents to architecture documentation for improved navigation
+- ✅ Completed Service Registry Pattern documentation across all architecture files
 - 🔄 Working on remaining UI bugs and preparing test environment
 
 Next major milestone: Complete all stabilization tasks by 2025-06-15.
@@ -193,3 +195,45 @@ Next major milestone: Complete all stabilization tasks by 2025-06-15.
 Following this roadmap will allow us to implement the architectural improvements while maintaining plugin functionality and avoiding the initialization issues encountered in the previous refactoring attempt. By focusing on defensive coding, clear interfaces, and proper testing, we can achieve a more maintainable codebase. 
 
 For detailed implementation patterns and anti-patterns based on the previous refactoring experience, refer to the [Refactoring Lessons Learned](./refactoring-lessons-learned.md) document.
+
+## Service Registry: Foundation for Future Architecture
+
+![Service Registry Pattern](../../../assets/images/architecture/Oom-Service-Registry-Pattern.png)
+
+The Service Registry Pattern will serve as a cornerstone of our refactored architecture. As we move forward with addressing the issues documented in our registry, this pattern provides several advantages:
+
+### Current Implementation
+
+Our initial Service Registry implementation focuses on solving the most critical initialization and dependency issues. It provides basic registration and resolution capabilities while ensuring services initialize in the correct order.
+
+### Future Enhancements
+
+In upcoming refactoring phases, we will enhance the Service Registry with:
+
+1. **Lifecycle Management**: Proper initialization, startup, and shutdown sequences
+2. **Configuration Integration**: Services will receive configuration from a central source
+3. **Dependency Injection**: Automatic resolution of dependencies
+4. **Runtime Service Replacement**: For more flexible testing and feature toggling
+5. **Metrics Collection**: Track service usage and performance
+
+### Architectural Impact
+
+This pattern will enable several architectural improvements:
+
+1. **Modular Design**: Easier to add, remove, or replace components
+2. **Testability**: Mock services for isolated testing
+3. **Feature Flags**: Toggle features by swapping service implementations
+4. **Performance Optimization**: Load services on-demand to improve startup time
+5. **Plugin Extensions**: Third-party extensions can register services
+
+### Migration Path
+
+Each component will be migrated to use the Service Registry following this process:
+
+1. Define service interface
+2. Implement concrete service
+3. Register with the Service Registry
+4. Update consumers to resolve via registry
+5. Remove direct dependencies
+
+This gradual approach allows us to maintain functionality while incrementally improving the architecture.

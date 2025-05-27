@@ -1,5 +1,53 @@
 # OneiroMetrics Architecture Overview
 
+## Table of Contents
+
+- [Core Architecture Principles](#core-architecture-principles)
+- [Component Architecture](#component-architecture)
+  - [Core Plugin Component](#core-plugin-component)
+  - [State Management](#state-management)
+  - [Services](#services)
+  - [UI Components](#ui-components)
+  - [Core Modules](#core-modules)
+- [Data Flow](#data-flow)
+- [State Lifecycle](#state-lifecycle)
+- [Testing Infrastructure](#testing-infrastructure)
+- [Key Interfaces](#key-interfaces)
+- [Performance Considerations](#performance-considerations)
+- [Security and Error Handling](#security-and-error-handling)
+- [Next Steps](#next-steps)
+- [OneiroMetrics Plugin Overview](#oneirometrics-plugin-overview)
+- [Core Features](#core-features)
+- [Technical Architecture](#technical-architecture)
+  - [Frontend Components](#frontend-components)
+  - [CSS Architecture](#css-architecture)
+  - [File Organization](#file-organization)
+- [Development Status](#development-status)
+- [Future Enhancements](#future-enhancements)
+- [Contributing](#contributing)
+- [License](#license)
+- [Recent Updates](#recent-updates)
+- [Current Status](#current-status)
+- [Recent Improvements and Lessons Learned](#recent-improvements-and-lessons-learned)
+- [Key Features](#key-features)
+- [Recent Fixes](#recent-fixes)
+- [Current Status (as of May 2025)](#current-status-as-of-may-2025)
+- [Known Issues & Testing](#known-issues--testing)
+- [Documentation & Testing](#documentation--testing)
+- [How to Use](#how-to-use)
+- [Contributing & Feedback](#contributing--feedback)
+- [Testing Strategy](#testing-strategy)
+- [Development Guidelines](#development-guidelines)
+- [Documentation](#documentation)
+- [TypeScript Architecture](#typescript-architecture)
+  - [Type System Organization](#type-system-organization)
+  - [Adapter Pattern Implementation](#adapter-pattern-implementation)
+  - [Helper Utilities](#helper-utilities)
+  - [Event Communication System](#event-communication-system)
+  - [Best Practices and Standards](#best-practices-and-standards)
+  - [Logging System](#logging-system)
+- [Service Registry Pattern](#service-registry-pattern)
+
 This document provides a high-level overview of the OneiroMetrics plugin architecture after the 2025 refactoring project.
 
 ## Core Architecture Principles
@@ -593,4 +641,30 @@ The plugin implements a comprehensive logging system:
 - **Log Levels**: Configurable verbosity levels
 - **Formatters**: Consistent log message formatting
 
-For more information about the logging implementation, see [Logging Documentation](../implementation/logging.md). 
+For more information about the logging implementation, see [Logging Documentation](../implementation/logging.md).
+
+## Service Registry Pattern
+
+![Service Registry Pattern](../../../assets/images/architecture/Oom-Service-Registry-Pattern.png)
+
+The Service Registry Pattern is a core architectural pattern in OneiroMetrics that provides a centralized mechanism for service registration, discovery, and dependency management. This pattern addresses several critical challenges in our plugin architecture:
+
+### Key Components
+
+- **Service Registry**: Acts as a central repository for all service instances
+- **Service Provider**: Manages service lifecycle and dependency resolution
+- **Service Interfaces**: Define contracts that services must implement
+- **Service Consumers**: Components that use services through the registry
+
+### Benefits
+
+- **Decoupled Dependencies**: Services are no longer directly dependent on each other
+- **Controlled Initialization**: Services initialize in the correct order based on dependencies
+- **Runtime Flexibility**: Services can be replaced or mocked during runtime or testing
+- **Centralized Configuration**: Service configuration is managed in one place
+
+### Implementation Details
+
+In our implementation, the Service Registry is initialized during the plugin's early lifecycle and becomes available before any service dependencies are required. Services register themselves with unique identifiers, and consumers request services by these identifiers or by interface type.
+
+This pattern has significantly improved our initialization sequence reliability and reduced the issues related to undefined services and timing-dependent bugs. 

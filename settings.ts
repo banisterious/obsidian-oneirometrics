@@ -4,6 +4,30 @@ import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
 
+// Define the correct order for recommended metrics
+export const RECOMMENDED_METRICS_ORDER = [
+  'Sensory Detail',
+  'Emotional Recall',
+  'Lost Segments',
+  'Descriptiveness',
+  'Confidence Score',
+  'Characters Role'
+];
+
+// Define the correct order for disabled metrics
+export const DISABLED_METRICS_ORDER = [
+  'Characters Count',
+  'Familiar Count',
+  'Unfamiliar Count',
+  'Characters List',
+  'Dream Theme',
+  'Lucidity Level',
+  'Dream Coherence',
+  'Setting Familiarity',
+  'Ease of Recall',
+  'Recall Stability'
+];
+
 // Import settings helpers
 import { 
     getProjectNotePath, 
@@ -936,7 +960,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Group metrics by enabled/disabled
         const groupedMetrics = Object.entries(this.plugin.settings.metrics || {})
-            .sort(([, a], [, b]) => a.name.localeCompare(b.name))
             .reduce((acc: { enabled: [string, DreamMetric][], disabled: [string, DreamMetric][] }, [key, metric]) => {
                 if (isMetricEnabled(metric)) {
                     acc.enabled.push([key, metric]);
@@ -945,6 +968,26 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 }
                 return acc;
             }, { enabled: [], disabled: [] });
+
+        // Debug logging for metric groups
+        console.log('Metrics found in settings:', Object.keys(this.plugin.settings.metrics || {}).length);
+        console.log('Enabled metrics:', groupedMetrics.enabled.map(([key, m]) => m.name).join(', '));
+        console.log('Disabled metrics:', groupedMetrics.disabled.map(([key, m]) => m.name).join(', '));
+
+        // Sort metrics by the predefined order rather than alphabetically
+        if (groupedMetrics.enabled.length > 0) {
+            groupedMetrics.enabled = sortMetricEntriesByOrder(
+                groupedMetrics.enabled, 
+                RECOMMENDED_METRICS_ORDER
+            );
+        }
+
+        if (groupedMetrics.disabled.length > 0) {
+            groupedMetrics.disabled = sortMetricEntriesByOrder(
+                groupedMetrics.disabled,
+                DISABLED_METRICS_ORDER
+            );
+        }
 
         // Create container for metrics settings
         const metricsContainer = containerEl.createDiv({ cls: 'oom-metrics-container' });
@@ -1593,6 +1636,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             metricName => !this.plugin.settings.metrics[metricName]
         );
         
+        // Log what we found for debugging
+        console.log(`Checking for missing metrics. Found ${missingMetrics.length} missing:`, missingMetrics.join(', '));
+        
         if (missingMetrics.length > 0) {
             // Add a section explaining the issue
             containerEl.createEl('h3', { text: 'Missing Metrics Detected' });
@@ -1607,46 +1653,171 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 text: `Missing metrics: ${missingMetrics.join(', ')}`
             });
             
-            noticeEl.createEl('p', { 
-                text: 'These metrics should be automatically restored the next time you restart Obsidian.'
-            });
-            
-            // Add a restart button
+            // Create a button to restore metrics now
             new Setting(noticeEl)
                 .addButton(button => button
-                    .setButtonText('Restart Obsidian')
+                    .setButtonText('Restore Missing Metrics')
                     .setCta()
-                    .onClick(() => {
-                        // Create a confirmation dialog
-                        const modal = new Modal(this.plugin.app);
-                        modal.titleEl.setText('Restart Obsidian?');
-                        modal.contentEl.createEl('p', {
-                            text: 'Would you like to restart Obsidian now to restore missing metrics?'
+                    .onClick(async () => {
+                        // Find default metrics definitions for the missing metrics
+                        const defaultMetricsMap = {};
+                        DEFAULT_METRICS.forEach(metric => {
+                            defaultMetricsMap[metric.name] = metric;
                         });
                         
-                        const buttonContainer = modal.contentEl.createEl('div', {
-                            cls: 'oom-button-container'
-                        });
+                        // Add each missing metric
+                        let restoredCount = 0;
+                        for (const metricName of missingMetrics) {
+                            // First check if this is one of our built-in metrics
+                            if (defaultMetricsMap[metricName]) {
+                                const metric = defaultMetricsMap[metricName];
+                                this.plugin.settings.metrics[metricName] = {
+                                    name: metric.name,
+                                    icon: metric.icon || 'help-circle',
+                                    minValue: metric.minValue || 1,
+                                    maxValue: metric.maxValue || 5,
+                                    description: metric.description || '',
+                                    enabled: metric.enabled !== undefined ? metric.enabled : true,
+                                    category: metric.category || 'dream',
+                                    type: metric.type || 'number',
+                                    format: metric.format || 'number',
+                                    options: metric.options || [],
+                                    // Include legacy properties for backward compatibility
+                                    min: metric.minValue || 1,
+                                    max: metric.maxValue || 5,
+                                    step: 1
+                                };
+                                console.log(`Restored metric from DEFAULT_METRICS: ${metricName}`);
+                                restoredCount++;
+                            } else {
+                                // If it's not in default metrics, create metrics with specific configurations
+                                let iconName = 'help-circle';
+                                let description = `${metricName} metric`;
+                                let isEnabled = false;
+                                let minValue = 1;
+                                let maxValue = 5;
+                                let metricType = 'number';
+                                let metricFormat = 'number';
+                                
+                                // Set specific configurations for known metrics
+                                switch(metricName) {
+                                    case 'Sensory Detail':
+                                        iconName = 'eye';
+                                        description = 'Level of sensory information recalled from the dream';
+                                        isEnabled = true;
+                                        break;
+                                    case 'Emotional Recall':
+                                        iconName = 'heart';
+                                        description = 'Level of emotional detail recalled from the dream';
+                                        isEnabled = true;
+                                        break;
+                                    case 'Lost Segments':
+                                        iconName = 'circle-minus';
+                                        description = 'Number of dream segments that feel missing or incomplete';
+                                        isEnabled = true;
+                                        minValue = 0;
+                                        break;
+                                    case 'Descriptiveness':
+                                        iconName = 'pen-tool';
+                                        description = 'Level of detail in the dream description';
+                                        isEnabled = true;
+                                        break;
+                                    case 'Confidence Score':
+                                        iconName = 'check-circle';
+                                        description = 'Confidence level in the completeness of dream recall';
+                                        isEnabled = true;
+                                        break;
+                                    case 'Characters Role':
+                                        iconName = 'user-cog';
+                                        description = 'Significance of familiar characters in the dream narrative';
+                                        isEnabled = true;
+                                        break;
+                                    case 'Characters Count':
+                                        iconName = 'users';
+                                        description = 'Total number of characters in the dream';
+                                        minValue = 0;
+                                        maxValue = 20;
+                                        break;
+                                    case 'Familiar Count':
+                                        iconName = 'user-check';
+                                        description = 'Number of familiar characters in the dream';
+                                        minValue = 0;
+                                        maxValue = 10;
+                                        break;
+                                    case 'Unfamiliar Count':
+                                        iconName = 'user-x';
+                                        description = 'Number of unfamiliar characters in the dream';
+                                        minValue = 0;
+                                        maxValue = 10;
+                                        break;
+                                    case 'Characters List':
+                                        iconName = 'users-round';
+                                        description = 'List of characters that appeared in the dream';
+                                        minValue = 0;
+                                        maxValue = 0;
+                                        metricType = 'text';
+                                        metricFormat = 'list';
+                                        break;
+                                    case 'Dream Theme':
+                                        iconName = 'sparkles';
+                                        description = 'Main themes or motifs in the dream';
+                                        minValue = 0;
+                                        maxValue = 0;
+                                        metricType = 'text';
+                                        metricFormat = 'tags';
+                                        break;
+                                    case 'Lucidity Level':
+                                        iconName = 'wand-2';
+                                        description = 'Degree of awareness that you were dreaming while in the dream';
+                                        break;
+                                    case 'Dream Coherence':
+                                        iconName = 'link';
+                                        description = 'How logical and consistent the dream narrative was';
+                                        break;
+                                    case 'Setting Familiarity':
+                                        iconName = 'glasses';
+                                        description = 'How familiar the dream locations were compared to waking life';
+                                        break;
+                                    case 'Ease of Recall':
+                                        iconName = 'zap';
+                                        description = 'How easily you could remember the dream upon waking';
+                                        break;
+                                    case 'Recall Stability':
+                                        iconName = 'layers';
+                                        description = 'How well your memory of the dream held up after waking';
+                                        break;
+                                }
+                                
+                                // Create the metric with the configuration
+                                this.plugin.settings.metrics[metricName] = {
+                                    name: metricName,
+                                    icon: iconName,
+                                    minValue: minValue,
+                                    maxValue: maxValue,
+                                    description: description,
+                                    enabled: isEnabled,
+                                    category: 'dream',
+                                    type: metricType,
+                                    format: metricFormat,
+                                    options: [],
+                                    // Legacy properties
+                                    min: minValue,
+                                    max: maxValue,
+                                    step: 1
+                                };
+                                console.log(`Manually created missing metric: ${metricName}`);
+                                restoredCount++;
+                            }
+                        }
                         
-                        const cancelButton = buttonContainer.createEl('button', {
-                            text: 'Cancel',
-                            cls: 'mod-warning'
-                        });
-                        cancelButton.addEventListener('click', () => {
-                            modal.close();
-                        });
+                        // Save settings
+                        await this.plugin.saveSettings();
                         
-                        const confirmButton = buttonContainer.createEl('button', {
-                            text: 'Restart Now',
-                            cls: 'mod-cta'
-                        });
-                        confirmButton.addEventListener('click', () => {
-                            // Close Obsidian - will trigger a restart
-                            (this.plugin.app as any).commands.executeCommandById('app:reload');
-                            modal.close();
-                        });
+                        // Show success notice
+                        new Notice(`Restored ${restoredCount} missing metrics.`);
                         
-                        modal.open();
+                        // Refresh the display
+                        this.display();
                     })
                 );
         }
@@ -1865,4 +2036,85 @@ class TemplateWizard extends Modal {
         this.contentEl.createEl('h2', { text: 'Template Wizard' });
         // This is a stub implementation
     }
+}
+
+// Add a helper function to sort metrics by a predefined order
+export function sortMetricsByOrder(metrics: string[], orderArray: string[]): string[] {
+  // Create a copy to avoid modifying the original array
+  const sortedMetrics = [...metrics];
+  
+  // Sort by the predefined order
+  sortedMetrics.sort((a, b) => {
+    const indexA = orderArray.indexOf(a);
+    const indexB = orderArray.indexOf(b);
+    
+    // If both are in the order array, sort by their position
+    if (indexA >= 0 && indexB >= 0) {
+      return indexA - indexB;
+    }
+    
+    // If only one is in the order array, prioritize it
+    if (indexA >= 0) return -1;
+    if (indexB >= 0) return 1;
+    
+    // If neither is in the order array, sort alphabetically
+    return a.localeCompare(b);
+  });
+  
+  return sortedMetrics;
+}
+
+// Add a specialized function for sorting metric entries
+function sortMetricEntriesByOrder(
+  metricEntries: [string, DreamMetric][],
+  orderArray: string[]
+): [string, DreamMetric][] {
+  // Defensive check for undefined or empty entries
+  if (!metricEntries || metricEntries.length === 0) {
+    console.warn('No metric entries to sort');
+    return [];
+  }
+  
+  // Defensive check for order array
+  if (!orderArray || orderArray.length === 0) {
+    console.warn('No order array provided for sorting metrics');
+    return metricEntries;
+  }
+  
+  // Create a copy to avoid modifying the original array
+  const sortedEntries = [...metricEntries];
+  
+  try {
+    // Sort by the predefined order
+    sortedEntries.sort((a, b) => {
+      // Defensive check for array elements
+      if (!a || !a[1] || !a[1].name || !b || !b[1] || !b[1].name) {
+        return 0; // Skip sorting this pair if data is invalid
+      }
+      
+      const nameA = a[1].name;
+      const nameB = b[1].name;
+      
+      const indexA = orderArray.indexOf(nameA);
+      const indexB = orderArray.indexOf(nameB);
+      
+      // If both are in the order array, sort by their position
+      if (indexA >= 0 && indexB >= 0) {
+        return indexA - indexB;
+      }
+      
+      // If only one is in the order array, prioritize it
+      if (indexA >= 0) return -1;
+      if (indexB >= 0) return 1;
+      
+      // If neither is in the order array, sort alphabetically
+      return nameA.localeCompare(nameB);
+    });
+  } catch (error) {
+    console.error('Error sorting metric entries:', error);
+    // Return the original array in case of error
+    return metricEntries;
+  }
+  
+  return sortedEntries;
 }

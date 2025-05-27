@@ -64,7 +64,7 @@ export class SettingsAdapter {
       selectedFolder: settings.selectedFolder || '',
       selectionMode: settings.selectionMode || 'notes',
       calloutName: settings.calloutName || 'dream',
-      showRibbonButtons: settings.showRibbonButtons || !!settings.showTestRibbonButton || false,
+      showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || true),
       backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,
       backupFolderPath: settings.backup?.folderPath ?? settings.backupFolderPath ?? './backups',
       
@@ -402,9 +402,8 @@ export class SettingsAdapter {
 }
 
 /**
- * Create and register a settings adapter with the service registry
- * 
- * @param settings The plugin settings
+ * Creates and registers a settings adapter in the service registry
+ * @param settings The settings to initialize with
  * @param app The Obsidian app instance
  * @returns The created settings adapter
  */
@@ -412,7 +411,26 @@ export function createAndRegisterSettingsAdapter(
   settings: DreamMetricsSettings, 
   app: App
 ): SettingsAdapter {
-  const settingsAdapter = new SettingsAdapter(settings, app);
-  registerService(SERVICE_NAMES.SETTINGS, settingsAdapter);
-  return settingsAdapter;
+  try {
+    // Create the adapter
+    const settingsAdapter = new SettingsAdapter(settings, app);
+    
+    // Ensure metrics are initialized
+    const coreSettings = settingsAdapter.toCoreSettings();
+    if (!coreSettings.metrics || Object.keys(coreSettings.metrics).length === 0) {
+      // Log the issue
+      safeLogger.warn('SettingsAdapter', 'No metrics found in settings during registration');
+    }
+    
+    // Register with the service registry
+    registerService(SERVICE_NAMES.SETTINGS, settingsAdapter);
+    
+    return settingsAdapter;
+  } catch (error) {
+    safeLogger.error('SettingsAdapter', 'Error creating and registering settings adapter', error);
+    // Create a minimal adapter if an error occurs
+    const adapter = new SettingsAdapter(settings, app);
+    registerService(SERVICE_NAMES.SETTINGS, adapter);
+    return adapter;
+  }
 } 
