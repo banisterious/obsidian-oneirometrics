@@ -2,6 +2,9 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+// Import the safe logger immediately at the top
+import safeLogger, { getSafeLogger, SafeLogger } from './src/logging/safe-logger';
+
 // External imports (Obsidian)
 import { 
   App, 
@@ -165,7 +168,8 @@ import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
 let customDateRange: { start: string, end: string } | null = null;
 
 // Create a global logger instance for functions outside the plugin class
-let globalLogger: LoggingAdapter | null = null;
+// Initialize with safe logger first, but keep the type compatible with LoggingAdapter
+let globalLogger: any = safeLogger;
 
 // Default settings for linting functionality
 const DEFAULT_LINTING_SETTINGS: LintingSettings = {
@@ -305,8 +309,9 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize mutable state and app state
         this.state = new DreamMetricsState();
         
-        globalLogger?.info('Plugin', 'Loading Dream Metrics plugin');
-        globalLogger?.debug('Plugin', 'Plugin onload called - will setup filter persistence');
+        // Use safe logger for early logging before the main logger is initialized
+        safeLogger.info('Plugin', 'Loading Dream Metrics plugin');
+        safeLogger.debug('Plugin', 'Plugin onload called - will setup filter persistence');
         
         // Initialize logs directory for plugin logs
         if (this.app.vault.adapter instanceof FileSystemAdapter) {
@@ -321,7 +326,7 @@ export default class DreamMetricsPlugin extends Plugin {
                     // @ts-ignore - fs is not in the types
                     await this.app.vault.adapter.mkdir(`${baseFolder}/logs`);
                 } catch (mkdirError) {
-                    console.error("Could not create logs directory:", mkdirError);
+                    safeLogger.error('Plugin', "Could not create logs directory", mkdirError instanceof Error ? mkdirError : new Error(String(mkdirError)));
                 }
             }
         }
@@ -329,14 +334,14 @@ export default class DreamMetricsPlugin extends Plugin {
         // Register event listeners for when the active leaf changes
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', () => {
-                globalLogger?.debug('Events', 'Active leaf changed, checking for metrics note view');
+                safeLogger.debug('Events', 'Active leaf changed, checking for metrics note view');
                 // Delay to ensure content is rendered
                 setTimeout(() => {
                     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
                     if (view && view.getMode() === 'preview') {
                         const file = view.file;
                         if (file && file.path === getProjectNotePath(this.settings)) {
-                            globalLogger?.debug('Events', 'Metrics note view detected, attaching event listeners');
+                            safeLogger.debug('Events', 'Metrics note view detected, attaching event listeners');
                             this.attachProjectNoteEventListeners();
                         }
                     }
@@ -445,7 +450,12 @@ export default class DreamMetricsPlugin extends Plugin {
         await this.loadSettings();
         
         // Set global logger for functions outside the plugin class
+        // Now that the main logger is initialized, update globalLogger
         globalLogger = this.logger as LoggingAdapter;
+        
+        // Register the main logger with the safe logger system
+        // This allows the safe logger to use the main logger when available
+        (window as any).globalLogger = globalLogger;
         
         // Initialize linting engine
         const journalStructure = getJournalStructure(this.settings);
@@ -704,7 +714,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     onunload() {
-        globalLogger?.info('Plugin', 'Unloading Dream Metrics plugin');
+        safeLogger.info('Plugin', 'Unloading Dream Metrics plugin');
         
         // Remove ribbon icons
         this.removeRibbonIcons();

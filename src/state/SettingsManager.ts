@@ -10,9 +10,9 @@ import { DreamMetricsSettings } from '../../types';
 import { DEFAULT_METRICS } from '../constants';
 import { LogLevel } from '../types/logging';
 import { SettingsAdapter } from './adapters/SettingsAdapter';
+import safeLogger from '../logging/safe-logger';
 
 // Import global functions
-declare const globalLogger: any;
 declare let customDateRange: { start: string, end: string } | null;
 
 /**
@@ -86,9 +86,9 @@ export class SettingsManager {
             this.ensureDefaultMetrics();
             
             // Log successful loading
-            console.log('SettingsManager: Settings loaded successfully');
+            safeLogger.log('Settings', 'Settings loaded successfully');
         } catch (error) {
-            console.error('SettingsManager: Error loading settings', error);
+            safeLogger.error('Settings', 'Error loading settings', error instanceof Error ? error : new Error(String(error)));
             
             // Initialize with default settings
             this._settings = new SettingsAdapter({}).toCoreSettings();
@@ -108,9 +108,9 @@ export class SettingsManager {
             await this.plugin.saveData(this._settings);
             
             // Log successful saving
-            console.log('SettingsManager: Settings saved successfully');
+            safeLogger.log('Settings', 'Settings saved successfully');
         } catch (error) {
-            console.error('SettingsManager: Error saving settings', error);
+            safeLogger.error('Settings', 'Error saving settings', error instanceof Error ? error : new Error(String(error)));
         }
     }
     
@@ -208,12 +208,12 @@ export class SettingsManager {
                 // Try to recover from localStorage
                 const savedFilter = localStorage.getItem('oom-last-applied-filter');
                 if (savedFilter && validFilters.includes(savedFilter)) {
-                    console.log(`SettingsManager: Recovered filter from localStorage: ${savedFilter}`);
+                    safeLogger.log('Settings', `Recovered filter from localStorage: ${savedFilter}`);
                     this._settings.lastAppliedFilter = savedFilter;
                 } else {
                     // Default to 'all' if no valid filter found
                     this._settings.lastAppliedFilter = 'all';
-                    console.log('SettingsManager: Set default filter: all');
+                    safeLogger.log('Settings', 'Set default filter: all');
                 }
             }
             
@@ -230,7 +230,7 @@ export class SettingsManager {
                             const savedRange = JSON.parse(savedRangeStr);
                             if (savedRange && savedRange.start && savedRange.end) {
                                 this._settings.customDateRange = savedRange;
-                                console.log('SettingsManager: Recovered custom date range from localStorage', savedRange);
+                                safeLogger.log('Settings', 'Recovered custom date range from localStorage', savedRange);
                                 
                                 // Ensure global customDateRange variable is synchronized
                                 if (typeof window !== 'undefined') {
@@ -249,35 +249,20 @@ export class SettingsManager {
                         } else {
                             // If no custom range, switch to 'all'
                             this._settings.lastAppliedFilter = 'all';
-                            this._settings.customDateRange = undefined;
-                            
-                            // Clear global customDateRange
-                            if (typeof window !== 'undefined') {
-                                (window as any).customDateRange = null;
-                            }
                         }
                     } catch (e) {
-                        // On error, default to 'all'
+                        safeLogger.error('Settings', 'Error parsing custom date range from localStorage', 
+                            e instanceof Error ? e : new Error(String(e)));
+                        // Default to 'all' if error parsing custom range
                         this._settings.lastAppliedFilter = 'all';
-                        this._settings.customDateRange = undefined;
-                        
-                        // Clear global customDateRange
-                        if (typeof window !== 'undefined') {
-                            (window as any).customDateRange = null;
-                        }
-                        
-                        console.error('SettingsManager: Error recovering custom date range', e);
                     }
-                } else {
-                    // Valid custom date range exists, synchronize with global variable
-                    if (typeof window !== 'undefined') {
-                        (window as any).customDateRange = { ...this._settings.customDateRange };
-                    }
-                    console.log('SettingsManager: Loaded saved custom date range', this._settings.customDateRange);
                 }
             }
         } catch (e) {
-            console.error('SettingsManager: Error validating filter settings', e);
+            safeLogger.error('Settings', 'Error validating filter settings', 
+                e instanceof Error ? e : new Error(String(e)));
+            // Set safe defaults
+            this._settings.lastAppliedFilter = 'all';
         }
     }
     
