@@ -63,28 +63,58 @@ export function getNestedProperty<T, R>(
 }
 
 /**
+ * Options for error handling
+ */
+export interface ErrorHandlingOptions<T> {
+  /** Error message to log */
+  errorMessage?: string;
+  /** Fallback value to return if an error occurs */
+  fallbackValue: T;
+  /** Function to call when an error occurs */
+  onError?: (error: any) => void;
+}
+
+/**
  * Wraps a function with error handling
  * 
  * @param fn - The function to wrap
- * @param fallback - The fallback value to return if the function throws
- * @param errorHandler - Optional function to handle errors
+ * @param optionsOrFallback - Error handling options or a fallback value
+ * @param errorHandler - Optional function to handle errors (deprecated, use options.onError instead)
  * @returns A wrapped function that never throws
  */
 export function withErrorHandling<T extends AnyFunction>(
   fn: T,
-  fallback: ReturnType<T>,
+  optionsOrFallback: ErrorHandlingOptions<ReturnType<T>> | ReturnType<T>,
   errorHandler?: (error: any) => void
 ): (...args: Parameters<T>) => ReturnType<T> {
   return (...args: Parameters<T>): ReturnType<T> => {
     try {
       return fn(...args);
     } catch (e) {
-      if (errorHandler) {
-        errorHandler(e);
+      // Handle different options formats
+      if (isObject(optionsOrFallback) && 'fallbackValue' in optionsOrFallback) {
+        // New options object format
+        const options = optionsOrFallback as ErrorHandlingOptions<ReturnType<T>>;
+        
+        if (options.errorMessage) {
+          console.error(`${options.errorMessage}:`, e);
+        }
+        
+        if (options.onError) {
+          options.onError(e);
+        }
+        
+        return options.fallbackValue;
       } else {
-        console.error(`Error in function ${fn.name || 'anonymous'}:`, e);
+        // Legacy format with separate fallback and errorHandler
+        if (errorHandler) {
+          errorHandler(e);
+        } else {
+          console.error(`Error in function ${fn.name || 'anonymous'}:`, e);
+        }
+        
+        return optionsOrFallback as ReturnType<T>;
       }
-      return fallback;
     }
   };
 }
