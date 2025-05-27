@@ -119,32 +119,35 @@ Before embarking on the full refactoring plan, these low-risk steps can be imple
    - Can be implemented as a wrapper around existing logging
    - Adds fallback mechanisms without changing core functionality
    - Would help track initialization sequence issues
-   - **Status: Completed on June 5, 2025**
+   - **Status: Completed on May 27, 2025**
 
 2. **Add defensive coding for date helpers** ✅
    - Focus on handling nulls, undefined, and invalid dates
    - Add fallback mechanisms for critical date operations
    - Implement proper validation for dates
    - Create test utilities to verify date operations
-   - **Status: Completed on June 6, 2025**
+   - **Status: Completed on May 27, 2025**
 
-3. **Add tests for critical components**
+3. **Add tests for critical components** ✅
    - Focus on the parsing and dream entry detection functionality
    - Create test fixtures with various callout formats
    - Test initialization sequence to catch dependency issues
    - Low risk since it's adding new code without modifying existing
+   - **Status: Completed on May 27, 2025** with ContentParserTestModal
 
-4. **Document public APIs for core components**
+4. **Document public APIs for core components** ✅
    - Map out the intended interfaces between components
    - Document initialization requirements clearly
    - Identify which components depend on which globals
    - Pure documentation work that doesn't modify code
+   - **Status: Completed on May 27, 2025** with component interfaces in global-dependencies-map.md
 
-5. **Create a simple dependency graph visualization**
+5. **Create a simple dependency graph visualization** ✅
    - Map initialization dependencies visually
    - Identify circular dependencies
    - Document the correct initialization sequence
    - Purely analytical work that doesn't change code
+   - **Status: Completed on May 27, 2025** as part of global dependencies mapping
 
 These steps establish a safer foundation for the more comprehensive refactoring work outlined in the implementation plan while introducing minimal risk to the current stable codebase.
 
