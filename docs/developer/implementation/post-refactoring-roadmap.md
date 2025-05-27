@@ -114,9 +114,9 @@ This document outlines the development roadmap following the refactoring rollbac
 
 | Task | Priority | Estimated Effort | Dependencies | Status |
 |------|----------|------------------|--------------|--------|
-| Create Safe Logger Implementation | ✅ Completed | 2 days | None | Completed on 2025-06-05 |
-| Add Defensive Coding for Date Helpers | High | 2 days | None | Completed on 2025-06-06 |
-| Map Global Dependencies | High | 3 days | None | In Progress |
+| Create Safe Logger Implementation | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
+| Add Defensive Coding for Date Helpers | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
+| Map Global Dependencies | ✅ Completed | 3 days | None | Completed on 2025-05-27 |
 | Fix Critical UI Bugs | High | 2 days | None | In Progress |
 | Create Service Registry | Medium | 4 days | Dependency Mapping | Not Started |
 | Define Module Interfaces | Medium | 5 days | Dependency Mapping | Not Started |
@@ -158,9 +158,9 @@ When implementing these improvements, refer to the [Refactoring Lessons Learned]
 
 ## Progress Overview
 
-![Progress Bar](https://progress-bar.dev/35/ "Refactoring Progress")
+![Progress Bar](https://progress-bar.dev/40/ "Refactoring Progress")
 
-Current progress is primarily in the documentation and implementation phase, with approximately 35% of the overall refactoring plan completed. Key accomplishments:
+Current progress is primarily in the documentation and implementation phase, with approximately 40% of the overall refactoring plan completed. Key accomplishments:
 
 - ✅ Successfully identified and documented all issues from the failed refactoring
 - ✅ Created comprehensive documentation of lessons learned
@@ -168,6 +168,7 @@ Current progress is primarily in the documentation and implementation phase, wit
 - ✅ Removed orphaned files and fixed immediate issues
 - ✅ Implemented safe logger with fallback mechanisms
 - ✅ Added defensive coding for date utilities with comprehensive testing
+- ✅ Mapped global dependencies across the codebase
 - 🔄 Working on remaining UI bugs and preparing test environment
 
 Next major milestone: Complete all stabilization tasks by 2025-06-15.
