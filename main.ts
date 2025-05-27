@@ -77,6 +77,12 @@ import {
 } from './src/utils/settings-helpers';
 
 import {
+  validateDate,
+  parseDate,
+  formatDate
+} from './src/utils/date-utils';
+
+import {
   isMetricEnabled,
   setMetricEnabled,
   getMetricMinValue,
@@ -2126,8 +2132,8 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Sort dream entries by date
         dreamEntries.sort((a, b) => {
-            const dateA = this.parseDate(a.date);
-            const dateB = this.parseDate(b.date);
+            const dateA = parseDate(a.date) || new Date();
+            const dateB = parseDate(b.date) || new Date();
             return dateA.getTime() - dateB.getTime();
         });
         
@@ -2146,7 +2152,7 @@ export default class DreamMetricsPlugin extends Plugin {
             // Explicitly ensure date attribute is set multiple times for redundancy
             // This ensures filtering will work correctly even if some attributes are missing
             content += `<tr class="oom-dream-row" data-date="${entry.date}" data-date-raw="${entry.date}" data-iso-date="${entry.date}">\n`;
-            content += `<td class="column-date" data-date="${entry.date}" data-iso-date="${entry.date}">${this.formatDate(this.parseDate(entry.date))}</td>\n`;
+            content += `<td class="column-date" data-date="${entry.date}" data-iso-date="${entry.date}">${formatDate(parseDate(entry.date) || new Date(), 'MMM d, yyyy')}</td>\n`;
             
             // Create a proper link to the source
             const sourceFile = getSourceFile(entry);
@@ -2197,67 +2203,30 @@ export default class DreamMetricsPlugin extends Plugin {
         return result;
     }
 
+    // Using the centralized date utils from src/utils/date-utils.ts
+    // These methods are wrappers that provide compatibility with existing code
+    // while delegating to the shared utility functions
+    
     private validateDate(date: Date): boolean {
-        return !isNaN(date.getTime()) && 
-               date.getFullYear() >= 1900 && 
-               date.getFullYear() <= 2100;
+        return validateDate(date);
     }
 
     private parseDate(dateStr: string): Date {
         const startTime = performance.now();
         this.logger.log('Date', `Processing date: ${dateStr}`);
         
-        if (!dateStr || dateStr.trim() === '') {
-            this.logger.error('Date', 'Empty date string provided');
+        // Use the shared parseDate utility, but handle null result by returning current date
+        const parsedDate = parseDate(dateStr);
+        if (parsedDate) {
+            return parsedDate;
+        } else {
+            this.logger.error('Date', `Failed to parse date: ${dateStr}`, new Error('Date parsing failed'));
             return new Date();
         }
-
-        // Try block reference format first (^YYYYMMDD)
-        const blockRefMatch = dateStr.match(/\^(\d{8})/);
-        if (blockRefMatch) {
-            const dateStr = blockRefMatch[1];
-            const year = parseInt(dateStr.slice(0, 4));
-            const month = parseInt(dateStr.slice(4, 6)) - 1;
-            const day = parseInt(dateStr.slice(6, 8));
-            const date = new Date(year, month, day);
-            if (this.validateDate(date)) {
-                this.logger.log('Date', `Parsed block reference format: ${date.toISOString()}`);
-                return date;
-            }
-        }
-
-        // Try YYYY-MM-DD format
-        const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        if (dateMatch) {
-            const [_, year, month, day] = dateMatch;
-            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            if (this.validateDate(date)) {
-                this.logger.log('Date', `Parsed YYYY-MM-DD format: ${date.toISOString()}`);
-                return date;
-            }
-        }
-
-        // Try journal entry format (e.g., "Monday, January 6, 2024")
-        const journalEntryMatch = dateStr.match(/(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,\s+\d{4}/);
-        if (journalEntryMatch) {
-            const dateObj = new Date(journalEntryMatch[0]);
-            if (!isNaN(dateObj.getTime())) {
-                this.logger.log('Date', `Parsed journal entry format: ${dateObj.toISOString()}`);
-                return dateObj;
-            }
-        }
-
-        // If all parsing attempts fail, log error and return current date
-        this.logger.error('Date', `Failed to parse date: ${dateStr}`, new Error('Date parsing failed'));
-        return new Date();
     }
 
     private formatDate(date: Date): string {
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        return formatDate(date, 'MMM d, yyyy');
     }
 
         private updateProjectNoteView(currentLogLevel?: string) {
@@ -2717,7 +2686,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
             }
 
-            const dreamDate = this.parseDate(date);
+            const dreamDate = parseDate(date) || new Date();
             if (isNaN(dreamDate.getTime())) {
                 this.logger.error('Filter', `Invalid date for row ${i}: ${date}`);
                 invalidDates++;
