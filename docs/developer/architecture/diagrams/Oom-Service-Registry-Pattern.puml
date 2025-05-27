@@ -1,7 +1,5 @@
 @startuml Service Registry Pattern
 
-!include ../styles/obsidian-theme.puml
-
 '******************************************************************************
 ' Service Registry Pattern Diagram
 ' Shows how components interact with the central registry

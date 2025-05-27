@@ -134,7 +134,7 @@ import { attachClickEvent, attachEvent, createEventHandler, createClickHandler, 
 import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types';
 
 // Internal imports - Settings
-import { DreamMetricsSettingTab, lucideIconMap } from './settings';
+import { DreamMetricsSettingTab, lucideIconMap, RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER, sortMetricsByOrder } from './settings';
 import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
 
 // Internal imports - Logging
@@ -334,12 +334,76 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize the Service Registry with settings
         try {
             safeLogger.debug('DreamMetricsPlugin', 'Initializing Service Registry');
+            
+            // Log metrics status
+            console.log('Settings metrics status before registry init:', 
+                this.settings.metrics ? 
+                `Found ${Object.keys(this.settings.metrics).length} metrics` : 
+                'No metrics found');
+            
+            // Make sure metrics object exists
+            if (!this.settings.metrics) {
+                this.settings.metrics = {};
+                console.log('Created empty metrics object');
+            }
+            
+            // Verify each required metric exists
+            const requiredMetrics = [
+                "Sensory Detail", "Emotional Recall", "Lost Segments", "Descriptiveness", 
+                "Confidence Score", "Characters Role", "Characters Count", "Familiar Count", 
+                "Unfamiliar Count", "Characters List", "Dream Theme", "Lucidity Level", 
+                "Dream Coherence", "Setting Familiarity", "Ease of Recall", "Recall Stability"
+            ];
+            
+            // Check which metrics are missing
+            const missingMetrics = requiredMetrics.filter(
+                metricName => !this.settings.metrics[metricName]
+            );
+            
+            console.log('Missing metrics before initialization:', 
+                missingMetrics.length ? missingMetrics.join(', ') : 'None');
+            
+            // Add any missing metrics from DEFAULT_METRICS
+            let metricAdded = false;
+            DEFAULT_METRICS.forEach(metric => {
+                if (!this.settings.metrics[metric.name]) {
+                    this.settings.metrics[metric.name] = {
+                        name: metric.name,
+                        icon: metric.icon,
+                        minValue: metric.minValue,
+                        maxValue: metric.maxValue,
+                        description: metric.description || '',
+                        enabled: metric.enabled,
+                        category: metric.category || 'dream',
+                        type: metric.type || 'number',
+                        format: metric.format || 'number',
+                        options: metric.options || [],
+                        // Include legacy properties for backward compatibility
+                        min: metric.minValue,
+                        max: metric.maxValue,
+                        step: 1
+                    };
+                    metricAdded = true;
+                    console.log(`Added missing metric during init: ${metric.name}`);
+                }
+            });
+            
+            // Save settings if any metrics were added
+            if (metricAdded) {
+                console.log('Saving settings with newly added metrics');
+                await this.saveSettings();
+            }
+            
             // Create and register the settings adapter
             const settingsAdapter = createAndRegisterSettingsAdapter(this.settings, this.app);
             
             // Register the logging service
             registerService(SERVICE_NAMES.LOGGER, globalLogger);
             
+            // Log final metrics status
+            console.log('Final metrics in registry:', 
+                Object.keys(this.settings.metrics).join(', '));
+                
             safeLogger.debug('DreamMetricsPlugin', 'Service Registry initialized with settings and logger');
         } catch (e) {
             console.error('Error initializing Service Registry:', e);
@@ -546,6 +610,9 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Initialize time filter manager
         this.timeFilterManager = new TimeFilterManager();
+        
+        // TimeFilterManager is already registered in onload, no need to register again here
+        // registerService(SERVICE_NAMES.TIME_FILTER, this.timeFilterManager);
         
         // Add settings tab
         this.addSettingTab(new DreamMetricsSettingTab(this.app, this));
@@ -1006,52 +1073,56 @@ export default class DreamMetricsPlugin extends Plugin {
             globalLogger?.error('Filter', 'Error validating filter settings', e);
         }
         
-        // Ensure all default metrics exist in the settings
-        if (!this.settings.metrics || Object.keys(this.settings.metrics).length === 0) {
+        // Initialize metrics if they don't exist
+        if (!this.settings.metrics) {
             this.settings.metrics = {};
-            // Convert array to object with name as key
-            DEFAULT_METRICS.forEach(metric => {
-                this.settings.metrics[metric.name] = {
-                    name: metric.name,
-                    icon: metric.icon,
-                    minValue: metric.minValue,
-                    maxValue: metric.maxValue,
-                    description: metric.description || '',
-                    enabled: metric.enabled,
-                    category: metric.category || 'dream',
-                    type: metric.type || 'number',
-                    format: metric.format || 'number',
-                    options: metric.options || [],
+        }
+        
+        // Log metrics state for debugging
+        console.log('Initial metrics state:', 
+            Object.keys(this.settings.metrics || {}).length ? 
+            Object.keys(this.settings.metrics).join(', ') : 
+            'No metrics found');
+        
+        // Ensure all default metrics exist in settings by merging with existing metrics
+        let metricsUpdated = false;
+        
+        // For each default metric, add it if it doesn't exist
+        DEFAULT_METRICS.forEach(defaultMetric => {
+            if (!this.settings.metrics[defaultMetric.name]) {
+                // Add the missing metric with default values
+                this.settings.metrics[defaultMetric.name] = {
+                    name: defaultMetric.name,
+                    icon: defaultMetric.icon,
+                    minValue: defaultMetric.minValue,
+                    maxValue: defaultMetric.maxValue,
+                    description: defaultMetric.description || '',
+                    enabled: defaultMetric.enabled,
+                    category: defaultMetric.category || 'dream',
+                    type: defaultMetric.type || 'number',
+                    format: defaultMetric.format || 'number',
+                    options: defaultMetric.options || [],
                     // Include legacy properties for backward compatibility
-                    min: metric.minValue,
-                    max: metric.maxValue,
+                    min: defaultMetric.minValue,
+                    max: defaultMetric.maxValue,
                     step: 1
                 };
-            });
-        } else {
-            // Check if any default metrics are missing and add them
-            DEFAULT_METRICS.forEach(defaultMetric => {
-                if (!this.settings.metrics[defaultMetric.name]) {
-                    // Add the missing metric with default values
-                    this.settings.metrics[defaultMetric.name] = {
-                        name: defaultMetric.name,
-                        icon: defaultMetric.icon,
-                        minValue: defaultMetric.minValue,
-                        maxValue: defaultMetric.maxValue,
-                        description: defaultMetric.description || '',
-                        enabled: defaultMetric.enabled,
-                        category: defaultMetric.category || 'dream',
-                        type: defaultMetric.type || 'number',
-                        format: defaultMetric.format || 'number',
-                        options: defaultMetric.options || [],
-                        // Include legacy properties for backward compatibility
-                        min: defaultMetric.minValue,
-                        max: defaultMetric.maxValue,
-                        step: 1
-                    };
-                }
-            });
+                metricsUpdated = true;
+                console.log(`Added missing metric: ${defaultMetric.name}`);
+            }
+        });
+        
+        // Save settings if we updated any metrics
+        if (metricsUpdated) {
+            console.log('Saving settings with updated metrics...');
+            await this.saveSettings();
         }
+        
+        // Log the final metrics state
+        console.log('Final metrics state:', 
+            Object.keys(this.settings.metrics).length ? 
+            Object.keys(this.settings.metrics).join(', ') : 
+            'No metrics found');
         
         // Use the expandedStates helper instead of direct access
         this.expandedStates = new Set<string>();
@@ -1104,6 +1175,9 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Initialize the time filter manager with proper parameters
         this.timeFilterManager = new TimeFilterManager();
+        
+        // TimeFilterManager is already registered in onload, no need to register again here
+        // registerService(SERVICE_NAMES.TIME_FILTER, this.timeFilterManager);
         
         // Create proper settings object for TemplaterIntegration
         const templaterSettings = {
@@ -1569,8 +1643,12 @@ export default class DreamMetricsPlugin extends Plugin {
             return;
         }
 
-        // Sort and update
-        dreamEntries.sort((a, b) => a.date.localeCompare(b.date));
+        // Sort dream entries by date (chronological order - oldest first)
+        dreamEntries.sort((a, b) => {
+            const dateA = parseDate(a.date) || new Date();
+            const dateB = parseDate(b.date) || new Date();
+            return dateA.getTime() - dateB.getTime(); // Chronological order - oldest first
+        });
         globalLogger?.info('Scrape', `Updating project note with ${dreamEntries.length} entries`);
         this.updateProjectNote(metrics, dreamEntries);
         progressModal.close();
@@ -1655,17 +1733,19 @@ export default class DreamMetricsPlugin extends Plugin {
             const existingContent = await this.app.vault.read(projectFile);
             
             // Define markers for the metrics section
-            const startMarker = '<!-- OOM METRICS START -->';
-            const endMarker = '<!-- OOM METRICS END -->';
+            // CRITICAL FIX: Add data-render-html to ensure proper HTML rendering
+            const startMarker = '<!-- OOM METRICS START --><div data-render-html="true">';
+            const endMarker = '</div><!-- OOM METRICS END -->';
 
             // Generate new content with markers
-            const newMetricsContent = startMarker + '\n\n' + this.generateMetricsTable(metrics, dreamEntries) + '\n\n' + endMarker;
+            const newMetricsContent = startMarker + '\n' + this.generateMetricsTable(metrics, dreamEntries) + '\n' + endMarker;
 
             let newContent = '';
-            if (existingContent.includes(startMarker) && existingContent.includes(endMarker)) {
+            const regexPattern = /<!-- OOM METRICS START -->([\s\S]*?)<!-- OOM METRICS END -->/;
+            
+            if (existingContent.match(regexPattern)) {
                 // Replace content between markers
-                const regex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`, 'g');
-                newContent = existingContent.replace(regex, newMetricsContent);
+                newContent = existingContent.replace(regexPattern, newMetricsContent);
             } else {
                 // If no markers exist, append to the end of the file
                 newContent = existingContent.trim() + '\n\n' + newMetricsContent;
@@ -1849,7 +1929,7 @@ export default class DreamMetricsPlugin extends Plugin {
         content += `<div class="oom-table-section oom-stats-section">`;
         content += '<h2 class="oom-table-title oom-stats-title">Statistics</h2>';
         content += '<div class="oom-table-container">\n';
-        content += '<table class="oom-table oom-stats-table">\n';
+        content += '<table class="oom-table oom-stats-table" id="oom-stats-table">\n';
         content += "<thead>\n";
         content += "<tr>\n";
         content += "<th>Metric</th>\n";
@@ -1861,14 +1941,62 @@ export default class DreamMetricsPlugin extends Plugin {
         content += "</thead>\n";
         content += "<tbody>\n";
         
-        // Include Words and all configured metrics
-        const validMetricNames = [
-            "Words",
-            ...Object.values(this.settings.metrics).map(m => m.name)
-        ];
+        // CRITICAL FIX: More explicit and controlled metrics ordering
+        const combinedOrder = ["Words", "Reading Time", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
         
+        // Create a lookup map for metrics by name
+        const metricsLookup: Record<string, DreamMetric> = {};
+        Object.values(this.settings.metrics).forEach(metric => {
+            metricsLookup[metric.name] = metric;
+        });
+        
+        // Track metrics we've processed to avoid duplicates
+        const processedMetrics = new Set<string>();
         let hasMetrics = false;
-        for (const name of validMetricNames) {
+        
+        // First, handle special cases (Words, Reading Time)
+        if (metrics["Words"] && metrics["Words"].length > 0) {
+            hasMetrics = true;
+            const values = metrics["Words"];
+            const avg = values.reduce((a, b) => a + b) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const total = values.reduce((a, b) => a + b, 0);
+            
+            content += "<tr>\n";
+            content += `<td>Words <span class="oom-words-total">(total: ${total})</span></td>\n`;
+            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
+            content += `<td class="metric-value">${min}</td>\n`;
+            content += `<td class="metric-value">${max}</td>\n`;
+            content += `<td class="metric-value">${values.length}</td>\n`;
+            content += "</tr>\n";
+            
+            processedMetrics.add("Words");
+        }
+        
+        if (metrics["Reading Time"] && metrics["Reading Time"].length > 0) {
+            hasMetrics = true;
+            const values = metrics["Reading Time"];
+            const avg = values.reduce((a, b) => a + b) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            
+            content += "<tr>\n";
+            content += `<td>Reading Time</td>\n`;
+            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
+            content += `<td class="metric-value">${min}</td>\n`;
+            content += `<td class="metric-value">${max}</td>\n`;
+            content += `<td class="metric-value">${values.length}</td>\n`;
+            content += "</tr>\n";
+            
+            processedMetrics.add("Reading Time");
+        }
+        
+        // Then process the rest in the defined order
+        for (const name of combinedOrder) {
+            // Skip already processed metrics
+            if (processedMetrics.has(name)) continue;
+            
             const values = metrics[name];
             if (!values || values.length === 0) continue;
             
@@ -1878,13 +2006,65 @@ export default class DreamMetricsPlugin extends Plugin {
             const max = Math.max(...values);
             
             let label = name;
-            if (name === "Words") {
-                const total = values.reduce((a, b) => a + b, 0);
-                label = `Words <span class="oom-words-total">(total: ${total})</span>`;
-            } else {
-                const metric = Object.values(this.settings.metrics).find(m => m.name === name);
-                if (metric?.icon && lucideIconMap[metric.icon]) {
-                    label = `<span class="oom-metric-icon-svg oom-metric-icon--start">${lucideIconMap[metric.icon]}</span> ${name}`;
+            const metric = metricsLookup[name];
+            
+            // CRITICAL FIX: Proper icon handling and display
+            if (metric?.icon) {
+                // Ensure icon name is valid, use fallbacks for problematic icons
+                let iconName = metric.icon;
+                if (iconName === 'circle-off') iconName = 'circle-minus';
+                
+                // Get icon from lucideIconMap
+                const svgContent = lucideIconMap[iconName];
+                if (svgContent) {
+                    // Ensure SVG has proper dimensions and attributes for consistent display
+                    const iconHtml = svgContent
+                        .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
+                        .replace('stroke-width="2"', 'stroke-width="2.5"');
+                    
+                    label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
+                }
+            }
+            
+            content += "<tr>\n";
+            content += `<td>${label}</td>\n`;
+            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
+            content += `<td class="metric-value">${min}</td>\n`;
+            content += `<td class="metric-value">${max}</td>\n`;
+            content += `<td class="metric-value">${values.length}</td>\n`;
+            content += "</tr>\n";
+            
+            processedMetrics.add(name);
+        }
+        
+        // Finally, handle any metrics not covered by our predefined lists
+        for (const name of Object.keys(metrics)) {
+            // Skip already processed metrics
+            if (processedMetrics.has(name)) continue;
+            
+            const values = metrics[name];
+            if (!values || values.length === 0) continue;
+            
+            hasMetrics = true;
+            const avg = values.reduce((a, b) => a + b) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            
+            let label = name;
+            const metric = metricsLookup[name];
+            
+            // Handle icons the same way as above for consistency
+            if (metric?.icon) {
+                let iconName = metric.icon;
+                if (iconName === 'circle-off') iconName = 'circle-minus';
+                
+                const svgContent = lucideIconMap[iconName];
+                if (svgContent) {
+                    const iconHtml = svgContent
+                        .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
+                        .replace('stroke-width="2"', 'stroke-width="2.5"');
+                    
+                    label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
                 }
             }
             
@@ -1920,16 +2100,19 @@ export default class DreamMetricsPlugin extends Plugin {
             return this.memoizedTableData.get(cacheKey);
         }
         
-        content += "<div data-render-html>\n";
+        // CRITICAL FIX: Ensure all HTML is rendered properly by Obsidian's parser
+        // Use data-render-html and proper div enclosures
+        content += "<div data-render-html=\"true\">\n";
         content += '<h1 class="oneirometrics-title">OneiroMetrics (Dream Metrics)</h1>\n';
-        content += '<div class="oom-rescrape-container">\n';
-        content += '<button class="mod-cta oom-rescrape-button">Rescrape Metrics</button>\n';
-        content += '<button class="mod-cta oom-settings-button">Settings</button>\n';
-        content += '<button class="mod-cta oom-date-navigator-button">Date Navigator</button>\n';
-        content += "</div>\n";
+        
+        // IMPORTANT: Use simpler HTML structure with fewer nesting levels but add distinct classes
+        content += '<div class="oom-buttons-container">\n';
+        content += '<button class="mod-cta oom-button oom-rescrape-button" id="oom-rescrape-button" type="button">Rescrape Metrics</button>\n';
+        content += '<button class="mod-cta oom-button oom-settings-button" id="oom-settings-button" type="button">Settings</button>\n';
+        content += '<button class="mod-cta oom-button oom-date-navigator-button" id="oom-date-navigator-button" type="button">Date Navigator</button>\n';
+        content += '</div>\n';
         
         content += '<div class="oom-metrics-container">\n';
-        content += '<div class="oom-metrics-content">\n';
         
         // Add metrics summary table
         content += this.generateSummaryTable(metrics);
@@ -1937,9 +2120,8 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add Dream Entries heading
         content += '<h2 class="oom-dream-entries-title">Dream Entries</h2>\n';
         
-        // Add filter controls
-        content += '<div class="oom-filter-controls">\n';
-        content += '<div class="oom-filter-group">\n';
+        // Add filter controls with simplified structure
+        content += '<div class="oom-filter-controls" id="oom-filter-controls">\n';
         content += '<select id="oom-date-range-filter" class="oom-select">\n';
         content += '<option value="all">All Time</option>\n';
         content += '<option value="today">Today</option>\n';
@@ -1950,34 +2132,46 @@ export default class DreamMetricsPlugin extends Plugin {
         content += '<option value="last6months">Last 6 Months</option>\n';
         content += '<option value="thisYear">This Year</option>\n';
         content += '<option value="last12months">Last 12 Months</option>\n';
-        content += "</select>\n";
-        content += '<button id="oom-custom-range-btn" class="oom-button">Custom Range</button>\n';
+        content += '</select>\n';
+        content += '<button id="oom-custom-range-btn" class="oom-button" type="button">Custom Range</button>\n';
         content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
-        content += "</div>\n";
+        content += '</div>\n';
         
-        // Add dream entries table
-        content += '<div class="oom-table-section">\n';
-        content += '<table class="oom-table">\n';
+        // Add dream entries table with clear IDs
+        content += '<div class="oom-table-section" id="oom-dream-entries-table-section">\n';
+        content += '<table class="oom-table" id="oom-dream-entries-table">\n';
         content += "<thead>\n<tr>\n";
         content += '<th class="column-date">Date</th>\n';
         content += '<th class="column-dream-title">Dream Title</th>\n';
         content += '<th class="column-words">Words</th>\n';
         content += '<th class="column-content">Content</th>\n';
         
+        // Get all enabled metrics
+        const enabledMetrics = Object.values(this.settings.metrics).filter(metric => isMetricEnabled(metric));
+        
+        // Sort metrics by the recommended order
+        const metricNames = enabledMetrics.map(m => m.name);
+        const combinedOrder = ["Words", "Reading Time", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
+        const sortedMetricNames = sortMetricsByOrder(metricNames, combinedOrder);
+        
+        // Sort the enabled metrics based on the sorted names
+        const sortedEnabledMetrics = sortedMetricNames.map(name => 
+            enabledMetrics.find(m => m.name === name)
+        ).filter(m => m !== undefined) as DreamMetric[];
+        
         // Add metric column headers
-        for (const metric of Object.values(this.settings.metrics)) {
-            if (isMetricEnabled(metric)) {
-                const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
-                content += `<th class="${metricClass}">${metric.name}</th>\n`;
-            }
+        for (const metric of sortedEnabledMetrics) {
+            const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
+            const iconHtml = getMetricIcon(metric.icon) || '';
+            content += `<th class="${metricClass}"><span class="oom-metric-header">${iconHtml} ${metric.name}</span></th>\n`;
         }
         content += "</tr>\n</thead>\n<tbody>\n";
         
-        // Sort dream entries by date
+        // Sort dream entries by date (chronological order - oldest first)
         dreamEntries.sort((a, b) => {
             const dateA = parseDate(a.date) || new Date();
             const dateB = parseDate(b.date) || new Date();
-            return dateA.getTime() - dateB.getTime();
+            return dateA.getTime() - dateB.getTime(); // Chronological order - oldest first
         });
         
         // Add dream entry rows
@@ -2022,13 +2216,11 @@ export default class DreamMetricsPlugin extends Plugin {
                 content += `<td class="oom-dream-content column-content"><div class="oom-content-wrapper"><div class="oom-content-preview">${dreamContent}</div></div></td>\n`;
             }
             
-            // Add metrics columns
-            for (const metric of Object.values(this.settings.metrics)) {
-                if (isMetricEnabled(metric)) {
-                    const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
-                    const value = entry.metrics[metric.name];
-                    content += `<td class="metric-value ${metricClass}" data-metric="${metric.name}">${value !== undefined ? value : ""}</td>\n`;
-                }
+            // Add metrics columns using the same sorted order as the headers
+            for (const metric of sortedEnabledMetrics) {
+                const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
+                const value = entry.metrics[metric.name];
+                content += `<td class="metric-value ${metricClass}" data-metric="${metric.name}">${value !== undefined ? value : ""}</td>\n`;
             }
             
             content += "</tr>\n";
@@ -2036,8 +2228,6 @@ export default class DreamMetricsPlugin extends Plugin {
         
         content += "</tbody>\n</table>\n";
         content += "</div>\n"; // Close table-section
-        content += "</div>\n"; // Close filter-controls
-        content += "</div>\n"; // Close metrics-content
         content += "</div>\n"; // Close metrics-container
         content += "</div>\n"; // Close data-render-html
         
@@ -2118,139 +2308,88 @@ export default class DreamMetricsPlugin extends Plugin {
         // Check if filters are already applied before trying again
         if ((window as any).oomFiltersApplied) {
             globalLogger?.info('Filter', 'Filters already applied, skipping filter application in event listeners');
-        } else {
-            // Get the filter dropdown
-            const savedFilterElement = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
-            if (savedFilterElement) {
-                // PRIORITY FIX: Get filter from multiple sources in order of preference:
-                // 1. Global intended filter (set at startup)
-                // 2. Settings
-                // 3. localStorage
-                // 4. Default to 'thisMonth' instead of 'all' for better UX
-                const globalIntendedFilter = (window as any).oomIntendedFilter;
-                const savedFilter = globalIntendedFilter || 
-                                   this.settings.lastAppliedFilter || 
-                                   localStorage.getItem('oom-last-applied-filter') || 
-                                   'thisMonth';
-                
-                globalLogger?.info('Filter', `Preparing to restore filter: ${savedFilter}`, {
-                    source: globalIntendedFilter ? 'globalState' :
-                           (this.settings.lastAppliedFilter ? 'settings' : 
-                           (localStorage.getItem('oom-last-applied-filter') ? 'localStorage' : 'default')),
-                    customDateRange: this.settings.customDateRange ? JSON.stringify(this.settings.customDateRange) : 'none'
-                });
-                
-                // Initialize table rows first to ensure proper filtering
-                initializeTableRowClasses();
-                
-                // Set the dropdown value directly and sync to settings
-                savedFilterElement.value = savedFilter;
-                this.settings.lastAppliedFilter = savedFilter;
-                
-                // Update global state
-                (window as any).oomIntendedFilter = savedFilter;
-                
-                // Create multiple staggered attempts to apply the filter to ensure it works
-                const applyFilterAttempt = (delay: number) => {
-                    setTimeout(() => {
-                        // Check if filters have already been successfully applied
-                        if ((window as any).oomFiltersApplied) {
-                            globalLogger?.debug('Filter', `Filters already applied, skipping attempt`, { delay });
-                            return;
-                        }
-                        
-                        globalLogger?.debug('Filter', `Applying saved filter`, { filter: savedFilter, delay });
-                        
-                        // Always reset the dropdown value right before applying (defensive measure)
-                        if (savedFilterElement && savedFilterElement.value !== savedFilter) {
-                            savedFilterElement.value = savedFilter;
-                        }
-                        
-                        // CRITICAL FIX: Set the global intended filter value before applying filters
-                        (window as any).oomIntendedFilter = savedFilter;
-                        globalLogger?.info('Filter', `Setting intended filter in event listener: ${savedFilter}`);
-                        
-                        // Check if it's a custom date filter
-                        if (savedFilter === 'custom' && this.settings.customDateRange) {
-                            // Restore custom date range filter
-                            customDateRange = {...this.settings.customDateRange};
-                            
-                            // Apply multiple ways to ensure it works
-                            applyCustomDateRangeFilter();
-                            
-                            // Update custom range button state
-                            const customRangeBtn = document.getElementById('oom-custom-range-btn');
-                            if (customRangeBtn) {
-                                customRangeBtn.classList.add('active');
-                            }
-                            
-                            // Force direct application as a fallback
-                            this.forceApplyFilterDirect(
-                                previewEl, 
-                                this.settings.customDateRange.start, 
-                                this.settings.customDateRange.end
-                            );
-                        } else {
-                            // Apply standard filter using the specific dropdown method to avoid event conflicts
-                            this.applyFilterToDropdown(savedFilterElement, previewEl);
-                        }
-                    }, delay);
-                };
-                
-                // Try multiple staggered attempts with different delays
-                applyFilterAttempt(100);  // Quick attempt
-                applyFilterAttempt(500);  // Medium delay
-                applyFilterAttempt(1500); // Longer delay for slow renderings
+        }
+        
+        // Helper function to safely attach click event with console warning for debugging
+        const attachClickEvent = (element: Element | null, callback: () => void, elementName: string) => {
+            if (!element) {
+                globalLogger?.warn('UI', `${elementName} not found`);
+                return false;
             }
-        }
-
-        // Add event listeners for new rescrape/settings/debug buttons
-        const rescrapeBtn = previewEl.querySelector('.oom-rescrape-button');
-        if (rescrapeBtn) {
-            globalLogger?.debug('UI', 'Found rescrape button');
-            // Remove existing listeners
-            const newRescrapeBtn = rescrapeBtn.cloneNode(true) as HTMLElement;
-            attachClickEvent(newRescrapeBtn, () => {
-                globalLogger?.debug('UI', 'Rescrape button clicked');
-                new Notice('Rescraping metrics...');
-                this.scrapeMetrics();
-            });
-            rescrapeBtn.parentNode?.replaceChild(newRescrapeBtn, rescrapeBtn);
-        } else {
-            globalLogger?.warn('UI', 'Rescrape button not found');
-        }
+            
+            try {
+                // Remove existing listeners by cloning
+                const newElement = element.cloneNode(true) as HTMLElement;
+                newElement.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    callback();
+                });
+                element.parentNode?.replaceChild(newElement, element);
+                globalLogger?.debug('UI', `Attached event listener to ${elementName}`);
+                return true;
+            } catch (error) {
+                globalLogger?.error('UI', `Error attaching event to ${elementName}`, error as Error);
+                return false;
+            }
+        };
         
-        const settingsBtn = previewEl.querySelector('.oom-settings-button');
-        if (settingsBtn) {
-            globalLogger?.debug('UI', 'Found settings button');
-            // Remove existing listeners
-            const newSettingsBtn = settingsBtn.cloneNode(true);
-            newSettingsBtn.addEventListener('click', () => {
-                globalLogger?.debug('UI', 'Settings button clicked');
-                new Notice('Opening settings...');
-                (this.app as any).setting.open();
-                (this.app as any).setting.openTabById('oneirometrics');
-            });
-            settingsBtn.parentNode?.replaceChild(newSettingsBtn, settingsBtn);
-        } else {
-            globalLogger?.warn('UI', 'Settings button not found');
-        }
+        // Try multiple ways to find the buttons, falling back to more general selectors
+        const findButton = (id: string, className: string, fallbackSelector: string): HTMLElement | null => {
+            // Try by ID first (most specific)
+            const buttonById = document.getElementById(id);
+            if (buttonById) return buttonById as HTMLElement;
+            
+            // Try by class in preview element
+            const buttonByClass = previewEl.querySelector(`.${className}`);
+            if (buttonByClass) return buttonByClass as HTMLElement;
+            
+            // Try fallback selector as last resort
+            const buttonByFallback = previewEl.querySelector(fallbackSelector);
+            if (buttonByFallback) return buttonByFallback as HTMLElement;
+            
+            return null;
+        };
         
-        // Add event listener for the Date Navigator button
-        const dateNavigatorBtn = previewEl.querySelector('.oom-date-navigator-button');
-        if (dateNavigatorBtn) {
-            globalLogger?.debug('UI', 'Found date navigator button');
-            // Remove existing listeners
-            const newDateNavigatorBtn = dateNavigatorBtn.cloneNode(true);
-            newDateNavigatorBtn.addEventListener('click', () => {
-                globalLogger?.debug('UI', 'Date navigator button clicked');
-                new Notice('Opening date navigator...');
-                this.showDateNavigator();
-            });
-            dateNavigatorBtn.parentNode?.replaceChild(newDateNavigatorBtn, dateNavigatorBtn);
-        } else {
-            globalLogger?.warn('UI', 'Date navigator button not found');
-        }
+        // Find the rescrape button with multiple fallbacks
+        const rescrapeBtn = findButton(
+            'oom-rescrape-button', 
+            'oom-rescrape-button', 
+            'button.mod-cta:not(.oom-settings-button):not(.oom-date-navigator-button)'
+        );
+        
+        attachClickEvent(rescrapeBtn, () => {
+            globalLogger?.debug('UI', 'Rescrape button clicked');
+            new Notice('Rescraping metrics...');
+            this.scrapeMetrics();
+        }, 'Rescrape button');
+        
+        // Find the settings button with multiple fallbacks
+        const settingsBtn = findButton(
+            'oom-settings-button', 
+            'oom-settings-button', 
+            'button.mod-cta:not(.oom-rescrape-button):not(.oom-date-navigator-button)'
+        );
+        
+        attachClickEvent(settingsBtn, () => {
+            globalLogger?.debug('UI', 'Settings button clicked');
+            new Notice('Opening settings...');
+            (this.app as any).setting.open();
+            (this.app as any).setting.openTabById('oneirometrics');
+        }, 'Settings button');
+        
+        // Find the date navigator button with multiple fallbacks
+        const dateNavigatorBtn = findButton(
+            'oom-date-navigator-button', 
+            'oom-date-navigator-button', 
+            'button.mod-cta:not(.oom-rescrape-button):not(.oom-settings-button)'
+        );
+        
+        attachClickEvent(dateNavigatorBtn, () => {
+            globalLogger?.debug('UI', 'Date navigator button clicked');
+            new Notice('Opening date navigator...');
+            this.showDateNavigator();
+        }, 'Date navigator button');
         
         // Add event listeners for debug buttons
         const debugBtn = previewEl.querySelector('.oom-debug-attach-listeners');
@@ -2286,8 +2425,24 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         }
 
-        // Add date range filter event listener with performance optimizations
-        const dateRangeFilter = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+        // Find date range filter with multiple attempts
+        const findDateRangeFilter = (): HTMLSelectElement | null => {
+            // Try by ID first
+            const filterById = document.getElementById('oom-date-range-filter');
+            if (filterById) return filterById as HTMLSelectElement;
+            
+            // Try by class in preview element
+            const filterByClass = previewEl.querySelector('.oom-select');
+            if (filterByClass) return filterByClass as HTMLSelectElement;
+            
+            // Try more generic selector
+            const filterBySelector = previewEl.querySelector('select[id*="date-range"]');
+            if (filterBySelector) return filterBySelector as HTMLSelectElement;
+            
+            return null;
+        };
+        
+        const dateRangeFilter = findDateRangeFilter();
         if (dateRangeFilter) {
             globalLogger?.debug('UI', 'Found date range filter', { element: dateRangeFilter?.tagName });
             // First remove any existing event listeners by cloning the node
@@ -2334,8 +2489,21 @@ export default class DreamMetricsPlugin extends Plugin {
             button.parentNode?.replaceChild(newButton, button);
         });
 
-        // Add custom range button event listener
-        const customRangeBtn = document.getElementById('oom-custom-range-btn');
+        // Find custom range button with fallbacks
+        const findCustomRangeBtn = (): HTMLElement | null => {
+            // Try by ID first
+            const btnById = document.getElementById('oom-custom-range-btn');
+            if (btnById) return btnById as HTMLElement;
+            
+            // Try by class within the filter controls
+            const filterControls = previewEl.querySelector('.oom-filter-controls') || previewEl;
+            const btnByClass = filterControls.querySelector('.oom-button:not(.oom-button--expand)');
+            if (btnByClass) return btnByClass as HTMLElement;
+            
+            return null;
+        };
+        
+        const customRangeBtn = findCustomRangeBtn();
         if (customRangeBtn) {
             globalLogger?.debug('UI', 'Found custom range button');
             // Clone the button to remove any existing listeners
@@ -4934,59 +5102,82 @@ function initializeTableRowClasses() {
     
     // Helper function to repair date attributes on tables
     function runDateAttributeRepair() {
-        const rows = document.querySelectorAll('.oom-dream-row');
-        if (rows.length > 0) {
-            let rowsWithoutDates = 0;
-            let rowsFixed = 0;
-            
-            globalLogger?.info('Filter', `Checking date attributes on ${rows.length} rows`);
-            globalLogger?.debug('Filter', 'Starting date attribute verification process', { totalRows: rows.length });
-            
-            rows.forEach((row, index) => {
-                const dateAttr = row.getAttribute('data-date');
-                if (!dateAttr) {
-                    rowsWithoutDates++;
-                    
-                    // Try to extract date from the date column
-                    const dateCell = row.querySelector('.column-date');
-                    if (dateCell && dateCell.textContent) {
-                        const dateText = dateCell.textContent.trim();
-                        try {
-                            // Parse the displayed date back to YYYY-MM-DD format
-                            const date = new Date(dateText);
-                            if (!isNaN(date.getTime())) {
-                                const isoDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
-                                globalLogger?.debug('Filter', `Fixing date attribute on row ${index}`, { 
-                                    rowIndex: index, 
-                                    date: isoDate,
-                                    dateText: dateText
-                                });
-                                globalLogger?.info('Filter', `Fixed missing date attribute on row ${index}`, { date: isoDate });
-                                
-                                // Apply the fix to multiple attributes for redundancy
-                                row.setAttribute('data-date', isoDate);
-                                row.setAttribute('data-date-raw', isoDate);
-                                row.setAttribute('data-iso-date', isoDate);
-                                
+        // Try multiple ways to find rows
+        const rowsSelectors = [
+            '.oom-dream-row',
+            '#oom-dream-entries-table tbody tr',
+            '.oom-table tbody tr'
+        ];
+        
+        let rows: NodeListOf<Element> | null = null;
+        
+        // Try each selector until we find rows
+        for (const selector of rowsSelectors) {
+            const foundRows = document.querySelectorAll(selector);
+            if (foundRows && foundRows.length > 0) {
+                rows = foundRows;
+                globalLogger?.debug('Filter', `Found rows using selector: ${selector}`, { count: foundRows.length });
+                break;
+            }
+        }
+        
+        if (!rows || rows.length === 0) {
+            globalLogger?.warn('UI', 'No table rows found for date attribute repair');
+            return;
+        }
+        
+        let rowsWithoutDates = 0;
+        let rowsFixed = 0;
+        
+        globalLogger?.info('Filter', `Checking date attributes on ${rows.length} rows`);
+        globalLogger?.debug('Filter', 'Starting date attribute verification process', { totalRows: rows.length });
+        
+        rows.forEach((row, index) => {
+            const dateAttr = row.getAttribute('data-date');
+            if (!dateAttr) {
+                rowsWithoutDates++;
+                
+                // Try to extract date from the date column
+                const dateCell = row.querySelector('.column-date');
+                if (dateCell && dateCell.textContent) {
+                    const dateText = dateCell.textContent.trim();
+                    try {
+                        // Parse the displayed date back to YYYY-MM-DD format
+                        const date = new Date(dateText);
+                        if (!isNaN(date.getTime())) {
+                            const isoDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                            globalLogger?.debug('Filter', `Fixing date attribute on row ${index}`, { 
+                                rowIndex: index, 
+                                date: isoDate,
+                                dateText: dateText
+                            });
+                            globalLogger?.info('Filter', `Fixed missing date attribute on row ${index}`, { date: isoDate });
+                            
+                            // Apply the fix to multiple attributes for redundancy
+                            row.setAttribute('data-date', isoDate);
+                            row.setAttribute('data-date-raw', isoDate);
+                            row.setAttribute('data-iso-date', isoDate);
+                            
+                            if (dateCell) {
                                 dateCell.setAttribute('data-date', isoDate);
                                 dateCell.setAttribute('data-iso-date', isoDate);
-                                rowsFixed++;
                             }
-                        } catch (e) {
-                            globalLogger?.error('Filter', `Failed to fix date attribute for row ${index}`, e as Error);
+                            rowsFixed++;
                         }
+                    } catch (e) {
+                        globalLogger?.error('Filter', `Failed to fix date attribute for row ${index}`, e as Error);
                     }
                 }
-            });
-            
-            globalLogger?.info('Filter', `Date attribute repair complete`, { missing: rowsWithoutDates, fixed: rowsFixed });
-            globalLogger?.debug('Filter', 'Date attribute verification finished', { 
-                totalRows: rows.length,
-                rowsWithoutDates,
-                rowsFixed,
-                success: rowsFixed > 0
-            });
-        }
+            }
+        });
+        
+        globalLogger?.info('Filter', `Date attribute repair complete`, { missing: rowsWithoutDates, fixed: rowsFixed });
+        globalLogger?.debug('Filter', 'Date attribute verification finished', { 
+            totalRows: rows.length,
+            rowsWithoutDates,
+            rowsFixed,
+            success: rowsFixed > 0
+        });
     }
     
     // Use requestIdleCallback to run this during browser idle time
@@ -4995,9 +5186,27 @@ function initializeTableRowClasses() {
     
     runWhenIdle(() => {
         globalLogger?.debug('UI', 'Initializing table row classes during idle time');
-        const tables = document.querySelectorAll('.oom-table');
         
-        if (tables.length === 0) {
+        // Try multiple ways to find tables
+        const tableSelectors = [
+            '#oom-dream-entries-table', 
+            '.oom-table:not(.oom-stats-table)',
+            '.oom-table'
+        ];
+        
+        let tables: NodeListOf<Element> | null = null;
+        
+        // Try each selector until we find tables
+        for (const selector of tableSelectors) {
+            const foundTables = document.querySelectorAll(selector);
+            if (foundTables && foundTables.length > 0) {
+                tables = foundTables;
+                globalLogger?.debug('UI', `Found tables using selector: ${selector}`, { count: foundTables.length });
+                break;
+            }
+        }
+        
+        if (!tables || tables.length === 0) {
             globalLogger?.warn('UI', 'No tables found for row initialization');
             return;
         }
@@ -5060,6 +5269,9 @@ function initializeTableRowClasses() {
         
         // Set the flag to prevent reinitialization
         (window as any).__tableRowsInitialized = true;
+        
+        // Run date attribute repair after initialization
+        runDateAttributeRepair();
     }, { timeout: 1000 });
 }
 
@@ -5628,9 +5840,70 @@ function safeSettingsAccess(settings: any, propName: string, defaultValue: any =
 // Helper function for icon rendering
 function getIcon(iconName: string): string | null {
     if (!iconName) return null;
-    // Check if it's a Lucide icon
+    
+    // Special case handling for known icons that might have naming inconsistencies
+    if (iconName === 'circle-off') iconName = 'circle-minus';
+    
+    // Check if it's a Lucide icon from our map
     const lucideIcon = lucideIconMap?.[iconName];
     if (lucideIcon) return lucideIcon;
+    
+    // Try getting from Obsidian's built-in icons
+    try {
+        const obsidianIcon = getIcon(iconName);
+        if (obsidianIcon) return obsidianIcon;
+    } catch (e) {
+        // Silent fail and continue to fallback
+    }
+    
     // Return a simple span as fallback
     return `<span class="icon">${iconName}</span>`;
+}
+
+// Helper function for icon rendering
+function getMetricIcon(iconName: string): string | null {
+    if (!iconName) return null;
+    
+    // Special case handling for known icons that might have naming inconsistencies
+    if (iconName === 'circle-off') iconName = 'circle-minus';
+    if (iconName === 'circle') iconName = 'circle-dot';
+    if (iconName === 'x') iconName = 'x-circle';
+    
+    // Check if it's a Lucide icon from our map
+    let iconHtml = lucideIconMap?.[iconName];
+    
+    if (iconHtml) {
+        // Modify SVG to include width and height attributes
+        // Add additional classes for better styling and consistency
+        iconHtml = iconHtml
+            .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
+            .replace('stroke-width="2"', 'stroke-width="2.5"');
+        
+        // Wrap in a container for better positioning
+        return `<span class="oom-metric-icon-container">${iconHtml}</span>`;
+    }
+    
+    // If no icon found but we have a name, use a text fallback
+    if (iconName) {
+        // Simple visual indicator of the icon type
+        switch (iconName.toLowerCase()) {
+            case 'circle':
+            case 'circle-dot':
+                return `<span class="oom-icon-text">●</span>`;
+            case 'x':
+            case 'x-circle':
+                return `<span class="oom-icon-text">✕</span>`;
+            case 'square':
+                return `<span class="oom-icon-text">■</span>`;
+            case 'triangle':
+                return `<span class="oom-icon-text">▲</span>`;
+            case 'star':
+                return `<span class="oom-icon-text">★</span>`;
+            default:
+                return `<span class="oom-icon-text oom-icon-${iconName}">•</span>`;
+        }
+    }
+    
+    // Last resort fallback - return nothing
+    return null;
 }

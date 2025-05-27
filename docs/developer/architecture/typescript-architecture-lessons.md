@@ -8,6 +8,7 @@ This document consolidates key architectural patterns, lessons learned, and best
 - [Cleanup and Verification Checklist](#cleanup-and-verification-checklist)
 - [Lessons Learned](#lessons-learned)
 - [Future Recommendations](#future-recommendations)
+- [Service Registry Pattern and TypeScript](#service-registry-pattern-and-typescript)
 
 ## Architectural Patterns
 
@@ -223,6 +224,58 @@ Maintain a tracking table for cleanup progress:
 6. **Remove Temporary Code**: Schedule removal of migration utilities after sufficient testing.
 
 7. **Continuous Type Refinement**: Regularly review and refine types as the codebase evolves.
+
+## Service Registry Pattern and TypeScript
+
+![Service Registry Pattern](../../../assets/images/architecture/Oom-Service-Registry-Pattern.png)
+
+The Service Registry Pattern provides powerful solutions to common TypeScript architectural challenges in our plugin:
+
+### Type-Safe Service Resolution
+
+```typescript
+// Type-safe service resolution with TypeScript generics
+const loggerService = serviceRegistry.getService<LoggingService>('logger');
+const timeFilterManager = serviceRegistry.getService<TimeFilterManager>('timeFilter');
+```
+
+### Interface-Based Dependencies
+
+TypeScript interfaces define the contract between service providers and consumers, enabling loose coupling while maintaining type safety:
+
+```typescript
+interface LoggingService {
+  log(level: LogLevel, category: string, message: string, data?: any): void;
+  // Other methods...
+}
+
+// Service implementation can change without affecting consumers
+class ProductionLogger implements LoggingService {
+  // Implementation...
+}
+
+class DevelopmentLogger implements LoggingService {
+  // Different implementation, same interface...
+}
+```
+
+### Registration with Type Checking
+
+Our registry ensures services implement the correct interfaces at registration time:
+
+```typescript
+// This ensures the service implements the interface
+serviceRegistry.register<LoggingService>('logger', new ProductionLogger());
+```
+
+### Lessons Learned
+
+1. **Use Interfaces Over Concrete Types**: Always depend on interfaces rather than concrete implementations
+2. **Leverage Generic Constraints**: Use them to enforce service compatibility
+3. **Consider Factory Registration**: For services with complex initialization requirements
+4. **Use Union Types for Registry Keys**: Create a union type of all possible service keys for type safety
+
+The Service Registry Pattern has been instrumental in maintaining type safety across our complex dependency graph while allowing for flexible runtime behavior.
 
 ## References
 
