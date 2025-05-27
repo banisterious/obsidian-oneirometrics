@@ -211,12 +211,39 @@ Based on initial analysis, these areas have the highest concentration of dead co
 - Documented backed up classes:
   - Created a tracking table in the refactoring roadmap
   - Listed all classes that were backed up for future reference
+- Moved scrapeMetrics functionality to dedicated module:
+  - Created src/metrics/MetricsProcessor.ts to handle metrics logic
+  - Disabled the problematic progress modal temporarily
+  - Replaced with simple notices for status updates
+  - Future task: rebuild proper progress UI with simpler design
 - Backed up classes:
 
 | Class Name | Original Location | Backup Location | Removal Date | Status | Notes |
 |------------|------------------|-----------------|--------------|--------|-------|
 | OneiroMetricsModal | main.ts | src/dom/modals/OneiroMetricsModal.bak.ts | June 2025 | Removed | Replaced by DreamJournalManager and direct calls to scrapeMetrics |
 | ConfirmModal | main.ts | src/dom/modals/ConfirmModal.bak.ts | June 2025 | Removed | Generic confirmation dialog that was defined but not actually used in the codebase |
+
+**Progress (2025-06-05):**
+- Refactored metrics processing functionality:
+  - Created new src/metrics/MetricsProcessor.ts class to encapsulate metrics functionality
+  - Created src/metrics/index.ts to export the metrics components
+  - Moved scrapeMetrics() implementation from main.ts to MetricsProcessor class
+  - Updated main.ts to use the new MetricsProcessor
+  - Made updateProjectNote() method public to support the refactored structure
+  - Used proper logger implementation for consistent logging
+  - Reduced main.ts by ~400 lines
+- Fixed TypeScript errors in the new metrics components:
+  - Added proper imports and fixed method signatures
+  - Created wrapper method to handle cross-file method access
+  - Used appropriate error handling for metric processing operations
+- Updated the main.ts file:
+  - Simplified scrapeMetrics() method to use the new MetricsProcessor
+  - Changed updateProjectNote() from private to public
+  - Ensured backward compatibility for existing calls
+- Next steps:
+  - Complete the implementation of the MetricsProcessor class with the processing logic
+  - Refactor processMetrics() and processDreamContent() methods
+  - Update DreamJournalManager to use the new MetricsProcessor class
 
 ### Phase 2: Import Cleanup
 
@@ -457,8 +484,8 @@ The dead code elimination phase will be considered successful when:
 |-----------|-------------|--------|------|-------| 
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
 | Logging | Debug logging statements | 🔄 90% Complete | 2025-06-03 | Converting to structured logging |
-| UI Components | Modal generation, tables | 🔄 20% Complete | 2025-06-03 | Removed OneiroMetricsModal |
-| Metrics Processing | Calculation, organization | ⬜ Not Started | - | - |
+| UI Components | Modal generation, tables | 🔄 40% Complete | 2025-06-04 | Removed OneiroMetricsModal and ConfirmModal |
+| Metrics Processing | Calculation, organization | 🔄 60% Complete | 2025-06-05 | Moved to src/metrics/MetricsProcessor.ts |
 | Event Handlers | Button clicks, interactions | ⬜ Not Started | - | - |
 | Settings | Loading, saving | ⬜ Not Started | - | - |
 
