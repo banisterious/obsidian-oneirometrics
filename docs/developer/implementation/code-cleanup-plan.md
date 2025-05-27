@@ -201,6 +201,23 @@ Based on initial analysis, these areas have the highest concentration of dead co
   - Implement log rotation configuration
   - Add unit tests for logging functionality
 
+**Progress (2025-06-04):**
+- Continued UI component cleanup:
+  - Removed the unused ConfirmModal class
+  - Created backup at src/dom/modals/ConfirmModal.bak.ts for reference
+  - Removed unused confirmOverwrite() method
+  - Kept confirmProceedWithoutBackup() method which is still in use
+  - Added documentation comments to mark where code was removed
+- Documented backed up classes:
+  - Created a tracking table in the refactoring roadmap
+  - Listed all classes that were backed up for future reference
+- Backed up classes:
+
+| Class Name | Original Location | Backup Location | Removal Date | Status | Notes |
+|------------|------------------|-----------------|--------------|--------|-------|
+| OneiroMetricsModal | main.ts | src/dom/modals/OneiroMetricsModal.bak.ts | June 2025 | Removed | Replaced by DreamJournalManager and direct calls to scrapeMetrics |
+| ConfirmModal | main.ts | src/dom/modals/ConfirmModal.bak.ts | June 2025 | Removed | Generic confirmation dialog that was defined but not actually used in the codebase |
+
 ### Phase 2: Import Cleanup
 
 1. Consolidate multiple imports from the same module
