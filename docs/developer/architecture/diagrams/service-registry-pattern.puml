@@ -1,0 +1,81 @@
+@startuml Service Registry Pattern
+
+!include ../styles/obsidian-theme.puml
+
+'******************************************************************************
+' Service Registry Pattern Diagram
+' Shows how components interact with the central registry
+'******************************************************************************
+
+title "Service Registry Pattern"
+
+' Classes
+class ServiceRegistry {
+  - services: Map<string, any>
+  - factories: Map<string, Function>
+  - instance: ServiceRegistry
+  + getInstance(): ServiceRegistry
+  + register<T>(name: string, service: T): void
+  + registerFactory<T>(name: string, factory: Function): void
+  + get<T>(name: string): T
+  + has(name: string): boolean
+  + listServices(): string[]
+  + clear(): void
+}
+
+class SettingsAdapter {
+  - settings: DreamMetricsSettings
+  - app: App
+  + getSettings(): DreamMetricsSettings
+  + updateSettings(settings: Partial<DreamMetricsSettings>): void
+  + getSetting<K>(key: K): DreamMetricsSettings[K]
+  + saveSettings(plugin: any): Promise<void>
+}
+
+class DreamMetricsPlugin {
+  - settings: DreamMetricsSettings
+  - logger: LoggingAdapter
+  + onload(): void
+  + onunload(): void
+}
+
+class LoggingAdapter {
+  - logLevel: LogLevel
+  + configure(level: LogLevel): void
+  + debug(category: string, message: string): void
+  + info(category: string, message: string): void
+  + warn(category: string, message: string): void
+  + error(category: string, message: string): void
+}
+
+class TimeFilterManager {
+  + applyFilter(type: string): void
+  + getAvailableFilters(): string[]
+}
+
+class ContentParser {
+  + parseContent(content: string): any
+  + extractMetadata(content: string): any
+}
+
+' Relationships
+ServiceRegistry <-- DreamMetricsPlugin : initializes >
+ServiceRegistry <-- SettingsAdapter : registers with >
+ServiceRegistry <-- LoggingAdapter : registers with >
+ServiceRegistry <-- TimeFilterManager : registers with >
+ServiceRegistry <-- ContentParser : registers with >
+
+note bottom of ServiceRegistry
+  The Service Registry acts as a central
+  repository for all services and components.
+  It helps manage dependencies and ensure
+  consistent initialization order.
+end note
+
+note top of DreamMetricsPlugin
+  Plugin initializes the registry
+  during onload() and registers
+  core services.
+end note
+
+@enduml 
