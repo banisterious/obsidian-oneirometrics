@@ -152,7 +152,7 @@ export class DefensiveUtilsTestModal extends Modal {
     
     // Test 5: Return fallback when getter throws
     const obj5 = { 
-      get name() { throw new Error('Test error'); } 
+      get name(): string { throw new Error('Test error'); } 
     };
     
     let result: string;
@@ -164,7 +164,7 @@ export class DefensiveUtilsTestModal extends Modal {
     
     this.assert(
       'getSafe - returns fallback when getter throws',
-      getSafe(obj5, o => o.name, 'Default') === 'Default',
+      getSafe(obj5, o => o.name as string, 'Default') === 'Default',
       'getSafe should return the fallback when the getter throws'
     );
   }
@@ -172,9 +172,10 @@ export class DefensiveUtilsTestModal extends Modal {
   private runGetNestedPropertyTests() {
     // Test 1: Return nested property when available
     const obj1 = { user: { profile: { name: 'Test' } } };
+    const result = getNestedProperty<{ user: { profile: { name: string } } }, string>(obj1, ['user', 'profile', 'name'], 'Default');
     this.assert(
       'getNestedProperty - returns nested property when available',
-      getNestedProperty(obj1, ['user', 'profile', 'name'], 'Default') === 'Test',
+      result === 'Test',
       'getNestedProperty should return the nested property when it exists'
     );
     
@@ -182,7 +183,7 @@ export class DefensiveUtilsTestModal extends Modal {
     const obj2 = { user: { profile: { } } };
     this.assert(
       'getNestedProperty - returns fallback for invalid path',
-      getNestedProperty(obj2, ['user', 'profile', 'name'], 'Default') === 'Default',
+      getNestedProperty<typeof obj2, string>(obj2, ['user', 'profile', 'name'], 'Default') === 'Default',
       'getNestedProperty should return the fallback when path is invalid'
     );
     
@@ -190,8 +191,8 @@ export class DefensiveUtilsTestModal extends Modal {
     const obj3 = { user: null };
     this.assert(
       'getNestedProperty - returns fallback for null intermediate',
-      getNestedProperty(obj3, ['user', 'profile', 'name'], 'Default') === 'Default',
-      'getNestedProperty should return fallback when intermediate property is null'
+      getNestedProperty<typeof obj3, string>(obj3, ['user', 'profile', 'name'], 'Default') === 'Default',
+      'getNestedProperty should return the fallback when intermediate property is null'
     );
   }
   
