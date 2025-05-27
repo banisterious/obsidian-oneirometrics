@@ -41,7 +41,9 @@ import {
   parseFrontMatterTags,
   MarkdownRenderer,
   ButtonComponent,
-  MarkdownPreviewView
+  MarkdownPreviewView,
+  PluginSettingTab,
+  addIcon
 } from 'obsidian';
 
 // External libraries
@@ -892,6 +894,15 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => {
                 openServiceRegistryTestModal(this.app, this);
             }
+        });
+
+        // Add the command in the onload method
+        this.addCommand({
+          id: 'open-defensive-utils-test-modal',
+          name: 'Test Defensive Utilities',
+          callback: () => {
+            new DefensiveUtilsTestModal(this.app).open();
+          }
         });
     }
 
