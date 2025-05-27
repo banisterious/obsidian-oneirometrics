@@ -4,6 +4,15 @@
 
 As of May 23, 2025, we've completed the major refactoring effort and have moved into the post-refactoring phase. Our primary focus is now on resolving the remaining TypeScript errors and consolidating our type system.
 
+### Backed Up Classes
+
+The following classes have been backed up during the refactoring process. These classes were identified as unused or deprecated but preserved in backup files for reference if needed:
+
+| Class Name | Original Location | Backup Location | Removal Date | Status | Notes |
+|------------|------------------|-----------------|--------------|--------|-------|
+| OneiroMetricsModal | main.ts | src/dom/modals/OneiroMetricsModal.bak.ts | June 2025 | Removed | Replaced by DreamJournalManager and direct calls to scrapeMetrics |
+| ConfirmModal | main.ts | src/dom/modals/ConfirmModal.bak.ts | June 2025 | Removed | Generic confirmation dialog that was defined but not actually used in the codebase |
+
 ### Recent Progress Update (May 24)
 
 Today we implemented key fixes to address TypeScript errors:

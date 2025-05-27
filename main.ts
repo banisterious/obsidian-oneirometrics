@@ -268,54 +268,6 @@ const DEFAULT_LINTING_SETTINGS: LintingSettings = {
  * in case restoration is needed.
  */
 
-class ConfirmModal extends Modal {
-    private onConfirmCallback: () => void;
-    private onCancelCallback: () => void;
-
-    constructor(app: App, title: string, message: string) {
-        super(app);
-        this.titleEl.setText(title);
-        this.contentEl.createEl('p', { text: message });
-    }
-
-    set onConfirm(callback: () => void) {
-        this.onConfirmCallback = callback;
-    }
-
-    set onCancel(callback: () => void) {
-        this.onCancelCallback = callback;
-    }
-
-    open(): void {
-        super.open();
-        const buttonContainer = this.contentEl.createEl('div', {
-            cls: 'oom-modal-button-container'
-        });
-
-        const cancelButton = buttonContainer.createEl('button', {
-            text: 'Cancel',
-            cls: 'mod-warning'
-        });
-        attachClickEvent(cancelButton, () => {
-            if (this.onCancelCallback) this.onCancelCallback();
-            this.close();
-        });
-
-        const confirmButton = buttonContainer.createEl('button', {
-            text: 'Confirm',
-            cls: 'mod-cta'
-        });
-        attachClickEvent(confirmButton, () => {
-            if (this.onConfirmCallback) this.onConfirmCallback();
-            this.close();
-        });
-    }
-
-    close(): void {
-        super.close();
-    }
-}
-
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -1731,26 +1683,6 @@ export default class DreamMetricsPlugin extends Plugin {
             globalLogger?.error('Backup', 'Error creating backup', error as Error);
             throw new Error(`Failed to create backup: ${error.message}`);
         }
-    }
-
-    private async confirmOverwrite(): Promise<boolean> {
-        return new Promise((resolve) => {
-            const modal = new ConfirmModal(
-                this.app,
-                'Update Metrics Tables',
-                'This will overwrite the current metrics tables. A backup will be created before proceeding. Continue?'
-            );
-            
-            modal.onConfirm = () => {
-                resolve(true);
-            };
-            
-            modal.onCancel = () => {
-                resolve(false);
-            };
-            
-            modal.open();
-        });
     }
 
     private async confirmProceedWithoutBackup(): Promise<boolean> {
