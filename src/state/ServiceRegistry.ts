@@ -195,7 +195,7 @@ export function getService<T>(name: string): T | null {
  * @param settingsAdapter The settings adapter instance
  */
 export function registerSettings(settingsAdapter: any): void {
-  registerService('settings', settingsAdapter);
+  registerService(SERVICE_NAMES.SETTINGS, settingsAdapter);
 }
 
 /**

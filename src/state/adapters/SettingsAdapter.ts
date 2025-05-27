@@ -18,17 +18,17 @@ import { registerService, SERVICE_NAMES } from '../ServiceRegistry';
 export class SettingsAdapter {
   private _legacySettings: any = {};
   private settings: DreamMetricsSettings;
-  private app: App;
+  private app: App | null;
 
   /**
    * Creates a new settings adapter
    * @param settings The initial settings to adapt (legacy or partial format)
-   * @param app The Obsidian app instance
+   * @param app The Obsidian app instance (optional)
    */
-  constructor(settings: any = {}, app: App) {
+  constructor(settings: any = {}, app?: App) {
     this._legacySettings = settings;
     this.settings = this.toCoreSettings();
-    this.app = app;
+    this.app = app || null;
     
     try {
       safeLogger.debug('SettingsAdapter', 'Settings adapter created');
@@ -40,10 +40,10 @@ export class SettingsAdapter {
   /**
    * Creates a SettingsAdapter instance from a settings object
    * @param settings The settings object to adapt
-   * @param app The Obsidian app instance
+   * @param app The Obsidian app instance (optional)
    * @returns A new SettingsAdapter instance
    */
-  static fromSettings(settings: any = {}, app: App): SettingsAdapter {
+  static fromSettings(settings: any = {}, app?: App): SettingsAdapter {
     return new SettingsAdapter(settings, app);
   }
 
@@ -359,9 +359,9 @@ export class SettingsAdapter {
   /**
    * Get the Obsidian app instance
    * 
-   * @returns The Obsidian app instance
+   * @returns The Obsidian app instance or null if not provided
    */
-  public getApp(): App {
+  public getApp(): App | null {
     return this.app;
   }
   
@@ -371,6 +371,18 @@ export class SettingsAdapter {
    * @param plugin The plugin instance
    */
   public async saveSettings(plugin: any): Promise<void> {
+    if (!plugin && this.app) {
+      // Try to get plugin from app
+      try {
+        const plugins = (this.app as any).plugins;
+        if (plugins && plugins.plugins) {
+          plugin = plugins.plugins.dreamMetrics || plugins.plugins.oneirometrics;
+        }
+      } catch (e) {
+        // Ignore errors when trying to find the plugin
+      }
+    }
+    
     if (plugin && typeof plugin.saveData === 'function') {
       await plugin.saveData(this.settings);
       
