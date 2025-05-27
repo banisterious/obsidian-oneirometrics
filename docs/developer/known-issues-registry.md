@@ -298,4 +298,17 @@ When reporting new issues related to the refactoring, please include:
 6. **Dependencies**: Any dependencies on other components
 7. **Initialization Context**: When in the initialization sequence the issue occurs
 
-Report new issues in the project issue tracker with the tag `refactoring-related`. 
+Report new issues in the project issue tracker with the tag `refactoring-related`.
+
+## Error Handling Approach
+
+All error handling in the OneiroMetrics plugin should follow our [Defensive Coding Practices](../implementation/defensive-coding-practices.md). This comprehensive guide outlines patterns, examples, and utility functions for creating robust, error-resistant code that can gracefully handle unexpected conditions.
+
+Key principles include:
+1. Expecting failures and planning for them
+2. Providing reasonable fallbacks
+3. Containing failures to prevent cascading errors
+4. Maintaining user experience through graceful degradation
+5. Prioritizing diagnostics with clear error messages
+
+Refer to the defensive coding document for specific implementation guidelines and code examples. 
