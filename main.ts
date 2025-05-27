@@ -7,6 +7,7 @@ import safeLogger, { getSafeLogger, SafeLogger } from './src/logging/safe-logger
 
 // Import test modals
 import { openContentParserTestModal, openDateUtilsTestModal, openServiceRegistryTestModal } from './src/testing';
+import { DefensiveUtilsTestModal } from './src/testing/utils/defensive-utils-test-modal';
 
 // Import Service Registry
 import { 
