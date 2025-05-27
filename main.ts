@@ -160,6 +160,7 @@ import { runSettingsAdapterTests } from './src/testing/utils/SettingsAdapterTest
 import { runEventHandlingTests } from './src/testing/utils/EventHandlingTests';
 import { runComponentFactoryTests } from './src/testing/utils/ComponentFactoryTests';
 import { runDreamMetricsStateTests } from './src/testing/DreamMetricsStateTests';
+import { DateUtilsTestModal } from './src/testing/utils/DateUtilsTestModal';
 
 // Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
 import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
@@ -709,6 +710,16 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => {
                 const result = this.testContentParserDirectly();
                 new Notice(result);
+            }
+        });
+
+        // Add the command in the onload method with the other test-related commands
+        this.addCommand({
+            id: 'run-date-utils-test',
+            name: 'Test Date Utilities',
+            callback: () => {
+                new DateUtilsTestModal(this.app, this).open();
+                new Notice('Date utilities test modal opened');
             }
         });
     }
