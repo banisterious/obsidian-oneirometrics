@@ -5,6 +5,9 @@
 // Import the safe logger immediately at the top
 import safeLogger, { getSafeLogger, SafeLogger } from './src/logging/safe-logger';
 
+// Import test modals
+import { openContentParserTestModal, openDateUtilsTestModal } from './src/testing';
+
 // External imports (Obsidian)
 import { 
   App, 
@@ -720,6 +723,23 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => {
                 new DateUtilsTestModal(this.app, this).open();
                 new Notice('Date utilities test modal opened');
+            }
+        });
+
+        // Add test modals to the command palette
+        this.addCommand({
+            id: 'open-date-utils-test-modal',
+            name: 'Open Date Utils Test Modal',
+            callback: () => {
+                openDateUtilsTestModal(this.app, this);
+            }
+        });
+
+        this.addCommand({
+            id: 'open-content-parser-test-modal',
+            name: 'Open Content Parser Test Modal',
+            callback: () => {
+                openContentParserTestModal(this.app, this);
             }
         });
     }

@@ -1,55 +1,62 @@
 /**
- * Index file for the testing module
+ * Testing infrastructure for the OOMP plugin
  * 
- * This file exports all test registration functions and utilities.
+ * This module provides access to testing utilities that can be used
+ * for interactive debugging and testing within Obsidian.
  */
 
+import { App } from 'obsidian';
 import { TestRunner } from './TestRunner';
-import { registerUIComponentTests } from './UIComponentTests';
-import { registerSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
-import { registerSettingsHelpersTests } from './utils/SettingsHelpersTests';
-import { registerMetricHelpersTests } from './utils/MetricHelpersTests';
-import { registerTypeGuardsTests } from './utils/TypeGuardsTests';
-import { registerPropertyHelpersTests } from './utils/PropertyHelpersTests';
-import { registerErrorHandlingContentParserTests } from './ErrorHandlingContentParserTests';
+import { DateUtilsTestModal } from './utils/DateUtilsTestModal';
+import { ContentParserTestModal } from './utils/ContentParserTestModal';
+
+// Import all test module registration functions
+import { registerContentParsingTests } from './ContentParsingTests';
 import { registerContentParserParameterTests } from './ContentParserParameterTests';
-import { registerSettingsAdapterTests } from './utils/SettingsAdapterTests';
-import { registerEventHandlingTests } from './utils/EventHandlingTests';
-import { registerComponentFactoryTests } from './utils/ComponentFactoryTests';
+import { registerErrorHandlingContentParserTests } from './ErrorHandlingContentParserTests';
+import { registerTemplateSystemTests } from './TemplateSystemTests';
+import { registerUIComponentTests } from './UIComponentTests';
 import { registerDreamMetricsStateTests } from './DreamMetricsStateTests';
+import { registerStateManagementTests } from './StateManagementTests';
+import { registerEdgeCaseTests } from './EdgeCaseTests';
+import { registerConfigurationTests } from './ConfigurationTests';
+
+// Define plugin type without direct import to avoid circular dependency
+type DreamMetricsPlugin = any;
 
 /**
- * Registers all tests with the test runner
- * @param testRunner The test runner to register tests with
+ * Register all tests with the test runner
+ * @param testRunner The test runner instance
  */
-export function registerAllTests(testRunner: TestRunner): void {
-  // Register UI component tests
-  registerUIComponentTests(testRunner);
-  
-  // Register utility tests
-  registerSelectionModeHelperTests(testRunner);
-  registerSettingsHelpersTests(testRunner);
-  registerMetricHelpersTests(testRunner);
-  registerTypeGuardsTests(testRunner);
-  registerPropertyHelpersTests(testRunner);
-  
-  // Register ContentParser tests
-  registerErrorHandlingContentParserTests(testRunner);
+function registerAllTests(testRunner: TestRunner): void {
+  // Register different test categories
+  registerContentParsingTests(testRunner);
   registerContentParserParameterTests(testRunner);
-  
-  // Register SettingsAdapter tests
-  registerSettingsAdapterTests(testRunner);
-  
-  // Register EventHandling tests
-  registerEventHandlingTests(testRunner);
-  
-  // Register ComponentFactory tests
-  registerComponentFactoryTests(testRunner);
-  
-  // Register DreamMetricsState tests
+  registerErrorHandlingContentParserTests(testRunner);
+  registerTemplateSystemTests(testRunner);
+  registerUIComponentTests(testRunner);
   registerDreamMetricsStateTests(testRunner);
-  
-  // Add other test registration functions here as they are implemented
+  registerStateManagementTests(testRunner);
+  registerEdgeCaseTests(testRunner);
+  registerConfigurationTests(testRunner);
+}
+
+/**
+ * Opens the DateUtils test modal
+ * @param app The Obsidian app instance
+ * @param plugin The plugin instance
+ */
+export function openDateUtilsTestModal(app: App, plugin: DreamMetricsPlugin): void {
+  new DateUtilsTestModal(app, plugin).open();
+}
+
+/**
+ * Opens the ContentParser test modal
+ * @param app The Obsidian app instance
+ * @param plugin The plugin instance
+ */
+export function openContentParserTestModal(app: App, plugin: DreamMetricsPlugin): void {
+  new ContentParserTestModal(app, plugin).open();
 }
 
 /**
@@ -64,49 +71,18 @@ export function createTestRunner(): TestRunner {
 
 /**
  * Runs all tests and returns the results
- * @returns A promise that resolves when all tests have completed
+ * @returns A promise that resolves to an array of test results
  */
-export async function runAllTests(): Promise<void> {
-  console.log('Running all tests...');
-  
+export async function runAllTests(): Promise<TestRunner['runTests'] extends (...args: any[]) => Promise<infer R> ? R : never> {
   const testRunner = createTestRunner();
-  const results = await testRunner.runTests();
-  
-  const passedCount = results.filter(r => r.passed).length;
-  console.log(`All tests complete: ${passedCount}/${results.length} tests passed`);
-  
-  // Log any failures
-  results.filter(r => !r.passed).forEach(failure => {
-    console.error(`Test failed: ${failure.name}`);
-    if (failure.error) {
-      console.error(failure.error);
-    }
-  });
+  return await testRunner.runTests();
 }
 
-// Export test runner and individual test registration functions
-export { TestRunner };
-export { registerUIComponentTests };
-export { registerSelectionModeHelperTests };
-export { registerSettingsHelpersTests };
-export { registerMetricHelpersTests };
-export { registerTypeGuardsTests };
-export { registerPropertyHelpersTests };
-export { registerErrorHandlingContentParserTests };
-export { registerContentParserParameterTests };
-export { registerSettingsAdapterTests };
-export { registerEventHandlingTests };
-export { registerComponentFactoryTests };
-export { registerDreamMetricsStateTests };
-export { runSettingsHelpersTests } from './utils/SettingsHelpersTests';
-export { runMetricHelpersTests } from './utils/MetricHelpersTests';
-export { runSelectionModeHelperTests } from './utils/SelectionModeHelpersTests';
-export { runTypeGuardsTests } from './utils/TypeGuardsTests';
-export { runPropertyHelpersTests } from './utils/PropertyHelpersTests';
-export { runEventHandlingTests } from './utils/EventHandlingTests';
-export { runDreamMetricsStateTests } from './DreamMetricsStateTests';
-
-// Allow direct execution of tests
-if (require.main === module) {
-  runAllTests();
-} 
+/**
+ * Exports all test-related functionality
+ */
+export {
+  TestRunner,
+  DateUtilsTestModal,
+  ContentParserTestModal
+}; 
