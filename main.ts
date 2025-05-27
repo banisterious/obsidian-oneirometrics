@@ -592,7 +592,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize mutable state and app state
         this.state = new DreamMetricsState();
         
-        console.log("Loading Dream Metrics plugin");
+        globalLogger?.info('Plugin', 'Loading Dream Metrics plugin');
         globalLogger?.debug('Plugin', 'Plugin onload called - will setup filter persistence');
         
         // Initialize logs directory for plugin logs
@@ -991,7 +991,7 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     onunload() {
-        console.log("Unloading Dream Metrics plugin");
+        globalLogger?.info('Plugin', 'Unloading Dream Metrics plugin');
         
         // Remove ribbon icons
         this.removeRibbonIcons();
@@ -1768,7 +1768,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]) {
         const projectNotePath = getProjectNotePath(this.settings);
         
-        globalLogger?.debug('ProjectNote', 'updateProjectNote called', { 
+        globalLogger?.debug('MetricsNote', 'updateProjectNote called', { 
             projectNote: projectNotePath,
             entriesCount: dreamEntries.length 
         });
@@ -1777,13 +1777,13 @@ export default class DreamMetricsPlugin extends Plugin {
         new Notice(`[DEBUG] updateProjectNote called for: ${projectNotePath}`);
         
         if (!(projectFile instanceof TFile)) {
-            globalLogger?.error('ProjectNote', 'Project note not found', { path: projectNotePath });
+            globalLogger?.error('MetricsNote', 'Project note not found', { path: projectNotePath });
             new Notice(`[DEBUG] Project note not found: ${projectNotePath}`);
             return;
         }
         
         if (dreamEntries.length === 0) {
-            globalLogger?.warn('ProjectNote', 'No dream entries to update', { projectNote: projectNotePath });
+            globalLogger?.warn('MetricsNote', 'No dream entries to update', { projectNote: projectNotePath });
             new Notice('[DEBUG] updateProjectNote called with zero dream entries. No update will be performed.');
             return;
         }
@@ -1812,7 +1812,7 @@ export default class DreamMetricsPlugin extends Plugin {
             if (newContent !== existingContent) {
                 await this.app.vault.modify(projectFile, newContent);
                 new Notice('Metrics tables updated successfully!');
-                globalLogger?.info('ProjectNote', 'Project note updated with new metrics and dream entries');
+                globalLogger?.info('MetricsNote', 'Project note updated with new metrics and dream entries');
                 
                 // Force reload of the project note in all open leaves
                 let reloaded = false;
@@ -1820,12 +1820,12 @@ export default class DreamMetricsPlugin extends Plugin {
                     if (leaf.view instanceof MarkdownView && leaf.view.file && leaf.view.file.path === projectNotePath) {
                         leaf.openFile(projectFile, { active: leaf === this.app.workspace.activeLeaf });
                         reloaded = true;
-                        globalLogger?.debug('ProjectNote', 'Forced reload of project note in workspace leaf');
+                        globalLogger?.debug('MetricsNote', 'Forced reload of project note in workspace leaf');
                     }
                 });
                 
                 if (!reloaded) {
-                    globalLogger?.debug('ProjectNote', 'Project note was not open in any workspace leaf');
+                    globalLogger?.debug('MetricsNote', 'Project note was not open in any workspace leaf');
                 }
                 
                 // Update view after content change
@@ -1856,7 +1856,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 }, 200);
             } else {
                 new Notice('[DEBUG] No changes to metrics tables.');
-                globalLogger?.debug('ProjectNote', 'No changes detected in project note content');
+                globalLogger?.debug('MetricsNote', 'No changes detected in project note content');
                 
                 // Attach event listeners even if no changes
                 setTimeout(() => {
@@ -1865,7 +1865,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 }, 200);
             }
         } catch (error) {
-            globalLogger?.error('ProjectNote', 'Failed to update project note', error as Error);
+            globalLogger?.error('MetricsNote', 'Failed to update project note', error as Error);
             new Notice(`[ERROR] Failed to update project note: ${error.message}`);
         }
     }
@@ -2067,13 +2067,13 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
-        console.log("[DEBUG] generateMetricsTable called");
-        console.log(`[OneiroMetrics] Generating table with ${dreamEntries.length} entries`);
+        globalLogger?.debug('Table', 'Generating metrics table');
+        globalLogger?.debug('Table', 'Table entries', { count: dreamEntries.length });
         let content = "";
         
         const cacheKey = JSON.stringify({ metrics, dreamEntries });
         if (this.memoizedTableData.has(cacheKey)) {
-            console.log("[OneiroMetrics] Using cached table data");
+            globalLogger?.debug('Table', 'Using cached table data');
             return this.memoizedTableData.get(cacheKey);
         }
         
@@ -2261,13 +2261,13 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private attachProjectNoteEventListeners() {
-        console.log('[OOM-DEBUG] Attaching project note event listeners');
+        globalLogger?.debug('UI', 'Attaching metrics note event listeners');
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view || view.getMode() !== 'preview') return;
         
         const previewEl = view.previewMode?.containerEl;
         if (!previewEl) {
-            console.log('[OOM-DEBUG] No preview element found');
+            globalLogger?.warn('UI', 'No preview element found for attaching event listeners');
             return;
         }
         
@@ -2312,11 +2312,11 @@ export default class DreamMetricsPlugin extends Plugin {
                     setTimeout(() => {
                         // Check if filters have already been successfully applied
                         if ((window as any).oomFiltersApplied) {
-                            console.log(`[OOM-DEBUG] Filters already applied, skipping ${delay}ms attempt`);
+                            globalLogger?.debug('Filter', `Filters already applied, skipping attempt`, { delay });
                             return;
                         }
                         
-                        console.log(`[OOM-DEBUG] Applying saved filter (${savedFilter}) at ${delay}ms delay`);
+                        globalLogger?.debug('Filter', `Applying saved filter`, { filter: savedFilter, delay });
                         
                         // Always reset the dropdown value right before applying (defensive measure)
                         if (savedFilterElement && savedFilterElement.value !== savedFilter) {
@@ -2364,49 +2364,49 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add event listeners for new rescrape/settings/debug buttons
         const rescrapeBtn = previewEl.querySelector('.oom-rescrape-button');
         if (rescrapeBtn) {
-            console.log('[OOM-DEBUG] Found rescrape button');
+            globalLogger?.debug('UI', 'Found rescrape button');
             // Remove existing listeners
             const newRescrapeBtn = rescrapeBtn.cloneNode(true) as HTMLElement;
             attachClickEvent(newRescrapeBtn, () => {
-                console.log('[OOM-DEBUG] Rescrape button clicked');
+                globalLogger?.debug('UI', 'Rescrape button clicked');
                 new Notice('Rescraping metrics...');
                 this.scrapeMetrics();
             });
             rescrapeBtn.parentNode?.replaceChild(newRescrapeBtn, rescrapeBtn);
         } else {
-            console.log('[OOM-DEBUG] Rescrape button not found');
+            globalLogger?.warn('UI', 'Rescrape button not found');
         }
         
         const settingsBtn = previewEl.querySelector('.oom-settings-button');
         if (settingsBtn) {
-            console.log('[OOM-DEBUG] Found settings button');
+            globalLogger?.debug('UI', 'Found settings button');
             // Remove existing listeners
             const newSettingsBtn = settingsBtn.cloneNode(true);
             newSettingsBtn.addEventListener('click', () => {
-                console.log('[OOM-DEBUG] Settings button clicked');
+                globalLogger?.debug('UI', 'Settings button clicked');
                 new Notice('Opening settings...');
                 (this.app as any).setting.open();
                 (this.app as any).setting.openTabById('oneirometrics');
             });
             settingsBtn.parentNode?.replaceChild(newSettingsBtn, settingsBtn);
         } else {
-            console.log('[OOM-DEBUG] Settings button not found');
+            globalLogger?.warn('UI', 'Settings button not found');
         }
         
         // Add event listener for the Date Navigator button
         const dateNavigatorBtn = previewEl.querySelector('.oom-date-navigator-button');
         if (dateNavigatorBtn) {
-            console.log('[OOM-DEBUG] Found date navigator button');
+            globalLogger?.debug('UI', 'Found date navigator button');
             // Remove existing listeners
             const newDateNavigatorBtn = dateNavigatorBtn.cloneNode(true);
             newDateNavigatorBtn.addEventListener('click', () => {
-                console.log('[OOM-DEBUG] Date navigator button clicked');
+                globalLogger?.debug('UI', 'Date navigator button clicked');
                 new Notice('Opening date navigator...');
                 this.showDateNavigator();
             });
             dateNavigatorBtn.parentNode?.replaceChild(newDateNavigatorBtn, dateNavigatorBtn);
         } else {
-            console.log('[OOM-DEBUG] Date navigator button not found');
+            globalLogger?.warn('UI', 'Date navigator button not found');
         }
         
         // Add event listeners for debug buttons
@@ -2446,11 +2446,11 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add date range filter event listener with performance optimizations
         const dateRangeFilter = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
         if (dateRangeFilter) {
-            console.log('[OOM-DEBUG] Found date range filter', dateRangeFilter);
+            globalLogger?.debug('UI', 'Found date range filter', { element: dateRangeFilter?.tagName });
             // First remove any existing event listeners by cloning the node
             const newDateRangeFilter = dateRangeFilter.cloneNode(true) as HTMLSelectElement;
             newDateRangeFilter.addEventListener('change', () => {
-                console.log('[OOM-DEBUG] Date range filter changed:', newDateRangeFilter.value);
+                globalLogger?.debug('UI', 'Date range filter changed', { value: newDateRangeFilter?.value });
                 
                 // Clear any custom date range when using dropdown
                 customDateRange = null;
@@ -2468,14 +2468,14 @@ export default class DreamMetricsPlugin extends Plugin {
                 setTimeout(() => this.applyFilters(previewEl), 50);
             });
             dateRangeFilter.parentNode?.replaceChild(newDateRangeFilter, dateRangeFilter);
-            console.log('[OOM-DEBUG] Attached event listener to date range filter');
+            globalLogger?.debug('UI', 'Attached event listener to date range filter');
         } else {
-            console.log('[OOM-DEBUG] Date range filter not found');
+            globalLogger?.warn('UI', 'Date range filter not found');
         }
 
         // Existing show more/less button handlers
         const buttons = previewEl.querySelectorAll('.oom-button--expand');
-        console.log('[OOM-DEBUG] Found', buttons.length, 'show more/less buttons');
+        globalLogger?.debug('UI', 'Found show more/less buttons', { count: buttons?.length });
         buttons.forEach((button) => {
             // Remove any existing click listeners by replacing the node
             const newButton = button.cloneNode(true) as HTMLElement;
@@ -2483,7 +2483,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('[OOM-DEBUG] Show more/less button clicked');
+                globalLogger?.debug('UI', 'Show more/less button clicked');
                 
                 // Use the dedicated function to handle content visibility toggle
                 toggleContentVisibility(newButton, previewEl);
@@ -2494,20 +2494,20 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add custom range button event listener
         const customRangeBtn = document.getElementById('oom-custom-range-btn');
         if (customRangeBtn) {
-            console.log('[OOM-DEBUG] Found custom range button');
+            globalLogger?.debug('UI', 'Found custom range button');
             // Clone the button to remove any existing listeners
             const newCustomRangeBtn = customRangeBtn.cloneNode(true) as HTMLElement;
             newCustomRangeBtn.addEventListener('click', () => {
-                console.log('[OOM-DEBUG] Custom range button clicked');
+                globalLogger?.debug('UI', 'Custom range button clicked');
                 openCustomRangeModal(this.app);
             });
             customRangeBtn.parentNode?.replaceChild(newCustomRangeBtn, customRangeBtn);
-            console.log('[OOM-DEBUG] Attached event listener to custom range button');
+            globalLogger?.debug('UI', 'Attached event listener to custom range button');
         } else {
-            console.log('[OOM-DEBUG] Custom range button not found');
+            globalLogger?.warn('UI', 'Custom range button not found');
         }
         
-        console.log('[OOM-DEBUG] Finished attaching project note event listeners');
+        globalLogger?.debug('UI', 'Finished attaching metrics note event listeners');
     }
 
     private applyFilters(previewEl: HTMLElement) {
@@ -2629,7 +2629,7 @@ export default class DreamMetricsPlugin extends Plugin {
         let invalidDates = 0;
         let outOfRangeDates = 0;
         
-        console.log('[OOM-DEBUG] Starting filter process with', totalRows, 'rows, dateRange:', dateRange);
+        globalLogger?.debug('Filter', 'Starting filter process', { totalRows, dateRange });
 
         // Show a loading indicator for large tables
         let loadingIndicator: HTMLElement | null = null;
@@ -2669,12 +2669,12 @@ export default class DreamMetricsPlugin extends Plugin {
                         const dateObj = new Date(dateText);
                         if (!isNaN(dateObj.getTime())) {
                             date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
-                            console.log('[FILTER-DEBUG] Fixed missing date attribute on row', i, 'with date', date);
+                            globalLogger?.debug('Filter', `Fixed missing date attribute on row ${i} with date`, { rowIndex: i, date });
                             rowEl.setAttribute('data-date', date);
                             dateCell.setAttribute('data-date', date);
                         }
                     } catch (e) {
-                        console.error('[FILTER-DEBUG] Failed to fix date attribute for row', i, e);
+                        globalLogger?.error('Filter', 'Failed to fix date attribute for row', { rowIndex: i, error: e as Error });
                     }
                 }
                 
@@ -2829,7 +2829,7 @@ export default class DreamMetricsPlugin extends Plugin {
             invalid: number, 
             outOfRange: number
         ) {
-            console.log('[FILTER-DEBUG] Filter application complete:', {
+            globalLogger?.debug('Filter', 'Filter application complete', {
                 filterType,
                 visible,
                 total,
@@ -2855,7 +2855,7 @@ export default class DreamMetricsPlugin extends Plugin {
             
             const filterDisplay = previewEl.querySelector('#oom-time-filter-display') as HTMLElement;
             if (!filterDisplay) {
-                console.log('[FILTER-DEBUG] Filter display element not found');
+                globalLogger?.warn('Filter', 'Filter display element not found');
                 return;
             }
             
@@ -3712,7 +3712,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
         try {
             // Log saved filter info at INFO level to ensure visibility
             if (this.settings && this.settings.lastAppliedFilter) {
-                console.log(`[FILTER-DEBUG] Saved filter found: ${this.settings.lastAppliedFilter}`);
+                globalLogger?.debug('Filter', 'Saved filter found', { filter: this.settings.lastAppliedFilter });
                 if (globalLogger) {
                     globalLogger.info('Filter', `Found saved filter settings to restore`, {
                         filter: this.settings.lastAppliedFilter,
@@ -3721,7 +3721,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                     });
                 }
             } else {
-                console.log('[FILTER-DEBUG] No saved filter found in settings');
+                globalLogger?.debug('Filter', 'No saved filter found in settings');
             }
         } catch (e) {
             console.error("Error checking project note:", e);
@@ -3730,14 +3730,13 @@ Applied: ${new Date().toLocaleTimeString()}`;
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof MarkdownView && leaf.view.file?.path === projectNotePath) {
                 metricsNoteFound = true;
-                console.log('[FILTER-DEBUG] Metrics note found in workspace');
+                globalLogger?.debug('Filter', 'Metrics note found in workspace');
                 globalLogger?.info('Filter', 'Metrics note found in workspace, attempting filter restoration');
                 
                 // Get the view's preview element
                 const previewEl = leaf.view.previewMode?.containerEl;
                 if (!previewEl) {
-                    console.log('[FILTER-DEBUG] Preview element not available');
-                    globalLogger?.warn('Filter', 'Metrics note found but preview element not available');
+                    globalLogger?.warn('Filter', 'Preview element not available for filter application');
                     return;
                 }
                 
@@ -3790,7 +3789,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
         });
         
         if (!metricsNoteFound) {
-            console.log('[FILTER-DEBUG] No metrics note found in workspace');
+            globalLogger?.debug('Filter', 'No metrics note found in workspace');
             globalLogger?.info('Filter', 'No metrics note found in workspace, filter persistence waiting for note to be opened');
         }
     }
@@ -3899,10 +3898,10 @@ Applied: ${new Date().toLocaleTimeString()}`;
      * Last resort direct DOM manipulation for filter application
      */
     private forceApplyFilterDirect(previewEl: HTMLElement, startDate: string, endDate: string) {
-        console.log('[FILTER-DEBUG] Force applying filter directly to DOM');
+        globalLogger?.debug('Filter', 'Force applying filter directly to DOM');
         try {
             const rows = previewEl.querySelectorAll('.oom-dream-row');
-            console.log(`[FILTER-DEBUG] Found ${rows.length} rows to filter`);
+            globalLogger?.debug('Filter', 'Found rows to filter', { count: rows.length });
             
             rows.forEach(row => {
                 const dateAttr = row.getAttribute('data-date');
@@ -3928,7 +3927,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                 filterDisplay.innerHTML = `<span class="oom-filter-icon">🔍</span> <span class="oom-filter-text">Custom Range: ${startDate} to ${endDate}</span>`;
             }
         } catch (e) {
-            console.error('[FILTER-DEBUG] Error in direct filter application', e);
+            globalLogger?.error('Filter', 'Error in direct filter application', e as Error);
         }
     }
 
@@ -3943,49 +3942,55 @@ Applied: ${new Date().toLocaleTimeString()}`;
             }
             
             // Output basic info about available data
-            console.log('==== DREAM METRICS DEBUG ====');
-            console.log(`Plugin: ${!!this}`);
-            console.log(`State: ${!!this.state}`);
-            console.log(`State has getDreamEntries: ${!!(this.state && typeof this.state.getDreamEntries === 'function')}`);
+            globalLogger?.debug('Debug', '==== DREAM METRICS DEBUG ====');
+            globalLogger?.debug('Debug', 'Plugin initialized', { available: !!this });
+            globalLogger?.debug('Debug', 'State initialized', { available: !!this.state });
+            globalLogger?.debug('Debug', 'State has getDreamEntries', { 
+                available: !!(this.state && typeof this.state.getDreamEntries === 'function') 
+            });
             
             // Check for direct entries
             if (this.state && typeof this.state.getDreamEntries === 'function') {
                 const entries = this.state.getDreamEntries();
-                console.log(`Direct state entries: ${entries?.length || 0}`);
+                globalLogger?.debug('Debug', 'Direct state entries', { count: entries?.length || 0 });
                 if (entries && entries.length > 0) {
-                    console.log('Sample entry:', entries[0]);
+                    globalLogger?.debug('Debug', 'Sample entry', { entry: entries[0] });
                 }
             }
             
             // Check table data
             if (this.memoizedTableData) {
-                console.log(`Table count: ${this.memoizedTableData.size}`);
+                globalLogger?.debug('Debug', 'Table data', { count: this.memoizedTableData.size });
                 
                 // Loop through all tables
                 this.memoizedTableData.forEach((data, key) => {
-                    console.log(`Table ${key}: ${data?.length || 0} rows`);
+                    globalLogger?.debug('Debug', `Table ${key}`, { rowCount: data?.length || 0 });
                     
                     // Check the first row if available
                     if (data && data.length > 0) {
-                        console.log(`Table ${key} sample:`, data[0]);
-                        console.log(`Row fields: ${Object.keys(data[0]).join(', ')}`);
+                        globalLogger?.debug('Debug', `Table ${key} sample`, { row: data[0] });
+                        globalLogger?.debug('Debug', `Row fields`, { fields: Object.keys(data[0]) });
                         
                         // Check for date fields
                         const hasDate = data[0].date !== undefined;
                         const hasDreamDate = data[0].dream_date !== undefined;
-                        console.log(`Table ${key} has date field: ${hasDate}`);
-                        console.log(`Table ${key} has dream_date field: ${hasDreamDate}`);
+                        globalLogger?.debug('Debug', 'Date fields availability', { 
+                            hasDate, 
+                            hasDreamDate 
+                        });
                         
                         // Find all date-like fields
                         const dateFields = Object.keys(data[0]).filter(key => 
                             key.includes('date') || 
                             (typeof data[0][key] === 'string' && data[0][key].match(/^\d{4}-\d{2}-\d{2}/))
                         );
-                        console.log(`Potential date fields: ${dateFields.join(', ')}`);
+                        globalLogger?.debug('Debug', 'Potential date fields', { fields: dateFields });
                         
                         // Show values of these fields
                         dateFields.forEach(field => {
-                            console.log(`First 5 values of ${field}:`, data.slice(0, 5).map(row => row[field]));
+                            globalLogger?.debug('Debug', `Values of field ${field}`, { 
+                                values: data.slice(0, 5).map(row => row[field])
+                            });
                         });
                         
                         // Check for metrics
@@ -3993,12 +3998,12 @@ Applied: ${new Date().toLocaleTimeString()}`;
                             typeof data[0][key] === 'number' && 
                             !['id', 'index'].includes(key)
                         );
-                        console.log(`Numeric fields that could be metrics: ${numericFields.join(', ')}`);
+                        globalLogger?.debug('Debug', 'Potential metric fields', { fields: numericFields });
                         
                         // Create an example dream entry from this data
                         if (dateFields.length > 0) {
+                            globalLogger?.debug('Debug', 'Example entry conversion');
                             const dateField = dateFields[0];
-                            console.log('Example of how this data would be converted to a dream entry:');
                             const example = {
                                 date: data[0][dateField],
                                 title: data[0].title || data[0].dream_title || 'Dream Entry',
@@ -4012,39 +4017,39 @@ Applied: ${new Date().toLocaleTimeString()}`;
                                 example.metrics[field] = data[0][field];
                             });
                             
-                            console.log('Example entry:', example);
+                            globalLogger?.debug('Debug', 'Example entry', { entry: example });
                         }
                     }
                 });
             } else {
-                console.log('No memoizedTableData available');
+                globalLogger?.debug('Debug', 'No memoizedTableData available');
             }
             
             // DIRECT TABLE SCANNING FROM THE ACTIVE NOTE VIEW
             const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (activeView) {
-                console.log('==== ACTIVE NOTE TABLE SCAN ====');
-                console.log(`Active note: ${activeView.file?.path || 'Unknown'}`);
+                globalLogger?.debug('Debug', '==== ACTIVE NOTE TABLE SCAN ====');
+                globalLogger?.debug('Debug', 'Active note', { path: activeView.file?.path || 'Unknown' });
                 
                 // Get the HTML content from the preview
                 const previewEl = activeView.previewMode?.containerEl?.querySelector('.markdown-preview-view');
                 if (previewEl) {
-                    console.log('Found preview element, scanning for tables...');
+                    globalLogger?.debug('Debug', 'Found preview element, scanning for tables');
                     
                     // Find all tables in the preview
                     const tables = previewEl.querySelectorAll('table');
-                    console.log(`Found ${tables.length} tables in active note`);
+                    globalLogger?.debug('Debug', 'Tables found in active note', { count: tables.length });
                     
                     // Process each table
                     const extractedEntries: any[] = [];
                     
                     tables.forEach((table, tableIndex) => {
-                        console.log(`Processing table ${tableIndex + 1}/${tables.length}`);
+                        globalLogger?.debug('Debug', `Processing table`, { index: tableIndex + 1, total: tables.length });
                         
                         // Get headers
                         const headerRow = table.querySelector('thead tr');
                         if (!headerRow) {
-                            console.log(`Table ${tableIndex + 1} has no header row, skipping`);
+                            globalLogger?.debug('Debug', `Table has no header row, skipping`, { tableIndex: tableIndex + 1 });
                             return;
                         }
                         
@@ -4053,7 +4058,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                             headers.push(th.textContent?.trim() || '');
                         });
                         
-                        console.log(`Table ${tableIndex + 1} headers: ${headers.join(', ')}`);
+                        globalLogger?.debug('Debug', `Table headers`, { tableIndex: tableIndex + 1, headers });
                         
                         // Find date column index
                         const dateColumnIndex = headers.findIndex(h => 
@@ -4062,15 +4067,19 @@ Applied: ${new Date().toLocaleTimeString()}`;
                         );
                         
                         if (dateColumnIndex === -1) {
-                            console.log(`Table ${tableIndex + 1} has no date column, skipping`);
+                            globalLogger?.debug('Debug', `Table has no date column, skipping`, { tableIndex: tableIndex + 1 });
                             return;
                         }
                         
-                        console.log(`Table ${tableIndex + 1} date column: ${headers[dateColumnIndex]} (index ${dateColumnIndex})`);
+                        globalLogger?.debug('Debug', `Date column found`, { 
+                            tableIndex: tableIndex + 1, 
+                            column: headers[dateColumnIndex], 
+                            index: dateColumnIndex 
+                        });
                         
                         // Process rows
                         const rows = table.querySelectorAll('tbody tr');
-                        console.log(`Table ${tableIndex + 1} has ${rows.length} data rows`);
+                        globalLogger?.debug('Debug', `Table rows`, { tableIndex: tableIndex + 1, count: rows.length });
                         
                         // Keep track of columns that might contain metrics
                         const potentialMetricColumns: number[] = [];
@@ -4107,11 +4116,11 @@ Applied: ${new Date().toLocaleTimeString()}`;
                                     }
                                 }
                             } catch (e) {
-                                console.log(`Error parsing date: ${dateText}`, e);
+                                globalLogger?.debug('Debug', `Error parsing date`, { dateText, error: e });
                             }
                             
                             if (!parsedDate) {
-                                console.log(`Could not parse date: ${dateText}, skipping row`);
+                                globalLogger?.debug('Debug', `Could not parse date, skipping row`, { dateText });
                                 return;
                             }
                             
@@ -4168,16 +4177,19 @@ Applied: ${new Date().toLocaleTimeString()}`;
                             extractedEntries.push(entry);
                         });
                         
-                        console.log(`Table ${tableIndex + 1} potential metric columns: ${potentialMetricColumns.map(i => headers[i]).join(', ')}`);
+                        globalLogger?.debug('Debug', 'Potential metric columns', { 
+                            tableIndex: tableIndex + 1,
+                            columns: potentialMetricColumns.map(i => headers[i])
+                        });
                     });
                     
-                    console.log(`Extracted ${extractedEntries.length} entries from tables in active note`);
+                    globalLogger?.debug('Debug', 'Extracted entries from tables', { count: extractedEntries.length });
                     
                     // Show some sample entries
                     if (extractedEntries.length > 0) {
-                        console.log('Sample entries:');
+                        globalLogger?.debug('Debug', 'Sample entries');
                         extractedEntries.slice(0, 3).forEach((entry, i) => {
-                            console.log(`Entry ${i + 1}:`, entry);
+                            globalLogger?.debug('Debug', `Entry ${i + 1}`, { entry });
                         });
                         
                         // Add these entries to our global dreamEntries
@@ -4185,16 +4197,16 @@ Applied: ${new Date().toLocaleTimeString()}`;
                             window['dreamEntries'] = [];
                         }
                         window['dreamEntries'].push(...extractedEntries);
-                        console.log(`Added ${extractedEntries.length} entries from active note to window.dreamEntries`);
+                        globalLogger?.debug('Debug', 'Added entries to window.dreamEntries', { count: extractedEntries.length });
                         
                         // Try to add to state too
                         if (this.state && typeof this.state.updateDreamEntries === 'function') {
                             this.state.updateDreamEntries(extractedEntries);
-                            console.log(`Added ${extractedEntries.length} entries to state`);
+                            globalLogger?.debug('Debug', 'Added entries to state', { count: extractedEntries.length });
                         }
                     }
                 } else {
-                    console.log('No preview element found in active note');
+                    globalLogger?.debug('Debug', 'No preview element found in active note');
                 }
                 
                 // Create a direct test in the current note
@@ -4223,29 +4235,27 @@ Applied: ${new Date().toLocaleTimeString()}`;
                     position
                 );
                 
-                console.log('Created test entry in current note for today:', testEntry);
+                globalLogger?.debug('Debug', 'Created test entry', { entry: testEntry });
                 
                 // Directly add to global entries
                 if (!window['dreamEntries']) {
                     window['dreamEntries'] = [];
                 }
                 window['dreamEntries'].push(testEntry);
-                console.log('Added test entry to window.dreamEntries');
+                globalLogger?.debug('Debug', 'Added test entry to window.dreamEntries');
                 
                 // Try to add to state too
                 if (this.state && typeof this.state.updateDreamEntries === 'function') {
                     this.state.updateDreamEntries([testEntry]);
-                    console.log('Added test entry to state');
+                    globalLogger?.debug('Debug', 'Added test entry to state');
                 }
             }
             
-            console.log('==== END DEBUG ====');
-            console.log('Now open the date navigator to see if test entry appears');
-            
-            // Helper to open date navigator
-            console.log('Type window.oneiroMetricsPlugin.showDateNavigator() to test');
+            globalLogger?.debug('Debug', '==== END DEBUG ====');
+            globalLogger?.debug('Debug', 'Now open the date navigator to see if test entry appears');
+            globalLogger?.debug('Debug', 'Type window.oneiroMetricsPlugin.showDateNavigator() to test');
         } catch (error) {
-            console.error('Error in debugTableData:', error);
+            globalLogger?.error('Debug', 'Error in debugTableData', { error });
         }
     }
 
@@ -4413,30 +4423,30 @@ Emotional Impact: 5, Detail: 4
 `;
 
         // Test parameter variations
-        console.log("=== CONTENT PARSER PARAMETER VARIATION TESTS ===");
+        globalLogger?.debug('Debug', '=== CONTENT PARSER PARAMETER VARIATION TESTS ===');
         
         // Test 1: content only
         const test1 = parser.extractDreamEntries(testContent);
-        console.log("Test 1 (content only):", test1);
+        globalLogger?.debug('Debug', 'Test 1 (content only)', { result: test1 });
         
         // Test 2: content + callout type
         const test2 = parser.extractDreamEntries(testContent, 'memory');
-        console.log("Test 2 (content, type):", test2);
+        globalLogger?.debug('Debug', 'Test 2 (content, type)', { result: test2 });
         
         // Test 3: content + source
         const test3 = parser.extractDreamEntries(testContent, 'test.md');
-        console.log("Test 3 (content, source):", test3);
+        globalLogger?.debug('Debug', 'Test 3 (content, source)', { result: test3 });
         
         // Test 4: content + type + source
         const test4 = parser.extractDreamEntries(testContent, 'dream', 'test.md');
-        console.log("Test 4 (content, type, source):", test4);
+        globalLogger?.debug('Debug', 'Test 4 (content, type, source)', { result: test4 });
         
         // Test 5: static factory method
         const parser2 = ContentParser.create();
         const test5 = parser2.extractDreamEntries(testContent);
-        console.log("Test 5 (factory method):", test5);
+        globalLogger?.debug('Debug', 'Test 5 (factory method)', { result: test5 });
         
-        return "ContentParser direct tests complete - check console for results";
+        return "ContentParser direct tests complete - check logs for results";
     }
 
 }
@@ -4489,7 +4499,7 @@ function getDreamEntryDate(journalLines: string[], filePath: string, fileContent
 // Function to open the custom date range modal
 function openCustomRangeModal(app: App) {
     const favorites = loadFavoriteRanges();
-    console.log('[DEBUG] Opening modal with favorites:', favorites);
+    globalLogger?.debug('Filter', 'Opening custom range modal', { favorites });
     new CustomDateRangeModal(app, (start: string, end: string, saveName?: string) => {
         if (start && end) {
             // First, update button state before making any layout changes
@@ -4514,10 +4524,10 @@ function openCustomRangeModal(app: App) {
                             window.oneiroMetricsPlugin.settings.lastAppliedFilter = 'custom';
                             window.oneiroMetricsPlugin.settings.customDateRange = newRange;
                             window.oneiroMetricsPlugin.saveSettings().catch(err => {
-                                console.error('[OOM-ERROR] Failed to save custom date range setting:', err);
+                                globalLogger?.error('Filter', 'Failed to save custom date range setting', { error: err });
                             });
                         } catch (e) {
-                            console.error('[OOM-ERROR] Failed to save custom date range:', e);
+                            globalLogger?.error('Filter', 'Failed to save custom date range', { error: e });
                         }
                     }
                     
@@ -4532,7 +4542,7 @@ function openCustomRangeModal(app: App) {
                     
                     // Apply the filter with delay for UI responsiveness
                     setTimeout(() => {
-                        console.log('[DEBUG] Applying custom date range filter:', customDateRange);
+                        globalLogger?.debug('Filter', 'Applying custom date range filter', { range: customDateRange });
                         applyCustomDateRangeFilter();
                     }, 50);
                 }, 0);
@@ -4601,7 +4611,7 @@ function saveFavoriteRange(name: string, range: { start: string, end: string }) 
     const saved = loadFavoriteRanges();
     saved[name] = range;
     localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
-    console.log('[DEBUG] Saved favorite range:', name, range);
+    globalLogger?.debug('Filter', 'Saved favorite range', { name, range });
 }
 
 function loadFavoriteRanges(): Record<string, { start: string, end: string }> {
@@ -4618,7 +4628,7 @@ function deleteFavoriteRange(name: string) {
     const saved = loadFavoriteRanges();
     delete saved[name];
     localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
-    console.log('[DEBUG] Deleted favorite range:', name);
+    globalLogger?.debug('Filter', 'Deleted favorite range', { name });
     new Notice(`Deleted favorite: ${name}`);
 }
 
@@ -4627,10 +4637,10 @@ function deleteFavoriteRange(name: string) {
 
 // Utility function to force filtering - called directly from DateNavigatorModal
 function forceApplyDateFilter(date: Date) {
-    console.log('[OOM-DEBUG] forceApplyDateFilter called with date:', date);
+    globalLogger?.debug('Filter', 'forceApplyDateFilter called', { date });
     
     if (!date || isNaN(date.getTime())) {
-        console.error('[OOM-DEBUG] Invalid date provided to forceApplyDateFilter');
+        globalLogger?.error('Filter', 'Invalid date provided to forceApplyDateFilter');
         return;
     }
     
@@ -4644,7 +4654,7 @@ function forceApplyDateFilter(date: Date) {
         const start = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         const end = start; // For a single day selection, start and end are the same
         
-        console.log('[OOM-DEBUG] Setting date range for filtering:', {
+        globalLogger?.debug('Filter', 'Setting date range for filtering', {
             selectedDate: date.toISOString(),
             selectedYear: year, 
             selectedMonth: month, 
@@ -4657,7 +4667,7 @@ function forceApplyDateFilter(date: Date) {
         // This must happen BEFORE updating the UI to prevent event handlers from clearing it
         customDateRange = { start: start, end: end };
         
-        console.log('[OOM-DEBUG] Setting customDateRange to:', customDateRange);
+        globalLogger?.debug('Filter', 'Setting customDateRange', { customDateRange });
         
         // Save to localStorage for persistence
         localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
@@ -4710,14 +4720,14 @@ function forceApplyDateFilter(date: Date) {
             
             // Apply the filter after UI updates to avoid jank
             setTimeout(() => {
-                console.log('[OOM-DEBUG] Calling applyCustomDateRangeFilter');
+                globalLogger?.debug('Filter', 'Calling applyCustomDateRangeFilter');
                 applyCustomDateRangeFilter();
             }, 100);
             
-            console.log('[OOM-DEBUG] Filter applied for date:', date.toLocaleDateString());
+            globalLogger?.debug('Filter', 'Filter applied for date', { date: date.toLocaleDateString() });
         }, 50);
     } catch (error) {
-        console.error('[OOM-DEBUG] Error in forceApplyDateFilter:', error);
+        globalLogger?.error('Filter', 'Error in forceApplyDateFilter', { error });
     }
 }
 
@@ -5463,10 +5473,10 @@ function formatDateForDisplay(date: Date): string {
 
 // Function to force apply a date filter, called from DateNavigatorModal
 window.forceApplyDateFilter = function(selectedDate: Date) {
-    console.log('[OOM-DEBUG] forceApplyDateFilter called with date:', selectedDate);
+    globalLogger?.debug('Filter', 'forceApplyDateFilter called', { date: selectedDate });
     
     if (!selectedDate) {
-        console.error('[OOM-DEBUG] No date provided to forceApplyDateFilter');
+        globalLogger?.error('Filter', 'No date provided to forceApplyDateFilter');
         new Notice('Cannot apply filter: no date selected.');
         return;
     }
@@ -5485,17 +5495,17 @@ window.forceApplyDateFilter = function(selectedDate: Date) {
             };
             
             window.oneiroMetricsPlugin.saveSettings().catch(err => {
-                console.error('[OOM-ERROR] Failed to save custom date filter setting:', err);
+                globalLogger?.error('Filter', 'Failed to save custom date filter setting', { error: err });
             });
         } catch (e) {
-            console.error('[OOM-ERROR] Failed to save custom date filter:', e);
+            globalLogger?.error('Filter', 'Failed to save custom date filter', { error: e });
         }
     }
 
     // Get the OOM content
     const previewEl = document.querySelector('.oom-metrics-content');
     if (!previewEl) {
-        console.error('[OOM-DEBUG] Cannot find .oom-metrics-content element');
+        globalLogger?.error('Filter', 'Cannot find .oom-metrics-content element');
         new Notice('Cannot apply filter: OOM content not found.');
         return;
     }
@@ -5507,14 +5517,14 @@ window.forceApplyDateFilter = function(selectedDate: Date) {
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
     
-    console.log('[OOM-DEBUG] Filtering for date range:', {
+    globalLogger?.debug('Filter', 'Filtering for date range', {
         startOfDay: startOfDay.toISOString(),
         endOfDay: endOfDay.toISOString()
     });
 
     // Get all rows
     const rows = previewEl.querySelectorAll('.oom-dream-row');
-    console.log(`[OOM-DEBUG] Found ${rows.length} rows to filter`);
+    globalLogger?.debug('Filter', 'Found rows to filter', { count: rows.length });
     
     // For performance, prepare date strings before filtering
     const startStr = startOfDay.toISOString().split('T')[0];
@@ -5554,14 +5564,21 @@ window.forceApplyDateFilter = function(selectedDate: Date) {
                 hiddenCount++;
             }
         } catch (e) {
-            console.error('[OOM-DEBUG] Error processing row date:', dateCell.textContent, e);
+            globalLogger?.error('Filter', 'Error processing row date', { 
+                dateText: dateCell.textContent, 
+                error: e 
+            });
             invalidDateCount++;
             (row as HTMLElement).classList.add('oom-row--hidden');
             (row as HTMLElement).classList.remove('oom-row--visible');
         }
     });
     
-    console.log(`[OOM-DEBUG] Date filter applied: ${visibleCount} visible, ${hiddenCount} hidden, ${invalidDateCount} invalid dates`);
+    globalLogger?.debug('Filter', 'Date filter applied', { 
+        visibleCount, 
+        hiddenCount, 
+        invalidDateCount 
+    });
     
     // Update the filter display
     const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
@@ -5587,27 +5604,27 @@ declare global {
 
 // Function to toggle content visibility for a given button - alternative implementation
 function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
-    console.log('[OOM-DEBUG] Using alternative content visibility implementation');
+    globalLogger?.debug('UI', 'Using alternative content visibility implementation');
     
     try {
         // Get the content cell ID from the button
         const contentCellId = button.getAttribute('data-parent-cell');
         if (!contentCellId) {
-            console.error('[OOM-DEBUG] No data-parent-cell attribute on button');
+            globalLogger?.error('UI', 'No data-parent-cell attribute on button');
             new Notice('Error: Cannot find content to expand');
             return;
         }
         
         const contentCell = document.getElementById(contentCellId);
         if (!contentCell) {
-            console.error('[OOM-DEBUG] Could not find content cell with ID:', contentCellId);
+            globalLogger?.error('UI', 'Could not find content cell with ID', { contentCellId });
             new Notice('Error: Content cell not found');
             return;
         }
         
         // Get the current state
         const isExpanded = button.getAttribute('data-expanded') === 'true';
-        console.log('[OOM-DEBUG] Current state:', isExpanded);
+        globalLogger?.debug('UI', 'Current expansion state', { isExpanded });
         
         // Get elements
         const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
@@ -5615,7 +5632,7 @@ function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
         const fullContent = contentCell.querySelector('.oom-content-full');
         
         if (!contentWrapper || !previewContent || !fullContent) {
-            console.error('[OOM-DEBUG] Missing required elements');
+            globalLogger?.error('UI', 'Missing required content elements');
             return;
         }
         
@@ -5624,7 +5641,7 @@ function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
         
         // Direct DOM manipulation approach
         if (!isExpanded) {
-            console.log('[OOM-DEBUG] Expanding content');
+            globalLogger?.debug('UI', 'Expanding content', { contentCellId });
             
             // 1. First update button state
             button.setAttribute('data-expanded', 'true');
@@ -5660,7 +5677,7 @@ function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
                 new Notice('Content expanded');
             });
         } else {
-            console.log('[OOM-DEBUG] Collapsing content');
+            globalLogger?.debug('UI', 'Collapsing content', { contentCellId });
             
             // 1. First update button state
             button.setAttribute('data-expanded', 'false');
@@ -5688,45 +5705,47 @@ function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
             expandedStates[contentCellId] = !isExpanded;
             localStorage.setItem('oom-expanded-states', JSON.stringify(expandedStates));
         } catch (e) {
-            console.error('[OOM-DEBUG] Error saving expanded state:', e);
+            globalLogger?.error('UI', 'Error saving expanded state', { error: e });
         }
         
     } catch (error) {
-        console.error('[OOM-DEBUG] Error in toggleContentVisibility:', error);
+        globalLogger?.error('UI', 'Error in toggleContentVisibility', { error });
     }
 }
 
 // Helper function to expand all content sections - useful for debugging
 function expandAllContentSections(previewEl: HTMLElement) {
-    console.log('[OOM-DEBUG] Expanding all content sections for debugging');
+    globalLogger?.debug('UI', 'Expanding all content sections for debugging');
     
     const expandButtons = previewEl.querySelectorAll('.oom-button--expand');
     expandButtons.forEach(button => {
         const isExpanded = button.getAttribute('data-expanded') === 'true';
         if (!isExpanded) {
             // Only expand sections that aren't already expanded
-            console.log('[OOM-DEBUG] Expanding content section:', button.getAttribute('data-parent-cell'));
+            globalLogger?.debug('UI', 'Expanding content section', { 
+                contentCellId: button.getAttribute('data-parent-cell') 
+            });
             toggleContentVisibility(button as HTMLElement, previewEl);
         }
     });
     
-    console.log('[OOM-DEBUG] Finished expanding all content sections');
+    globalLogger?.debug('UI', 'Finished expanding all content sections');
 }
 
 // Debug helper - expose content expansion function to window object for console debugging
 (window as any).debugContentExpansion = function(showExpanded: boolean = true) {
-    console.log('[OOM-DEBUG] Manual content expansion debug triggered');
+    globalLogger?.debug('UI', 'Manual content expansion debug triggered', { showExpanded });
     
     // Get the OOM content container
     const previewEl = document.querySelector('.oom-metrics-content') as HTMLElement;
     if (!previewEl) {
-        console.error('[OOM-DEBUG] Cannot find .oom-metrics-content element');
+        globalLogger?.error('UI', 'Cannot find .oom-metrics-content element');
         return 'Error: Content container not found';
     }
     
     // Find all expand buttons
     const expandButtons = previewEl.querySelectorAll('.oom-button--expand');
-    console.log(`[OOM-DEBUG] Found ${expandButtons.length} content expansion buttons`);
+    globalLogger?.debug('UI', 'Found content expansion buttons', { count: expandButtons.length });
     
     if (expandButtons.length === 0) {
         return 'No content expansion buttons found';
@@ -5739,7 +5758,11 @@ function expandAllContentSections(previewEl: HTMLElement) {
         
         // Only process if the button isn't already in the desired state
         if (showExpanded !== isCurrentlyExpanded) {
-            console.log(`[OOM-DEBUG] Processing button:`, button);
+            globalLogger?.debug('UI', 'Processing button', { 
+                id: button.getAttribute('data-parent-cell'),
+                current: isCurrentlyExpanded, 
+                target: showExpanded 
+            });
             toggleContentVisibility(button as HTMLElement, previewEl);
             processed++;
         }

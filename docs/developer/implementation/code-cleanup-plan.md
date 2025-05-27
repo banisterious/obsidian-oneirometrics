@@ -26,8 +26,8 @@ This document outlines the plan for systematically eliminating dead code as part
 |-----------|--------|------|-------------|
 | Adapter Migration | ✅ Complete | 2025-05-26 | All adapter modules have permanent implementations |
 | Type System Migration | ✅ Complete | 2025-05-25 | All imports now use domain-specific type modules |
-| Logging System Refactoring | 🔄 In Progress | 2025-05-27 | Replacing console.log with structured logging |
-| main.ts Cleanup | 🔄 In Progress | 2025-06-01 | Refactoring core functionality into modules |
+| Logging System Refactoring | 🔄 In Progress | 2025-06-03 | Replacing console.log with structured logging (90%) |
+| main.ts Cleanup | 🔄 In Progress | 2025-06-03 | Refactoring core functionality into modules (30%) |
 | Date Utils Refactoring | ✅ Complete | 2025-06-01 | Centralized date handling functions |
 | TypeScript Error Resolution | 🔄 In Progress | 2025-05-28 | Fixing remaining TypeScript errors |
 | Performance Optimization | ⬜ Not Started | - | Optimizing key operations for better performance |
@@ -145,7 +145,7 @@ Based on initial analysis, these areas have the highest concentration of dead co
 - Implemented structured logging using the following consistent categories:
   - 'Scrape' - For data collection processes
   - 'Metrics' - For metrics calculations
-  - 'ProjectNote' - For project note updates
+  - 'MetricsNote' - For metrics note updates
   - 'Backup' - For backup operations
   - 'Settings' - For settings operations
   - 'UI' - For user interface operations
@@ -155,6 +155,45 @@ Based on initial analysis, these areas have the highest concentration of dead co
   - warn - For potential issues that don't prevent operation
   - info - For important operations completion
   - debug - For detailed diagnostic information
+
+**Progress (2025-06-02):**
+- Continued replacing console.log statements with structured logging:
+  - Renamed 'ProjectNote' category to 'MetricsNote' to align with UI terminology
+  - Converted UI-related debug logs using the 'UI' category
+  - Replaced filter-related logs with the 'Filter' category
+  - Added structured data parameters for better debugging context
+  - Ensured consistent use of log levels (error, warn, info, debug)
+  - Improved error objects with proper typing
+- Standardized button interaction logging with consistent patterns
+- Improved event listener logging with detailed context
+- Added more descriptive messages for debugging UI interactions
+- Added structured object data for complex debugging scenarios
+
+**Progress (2025-06-03):**
+- Completed significant logging refactoring across debug and test functions:
+  - Updated debugTableData function with structured logging
+  - Converted testContentParserDirectly function to use globalLogger
+  - Refactored forceApplyDateFilter with proper structured logging
+  - Updated saveFavoriteRange, deleteFavoriteRange with the Filter category
+  - Converted toggleContentVisibility function to use UI category
+  - Refactored expandAllContentSections with structured debug logging
+  - Updated openCustomRangeModal with proper logging categories
+  - Added structured data parameters to plugin lifecycle methods (onload, onunload)
+  - Refactored generateMetricsTable with Table category
+- Standardized error handling in all log statements:
+  - Used proper Error objects with the error log level
+  - Added contextual information to error messages
+  - Included relevant state data in error logs for better debugging
+- Improved debug logging categories for better filtering:
+  - Added 'Debug' category for diagnostic functions
+  - Used 'Filter' category for date filtering operations
+  - Applied 'Table' category for table generation and processing
+  - Employed 'UI' category for DOM manipulation operations
+- Next Steps:
+  - Complete remaining console.log statements in main.ts
+  - Add log level controls in settings to filter debug messages
+  - Implement log rotation configuration
+  - Add unit tests for logging functionality
 
 ### Phase 2: Import Cleanup
 
@@ -272,7 +311,7 @@ Based on initial analysis, these areas have the highest concentration of dead co
 
 **Progress (2025-05-27):**
 - Replaced numerous console.log statements with structured logging in main.ts
-  - Added domain-specific categories (Scrape, Metrics, ProjectNote, Backup, Settings, UI, Plugin)
+  - Added domain-specific categories (Scrape, Metrics, MetricsNote, Backup, Settings, UI, Plugin)
   - Used consistent log levels (error, warn, info, debug)
   - Added structured data parameters for better debugging context
   - Implemented proper error handling with Error objects
@@ -283,13 +322,13 @@ Based on initial analysis, these areas have the highest concentration of dead co
 - Organized logging with specific categories for better filtering and analysis:
   - 'Scrape': All data collection processes from files
   - 'Metrics': Processing and calculation of metrics
-  - 'ProjectNote': Updates to the project note
+  - 'MetricsNote': Updates to the metrics note
   - 'Backup': File backup operations
   - 'Settings': Settings loading/saving
   - 'UI': User interface interactions
   - 'Plugin': Core plugin lifecycle events
 - Next steps:
-  - Continue replacing remaining console.log debug statements with structured logging
+  - Continue replacing remaining console.log statements with structured logging
   - Add log level controls to ensure debug logs only appear when appropriate
   - Remove unused code identified in previous analysis
 
@@ -385,7 +424,7 @@ The dead code elimination phase will be considered successful when:
 - Identified potential areas for further date handling improvements:
   - Add consistent error handling for date parsing failures
   - Standardize date format strings across the codebase
-  - Create more robust date range handling utilities 
+  - Create more robust date range handling utilities
 
 ## Progress Tracking
 
@@ -393,8 +432,8 @@ The dead code elimination phase will be considered successful when:
 
 | Component | Description | Status | Date | Notes |
 |-----------|-------------|--------|------|-------|
-| Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-06-01 | Moved to src/utils/date-utils.ts |
-| Logging | Debug logging statements | 🔄 In Progress | 2025-05-27 | Converting to structured logging |
+| Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
+| Logging | Debug logging statements | 🔄 90% Complete | 2025-06-03 | Converting to structured logging |
 | UI Components | Modal generation, tables | ⬜ Not Started | - | - |
 | Metrics Processing | Calculation, organization | ⬜ Not Started | - | - |
 | Event Handlers | Button clicks, interactions | ⬜ Not Started | - | - |
@@ -404,7 +443,7 @@ The dead code elimination phase will be considered successful when:
 
 | Module | Cleanup Status | TypeScript Status | Test Coverage | Priority |
 |--------|---------------|-------------------|--------------|----------|
-| main.ts | 🔄 15% | 🔄 Partial | ⬜ Low | High |
+| main.ts | 🔄 30% | 🔄 Partial | ⬜ Low | High |
 | ContentParser.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Medium |
 | DreamMetricsDOM.ts | 🔄 75% | ✅ Complete | 🔄 Medium | Medium |
 | DreamMetricsEvents.ts | 🔄 60% | ✅ Complete | 🔄 Medium | Medium |
