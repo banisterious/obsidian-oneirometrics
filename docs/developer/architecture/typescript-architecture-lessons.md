@@ -225,6 +225,8 @@ Maintain a tracking table for cleanup progress:
 
 7. **Continuous Type Refinement**: Regularly review and refine types as the codebase evolves.
 
+8. **Apply Defensive Coding Practices**: Implement the comprehensive defensive coding approach outlined in our [Defensive Coding Practices](../implementation/defensive-coding-practices.md) documentation.
+
 ## Service Registry Pattern and TypeScript
 
 ![Service Registry Pattern](../../../assets/images/architecture/Oom-Service-Registry-Pattern.png)
