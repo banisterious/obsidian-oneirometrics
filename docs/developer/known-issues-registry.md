@@ -311,4 +311,6 @@ Key principles include:
 4. Maintaining user experience through graceful degradation
 5. Prioritizing diagnostics with clear error messages
 
+The implementation of these practices is scheduled according to the [Defensive Coding Implementation Plan](../implementation/post-refactoring-roadmap.md#defensive-coding-implementation-plan), which provides a phased approach with concrete timelines and deliverables.
+
 Refer to the defensive coding document for specific implementation guidelines and code examples. 

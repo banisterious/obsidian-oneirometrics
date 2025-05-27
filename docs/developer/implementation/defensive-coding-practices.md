@@ -388,6 +388,8 @@ This integration ensures that services are used safely throughout the applicatio
 
 Implementing these defensive coding practices will significantly improve the robustness of the OneiroMetrics plugin. By combining the Service Registry Pattern with comprehensive defensive coding, we create a system that can withstand unexpected conditions, gracefully degrade when necessary, and provide a consistent user experience even when failures occur.
 
+For a detailed implementation plan with timelines, risk assessments, and prioritized tasks, see the [Defensive Coding Implementation Plan](./post-refactoring-roadmap.md#defensive-coding-implementation-plan) section in the Post-Refactoring Roadmap.
+
 Future enhancements to these practices should include:
 
 1. **Circuit Breakers**: Prevent repeated calls to failing services
