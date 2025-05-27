@@ -3,18 +3,23 @@
  * 
  * This module provides comprehensive content parsing functionality for dream entries.
  * It handles the extraction, processing, and validation of dream callouts from markdown content.
+ * 
+ * Enhanced with defensive coding features to improve robustness and error resilience.
  */
 
 import { DreamMetricData, DreamMetric } from '../../types/core';
 import { CalloutMetadata } from '../../types/callout-types';
 import { getSourceFile, createSource, isCalloutMetadata } from '../../utils/type-guards';
 import { DreamEntry } from '../../types/declarations/dream-entry';
-
-// Define an extended version of CalloutMetadata that can include error information
-interface ExtendedCalloutMetadata extends CalloutMetadata {
-  error?: boolean;
-  warnings?: string[];
-}
+import { 
+  getSafe, 
+  getNestedProperty, 
+  withErrorHandling, 
+  isObject, 
+  isNonEmptyString,
+  safeJsonParse
+} from '../../utils/defensive-utils';
+import safeLogger from '../../logging/safe-logger';
 
 /**
  * Content parsing options
@@ -28,12 +33,30 @@ export interface ContentParsingOptions {
   includeNested?: boolean;
   /** Whether to sanitize content */
   sanitize?: boolean;
+  /** Whether to use strict mode (throw errors) or resilient mode (recover) */
+  strict?: boolean;
+  /** A fallback function to handle errors */
+  errorHandler?: (error: Error, context: string) => void;
 }
 
 /**
  * ContentParser provides utilities for parsing Obsidian content to extract dream entries
  */
 export class ContentParser {
+  /**
+   * Default parsing options
+   */
+  private defaultOptions: ContentParsingOptions = {
+    calloutType: 'dream',
+    validate: true,
+    includeNested: false,
+    sanitize: true,
+    strict: false,
+    errorHandler: (error: Error, context: string) => {
+      safeLogger.error('ContentParser', `Error in ${context}`, error);
+    }
+  };
+
   /**
    * Parses content from a note to extract dream entries and metadata
    * 
@@ -43,32 +66,43 @@ export class ContentParser {
    * @param options Additional parsing options
    * @returns Parsed content with entries and metadata
    */
-  parseContent(
-    content: string, 
-    calloutTypeOrSource?: string, 
-    source?: string,
-    options?: ContentParsingOptions
-  ): { 
-    entries: DreamMetricData[], 
-    metadata: Record<string, any> 
-  } {
-    const entries = this.extractDreamEntries(content, calloutTypeOrSource, source, options);
-    
-    // Calculate additional metadata
-    const wordCounts = entries.map(entry => entry.wordCount || 0);
-    const totalWordCount = wordCounts.reduce((sum, count) => sum + count, 0);
-    const avgWordCount = entries.length > 0 ? totalWordCount / entries.length : 0;
-    
-    return {
-      entries,
-      metadata: { 
-        totalEntries: entries.length,
-        totalWordCount,
-        averageWordCount: avgWordCount.toFixed(1),
-        calloutType: this.resolveCalloutType(calloutTypeOrSource)
-      }
-    };
-  }
+  parseContent = withErrorHandling(
+    (
+      content: string, 
+      calloutTypeOrSource?: string, 
+      source?: string,
+      options?: ContentParsingOptions
+    ) => {
+      // Ensure content is a string
+      const safeContent = isNonEmptyString(content) ? content : '';
+      
+      // Extract entries with defensive error handling
+      const entries = this.extractDreamEntries(safeContent, calloutTypeOrSource, source, options);
+      
+      // Calculate additional metadata with safe calculations
+      const wordCounts = entries.map(entry => getSafe(entry, e => e.wordCount, 0));
+      const totalWordCount = wordCounts.reduce((sum, count) => sum + count, 0);
+      const avgWordCount = entries.length > 0 ? totalWordCount / entries.length : 0;
+      
+      // Safely resolve callout type
+      const resolvedCalloutType = this.resolveCalloutType(calloutTypeOrSource);
+      
+      return {
+        entries,
+        metadata: { 
+          totalEntries: entries.length,
+          totalWordCount,
+          averageWordCount: avgWordCount.toFixed(1),
+          calloutType: resolvedCalloutType
+        }
+      };
+    },
+    {
+      fallbackValue: { entries: [], metadata: { totalEntries: 0, totalWordCount: 0, averageWordCount: "0.0", calloutType: "dream" } },
+      errorMessage: "Failed to parse content",
+      onError: (error) => safeLogger.error('ContentParser', 'Error in parseContent', error)
+    }
+  );
 
   /**
    * Extracts dream entries from content
@@ -79,78 +113,176 @@ export class ContentParser {
    * @param options Additional parsing options
    * @returns Array of dream entries
    */
-  extractDreamEntries(
-    content: string, 
-    calloutTypeOrSource?: string, 
-    source?: string,
-    options?: ContentParsingOptions
-  ): DreamMetricData[] {
-    // Set default options
-    const opts: ContentParsingOptions = {
-      calloutType: 'dream',
-      validate: true,
-      includeNested: false,
-      sanitize: true,
-      ...options
-    };
-    
-    // Handle different parameter variations
-    const calloutType = this.resolveCalloutType(calloutTypeOrSource);
-    const sourcePath = this.resolveSourcePath(calloutTypeOrSource, source);
-    
-    if (!content) return [];
-    
-    // Sanitize content if requested
-    const processedContent = opts.sanitize ? this.sanitizeContent(content) : content;
-    
-    // Find all dream callouts in the content
-    const entries: DreamMetricData[] = [];
-    const calloutRegex = new RegExp(`\\[!${calloutType}\\]([\\s\\S]*?)(?=\\[!|$)`, 'gi');
-    
-    let match;
-    while ((match = calloutRegex.exec(processedContent)) !== null) {
-      const calloutContent = match[1].trim();
+  extractDreamEntries = withErrorHandling(
+    (
+      content: string, 
+      calloutTypeOrSource?: string, 
+      source?: string,
+      options?: ContentParsingOptions
+    ): DreamMetricData[] => {
+      // Set default options
+      const opts: ContentParsingOptions = {
+        ...this.defaultOptions,
+        ...options
+      };
+      
+      // Ensure we have valid inputs or use safe defaults
+      const safeContent = isNonEmptyString(content) ? content : '';
+      
+      // Handle different parameter variations with defensive coding
+      const calloutType = this.resolveCalloutType(calloutTypeOrSource);
+      const sourcePath = this.resolveSourcePath(calloutTypeOrSource, source);
+      
+      if (!safeContent) return [];
+      
+      // Sanitize content if requested
+      const processedContent = opts.sanitize ? this.sanitizeContent(safeContent) : safeContent;
+      
+      // Find all dream callouts in the content
+      const entries: DreamMetricData[] = [];
+      
       try {
-        const entry = this.processCallout(calloutContent, sourcePath);
+        const calloutRegex = new RegExp(`\\[!${calloutType}\\]([\\s\\S]*?)(?=\\[!|$)`, 'gi');
         
-        // Validate if requested
-        if (opts.validate) {
-          const validation = this.validateDreamEntry(entry);
-          if (!validation.valid) {
-            console.warn(`Validation warnings for entry: ${validation.errors.join(', ')}`);
-            // Add validation warnings to the entry's metadata
-            if (isCalloutMetadata(entry.calloutMetadata)) {
-              (entry.calloutMetadata as ExtendedCalloutMetadata).warnings = validation.errors;
+        let match;
+        while ((match = calloutRegex.exec(processedContent)) !== null) {
+          // Safely extract callout content with defensive coding
+          const calloutContent = getSafe(match, m => m[1]?.trim(), '');
+          
+          try {
+            const entry = this.processCallout(calloutContent, sourcePath);
+            
+            // Validate if requested
+            if (opts.validate) {
+              const validation = this.validateDreamEntry(entry);
+              if (!validation.valid) {
+                safeLogger.warn('ContentParser', `Validation warnings for entry: ${validation.errors.join(', ')}`);
+                // Add validation warnings to the entry's metadata
+                if (isCalloutMetadata(entry.calloutMetadata)) {
+                  (entry.calloutMetadata as CalloutMetadata).warnings = validation.errors;
+                }
+              }
+            }
+            
+            entries.push(entry);
+          } catch (error) {
+            safeLogger.error("ContentParser", "Error processing callout", error);
+            
+            if (opts.strict) {
+              throw error; // Re-throw in strict mode
+            } else {
+              // In non-strict mode, create a fallback entry to maintain continuity
+              const fallbackEntry = this.createFallbackEntry(calloutContent, sourcePath, error);
+              entries.push(fallbackEntry);
             }
           }
         }
-        
-        entries.push(entry);
-      } catch (error) {
-        console.error("Error processing callout:", error);
-        // Continue with next callout even if this one fails
+      } catch (regexError) {
+        safeLogger.error("ContentParser", "Error in callout regex", regexError);
+        // Even in case of regex failure, return what we have so far
+        if (opts.strict) {
+          throw regexError;
+        }
       }
-    }
-    
-    // Include nested callouts if requested
-    if (opts.includeNested) {
-      try {
-        const nestedCallouts = this.processNestedCallouts(processedContent, calloutType);
-        for (const nestedCallout of nestedCallouts) {
-          try {
-            const entry = this.processCallout(nestedCallout.content, sourcePath);
-            entry.calloutMetadata = nestedCallout.metadata;
-            entries.push(entry);
-          } catch (error) {
-            console.error("Error processing nested callout:", error);
+      
+      // Include nested callouts if requested
+      if (opts.includeNested) {
+        try {
+          const nestedCallouts = this.processNestedCallouts(processedContent, calloutType);
+          for (const nestedCallout of nestedCallouts) {
+            try {
+              const nestedContent = getSafe(nestedCallout, n => n.content, '');
+              const entry = this.processCallout(nestedContent, sourcePath);
+              entry.calloutMetadata = nestedCallout.metadata;
+              entries.push(entry);
+            } catch (error) {
+              safeLogger.error("ContentParser", "Error processing nested callout", error);
+              
+              if (opts.strict) {
+                throw error; // Re-throw in strict mode
+              } else {
+                // In non-strict mode, create a fallback entry
+                const fallbackEntry = this.createFallbackEntry(
+                  getSafe(nestedCallout, n => n.content, ''),
+                  sourcePath, 
+                  error,
+                  nestedCallout.metadata
+                );
+                entries.push(fallbackEntry);
+              }
+            }
+          }
+        } catch (error) {
+          safeLogger.error("ContentParser", "Error processing nested callouts", error);
+          if (opts.strict) {
+            throw error;
           }
         }
-      } catch (error) {
-        console.error("Error processing nested callouts:", error);
       }
+      
+      return entries;
+    },
+    {
+      fallbackValue: [],
+      errorMessage: "Failed to extract dream entries",
+      onError: (error) => safeLogger.error('ContentParser', 'Error in extractDreamEntries', error)
+    }
+  );
+
+  /**
+   * Creates a fallback entry when processing fails
+   * 
+   * @param calloutContent Original callout content that failed to process
+   * @param source Source file path
+   * @param error The error that occurred
+   * @param metadata Optional callout metadata
+   * @returns A minimal valid dream entry
+   */
+  private createFallbackEntry(
+    calloutContent: string, 
+    source: string, 
+    error: any,
+    metadata?: CalloutMetadata
+  ): DreamMetricData {
+    // Try to extract some minimal information if possible
+    let title = 'Error processing entry';
+    let date = this.parseDate('');
+    
+    try {
+      // Attempt to extract date from the content
+      const dateMatch = calloutContent.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch) {
+        date = dateMatch[1];
+      }
+      
+      // Attempt to extract a title
+      const firstLine = calloutContent.split('\n')[0];
+      if (firstLine && firstLine.length < 100) {
+        title = firstLine;
+      }
+    } catch (extractionError) {
+      // Ignore errors in fallback extraction
     }
     
-    return entries;
+    // Create extended metadata with error information
+    const errorMetadata: CalloutMetadata = {
+      type: 'dream',
+      error: true,
+      parseFailure: true,
+      recoveryAttempted: true,
+      ...metadata
+    };
+    
+    // Create a minimal valid entry
+    return {
+      date,
+      title,
+      content: `This entry could not be processed correctly.\nOriginal content: ${calloutContent.substring(0, 100)}...`,
+      source: createSource(source),
+      wordCount: 0,
+      metrics: {},
+      calloutMetadata: errorMetadata
+    };
   }
 
   /**
@@ -159,18 +291,25 @@ export class ContentParser {
    * @param calloutTypeOrSource The callout type or source file path
    * @returns The resolved callout type
    */
-  private resolveCalloutType(calloutTypeOrSource?: string): string {
-    if (!calloutTypeOrSource) {
-      return 'dream';
+  private resolveCalloutType = withErrorHandling(
+    (calloutTypeOrSource?: string): string => {
+      if (!calloutTypeOrSource) {
+        return 'dream';
+      }
+      
+      // If it looks like a file path, assume default callout type
+      if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
+        return 'dream';
+      }
+      
+      return calloutTypeOrSource;
+    },
+    {
+      errorMessage: "Failed to resolve callout type",
+      fallbackValue: 'dream',
+      onError: (error) => safeLogger.error('ContentParser', 'Error in resolveCalloutType', error)
     }
-    
-    // If it looks like a file path, assume default callout type
-    if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
-      return 'dream';
-    }
-    
-    return calloutTypeOrSource;
-  }
+  );
   
   /**
    * Resolves the source path from the input parameters
@@ -179,22 +318,29 @@ export class ContentParser {
    * @param source Optional source file
    * @returns The resolved source path
    */
-  private resolveSourcePath(calloutTypeOrSource?: string, source?: string): string {
-    if (source) {
-      return source;
-    }
-    
-    if (!calloutTypeOrSource) {
+  private resolveSourcePath = withErrorHandling(
+    (calloutTypeOrSource?: string, source?: string): string => {
+      if (source) {
+        return source;
+      }
+      
+      if (!calloutTypeOrSource) {
+        return '';
+      }
+      
+      // If it looks like a file path, use it as the source
+      if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
+        return calloutTypeOrSource;
+      }
+      
       return '';
+    },
+    {
+      errorMessage: "Failed to resolve source path",
+      fallbackValue: '',
+      onError: (error) => safeLogger.error('ContentParser', 'Error in resolveSourcePath', error)
     }
-    
-    // If it looks like a file path, use it as the source
-    if (calloutTypeOrSource.includes('/') || calloutTypeOrSource.includes('\\')) {
-      return calloutTypeOrSource;
-    }
-    
-    return '';
-  }
+  );
 
   /**
    * Processes a callout into a dream entry
@@ -203,56 +349,69 @@ export class ContentParser {
    * @param source The source file path
    * @returns A dream entry
    */
-  private processCallout(calloutContent: string, source: string): DreamMetricData {
-    try {
+  private processCallout = withErrorHandling(
+    (calloutContent: string, source: string): DreamMetricData => {
+      // Ensure we have valid inputs
+      const safeCalloutContent = isNonEmptyString(calloutContent) ? calloutContent : '';
+      const safeSource = isNonEmptyString(source) ? source : '';
+      
       // Extract date from the first line if present
-      const dateMatch = calloutContent.match(/^(\d{4}-\d{2}-\d{2})/);
+      const dateMatch = safeCalloutContent.match(/^(\d{4}-\d{2}-\d{2})/);
       const date = dateMatch ? dateMatch[1] : this.parseDate('');
       
-      // Extract metrics
-      const metricsText = this.extractMetricsText(calloutContent);
+      // Extract metrics with defensive coding
+      const metricsText = this.extractMetricsText(safeCalloutContent);
       const metrics: Record<string, number | string> = {};
       
-      // Parse metrics text to extract metric values
-      const metricRegex = /(\w+(?:\s+\w+)*)\s*:\s*(\d+(?:\.\d+)?|\w+)/g;
-      let metricMatch;
-      while ((metricMatch = metricRegex.exec(metricsText)) !== null) {
-        const name = metricMatch[1].trim();
-        const valueStr = metricMatch[2].trim();
-        metrics[name] = isNaN(Number(valueStr)) ? valueStr : Number(valueStr);
+      try {
+        // Parse metrics text to extract metric values
+        const metricRegex = /(\w+(?:\s+\w+)*)\s*:\s*(\d+(?:\.\d+)?|\w+)/g;
+        let metricMatch;
+        while ((metricMatch = metricRegex.exec(metricsText)) !== null) {
+          const name = getSafe(metricMatch, m => m[1]?.trim(), '');
+          const valueStr = getSafe(metricMatch, m => m[2]?.trim(), '');
+          
+          if (name && valueStr) {
+            metrics[name] = isNaN(Number(valueStr)) ? valueStr : Number(valueStr);
+          }
+        }
+      } catch (metricError) {
+        safeLogger.error('ContentParser', 'Error extracting metrics', metricError);
+        // Continue with empty metrics rather than failing the whole entry
       }
       
       // Clean and extract the main dream content
-      const cleanedContent = this.cleanDreamContent(calloutContent, 'dream');
+      const cleanedContent = this.cleanDreamContent(safeCalloutContent, 'dream');
       const title = this.extractTitle(cleanedContent);
       
-      // Calculate word count
-      const wordCount = cleanedContent.split(/\s+/).filter(word => word.length > 0).length;
+      // Calculate word count safely
+      const wordCount = cleanedContent.split(/\s+/).filter(word => word && word.length > 0).length;
       
       // Create DreamMetricData object
       return {
         date,
         title,
         content: cleanedContent,
-        source: createSource(source),
+        source: createSource(safeSource),
         wordCount: wordCount,
         metrics,
         calloutMetadata: { type: 'dream' }
       };
-    } catch (error) {
-      console.error("Error in processCallout:", error);
-      // Return a minimal valid dream entry to avoid breaking the entire process
-      return {
-        date: this.parseDate(''),
+    },
+    {
+      fallbackValue: {
+        date: '',
         title: 'Error processing entry',
         content: 'This entry could not be processed correctly.',
-        source: createSource(source),
+        source: createSource(''),
         wordCount: 0,
         metrics: {},
-        calloutMetadata: { type: 'dream', error: true } as ExtendedCalloutMetadata
-      };
+        calloutMetadata: { type: 'dream', error: true }
+      },
+      errorMessage: "Failed to process callout",
+      onError: (error) => safeLogger.error('ContentParser', 'Error in processCallout', error)
     }
-  }
+  );
 
   /**
    * Parses a callout to extract its type and content
@@ -489,39 +648,24 @@ export class ContentParser {
    * @param content The potentially corrupted content
    * @returns Cleaned up content
    */
-  sanitizeContent(content: string): string {
-    if (!content) return '';
-    
-    try {
-      // Replace repeated newlines with double newlines
-      let sanitized = content.replace(/\n{3,}/g, '\n\n');
+  sanitizeContent = withErrorHandling(
+    (content: string): string => {
+      if (!content) return '';
       
-      // Fix unclosed code blocks
-      const codeBlockMatches = sanitized.match(/```[^`]*$/g);
-      if (codeBlockMatches) {
-        for (const match of codeBlockMatches) {
-          sanitized = sanitized.replace(match, match + '\n```');
-        }
-      }
-      
-      // Fix unclosed callouts
-      const unclosedCallouts = sanitized.match(/\[!(\w+)(?!\])([^\n]*)/g);
-      if (unclosedCallouts) {
-        for (const match of unclosedCallouts) {
-          const fixed = match.replace(/\[!(\w+)(?!\])([^\n]*)/, '[!$1]$2');
-          sanitized = sanitized.replace(match, fixed);
-        }
-      }
-      
-      // Remove invalid characters
-      sanitized = sanitized.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+      // Replace problematic characters and sequences
+      let sanitized = content
+        .replace(/\u0000/g, '') // Remove null bytes
+        .replace(/\r\n/g, '\n') // Normalize line endings
+        .replace(/\r/g, '\n');  // Convert remaining CR to LF
       
       return sanitized;
-    } catch (error) {
-      console.error("Error sanitizing content:", error);
-      return content; // Return original if sanitization fails
+    },
+    {
+      fallbackValue: '',
+      errorMessage: "Failed to sanitize content",
+      onError: (error) => safeLogger.error('ContentParser', 'Error in sanitizeContent', error)
     }
-  }
+  );
   
   /**
    * Extracts metrics from multiple callouts and combines them

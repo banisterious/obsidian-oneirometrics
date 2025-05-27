@@ -6,11 +6,29 @@
  * Interface representing callout metadata
  */
 export interface CalloutMetadata {
-  /** The type of callout (dream, nightmare, etc.) */
+  /** The type of callout (e.g., "dream", "note") */
   type: string;
   
-  /** Optional identifier for the callout */
+  /** Optional ID for the callout */
   id?: string;
+  
+  /** Optional title for the callout */
+  title?: string;
+  
+  /** Optional color for the callout */
+  color?: string;
+  
+  /** Flag indicating if there was an error processing the callout */
+  error?: boolean;
+  
+  /** Optional warnings that occurred while processing the callout */
+  warnings?: string[];
+  
+  /** Flag indicating if there was a parse failure */
+  parseFailure?: boolean;
+  
+  /** Flag indicating if recovery was attempted */
+  recoveryAttempted?: boolean;
 }
 
 /**

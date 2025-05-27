@@ -8,6 +8,7 @@
 import { DreamMetric, DreamMetricData } from '../types/core';
 import { createIcon, createElement } from './dom-helpers';
 import { isMetricEnabled } from './type-guards';
+import { ErrorBoundaryOptions } from '../types/ui-types';
 
 /**
  * Standard component properties for OneiroMetrics UI elements
@@ -18,6 +19,8 @@ export interface OOMComponentProps {
   id?: string;
   metrics?: DreamMetric[];
   entries?: DreamMetricData[];
+  /** Error boundary options for component error handling */
+  errorBoundary?: ErrorBoundaryOptions;
 }
 
 /**
@@ -31,7 +34,8 @@ export function standardizeComponentProps(props: Partial<OOMComponentProps>): OO
     className: props.className || '',
     id: props.id || `oom-component-${Date.now()}`,
     metrics: props.metrics || [],
-    entries: props.entries || []
+    entries: props.entries || [],
+    errorBoundary: props.errorBoundary
   };
 }
 
