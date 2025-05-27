@@ -1,6 +1,120 @@
 # Post-Refactoring Cleanup Checklist
 
-This checklist outlines the specific tasks to complete once the TypeScript migration and refactoring effort is fully behind us. Use this document to track progress and ensure no cleanup task is missed.
+## Overview
+
+This checklist captures the immediate tasks needed after rolling back the refactoring changes to stabilize the codebase and prepare for a more structured refactoring approach in the future.
+
+## References
+
+- [Refactoring Lessons Learned](../../developer/implementation/refactoring-lessons-learned.md) - Comprehensive analysis of what went wrong
+- [Post-Refactoring Roadmap](../../developer/implementation/post-refactoring-roadmap.md) - Future implementation plan
+
+## Immediate Cleanup Tasks
+
+### 1. Code Cleanup
+
+- [ ] Remove orphaned files from the failed refactoring attempt
+  - [ ] `src/events/WorkspaceEvents.ts`
+  - [ ] `src/events/UIEvents.ts`
+  - [ ] `src/events/index.ts`
+  - [ ] `src/utils/date-helpers.ts` (if not needed in current version)
+  - [ ] Any other orphaned files
+
+- [ ] Check for and remove unused imports in remaining files
+  - [ ] `main.ts`
+  - [ ] Files in `src/dom/modals/`
+  - [ ] Files in `src/parsing/services/`
+  - [ ] Files in `src/state/`
+
+- [ ] Verify file references in `manifest.json` and `package.json`
+
+### 2. Verify Critical Functionality
+
+- [ ] Verify dream entry detection is working
+  - [ ] Check various callout formats
+  - [ ] Test nested callouts
+  - [ ] Validate date extraction
+
+- [ ] Confirm UI rendering is correct
+  - [ ] "Show more" buttons in Content column
+  - [ ] Proper date display
+  - [ ] Dream title extraction
+  - [ ] Table virtualization
+
+- [ ] Test plugin initialization
+  - [ ] Clean startup with no errors
+  - [ ] Settings loading correctly
+  - [ ] Event listeners registering properly
+
+### 3. Document Known Issues
+
+- [ ] Document initialization order dependencies in `known-issues-registry.md`
+  - [ ] Global variable dependencies
+  - [ ] Function dependencies
+  - [ ] Component initialization sequence
+
+- [ ] Document UI rendering issues
+  - [ ] Content cell rendering issues
+  - [ ] Data extraction issues
+  - [ ] Table virtualization issues
+
+- [ ] Document dream entry detection issues
+  - [ ] Callout type recognition issues
+  - [ ] Nested structure handling issues
+
+### 4. Temporary Fixes
+
+- [ ] Add defensive coding for critical components
+  - [ ] Safe checks for `globalLogger`
+  - [ ] Safe checks for `customDateRange`
+  - [ ] Safe checks for `getProjectNotePath`
+
+- [ ] Add clear comments for initialization order requirements
+  - [ ] Mark variables that must be initialized early
+  - [ ] Document dependency relationships
+
+- [ ] Add temporary logging to track initialization sequence
+
+## Development Environment Setup
+
+- [ ] Document the current working state (commit `1c36d38`)
+  - [ ] Create branch from this commit for safekeeping
+  - [ ] Document key differences from the failed refactoring
+
+- [ ] Set up proper testing environment
+  - [ ] Create test fixtures for various callout formats
+  - [ ] Add test files for initialization sequence
+  - [ ] Document test requirements
+
+## Documentation Updates
+
+- [ ] Update `README.md` with current status
+- [ ] Update `CONTRIBUTING.md` with refactoring guidelines
+- [ ] Create/update architecture documentation
+  - [ ] Document current architecture
+  - [ ] Document planned improvements
+  - [ ] Document initialization sequence
+
+## Future Planning
+
+- [ ] Schedule review of the [Refactoring Lessons Learned](../../developer/implementation/refactoring-lessons-learned.md) document
+- [ ] Prioritize tasks from the [Post-Refactoring Roadmap](../../developer/implementation/post-refactoring-roadmap.md)
+- [ ] Assign responsibilities for key improvement areas
+
+## Completion Criteria
+
+This cleanup phase will be considered complete when:
+
+1. All orphaned files are removed or properly integrated
+2. Critical functionality is verified working
+3. Known issues are documented
+4. Temporary fixes are in place for critical issues
+5. Documentation is updated to reflect current state
+6. A plan is in place for the next steps
+
+## Notes
+
+The primary goal of this cleanup is to stabilize the current codebase while preparing for a more structured refactoring approach as outlined in the [Refactoring Lessons Learned](../../developer/implementation/refactoring-lessons-learned.md) document.
 
 ## When to Perform Cleanup
 
