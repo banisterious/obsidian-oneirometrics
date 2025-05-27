@@ -28,7 +28,7 @@ This document outlines the plan for systematically eliminating dead code as part
 | Type System Migration | ✅ Complete | 2025-05-25 | All imports now use domain-specific type modules |
 | Logging System Refactoring | 🔄 In Progress | 2025-06-03 | Replacing console.log with structured logging (90%) |
 | main.ts Cleanup | 🔄 In Progress | 2025-06-03 | Refactoring core functionality into modules (30%) |
-| Date Utils Refactoring | ✅ Complete | 2025-06-01 | Centralized date handling functions |
+| Date Utils Refactoring | ✅ Complete | 2025-05-26 | Centralized date handling functions |
 | TypeScript Error Resolution | 🔄 In Progress | 2025-05-28 | Fixing remaining TypeScript errors |
 | Performance Optimization | ⬜ Not Started | - | Optimizing key operations for better performance |
 
@@ -189,6 +189,12 @@ Based on initial analysis, these areas have the highest concentration of dead co
   - Used 'Filter' category for date filtering operations
   - Applied 'Table' category for table generation and processing
   - Employed 'UI' category for DOM manipulation operations
+- Began UI component cleanup:
+  - Removed the deprecated OneiroMetricsModal class
+  - Created backup at src/dom/modals/OneiroMetricsModal.bak.ts for easy restoration if needed
+  - Updated showMetrics() to directly use scrapeMetrics() or dreamJournalManager
+  - Added fallback mechanism for safely opening Journal Manager UI
+  - Simplified metrics scraping flow by removing unnecessary modal step
 - Next Steps:
   - Complete remaining console.log statements in main.ts
   - Add log level controls in settings to filter debug messages
@@ -431,10 +437,10 @@ The dead code elimination phase will be considered successful when:
 ### Main.ts Cleanup Progress
 
 | Component | Description | Status | Date | Notes |
-|-----------|-------------|--------|------|-------|
+|-----------|-------------|--------|------|-------| 
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
 | Logging | Debug logging statements | 🔄 90% Complete | 2025-06-03 | Converting to structured logging |
-| UI Components | Modal generation, tables | ⬜ Not Started | - | - |
+| UI Components | Modal generation, tables | 🔄 20% Complete | 2025-06-03 | Removed OneiroMetricsModal |
 | Metrics Processing | Calculation, organization | ⬜ Not Started | - | - |
 | Event Handlers | Button clicks, interactions | ⬜ Not Started | - | - |
 | Settings | Loading, saving | ⬜ Not Started | - | - |
