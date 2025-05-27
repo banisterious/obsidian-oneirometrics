@@ -71,6 +71,34 @@ The adapter migration plan has been fully implemented as of May 26, 2025. All ad
     - [x] `src/utils/property-compatibility.ts` → Redirects to property-helpers and CalloutParser
     - [x] `src/utils/component-migrator.ts` → Redirects to ComponentFactory and FilterFactory
 
+### Logging System Refactoring 🔄
+
+The logging system refactoring is nearly complete as of June 3, 2025. We've made significant progress in replacing console.log statements with structured logging using the LoggingService throughout the codebase.
+
+#### 1. Core Plugin Logging ✅
+- [x] Replace console.log statements in plugin lifecycle methods (onload, onunload)
+- [x] Update initialization and cleanup logging
+- [x] Add structured logging for plugin events
+
+#### 2. Feature-Specific Logging 🔄
+- [x] Update metrics calculation and processing logs
+- [x] Refactor UI interaction and event handling logs
+- [x] Modernize filter and date navigation logs
+- [x] Update debug and test function logging
+- [ ] Complete remaining logging in utility functions
+
+#### 3. Standardization ✅
+- [x] Implement consistent log categories (Plugin, UI, Filter, Table, Metrics, MetricsNote, Debug)
+- [x] Standardize log levels (error, warn, info, debug)
+- [x] Add structured data parameters for better context
+- [x] Improve error handling with proper Error objects
+
+#### 4. Configuration 🔄
+- [x] Implement global logger for non-class contexts
+- [ ] Add log level controls in settings
+- [ ] Add log rotation configuration
+- [ ] Implement log file size management
+
 ### Additional Cleanup Tasks
 
 - [ ] Clean up deprecated APIs:
@@ -104,7 +132,7 @@ The adapter migration plan has been fully implemented as of May 26, 2025. All ad
 |------|----------|--------|----------------|-------|
 | Documentation archiving | | Completed | 2025-05-25 | Documents archived; references updated; migration notices added |
 | Adapter migration | | Completed | 2025-05-26 | All adapter modules have permanent implementations; stub files created with proper deprecation notices |
-| Code cleanup | | In Progress | 2025-06-01 | Date utilities refactored (completed); main.ts cleanup ongoing (15%); adapter migration plan completed |
+| Code cleanup | | In Progress | 2025-05-26 | Date utilities refactored (completed); main.ts cleanup ongoing (15%); adapter migration plan completed |
 | Final verification | | In Progress | 2025-05-26 | All SettingsAdapter tests passing (11/11); UI components verified working |
 | Release notes | | In Progress | 2025-05-25 | Created refactoring-summary-2025.md |
 
