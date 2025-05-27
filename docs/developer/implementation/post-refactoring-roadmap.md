@@ -19,8 +19,8 @@ This document outlines the development roadmap following the refactoring rollbac
 | Remove orphaned files | ✅ Completed | 2025-05-26 | Removed WorkspaceEvents.ts, UIEvents.ts, index.ts, date-helpers.ts |
 | Document known issues | ✅ Completed | 2025-05-27 | Created known-issues-registry.md with categorized issues |
 | Fix critical bugs from rollback | 🔄 In Progress | - | Working on fixing remaining UI issues |
-| Document global state dependencies | ✅ Completed | 2025-05-27 | Documented in global-dependencies-map.md |
-| Map initialization order requirements | ✅ Completed | 2025-05-27 | Included in global-dependencies-map.md |
+| Document global state dependencies | ✅ Completed | 2025-05-27 | Documented in [global-dependencies-map.md](./global-dependencies-map.md) |
+| Map initialization order requirements | ✅ Completed | 2025-05-27 | Included in [global-dependencies-map.md](./global-dependencies-map.md) |
 | Create safe logger implementation | ✅ Completed | 2025-05-27 | Added safeLogger and logging fallback mechanisms |
 | Add defensive coding for date helpers | ✅ Completed | 2025-05-27 | Added robust date utilities with error handling |
 | Add tests for critical components | ✅ Completed | 2025-05-27 | Created interactive ContentParserTestModal for testing parsing components |
