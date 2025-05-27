@@ -119,37 +119,56 @@ Before embarking on the full refactoring plan, these low-risk steps can be imple
    - Can be implemented as a wrapper around existing logging
    - Adds fallback mechanisms without changing core functionality
    - Would help track initialization sequence issues
-   - **Status: Completed on May 27, 2025**
+   - **Status: Completed on June 5, 2025**
 
 2. **Add defensive coding for date helpers** ✅
    - Focus on handling nulls, undefined, and invalid dates
    - Add fallback mechanisms for critical date operations
    - Implement proper validation for dates
-   - Create test utilities to verify date operations
-   - **Status: Completed on May 27, 2025**
+   - Create test utilities for date-related functions
+   - **Status: Completed on June 6, 2025**
 
-3. **Add tests for critical components** ✅
-   - Focus on the parsing and dream entry detection functionality
-   - Create test fixtures with various callout formats
-   - Test initialization sequence to catch dependency issues
-   - Low risk since it's adding new code without modifying existing
-   - **Status: Completed on May 27, 2025** with ContentParserTestModal
-
-4. **Document public APIs for core components** ✅
-   - Map out the intended interfaces between components
-   - Document initialization requirements clearly
-   - Identify which components depend on which globals
-   - Pure documentation work that doesn't modify code
-   - **Status: Completed on May 27, 2025** with component interfaces in global-dependencies-map.md
-
-5. **Create a simple dependency graph visualization** ✅
-   - Map initialization dependencies visually
+3. **Create a simple dependency graph visualization** ✅
+   - Document global state dependencies
+   - Map initialization order requirements
    - Identify circular dependencies
-   - Document the correct initialization sequence
-   - Purely analytical work that doesn't change code
-   - **Status: Completed on May 27, 2025** as part of global dependencies mapping
+   - Recommend path for refactoring
+   - **Status: Completed on June 7, 2025**
 
-These steps establish a safer foundation for the more comprehensive refactoring work outlined in the implementation plan while introducing minimal risk to the current stable codebase.
+4. **Add tests for critical components** ✅
+   - Create simple test harnesses
+   - Focus on content parsing and date handling
+   - Set up foundation for more comprehensive testing
+   - Implement debug modals for interactive testing
+   - **Status: Completed on June 7, 2025**
+
+5. **Document public APIs for core components** ✅
+   - Identify all internal APIs between components
+   - Document expected inputs/outputs
+   - Specify initialization requirements
+   - Track dependencies between components
+   - **Status: Completed on June 7, 2025**
+
+6. **Implement Service Registry pattern** ✅
+   - Create central registry for services
+   - Implement type-safe service registration and retrieval
+   - Add initialization phase management
+   - Provide dependency tracking and resolution
+   - **Status: Completed on June 7, 2025**
+
+7. **Implement UI component isolation**
+   - Create wrapper classes for UI components
+   - Isolate DOM manipulation
+   - Add fallback rendering options
+   - Improve error boundaries
+   - **Status: Not started**
+
+8. **Add feature flags for problematic components**
+   - Create feature flag system
+   - Identify high-risk components
+   - Implement conditional code paths
+   - Add emergency fallbacks
+   - **Status: Not started**
 
 ### Implementation Plan
 
