@@ -93,4 +93,98 @@ Issues can be resolved in multiple ways:
 - [Adapter Migration Plan (Archived)](../archive/refactoring-2025/adapter-migration-plan.md)
 - [TypeScript Architecture Lessons](./architecture/typescript-architecture-lessons.md)
 
-*Last Updated: 2025-05-26* 
+*Last Updated: 2025-05-26*
+
+## Initialization and Dependency Issues
+
+### Global Variable Dependencies
+
+| Issue ID | Description | Severity | Status | References |
+|----------|-------------|----------|--------|------------|
+| INIT-001 | `globalLogger` used before initialization | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| INIT-002 | `customDateRange` accessed before definition | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| INIT-003 | `getProjectNotePath` called before available | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| INIT-004 | Event handlers rely on global state | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| INIT-005 | Logger service expected in components before initialization | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+
+### Module Boundaries and Dependencies
+
+| Issue ID | Description | Severity | Status | References |
+|----------|-------------|----------|--------|------------|
+| MOD-001 | Implicit dependencies between modules | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| MOD-002 | Circular dependencies in component structure | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| MOD-003 | Hidden state dependencies not explicit in interfaces | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| MOD-004 | Lack of clear module boundaries | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+
+## UI and Rendering Issues
+
+### Content Parsing and Display
+
+| Issue ID | Description | Severity | Status | References |
+|----------|-------------|----------|--------|------------|
+| UI-001 | "Show more" buttons missing in Content column | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| UI-002 | Date extraction issues in certain formats | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| UI-003 | Dream title extraction inconsistent | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| UI-004 | Table virtualization not working correctly | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+
+### Dream Entry Detection
+
+| Issue ID | Description | Severity | Status | References |
+|----------|-------------|----------|--------|------------|
+| PARSE-001 | Content parser changes affect dream entry detection | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| PARSE-002 | Recognition of different callout types inconsistent | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| PARSE-003 | Nested callout structure handling issues | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+
+## Architecture and Design Issues
+
+### Global State Reliance
+
+| Issue ID | Description | Severity | Status | References |
+|----------|-------------|----------|--------|------------|
+| ARCH-001 | Excessive reliance on global variables | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| ARCH-002 | Monolithic design with tight coupling | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| ARCH-003 | Missing interfaces between components | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| ARCH-004 | Implicit timing dependencies in initialization | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+
+### Implementation Approach
+
+| Issue ID | Description | Severity | Status | References |
+|----------|-------------|----------|--------|------------|
+| IMPL-001 | Inadequate testing for initialization sequence | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| IMPL-002 | Insufficient documentation of dependencies | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| IMPL-003 | Missing fallbacks for dependency failures | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| IMPL-004 | "Big bang" refactoring approach issues | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+
+## Current Workarounds
+
+### Temporary Fixes
+
+| Issue ID | Workaround | Applied In | Permanent Solution |
+|----------|------------|------------|-------------------|
+| INIT-001 | Rolled back to commit `1c36d38` | Codebase | Implement safe logger with fallbacks |
+| INIT-002 | Rolled back to commit `1c36d38` | Codebase | Create proper initialization sequence |
+| INIT-003 | Rolled back to commit `1c36d38` | Codebase | Implement dependency injection |
+| PARSE-001 | Rolled back to commit `1c36d38` | Codebase | Update content parser with robust error handling |
+| UI-001 | Rolled back to commit `1c36d38` | Codebase | Fix content cell rendering |
+
+## Resolution Plans
+
+For detailed plans to address these issues, refer to:
+
+1. [Refactoring Lessons Learned](./implementation/refactoring-lessons-learned.md) - Analysis of issues and solutions
+2. [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) - Implementation plan
+3. [Post-Refactoring Cleanup Checklist](../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) - Immediate tasks
+
+## Reporting New Issues
+
+When reporting new issues related to the refactoring, please include:
+
+1. **Issue Description**: Clear description of the problem
+2. **Reproduction Steps**: How to reproduce the issue
+3. **Expected Behavior**: What should happen
+4. **Actual Behavior**: What actually happens
+5. **Related Components**: Which components are affected
+6. **Dependencies**: Any dependencies on other components
+7. **Initialization Context**: When in the initialization sequence the issue occurs
+
+Report new issues in the project issue tracker with the tag `refactoring-related`. 
