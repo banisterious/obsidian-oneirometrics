@@ -7,6 +7,9 @@
 
 import { DreamMetricsSettings } from '../../types/core';
 import { LogLevel } from '../../types/logging';
+import { App } from 'obsidian';
+import safeLogger from '../../logging/safe-logger';
+import { registerService, SERVICE_NAMES } from '../ServiceRegistry';
 
 /**
  * Adapter for converting between different settings formats and ensuring
@@ -14,22 +17,34 @@ import { LogLevel } from '../../types/logging';
  */
 export class SettingsAdapter {
   private _legacySettings: any = {};
+  private settings: DreamMetricsSettings;
+  private app: App;
 
   /**
    * Creates a new settings adapter
    * @param settings The initial settings to adapt (legacy or partial format)
+   * @param app The Obsidian app instance
    */
-  constructor(settings: any = {}) {
+  constructor(settings: any = {}, app: App) {
     this._legacySettings = settings;
+    this.settings = this.toCoreSettings();
+    this.app = app;
+    
+    try {
+      safeLogger.debug('SettingsAdapter', 'Settings adapter created');
+    } catch (error) {
+      console.debug('Settings adapter created');
+    }
   }
 
   /**
    * Creates a SettingsAdapter instance from a settings object
    * @param settings The settings object to adapt
+   * @param app The Obsidian app instance
    * @returns A new SettingsAdapter instance
    */
-  static fromSettings(settings: any = {}): SettingsAdapter {
-    return new SettingsAdapter(settings);
+  static fromSettings(settings: any = {}, app: App): SettingsAdapter {
+    return new SettingsAdapter(settings, app);
   }
 
   /**
@@ -306,4 +321,86 @@ export class SettingsAdapter {
   getJournalStructure(): any {
     return this._legacySettings.journalStructure || this._legacySettings.linting || {};
   }
+
+  /**
+   * Get the plugin settings
+   * 
+   * @returns The plugin settings
+   */
+  public getSettings(): DreamMetricsSettings {
+    return this.settings;
+  }
+  
+  /**
+   * Update the plugin settings
+   * 
+   * @param settings The new settings
+   */
+  public updateSettings(settings: Partial<DreamMetricsSettings>): void {
+    this.settings = { ...this.settings, ...settings };
+    
+    try {
+      safeLogger.debug('SettingsAdapter', 'Settings updated');
+    } catch (error) {
+      console.debug('Settings updated');
+    }
+  }
+  
+  /**
+   * Get a specific setting value
+   * 
+   * @param key The setting key
+   * @returns The setting value or undefined if not found
+   */
+  public getSetting<K extends keyof DreamMetricsSettings>(key: K): DreamMetricsSettings[K] {
+    return this.settings[key];
+  }
+  
+  /**
+   * Get the Obsidian app instance
+   * 
+   * @returns The Obsidian app instance
+   */
+  public getApp(): App {
+    return this.app;
+  }
+  
+  /**
+   * Save the settings to disk
+   * 
+   * @param plugin The plugin instance
+   */
+  public async saveSettings(plugin: any): Promise<void> {
+    if (plugin && typeof plugin.saveData === 'function') {
+      await plugin.saveData(this.settings);
+      
+      try {
+        safeLogger.debug('SettingsAdapter', 'Settings saved to disk');
+      } catch (error) {
+        console.debug('Settings saved to disk');
+      }
+    } else {
+      try {
+        safeLogger.error('SettingsAdapter', 'Cannot save settings, invalid plugin instance');
+      } catch (error) {
+        console.error('Cannot save settings, invalid plugin instance');
+      }
+    }
+  }
+}
+
+/**
+ * Create and register a settings adapter with the service registry
+ * 
+ * @param settings The plugin settings
+ * @param app The Obsidian app instance
+ * @returns The created settings adapter
+ */
+export function createAndRegisterSettingsAdapter(
+  settings: DreamMetricsSettings, 
+  app: App
+): SettingsAdapter {
+  const settingsAdapter = new SettingsAdapter(settings, app);
+  registerService(SERVICE_NAMES.SETTINGS, settingsAdapter);
+  return settingsAdapter;
 } 

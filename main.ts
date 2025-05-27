@@ -6,7 +6,17 @@
 import safeLogger, { getSafeLogger, SafeLogger } from './src/logging/safe-logger';
 
 // Import test modals
-import { openContentParserTestModal, openDateUtilsTestModal } from './src/testing';
+import { openContentParserTestModal, openDateUtilsTestModal, openServiceRegistryTestModal } from './src/testing';
+
+// Import Service Registry
+import { 
+  ServiceRegistry, 
+  getServiceRegistry, 
+  registerService, 
+  getService, 
+  SERVICE_NAMES, 
+  registerSettings 
+} from './src/state/ServiceRegistry';
 
 // External imports (Obsidian)
 import { 
@@ -115,7 +125,7 @@ import {
 } from './src/utils/selection-mode-helpers';
 
 // Import the SettingsAdapter from state/adapters
-import { SettingsAdapter } from './src/state/adapters/SettingsAdapter';
+import { SettingsAdapter, createAndRegisterSettingsAdapter } from './src/state/adapters/SettingsAdapter';
 
 // Import EventHandling utilities for event handling
 import { attachClickEvent, attachEvent, createEventHandler, createClickHandler, debounceEventHandler, throttleEventHandler } from './src/templates/ui/EventHandling';
@@ -310,6 +320,62 @@ export default class DreamMetricsPlugin extends Plugin {
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
 
     async onload() {
+        // Initialize the logging system immediately
+        try {
+            safeLogger.debug('DreamMetricsPlugin', 'Initializing plugin...');
+            globalLogger = safeLogger;
+        } catch (e) {
+            console.debug('DreamMetricsPlugin: Initializing plugin...');
+        }
+
+        // Load settings first
+        await this.loadSettings();
+
+        // Initialize the Service Registry with settings
+        try {
+            safeLogger.debug('DreamMetricsPlugin', 'Initializing Service Registry');
+            // Create and register the settings adapter
+            const settingsAdapter = createAndRegisterSettingsAdapter(this.settings, this.app);
+            
+            // Register the logging service
+            registerService(SERVICE_NAMES.LOGGER, globalLogger);
+            
+            safeLogger.debug('DreamMetricsPlugin', 'Service Registry initialized with settings and logger');
+        } catch (e) {
+            console.error('Error initializing Service Registry:', e);
+        }
+
+        // Initialize the logger with settings from the registry
+        try {
+            // Create and configure the logger
+            this.logger = new LoggingAdapter(this.app);
+            
+            // Use the correct configure method signature
+            if (this.settings.logging) {
+                this.logger.configure(
+                    this.settings.logging.level,
+                    this.settings.logging.maxSize || this.settings.logging.maxLogSize,
+                    this.settings.logging.maxBackups
+                );
+            } else {
+                this.logger.configure(
+                    DEFAULT_LOGGING.level,
+                    DEFAULT_LOGGING.maxSize,
+                    DEFAULT_LOGGING.maxBackups
+                );
+            }
+            
+            // Update the global logger with the configured instance
+            globalLogger = this.logger;
+            
+            // Register the configured logger in the registry
+            registerService(SERVICE_NAMES.LOGGER, this.logger);
+            
+            globalLogger.debug('DreamMetricsPlugin', 'Logger initialized and registered with registry');
+        } catch (e) {
+            console.error('Error initializing logger:', e);
+        }
+
         // Initialize mutable state and app state
         this.state = new DreamMetricsState();
         
@@ -734,12 +800,30 @@ export default class DreamMetricsPlugin extends Plugin {
                 openDateUtilsTestModal(this.app, this);
             }
         });
+        
+        // Add command to open ServiceRegistryTestModal
+        this.addCommand({
+            id: 'open-service-registry-test-modal',
+            name: 'Open Service Registry Test Modal',
+            callback: () => {
+                openServiceRegistryTestModal(this.app, this);
+            }
+        });
 
         this.addCommand({
             id: 'open-content-parser-test-modal',
             name: 'Open Content Parser Test Modal',
             callback: () => {
                 openContentParserTestModal(this.app, this);
+            }
+        });
+
+        // Add command to open ServiceRegistryTestModal
+        this.addCommand({
+            id: 'open-service-registry-test-modal',
+            name: 'Open Service Registry Test Modal',
+            callback: () => {
+                openServiceRegistryTestModal(this.app, this);
             }
         });
     }
