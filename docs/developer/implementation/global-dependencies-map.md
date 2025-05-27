@@ -4,6 +4,18 @@
 
 This document provides a comprehensive mapping of global dependencies in the OneiroMetrics plugin codebase. It serves as a reference for understanding the initialization sequence, component interactions, and refactoring opportunities. This map aligns with the architecture described in the [Architecture Overview](../architecture/overview.md) and [Architecture Specification](../architecture/specification.md).
 
+## Table of Contents
+
+- [Core Global Variables](#core-global-variables)
+- [Service Dependencies](#service-dependencies)
+- [Initialization Sequence](#initialization-sequence)
+- [Dependency Graph](#dependency-graph)
+- [Global Functions](#global-functions)
+- [Safe Access Patterns](#safe-access-patterns)
+- [Recommended Dependency Improvements](#recommended-dependency-improvements)
+- [Public APIs for Core Components](#public-apis-for-core-components)
+- [Conclusion](#conclusion)
+
 ## Core Global Variables
 
 ### Plugin State
@@ -339,6 +351,306 @@ export class InitializationManager {
     InitPhase.COMMANDS,
     InitPhase.COMPLETE
   ];
+}
+```
+
+## Public APIs for Core Components
+
+This section documents the public APIs (interfaces) for core components in the OOMP plugin. These interfaces define how components communicate with each other and their expected behaviors.
+
+### ContentParser
+
+The ContentParser component is responsible for parsing content from Obsidian notes to extract dream entries and metadata.
+
+```typescript
+export interface ContentParsingOptions {
+  /** The callout type to search for (defaults to 'dream') */
+  calloutType?: string;
+  /** Whether to include validation of entries */
+  validate?: boolean;
+  /** Whether to include nested callouts */
+  includeNested?: boolean;
+  /** Whether to sanitize content */
+  sanitize?: boolean;
+}
+
+export interface ContentParser {
+  /**
+   * Parses content from a note to extract dream entries and metadata
+   */
+  parseContent(
+    content: string, 
+    calloutTypeOrSource?: string, 
+    source?: string,
+    options?: ContentParsingOptions
+  ): { 
+    entries: DreamMetricData[], 
+    metadata: Record<string, any> 
+  };
+
+  /**
+   * Extracts dream entries from content
+   */
+  extractDreamEntries(
+    content: string,
+    calloutTypeOrSource?: string,
+    source?: string,
+    options?: ContentParsingOptions
+  ): DreamMetricData[];
+
+  /**
+   * Parses a callout to extract its type and content
+   */
+  parseCallout(callout: string): { 
+    type: string; 
+    content: string; 
+    id?: string 
+  };
+
+  /**
+   * Parses a date string into a standardized format
+   */
+  parseDate(dateString: string): string;
+
+  /**
+   * Cleans dream content by removing metadata and formatting
+   */
+  cleanDreamContent(content: string, calloutType: string): string;
+
+  /**
+   * Extracts a title from content
+   */
+  extractTitle(content: string): string;
+
+  /**
+   * Factory method to create a new ContentParser instance
+   */
+  static create(): ContentParser;
+
+  /**
+   * Converts a DreamMetricData object to a DreamEntry
+   */
+  convertToEntry(metricData: DreamMetricData): DreamEntry;
+
+  /**
+   * Extracts callout metadata from a callout
+   */
+  getCalloutMetadata(callout: string): CalloutMetadata;
+}
+```
+
+### LoggingService
+
+The LoggingService provides a centralized logging capability for the plugin.
+
+```typescript
+export interface ILoggingService {
+  /**
+   * Configure the logging service.
+   */
+  configure(config: LoggerConfig): void;
+  
+  /**
+   * Log a message at the debug level.
+   */
+  debug(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log a message at the info level.
+   */
+  info(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log a message at the warn level.
+   */
+  warn(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log a message at the error level.
+   */
+  error(category: string, message: string, error?: any): void;
+  
+  /**
+   * Log a message at the trace level.
+   */
+  trace(category: string, message: string, data?: any): void;
+  
+  /**
+   * Enriches an error with additional context.
+   */
+  enrichError(error: Error, context: Partial<ErrorContext>): EnrichedError;
+}
+```
+
+### LoggingAdapter
+
+The LoggingAdapter bridges the old Logger implementation and the new LoggingService, providing a transition path.
+
+```typescript
+export interface LoggingAdapter {
+  /**
+   * Log a message at the specified level.
+   */
+  log(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log an error message.
+   */
+  error(category: string, message: string, error?: any): void;
+  
+  /**
+   * Log a warning message.
+   */
+  warn(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log an info message.
+   */
+  info(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log a debug message.
+   */
+  debug(category: string, message: string, data?: any): void;
+}
+```
+
+### TimeFilterManager
+
+The TimeFilterManager handles date-based filtering of dream journal entries.
+
+```typescript
+export interface TimeFilterManager {
+  /**
+   * Callback triggered when the filter changes
+   */
+  onFilterChange: ((filter: any) => void) | null;
+  
+  /**
+   * Get the current date range
+   */
+  getCurrentRange(): DateRange | null;
+  
+  /**
+   * Set a custom date range
+   */
+  setCustomRange(startDate: Date | null, endDate: Date | null): void;
+  
+  /**
+   * Clear the current filter
+   */
+  clearCurrentFilter(): void;
+}
+
+export interface DateRange {
+  start: Date;
+  end: Date;
+}
+```
+
+### DateNavigator
+
+The DateNavigator provides UI for navigating dates and selecting date ranges.
+
+```typescript
+export interface DateNavigator {
+  /**
+   * Set the date selection handler
+   */
+  setSelectionHandler(handler: (startDate: Date | null, endDate: Date | null) => void): void;
+  
+  /**
+   * Highlight a date range in the navigator
+   */
+  highlightDateRange(startDate: Date, endDate: Date): void;
+  
+  /**
+   * Clear any highlighted dates
+   */
+  clearHighlights(): void;
+  
+  /**
+   * Debug display for development
+   */
+  debugDisplay(): void;
+}
+```
+
+### DateNavigatorIntegration
+
+The DateNavigatorIntegration connects the DateNavigator with the TimeFilterManager.
+
+```typescript
+export interface DateNavigatorIntegration {
+  /**
+   * Initialize the Date Navigator in the specified container
+   */
+  initialize(container: HTMLElement): DateNavigator;
+  
+  /**
+   * Clean up resources
+   */
+  destroy(): void;
+}
+```
+
+### DreamMetricsState
+
+The DreamMetricsState manages the overall state of the plugin.
+
+```typescript
+export interface DreamMetricsState {
+  // State properties
+  
+  /**
+   * Get dream entries for a specific date
+   */
+  getEntriesForDate(date: Date): any[];
+  
+  /**
+   * Add a dream entry
+   */
+  addEntry(entry: any): void;
+  
+  /**
+   * Remove a dream entry
+   */
+  removeEntry(entry: any): void;
+  
+  /**
+   * Clear all entries
+   */
+  clearEntries(): void;
+}
+```
+
+### TestRunner
+
+The TestRunner provides a framework for running tests within Obsidian.
+
+```typescript
+export interface TestRunner {
+  /**
+   * Register a test
+   */
+  registerTest(name: string, testFn: () => boolean | Promise<boolean>, category?: string): void;
+  
+  /**
+   * Run all tests
+   */
+  runTests(): Promise<TestResults>;
+  
+  /**
+   * Run tests in a specific category
+   */
+  runTestsInCategory(category: string): Promise<TestResults>;
+}
+
+export interface TestResults {
+  passed: number;
+  failed: number;
+  total: number;
+  testResults: Array<{name: string, passed: boolean, error?: Error}>;
 }
 ```
 
