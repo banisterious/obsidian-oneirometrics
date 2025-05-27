@@ -1,5 +1,29 @@
 # Refactoring Lessons Learned
 
+## Table of Contents
+
+- [Overview](#overview)
+- [What Went Wrong](#what-went-wrong)
+  - [1. Initialization Order Issues](#1-initialization-order-issues)
+  - [2. Cross-Module Dependencies](#2-cross-module-dependencies)
+  - [3. Dream Entry Detection Problems](#3-dream-entry-detection-problems)
+  - [4. UI Component Issues](#4-ui-component-issues)
+- [Root Causes Analysis](#root-causes-analysis)
+  - [1. Architectural Design Issues](#1-architectural-design-issues)
+  - [2. Implementation Approach Problems](#2-implementation-approach-problems)
+- [Future Implementation Plan](#future-implementation-plan)
+  - [Phase 1: Preparation and Documentation](#phase-1-preparation-and-documentation)
+  - [Phase 2: Incremental Refactoring](#phase-2-incremental-refactoring)
+  - [Phase 3: Specific Component Implementation](#phase-3-specific-component-implementation)
+- [Implementation Guidelines](#implementation-guidelines)
+  - [Safe Initialization Pattern](#safe-initialization-pattern)
+  - [Dependency Injection Approach](#dependency-injection-approach)
+  - [Robust Error Handling](#robust-error-handling)
+- [Testing Requirements](#testing-requirements)
+- [Roadmap and Timeline](#roadmap-and-timeline)
+- [Success Criteria](#success-criteria)
+- [Conclusion](#conclusion)
+
 ## Overview
 
 This document captures key lessons learned during the 2025 refactoring effort of the OOMP (OneiroMetrics) plugin, specifically related to the extraction of event handlers into separate classes. It outlines what went wrong, why those issues occurred, and provides a roadmap for implementing similar refactoring properly in the future.
