@@ -225,6 +225,23 @@ The logging system refactoring is nearly complete as of May 27, 2025. We've made
   - [ ] Legacy interfaces that were created just for migration
   - [ ] Temporary type casting functions
 
+### Utility Functions Cleanup 🔄
+
+The utility functions cleanup is in progress as of June 6, 2025. We're focusing on making all utility functions more robust and defensive.
+
+#### 1. Date Helpers ✅
+- [x] Add null and undefined checks to all date functions
+- [x] Create fallback mechanisms for invalid dates
+- [x] Implement date validation and range checking
+- [x] Create a test modal for validating date utilities
+- [x] Document date format expectations and limitations
+
+#### 2. DOM Manipulation Helpers 🔄
+- [ ] Add element existence checks before operations
+- [ ] Implement error recovery for UI manipulations
+- [ ] Create cleaner abstractions for repeated patterns
+- [ ] Add defensive coding for event handlers
+
 ## Final Verification
 
 - [ ] Run full TypeScript compilation with strict checks
