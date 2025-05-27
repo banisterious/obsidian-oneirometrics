@@ -331,6 +331,21 @@ export default class DreamMetricsPlugin extends Plugin {
             console.debug('DreamMetricsPlugin: Initializing plugin...');
         }
 
+        // Initialize null services early for defensive coding
+        try {
+            safeLogger.debug('DreamMetricsPlugin', 'Initializing null services');
+            
+            // Import and initialize null services
+            import('./src/state/NullServiceRegistrations').then(module => {
+                module.initializeNullServices();
+                safeLogger.debug('DreamMetricsPlugin', 'Null services initialized successfully');
+            }).catch(error => {
+                console.error('Failed to initialize null services:', error);
+            });
+        } catch (e) {
+            console.error('Error initializing null services:', e);
+        }
+
         // Load settings first
         await this.loadSettings();
 
