@@ -117,7 +117,7 @@ This document outlines the development roadmap following the refactoring rollbac
 |------|----------|------------------|--------------|--------|
 | Create Safe Logger Implementation | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
 | Add Defensive Coding for Date Helpers | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
-| Map Global Dependencies | ✅ Completed | 3 days | None | Completed on 2025-05-27 |
+| Map [Global Dependencies](./global-dependencies-map.md) | ✅ Completed | 3 days | None | Completed on 2025-05-27 |
 | Add Tests for Critical Components | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
 | Fix Critical UI Bugs | High | 2 days | None | In Progress |
 | Create Service Registry | Medium | 4 days | Dependency Mapping | Not Started |
@@ -181,7 +181,7 @@ Current progress is primarily in the documentation and implementation phase, wit
 - ✅ Removed orphaned files and fixed immediate issues
 - ✅ Implemented safe logger with fallback mechanisms
 - ✅ Added defensive coding for date utilities with comprehensive testing
-- ✅ Mapped global dependencies across the codebase
+- ✅ Mapped [global dependencies](./global-dependencies-map.md) across the codebase
 - ✅ Created interactive testing modal for critical parsing components
 - 🔄 Working on remaining UI bugs and preparing test environment
 
