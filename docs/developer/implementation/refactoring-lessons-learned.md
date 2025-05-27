@@ -47,7 +47,7 @@ This document will track lessons from multiple refactoring efforts. Current cate
 
 #### End-User Impact
 
-Users experienced complete failure of the metrics note functionality after the plugin update that included the refactored event handling system. Specifically:
+Following the Settings refactoring work, users experienced complete failure of the metrics note functionality after the plugin update that included the refactored event handling system. Specifically:
 
 - Dream entries were not being detected or processed
 - The plugin reported "No dream entries to update" despite valid entries in journal files
