@@ -10,24 +10,54 @@ This document outlines the development roadmap following the refactoring rollbac
 - [Known Issues Registry](../known-issues-registry.md) - Tracking of known issues related to the refactoring
 - [Post-Refactoring Cleanup Checklist](../../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) - Tasks needed after rollback
 
+## Task Status Tracking
+
+### Phase 1: Stabilization
+
+| Task | Status | Completion Date | Notes |
+|------|--------|----------------|-------|
+| Remove orphaned files | ✅ Completed | 2025-05-26 | Removed WorkspaceEvents.ts, UIEvents.ts, index.ts, date-helpers.ts |
+| Document known issues | ✅ Completed | 2025-05-27 | Created known-issues-registry.md with categorized issues |
+| Fix critical bugs from rollback | 🔄 In Progress | - | Working on fixing remaining UI issues |
+| Document global state dependencies | ✅ Completed | 2025-05-27 | Documented in refactoring-lessons-learned.md |
+| Map initialization order requirements | ✅ Completed | 2025-05-27 | Included in refactoring-lessons-learned.md |
+| Identify defensive coding needs | ✅ Completed | 2025-05-27 | Covered in implementation guidelines section |
+| Add tests for initialization sequence | ⏳ Planned | - | To be started after stabilization |
+| Add tests for critical components | ⏳ Planned | - | Prioritize logger and parsing components |
+| Create tests for error handling | ⏳ Planned | - | Focus on graceful degradation tests |
+
+### Phase 2: Incremental Improvements
+
+| Task | Status | Completion Date | Notes |
+|------|--------|----------------|-------|
+| Create safe logger implementation | ⏳ Planned | - | Implement fallback mechanism |
+| Add defensive coding for utilities | ⏳ Planned | - | Focus on date helpers first |
+| Implement optional chaining | ⏳ Planned | - | For vulnerable code paths |
+| Create clear component interfaces | ⏳ Planned | - | Start with logger interface |
+| Document public APIs | ⏳ Planned | - | Create API documentation |
+| Define initialization requirements | ⏳ Planned | - | Document in comments and docs |
+| Create service registry pattern | ⏳ Planned | - | Implement DependencyRegistry |
+| Implement dependency injection | ⏳ Planned | - | Convert global state to DI |
+| Add initialization phases | ⏳ Planned | - | Create proper init sequence |
+
 ## Implementation Phases
 
 ### Phase 1: Stabilization (Current)
 
 1. **Code Cleanup**
-   - Remove orphaned files from refactoring attempt
-   - Document known issues in the codebase
-   - Fix critical bugs from rollback
+   - ✅ Remove orphaned files from refactoring attempt
+   - ✅ Document known issues in the codebase
+   - 🔄 Fix critical bugs from rollback
 
 2. **Technical Debt Documentation**
-   - Document global state dependencies
-   - Map initialization order requirements
-   - Identify areas that need defensive coding
+   - ✅ Document global state dependencies
+   - ✅ Map initialization order requirements
+   - ✅ Identify areas that need defensive coding
 
 3. **Test Coverage Improvements**
-   - Add tests for initialization sequence
-   - Add tests for critical components
-   - Create tests for error handling
+   - ⏳ Add tests for initialization sequence
+   - ⏳ Add tests for critical components
+   - ⏳ Create tests for error handling
 
 ### Phase 2: Incremental Improvements
 
@@ -118,12 +148,26 @@ When implementing these improvements, refer to the [Refactoring Lessons Learned]
 
 ## Timeline
 
-| Phase | Start Date | End Date | Key Milestones |
-|-------|------------|----------|----------------|
-| Stabilization | Week 1 | Week 3 | Documentation Complete, Critical Bugs Fixed |
-| Incremental Improvements | Week 4 | Week 7 | Safe Utilities Complete, Interfaces Defined |
-| Component Refactoring | Week 8 | Week 12 | Logger Refactored, Event System Improved |
-| Final Integration | Week 13 | Week 14 | All Tests Passing, Documentation Updated |
+| Phase | Start Date | End Date | Status | Key Milestones |
+|-------|------------|----------|--------|----------------|
+| Stabilization | 2025-05-26 | 2025-06-15 | 🔄 In Progress (60%) | ✅ Documentation Complete, 🔄 Critical Bugs Being Fixed |
+| Incremental Improvements | 2025-06-16 | 2025-07-15 | ⏳ Planned | Safe Utilities Complete, Interfaces Defined |
+| Component Refactoring | 2025-07-16 | 2025-08-30 | ⏳ Planned | Logger Refactored, Event System Improved |
+| Final Integration | 2025-09-01 | 2025-09-15 | ⏳ Planned | All Tests Passing, Documentation Updated |
+
+## Progress Overview
+
+![Progress Bar](https://progress-bar.dev/25/ "Refactoring Progress")
+
+Current progress is primarily in the documentation and planning phase, with approximately 25% of the overall refactoring plan completed. Key accomplishments:
+
+- ✅ Successfully identified and documented all issues from the failed refactoring
+- ✅ Created comprehensive documentation of lessons learned
+- ✅ Established a clear roadmap with prioritized tasks
+- ✅ Removed orphaned files and fixed immediate issues
+- 🔄 Working on remaining UI bugs and preparing test environment
+
+Next major milestone: Complete all stabilization tasks by 2025-06-15.
 
 ## Conclusion
 
