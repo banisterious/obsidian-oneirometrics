@@ -9,6 +9,7 @@ import { App } from 'obsidian';
 import { TestRunner } from './TestRunner';
 import { DateUtilsTestModal } from './utils/DateUtilsTestModal';
 import { ContentParserTestModal } from './utils/ContentParserTestModal';
+import { ServiceRegistryTestModal } from './utils/ServiceRegistryTestModal';
 
 // Import all test module registration functions
 import { registerContentParsingTests } from './ContentParsingTests';
@@ -60,6 +61,15 @@ export function openContentParserTestModal(app: App, plugin: DreamMetricsPlugin)
 }
 
 /**
+ * Opens the ServiceRegistryTestModal
+ * @param app The Obsidian app instance
+ * @param plugin The plugin instance
+ */
+export function openServiceRegistryTestModal(app: App, plugin: any): void {
+  new ServiceRegistryTestModal(app, plugin).open();
+}
+
+/**
  * Creates a test runner with all tests registered
  * @returns A test runner with all tests registered
  */
@@ -84,5 +94,6 @@ export async function runAllTests(): Promise<TestRunner['runTests'] extends (...
 export {
   TestRunner,
   DateUtilsTestModal,
-  ContentParserTestModal
+  ContentParserTestModal,
+  ServiceRegistryTestModal
 }; 
