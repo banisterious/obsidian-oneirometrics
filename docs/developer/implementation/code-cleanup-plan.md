@@ -1,6 +1,36 @@
-# Dead Code Elimination Plan
+# Code Cleanup Plan
+
+## Table of Contents
+- [Executive Summary](#executive-summary)
+- [Key Milestones](#key-milestones)
+- [Types of Dead Code](#types-of-dead-code)
+- [Implementation Strategy](#implementation-strategy)
+- [Priority Areas](#priority-areas)
+- [Implementation Plan](#implementation-plan)
+  - [Phase 1: Logging Cleanup](#phase-1-logging-cleanup)
+  - [Phase 2: Import Cleanup](#phase-2-import-cleanup)
+  - [Phase 3: Transitional Code Removal](#phase-3-transitional-code-removal)
+  - [Phase 4: Unused Code Elimination](#phase-4-unused-code-elimination)
+  - [Phase 5: TypeScript Adapter Cleanup](#phase-5-typescript-adapter-cleanup)
+- [Success Criteria](#success-criteria)
+- [Next Steps](#next-steps)
+- [Progress Tracking](#progress-tracking)
+
+## Executive Summary
 
 This document outlines the plan for systematically eliminating dead code as part of the Phase 1: Code Cleanup in the Post-Refactoring Roadmap.
+
+## Key Milestones
+
+| Milestone | Status | Date | Description |
+|-----------|--------|------|-------------|
+| Adapter Migration | ✅ Complete | 2025-05-26 | All adapter modules have permanent implementations |
+| Type System Migration | ✅ Complete | 2025-05-25 | All imports now use domain-specific type modules |
+| Logging System Refactoring | 🔄 In Progress | 2025-05-27 | Replacing console.log with structured logging |
+| main.ts Cleanup | 🔄 In Progress | 2025-06-01 | Refactoring core functionality into modules |
+| Date Utils Refactoring | ✅ Complete | 2025-06-01 | Centralized date handling functions |
+| TypeScript Error Resolution | 🔄 In Progress | 2025-05-28 | Fixing remaining TypeScript errors |
+| Performance Optimization | ⬜ Not Started | - | Optimizing key operations for better performance |
 
 ## Types of Dead Code
 
@@ -356,3 +386,31 @@ The dead code elimination phase will be considered successful when:
   - Add consistent error handling for date parsing failures
   - Standardize date format strings across the codebase
   - Create more robust date range handling utilities 
+
+## Progress Tracking
+
+### Main.ts Cleanup Progress
+
+| Component | Description | Status | Date | Notes |
+|-----------|-------------|--------|------|-------|
+| Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-06-01 | Moved to src/utils/date-utils.ts |
+| Logging | Debug logging statements | 🔄 In Progress | 2025-05-27 | Converting to structured logging |
+| UI Components | Modal generation, tables | ⬜ Not Started | - | - |
+| Metrics Processing | Calculation, organization | ⬜ Not Started | - | - |
+| Event Handlers | Button clicks, interactions | ⬜ Not Started | - | - |
+| Settings | Loading, saving | ⬜ Not Started | - | - |
+
+### Module Status Overview
+
+| Module | Cleanup Status | TypeScript Status | Test Coverage | Priority |
+|--------|---------------|-------------------|--------------|----------|
+| main.ts | 🔄 15% | 🔄 Partial | ⬜ Low | High |
+| ContentParser.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Medium |
+| DreamMetricsDOM.ts | 🔄 75% | ✅ Complete | 🔄 Medium | Medium |
+| DreamMetricsEvents.ts | 🔄 60% | ✅ Complete | 🔄 Medium | Medium |
+| DreamMetricsProcessor.ts | 🔄 80% | ✅ Complete | 🔄 Medium | Medium |
+| DreamMetricsState.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Low |
+| utils/date-utils.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Medium |
+| utils/logger.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Low |
+| types/core.ts | ✅ Complete | ✅ Complete | ✅ High | Low |
+| types/logging.ts | ✅ Complete | ✅ Complete | ✅ High | Low | 

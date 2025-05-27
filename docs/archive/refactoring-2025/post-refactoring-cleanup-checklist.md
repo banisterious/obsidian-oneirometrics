@@ -104,7 +104,7 @@ The adapter migration plan has been fully implemented as of May 26, 2025. All ad
 |------|----------|--------|----------------|-------|
 | Documentation archiving | | Completed | 2025-05-25 | Documents archived; references updated; migration notices added |
 | Adapter migration | | Completed | 2025-05-26 | All adapter modules have permanent implementations; stub files created with proper deprecation notices |
-| Code cleanup | | In Progress | 2025-05-25 | Next focus is on main.ts cleanup; adapter migration plan completed |
+| Code cleanup | | In Progress | 2025-06-01 | Date utilities refactored (completed); main.ts cleanup ongoing (15%); adapter migration plan completed |
 | Final verification | | In Progress | 2025-05-26 | All SettingsAdapter tests passing (11/11); UI components verified working |
 | Release notes | | In Progress | 2025-05-25 | Created refactoring-summary-2025.md |
 
