@@ -5,7 +5,15 @@
  */
 
 import { App, Modal, Setting, ButtonComponent, TextAreaComponent, Notice } from 'obsidian';
-import { getServiceRegistry, registerService, getService, SERVICE_NAMES } from '../../state/ServiceRegistry';
+import { 
+  getServiceRegistry, 
+  registerService, 
+  getService, 
+  SERVICE_NAMES, 
+  registerFallback,
+  getServiceSafe,
+  safeCall
+} from '../../state/ServiceRegistry';
 import type DreamMetricsPlugin from '../../../main';
 import safeLogger from '../../logging/safe-logger';
 
@@ -50,6 +58,7 @@ export class ServiceRegistryTestModal extends Modal {
     buttonContainer.addClass('service-registry-test-buttons');
     buttonContainer.style.display = 'flex';
     buttonContainer.style.justifyContent = 'space-between';
+    buttonContainer.style.flexWrap = 'wrap';
     buttonContainer.style.marginTop = '20px';
     
     // List services button
@@ -85,6 +94,13 @@ export class ServiceRegistryTestModal extends Modal {
       .setButtonText('Test Full Cycle')
       .onClick(() => {
         this.testFullCycle();
+      });
+    
+    // Test defensive features button
+    new ButtonComponent(buttonContainer)
+      .setButtonText('Test Defensive Features')
+      .onClick(() => {
+        this.testDefensiveFeatures();
       });
     
     // Run the list services test on open
@@ -261,4 +277,131 @@ export class ServiceRegistryTestModal extends Modal {
       safeLogger.error('ServiceRegistryTest', 'Error in full cycle test', error);
     }
   }
+  
+  private testDefensiveFeatures() {
+    this.resultEl.empty();
+    this.log('Testing Defensive Features:');
+    
+    try {
+      const registry = getServiceRegistry();
+      
+      // Clear any existing services
+      registry.clear();
+      this.log('Registry cleared for testing');
+      
+      // Test registerFallback and getSafe
+      const testService = { name: 'TestService', getValue: () => 42 };
+      const fallbackService = { name: 'FallbackService', getValue: () => 0 };
+      
+      // Register a fallback service
+      registry.registerFallback('test', fallbackService);
+      this.log('Registered fallback service');
+      
+      // Test getSafe with a missing service (should return fallback)
+      const result1 = registry.getSafe('test', { name: 'ProvidedFallback', getValue: () => -1 });
+      
+      // The result should be the registered fallback, not the provided one
+      if (result1.name === 'FallbackService') {
+        this.log('PASS: getSafe returns registered fallback when service is missing');
+      } else {
+        this.log('FAIL: getSafe did not return registered fallback');
+      }
+      
+      // Now register the actual service
+      registry.register('test', testService);
+      this.log('Registered actual service');
+      
+      // Test getSafe with a registered service (should return the service)
+      const result2 = registry.getSafe('test', fallbackService);
+      
+      // The result should be the actual service, not the fallback
+      if (result2.name === 'TestService') {
+        this.log('PASS: getSafe returns service when available');
+      } else {
+        this.log('FAIL: getSafe did not return service');
+      }
+      
+      // Test safeCall with a registered service
+      const callResult1 = registry.safeCall<any, number>('test', 'getValue', [], -1);
+      
+      if (callResult1 === 42) {
+        this.log('PASS: safeCall returns method result');
+      } else {
+        this.log('FAIL: safeCall did not return method result');
+      }
+      
+      // Test safeCall with a missing method
+      const callResult2 = registry.safeCall<any, string>('test', 'nonExistentMethod', [], 'fallback');
+      
+      if (callResult2 === 'fallback') {
+        this.log('PASS: safeCall returns fallback when method is missing');
+      } else {
+        this.log('FAIL: safeCall did not return fallback for missing method');
+      }
+      
+      // Test safeCall with a missing service
+      registry.clear();
+      this.log('Registry cleared again');
+      const callResult3 = registry.safeCall<any, string>('test', 'getValue', [], 'fallback');
+      
+      if (callResult3 === 'fallback') {
+        this.log('PASS: safeCall returns fallback when service is missing');
+      } else {
+        this.log('FAIL: safeCall did not return fallback for missing service');
+      }
+      
+      // Test helper functions
+      registry.clear();
+      this.log('Testing helper functions...');
+      
+      // Register a service and fallback
+      registerService('helper-test', testService);
+      registerFallback('helper-test', fallbackService);
+      
+      // Test getServiceSafe with a registered service
+      const helperResult1 = getServiceSafe('helper-test', { name: 'ProvidedFallback', getValue: () => -1 });
+      
+      if (helperResult1.name === 'TestService') {
+        this.log('PASS: getServiceSafe returns service when available');
+      } else {
+        this.log('FAIL: getServiceSafe did not return service');
+      }
+      
+      // Remove the service
+      registry.clear();
+      registerFallback('helper-test', fallbackService);
+      
+      // Test getServiceSafe with a missing service but registered fallback
+      const helperResult2 = getServiceSafe('helper-test', { name: 'ProvidedFallback', getValue: () => -1 });
+      
+      if (helperResult2.name === 'FallbackService') {
+        this.log('PASS: getServiceSafe returns registered fallback when service is missing');
+      } else {
+        this.log('FAIL: getServiceSafe did not return registered fallback');
+      }
+      
+      // Test safeCall helper function
+      registry.clear();
+      registerService('helper-test', testService);
+      
+      const helperCallResult = safeCall<any, number>('helper-test', 'getValue', [], -1);
+      
+      if (helperCallResult === 42) {
+        this.log('PASS: safeCall helper returns method result');
+      } else {
+        this.log('FAIL: safeCall helper did not return method result');
+      }
+      
+      this.log('\nAll defensive feature tests completed.');
+      new Notice('Defensive feature tests completed');
+    } catch (error) {
+      this.log(`Error testing defensive features: ${error.message}`);
+      safeLogger.error('ServiceRegistryTest', 'Error testing defensive features', error);
+    }
+  }
+}
+
+// Function to open the test modal
+export function openServiceRegistryTestModal(app: App, plugin: DreamMetricsPlugin): void {
+  new ServiceRegistryTestModal(app, plugin).open();
 } 
