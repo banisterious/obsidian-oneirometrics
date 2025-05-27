@@ -1,5 +1,31 @@
 # OneiroMetrics Known Issues Registry
 
+## Table of Contents
+
+- [Overview](#issue-tracking-process)
+- [Key Milestones](#key-milestones)
+- [Major Issue Categories](#major-issue-categories)
+- [Active Issues](#active-issues)
+  - [Test Framework Issues](#test-framework-issues)
+  - [Type System Issues](#type-system-issues)
+  - [UI Component Issues](#ui-component-issues)
+  - [Scraping and Metrics Note Issues](#scraping-and-metrics-note-issues)
+- [Implementation Notes](#implementation-notes)
+- [Resolved Issues](#resolved-issues)
+- [Initialization and Dependency Issues](#initialization-and-dependency-issues)
+  - [Global Variable Dependencies](#global-variable-dependencies)
+  - [Module Boundaries and Dependencies](#module-boundaries-and-dependencies)
+- [UI and Rendering Issues](#ui-and-rendering-issues)
+  - [Content Parsing and Display](#content-parsing-and-display)
+  - [Dream Entry Detection](#dream-entry-detection)
+- [Architecture and Design Issues](#architecture-and-design-issues)
+  - [Global State Reliance](#global-state-reliance)
+  - [Implementation Approach](#implementation-approach)
+- [Current Workarounds](#current-workarounds)
+- [Resolution Plans](#resolution-plans)
+- [Issue Tracking Status](#issue-tracking-status)
+- [Reporting New Issues](#reporting-new-issues)
+
 This document tracks technical issues, limitations, and known bugs that have been identified during development activities but have not yet been resolved. These issues are typically internal implementation details rather than user-facing bugs (which are tracked in ISSUES.md).
 
 ## Issue Tracking Process
@@ -9,6 +35,30 @@ This document tracks technical issues, limitations, and known bugs that have bee
 3. Issues are categorized by type and component
 4. When addressed, issues are moved to the "Resolved Issues" section with resolution details
 5. Critical issues should also have corresponding entries in the issue tracker
+
+## Key Milestones
+
+| Date | Milestone | Description | Status |
+|------|-----------|-------------|--------|
+| 2025-05-24 | Initial Refactoring | Extract event handlers into separate classes | ❌ Failed |
+| 2025-05-25 | Attempted Fixes | Implement safe logger and defensive coding | ❌ Insufficient |
+| 2025-05-26 | Rollback | Revert to commit 1c36d38 | ✅ Completed |
+| 2025-05-27 | Documentation | Document known issues and lessons learned | ✅ Completed |
+| 2025-06-15 | Issue Analysis | Complete categorization of all issues | 🔄 In Progress |
+| 2025-07-01 | Fix Implementation | Begin addressing highest priority issues | ⏳ Planned |
+
+## Major Issue Categories
+
+| Category | Count | Severity | Resolution Progress | Key Documentation |
+|----------|-------|----------|---------------------|-------------------|
+| Initialization Issues | 5 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
+| Module Dependencies | 4 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
+| UI and Rendering | 4 | Medium | 0% | [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) |
+| Dream Entry Detection | 3 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
+| Architecture Design | 4 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
+| Implementation Approach | 4 | Medium | 0% | [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) |
+| Test Framework | 2 | Low | 0% | [Post-Refactoring Cleanup](../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) |
+| Type System | 1 | Medium | 0% | [Post-Refactoring Cleanup](../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) |
 
 ## Active Issues
 
@@ -30,6 +80,32 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-004 | Date Range Filter | Custom Date Range Filter has significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Medium - Makes custom date range filtering difficult for users; quick filter buttons work as expected | 2025-05-26 (UI Components Migration) | 2025-07-30 |
+
+### Scraping and Metrics Note Issues
+
+| ID | Component | Description | Impact | Discovered | Target Resolution |
+|----|-----------|-------------|--------|------------|-------------------|
+| REFACTOR-25-001 | Event System Refactoring | Complete metrics note failure after refactoring event handling system | Critical - Plugin non-functional for its primary purpose | 2025-05-24 | 2025-07-15 |
+
+#### Issue Details: REFACTOR-25-001
+
+This is a compound issue affecting multiple components. The refactoring effort that extracted event handlers into separate classes introduced several critical errors that caused the entire metrics note functionality to fail.
+
+**End-User Impact:**
+- Dream entries not detected or processed
+- "No dream entries to update" error despite valid entries in files
+- Empty metrics table or outdated information
+- UI components like "Show more" buttons missing
+- Date filters and navigation non-functional
+
+**Technical Root Causes:**
+- Initialization order failures
+- Undefined reference errors
+- Service dependency issues
+- Parsing engine failures
+- UI rendering problems
+
+For complete details on this issue, including analysis, implementation plans, and resolution approach, see the [Scraping and Metrics Note Issues](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) section in the Refactoring Lessons Learned document.
 
 ## Implementation Notes
 
@@ -174,6 +250,40 @@ For detailed plans to address these issues, refer to:
 1. [Refactoring Lessons Learned](./implementation/refactoring-lessons-learned.md) - Analysis of issues and solutions
 2. [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) - Implementation plan
 3. [Post-Refactoring Cleanup Checklist](../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) - Immediate tasks
+
+## Issue Tracking Status
+
+### Resolution Progress
+
+![Progress Bar](https://progress-bar.dev/15/ "Issue Resolution Progress")
+
+Current issue resolution progress is approximately 15%, primarily consisting of documentation, analysis, and immediate stabilization steps.
+
+### Issue Counts by Status
+
+| Status | Count | Percentage |
+|--------|-------|------------|
+| Known/Documented | 27 | 85% |
+| In Progress | 3 | 10% |
+| Resolved | 2 | 5% |
+| Total | 32 | 100% |
+
+### Priority Distribution
+
+| Priority | Count | Percentage |
+|----------|-------|------------|
+| Critical | 5 | 16% |
+| High | 14 | 44% |
+| Medium | 11 | 34% |
+| Low | 2 | 6% |
+| Total | 32 | 100% |
+
+### Next Steps
+
+1. Complete full categorization of all issues by June 15, 2025
+2. Begin implementing solutions for highest priority issues by July 1, 2025
+3. Address the critical Scraping and Metrics Note issue (REFACTOR-25-001) as top priority
+4. Update issue status weekly during development meetings
 
 ## Reporting New Issues
 
