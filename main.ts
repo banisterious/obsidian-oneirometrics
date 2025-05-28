@@ -149,7 +149,7 @@ import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './aut
 import { LoggingAdapter } from './src/logging';
 
 // Internal imports - UI Components
-import { CustomDateRangeModal } from './src/CustomDateRangeModal';
+import { CustomDateRangeModal } from './src/dom/modals';
 import {
     DateNavigatorModal,
     NavigatorViewMode,
@@ -157,6 +157,7 @@ import {
     DATE_NAVIGATOR_VIEW_TYPE,
     DateNavigatorIntegration
 } from './src/dom/date-navigator';
+import { FilterUI, DateRangeService } from './src/dom/filters';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
 import { 
@@ -330,6 +331,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
     private settingsManager: SettingsManager;
+    public dateRangeService: DateRangeService;
 
     async onload() {
         // Initialize the logging system immediately
@@ -944,6 +946,9 @@ export default class DreamMetricsPlugin extends Plugin {
             new DefensiveUtilsTestModal(this.app).open();
           }
         });
+
+        // Initialize the DateRangeService
+        this.dateRangeService = new DateRangeService(this.app);
     }
 
     onunload() {
@@ -4038,88 +4043,25 @@ function getDreamEntryDate(journalLines: string[], filePath: string, fileContent
 
 // Function to open the custom date range modal
 function openCustomRangeModal(app: App) {
-    const favorites = loadFavoriteRanges();
-    globalLogger?.debug('Filter', 'Opening custom range modal', { favorites });
-    new CustomDateRangeModal(app, (start: string, end: string, saveName?: string) => {
-        if (start && end) {
-            // First, update button state before making any layout changes
-            requestAnimationFrame(() => {
-                const btn = document.getElementById('oom-custom-range-btn');
-                if (btn) btn.classList.add('active');
-            });
-            
-            // Batch remaining operations with slight delays to avoid layout thrashing
-            setTimeout(() => {
-                // Set the customDateRange
-                const newRange = { start, end };
-                customDateRange = newRange;
-                
-                // Persist the selection to localStorage but without forcing layout
-                setTimeout(() => {
-                    saveLastCustomRange(newRange);
-                    
-                    // Save to plugin settings for persistence between reloads
-                    if (window.oneiroMetricsPlugin) {
-                        try {
-                            window.oneiroMetricsPlugin.settings.lastAppliedFilter = 'custom';
-                            window.oneiroMetricsPlugin.settings.customDateRange = newRange;
-                            window.oneiroMetricsPlugin.saveSettings().catch(err => {
-                                globalLogger?.error('Filter', 'Failed to save custom date range setting', { error: err });
-                            });
-                        } catch (e) {
-                            globalLogger?.error('Filter', 'Failed to save custom date range', { error: e });
-                        }
-                    }
-                    
-                    // Save favorite if needed without disrupting the filter application
-                    if (saveName) {
-                        saveFavoriteRange(saveName, newRange);
-                        // Show notification after filtering is complete
-                        setTimeout(() => {
-                            new Notice(`Saved favorite: ${saveName}`);
-                        }, 100);
-                    }
-                    
-                    // Apply the filter with delay for UI responsiveness
-                    setTimeout(() => {
-                        globalLogger?.debug('Filter', 'Applying custom date range filter', { range: customDateRange });
-                        applyCustomDateRangeFilter();
-                    }, 50);
-                }, 0);
-            }, 10);
-        } else {
-            // Handle clearing the filter
-                            customDateRange = null;
-                
-                // Clear the saved filter in plugin settings
-                if (window.oneiroMetricsPlugin) {
-                    try {
-                        window.oneiroMetricsPlugin.settings.lastAppliedFilter = 'all';
-                        window.oneiroMetricsPlugin.settings.customDateRange = undefined;
-                        window.oneiroMetricsPlugin.saveSettings().catch(err => {
-                            globalLogger?.error('State', 'Failed to clear filter setting', err as Error);
-                        });
-                    } catch (e) {
-                        globalLogger?.error('State', 'Failed to clear filter setting', e as Error);
-                    }
-                }
-                
-                // Batch UI updates
-                requestAnimationFrame(() => {
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) btn.classList.remove('active');
-                    
-                    // Trigger date range dropdown to apply the default filter
-                    setTimeout(() => {
-                        const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                        if (dropdown) {
-                            dropdown.value = 'all'; // Reset to show all
-                            dropdown.dispatchEvent(new Event('change'));
-                        }
-                    }, 10);
-                });
-        }
-    }, favorites, deleteFavoriteRange).open();
+    // Get the plugin instance
+    if (window.oneiroMetricsPlugin) {
+        // Use the dateRangeService from the plugin instance
+        window.oneiroMetricsPlugin.dateRangeService.openCustomRangeModal((range) => {
+            if (range) {
+                // Apply the custom date range filter
+                applyCustomDateRangeFilter();
+            }
+        });
+    } else {
+        // Fallback to creating a new service if the plugin instance is not available
+        const dateRangeService = new DateRangeService(app);
+        dateRangeService.openCustomRangeModal((range) => {
+            if (range) {
+                // Apply the custom date range filter
+                applyCustomDateRangeFilter();
+            }
+        });
+    }
 }
 
 // Helper functions for range management
