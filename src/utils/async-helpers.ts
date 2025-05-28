@@ -5,6 +5,9 @@
  * operations in OneiroMetrics plugin.
  */
 
+import { error } from '../logging';
+import safeLogger from '../logging/safe-logger';
+
 /**
  * Type for an async operation result
  */
@@ -27,15 +30,19 @@ export async function safeAsync<T>(
   try {
     const data = await asyncFn();
     return { success: true, data };
-  } catch (error) {
+  } catch (err) {
     if (errorHandler) {
-      errorHandler(error);
+      errorHandler(err);
     } else {
-      console.error('Async operation failed:', error);
+      try {
+        safeLogger.error('AsyncHelpers', 'Async operation failed', err);
+      } catch (e) {
+        error('AsyncHelpers', 'Async operation failed', err);
+      }
     }
     return { 
       success: false, 
-      error: error instanceof Error ? error : new Error(String(error)) 
+      error: err instanceof Error ? err : new Error(String(err)) 
     };
   }
 }
