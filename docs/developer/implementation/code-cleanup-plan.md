@@ -661,9 +661,13 @@ No TODOs were found in the codebase during our scan. This suggests that the team
 | src/dom/content/ContentToggler.ts | safeLogger | Completed | | Removed in commit 5ca6e0a |
 | src/dom/filters/FilterUI.ts | safeLogger, TFile | Completed | | Removed in commit 5ca6e0a |
 | src/dom/modals/CustomDateRangeModal.ts | safeLogger | Completed | | Removed in commit 5ca6e0a |
-| src/dom/filters/date-range/DateRangeFilter.ts | safeLogger | Pending | | Not yet addressed |
-| src/dom/tables/DreamMetricsTable.ts | safeLogger | Pending | | Not yet addressed |
-| src/dom/content/ContentRenderer.ts | safeLogger | Pending | | Not yet addressed |
+| main.ts | FileView, Menu, Scope, WorkspaceLeaf, ButtonComponent | Completed | | Removed in commit 4a356d5 |
+| main.ts | registerSettings | Completed | | Removed in commit 4a356d5 |
+| main.ts | FilterUI | Completed | | Removed in commit 4a356d5 |
+| main.ts | Multiple date-fns imports | Completed | | Removed unused date-fns imports in commit 4a356d5 |
+| src/dom/filters/date-range/DateRangeFilter.ts | safeLogger | Pending | | File not found - likely renamed to DateRangeService.ts where the import is used |
+| src/dom/tables/DreamMetricsTable.ts | safeLogger | Pending | | File not found - likely renamed to TableGenerator.ts where the import is used |
+| src/dom/content/ContentRenderer.ts | safeLogger | Pending | | File not found |
 
 #### Unused Imports Statistics
 
