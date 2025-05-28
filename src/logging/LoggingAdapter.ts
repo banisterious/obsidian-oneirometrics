@@ -1,7 +1,7 @@
 import { App, Notice } from 'obsidian';
 import { LogLevel, LoggerConfig } from './LoggingInterfaces';
 import { LoggingService } from './LoggingService';
-import { Logger as LegacyLogger } from '../../utils/logger';
+import { LegacyLoggerAdapter } from './adapters/LegacyLoggerAdapter';
 
 /**
  * Adapter class that bridges the old Logger implementation and the new LoggingService.
@@ -10,7 +10,7 @@ import { Logger as LegacyLogger } from '../../utils/logger';
  */
 export class LoggingAdapter {
     private loggingService: LoggingService;
-    private legacyLogger: LegacyLogger;
+    private legacyLogger: LegacyLoggerAdapter;
     
     // Expose the same properties as the legacy Logger
     logLevel: LogLevel = 'off';
@@ -24,7 +24,7 @@ export class LoggingAdapter {
      */
     constructor(app: App) {
         this.loggingService = LoggingService.getInstance(app);
-        this.legacyLogger = LegacyLogger.getInstance(app);
+        this.legacyLogger = LegacyLoggerAdapter.getInstance(app);
     }
     
     /**

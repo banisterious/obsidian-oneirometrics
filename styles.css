@@ -6201,3 +6201,180 @@ tr.oom-dream-row {
    Component Styles
    ========================================================================== */
 
+
+/* 
+ * Log Viewer Styles
+ */
+
+/* Main modal container */
+.oom-log-viewer-modal {
+  max-width: 900px;
+  width: 80%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Log container */
+.oom-log-container {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  margin-top: 10px;
+  padding: 10px;
+  max-height: 60vh;
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+}
+
+/* Filter container */
+.oom-log-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Log entries list */
+.oom-log-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Individual log entry */
+.oom-log-entry {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 5px 0;
+}
+
+/* Log entry header row */
+.oom-log-entry > span {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Log timestamp */
+.oom-log-timestamp {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  min-width: 180px;
+}
+
+/* Log level badges */
+.oom-log-level {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 0.8em;
+  min-width: 60px;
+  text-align: center;
+}
+
+.oom-log-level-error {
+  background-color: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
+.oom-log-level-warn {
+  background-color: #e9b949;
+  color: #000;
+}
+
+.oom-log-level-info {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.oom-log-level-debug {
+  background-color: var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
+.oom-log-level-trace {
+  background-color: var(--background-secondary);
+  color: var(--text-muted);
+}
+
+/* Log category */
+.oom-log-category {
+  font-weight: bold;
+  min-width: 100px;
+}
+
+/* Log message */
+.oom-log-message {
+  flex: 1;
+}
+
+/* Data and error sections */
+.oom-log-data, .oom-log-error {
+  margin-top: 5px;
+  margin-left: 20px;
+  padding: 5px;
+  background-color: var(--background-secondary);
+  border-radius: 3px;
+  font-size: 0.9em;
+  overflow-x: auto;
+}
+
+.oom-log-error {
+  background-color: rgba(var(--background-modifier-error-rgb), 0.2);
+}
+
+/* Pre-formatted text */
+.oom-log-data pre, .oom-log-error pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Empty log message */
+.oom-log-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px;
+}
+
+/* Action buttons */
+.oom-log-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.oom-log-actions button {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.oom-log-actions button:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
+/* Level-specific log styling */
+.oom-log-error {
+  border-left: 4px solid var(--background-modifier-error);
+}
+
+.oom-log-warn {
+  border-left: 4px solid #e9b949;
+}
+
+.oom-log-info {
+  border-left: 4px solid var(--interactive-accent);
+}
+
+.oom-log-debug {
+  border-left: 4px solid var(--background-modifier-border);
+}
+
+.oom-log-trace {
+  border-left: 4px solid var(--background-secondary);
+}

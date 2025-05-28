@@ -15,6 +15,7 @@ export { ConsoleAdapter } from './adapters/ConsoleAdapter';
 export { FileAdapter, type FileAdapterConfig } from './adapters/FileAdapter';
 export { NoticeAdapter, type NoticeAdapterConfig } from './adapters/NoticeAdapter';
 export { NullAdapter } from './adapters/NullAdapter';
+export { LegacyLoggerAdapter } from './adapters/LegacyLoggerAdapter';
 
 // Formatter exports
 export { StandardFormatter } from './formatters/StandardFormatter';

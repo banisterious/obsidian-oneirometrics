@@ -12,6 +12,10 @@ import { getLogger } from './index';
  * Interface for the safe logger
  */
 export interface SafeLogger {
+  /**
+   * Generic log method (maps to debug for backward compatibility)
+   */
+  log(category: string, message: string, data?: any): void;
   debug(category: string, message: string, data?: any): void;
   info(category: string, message: string, data?: any): void;
   warn(category: string, message: string, data?: any): void;
@@ -25,6 +29,14 @@ export interface SafeLogger {
 class SafeLoggerImpl implements SafeLogger {
   private level: LogLevel = 'debug';
   private initialized = false;
+  
+  /**
+   * Generic log method (maps to info for backward compatibility)
+   */
+  log(category: string, message: string, data?: any): void {
+    // For compatibility, map 'log' to 'info'
+    this.info(category, message, data);
+  }
   
   /**
    * Log a debug message
