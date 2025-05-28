@@ -656,17 +656,14 @@ No TODOs were found in the codebase during our scan. This suggests that the team
 
 ### Unused Imports
 
-| File | Line | Import | Status | Assignee | Notes |
-|------|------|--------|--------|----------|-------|
-| src/dom/content/ContentToggler.ts | 10 | import safeLogger from '../../logging/safe-logger' | Pending | | |
-| src/dom/filters/FilterUI.ts | 8 | import { App, Notice, TFile } from 'obsidian' | Pending | | TFile not used |
-| src/dom/filters/FilterUI.ts | 11 | import safeLogger from '../../logging/safe-logger' | Pending | | |
-| src/dom/modals/CustomDateRangeModal.ts | 9 | import safeLogger from '../../logging/safe-logger' | Pending | | |
-| src/events/FilterEvents.ts | 10 | import safeLogger from '../logging/safe-logger' | Pending | | |
-| src/events/ProjectNoteEvents.ts | 10 | import safeLogger from '../logging/safe-logger' | Pending | | |
-| src/metrics/MetricsProcessor.ts | 14 | import safeLogger from '../logging/safe-logger' | Pending | | |
-| main.ts | 152 | import { CustomDateRangeModal } from './src/dom/modals' | Pending | | |
-| main.ts | 160 | import { FilterUI, DateRangeService } from './src/dom/filters' | Pending | | FilterUI not used |
+| File | Import | Status | Assignee | Notes |
+|------|--------|--------|----------|-------|
+| src/dom/content/ContentToggler.ts | safeLogger | Completed | | Removed in commit 5ca6e0a |
+| src/dom/filters/FilterUI.ts | safeLogger, TFile | Completed | | Removed in commit 5ca6e0a |
+| src/dom/modals/CustomDateRangeModal.ts | safeLogger | Completed | | Removed in commit 5ca6e0a |
+| src/dom/filters/date-range/DateRangeFilter.ts | safeLogger | Pending | | Not yet addressed |
+| src/dom/tables/DreamMetricsTable.ts | safeLogger | Pending | | Not yet addressed |
+| src/dom/content/ContentRenderer.ts | safeLogger | Pending | | Not yet addressed |
 
 #### Unused Imports Statistics
 
