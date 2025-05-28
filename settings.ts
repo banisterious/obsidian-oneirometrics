@@ -3,6 +3,7 @@ import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from "./types";
 import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
+import { debug, info, error } from './src/logging';
 
 // Define the correct order for recommended metrics
 export const RECOMMENDED_METRICS_ORDER = [
@@ -692,14 +693,39 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
                 // Function to get all folders
                 const getFolders = (): string[] => {
-                    const folders: string[] = [];
-                    const files = this.app.vault.getAllLoadedFiles();
-                    files.forEach(file => {
-                        if (file instanceof TFolder) {
-                            folders.push(file.path);
-                        }
-                    });
-                    return folders.sort((a, b) => a.localeCompare(b));
+                    try {
+                        const folders: string[] = [];
+                        const processFolder = (folder: TFolder, prefix: string = '') => {
+                            folders.push(prefix + folder.path);
+                            folder.children.forEach(child => {
+                                if (child instanceof TFolder) {
+                                    processFolder(child);
+                                }
+                            });
+                        };
+                        
+                        this.app.vault.getAllLoadedFiles().forEach(file => {
+                            if (file instanceof TFolder) {
+                                processFolder(file);
+                            }
+                        });
+                        
+                        // Filter out folders we don't want to show in the UI
+                        const filteredFolders = folders.filter(folder => 
+                            !folder.startsWith('.') && 
+                            !folder.includes('.git/')
+                        );
+                        
+                        debug('Settings', 'Backup folder options', { 
+                            allFolders: folders.length,
+                            filteredFolders: filteredFolders.length
+                        });
+                        
+                        return filteredFolders;
+                    } catch (error) {
+                        new Notice('Error getting folders: ' + (error as Error).message);
+                        return [];
+                    }
                 };
 
                 // Function to show suggestions
@@ -958,16 +984,26 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             dragHandle.innerHTML = '⋮⋮';
         };
 
-        // Group metrics by enabled/disabled
-        const groupedMetrics = Object.entries(this.plugin.settings.metrics || {})
-            .reduce((acc: { enabled: [string, DreamMetric][], disabled: [string, DreamMetric][] }, [key, metric]) => {
-                if (isMetricEnabled(metric)) {
-                    acc.enabled.push([key, metric]);
-                } else {
-                    acc.disabled.push([key, metric]);
-                }
-                return acc;
-            }, { enabled: [], disabled: [] });
+        // Group metrics by enabled status
+        const groupedMetrics = {
+            enabled: [] as [string, DreamMetric][],
+            disabled: [] as [string, DreamMetric][]
+        };
+
+        // Sort into enabled/disabled groups
+        Object.entries(this.plugin.settings.metrics || {}).forEach(([key, metric]) => {
+            const group = isMetricEnabled(metric) ? groupedMetrics.enabled : groupedMetrics.disabled;
+            group.push([key, metric]);
+        });
+
+        // Log metrics information
+        debug('Settings', 'Metrics summary', {
+            total: Object.keys(this.plugin.settings.metrics || {}).length,
+            enabled: groupedMetrics.enabled.length,
+            disabled: groupedMetrics.disabled.length,
+            enabledMetrics: groupedMetrics.enabled.map(([key, m]) => m.name).join(', '),
+            disabledMetrics: groupedMetrics.disabled.map(([key, m]) => m.name).join(', ')
+        });
 
         // Debug logging for metric groups
         console.log('Metrics found in settings:', Object.keys(this.plugin.settings.metrics || {}).length);
@@ -1089,14 +1125,39 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
                     // Function to get all folders
                     const getFolders = (): string[] => {
-                        const folders: string[] = [];
-                        const files = this.app.vault.getAllLoadedFiles();
-                        files.forEach(file => {
-                            if (file instanceof TFolder) {
-                                folders.push(file.path);
-                            }
-                        });
-                        return folders.sort((a, b) => a.localeCompare(b));
+                        try {
+                            const folders: string[] = [];
+                            const processFolder = (folder: TFolder, prefix: string = '') => {
+                                folders.push(prefix + folder.path);
+                                folder.children.forEach(child => {
+                                    if (child instanceof TFolder) {
+                                        processFolder(child);
+                                    }
+                                });
+                            };
+                            
+                            this.app.vault.getAllLoadedFiles().forEach(file => {
+                                if (file instanceof TFolder) {
+                                    processFolder(file);
+                                }
+                            });
+                            
+                            // Filter out folders we don't want to show in the UI
+                            const filteredFolders = folders.filter(folder => 
+                                !folder.startsWith('.') && 
+                                !folder.includes('.git/')
+                            );
+                            
+                            debug('Settings', 'Backup folder options', { 
+                                allFolders: folders.length,
+                                filteredFolders: filteredFolders.length
+                            });
+                            
+                            return filteredFolders;
+                        } catch (error) {
+                            new Notice('Error getting folders: ' + (error as Error).message);
+                            return [];
+                        }
                     };
 
                     // Function to show suggestions
@@ -1623,204 +1684,114 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     }
 
     addMissingMetrics(containerEl: HTMLElement) {
-        // Define the metrics that should be present
-        const requiredMetrics = [
-            "Sensory Detail", "Emotional Recall", "Lost Segments", "Descriptiveness", 
-            "Confidence Score", "Characters Role", "Characters Count", "Familiar Count", 
-            "Unfamiliar Count", "Characters List", "Dream Theme", "Lucidity Level", 
-            "Dream Coherence", "Setting Familiarity", "Ease of Recall", "Recall Stability"
-        ];
+        const missingMetrics = DEFAULT_METRICS
+            .filter(defaultMetric => 
+                !this.plugin.settings.metrics[defaultMetric.name]
+            )
+            .map(m => m.name);
         
-        // Check if any required metrics are missing
-        const missingMetrics = requiredMetrics.filter(
-            metricName => !this.plugin.settings.metrics[metricName]
-        );
-        
-        // Log what we found for debugging
-        console.log(`Checking for missing metrics. Found ${missingMetrics.length} missing:`, missingMetrics.join(', '));
-        
-        if (missingMetrics.length > 0) {
-            // Add a section explaining the issue
-            containerEl.createEl('h3', { text: 'Missing Metrics Detected' });
-            
-            // Create a notice
-            const noticeEl = containerEl.createEl('div', { cls: 'oom-notice oom-notice-warning' });
-            noticeEl.createEl('p', { 
-                text: `${missingMetrics.length} metrics are missing from your settings. This may happen after plugin updates or configuration changes.`
-            });
-            
-            noticeEl.createEl('p', { 
-                text: `Missing metrics: ${missingMetrics.join(', ')}`
-            });
-            
-            // Create a button to restore metrics now
-            new Setting(noticeEl)
-                .addButton(button => button
-                    .setButtonText('Restore Missing Metrics')
-                    .setCta()
-                    .onClick(async () => {
-                        // Find default metrics definitions for the missing metrics
-                        const defaultMetricsMap = {};
-                        DEFAULT_METRICS.forEach(metric => {
-                            defaultMetricsMap[metric.name] = metric;
-                        });
-                        
-                        // Add each missing metric
-                        let restoredCount = 0;
-                        for (const metricName of missingMetrics) {
-                            // First check if this is one of our built-in metrics
-                            if (defaultMetricsMap[metricName]) {
-                                const metric = defaultMetricsMap[metricName];
-                                this.plugin.settings.metrics[metricName] = {
-                                    name: metric.name,
-                                    icon: metric.icon || 'help-circle',
-                                    minValue: metric.minValue || 1,
-                                    maxValue: metric.maxValue || 5,
-                                    description: metric.description || '',
-                                    enabled: metric.enabled !== undefined ? metric.enabled : true,
-                                    category: metric.category || 'dream',
-                                    type: metric.type || 'number',
-                                    format: metric.format || 'number',
-                                    options: metric.options || [],
-                                    // Include legacy properties for backward compatibility
-                                    min: metric.minValue || 1,
-                                    max: metric.maxValue || 5,
-                                    step: 1
-                                };
-                                console.log(`Restored metric from DEFAULT_METRICS: ${metricName}`);
-                                restoredCount++;
-                            } else {
-                                // If it's not in default metrics, create metrics with specific configurations
-                                let iconName = 'help-circle';
-                                let description = `${metricName} metric`;
-                                let isEnabled = false;
-                                let minValue = 1;
-                                let maxValue = 5;
-                                let metricType = 'number';
-                                let metricFormat = 'number';
-                                
-                                // Set specific configurations for known metrics
-                                switch(metricName) {
-                                    case 'Sensory Detail':
-                                        iconName = 'eye';
-                                        description = 'Level of sensory information recalled from the dream';
-                                        isEnabled = true;
-                                        break;
-                                    case 'Emotional Recall':
-                                        iconName = 'heart';
-                                        description = 'Level of emotional detail recalled from the dream';
-                                        isEnabled = true;
-                                        break;
-                                    case 'Lost Segments':
-                                        iconName = 'circle-minus';
-                                        description = 'Number of dream segments that feel missing or incomplete';
-                                        isEnabled = true;
-                                        minValue = 0;
-                                        break;
-                                    case 'Descriptiveness':
-                                        iconName = 'pen-tool';
-                                        description = 'Level of detail in the dream description';
-                                        isEnabled = true;
-                                        break;
-                                    case 'Confidence Score':
-                                        iconName = 'check-circle';
-                                        description = 'Confidence level in the completeness of dream recall';
-                                        isEnabled = true;
-                                        break;
-                                    case 'Characters Role':
-                                        iconName = 'user-cog';
-                                        description = 'Significance of familiar characters in the dream narrative';
-                                        isEnabled = true;
-                                        break;
-                                    case 'Characters Count':
-                                        iconName = 'users';
-                                        description = 'Total number of characters in the dream';
-                                        minValue = 0;
-                                        maxValue = 20;
-                                        break;
-                                    case 'Familiar Count':
-                                        iconName = 'user-check';
-                                        description = 'Number of familiar characters in the dream';
-                                        minValue = 0;
-                                        maxValue = 10;
-                                        break;
-                                    case 'Unfamiliar Count':
-                                        iconName = 'user-x';
-                                        description = 'Number of unfamiliar characters in the dream';
-                                        minValue = 0;
-                                        maxValue = 10;
-                                        break;
-                                    case 'Characters List':
-                                        iconName = 'users-round';
-                                        description = 'List of characters that appeared in the dream';
-                                        minValue = 0;
-                                        maxValue = 0;
-                                        metricType = 'text';
-                                        metricFormat = 'list';
-                                        break;
-                                    case 'Dream Theme':
-                                        iconName = 'sparkles';
-                                        description = 'Main themes or motifs in the dream';
-                                        minValue = 0;
-                                        maxValue = 0;
-                                        metricType = 'text';
-                                        metricFormat = 'tags';
-                                        break;
-                                    case 'Lucidity Level':
-                                        iconName = 'wand-2';
-                                        description = 'Degree of awareness that you were dreaming while in the dream';
-                                        break;
-                                    case 'Dream Coherence':
-                                        iconName = 'link';
-                                        description = 'How logical and consistent the dream narrative was';
-                                        break;
-                                    case 'Setting Familiarity':
-                                        iconName = 'glasses';
-                                        description = 'How familiar the dream locations were compared to waking life';
-                                        break;
-                                    case 'Ease of Recall':
-                                        iconName = 'zap';
-                                        description = 'How easily you could remember the dream upon waking';
-                                        break;
-                                    case 'Recall Stability':
-                                        iconName = 'layers';
-                                        description = 'How well your memory of the dream held up after waking';
-                                        break;
-                                }
-                                
-                                // Create the metric with the configuration
-                                this.plugin.settings.metrics[metricName] = {
-                                    name: metricName,
-                                    icon: iconName,
-                                    minValue: minValue,
-                                    maxValue: maxValue,
-                                    description: description,
-                                    enabled: isEnabled,
-                                    category: 'dream',
-                                    type: metricType,
-                                    format: metricFormat,
-                                    options: [],
-                                    // Legacy properties
-                                    min: minValue,
-                                    max: maxValue,
-                                    step: 1
-                                };
-                                console.log(`Manually created missing metric: ${metricName}`);
-                                restoredCount++;
-                            }
-                        }
-                        
-                        // Save settings
-                        await this.plugin.saveSettings();
-                        
-                        // Show success notice
-                        new Notice(`Restored ${restoredCount} missing metrics.`);
-                        
-                        // Refresh the display
-                        this.display();
-                    })
-                );
+        if (missingMetrics.length === 0) {
+            return;
         }
+        
+        info('Settings', `Checking for missing metrics`, { 
+            count: missingMetrics.length, 
+            missing: missingMetrics.join(', ') 
+        });
+        
+        const h2 = containerEl.createEl('h2', { text: 'Missing Metrics' });
+        const infoEl = containerEl.createEl('p', { 
+            text: `Found ${missingMetrics.length} metrics missing from your settings. Would you like to restore them?`
+        });
+        
+        // Create a container for the buttons
+        const buttonContainer = containerEl.createEl('div', {
+            cls: 'oom-missing-metrics-buttons'
+        });
+        
+        // Add a restore all button
+        const restoreAllButton = buttonContainer.createEl('button', {
+            text: 'Restore All Metrics',
+            cls: 'mod-cta'
+        });
+        
+        restoreAllButton.addEventListener('click', async () => {
+            // Loop through all missing metrics and restore them
+            const metricsToRestore = DEFAULT_METRICS.filter(defaultMetric => 
+                !this.plugin.settings.metrics[defaultMetric.name]
+            );
+            
+            for (const metricToRestore of metricsToRestore) {
+                const metricName = metricToRestore.name;
+                
+                // Create a new metric from the default
+                this.plugin.settings.metrics[metricName] = {
+                    name: metricName,
+                    icon: metricToRestore.icon,
+                    minValue: metricToRestore.minValue,
+                    maxValue: metricToRestore.maxValue,
+                    description: metricToRestore.description || '',
+                    enabled: metricToRestore.enabled,
+                    category: metricToRestore.category || 'dream',
+                    type: metricToRestore.type || 'number',
+                    format: metricToRestore.format || 'number',
+                    options: metricToRestore.options || [],
+                    // Include legacy properties for backward compatibility
+                    min: metricToRestore.minValue,
+                    max: metricToRestore.maxValue,
+                    step: 1
+                };
+                
+                info('Settings', `Restored metric from DEFAULT_METRICS: ${metricName}`);
+            }
+            
+            // Save settings and refresh UI
+            await this.plugin.saveSettings();
+            this.display();
+            new Notice(`Restored ${metricsToRestore.length} missing metrics`);
+        });
+        
+        // Also add a create manually button as another option
+        const createManuallyButton = buttonContainer.createEl('button', {
+            text: 'Create Manually',
+            cls: 'mod-warning'
+        });
+        
+        createManuallyButton.addEventListener('click', async () => {
+            // Handle manual creation of missing metrics - just create an empty metric for each
+            const metricsToCreate = DEFAULT_METRICS.filter(defaultMetric => 
+                !this.plugin.settings.metrics[defaultMetric.name]
+            );
+            
+            for (const metricToCreate of metricsToCreate) {
+                const metricName = metricToCreate.name;
+                
+                // Create a minimal metric with just the name and default values
+                this.plugin.settings.metrics[metricName] = {
+                    name: metricName,
+                    icon: '',
+                    minValue: 1,
+                    maxValue: 10,
+                    description: '',
+                    enabled: false,
+                    category: 'dream',
+                    type: 'number',
+                    format: 'number',
+                    options: [],
+                    // Include legacy properties for backward compatibility
+                    min: 1,
+                    max: 10,
+                    step: 1
+                };
+                
+                info('Settings', `Manually created missing metric: ${metricName}`);
+            }
+            
+            // Save settings and refresh UI
+            await this.plugin.saveSettings();
+            this.display();
+            new Notice(`Created ${metricsToCreate.length} missing metrics with default values`);
+        });
     }
 }
 
@@ -2069,52 +2040,36 @@ function sortMetricEntriesByOrder(
   metricEntries: [string, DreamMetric][],
   orderArray: string[]
 ): [string, DreamMetric][] {
-  // Defensive check for undefined or empty entries
-  if (!metricEntries || metricEntries.length === 0) {
-    console.warn('No metric entries to sort');
-    return [];
-  }
-  
-  // Defensive check for order array
-  if (!orderArray || orderArray.length === 0) {
-    console.warn('No order array provided for sorting metrics');
-    return metricEntries;
-  }
-  
-  // Create a copy to avoid modifying the original array
-  const sortedEntries = [...metricEntries];
-  
   try {
-    // Sort by the predefined order
-    sortedEntries.sort((a, b) => {
-      // Defensive check for array elements
-      if (!a || !a[1] || !a[1].name || !b || !b[1] || !b[1].name) {
-        return 0; // Skip sorting this pair if data is invalid
-      }
-      
-      const nameA = a[1].name;
-      const nameB = b[1].name;
-      
-      const indexA = orderArray.indexOf(nameA);
-      const indexB = orderArray.indexOf(nameB);
+    // Create a map for O(1) lookup of position
+    const orderMap: Record<string, number> = {};
+    orderArray.forEach((name, index) => {
+      orderMap[name] = index;
+    });
+    
+    // Sort based on the order array
+    return [...metricEntries].sort(([_keyA, metricA], [_keyB, metricB]) => {
+      const nameA = metricA.name;
+      const nameB = metricB.name;
       
       // If both are in the order array, sort by their position
-      if (indexA >= 0 && indexB >= 0) {
-        return indexA - indexB;
+      const posA = orderMap[nameA];
+      const posB = orderMap[nameB];
+      
+      if (posA !== undefined && posB !== undefined) {
+        return posA - posB;
       }
       
       // If only one is in the order array, prioritize it
-      if (indexA >= 0) return -1;
-      if (indexB >= 0) return 1;
+      if (posA !== undefined) return -1;
+      if (posB !== undefined) return 1;
       
       // If neither is in the order array, sort alphabetically
       return nameA.localeCompare(nameB);
     });
   } catch (error) {
-    console.error('Error sorting metric entries:', error);
-    // Return the original array in case of error
+    error('Settings', 'Error sorting metric entries', error);
+    // Return the original entries if there's an error
     return metricEntries;
   }
-  
-  return sortedEntries;
 }
