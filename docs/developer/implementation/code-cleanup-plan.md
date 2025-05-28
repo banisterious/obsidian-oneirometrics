@@ -604,24 +604,23 @@ This section tracks cleanup items identified by our utility scripts in the `util
 | main.ts | 3238 | console.error | Completed | Replaced with this.logger?.error |
 | main.ts | 3247 | console.error | Completed | Replaced with this.logger?.error |
 | main.ts | 3272 | console.error | Completed | Replaced with this.logger?.error |
-| settings.ts | 617 | console.error | Pending | Error opening metrics callout customizations modal |
-| settings.ts | 761 | console.log | Pending | [Backup Folder] all folders |
-| settings.ts | 762 | console.log | Pending | [Backup Folder] filtered folders |
-| settings.ts | 1032 | console.log | Pending | Metrics found in settings |
-| settings.ts | 1033 | console.log | Pending | Enabled metrics |
-| settings.ts | 1034 | console.log | Pending | Disabled metrics |
-| settings.ts | 1193 | console.log | Pending | [Backup Folder] all folders |
-| settings.ts | 1194 | console.log | Pending | [Backup Folder] filtered folders |
+| settings.ts | 617 | console.error | Completed | Replaced with error() function from logging |
+| settings.ts | 761 | console.log | Completed | Replaced with debug() for folder suggestions |
+| settings.ts | 762 | console.log | Completed | Replaced with debug() for folder suggestions |
+| settings.ts | 1032 | console.log | Completed | Removed (redundant with structured debug call) |
+| settings.ts | 1033 | console.log | Completed | Removed (redundant with structured debug call) |
+| settings.ts | 1034 | console.log | Completed | Removed (redundant with structured debug call) |
+| settings.ts | 1193 | console.log | Completed | Replaced with debug() for folder suggestions |
+| settings.ts | 1194 | console.log | Completed | Replaced with debug() for folder suggestions |
 
 #### Console.log Statistics
 
-- Total files with console statements: 32 (down from 33)
-- Total console statements: 122 (down from 141)
-- By type: console.log (73), console.warn (8), console.error (37), console.info (2), console.debug (2)
-- Completed: 19 statements in main.ts
+- Total files with console statements: 31 (down from 33)
+- Total console statements: 114 (down from 141)
+- By type: console.log (65), console.warn (8), console.error (37), console.info (2), console.debug (2)
+- Completed: 19 statements in main.ts, 8 statements in settings.ts
 
 #### Notable Console.log Files:
-- settings.ts: 7 statements
 - src/testing/EdgeCaseTests.ts: 14 statements
 - src/testing/utils/TypeGuardsTests.ts: 6 statements
 - src/testing/TestRunner.ts: 6 statements

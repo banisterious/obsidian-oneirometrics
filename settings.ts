@@ -614,7 +614,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                             new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
                         } catch (error) {
                             // Fallback to the old method if there's an error
-                            console.error('Error opening metrics callout customizations modal:', error);
+                            error('Settings', 'Error opening metrics callout customizations modal', error instanceof Error ? error : new Error(String(error)));
                             
                             // Use the class from settings.ts as fallback
                             new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
@@ -758,8 +758,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     const filteredFolders = folders
                         .filter(folder => folder.toLowerCase().includes(normalizedQuery))
                         .slice(0, 10);
-                    console.log('[Backup Folder] all folders:', folders);
-                    console.log('[Backup Folder] filtered folders:', filteredFolders);
+                    
+                    debug('Settings', 'Backup folder suggestions', {
+                        allFolders: folders.length,
+                        filteredCount: filteredFolders.length,
+                        query: normalizedQuery
+                    });
 
                     suggestionContainer.empty();
                     
@@ -1028,10 +1032,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             disabledMetrics: groupedMetrics.disabled.map(([key, m]) => m.name).join(', ')
         });
 
-        // Debug logging for metric groups
-        console.log('Metrics found in settings:', Object.keys(this.plugin.settings.metrics || {}).length);
-        console.log('Enabled metrics:', groupedMetrics.enabled.map(([key, m]) => m.name).join(', '));
-        console.log('Disabled metrics:', groupedMetrics.disabled.map(([key, m]) => m.name).join(', '));
+        // Debug logging for metric groups is redundant, already captured above
 
         // Sort metrics by the predefined order rather than alphabetically
         if (groupedMetrics.enabled.length > 0) {
@@ -1190,8 +1191,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         const filteredFolders = folders
                             .filter(folder => folder.toLowerCase().includes(normalizedQuery))
                             .slice(0, 10);
-                        console.log('[Backup Folder] all folders:', folders);
-                        console.log('[Backup Folder] filtered folders:', filteredFolders);
+                        
+                        debug('Settings', 'Backup folder suggestions', {
+                            allFolders: folders.length,
+                            filteredCount: filteredFolders.length,
+                            query: normalizedQuery
+                        });
 
                         suggestionContainer.empty();
                         
