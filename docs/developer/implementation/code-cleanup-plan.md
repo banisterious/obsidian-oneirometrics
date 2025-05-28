@@ -16,6 +16,11 @@
 - [Next Steps](#next-steps)
 - [Progress Tracking](#progress-tracking)
 
+## Related Documents
+- [Post-Refactoring Roadmap](post-refactoring-roadmap.md) - Overall roadmap for post-refactoring improvements
+- [Defensive Coding Implementation Plan](../../planning/tasks/defensive-coding-implementation.md) - Implementation plan for defensive coding patterns
+- [API Integration Hardening Plan](../../planning/tasks/api-integration-hardening-plan.md) - Specific plan for hardening API integrations
+
 ## Executive Summary
 
 This document outlines the plan for systematically eliminating dead code as part of the Phase 1: Code Cleanup in the Post-Refactoring Roadmap.

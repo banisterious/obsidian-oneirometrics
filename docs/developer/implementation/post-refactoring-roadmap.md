@@ -9,6 +9,8 @@ This document outlines the development roadmap following the refactoring rollbac
 - [Refactoring Lessons Learned](./refactoring-lessons-learned.md) - Comprehensive analysis of what went wrong and how to fix it
 - [Known Issues Registry](../known-issues-registry.md) - Tracking of known issues related to the refactoring
 - [Post-Refactoring Cleanup Checklist](../../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) - Tasks needed after rollback
+- [Defensive Coding Implementation Plan](../../planning/tasks/defensive-coding-implementation.md) - Detailed plan for implementing defensive coding patterns
+- [API Integration Hardening Plan](../../planning/tasks/api-integration-hardening-plan.md) - Specific plan for hardening API integrations
 
 ## Task Status Tracking
 

@@ -155,6 +155,8 @@ The documentation has been completely reorganized into a user-friendly, structur
 - [Metrics Guide](docs/user/reference/metrics.md)
 - [Testing Guide](docs/developer/testing/testing-overview.md)
 - [Date Tools Plan](docs/planning/features/date-tools.md)
+- [Defensive Coding Implementation](docs/planning/tasks/defensive-coding-implementation.md)
+- [API Integration Hardening Plan](docs/planning/tasks/api-integration-hardening-plan.md)
 
 ---
 

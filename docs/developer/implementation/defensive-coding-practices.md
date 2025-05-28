@@ -4,6 +4,11 @@
 
 This document outlines comprehensive defensive coding practices for the OneiroMetrics plugin. These practices build upon the Service Registry Pattern to create robust, error-resistant code that can withstand unexpected conditions and provide graceful degradation when failures occur.
 
+## Related Documents
+- [Defensive Coding Implementation Plan](../../planning/tasks/defensive-coding-implementation.md) - Detailed implementation plan with phases and timelines
+- [API Integration Hardening Plan](../../planning/tasks/api-integration-hardening-plan.md) - Specific plan for applying defensive patterns to API integrations
+- [Post-Refactoring Roadmap](post-refactoring-roadmap.md) - Overall roadmap for post-refactoring improvements
+
 ## Table of Contents
 
 - [Principles](#principles)

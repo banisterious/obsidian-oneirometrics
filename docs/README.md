@@ -34,6 +34,7 @@ Welcome to the OneiroMetrics documentation. This index will help you find the in
 ### Implementation
 - [Integration APIs](developer/implementation/integration-apis.md)
 - [Logging](developer/implementation/logging.md)
+- [Defensive Coding Practices](developer/implementation/defensive-coding-practices.md)
 
 ### Testing
 - [Testing Overview](developer/testing/testing-overview.md)
@@ -55,6 +56,8 @@ Welcome to the OneiroMetrics documentation. This index will help you find the in
 
 ### Tasks
 - [NPM Upgrade](planning/tasks/npm-upgrade.md)
+- [Defensive Coding Implementation](planning/tasks/defensive-coding-implementation.md)
+- [API Integration Hardening Plan](planning/tasks/api-integration-hardening-plan.md)
 
 ### General Planning
 - [Project Roadmap](planning/roadmap.md)
