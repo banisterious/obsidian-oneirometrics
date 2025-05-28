@@ -2,6 +2,8 @@ import DreamMetricsPlugin from '../../main';
 import { LintingSettings, LintingRule, ValidationResult, CalloutStructure, JournalTemplate, QuickFix, CalloutBlock } from './types';
 import { ContentParser } from './ContentParser';
 import { TemplaterIntegration } from './TemplaterIntegration';
+import { warn } from '../logging';
+import safeLogger from '../logging/safe-logger';
 
 /**
  * Core engine for validating dream journal entries against defined structures
@@ -35,7 +37,11 @@ export class LintingEngine {
             );
             if (!this.templaterIntegration.isTemplaterInstalled()) {
                 this.templaterIntegration = null;
-                console.warn('Templater plugin not found. Templater integration disabled.');
+                try {
+                    safeLogger.warn('LintingEngine', 'Templater plugin not found. Templater integration disabled.');
+                } catch (e) {
+                    warn('LintingEngine', 'Templater plugin not found. Templater integration disabled.');
+                }
             }
         } else {
             this.templaterIntegration = null;

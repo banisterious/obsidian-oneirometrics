@@ -6,6 +6,8 @@ import { OneiroMetricsEvents } from '../events';
 import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
 import { debounce } from 'ts-debounce';
 import { format } from 'date-fns';
+import { warn } from '../logging';
+import safeLogger from '../logging/safe-logger';
 
 // Import the global logger from main.ts - will be initialized when plugin loads
 declare const globalLogger: any;
@@ -316,7 +318,11 @@ export class DreamMetricsDOM {
         if ((window as any).oneiroMetricsPlugin && typeof (window as any).oneiroMetricsPlugin.applyFilters === 'function') {
             (window as any).oneiroMetricsPlugin.applyFilters(previewEl);
         } else {
-            console.warn('applyFilters: Could not find main plugin filtering logic.');
+            try {
+                safeLogger.warn('DreamMetricsDOM', 'Could not find main plugin filtering logic');
+            } catch (e) {
+                warn('DreamMetricsDOM', 'Could not find main plugin filtering logic');
+            }
         }
     }
     

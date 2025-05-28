@@ -1,4 +1,6 @@
 import { CalloutBlock, ContentIsolationSettings, MetricEntry } from './types';
+import { error } from '../logging';
+import safeLogger from '../logging/safe-logger';
 
 /**
  * Parses content to extract callout blocks and metrics
@@ -162,8 +164,12 @@ export class ContentParser {
             try {
                 const regex = new RegExp(pattern, 'g');
                 processedContent = processedContent.replace(regex, '');
-            } catch (error) {
-                console.error(`Invalid regex pattern: ${pattern}`, error);
+            } catch (err) {
+                try {
+                    safeLogger.error('ContentParser', `Invalid regex pattern: ${pattern}`, err);
+                } catch (e) {
+                    error('ContentParser', `Invalid regex pattern: ${pattern}`, err);
+                }
             }
         }
         
