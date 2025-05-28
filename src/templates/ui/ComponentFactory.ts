@@ -9,6 +9,8 @@ import { setIcon } from 'obsidian';
 import { BaseComponent, EventableComponent } from './BaseComponent';
 import { createEventHandler } from './EventHandling';
 import { DreamMetric } from '../../types/core';
+import { warn } from '../../logging';
+import safeLogger from '../../logging/safe-logger';
 
 /**
  * Options for creating a component
@@ -210,7 +212,11 @@ export function createButton(
     try {
       setIcon(iconEl, icon);
     } catch (error) {
-      console.warn(`Failed to set icon ${icon}:`, error);
+      try {
+        safeLogger.warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      } catch (e) {
+        warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      }
     }
     button.appendChild(iconEl);
   }
@@ -251,7 +257,11 @@ export function createHeader(
     try {
       setIcon(iconEl, icon);
     } catch (error) {
-      console.warn(`Failed to set icon ${icon}:`, error);
+      try {
+        safeLogger.warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      } catch (e) {
+        warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      }
     }
     header.appendChild(iconEl);
   }
@@ -306,7 +316,11 @@ export function createMetricSlider(
   try {
     setIcon(icon, metric.icon || 'help-circle');
   } catch (error) {
-    console.warn(`Failed to set icon ${metric.icon}:`, error);
+    try {
+      safeLogger.warn('ComponentFactory', `Failed to set icon ${metric.icon}`, error);
+    } catch (e) {
+      warn('ComponentFactory', `Failed to set icon ${metric.icon}`, error);
+    }
     icon.textContent = '?';
   }
   
@@ -366,7 +380,11 @@ export function createComponentHeader(
     try {
       setIcon(iconEl, icon);
     } catch (error) {
-      console.warn(`Failed to set icon ${icon}:`, error);
+      try {
+        safeLogger.warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      } catch (e) {
+        warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      }
     }
     header.appendChild(iconEl);
   }
@@ -400,7 +418,11 @@ export function createComponentButton(
     try {
       setIcon(iconEl, icon);
     } catch (error) {
-      console.warn(`Failed to set icon ${icon}:`, error);
+      try {
+        safeLogger.warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      } catch (e) {
+        warn('ComponentFactory', `Failed to set icon ${icon}`, error);
+      }
     }
     button.appendChild(iconEl);
   }
