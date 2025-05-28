@@ -1,5 +1,7 @@
 import { App, Notice, TFile } from 'obsidian';
 import { TemplaterVariable } from './types';
+import { debug, error } from '../logging';
+import safeLogger from '../logging/safe-logger';
 
 interface TemplaterIntegrationSettings {
     enabled?: boolean;
@@ -43,8 +45,12 @@ export class TemplaterIntegration {
         try {
             // @ts-ignore - Plugin API access
             return this.plugin.app.plugins.plugins['templater-obsidian'];
-        } catch (error) {
-            console.error('Error accessing Templater plugin:', error);
+        } catch (err) {
+            try {
+                safeLogger.error('TemplaterIntegration', 'Error accessing Templater plugin', err);
+            } catch (e) {
+                error('TemplaterIntegration', 'Error accessing Templater plugin', err);
+            }
             return null;
         }
     }
@@ -72,8 +78,12 @@ export class TemplaterIntegration {
             this.getTemplateFilesInFolder(templateFolder, templateFiles);
             
             return templateFiles;
-        } catch (error) {
-            console.error('Error getting Templater templates:', error);
+        } catch (err) {
+            try {
+                safeLogger.error('TemplaterIntegration', 'Error getting Templater templates', err);
+            } catch (e) {
+                error('TemplaterIntegration', 'Error getting Templater templates', err);
+            }
             return [];
         }
     }
@@ -123,8 +133,12 @@ export class TemplaterIntegration {
             
             // Return empty string if we can't get the content
             return '';
-        } catch (error) {
-            console.error('Error getting template content:', error);
+        } catch (err) {
+            try {
+                safeLogger.error('TemplaterIntegration', 'Error getting template content', err);
+            } catch (e) {
+                error('TemplaterIntegration', 'Error getting template content', err);
+            }
             return '';
         }
     }
@@ -248,9 +262,13 @@ export class TemplaterIntegration {
             // For now, just return the raw template content - actual processing 
             // requires access to Templater's internal API
             return content;
-        } catch (error) {
-            console.error('Error processing template:', error);
-            new Notice(`Error processing template: ${error.message}`);
+        } catch (err) {
+            try {
+                safeLogger.error('TemplaterIntegration', 'Error processing template', err);
+            } catch (e) {
+                error('TemplaterIntegration', 'Error processing template', err);
+            }
+            new Notice(`Error processing template: ${err.message}`);
             return '';
         }
     }
@@ -396,15 +414,19 @@ export class TemplaterIntegration {
         const staticContent = this.convertToStaticTemplate(templateContent);
         const placeholders = this.findPlaceholders(staticContent);
         
-        console.log('Original Templater Content:');
-        console.log(templateContent);
-        console.log('\nStatic Content with Placeholders:');
-        console.log(staticContent);
-        console.log('\nDetected Placeholders:');
-        console.log(placeholders);
-        
-        const hasTemplaterSyntax = this.hasTemplaterSyntax(templateContent);
-        console.log(`\nHas Templater Syntax: ${hasTemplaterSyntax}`);
+        try {
+            safeLogger.debug('TemplaterIntegration', 'Template Conversion', {
+                originalContent: templateContent,
+                staticContent: staticContent,
+                placeholders: placeholders,
+                hasTemplaterSyntax: this.hasTemplaterSyntax(templateContent)
+            });
+        } catch (e) {
+            debug('TemplaterIntegration', 'Original Templater Content', templateContent);
+            debug('TemplaterIntegration', 'Static Content with Placeholders', staticContent);
+            debug('TemplaterIntegration', 'Detected Placeholders', placeholders);
+            debug('TemplaterIntegration', `Has Templater Syntax: ${this.hasTemplaterSyntax(templateContent)}`);
+        }
         
         new Notice(`Template converted: ${placeholders.length} placeholders found`);
     }
