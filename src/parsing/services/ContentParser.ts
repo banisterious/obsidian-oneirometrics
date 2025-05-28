@@ -20,6 +20,7 @@ import {
   safeJsonParse
 } from '../../utils/defensive-utils';
 import safeLogger from '../../logging/safe-logger';
+import { error, warn, debug } from '../../logging';
 
 /**
  * Content parsing options
@@ -414,30 +415,30 @@ export class ContentParser {
   );
 
   /**
-   * Parses a callout to extract its type and content
+   * Parse a callout to extract its type, content, and optional block ID
    * 
    * @param callout The callout text to parse
-   * @returns Parsed callout object with type and content
+   * @returns The parsed callout data
    */
   parseCallout(callout: string): { type: string; content: string; id?: string } {
     try {
-      // Extract callout type and content
-      const match = callout.match(/\[!(\w+)\]([\s\S]*)/);
-      if (!match) {
-        return { type: '', content: callout };
+      const calloutMatch = callout.match(/\[!([^\]]+)\]([\s\S]*)/);
+      if (!calloutMatch) {
+        return { type: 'unknown', content: callout };
       }
       
-      const type = match[1];
-      const content = match[2].trim();
+      const type = calloutMatch[1].trim();
+      const content = calloutMatch[2].trim();
       
-      // Try to find an ID in the content (usually in the first line)
-      const idMatch = content.match(/^#(\w+)/);
-      const id = idMatch ? idMatch[1] : undefined;
+      // Look for a block ID
+      const blockIdMatch = callout.match(/\^(\w+)/);
+      const id = blockIdMatch ? blockIdMatch[1] : undefined;
       
       return { type, content, id };
     } catch (error) {
-      console.error("Error in parseCallout:", error);
-      return { type: '', content: callout || '' };
+      error("ContentParser", "Error in parseCallout", error);
+      // Return a fallback value for resilience
+      return { type: 'unknown', content: callout || '' };
     }
   }
 
@@ -448,115 +449,91 @@ export class ContentParser {
    * @returns The text containing metrics
    */
   extractMetricsText(calloutContent: string): string {
-    if (!calloutContent) return '';
-    
     try {
-      // Look for a section with metrics (usually at the end or in a specific format)
-      const sections = calloutContent.split('\n\n');
+      // If empty content, return empty string
+      if (!calloutContent) return '';
       
-      // First try to find a dedicated metrics section
-      const metricSection = sections.find(section => 
-        section.includes(':') && /\w+\s*:\s*\d+/.test(section)
-      );
+      // Split content by lines
+      const lines = calloutContent.split('\n');
       
-      if (metricSection) {
-        return metricSection;
+      // Identify metrics lines by looking for key-value pairs
+      let metricsText = '';
+      for (const line of lines) {
+        // Look for lines with metrics in format "Name: Value"
+        if (line.includes(':')) {
+          metricsText += line + '\n';
+        }
       }
       
-      // If no dedicated section, look for lines with metrics format anywhere
-      const lines = calloutContent.split('\n');
-      const metricLines = lines.filter(line => /\w+\s*:\s*\d+/.test(line));
-      
-      return metricLines.join('\n');
+      return metricsText.trim();
     } catch (error) {
-      console.error("Error in extractMetricsText:", error);
+      error("ContentParser", "Error in extractMetricsText", error);
       return '';
     }
   }
 
   /**
-   * Parses a date string into a standardized format
+   * Parse a date string into a standardized format
    * 
    * @param dateString The date string to parse
-   * @returns A standardized date string (YYYY-MM-DD)
+   * @returns A standardized date string
    */
   parseDate(dateString: string): string {
-    if (!dateString) {
-      return new Date().toISOString().split('T')[0]; // Default to today
-    }
-    
     try {
-      // Try to parse the date string
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
+      // If no date string, return empty
+      if (!dateString) return '';
+      
+      // Attempt to parse the date (normalize formats like YYYY-MM-DD, MM/DD/YYYY, etc.)
+      // This is a simplified example - in real code we would use a proper date library
+      const dateMatches = dateString.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (dateMatches) {
+        const [_, year, month, day] = dateMatches;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       }
       
-      // Try alternative formats
-      // Format: DD/MM/YYYY
-      const ddmmyyyy = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (ddmmyyyy) {
-        const [_, day, month, year] = ddmmyyyy;
-        const parsedDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-        if (!isNaN(parsedDate.getTime())) {
-          return parsedDate.toISOString().split('T')[0];
-        }
+      // Try other common formats (MM/DD/YYYY)
+      const altMatches = dateString.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+      if (altMatches) {
+        const [_, month, day, year] = altMatches;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       }
       
-      // Format: MM/DD/YYYY
-      const mmddyyyy = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (mmddyyyy) {
-        const [_, month, day, year] = mmddyyyy;
-        const parsedDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-        if (!isNaN(parsedDate.getTime())) {
-          return parsedDate.toISOString().split('T')[0];
-        }
-      }
-      
-      // Fallback to today's date
-      return new Date().toISOString().split('T')[0];
+      // If we couldn't parse it, return it unchanged
+      return dateString;
     } catch (error) {
-      console.error("Error parsing date:", error);
-      return new Date().toISOString().split('T')[0];
+      error("ContentParser", "Error parsing date", error);
+      return dateString;
     }
   }
 
   /**
-   * Cleans dream content by removing metadata and formatting
+   * Clean dream content by removing callout syntax and other unwanted elements
    * 
    * @param content The content to clean
-   * @param calloutType The type of callout
-   * @returns Cleaned dream content
+   * @param calloutType The type of callout to look for
+   * @returns Cleaned content
    */
   cleanDreamContent(content: string, calloutType: string): string {
-    if (!content) return '';
-    
     try {
-      // Remove metadata sections (lines with key: value format)
-      const lines = content.split('\n');
-      const contentLines = lines.filter(line => !(/^\w+(?:\s+\w+)*\s*:\s*\d+(?:\.\d+)?(?:\s*,\s*\w+(?:\s+\w+)*\s*:\s*\d+(?:\.\d+)?)*$/.test(line)));
+      // If no content, return empty string
+      if (!content) return '';
       
-      // Also remove any title-like lines at the beginning that start with # or are all uppercase
-      let startIndex = 0;
-      while (startIndex < contentLines.length && 
-             (contentLines[startIndex].startsWith('#') || 
-              contentLines[startIndex].toUpperCase() === contentLines[startIndex] && contentLines[startIndex].length > 5)) {
-        startIndex++;
-      }
+      // Remove callout syntax
+      let cleaned = content.replace(new RegExp(`\\[!${calloutType}\\]`, 'gi'), '');
       
-      // Join the remaining content
-      let result = contentLines.slice(startIndex).join('\n').trim();
+      // Remove block IDs
+      cleaned = cleaned.replace(/\^[\w\d]+/g, '');
       
-      // Handle special case where entire content might be metrics
-      if (!result && lines.length > 0) {
-        // Include at least the first line if we filtered everything out
-        result = lines[0];
-      }
+      // Remove multiple consecutive blank lines
+      cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n');
       
-      return result;
+      // Remove leading/trailing whitespace
+      cleaned = cleaned.trim();
+      
+      return cleaned;
     } catch (error) {
-      console.error("Error cleaning dream content:", error);
-      return content; // Return original content if cleaning fails
+      error("ContentParser", "Error cleaning dream content", error);
+      return content;
     }
   }
 
@@ -567,70 +544,76 @@ export class ContentParser {
    * @returns The extracted title
    */
   extractTitle(content: string): string {
-    if (!content) return 'Untitled Dream';
-    
     try {
+      // Return empty string for empty content
+      if (!content) return '';
+      
+      // Split by lines
       const lines = content.split('\n');
-      let firstLine = lines[0] || '';
       
-      // If first line is a heading, remove the # symbols
-      if (firstLine.startsWith('#')) {
-        firstLine = firstLine.replace(/^#+\s*/, '');
+      // Try to find a title line using different approaches
+      
+      // Check for a heading (# Title)
+      const headingLine = lines.find(line => /^#+\s+(.+)$/.test(line));
+      if (headingLine) {
+        const headingMatch = headingLine.match(/^#+\s+(.+)$/);
+        if (headingMatch && headingMatch[1]) {
+          return headingMatch[1].trim();
+        }
       }
       
-      // Remove leading/trailing punctuation and trim
-      firstLine = firstLine.replace(/^[#\s]+|[:.!?]+$/g, '').trim();
-      
-      // If title is too long, truncate it
-      if (firstLine.length > 50) {
-        firstLine = firstLine.substring(0, 47) + '...';
+      // If no heading, use the first non-empty line
+      const firstNonEmptyLine = lines.find(line => line.trim().length > 0);
+      if (firstNonEmptyLine) {
+        return firstNonEmptyLine.trim();
       }
       
-      // If we end up with an empty title, use a fallback
-      return firstLine || 'Untitled Dream';
+      // If nothing found, return a default title
+      return 'Untitled Dream';
     } catch (error) {
-      console.error("Error extracting title:", error);
+      error("ContentParser", "Error extracting title", error);
       return 'Untitled Dream';
     }
   }
 
   /**
-   * Processes nested callouts in content
+   * Process nested callouts within content
    * 
    * @param content The content to process
    * @param calloutType The type of callout to look for
-   * @returns Array of processed callouts
+   * @returns Array of nested callout objects
    */
   processNestedCallouts(content: string, calloutType: string): Array<{ 
     content: string; 
     metadata: CalloutMetadata 
   }> {
-    const results: Array<{ content: string; metadata: CalloutMetadata }> = [];
-    
     try {
-      // Regex to find nested callouts
-      const nestedCalloutRegex = new RegExp(`\\[!${calloutType}\\]([\\s\\S]*?)(?=\\[!|$)`, 'gi');
+      // If no content, return empty array
+      if (!content) return [];
+      
+      const results = [];
+      
+      // Find all nested callouts
+      const nestedRegex = new RegExp(`<div class="callout-content">\\s*\\[!${calloutType}\\]([\\s\\S]*?)(?=<\\/div>)`, 'gi');
       
       let match;
-      while ((match = nestedCalloutRegex.exec(content)) !== null) {
+      while ((match = nestedRegex.exec(content)) !== null) {
         const calloutContent = match[1].trim();
         
-        // Create metadata for this callout
-        const metadata: CalloutMetadata = {
-          type: calloutType,
-          id: `callout-${results.length + 1}`
-        };
+        // Extract metadata from the callout
+        const metadata = this.getCalloutMetadata(calloutContent);
         
         results.push({
           content: calloutContent,
           metadata
         });
       }
+      
+      return results;
     } catch (error) {
-      console.error("Error processing nested callouts:", error);
+      error("ContentParser", "Error processing nested callouts", error);
+      return [];
     }
-    
-    return results;
   }
 
   /**
@@ -668,86 +651,94 @@ export class ContentParser {
   );
   
   /**
-   * Extracts metrics from multiple callouts and combines them
+   * Extract metrics from callout content strings
    * 
-   * @param callouts Array of callout contents
-   * @returns Combined metrics from all callouts
+   * @param callouts Array of callout content strings
+   * @returns Record of metric names and values
    */
   extractMetricsFromCallouts(callouts: string[]): Record<string, number | string> {
-    const combinedMetrics: Record<string, number | string> = {};
-    
     try {
+      // If no callouts, return empty object
+      if (!callouts || callouts.length === 0) return {};
+      
+      const metrics: Record<string, number | string> = {};
+      
+      // Process each callout
       for (const callout of callouts) {
+        // Extract metrics text
         const metricsText = this.extractMetricsText(callout);
-        const metricRegex = /(\w+(?:\s+\w+)*)\s*:\s*(\d+(?:\.\d+)?|\w+)/g;
         
-        let metricMatch;
-        while ((metricMatch = metricRegex.exec(metricsText)) !== null) {
-          const name = metricMatch[1].trim();
-          const valueStr = metricMatch[2].trim();
-          const value = isNaN(Number(valueStr)) ? valueStr : Number(valueStr);
-          
-          // Take the higher value if the metric already exists
-          if (name in combinedMetrics && typeof value === 'number' && typeof combinedMetrics[name] === 'number') {
-            combinedMetrics[name] = Math.max(value as number, combinedMetrics[name] as number);
-          } else if (!(name in combinedMetrics)) {
-            combinedMetrics[name] = value;
+        // Split into lines
+        const lines = metricsText.split('\n');
+        
+        // Process each line to extract metrics
+        for (const line of lines) {
+          const colonIndex = line.indexOf(':');
+          if (colonIndex > 0) {
+            const name = line.substring(0, colonIndex).trim();
+            const valueText = line.substring(colonIndex + 1).trim();
+            
+            // Try to convert to number if possible
+            const numValue = parseFloat(valueText);
+            const value = !isNaN(numValue) ? numValue : valueText;
+            
+            // Add to metrics object
+            metrics[name] = value;
           }
         }
       }
+      
+      return metrics;
     } catch (error) {
-      console.error("Error extracting metrics from callouts:", error);
+      error("ContentParser", "Error extracting metrics from callouts", error);
+      return {};
     }
-    
-    return combinedMetrics;
   }
   
   /**
-   * Validates a dream entry for required fields and formats
+   * Validate a dream entry for required fields and data types
    * 
    * @param entry The dream entry to validate
-   * @returns Object with validation status and any error messages
+   * @returns Validation result with errors list
    */
   validateDreamEntry(entry: DreamMetricData): { valid: boolean; errors: string[] } {
-    const errors: string[] = [];
-    
     try {
-      // Check required fields
-      if (!entry.date) {
-        errors.push('Missing date field');
-      } else {
-        // Validate date format (YYYY-MM-DD)
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-          errors.push('Invalid date format (should be YYYY-MM-DD)');
-        }
-      }
+      const errors = [];
       
-      if (!entry.title || entry.title.trim() === '') {
-        errors.push('Missing title');
-      }
-      
-      if (!entry.content || entry.content.trim() === '') {
+      // Check for required fields
+      if (!entry.content) {
         errors.push('Missing content');
       }
       
-      // Check for empty metrics
-      if (!entry.metrics || Object.keys(entry.metrics).length === 0) {
-        errors.push('No metrics found in entry');
+      // Check date format if present
+      if (entry.date) {
+        const dateValid = /^\d{4}-\d{2}-\d{2}$/.test(entry.date);
+        if (!dateValid) {
+          errors.push('Invalid date format');
+        }
       }
       
-      // Validate source
-      if (!entry.source) {
-        errors.push('Missing source information');
+      // Check metrics
+      if (!entry.metrics || typeof entry.metrics !== 'object') {
+        errors.push('Missing or invalid metrics object');
       }
+      
+      // Check title
+      if (!entry.title) {
+        errors.push('Missing title');
+      }
+      
+      return {
+        valid: errors.length === 0,
+        errors
+      };
     } catch (error) {
-      console.error("Error validating dream entry:", error);
-      errors.push('Error during validation: ' + (error as Error).message);
+      error("ContentParser", "Error validating dream entry", error);
+      return {
+        valid: false,
+        errors: ['Validation error occurred']
+      };
     }
-    
-    return {
-      valid: errors.length === 0,
-      errors
-    };
   }
   
   /**
@@ -779,20 +770,56 @@ export class ContentParser {
   }
   
   /**
-   * Extracts callout metadata from a callout
+   * Extract metadata from a callout string
    * 
-   * @param callout The callout text
-   * @returns The extracted callout metadata
+   * @param callout The callout string
+   * @returns Callout metadata object
    */
   getCalloutMetadata(callout: string): CalloutMetadata {
     try {
-      const parsed = this.parseCallout(callout);
-      return {
-        type: parsed.type,
-        id: parsed.id
-      };
+      // If no callout, return default metadata
+      if (!callout) {
+        return { type: 'unknown' };
+      }
+      
+      // Extract callout type and metadata
+      const calloutMatch = callout.match(/\[!([^\]]+)\]/);
+      if (!calloutMatch) {
+        return { type: 'unknown' };
+      }
+      
+      const typeWithMeta = calloutMatch[1];
+      
+      // Split type and metadata if pipe character exists
+      const parts = typeWithMeta.split('|');
+      const type = parts[0].trim();
+      
+      // Initialize metadata with type
+      const metadata: CalloutMetadata = { type };
+      
+      // Process metadata if present
+      if (parts.length > 1) {
+        const metaParts = parts.slice(1);
+        
+        for (const part of metaParts) {
+          // Look for key=value pairs
+          const keyValueMatch = part.match(/(\w+)=([^,]+)/);
+          if (keyValueMatch) {
+            const [_, key, value] = keyValueMatch;
+            metadata[key] = value.trim();
+          }
+        }
+      }
+      
+      // Look for block ID
+      const blockIdMatch = callout.match(/\^(\w+)/);
+      if (blockIdMatch) {
+        metadata.id = blockIdMatch[1];
+      }
+      
+      return metadata;
     } catch (error) {
-      console.error("Error getting callout metadata:", error);
+      error("ContentParser", "Error getting callout metadata", error);
       return { type: 'unknown' };
     }
   }
