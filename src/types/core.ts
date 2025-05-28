@@ -273,7 +273,7 @@ export interface DreamMetricsSettings {
 export const DEFAULT_METRICS: DreamMetric[] = [
     {
         name: "Sensory Detail",
-        description: "Level of sensory information recalled from the dream",
+        description: "The richness and vividness of the sensory information you recall from your dream.",
         icon: "eye",
         minValue: 1,
         maxValue: 5,
@@ -284,7 +284,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Emotional Recall",
-        description: "Level of emotional detail recalled from the dream",
+        description: "Focuses on your ability to remember and articulate the emotions you experienced within the dream.",
         icon: "heart",
         minValue: 1,
         maxValue: 5,
@@ -295,7 +295,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Lost Segments",
-        description: "Number of distinct instances where parts of the dream are missing or forgotten",
+        description: "The number of distinct instances where you have a clear feeling or awareness that a part of the dream is missing or has been forgotten.",
         icon: "circle-off",
         minValue: 0,
         maxValue: 10,
@@ -306,7 +306,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Descriptiveness",
-        description: "Level of detail in the dream description",
+        description: "Assesses the level of detail and elaboration in your written dream capture, beyond just sensory details.",
         icon: "pen-tool",
         minValue: 1,
         maxValue: 5,
@@ -316,8 +316,8 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         format: "number"
     },
     {
-        name: "Characters Role",
-        description: "Significance of familiar characters in the dream narrative",
+        name: "Character Roles",
+        description: "The presence and significance of all individuals (both familiar and unfamiliar) appearing in your dream's narrative.",
         icon: "user-cog",
         minValue: 1,
         maxValue: 5,
@@ -328,7 +328,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Confidence Score",
-        description: "Confidence level in the completeness of dream recall",
+        description: "Subjective metric reflecting your overall sense of how complete and accurate your dream recall feels immediately after waking.",
         icon: "check-circle",
         minValue: 1,
         maxValue: 5,
@@ -339,7 +339,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Characters Count",
-        description: "Total number of characters appearing in the dream",
+        description: "Represents the total number of characters in your dream. (Automatically calculated as the sum of Familiar Count and Unfamiliar Count.)",
         icon: "users",
         minValue: 0,
         maxValue: 30,
@@ -350,7 +350,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Familiar Count",
-        description: "Number of familiar characters in the dream",
+        description: "The number of characters you know from your waking life that appear in the dream. Includes people, pets, or any other familiar beings.",
         icon: "user-check",
         minValue: 0,
         maxValue: 20,
@@ -361,7 +361,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Unfamiliar Count",
-        description: "Number of unfamiliar characters in the dream",
+        description: "Tracks the number of characters you don't know from your waking life that appear in the dream. Includes strangers, fictional characters, or any other unfamiliar beings.",
         icon: "user-x",
         minValue: 0,
         maxValue: 20,
@@ -372,7 +372,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Characters List",
-        description: "List of characters that appeared in the dream",
+        description: "Allows you to list all characters that appeared in your dream.",
         icon: "users-round",
         minValue: 0,
         maxValue: 0,
@@ -383,7 +383,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Dream Theme",
-        description: "Dominant themes present in the dream",
+        description: "The dominant subjects, ideas, or emotional undercurrents present in your dream.",
         icon: "sparkles",
         minValue: 0,
         maxValue: 0,
@@ -393,8 +393,19 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         format: "tags"
     },
     {
+        name: "Character Clarity/Familiarity",
+        description: "The distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream.",
+        icon: "glasses",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
+        category: "characters",
+        type: "number",
+        format: "number"
+    },
+    {
         name: "Lucidity Level",
-        description: "Degree of awareness that you were dreaming during the dream",
+        description: "Tracks your degree of awareness that you are dreaming while the dream is in progress.",
         icon: "wand-2",
         minValue: 1,
         maxValue: 5,
@@ -405,7 +416,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Dream Coherence",
-        description: "Logical consistency and narrative flow of the dream",
+        description: "Assesses the logical consistency and narrative flow of your dream.",
         icon: "link",
         minValue: 1,
         maxValue: 5,
@@ -415,8 +426,8 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         format: "number"
     },
     {
-        name: "Setting Familiarity",
-        description: "How familiar the dream locations were from waking life",
+        name: "Environmental Familiarity",
+        description: "Tracks the degree to which the locations and environments in your dream are recognizable from your waking life.",
         icon: "glasses",
         minValue: 1,
         maxValue: 5,
@@ -427,7 +438,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Ease of Recall",
-        description: "How easily you could remember the dream upon waking",
+        description: "Assesses how readily and effortlessly you can remember the dream upon waking.",
         icon: "zap",
         minValue: 1,
         maxValue: 5,
@@ -438,7 +449,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     },
     {
         name: "Recall Stability",
-        description: "How well your memory of the dream held up after waking",
+        description: "Assesses how well your memory of the dream holds up in the minutes immediately following waking.",
         icon: "layers",
         minValue: 1,
         maxValue: 5,
