@@ -1,4 +1,6 @@
 import { CalloutMetadata } from '../../types/declarations/callout-types';
+import { error } from '../../logging';
+import safeLogger from '../../logging/safe-logger';
 
 /**
  * Parser for Obsidian callouts with specialized functions for extracting metadata
@@ -22,8 +24,12 @@ export class CalloutParser {
         type,
         id
       };
-    } catch (error) {
-      console.error("Error getting callout metadata:", error);
+    } catch (err) {
+      try {
+        safeLogger.error('CalloutParser', 'Error getting callout metadata', err);
+      } catch (e) {
+        error('CalloutParser', 'Error getting callout metadata', err);
+      }
       return { type: 'unknown' };
     }
   }
