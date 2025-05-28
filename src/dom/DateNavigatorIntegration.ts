@@ -4,6 +4,7 @@ import { TimeFilterManager, DateRange } from '../timeFilters';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { format } from 'date-fns';
 import { getService, registerService, SERVICE_NAMES } from '../state/ServiceRegistry';
+import { error, info, debug, warn } from '../logging';
 
 // Safely reference global logger without causing errors if it's not defined
 declare global {
@@ -45,7 +46,7 @@ export class DateNavigatorIntegration {
                 if (window.globalLogger) {
                     window.globalLogger.info('DateNavigatorIntegration', 'Creating new TimeFilterManager');
                 } else {
-                    console.info('DateNavigatorIntegration: Creating new TimeFilterManager');
+                    info('DateNavigatorIntegration', 'Creating new TimeFilterManager');
                 }
                 
                 // Create a new TimeFilterManager
@@ -54,18 +55,18 @@ export class DateNavigatorIntegration {
                 // Register the new TimeFilterManager with the service registry
                 try {
                     registerService(SERVICE_NAMES.TIME_FILTER, this.timeFilterManager);
-                    console.info('DateNavigatorIntegration: Registered new TimeFilterManager with service registry');
+                    info('DateNavigatorIntegration', 'Registered new TimeFilterManager with service registry');
                 } catch (e) {
-                    console.error('DateNavigatorIntegration: Error registering TimeFilterManager with service registry', e);
+                    error('DateNavigatorIntegration', 'Error registering TimeFilterManager with service registry', e);
                 }
             } catch (e) {
-                console.error('DateNavigatorIntegration: Error creating TimeFilterManager', e);
+                error('DateNavigatorIntegration', 'Error creating TimeFilterManager', e);
             }
         }
         
         // Final check to ensure timeFilterManager is properly initialized
         if (!this.timeFilterManager) {
-            console.error('DateNavigatorIntegration: Failed to initialize TimeFilterManager');
+            error('DateNavigatorIntegration', 'Failed to initialize TimeFilterManager');
             // Create a minimal implementation to prevent errors
             this.timeFilterManager = {
                 onFilterChange: () => {},
@@ -81,18 +82,18 @@ export class DateNavigatorIntegration {
                     if (filter && typeof filter.getDateRange === 'function') {
                         this.handleFilterChange(filter.getDateRange());
                     } else {
-                        console.warn('DateNavigatorIntegration: Filter object is invalid or missing getDateRange method');
+                        warn('DateNavigatorIntegration', 'Filter object is invalid or missing getDateRange method');
                     }
                 };
                 
                 // Safely assign the handler
                 this.timeFilterManager.onFilterChange = filterChangeHandler;
-                console.info('DateNavigatorIntegration: Successfully set up filter change handler');
+                info('DateNavigatorIntegration', 'Successfully set up filter change handler');
             } catch (e) {
-                console.error('DateNavigatorIntegration: Error setting up filter change handler', e);
+                error('DateNavigatorIntegration', 'Error setting up filter change handler', e);
             }
         } else {
-            console.warn('DateNavigatorIntegration: Unable to set up filter change handler - timeFilterManager.onFilterChange is not a function');
+            warn('DateNavigatorIntegration', 'Unable to set up filter change handler - timeFilterManager.onFilterChange is not a function');
         }
     }
     
@@ -140,11 +141,11 @@ export class DateNavigatorIntegration {
                 if (this.dateNavigator && typeof this.dateNavigator.debugDisplay === 'function') {
                     this.dateNavigator.debugDisplay();
                 } else {
-                    console.error('DateNavigator debugDisplay function not available');
+                    error('DateNavigatorIntegration', 'DateNavigator debugDisplay function not available');
                 }
             };
         } catch (e) {
-            console.error('Error setting up global debug function:', e);
+            error('DateNavigatorIntegration', 'Error setting up global debug function', e);
         }
         
         return this.dateNavigator;
@@ -730,10 +731,10 @@ export class DateNavigatorIntegration {
             if (this.dateNavigator && typeof this.dateNavigator.debugDisplay === 'function') {
                 this.dateNavigator.debugDisplay();
             } else {
-                console.error('DateNavigator debugDisplay function not available');
+                error('DateNavigatorIntegration', 'DateNavigator debugDisplay function not available');
             }
         } catch (e) {
-            console.error('Error in debug function:', e);
+            error('DateNavigatorIntegration', 'Error in debug function', e);
         }
     }
 }
