@@ -6,7 +6,6 @@
  */
 
 import { App, ButtonComponent, Modal, Notice, Setting, TextComponent } from 'obsidian';
-import safeLogger from '../../logging/safe-logger';
 
 export class CustomDateRangeModal extends Modal {
     private startDateInput: TextComponent;
