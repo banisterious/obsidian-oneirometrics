@@ -12,7 +12,7 @@ export const RECOMMENDED_METRICS_ORDER = [
   'Lost Segments',
   'Descriptiveness',
   'Confidence Score',
-  'Characters Role'
+  'Character Roles'
 ];
 
 // Define the correct order for disabled metrics
@@ -24,7 +24,7 @@ export const DISABLED_METRICS_ORDER = [
   'Dream Theme',
   'Lucidity Level',
   'Dream Coherence',
-  'Setting Familiarity',
+  'Environmental Familiarity',
   'Ease of Recall',
   'Recall Stability'
 ];
@@ -1837,7 +1837,157 @@ class MetricsDescriptionsModal extends Modal {
         // Modal Title
         contentEl.createEl('h2', { text: 'Metrics Descriptions' });
         // Markdown content (default + optional)
-        const allMetricsMarkdown = `### Default Metrics\n\n- **Sensory Detail (Score 1-5):** Level of sensory information recalled from the dream.\n- **Emotional Recall (Score 1-5):** Level of emotional detail recalled from the dream.\n- **Descriptiveness (Score 1-5):** Level of detail in the dream description.\n- **Characters Role (Score 1-5):** Significance of familiar characters in the dream narrative.\n- **Confidence Score (Score 1-5):** Confidence level in the completeness of dream recall.\n\n#### Full Descriptions\n\n#### Sensory Detail (Score 1-5)\nThis metric aims to capture the richness and vividness of the sensory information you recall from your dream.\n\n| Score        | Description |\n| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| 1 (Minimal)  | You recall very little sensory information. The dream feels vague and lacks specific sights, sounds, textures, smells, or tastes. You might remember the general feeling of a place but not any distinct visual elements, for example. |\n| 2 (Limited)  | You recall a few basic sensory details, perhaps a dominant color or a general sound. The sensory landscape is still quite sparse. |\n| 3 (Moderate) | You recall a noticeable amount of sensory information. You might remember some visual details, perhaps a few distinct sounds, or a general feeling of touch. |\n| 4 (Rich)     | You recall a significant amount of sensory information across multiple senses. You can describe specific visual elements, distinct sounds, perhaps a smell or a texture. The dream feels more immersive. |\n| 5 (Vivid)    | Your recall is highly detailed and encompasses a wide range of sensory experiences. You can clearly describe intricate visual scenes, distinct and multiple sounds, and perhaps even specific tastes and smells. The dream feels very real and alive in your memory. |\n\n#### Emotional Recall (Score 1-5)\nThis metric focuses on your ability to remember and articulate the emotions you experienced within the dream.\n\n| Score                | Description |\n| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| 1 (Vague)            | You have a faint sense that you felt some emotion in the dream, but you can't identify it specifically. You might just say you felt \"something.\" |\n| 2 (General)          | You can identify a primary emotion (e.g., happy, sad, scared) but can't describe its intensity or nuances. |\n| 3 (Identified)       | You can identify one or two specific emotions you felt and perhaps describe their general intensity. |\n| 4 (Nuanced)          | You recall several distinct emotions and can describe some of the nuances or shifts in your feelings throughout the dream. |\n| 5 (Deep and Complex) | You have a strong recollection of the emotional landscape of the dream, including multiple emotions, their intensity, how they evolved, and perhaps even subtle emotional undertones. |\n\n#### Descriptiveness (Score 1-5)\nThis metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details (which have their own metric). This considers how thoroughly you describe the events, characters, interactions, and the overall narrative flow.\n\n| Score                | Description |\n| -------------------- | ----------- |\n| 1 (Minimal)          | Your capture is very brief and outlines only the most basic elements of the dream. It lacks detail and elaboration. |\n| 2 (Limited)          | Your capture provides a basic account of the dream but lacks significant descriptive detail in terms of actions, character behavior, or plot progression. |\n| 3 (Moderate)         | Your capture provides a reasonably detailed account of the main events and characters, with some descriptive language used. |\n| 4 (Detailed)         | Your capture includes a significant level of descriptive detail, bringing the dream narrative and its elements to life with more thorough explanations and imagery. |\n| 5 (Highly Elaborate) | Your capture is very rich in detail, using vivid language to describe the events, characters, their motivations (if perceived), and the overall unfolding of the dream narrative. |\n\n#### Characters Role (Score 1-5)\nThis metric tracks the significance of familiar characters in the dream narrative.\n\n| Score                | Description |\n| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| 1 (None)             | No familiar characters appear in the dream. |\n| 2 (Background)       | Familiar characters appear but only in minor or background roles. |\n| 3 (Supporting)       | Familiar characters play supporting roles in the dream narrative. |\n| 4 (Major)            | Familiar characters are central to the dream's events or narrative. |\n| 5 (Dominant)         | The dream is primarily about or dominated by interactions with familiar characters. |\n\n#### Confidence Score (Score 1-5)\nThis is a subjective metric reflecting your overall sense of how complete and accurate your dream recall feels immediately after waking. It's your gut feeling about how much of the dream you've managed to retrieve.\n\n| Score         | Description |\n| ------------- | ----------- |\n| 1 (Very Low)  | You feel like you've barely scratched the surface of the dream, remembering only a tiny fragment or a fleeting feeling. You suspect you've forgotten a significant portion. |\n| 2 (Low)       | You recall a bit more, but you still feel like a substantial part of the dream is lost. The recall feels fragmented and incomplete. |\n| 3 (Moderate)  | You feel like you've recalled a fair amount of the dream, perhaps the main storyline, but there might be some fuzzy areas or details you're unsure about. |\n| 4 (High)      | You feel like you've recalled the majority of the dream with a good level of detail and coherence. You feel relatively confident in the accuracy of your memory. |\n| 5 (Very High) | You feel like you've recalled the entire dream in vivid detail and with strong confidence in the accuracy and completeness of your memory. You don't have a sense of significant missing parts. |\n\n---\n\n### Optional Metrics\n\n(See plugin documentation for full details.)\n\n### Characters Count\nThis metric represents the total number of characters in your dream. It is automatically calculated as the sum of Familiar Count and Unfamiliar Count.\n\n### Familiar Count\nThis metric tracks the number of characters you know from your waking life that appear in the dream. This includes people, pets, or any other familiar beings.\n\n### Unfamiliar Count\nThis metric tracks the number of characters you don't know from your waking life that appear in the dream. This includes strangers, fictional characters, or any other unfamiliar beings.\n\n### Characters List\nThis metric allows you to list all characters that appeared in your dream. You can add multiple entries, one per line. For example:\n\`\`\`markdown\nMom\nDad\nMy dog Max\nA stranger in a red coat\n\`\`\`\n\n### Dream Theme (Categorical/Keywords)\nThis metric aims to identify the dominant subjects, ideas, or emotional undercurrents present in your dream. Instead of a numerical score, you will select one or more keywords or categories that best represent the core themes of the dream.\n\n*Possible Categories/Keywords (Examples - User-definable list in plugin recommended):*\nTravel/Journey, Conflict/Argument, Learning/Discovery, Loss/Grief, Joy/Happiness, Fear/Anxiety, Absurdity/Surrealism, Creativity/Inspiration, Relationship Dynamics, Work/Career, Health/Illness, Nostalgia/Past, Technology, Nature/Environment, Spiritual/Mystical, Transformation, Communication, Power/Control, Vulnerability\n\n### Lucidity Level (Score 1-5)\nThis metric tracks your degree of awareness that you are dreaming while the dream is in progress.\n\n* 1 (Non-Lucid): You have no awareness that you are dreaming.\n* 2 (Faint Awareness): You might have a fleeting thought or a vague feeling that something is unusual or dreamlike, but this awareness doesn't solidify into the certainty that you are dreaming.\n* 3 (Clear Awareness): You become clearly aware that you are dreaming. However, your ability to control or influence the dream environment and events might be limited. You are an observer who knows it's a dream.\n* 4 (Moderate Control): You are aware that you are dreaming and can actively influence some aspects of the dream, such as your own actions, the environment to a limited extent, or the course of the narrative.\n* 5 (High Lucidity): You have a strong and stable awareness that you are dreaming and possess a significant degree of control over the dream environment, characters, and events.\n\n### Dream Coherence (Score 1-5)\nThis metric assesses the logical consistency and narrative flow of your dream.\n\n* 1 (Incoherent): The dream is fragmented, disjointed, and nonsensical.\n* 2 (Loosely Connected): Some elements or scenes might have a vague or thematic relationship, but the overall narrative lacks a clear and logical progression.\n* 3 (Moderately Coherent): The dream has a discernible narrative thread, but it may contain illogical elements, inconsistencies in character behavior or setting, or sudden, unexplained shifts in the storyline.\n* 4 (Mostly Coherent): The dream generally follows a logical progression with a relatively consistent narrative, characters, and settings. Any illogical elements are minor or don't significantly disrupt the overall sense of a somewhat realistic (albeit dreamlike) experience.\n* 5 (Highly Coherent): The dream feels like a consistent and logical experience, even if the content is surreal or fantastical.\n\n### Setting Familiarity (Score 1-5)\nThis metric tracks the degree to which the locations and environments in your dream are recognizable from your waking life.\n\n* 1 (Completely Unfamiliar): All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.\n* 2 (Vaguely Familiar): You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories.\n* 3 (Partially Familiar): The dream settings are a blend of recognizable and unfamiliar elements.\n* 4 (Mostly Familiar): The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.\n* 5 (Completely Familiar): All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.\n\n### Ease of Recall (Score 1-5)\nThis metric assesses how readily and effortlessly you can remember the dream upon waking.\n\n* 1 (Very Difficult): You wake up with little to no memory of having dreamed.\n* 2 (Difficult): You remember a few isolated images, emotions, or very brief snippets of the dream, but the overall narrative is elusive and hard to piece together.\n* 3 (Moderate): You can recall the basic outline or a few key scenes of the dream with a reasonable amount of effort.\n* 4 (Easy): You remember the dream relatively clearly and can recount a significant portion of the narrative and details without much difficulty.\n* 5 (Very Easy): The dream is vividly and immediately present in your memory upon waking.\n\n### Recall Stability (Score 1-5)\nThis metric assesses how well your memory of the dream holds up in the minutes immediately following waking.\n\n* 1 (Rapidly Fading): The dream memory begins to dissipate almost instantly upon waking.\n* 2 (Significant Fading): You can recall a fair amount initially, but key details and the overall narrative structure fade noticeably within the first 10-15 minutes after waking, making it difficult to reconstruct the full dream later.\n* 3 (Moderate Fading): Some details and less significant parts of the dream might fade within the first 15-30 minutes, but the core narrative and key events remain relatively intact.\n* 4 (Mostly Stable): Your recall of the dream remains largely consistent for at least 30 minutes after waking.\n* 5 (Very Stable): The memory of the dream feels solid and enduring in the immediate post-waking period.`;
+        const allMetricsMarkdown = `### Default Metrics
+
+- **Sensory Detail (Score 1-5):** Level of sensory information recalled from the dream.
+- **Emotional Recall (Score 1-5):** Level of emotional detail recalled from the dream.
+- **Descriptiveness (Score 1-5):** Level of detail in the dream description.
+- **Character Roles (Score 1-5):** Significance of characters in the dream narrative.
+- **Character Clarity/Familiarity (Score 1-5):** Distinctness and recognizability of characters.
+- **Confidence Score (Score 1-5):** Confidence level in the completeness of dream recall.
+
+#### Full Descriptions
+
+#### Sensory Detail (Score 1-5)
+This metric aims to capture the richness and vividness of the sensory information you recall from your dream.
+
+| Score        | Description |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Minimal)  | You recall very little sensory information. The dream feels vague and lacks specific sights, sounds, textures, smells, or tastes. You might remember the general feeling of a place but not any distinct visual elements, for example. |
+| 2 (Limited)  | You recall a few basic sensory details, perhaps a dominant color or a general sound. The sensory landscape is still quite sparse. |
+| 3 (Moderate) | You recall a noticeable amount of sensory information. You might remember some visual details, perhaps a few distinct sounds, or a general feeling of touch. |
+| 4 (Rich)     | You recall a significant amount of sensory information across multiple senses. You can describe specific visual elements, distinct sounds, perhaps a smell or a texture. The dream feels more immersive. |
+| 5 (Vivid)    | Your recall is highly detailed and encompasses a wide range of sensory experiences. You can clearly describe intricate visual scenes, distinct and multiple sounds, and perhaps even specific tastes and smells. The dream feels very real and alive in your memory. |
+
+#### Emotional Recall (Score 1-5)
+This metric focuses on your ability to remember and articulate the emotions you experienced within the dream.
+
+| Score                | Description |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Vague)            | You have a faint sense that you felt some emotion in the dream, but you can't identify it specifically. You might just say you felt "something." |
+| 2 (General)          | You can identify a primary emotion (e.g., happy, sad, scared) but can't describe its intensity or nuances. |
+| 3 (Identified)       | You can identify one or two specific emotions you felt and perhaps describe their general intensity. |
+| 4 (Nuanced)          | You recall several distinct emotions and can describe some of the nuances or shifts in your feelings throughout the dream. |
+| 5 (Deep and Complex) | You have a strong recollection of the emotional landscape of the dream, including multiple emotions, their intensity, how they evolved, and perhaps even subtle emotional undertones. |
+
+#### Descriptiveness (Score 1-5)
+This metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details (which have their own metric). This considers how thoroughly you describe the events, characters, interactions, and the overall narrative flow.
+
+| Score                | Description |
+| -------------------- | ----------- |
+| 1 (Minimal)          | Your capture is very brief and outlines only the most basic elements of the dream. It lacks detail and elaboration. |
+| 2 (Limited)          | Your capture provides a basic account of the dream but lacks significant descriptive detail in terms of actions, character behavior, or plot progression. |
+| 3 (Moderate)         | Your capture provides a reasonably detailed account of the main events and characters, with some descriptive language used. |
+| 4 (Detailed)         | Your capture includes a significant level of descriptive detail, bringing the dream narrative and its elements to life with more thorough explanations and imagery. |
+| 5 (Highly Elaborate) | Your capture is very rich in detail, using vivid language to describe the events, characters, their motivations (if perceived), and the overall unfolding of the dream narrative. |
+
+#### Character Roles (Score 1-5)
+This metric tracks the presence and significance of all individuals (both familiar and unfamiliar) appearing in your dream's narrative.
+
+| Score                | Description |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (None)             | No characters appear in the dream. |
+| 2 (Background)       | Characters appear but only in minor or background roles. |
+| 3 (Supporting)       | Characters play supporting roles in the dream narrative. |
+| 4 (Major)            | Characters are central to the dream's events or narrative. |
+| 5 (Dominant)         | The dream is primarily about or dominated by interactions with characters. |
+
+#### Character Clarity/Familiarity (Score 1-5)
+This metric assesses the distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream.
+
+| Score                     | Description |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Indistinct/Absent)     | No characters were recalled, or any perceived characters were entirely formless, shadowy, or too indistinct to even categorize as familiar or unfamiliar. |
+| 2 (Vague Presence)        | Characters were present but highly blurred, featureless, or rapidly shifting. You had a sense of their presence but couldn't make out details or their identity clearly. |
+| 3 (Partially Discernible) | Characters were somewhat discernible; you might have caught glimpses of features or had a vague sense of their identity (e.g., "a man," "a child") but lacked clear details or certainty. |
+| 4 (Clearly Recognized)    | Characters were clearly perceived, and their features/identity were distinct enough to recognize, even if they were unfamiliar. For familiar characters, you recognized them without doubt. |
+| 5 (Vivid & Defined)       | Characters appeared with exceptional clarity and detail, almost as if seen in waking life. Their features, expressions, and presence were sharply defined and fully formed in your recall. |
+
+#### Confidence Score (Score 1-5)
+This is a subjective metric reflecting your overall sense of how complete and accurate your dream recall feels immediately after waking. It's your gut feeling about how much of the dream you've managed to retrieve.
+
+| Score         | Description |
+| ------------- | ----------- |
+| 1 (Very Low)  | You feel like you've barely scratched the surface of the dream, remembering only a tiny fragment or a fleeting feeling. You suspect you've forgotten a significant portion. |
+| 2 (Low)       | You recall a bit more, but you still feel like a substantial part of the dream is lost. The recall feels fragmented and incomplete. |
+| 3 (Moderate)  | You feel like you've recalled a fair amount of the dream, perhaps the main storyline, but there might be some fuzzy areas or details you're unsure about. |
+| 4 (High)      | You feel like you've recalled the majority of the dream with a good level of detail and coherence. You feel relatively confident in the accuracy of your memory. |
+| 5 (Very High) | You feel like you've recalled the entire dream in vivid detail and with strong confidence in the accuracy and completeness of your memory. You don't have a sense of significant missing parts. |
+
+---
+
+### Optional Metrics
+
+(See plugin documentation for full details.)
+
+### Characters Count
+This metric represents the total number of characters in your dream. It is automatically calculated as the sum of Familiar Count and Unfamiliar Count.
+
+### Familiar Count
+This metric tracks the number of characters you know from your waking life that appear in the dream. This includes people, pets, or any other familiar beings.
+
+### Unfamiliar Count
+This metric tracks the number of characters you don't know from your waking life that appear in the dream. This includes strangers, fictional characters, or any other unfamiliar beings.
+
+### Characters List
+This metric allows you to list all characters that appeared in your dream. You can add multiple entries, one per line. For example:
+\`\`\`markdown
+Mom
+Dad
+My dog Max
+A stranger in a red coat
+\`\`\`
+
+### Dream Theme (Categorical/Keywords)
+This metric aims to identify the dominant subjects, ideas, or emotional undercurrents present in your dream. Instead of a numerical score, you will select one or more keywords or categories that best represent the core themes of the dream.
+
+*Possible Categories/Keywords (Examples - User-definable list in plugin recommended):*
+Travel/Journey, Conflict/Argument, Learning/Discovery, Loss/Grief, Joy/Happiness, Fear/Anxiety, Absurdity/Surrealism, Creativity/Inspiration, Relationship Dynamics, Work/Career, Health/Illness, Nostalgia/Past, Technology, Nature/Environment, Spiritual/Mystical, Transformation, Communication, Power/Control, Vulnerability
+
+### Lucidity Level (Score 1-5)
+This metric tracks your degree of awareness that you are dreaming while the dream is in progress.
+
+* 1 (Non-Lucid): You have no awareness that you are dreaming.
+* 2 (Faint Awareness): You might have a fleeting thought or a vague feeling that something is unusual or dreamlike, but this awareness doesn't solidify into the certainty that you are dreaming.
+* 3 (Clear Awareness): You become clearly aware that you are dreaming. However, your ability to control or influence the dream environment and events might be limited. You are an observer who knows it's a dream.
+* 4 (Moderate Control): You are aware that you are dreaming and can actively influence some aspects of the dream, such as your own actions, the environment to a limited extent, or the course of the narrative.
+* 5 (High Lucidity): You have a strong and stable awareness that you are dreaming and possess a significant degree of control over the dream environment, characters, and events.
+
+### Dream Coherence (Score 1-5)
+This metric assesses the logical consistency and narrative flow of your dream.
+
+* 1 (Incoherent): The dream is fragmented, disjointed, and nonsensical.
+* 2 (Loosely Connected): Some elements or scenes might have a vague or thematic relationship, but the overall narrative lacks a clear and logical progression.
+* 3 (Moderately Coherent): The dream has a discernible narrative thread, but it may contain illogical elements, inconsistencies in character behavior or setting, or sudden, unexplained shifts in the storyline.
+* 4 (Mostly Coherent): The dream generally follows a logical progression with a relatively consistent narrative, characters, and settings. Any illogical elements are minor or don't significantly disrupt the overall sense of a somewhat realistic (albeit dreamlike) experience.
+* 5 (Highly Coherent): The dream feels like a consistent and logical experience, even if the content is surreal or fantastical.
+
+### Environmental Familiarity (Score 1-5)
+This metric tracks the degree to which the locations and environments in your dream are recognizable from your waking life.
+
+* 1 (Completely Unfamiliar): All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.
+* 2 (Vaguely Familiar): You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories.
+* 3 (Partially Familiar): The dream settings are a blend of recognizable and unfamiliar elements.
+* 4 (Mostly Familiar): The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.
+* 5 (Completely Familiar): All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.
+
+### Ease of Recall (Score 1-5)
+This metric assesses how readily and effortlessly you can remember the dream upon waking.
+
+* 1 (Very Difficult): You wake up with little to no memory of having dreamed.
+* 2 (Difficult): You remember a few isolated images, emotions, or very brief snippets of the dream, but the overall narrative is elusive and hard to piece together.
+* 3 (Moderate): You can recall the basic outline or a few key scenes of the dream with a reasonable amount of effort.
+* 4 (Easy): You remember the dream relatively clearly and can recount a significant portion of the narrative and details without much difficulty.
+* 5 (Very Easy): The dream is vividly and immediately present in your memory upon waking.
+
+### Recall Stability (Score 1-5)
+This metric assesses how well your memory of the dream holds up in the minutes immediately following waking.
+
+* 1 (Rapidly Fading): The dream memory begins to dissipate almost instantly upon waking.
+* 2 (Significant Fading): You can recall a fair amount initially, but key details and the overall narrative structure fade noticeably within the first 10-15 minutes after waking, making it difficult to reconstruct the full dream later.
+* 3 (Moderate Fading): Some details and less significant parts of the dream might fade within the first 15-30 minutes, but the core narrative and key events remain relatively intact.
+* 4 (Mostly Stable): Your recall of the dream remains largely consistent for at least 30 minutes after waking.
+* 5 (Very Stable): The memory of the dream feels solid and enduring in the immediate post-waking period.`;
         const descDiv = contentEl.createEl('div');
         MarkdownRenderer.renderMarkdown(allMetricsMarkdown, descDiv, this.plugin.app.vault.getAbstractFileByPath('') as any, this.plugin);
         // Inject Lucide icons into headings
@@ -1845,7 +1995,8 @@ class MetricsDescriptionsModal extends Modal {
             'Sensory Detail': 'eye',
             'Emotional Recall': 'heart',
             'Descriptiveness': 'pen-tool',
-            'Characters Role': 'user-cog',
+            'Character Roles': 'user-cog',
+            'Character Clarity/Familiarity': 'glasses',
             'Confidence Score': 'check-circle',
             'Characters Count': 'users',
             'Familiar Count': 'user-check',
@@ -1854,7 +2005,7 @@ class MetricsDescriptionsModal extends Modal {
             'Dream Theme': 'sparkles',
             'Lucidity Level': 'wand-2',
             'Dream Coherence': 'link',
-            'Setting Familiarity': 'glasses',
+            'Environmental Familiarity': 'glasses',
             'Ease of Recall': 'zap',
             'Recall Stability': 'layers'
         };
