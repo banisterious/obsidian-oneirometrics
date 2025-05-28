@@ -10,6 +10,7 @@ import { LogLevel } from '../../types/logging';
 import { App } from 'obsidian';
 import safeLogger from '../../logging/safe-logger';
 import { registerService, SERVICE_NAMES } from '../ServiceRegistry';
+import { debug, error } from '../../logging';
 
 /**
  * Adapter for converting between different settings formats and ensuring
@@ -32,8 +33,8 @@ export class SettingsAdapter {
     
     try {
       safeLogger.debug('SettingsAdapter', 'Settings adapter created');
-    } catch (error) {
-      console.debug('Settings adapter created');
+    } catch (err) {
+      debug('SettingsAdapter', 'Settings adapter created');
     }
   }
 
@@ -337,12 +338,16 @@ export class SettingsAdapter {
    * @param settings The new settings
    */
   public updateSettings(settings: Partial<DreamMetricsSettings>): void {
-    this.settings = { ...this.settings, ...settings };
+    // Update settings with new values
+    Object.assign(this._legacySettings, settings);
+    
+    // Regenerate core settings
+    this.settings = this.toCoreSettings();
     
     try {
       safeLogger.debug('SettingsAdapter', 'Settings updated');
-    } catch (error) {
-      console.debug('Settings updated');
+    } catch (err) {
+      debug('SettingsAdapter', 'Settings updated');
     }
   }
   
@@ -371,31 +376,20 @@ export class SettingsAdapter {
    * @param plugin The plugin instance
    */
   public async saveSettings(plugin: any): Promise<void> {
-    if (!plugin && this.app) {
-      // Try to get plugin from app
-      try {
-        const plugins = (this.app as any).plugins;
-        if (plugins && plugins.plugins) {
-          plugin = plugins.plugins.dreamMetrics || plugins.plugins.oneirometrics;
-        }
-      } catch (e) {
-        // Ignore errors when trying to find the plugin
-      }
-    }
-    
     if (plugin && typeof plugin.saveData === 'function') {
-      await plugin.saveData(this.settings);
+      // Save the settings to disk
+      await plugin.saveData(this._legacySettings);
       
       try {
         safeLogger.debug('SettingsAdapter', 'Settings saved to disk');
-      } catch (error) {
-        console.debug('Settings saved to disk');
+      } catch (err) {
+        debug('SettingsAdapter', 'Settings saved to disk');
       }
     } else {
       try {
         safeLogger.error('SettingsAdapter', 'Cannot save settings, invalid plugin instance');
-      } catch (error) {
-        console.error('Cannot save settings, invalid plugin instance');
+      } catch (err) {
+        error('SettingsAdapter', 'Cannot save settings, invalid plugin instance');
       }
     }
   }
