@@ -3378,9 +3378,27 @@ Applied: ${new Date().toLocaleTimeString()}`;
      * Opens the settings tab and shows a notice prompting the user to click "View Metrics Descriptions"
      */
     public openMetricsDescriptionsModal(): void {
-        (this.app as any).setting.open();
-        (this.app as any).setting.openTabById('oneirometrics');
-        new Notice('Click on "View Metrics Descriptions" in the settings panel');
+        try {
+            // Import the modal from our refactored module
+            const { MetricsDescriptionsModal } = require('./src/dom/modals');
+            
+            // Create and open the modal
+            new MetricsDescriptionsModal(this.app, this).open();
+            
+            // Log for debugging
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('UI', 'Opened metrics descriptions modal');
+            }
+        } catch (error) {
+            // Fallback to the old method if there's an error
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].error('UI', 'Error opening metrics descriptions modal, using fallback', error);
+            }
+            
+            (this.app as any).setting.open();
+            (this.app as any).setting.openTabById('oneirometrics');
+            new Notice('Click on "View Metrics Descriptions" in the settings panel');
+        }
     }
 
     /**

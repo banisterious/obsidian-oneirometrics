@@ -598,6 +598,29 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
                     await this.plugin.saveSettings();
                 }));
+                
+        // Metrics Callout Customizations Button
+        new Setting(containerEl)
+            .setName('Metrics Callout Customizations')
+            .setDesc('Customize the appearance and structure of the metrics callout')
+            .addButton(button => {
+                button.setButtonText('Customize Callout')
+                    .onClick(() => {
+                        try {
+                            // Import the modal from our refactored module
+                            const { MetricsCalloutCustomizationsModal } = require('./src/dom/modals');
+                            
+                            // Create and open the modal
+                            new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
+                        } catch (error) {
+                            // Fallback to the old method if there's an error
+                            console.error('Error opening metrics callout customizations modal:', error);
+                            
+                            // Use the class from settings.ts as fallback
+                            new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
+                        }
+                    });
+            });
 
         // Add section border after basic settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
