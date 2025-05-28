@@ -1,158 +1,153 @@
+/**
+ * LoggingPluginAdapter - Compatibility layer for the old logging system
+ * 
+ * This adapter provides compatibility with the old logging system,
+ * forwarding calls to the new system.
+ */
+
 import { App, Notice } from 'obsidian';
-import { LogLevel, LoggerConfig } from './LoggingInterfaces';
-import { LoggingService } from './LoggingService';
-import { Logger as LegacyLogger } from '../../utils/logger';
+import { 
+  LogLevel, 
+  ErrorContext,
+  EnrichedError
+} from './LoggerTypes';
+import { Logger } from './core/Logger';
+import { LogManager } from './core/LogManager';
+import { getLogger } from './index';
 
 /**
- * Adapter class that bridges the old Logger implementation and the new LoggingService.
- * This allows us to gradually transition to the new implementation while maintaining
- * backward compatibility with the existing codebase.
+ * Legacy adapter class to maintain compatibility
+ * with existing code using the old logging system.
  */
 export class LoggingAdapter {
-    private loggingService: LoggingService;
-    private legacyLogger: LegacyLogger;
+    // Properties to match the old interface
+    logLevel: LogLevel = 'info';
+    logFile: string = '';
+    maxSize: number = 0;
+    maxBackups: number = 0;
     
-    // Expose the same properties as the legacy Logger
-    logLevel: LogLevel = 'off';
-    logFile: string = 'oom-debug-log.txt';
-    maxLogSize: number = 1024 * 1024; // 1MB
-    maxBackups: number = 5;
+    // Reference to the new logger
+    private logger: Logger;
     
     /**
-     * Create a new LoggingAdapter instance.
-     * @param app The Obsidian app instance
+     * Create a new adapter
      */
-    constructor(app: App) {
-        this.loggingService = LoggingService.getInstance(app);
-        this.legacyLogger = LegacyLogger.getInstance(app);
+    constructor(name: string = 'LegacyAdapter') {
+        this.logger = LogManager.getInstance().getLogger(name) as Logger;
     }
     
     /**
-     * Configure the logger with the specified settings.
-     * @param level The log level
-     * @param maxLogSize Maximum log file size before rotation
-     * @param maxBackups Maximum number of log backups to keep
+     * Configure the logger with the specified settings
      */
-    configure(level: LogLevel, maxLogSize: number = 1024 * 1024, maxBackups: number = 5) {
-        // Configure legacy logger for backward compatibility
-        this.legacyLogger.configure(level, maxLogSize, maxBackups);
-        
-        // Configure new logging service
+    configure(level: LogLevel, maxSize: number = 0, maxBackups: number = 0): void {
         this.logLevel = level;
-        this.maxLogSize = maxLogSize;
+        this.maxSize = maxSize;
         this.maxBackups = maxBackups;
         
-        this.loggingService.configure({
+        // Update the configuration in the log manager
+        LogManager.getInstance().configure({
             level: level,
-            maxLogSize: maxLogSize,
+            maxSize: maxSize,
             maxBackups: maxBackups
         });
     }
     
     /**
-     * Log a message at the specified level.
-     * @param category The logging category
-     * @param message The message to log
-     * @param data Optional data to include in the log
+     * Alternative configure method
      */
-    log(category: string, message: string, data?: any) {
-        // Log using both systems
-        this.legacyLogger.log(category, message, data);
-        this.loggingService.info(category, message, data); // Use info level as default
-    }
-    
-    /**
-     * Log an error message.
-     * @param category The logging category
-     * @param message The error message
-     * @param error Optional error object or data
-     */
-    error(category: string, message: string, error?: any) {
-        // Log error using both systems
-        this.legacyLogger.error(category, message, error);
-        this.loggingService.error(category, message, error);
-    }
-    
-    /**
-     * Log a warning message.
-     * @param category The logging category
-     * @param message The warning message
-     * @param data Optional data to include in the log
-     */
-    warn(category: string, message: string, data?: any) {
-        // Log warning using both systems
-        this.legacyLogger.warn(category, message, data);
-        this.loggingService.warn(category, message, data);
-    }
-    
-    /**
-     * Log an info message.
-     * @param category The logging category
-     * @param message The info message
-     * @param data Optional data to include in the log
-     */
-    info(category: string, message: string, data?: any) {
-        // Log info message using both systems
-        this.legacyLogger.log(category, message, data); // Legacy logger doesn't have info level
-        this.loggingService.info(category, message, data);
-    }
-    
-    /**
-     * Log a debug message.
-     * @param category The logging category
-     * @param message The debug message
-     * @param data Optional data to include in the log
-     */
-    debug(category: string, message: string, data?: any) {
-        // Log debug message using both systems
-        this.legacyLogger.log(category, message, data); // Legacy logger doesn't have debug level
-        this.loggingService.debug(category, message, data);
-    }
-    
-    /**
-     * Log a trace message.
-     * @param category The logging category
-     * @param message The trace message
-     * @param data Optional data to include in the log
-     */
-    trace(category: string, message: string, data?: any) {
-        // Log trace message (only in new logger since legacy doesn't support it)
-        this.legacyLogger.log(category, message, data); // Use regular log for legacy
-        this.loggingService.trace(category, message, data);
-    }
-    
-    /**
-     * Enrich an error with context information.
-     * @param error The error to enrich
-     * @param context The context information
-     * @returns The enriched error
-     */
-    enrichError(error: Error, context: {component: string, operation: string, metadata?: Record<string, any>}): Error {
-        // Create enriched error (this is a new feature only available in the new logger)
-        const enrichedError = new Error(error.message);
-        enrichedError.name = error.name;
-        enrichedError.stack = error.stack;
-        (enrichedError as any).context = {
-            ...context,
-            timestamp: Date.now()
-        };
-        (enrichedError as any).originalError = error;
+    configureWithOptions(config: {
+        level: LogLevel;
+        maxLogSize?: number;
+        maxSize?: number;
+        maxBackups?: number;
+        logFilePath?: string;
+    }): void {
+        this.logLevel = config.level;
+        this.maxSize = config.maxSize || 0;
+        this.maxBackups = config.maxBackups || 0;
+        this.logFile = config.logFilePath || '';
         
-        return enrichedError;
+        // Update the configuration in the log manager
+        LogManager.getInstance().configure({
+            level: config.level,
+            maxSize: config.maxSize,
+            maxBackups: config.maxBackups,
+            logFilePath: config.logFilePath,
+            enableFile: !!config.logFilePath
+        });
     }
     
     /**
-     * Wrap an error with a new message and context.
-     * @param originalError The original error
-     * @param message The new error message
-     * @param context The context information
-     * @returns The wrapped error
+     * Log a message (generic method)
      */
-    wrapError(originalError: Error, message: string, context: {component: string, operation: string, metadata?: Record<string, any>}): Error {
-        // Create wrapped error (this is a new feature only available in the new logger)
-        const wrappedError = this.enrichError(new Error(message), context);
-        (wrappedError as any).originalError = originalError;
+    log(category: string, message: string, data?: any): void {
+        this.logger.debug(category, message, data);
+    }
+    
+    /**
+     * Log an error message
+     */
+    error(category: string, message: string, error?: any): void {
+        this.logger.error(category, message, error);
+    }
+    
+    /**
+     * Log a warning message
+     */
+    warn(category: string, message: string, data?: any): void {
+        this.logger.warn(category, message, data);
+    }
+    
+    /**
+     * Log an info message
+     */
+    info(category: string, message: string, data?: any): void {
+        this.logger.info(category, message, data);
+    }
+    
+    /**
+     * Log a debug message
+     */
+    debug(category: string, message: string, data?: any): void {
+        this.logger.debug(category, message, data);
+    }
+    
+    /**
+     * Log a trace message
+     */
+    trace(category: string, message: string, data?: any): void {
+        this.logger.trace(category, message, data);
+    }
+    
+    /**
+     * Enrich an error with context information
+     */
+    enrichError(error: Error, context: Partial<ErrorContext>): EnrichedError {
+        return this.logger.enrichError(error, context);
+    }
+    
+    /**
+     * Wrap an error with a new message and context
+     */
+    wrapError(originalError: Error, message: string, context: Partial<ErrorContext>): EnrichedError {
+        return this.logger.wrapError(originalError, message, context);
+    }
+    
+    /**
+     * Factory method to get a global logger instance
+     */
+    static getGlobalLogger(): LoggingAdapter {
+        if (typeof window !== 'undefined' && (window as any).globalLogger) {
+            return (window as any).globalLogger;
+        }
         
-        return wrappedError;
+        const adapter = new LoggingAdapter('GlobalAdapter');
+        
+        // Store on window for global access
+        if (typeof window !== 'undefined') {
+            (window as any).globalLogger = adapter;
+        }
+        
+        return adapter;
     }
 } 
