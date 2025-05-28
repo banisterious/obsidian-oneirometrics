@@ -16,6 +16,11 @@ import { DOMComponent } from './NullDOM';
 import { EventBus } from '../events/EventBus';
 import safeLogger from '../logging/safe-logger';
 
+// Add id to the interface or augment DreamMetricData with an optional id property
+interface EnhancedDreamMetricData extends DreamMetricData {
+  id?: string;
+}
+
 export class SafeDreamMetricsDOM implements DOMComponent {
   // Core dependencies
   private container: HTMLElement;
@@ -327,27 +332,27 @@ export class SafeDreamMetricsDOM implements DOMComponent {
   private renderTableBody = withErrorHandling(
     (table: HTMLElement): void => {
       // Create or get existing tbody
-      let tbody = table.querySelector('tbody');
+      let tbody = table.querySelector('tbody') as HTMLTableSectionElement;
       if (tbody) {
-        this.domSafetyGuard.clearElement(tbody as HTMLElement);
+        this.domSafetyGuard.clearElement(tbody);
       } else {
-        tbody = this.domSafetyGuard.createElement('tbody', {
-          parent: table
-        });
+        // Use document.createElement to specifically create a tbody element
+        tbody = document.createElement('tbody');
+        table.appendChild(tbody);
       }
       
       const entries = this.state.getDreamEntries();
       const totalRows = entries.length;
       
       if (totalRows === 0) {
-        this.renderEmptyState(tbody as HTMLElement);
+        this.renderEmptyState(tbody);
         return;
       }
       
       // Create a container for virtualized rows
       const rowsContainer = this.domSafetyGuard.createElement('div', {
         className: 'oom-virtualized-rows-container',
-        parent: tbody as HTMLElement
+        parent: tbody
       });
       
       // Set height for the total scrollable area
@@ -423,11 +428,10 @@ export class SafeDreamMetricsDOM implements DOMComponent {
               // Only update if we've scrolled at least one row
               if (newStartIdx !== currentStartIdx) {
                 currentStartIdx = newStartIdx;
-                this.renderVisibleRows(
-                  container.querySelector('.oom-virtualized-rows-container') as HTMLElement, 
-                  entries, 
-                  currentStartIdx
-                );
+                const rowsContainer = container.querySelector('.oom-virtualized-rows-container') as HTMLElement;
+                if (rowsContainer) {
+                  this.renderVisibleRows(rowsContainer, entries, currentStartIdx);
+                }
               }
               
               isScrolling = false;
@@ -451,6 +455,15 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       onError: (error) => safeLogger.error('DOM', 'Error setting up scroll handler', error)
     }
   );
+  
+  /**
+   * Generate a unique ID for an entry
+   */
+  private getEntryId(entry: DreamMetricData, index: number): string {
+    // Use entry.id if available, otherwise generate a unique ID
+    return (entry as EnhancedDreamMetricData).id || 
+           `entry-${entry.date || 'unknown'}-${entry.title || index}`;
+  }
   
   /**
    * Renders visible rows for virtualization
@@ -480,11 +493,14 @@ export class SafeDreamMetricsDOM implements DOMComponent {
           row.style.width = '100%';
           row.style.height = `${this.ROW_HEIGHT}px`;
           
+          // Generate a unique ID for the entry
+          const entryId = this.getEntryId(entry, i);
+          
           // Set data attributes
-          row.setAttribute('data-entry-id', entry.id || `entry-${i}`);
+          row.setAttribute('data-entry-id', entryId);
           
           // Render row cells
-          this.renderRowCells(row, entry);
+          this.renderRowCells(row, entry, entryId);
         } catch (error) {
           safeLogger.error('DOM', `Error rendering row at index ${i}`, error);
           // Continue with next row to avoid complete failure
@@ -502,7 +518,7 @@ export class SafeDreamMetricsDOM implements DOMComponent {
    * Renders cells for a single row
    */
   private renderRowCells = withErrorHandling(
-    (row: HTMLElement, entry: DreamMetricData): void => {
+    (row: HTMLElement, entry: DreamMetricData, entryId: string): void => {
       // Date cell
       const dateCell = this.domSafetyGuard.createElement('div', {
         className: 'oom-cell oom-date-cell',
@@ -534,7 +550,7 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       wordCountCell.textContent = String(entry.wordCount || 0);
       
       // Content cell with expand/collapse
-      this.renderContentCell(row, entry);
+      this.renderContentCell(row, entry, entryId);
       
       // Metric cells
       const metrics = this.state.getMetrics();
@@ -559,7 +575,7 @@ export class SafeDreamMetricsDOM implements DOMComponent {
    * Renders content cell with expand/collapse functionality
    */
   private renderContentCell = withErrorHandling(
-    (row: HTMLElement, entry: DreamMetricData): void => {
+    (row: HTMLElement, entry: DreamMetricData, entryId: string): void => {
       const contentCell = this.domSafetyGuard.createElement('div', {
         className: 'oom-cell oom-content-cell',
         parent: row
@@ -570,7 +586,6 @@ export class SafeDreamMetricsDOM implements DOMComponent {
         parent: contentCell
       });
       
-      const entryId = entry.id || `entry-${entry.date}-${entry.title}`;
       const isExpanded = this.expandedRows.has(entryId);
       
       // Preview content (always visible)
@@ -646,7 +661,7 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       // Update content visibility
       const row = button.closest('.oom-dream-row');
       if (row) {
-        const contentFull = row.querySelector('.oom-content-full');
+        const contentFull = row.querySelector('.oom-content-full') as HTMLElement;
         if (contentFull) {
           contentFull.style.display = newExpandedState ? 'block' : 'none';
         }
@@ -687,7 +702,7 @@ export class SafeDreamMetricsDOM implements DOMComponent {
         // Find and update content visibility
         const row = button.closest('.oom-dream-row');
         if (row) {
-          const contentFull = row.querySelector('.oom-content-full');
+          const contentFull = row.querySelector('.oom-content-full') as HTMLElement;
           if (contentFull) {
             contentFull.style.display = isExpanded ? 'block' : 'none';
           }
@@ -745,7 +760,52 @@ export class SafeDreamMetricsDOM implements DOMComponent {
    */
   public applyDateRangeFilter(dateRange: { start: string, end: string }): void {
     try {
-      this.dateRangeFilter.applyCustomDateRangeFilter(dateRange);
+      // Since we can't directly access the DateRangeFilter's private methods,
+      // we'll implement our own filtering logic directly with the state
+      
+      // Convert string dates to Date objects
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      
+      // Get all entries from state
+      const allEntries = this.state.getDreamEntries();
+      
+      // Filter entries based on date range
+      const filteredEntries = allEntries.filter(entry => {
+        if (!entry.date) return false;
+        
+        try {
+          const entryDate = new Date(entry.date);
+          
+          // Start date check
+          if (entryDate < startDate) {
+            return false;
+          }
+          
+          // End date check (inclusive of the end date)
+          const endOfDay = new Date(endDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          
+          if (entryDate > endOfDay) {
+            return false;
+          }
+          
+          return true;
+        } catch (error) {
+          safeLogger.error('DOM', `Error filtering entry by date: ${entry.date}`, error);
+          return false;
+        }
+      });
+      
+      // Update the state with filtered entries
+      this.state.updateDreamEntries(filteredEntries);
+      
+      // Log filtering stats
+      safeLogger.debug('DOM', 'Date filter applied', {
+        totalEntries: allEntries.length,
+        filteredEntries: filteredEntries.length
+      });
+      
       this.safeUpdate();
     } catch (error) {
       safeLogger.error('DOM', 'Error applying date range filter', error);
