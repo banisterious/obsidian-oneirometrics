@@ -15,8 +15,7 @@ import {
   getServiceRegistry, 
   registerService, 
   getService, 
-  SERVICE_NAMES, 
-  registerSettings 
+  SERVICE_NAMES 
 } from './src/state/ServiceRegistry';
 
 // Import log viewer UI components
@@ -27,24 +26,19 @@ import {
   App, 
   Editor, 
   FileSystemAdapter, 
-  FileView, 
   MarkdownView, 
-  Menu,
   MetadataCache, 
   Modal, 
   Notice, 
   Plugin, 
-  Scope, 
   Setting, 
   TFile, 
   TFolder, 
   Vault, 
-  WorkspaceLeaf, 
   parseYaml,
   parseFrontMatterEntry,
   parseFrontMatterTags,
   MarkdownRenderer,
-  ButtonComponent,
   MarkdownPreviewView,
   PluginSettingTab,
   addIcon
@@ -52,20 +46,8 @@ import {
 
 // External libraries
 import { 
-  format, 
-  startOfDay, 
-  endOfDay, 
-  addMonths, 
-  subMonths, 
-  subDays, 
-  subWeeks,
-  addDays,
-  isAfter,
-  isBefore,
-  isWithinInterval,
-  parse,
-  isValid,
-  formatISO
+  format,
+  addDays
 } from 'date-fns';
 
 // Internal imports - Types
@@ -157,7 +139,7 @@ import {
     DATE_NAVIGATOR_VIEW_TYPE,
     DateNavigatorIntegration
 } from './src/dom/date-navigator';
-import { FilterUI, DateRangeService } from './src/dom/filters';
+import { DateRangeService } from './src/dom/filters';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
 import { 
@@ -173,6 +155,12 @@ import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
 import { TimeFilterManager } from './src/timeFilters';
 import { DreamMetricsState } from './src/state/DreamMetricsState';
 
+import { ContentParser } from './src/parsing/services/ContentParser';
+import { DateUtilsTestModal } from './src/testing/utils/DateUtilsTestModal';
+
+// Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
+import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
+
 // Add near the top with other imports
 import { runSettingsHelpersTests } from './src/testing/utils/SettingsHelpersTests';
 import { runMetricHelpersTests } from './src/testing/utils/MetricHelpersTests';
@@ -180,15 +168,10 @@ import { runSelectionModeHelperTests } from './src/testing/utils/SelectionModeHe
 import { runTypeGuardsTests } from './src/testing/utils/TypeGuardsTests';
 import { runPropertyHelpersTests } from './src/testing/utils/PropertyHelpersTests';
 import { runContentParserParameterTests } from './src/testing/run-content-parser-tests';
-import { ContentParser } from './src/parsing/services/ContentParser';
 import { runSettingsAdapterTests } from './src/testing/utils/SettingsAdapterTests';
 import { runEventHandlingTests } from './src/testing/utils/EventHandlingTests';
 import { runComponentFactoryTests } from './src/testing/utils/ComponentFactoryTests';
 import { runDreamMetricsStateTests } from './src/testing/DreamMetricsStateTests';
-import { DateUtilsTestModal } from './src/testing/utils/DateUtilsTestModal';
-
-// Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
-import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
