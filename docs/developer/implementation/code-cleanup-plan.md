@@ -576,3 +576,125 @@ The dead code elimination phase will be considered successful when:
    - ✅ Created detailed main.ts refactoring plan
    - ✅ Updated progress tracking in code-cleanup-plan.md
    - Planned: Update CHANGELOG.md with user-visible changes 
+
+## Cleanup Tracking
+
+This section tracks cleanup items identified by our utility scripts in the `utils/` folder.
+
+### Console.log Statements
+
+| File | Line | Type | Status | Assignee | Notes |
+|------|------|------|--------|----------|-------|
+| main.ts | 342 | console.debug | Pending | | DreamMetricsPlugin: Initializing plugin... |
+| main.ts | 447 | console.error | Pending | | Error initializing Service Registry |
+| main.ts | 538 | console.warn | Pending | | Settings not initialized yet, deferring filter application |
+| main.ts | 1270 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (first attempt) |
+| main.ts | 1275 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (second attempt) |
+| main.ts | 1280 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (final attempt) |
+| main.ts | 1291 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (no changes) |
+| main.ts | 1666 | console.error | Pending | | [OOM-ERROR] Entry missing date attribute: |
+| main.ts | 2638 | console.error | Pending | | Failed to save content visibility state |
+| main.ts | 2641 | console.error | Pending | | Error updating content visibility |
+| main.ts | 2811 | console.error | Pending | | Error processing Templater template |
+| main.ts | 3154 | console.warn | Pending | | Settings not initialized in applyInitialFilters |
+| main.ts | 3178 | console.error | Pending | | Error in applyInitialFilters initialization |
+| main.ts | 3198 | console.error | Pending | | Failed to save recovered filter |
+| main.ts | 3203 | console.error | Pending | | Error recovering filter from localStorage |
+| main.ts | 3216 | console.error | Pending | | Error copying customDateRange from settings |
+| main.ts | 3238 | console.error | Pending | | Failed to save recovered custom range |
+| main.ts | 3247 | console.error | Pending | | Error recovering custom date range |
+| main.ts | 3272 | console.error | Pending | | Error checking project note |
+| settings.ts | 617 | console.error | Pending | | Error opening metrics callout customizations modal |
+| settings.ts | 761 | console.log | Pending | | [Backup Folder] all folders |
+| settings.ts | 762 | console.log | Pending | | [Backup Folder] filtered folders |
+| settings.ts | 1032 | console.log | Pending | | Metrics found in settings |
+| settings.ts | 1033 | console.log | Pending | | Enabled metrics |
+| settings.ts | 1034 | console.log | Pending | | Disabled metrics |
+| settings.ts | 1193 | console.log | Pending | | [Backup Folder] all folders |
+| settings.ts | 1194 | console.log | Pending | | [Backup Folder] filtered folders |
+
+#### Console.log Statistics
+
+- Total files with console statements: 33
+- Total console statements: 141
+- By type: console.log (77), console.warn (10), console.error (49), console.info (2), console.debug (3)
+
+#### Notable Console.log Files:
+- main.ts: 19 statements
+- settings.ts: 7 statements
+- src/testing/EdgeCaseTests.ts: 14 statements
+- src/testing/utils/TypeGuardsTests.ts: 6 statements
+- src/testing/TestRunner.ts: 6 statements
+- src/logging/adapters/ConsoleAdapter.ts: 7 statements
+- src/logging/safe-logger.ts: 7 statements
+
+*Note: For the complete list, run `.\utils\find-console-logs.ps1`*
+
+### Commented Code Blocks
+
+We found primarily documentation comments related to TypeScript interfaces rather than commented-out code blocks. The commented-code analysis should be run again with adjusted parameters to better identify actual code blocks.
+
+| File | Lines | Type | Status | Assignee | Notes |
+|------|-------|------|--------|----------|-------|
+| src/journal_check/types.ts | 1-4 | Multi-line | Pending | | Deprecation notice for types file |
+| src/types.ts | 1-4 | Multi-line | Pending | | Deprecation notice for types file |
+| main.ts | 3820-3824 | Multi-line | Pending | | Debug function accessible from console |
+
+#### Commented Code Statistics
+
+- Most comments are properly formatted TypeScript documentation (JSDoc style)
+- 3 deprecation notices for files being phased out
+- Several commented-out code snippets that appear to be examples rather than dead code
+
+*Note: Run `.\utils\find-commented-code.ps1` for the complete list*
+
+### Outdated TODOs
+
+No TODOs were found in the codebase during our scan. This suggests that the team has been diligent about addressing TODOs as part of the refactoring process.
+
+*Note: Run `.\utils\find-outdated-todos.ps1` to verify*
+
+### Unused Imports
+
+| File | Line | Import | Status | Assignee | Notes |
+|------|------|--------|--------|----------|-------|
+| src/dom/content/ContentToggler.ts | 10 | import safeLogger from '../../logging/safe-logger' | Pending | | |
+| src/dom/filters/FilterUI.ts | 8 | import { App, Notice, TFile } from 'obsidian' | Pending | | TFile not used |
+| src/dom/filters/FilterUI.ts | 11 | import safeLogger from '../../logging/safe-logger' | Pending | | |
+| src/dom/modals/CustomDateRangeModal.ts | 9 | import safeLogger from '../../logging/safe-logger' | Pending | | |
+| src/events/FilterEvents.ts | 10 | import safeLogger from '../logging/safe-logger' | Pending | | |
+| src/events/ProjectNoteEvents.ts | 10 | import safeLogger from '../logging/safe-logger' | Pending | | |
+| src/metrics/MetricsProcessor.ts | 14 | import safeLogger from '../logging/safe-logger' | Pending | | |
+| main.ts | 152 | import { CustomDateRangeModal } from './src/dom/modals' | Pending | | |
+| main.ts | 160 | import { FilterUI, DateRangeService } from './src/dom/filters' | Pending | | FilterUI not used |
+
+#### Unused Imports Statistics
+
+- Total files with unused imports: 60
+- Total potentially unused imports: 116
+- 9 instances of unused safeLogger import across different files
+- 7 instances of unused App from 'obsidian'
+- 5 instances of unused TFile from 'obsidian'
+
+#### Notable Files with Unused Imports:
+- main.ts: 8 unused imports
+- src/dom/DreamMetricsDOM.ts: 5 unused imports
+- src/journal_check/ui/DreamJournalManager.ts: 5 unused imports
+- src/dom/date-navigator/DateNavigator.ts: 4 unused imports
+- src/metrics/MetricsProcessor.ts: 4 unused imports
+
+*Note: For the complete list, run `.\utils\find-unused-imports.ps1`*
+
+## Cleanup Process
+
+To update the status of items in these tracking tables:
+
+1. Identify a batch of related items to clean up (e.g., console.log statements in a specific file)
+2. Update the "Status" column to "In Progress" and add your name to "Assignee"
+3. Make the necessary code changes
+4. Test thoroughly
+5. Commit changes with a message following the format: `cleanup: [area] - [specific change]`
+6. Update the "Status" column to "Complete" with the date
+7. Run the relevant script again to ensure the items were properly addressed
+
+This systematic approach will help ensure that no cleanup items are missed and that we can track our progress effectively. 
