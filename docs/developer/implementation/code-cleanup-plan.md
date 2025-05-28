@@ -512,26 +512,58 @@ The dead code elimination phase will be considered successful when:
 
 ### Main.ts Cleanup Progress
 
+**A detailed plan for main.ts refactoring has been created: [main-ts-refactoring-plan.md](main-ts-refactoring-plan.md)**
+
 | Component | Description | Status | Date | Notes |
 |-----------|-------------|--------|------|-------| 
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
-| Logging | Debug logging statements | 🔄 90% Complete | 2025-06-03 | Converting to structured logging |
-| UI Components | Modal generation, tables | 🔄 40% Complete | 2025-06-04 | Removed OneiroMetricsModal and ConfirmModal |
-| Metrics Processing | Calculation, organization | 🔄 60% Complete | 2025-06-05 | Moved to src/metrics/MetricsProcessor.ts |
-| Event Handlers | Button clicks, interactions | ⬜ Not Started | - | - |
-| Settings | Loading, saving | ⬜ Not Started | - | - |
+| Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converting to structured logging |
+| UI Components | Modal generation, tables | 🔄 40% Complete | 2025-05-29 | Removed OneiroMetricsModal and ConfirmModal |
+| Metrics Processing | Calculation, organization | 🔄 60% Complete | 2025-05-29 | Moved to src/metrics/MetricsProcessor.ts |
+| Event Handlers | Button clicks, interactions | ⬜ Not Started | - | Planned for June 2025 |
+| Settings | Loading, saving | ⬜ Not Started | - | Planned for June 2025 |
 
-### Module Status Overview
+### Next Steps (May 29-June 7, 2025)
 
-| Module | Cleanup Status | TypeScript Status | Test Coverage | Priority |
-|--------|---------------|-------------------|--------------|----------|
-| main.ts | 🔄 30% | 🔄 Partial | ⬜ Low | High |
-| ContentParser.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Medium |
-| DreamMetricsDOM.ts | 🔄 75% | ✅ Complete | 🔄 Medium | Medium |
-| DreamMetricsEvents.ts | 🔄 60% | ✅ Complete | 🔄 Medium | Medium |
-| DreamMetricsProcessor.ts | 🔄 80% | ✅ Complete | 🔄 Medium | Medium |
-| DreamMetricsState.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Low |
-| utils/date-utils.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Medium |
-| utils/logger.ts | ✅ Complete | ✅ Complete | 🔄 Medium | Low |
-| types/core.ts | ✅ Complete | ✅ Complete | ✅ High | Low |
-| types/logging.ts | ✅ Complete | ✅ Complete | ✅ High | Low | 
+1. **Complete Metrics Processing (High Priority)**
+   - ✅ Implemented `MetricsProcessor.ts` with:
+     - ✅ `processMetrics()` method for processing metric text
+     - ✅ `processDreamContent()` method for cleaning content
+     - ✅ Added comprehensive error handling
+   - Remaining: Complete implementation of content parsing logic from scrapeMetrics()
+
+2. **Continue UI Components Refactoring (High Priority)**
+   - ✅ Created `TableGenerator` class in src/dom/tables/ with:
+     - ✅ `generateSummaryTable()` method from main.ts
+     - ✅ `generateMetricsTable()` method from main.ts
+     - ✅ Added error handling and caching
+   - ✅ Created `ContentToggler` class in src/dom/content/ with:
+     - ✅ `updateContentVisibility()` method from main.ts
+     - ✅ `toggleContentVisibility()` method from main.ts
+     - ✅ `expandAllContentSections()` method from main.ts
+     - ✅ Added state persistence with localStorage
+   - ✅ Created `FilterUI` class in src/dom/filters/ with:
+     - ✅ `applyFilters()` method from main.ts
+     - ✅ `applyFilterToDropdown()` method from main.ts
+     - ✅ `forceApplyFilterDirect()` method from main.ts
+     - ✅ `forceApplyDateFilter()` method from main.ts
+     - ✅ `applyCustomDateRangeFilter()` method from main.ts
+     - ✅ Added custom date range management
+
+3. **Complete Event Handlers Refactoring (Medium Priority)**
+   - ✅ Created `ProjectNoteEvents` class in src/events/ with:
+     - ✅ `attachProjectNoteEventListeners()` method from main.ts
+     - ✅ `attachButtonEventListeners()` helper method
+     - ✅ `attachDebugFunctionality()` helper method
+     - ✅ `attachContentToggleEventListeners()` helper method
+   - ✅ Created `FilterEvents` class in src/events/ with:
+     - ✅ `attachFilterEventListeners()` method 
+     - ✅ `openCustomRangeModal()` method from main.ts
+     - ✅ `saveLastCustomRange()` and `loadLastCustomRange()` methods
+     - ✅ `saveFavoriteRange()` and `loadFavoriteRanges()` methods
+     - ✅ Created `CustomDateRangeModal` class in src/dom/modals/
+
+4. **Update Documentation (Medium Priority)**
+   - ✅ Created detailed main.ts refactoring plan
+   - ✅ Updated progress tracking in code-cleanup-plan.md
+   - Planned: Update CHANGELOG.md with user-visible changes 
