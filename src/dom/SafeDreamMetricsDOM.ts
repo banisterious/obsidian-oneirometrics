@@ -15,6 +15,7 @@ import { DOMErrorBoundary } from './DOMErrorBoundary';
 import { DOMComponent } from './NullDOM';
 import { EventBus } from '../events/EventBus';
 import safeLogger from '../logging/safe-logger';
+import { error } from '../logging';
 
 // Add id to the interface or augment DreamMetricData with an optional id property
 interface EnhancedDreamMetricData extends DreamMetricData {
@@ -748,10 +749,16 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       this.domSafetyGuard.addListener(retryButton, 'click', () => {
         this.render();
       });
-    } catch (error) {
-      safeLogger.error('DOM', 'Failed to show fallback UI', error);
-      // At this point, we can't do much more
-      console.error('Critical error in DreamMetricsDOM:', error);
+    } catch (err) {
+      safeLogger.error('DOM', 'Failed to show fallback UI', err);
+      // At this point, we can't do much more - use direct error logging as last resort
+      try {
+        error('SafeDreamMetricsDOM', 'Critical error in DreamMetricsDOM', err);
+      } catch (e) {
+        // If all else fails, use console as absolute last resort
+        // This should never happen in normal operation
+        error('SafeDreamMetricsDOM', 'Catastrophic error in error handling', e);
+      }
     }
   }
   
