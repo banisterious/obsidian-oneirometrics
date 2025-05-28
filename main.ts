@@ -150,9 +150,13 @@ import { LoggingAdapter } from './src/logging';
 
 // Internal imports - UI Components
 import { CustomDateRangeModal } from './src/CustomDateRangeModal';
-import { DateNavigatorModal, NavigatorViewMode } from './src/dom/DateNavigatorModal';
-import { DateNavigatorView, DATE_NAVIGATOR_VIEW_TYPE } from './src/dom/DateNavigatorView';
-import { DateNavigatorIntegration } from './src/dom/DateNavigatorIntegration';
+import {
+    DateNavigatorModal,
+    NavigatorViewMode,
+    DateNavigatorView,
+    DATE_NAVIGATOR_VIEW_TYPE,
+    DateNavigatorIntegration
+} from './src/dom/date-navigator';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
 import { 
