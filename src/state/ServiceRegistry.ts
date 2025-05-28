@@ -10,6 +10,7 @@
 
 import safeLogger from '../logging/safe-logger';
 import { getSafe, withErrorHandling } from '../utils/defensive-utils';
+import { debug, warn, error } from '../logging';
 
 /**
  * Type for a service factory function that can create a service
@@ -52,7 +53,7 @@ export class ServiceRegistry {
       try {
         safeLogger.debug('ServiceRegistry', 'Registry initialized');
       } catch (error) {
-        console.debug('ServiceRegistry initialized');
+        debug('ServiceRegistry', 'Registry initialized');
       }
     }
     return ServiceRegistry.instance;
@@ -69,7 +70,7 @@ export class ServiceRegistry {
       try {
         safeLogger.warn('ServiceRegistry', `Service ${name} already registered, overwriting`);
       } catch (error) {
-        console.warn(`ServiceRegistry: Service ${name} already registered, overwriting`);
+        warn('ServiceRegistry', `Service ${name} already registered, overwriting`);
       }
     }
     
@@ -78,7 +79,7 @@ export class ServiceRegistry {
     try {
       safeLogger.debug('ServiceRegistry', `Registered service: ${name}`);
     } catch (error) {
-      console.debug(`Registered service: ${name}`);
+      debug('ServiceRegistry', `Registered service: ${name}`);
     }
   }
   
@@ -94,7 +95,7 @@ export class ServiceRegistry {
     try {
       safeLogger.debug('ServiceRegistry', `Registered factory for service: ${name}`);
     } catch (error) {
-      console.debug(`Registered factory for service: ${name}`);
+      debug('ServiceRegistry', `Registered factory for service: ${name}`);
     }
   }
   
@@ -111,7 +112,7 @@ export class ServiceRegistry {
     try {
       safeLogger.debug('ServiceRegistry', `Registered fallback for service: ${name}`);
     } catch (error) {
-      console.debug(`Registered fallback for service: ${name}`);
+      debug('ServiceRegistry', `Registered fallback for service: ${name}`);
     }
   }
   
@@ -138,7 +139,7 @@ export class ServiceRegistry {
         try {
           safeLogger.error('ServiceRegistry', `Error creating service ${name}`, error);
         } catch (e) {
-          console.error(`Error creating service ${name}:`, error);
+          error('ServiceRegistry', `Error creating service ${name}`, error);
         }
         return null;
       }
@@ -148,7 +149,7 @@ export class ServiceRegistry {
     try {
       safeLogger.warn('ServiceRegistry', `Service not found: ${name}`);
     } catch (error) {
-      console.warn(`ServiceRegistry: Service not found: ${name}`);
+      warn('ServiceRegistry', `Service not found: ${name}`);
     }
     
     return null;
@@ -176,7 +177,7 @@ export class ServiceRegistry {
       try {
         safeLogger.debug('ServiceRegistry', `Using registered fallback for service: ${name}`);
       } catch (error) {
-        console.debug(`Using registered fallback for service: ${name}`);
+        debug('ServiceRegistry', `Using registered fallback for service: ${name}`);
       }
       return this.fallbacks.get(name) as T;
     }
@@ -185,7 +186,7 @@ export class ServiceRegistry {
     try {
       safeLogger.debug('ServiceRegistry', `Using provided fallback for service: ${name}`);
     } catch (error) {
-      console.debug(`Using provided fallback for service: ${name}`);
+      debug('ServiceRegistry', `Using provided fallback for service: ${name}`);
     }
     
     return fallback;
@@ -267,7 +268,7 @@ export class ServiceRegistry {
   }
   
   /**
-   * Clear all services (mainly for testing)
+   * Clear all services, factories, and fallbacks from the registry
    */
   public clear(): void {
     this.services.clear();
@@ -277,7 +278,7 @@ export class ServiceRegistry {
     try {
       safeLogger.debug('ServiceRegistry', 'Registry cleared');
     } catch (error) {
-      console.debug('Registry cleared');
+      debug('ServiceRegistry', 'Registry cleared');
     }
   }
 }
