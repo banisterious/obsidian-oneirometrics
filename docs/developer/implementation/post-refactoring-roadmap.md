@@ -21,11 +21,11 @@ This document outlines the development roadmap following the refactoring rollbac
 | Fix critical bugs from rollback | 🔄 In Progress | - | Working on fixing remaining UI issues |
 | Document global state dependencies | ✅ Completed | 2025-05-27 | Documented in refactoring-lessons-learned.md |
 | Map initialization order requirements | ✅ Completed | 2025-05-27 | Included in refactoring-lessons-learned.md |
-| Create a safe logger implementation | ✅ Completed | 2025-06-05 | Implemented in src/logging/safe-logger.ts |
-| Add defensive coding for date helpers | ✅ Completed | 2025-06-06 | Implemented robust date helpers with fallbacks |
-| Add tests for critical components | ✅ Completed | 2025-06-07 | Created interactive ContentParserTestModal for testing parsing components |
-| Document public APIs for core components | ✅ Completed | 2025-06-07 | Added to global-dependencies-map.md |
-| Implement Service Registry pattern | ✅ Completed | 2025-06-07 | Created ServiceRegistry in src/state/ServiceRegistry.ts |
+| Create a safe logger implementation | ✅ Completed | 2025-05-27 | Implemented in src/logging/safe-logger.ts |
+| Add defensive coding for date helpers | ✅ Completed | 2025-05-27 | Implemented robust date helpers with fallbacks |
+| Add tests for critical components | ✅ Completed | 2025-05-27 | Created interactive ContentParserTestModal for testing parsing components |
+| Document public APIs for core components | ✅ Completed | 2025-05-27 | Added to global-dependencies-map.md |
+| Implement Service Registry pattern | ✅ Completed | 2025-05-27 | Created ServiceRegistry in src/state/ServiceRegistry.ts |
 | Fix critical UI bugs | 🔄 In Progress | - | Working on fixing content cell rendering issues |
 
 ### Phase 2: Incremental Improvements
