@@ -20,7 +20,7 @@ The `main.ts` file currently contains:
 |-----------|-------------|--------|------|-------| 
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
 | Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converting to structured logging |
-| UI Components | Modal generation, tables | 🔄 80% Complete | 2025-05-28 | Extracted TableGenerator, ContentToggler, and FilterUI |
+| UI Components | Modal generation, tables | 🔄 90% Complete | 2025-05-28 | Extracted TableGenerator, ContentToggler, FilterUI, DateNavigator components |
 | Metrics Processing | Calculation, organization | ✅ Complete | 2025-05-28 | Moved to src/metrics/MetricsProcessor.ts |
 | Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
 | Settings Management | Loading, saving | ✅ Complete | 2025-05-28 | Moved to src/state/SettingsManager.ts |

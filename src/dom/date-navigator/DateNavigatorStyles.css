@@ -1,0 +1,347 @@
+/* DateNavigator Styles */
+
+.oom-date-navigator {
+    --month-bg: var(--background-primary);
+    --month-border: var(--background-modifier-border);
+    --month-text: var(--text-normal);
+    --month-header: var(--text-accent);
+    --day-bg: var(--background-primary);
+    --day-border: var(--background-modifier-border);
+    --day-text: var(--text-normal);
+    --day-today: var(--interactive-accent);
+    --day-selected: var(--interactive-accent-hover);
+    --day-dream: var(--text-accent);
+    --day-no-dream: var(--text-muted);
+    --day-other-month: var(--background-secondary);
+    --day-hover: var(--background-modifier-hover);
+    --day-with-entry-bg: rgba(var(--interactive-accent-rgb), 0.1);
+    
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--month-border);
+    border-radius: 4px;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Month header styles */
+.oom-month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--background-secondary-alt);
+    border-bottom: 1px solid var(--month-border);
+}
+
+.oom-month-title {
+    font-weight: var(--font-bold);
+    font-size: 1.1em;
+    color: var(--month-header);
+    flex: 1;
+    text-align: center;
+}
+
+.oom-month-button {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-normal);
+    cursor: pointer;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 2px;
+}
+
+.oom-month-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-month-button:focus {
+    box-shadow: 0 0 0 2px var(--background-modifier-border);
+    outline: none;
+}
+
+.oom-today-button {
+    font-size: 0.85em;
+    padding: 2px 6px;
+}
+
+/* Month grid styles */
+.oom-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: var(--month-bg);
+    border-bottom: 1px solid var(--month-border);
+    gap: 1px;
+}
+
+.oom-day-header {
+    text-align: center;
+    padding: 6px 0;
+    font-weight: var(--font-bold);
+    font-size: 0.8em;
+    color: var(--text-muted);
+    background-color: var(--background-secondary-alt);
+    border-bottom: 1px solid var(--month-border);
+}
+
+/* Day cell styles */
+.oom-day-cell {
+    min-height: 80px;
+    padding: 4px;
+    background-color: var(--day-bg);
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.oom-day-cell:hover {
+    background-color: var(--day-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.oom-day-cell:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+    z-index: 2;
+}
+
+/* Day number */
+.oom-day-number {
+    font-weight: var(--font-bold);
+    margin-bottom: 4px;
+}
+
+/* Dream indicators */
+.oom-dream-indicators {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.oom-dream-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--day-dream);
+}
+
+/* State styling */
+.oom-day-cell.is-today {
+    border: 2px solid var(--day-today);
+}
+
+.oom-day-cell.is-selected {
+    background-color: var(--day-selected);
+    color: var(--text-on-accent);
+}
+
+.oom-day-cell.other-month {
+    background-color: var(--day-other-month);
+    color: var(--day-no-dream);
+}
+
+.oom-day-cell.has-entries {
+    background-color: var(--day-with-entry-bg);
+}
+
+/* Animation for highlighting today */
+.oom-day-cell.highlight-pulse {
+    animation: pulse 1s 2;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(var(--interactive-accent-rgb), 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(var(--interactive-accent-rgb), 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(var(--interactive-accent-rgb), 0);
+    }
+}
+
+/* Dream preview tooltip */
+.oom-day-preview {
+    position: absolute;
+    display: none;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 8px;
+    width: 220px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    max-height: 150px;
+    overflow-y: auto;
+    color: var(--text-normal);
+    font-size: 0.85em;
+}
+
+.oom-day-cell:hover .oom-day-preview {
+    display: block;
+}
+
+.oom-preview-content {
+    white-space: pre-line;
+}
+
+/* Metric visualization */
+.oom-day-metrics {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    font-size: 0.9em;
+    color: var(--day-dream);
+    padding-top: 4px;
+}
+
+/* Star indicators with enhanced visibility */
+.oom-star-high, .oom-star-medium, .oom-star-low {
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.1em;
+}
+
+.oom-star-high {
+    color: var(--interactive-accent);
+    font-weight: bold;
+}
+
+.oom-star-medium {
+    color: #c2a0ff;
+    font-weight: bold;
+}
+
+.oom-star-low {
+    color: #d9c0ff;
+}
+
+/* Metric indicators */
+.oom-metric-high {
+    background-color: rgba(var(--interactive-accent-rgb), 0.15);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.oom-metric-medium {
+    background-color: rgba(var(--interactive-accent-rgb), 0.1);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.oom-metric-low {
+    background-color: rgba(var(--interactive-accent-rgb), 0.05);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .oom-day-cell {
+        min-height: 60px;
+        padding: 2px;
+    }
+    
+    .oom-dream-dot {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .oom-day-preview {
+        width: 180px;
+        left: 0;
+        transform: none;
+    }
+}
+
+/* Filter indicator */
+.oom-filter-indicator {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    margin-left: 8px;
+}
+
+/* Filter integration section */
+.oom-filter-section {
+    padding: 8px;
+    background-color: var(--background-secondary-alt);
+    border-top: 1px solid var(--month-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.oom-filter-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-filter-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-filter-info {
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.oom-filter-info.active {
+    color: var(--text-accent);
+    font-weight: var(--font-bold);
+}
+
+/* Year context navigation strip */
+.oom-year-context {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    padding: 4px;
+    font-size: 0.8em;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-month-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0 2px;
+    background-color: var(--text-muted);
+}
+
+.oom-month-dot.active {
+    background-color: var(--text-accent);
+    width: 8px;
+    height: 8px;
+}
+
+.oom-month-dot.has-entries {
+    background-color: var(--day-dream);
+} 
