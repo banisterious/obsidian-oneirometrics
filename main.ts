@@ -322,7 +322,7 @@ export default class DreamMetricsPlugin extends Plugin {
             safeLogger.debug('DreamMetricsPlugin', 'Initializing plugin...');
             globalLogger = safeLogger;
         } catch (e) {
-            console.debug('DreamMetricsPlugin: Initializing plugin...');
+            safeLogger.debug('DreamMetricsPlugin', 'Initializing plugin...');
         }
 
         // Initialize null services early for defensive coding
@@ -427,7 +427,6 @@ export default class DreamMetricsPlugin extends Plugin {
             
             safeLogger.debug('DreamMetricsPlugin', 'Service Registry initialized with settings and logger');
         } catch (e) {
-            console.error('Error initializing Service Registry:', e);
             safeLogger.error('DreamMetricsPlugin', 'Error initializing Service Registry', e instanceof Error ? e : new Error(String(e)));
         }
 
@@ -518,7 +517,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 // Make sure settings object exists and is initialized
                 if (!this.settings) {
-                    console.warn("Settings not initialized yet, deferring filter application");
+                    safeLogger.warn('Settings', 'Settings not initialized yet, deferring filter application');
                     // Load settings and try again
                     this.loadSettings().then(() => {
                         setTimeout(() => this.applyInitialFilters(), 1000);
@@ -1250,17 +1249,17 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 // Attach event listeners after table render with multiple attempts to ensure they're attached
                 setTimeout(() => {
-                    console.log('[OOM-DEBUG] Attempting to attach event listeners (first attempt)');
+                    this.logger?.debug('UI', 'Attempting to attach event listeners (first attempt)');
                     this.attachProjectNoteEventListeners();
                     
                     // Try again after a longer delay to ensure content is fully rendered
                     setTimeout(() => {
-                        console.log('[OOM-DEBUG] Attempting to attach event listeners (second attempt)');
+                        this.logger?.debug('UI', 'Attempting to attach event listeners (second attempt)');
                         this.attachProjectNoteEventListeners();
                         
                         // One final attempt to catch any late rendering
                         setTimeout(() => {
-                            console.log('[OOM-DEBUG] Attempting to attach event listeners (final attempt)');
+                            this.logger?.debug('UI', 'Attempting to attach event listeners (final attempt)');
                             this.attachProjectNoteEventListeners();
                         }, 1000);
                     }, 500);
@@ -1271,7 +1270,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 // Attach event listeners even if no changes
                 setTimeout(() => {
-                    console.log('[OOM-DEBUG] Attempting to attach event listeners (no changes)');
+                    this.logger?.debug('UI', 'Attempting to attach event listeners (no changes)');
                     this.attachProjectNoteEventListeners();
                 }, 200);
             }
@@ -1646,7 +1645,6 @@ export default class DreamMetricsPlugin extends Plugin {
         for (const entry of dreamEntries) {
             // Ensure entry.date exists and has a valid format
             if (!entry.date || typeof entry.date !== 'string') {
-                console.error('[OOM-ERROR] Entry missing date attribute:', entry);
                 globalLogger?.error('Table', 'Entry missing date attribute', { entry });
                 continue; // Skip entries without dates
             }
@@ -2618,10 +2616,10 @@ Applied: ${new Date().toLocaleTimeString()}`;
             
             // Save the settings to persist the change
             this.saveSettings().catch(error => {
-                console.error('Failed to save content visibility state:', error);
+                this.logger?.error('Settings', 'Failed to save content visibility state', error instanceof Error ? error : new Error(String(error)));
             });
         } catch (error) {
-            console.error('Error updating content visibility:', error);
+            this.logger?.error('UI', 'Error updating content visibility', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -2791,7 +2789,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                         try {
                             content = await this.templaterIntegration.processTemplaterTemplate(template.templaterFile);
                         } catch (error) {
-                            console.error('Error processing Templater template:', error);
+                            this.logger?.error('Templates', 'Error processing Templater template', error instanceof Error ? error : new Error(String(error)));
                             new Notice('Error processing Templater template');
                             
                             // Fallback to static content if available
@@ -3134,7 +3132,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
             
             // Ensure settings are initialized
             if (!this.settings) {
-                console.warn("Settings not initialized in applyInitialFilters");
+                this.logger?.warn('Filter', 'Settings not initialized in applyInitialFilters');
                 return;
             }
             
@@ -3158,7 +3156,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                 return;
             }
         } catch (e) {
-            console.error("Error in applyInitialFilters initialization:", e);
+            this.logger?.error('Filter', 'Error in applyInitialFilters initialization', e instanceof Error ? e : new Error(String(e)));
             return;
         }
         
@@ -3178,12 +3176,12 @@ Applied: ${new Date().toLocaleTimeString()}`;
                         if (globalLogger) {
                             globalLogger.error('Filter', 'Failed to save recovered filter', err);
                         } else {
-                            console.error('Failed to save recovered filter:', err);
+                            this.logger?.error('Filter', 'Failed to save recovered filter', err instanceof Error ? err : new Error(String(err)));
                         }
                     });
                 }
             } catch (e) {
-                console.error('Error recovering filter from localStorage:', e);
+                this.logger?.error('Filter', 'Error recovering filter from localStorage', e instanceof Error ? e : new Error(String(e)));
             }
         }
         
@@ -3196,7 +3194,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                         globalLogger.info('Filter', 'Restored custom date range from settings', { range: customDateRange });
                     }
                 } catch (e) {
-                    console.error('Error copying customDateRange from settings:', e);
+                    this.logger?.error('Filter', 'Error copying customDateRange from settings', e instanceof Error ? e : new Error(String(e)));
                 }
             } else if (!this.settings.customDateRange) {
                 // Try to recover from localStorage
@@ -3218,7 +3216,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                                 if (globalLogger) {
                                     globalLogger.error('Filter', 'Failed to save recovered custom range', err);
                                 } else {
-                                    console.error('Failed to save recovered custom range:', err);
+                                    this.logger?.error('Filter', 'Failed to save recovered custom range', err instanceof Error ? err : new Error(String(err)));
                                 }
                             });
                         }
@@ -3227,7 +3225,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                     if (globalLogger) {
                         globalLogger.error('Filter', 'Error recovering custom date range in applyInitialFilters', e);
                     } else {
-                        console.error('Error recovering custom date range:', e);
+                        this.logger?.error('Filter', 'Error recovering custom date range', e instanceof Error ? e : new Error(String(e)));
                     }
                 }
             }
@@ -3252,7 +3250,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                 globalLogger?.debug('Filter', 'No saved filter found in settings');
             }
         } catch (e) {
-            console.error("Error checking project note:", e);
+            this.logger?.error('Filter', 'Error checking project note', e instanceof Error ? e : new Error(String(e)));
         }
         
         this.app.workspace.iterateAllLeaves(leaf => {

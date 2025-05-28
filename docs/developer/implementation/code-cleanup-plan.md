@@ -583,44 +583,44 @@ This section tracks cleanup items identified by our utility scripts in the `util
 
 ### Console.log Statements
 
-| File | Line | Type | Status | Assignee | Notes |
-|------|------|------|--------|----------|-------|
-| main.ts | 342 | console.debug | Pending | | DreamMetricsPlugin: Initializing plugin... |
-| main.ts | 447 | console.error | Pending | | Error initializing Service Registry |
-| main.ts | 538 | console.warn | Pending | | Settings not initialized yet, deferring filter application |
-| main.ts | 1270 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (first attempt) |
-| main.ts | 1275 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (second attempt) |
-| main.ts | 1280 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (final attempt) |
-| main.ts | 1291 | console.log | Pending | | [OOM-DEBUG] Attempting to attach event listeners (no changes) |
-| main.ts | 1666 | console.error | Pending | | [OOM-ERROR] Entry missing date attribute: |
-| main.ts | 2638 | console.error | Pending | | Failed to save content visibility state |
-| main.ts | 2641 | console.error | Pending | | Error updating content visibility |
-| main.ts | 2811 | console.error | Pending | | Error processing Templater template |
-| main.ts | 3154 | console.warn | Pending | | Settings not initialized in applyInitialFilters |
-| main.ts | 3178 | console.error | Pending | | Error in applyInitialFilters initialization |
-| main.ts | 3198 | console.error | Pending | | Failed to save recovered filter |
-| main.ts | 3203 | console.error | Pending | | Error recovering filter from localStorage |
-| main.ts | 3216 | console.error | Pending | | Error copying customDateRange from settings |
-| main.ts | 3238 | console.error | Pending | | Failed to save recovered custom range |
-| main.ts | 3247 | console.error | Pending | | Error recovering custom date range |
-| main.ts | 3272 | console.error | Pending | | Error checking project note |
-| settings.ts | 617 | console.error | Pending | | Error opening metrics callout customizations modal |
-| settings.ts | 761 | console.log | Pending | | [Backup Folder] all folders |
-| settings.ts | 762 | console.log | Pending | | [Backup Folder] filtered folders |
-| settings.ts | 1032 | console.log | Pending | | Metrics found in settings |
-| settings.ts | 1033 | console.log | Pending | | Enabled metrics |
-| settings.ts | 1034 | console.log | Pending | | Disabled metrics |
-| settings.ts | 1193 | console.log | Pending | | [Backup Folder] all folders |
-| settings.ts | 1194 | console.log | Pending | | [Backup Folder] filtered folders |
+| File | Line | Type | Status | Notes |
+|------|------|------|--------|-------|
+| main.ts | 342 | console.debug | Completed | Replaced with safeLogger.debug |
+| main.ts | 447 | console.error | Completed | Replaced with safeLogger.error |
+| main.ts | 538 | console.warn | Completed | Replaced with safeLogger.warn |
+| main.ts | 1270 | console.log | Completed | Replaced with this.logger?.debug |
+| main.ts | 1275 | console.log | Completed | Replaced with this.logger?.debug |
+| main.ts | 1280 | console.log | Completed | Replaced with this.logger?.debug |
+| main.ts | 1291 | console.log | Completed | Replaced with this.logger?.debug |
+| main.ts | 1666 | console.error | Completed | Removed (already had globalLogger?.error) |
+| main.ts | 2638 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 2641 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 2811 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3154 | console.warn | Completed | Replaced with this.logger?.warn |
+| main.ts | 3178 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3198 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3203 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3216 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3238 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3247 | console.error | Completed | Replaced with this.logger?.error |
+| main.ts | 3272 | console.error | Completed | Replaced with this.logger?.error |
+| settings.ts | 617 | console.error | Pending | Error opening metrics callout customizations modal |
+| settings.ts | 761 | console.log | Pending | [Backup Folder] all folders |
+| settings.ts | 762 | console.log | Pending | [Backup Folder] filtered folders |
+| settings.ts | 1032 | console.log | Pending | Metrics found in settings |
+| settings.ts | 1033 | console.log | Pending | Enabled metrics |
+| settings.ts | 1034 | console.log | Pending | Disabled metrics |
+| settings.ts | 1193 | console.log | Pending | [Backup Folder] all folders |
+| settings.ts | 1194 | console.log | Pending | [Backup Folder] filtered folders |
 
 #### Console.log Statistics
 
-- Total files with console statements: 33
-- Total console statements: 141
-- By type: console.log (77), console.warn (10), console.error (49), console.info (2), console.debug (3)
+- Total files with console statements: 32 (down from 33)
+- Total console statements: 122 (down from 141)
+- By type: console.log (73), console.warn (8), console.error (37), console.info (2), console.debug (2)
+- Completed: 19 statements in main.ts
 
 #### Notable Console.log Files:
-- main.ts: 19 statements
 - settings.ts: 7 statements
 - src/testing/EdgeCaseTests.ts: 14 statements
 - src/testing/utils/TypeGuardsTests.ts: 6 statements
@@ -634,11 +634,11 @@ This section tracks cleanup items identified by our utility scripts in the `util
 
 We found primarily documentation comments related to TypeScript interfaces rather than commented-out code blocks. The commented-code analysis should be run again with adjusted parameters to better identify actual code blocks.
 
-| File | Lines | Type | Status | Assignee | Notes |
-|------|-------|------|--------|----------|-------|
-| src/journal_check/types.ts | 1-4 | Multi-line | Pending | | Deprecation notice for types file |
-| src/types.ts | 1-4 | Multi-line | Pending | | Deprecation notice for types file |
-| main.ts | 3820-3824 | Multi-line | Pending | | Debug function accessible from console |
+| File | Lines | Type | Status | Notes |
+|------|-------|------|--------|-------|
+| src/journal_check/types.ts | 1-4 | Multi-line | Pending | Deprecation notice for types file |
+| src/types.ts | 1-4 | Multi-line | Pending | Deprecation notice for types file |
+| main.ts | 3820-3824 | Multi-line | Pending | Debug function accessible from console |
 
 #### Commented Code Statistics
 
@@ -656,13 +656,13 @@ No TODOs were found in the codebase during our scan. This suggests that the team
 
 ### Unused Imports
 
-| File | Import | Status | Assignee | Notes |
-|------|--------|--------|----------|-------|
-| src/dom/filters/FilterUI.ts | TFile | Completed | | Removed unused TFile import while keeping safeLogger |
-| main.ts | FileView, Menu, Scope, WorkspaceLeaf, ButtonComponent | Completed | | Already removed in newer version |
-| main.ts | registerSettings | Completed | | Already removed in newer version |
-| main.ts | FilterUI | Completed | | Already removed in newer version |
-| main.ts | Multiple date-fns imports | Completed | | Already updated in newer version |
+| File | Import | Status | Notes |
+|------|--------|--------|-------|
+| src/dom/filters/FilterUI.ts | TFile | Completed | Removed unused TFile import while keeping safeLogger |
+| main.ts | FileView, Menu, Scope, WorkspaceLeaf, ButtonComponent | Completed | Already removed in newer version |
+| main.ts | registerSettings | Completed | Already removed in newer version |
+| main.ts | FilterUI | Completed | Already removed in newer version |
+| main.ts | Multiple date-fns imports | Completed | Already updated in newer version |
 
 #### Unused Imports Statistics
 
@@ -686,7 +686,7 @@ No TODOs were found in the codebase during our scan. This suggests that the team
 To update the status of items in these tracking tables:
 
 1. Identify a batch of related items to clean up (e.g., console.log statements in a specific file)
-2. Update the "Status" column to "In Progress" and add your name to "Assignee"
+2. Update the "Status" column to "In Progress"
 3. Make the necessary code changes
 4. Test thoroughly
 5. Commit changes with a message following the format: `cleanup: [area] - [specific change]`
