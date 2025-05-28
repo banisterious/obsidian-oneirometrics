@@ -518,10 +518,10 @@ The dead code elimination phase will be considered successful when:
 |-----------|-------------|--------|------|-------| 
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
 | Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converting to structured logging |
-| UI Components | Modal generation, tables | 🔄 40% Complete | 2025-05-29 | Removed OneiroMetricsModal and ConfirmModal |
-| Metrics Processing | Calculation, organization | 🔄 60% Complete | 2025-05-29 | Moved to src/metrics/MetricsProcessor.ts |
-| Event Handlers | Button clicks, interactions | ⬜ Not Started | - | Planned for June 2025 |
-| Settings | Loading, saving | ⬜ Not Started | - | Planned for June 2025 |
+| UI Components | Modal generation, tables | 🔄 80% Complete | 2025-05-28 | Extracted TableGenerator, ContentToggler, and FilterUI |
+| Metrics Processing | Calculation, organization | 🔄 70% Complete | 2025-05-29 | Moved to src/metrics/MetricsProcessor.ts |
+| Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
+| Settings | Loading, saving | ✅ Complete | 2025-05-30 | Implemented SettingsManager for centralized settings handling |
 
 ### Next Steps (May 29-June 7, 2025)
 
@@ -563,7 +563,16 @@ The dead code elimination phase will be considered successful when:
      - ✅ `saveFavoriteRange()` and `loadFavoriteRanges()` methods
      - ✅ Created `CustomDateRangeModal` class in src/dom/modals/
 
-4. **Update Documentation (Medium Priority)**
+4. **Complete Settings Management Refactoring (Medium Priority)**
+   - ✅ Implemented `SettingsManager` class in src/state/SettingsManager.ts:
+     - ✅ Moved `saveSettings()` method from main.ts
+     - ✅ Moved `loadSettings()` method from main.ts
+     - ✅ Integrated with SettingsAdapter for type safety
+     - ✅ Added proper error handling for settings operations
+     - ✅ Created updateSetting() and updateLogConfig() methods
+     - ✅ Added expandedStates management for UI state persistence
+
+5. **Update Documentation (Medium Priority)**
    - ✅ Created detailed main.ts refactoring plan
    - ✅ Updated progress tracking in code-cleanup-plan.md
    - Planned: Update CHANGELOG.md with user-visible changes 

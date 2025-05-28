@@ -132,6 +132,7 @@ import {
 
 // Import the SettingsAdapter from state/adapters
 import { SettingsAdapter, createAndRegisterSettingsAdapter } from './src/state/adapters/SettingsAdapter';
+import { SettingsManager } from './src/state/SettingsManager';
 
 // Import EventHandling utilities for event handling
 import { attachClickEvent, attachEvent, createEventHandler, createClickHandler, debounceEventHandler, throttleEventHandler } from './src/templates/ui/EventHandling';
@@ -323,6 +324,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private cleanupFunctions: (() => void)[] = [];
     private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
+    private settingsManager: SettingsManager;
 
     async onload() {
         // Initialize the logging system immediately
@@ -349,8 +351,12 @@ export default class DreamMetricsPlugin extends Plugin {
                 e instanceof Error ? e : new Error(String(e)));
         }
 
-        // Load settings first
-        await this.loadSettings();
+        // Initialize settings manager first
+        this.settingsManager = new SettingsManager(this);
+        await this.settingsManager.loadSettings();
+        this.settings = this.settingsManager.settings;
+        this.expandedStates = this.settingsManager.expandedStates;
+        this.loadedSettings = this.settingsManager.loadedSettings;
 
         // Initialize the Service Registry with settings
         try {
@@ -961,161 +967,17 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async saveSettings() {
-        // Save expandedStates from set to object
-        if (this.expandedStates) {
-            // Create a new object for expanded states
-            const expandedStatesObj: Record<string, boolean> = {};
-            
-            // Add all expanded states from the set
-            this.expandedStates.forEach(id => {
-                expandedStatesObj[id] = true;
-            });
-            
-            // Safely set the property
-            this.settings.expandedStates = expandedStatesObj;
-        }
-        
-        await this.saveData(this.settings);
+        await this.settingsManager.saveSettings();
         
         // Update ribbon icons after saving settings
         this.updateRibbonIcons();
     }
 
     async loadSettings() {
-        const data = await this.loadData();
-        // Apply the SettingsAdapter to ensure all properties exist with correct types
-        const settingsAdapter = new SettingsAdapter(data || {});
-        this.settings = settingsAdapter.toCoreSettings();
-        this.loadedSettings = true;
-        
-        // CRITICAL FIX: Load and validate filter persistence settings
-        try {
-            // Validate that the filter settings are present and have valid values
-            if (!this.settings.lastAppliedFilter || 
-                typeof this.settings.lastAppliedFilter !== 'string' ||
-                !['all', 'today', 'yesterday', 'thisWeek', 'thisMonth', 'last30', 
-                 'last6months', 'thisYear', 'last12months', 'custom'].includes(this.settings.lastAppliedFilter)) 
-            {
-                // Try to recover from localStorage
-                const savedFilter = localStorage.getItem('oom-last-applied-filter');
-                if (savedFilter && ['all', 'today', 'yesterday', 'thisWeek', 'thisMonth', 'last30', 
-                                    'last6months', 'thisYear', 'last12months', 'custom'].includes(savedFilter)) {
-                    globalLogger?.info('Filter', `Recovered filter from localStorage during loadSettings: ${savedFilter}`);
-                    this.settings.lastAppliedFilter = savedFilter;
-                } else {
-                    // Default to 'thisMonth' for filter persistence
-                    globalLogger?.info('Filter', `Setting default filter during loadSettings: thisMonth`);
-                    this.settings.lastAppliedFilter = 'thisMonth';
-                }
-                
-                // Save the recovered/default settings
-                this.saveSettings().catch(err => {
-                    globalLogger?.error('Filter', 'Failed to save recovered filter setting', err);
-                });
-            }
-            
-            // If custom date range is selected but no range defined, try to recover or reset
-            if (this.settings.lastAppliedFilter === 'custom' && !this.settings.customDateRange) {
-                try {
-                    // Try to load from localStorage
-                    const savedRangeStr = localStorage.getItem('oom-custom-date-range');
-                    if (savedRangeStr) {
-                        const savedRange = JSON.parse(savedRangeStr);
-                        if (savedRange?.start && savedRange?.end) {
-                            this.settings.customDateRange = savedRange;
-                            globalLogger?.info('Filter', 'Recovered custom date range during loadSettings', savedRange);
-                        } else {
-                            // If we can't recover a valid custom range, change to thisMonth
-                            this.settings.lastAppliedFilter = 'thisMonth';
-                            globalLogger?.info('Filter', 'Invalid custom range, defaulting to thisMonth filter');
-                        }
-                    } else {
-                        // If no range in localStorage, change to thisMonth
-                        this.settings.lastAppliedFilter = 'thisMonth';
-                        globalLogger?.info('Filter', 'No custom range available, defaulting to thisMonth filter');
-                    }
-                } catch (e) {
-                    // On any error, reset to thisMonth
-                    this.settings.lastAppliedFilter = 'thisMonth';
-                    globalLogger?.error('Filter', 'Error processing custom range during loadSettings', e);
-                }
-                
-                // Save the settings after the recovery attempt
-                this.saveSettings().catch(err => {
-                    globalLogger?.error('Filter', 'Failed to save recovered filter settings', err);
-                });
-            }
-        } catch (e) {
-            globalLogger?.error('Filter', 'Error during filter settings validation', e);
-        }
-        
-        // Initialize metrics if they don't exist
-        if (!this.settings.metrics) {
-            this.settings.metrics = {};
-        }
-        
-        // Log metrics state for debugging
-        (globalLogger || safeLogger).debug('Settings', 'Initial metrics state', { 
-            count: Object.keys(this.settings.metrics || {}).length,
-            metrics: Object.keys(this.settings.metrics || {}).length ? 
-                Object.keys(this.settings.metrics).join(', ') : 
-                'No metrics found'
-        });
-        
-        // Ensure all default metrics exist in settings by merging with existing metrics
-        let metricsUpdated = false;
-        
-        // For each default metric, add it if it doesn't exist
-        DEFAULT_METRICS.forEach(defaultMetric => {
-            if (!this.settings.metrics[defaultMetric.name]) {
-                // Add the missing metric with default values
-                this.settings.metrics[defaultMetric.name] = {
-                    name: defaultMetric.name,
-                    icon: defaultMetric.icon,
-                    minValue: defaultMetric.minValue,
-                    maxValue: defaultMetric.maxValue,
-                    description: defaultMetric.description || '',
-                    enabled: defaultMetric.enabled,
-                    category: defaultMetric.category || 'dream',
-                    type: defaultMetric.type || 'number',
-                    format: defaultMetric.format || 'number',
-                    options: defaultMetric.options || [],
-                    // Include legacy properties for backward compatibility
-                    min: defaultMetric.minValue,
-                    max: defaultMetric.maxValue,
-                    step: 1
-                };
-                metricsUpdated = true;
-                (globalLogger || safeLogger).info('Settings', `Added missing metric: ${defaultMetric.name}`);
-            }
-        });
-        
-        // Save settings if we updated any metrics
-        if (metricsUpdated) {
-            (globalLogger || safeLogger).info('Settings', 'Saving settings with updated metrics...');
-            await this.saveSettings();
-        }
-        
-        // Log the final metrics state
-        (globalLogger || safeLogger).debug('Settings', 'Final metrics state', {
-            count: Object.keys(this.settings.metrics).length,
-            metrics: Object.keys(this.settings.metrics).length ? 
-                Object.keys(this.settings.metrics).join(', ') : 
-                'No metrics found'
-        });
-        
-        // Use the expandedStates helper instead of direct access
-        this.expandedStates = new Set<string>();
-        
-        // Get expanded states from settings
-        const expandedStatesMap = this.settings.expandedStates || {};
-        if (expandedStatesMap) {
-            Object.entries(expandedStatesMap).forEach(([id, isExpanded]) => {
-                if (isExpanded) {
-                    this.expandedStates.add(id);
-                }
-            });
-        }
+        await this.settingsManager.loadSettings();
+        this.settings = this.settingsManager.settings;
+        this.expandedStates = this.settingsManager.expandedStates;
+        this.loadedSettings = this.settingsManager.loadedSettings;
         
         // Initialize the logger with safe property access
         if (!globalLogger) {
@@ -3063,14 +2925,43 @@ Applied: ${new Date().toLocaleTimeString()}`;
         }
     }
 
+    /**
+     * Set the log level for the plugin
+     * @param level The log level to set
+     */
     setLogLevel(level: LogLevel) {
-        console.log('setLogLevel called with:', level);
+        // Update the logger
         this.logger.configure(level);
+        
+        // Update settings
+        this.settingsManager.updateLogConfig(
+            level,
+            this.settings.logging?.maxSize || 1024 * 1024,
+            this.settings.logging?.maxBackups || 3
+        );
+        
+        // Save settings
+        this.saveSettings();
+        
+        // Update UI if needed
         this.updateProjectNoteView(level);
     }
 
+    /**
+     * Set the log configuration for the plugin
+     * @param level The log level to set
+     * @param maxSize Maximum log file size
+     * @param maxBackups Maximum number of log backups
+     */
     setLogConfig(level: LogLevel, maxSize: number, maxBackups: number) {
+        // Update the logger
         this.logger.configure(level, maxSize, maxBackups);
+        
+        // Update settings through settings manager
+        this.settingsManager.updateLogConfig(level, maxSize, maxBackups);
+        
+        // Save settings
+        this.saveSettings();
     }
 
     private announceToScreenReader(message: string) {
@@ -3082,27 +2973,29 @@ Applied: ${new Date().toLocaleTimeString()}`;
         setTimeout(() => ariaLive.remove(), 1000);
     }
 
-    // Update content visibility
+    /**
+     * Updates the visibility state of a content section
+     * @param id The ID of the content section
+     * @param isExpanded Whether the section is expanded
+     */
     private updateContentVisibility(id: string, isExpanded: boolean): void {
-        if (!this.container) return;
-        
-        const row = this.container.querySelector(`tr[data-source="${id}"]`);
-        if (row) {
-            const contentWrapper = row.querySelector('.oom-content-wrapper');
-            const previewDiv = row.querySelector('.oom-content-preview');
-            const fullDiv = row.querySelector('.oom-content-full');
-            const expandButton = row.querySelector('.oom-button--expand');
-
-            if (contentWrapper && previewDiv && fullDiv && expandButton) {
-                if (isExpanded) {
-                    contentWrapper.classList.add('expanded');
-                } else {
-                    contentWrapper.classList.remove('expanded');
-                }
-                expandButton.textContent = isExpanded ? 'Show less' : 'Read more';
-                expandButton.setAttribute('data-expanded', isExpanded.toString());
-                expandButton.setAttribute('aria-expanded', isExpanded.toString());
+        try {
+            // Update the expanded states using the settings manager
+            this.settingsManager.setExpandedState(id, isExpanded);
+            
+            // Also update our local expandedStates for legacy code
+            if (isExpanded) {
+                this.expandedStates.add(id);
+            } else {
+                this.expandedStates.delete(id);
             }
+            
+            // Save the settings to persist the change
+            this.saveSettings().catch(error => {
+                console.error('Failed to save content visibility state:', error);
+            });
+        } catch (error) {
+            console.error('Error updating content visibility:', error);
         }
     }
 
