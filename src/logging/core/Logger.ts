@@ -27,6 +27,10 @@ class ContextualLoggerImpl implements ContextualLogger {
     this.context = context;
   }
   
+  log(category: string, message: string, data?: any): void {
+    this.baseLogger.log(category, message, this.mergeData(data));
+  }
+  
   debug(category: string, message: string, data?: any): void {
     this.baseLogger.debug(category, message, this.mergeData(data));
   }
@@ -97,6 +101,13 @@ export class Logger implements ILogger {
   constructor(name: string, manager: LogManager) {
     this.name = name;
     this.manager = manager;
+  }
+  
+  /**
+   * Log a message (generic method, maps to info for backward compatibility)
+   */
+  log(category: string, message: string, data?: any): void {
+    this.info(category, message, data);
   }
   
   /**

@@ -78,13 +78,44 @@ export interface LogConfig {
  * Base interface for loggers
  */
 export interface ILogger {
+  /**
+   * Log a generic message (for backward compatibility, maps to debug or info)
+   */
+  log(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log a debug message
+   */
   debug(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log an info message
+   */
   info(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log a warning message
+   */
   warn(category: string, message: string, data?: any): void;
+  
+  /**
+   * Log an error message
+   */
   error(category: string, message: string, error?: any): void;
+  
+  /**
+   * Log a trace message
+   */
   trace(category: string, message: string, data?: any): void;
   
+  /**
+   * Enrich an error with context information
+   */
   enrichError(error: Error, context: Partial<ErrorContext>): EnrichedError;
+  
+  /**
+   * Wrap an error with a new message and context
+   */
   wrapError(originalError: Error, message: string, context: Partial<ErrorContext>): EnrichedError;
 }
 

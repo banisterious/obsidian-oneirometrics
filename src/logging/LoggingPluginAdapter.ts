@@ -31,9 +31,17 @@ export class LoggingAdapter {
     
     /**
      * Create a new adapter
+     * @param appOrName The Obsidian app instance or a name for the logger
      */
-    constructor(name: string = 'LegacyAdapter') {
-        this.logger = LogManager.getInstance().getLogger(name) as Logger;
+    constructor(appOrName: App | string = 'LegacyAdapter') {
+        // Set up the logger - handle both string names and App instances
+        if (typeof appOrName === 'string') {
+            this.logger = LogManager.getInstance().getLogger(appOrName) as Logger;
+        } else {
+            // It's an App instance
+            LogManager.getInstance().setApp(appOrName);
+            this.logger = LogManager.getInstance().getLogger('LegacyAdapter') as Logger;
+        }
     }
     
     /**

@@ -8,20 +8,20 @@
 import { App, Modal, Notice, Setting, TFile, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../main';
 import { DreamMetricData } from '../types/core';
-import { Logger } from '../../utils/logger';
+import { ILogger } from '../logging/LoggerTypes';
 
 export class MetricsProcessor {
     constructor(
         private app: App,
         private plugin: DreamMetricsPlugin,
-        private logger?: Logger
+        private logger?: ILogger
     ) {}
 
     /**
      * Process dream journal entries to extract metrics
      */
     public async scrapeMetrics(): Promise<void> {
-        this.logger?.log('Scrape', 'Starting metrics scrape process');
+        this.logger?.info('Scrape', 'Starting metrics scrape process');
         
         // Show a notice instead of a modal
         new Notice('Scraping dream metrics... This may take a moment.');
@@ -81,7 +81,7 @@ export class MetricsProcessor {
         // Process files in batches of 5
         const BATCH_SIZE = 5;
         const totalFiles = files.length;
-        this.logger?.log('Scrape', `Processing ${totalFiles} files in batches of ${BATCH_SIZE}`);
+        this.logger?.info('Scrape', `Processing ${totalFiles} files in batches of ${BATCH_SIZE}`);
 
         for (let i = 0; i < totalFiles; i += BATCH_SIZE) {
             const batch = files.slice(i, i + BATCH_SIZE);
@@ -94,7 +94,7 @@ export class MetricsProcessor {
                 validNotes++;
                 try {
                     const content = await this.app.vault.read(file);
-                    this.logger?.log('Scrape', `Processing file: ${path}`, { contentLength: content.length });
+                    this.logger?.debug('Scrape', `Processing file: ${path}`, { contentLength: content.length });
 
                     // --- Processing logic for dream journal entries ---
                     // This would include callout parsing, metrics extraction, etc.
@@ -118,7 +118,7 @@ export class MetricsProcessor {
             if (foundAnyJournalEntries) {
                 if (foundAnyMetrics) {
                     new Notice(`Updated metrics from ${validNotes} notes, found ${entriesProcessed} entries.`);
-                    this.logger?.log('Scrape', `Metrics updated from ${validNotes} notes with ${entriesProcessed} entries`);
+                    this.logger?.info('Scrape', `Metrics updated from ${validNotes} notes with ${entriesProcessed} entries`);
                 } else {
                     new Notice(`Found ${entriesProcessed} entries but no metrics were detected.`);
                     this.logger?.warn('Scrape', `No metrics found in ${entriesProcessed} entries`);

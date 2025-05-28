@@ -19,6 +19,9 @@ import {
   registerSettings 
 } from './src/state/ServiceRegistry';
 
+// Import log viewer UI components
+import { initializeLogUI } from './src/logging/ui';
+
 // External imports (Obsidian)
 import { 
   App, 
@@ -141,7 +144,6 @@ import { DreamMetricsSettingTab, lucideIconMap, RECOMMENDED_METRICS_ORDER, DISAB
 import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
 
 // Internal imports - Logging
-import { Logger as LogManager } from './utils/logger';
 import { LoggingAdapter } from './src/logging';
 
 // Internal imports - UI Components
@@ -297,7 +299,7 @@ export default class DreamMetricsPlugin extends Plugin {
     calendar: CalendarView;
     
     // Use a more specific type for logger
-    logger: LogManager | LoggingAdapter;
+    logger: LoggingAdapter;
     
     lintingEngine: LintingEngine;
     templaterIntegration: TemplaterIntegration;
@@ -340,10 +342,11 @@ export default class DreamMetricsPlugin extends Plugin {
                 module.initializeNullServices();
                 safeLogger.debug('DreamMetricsPlugin', 'Null services initialized successfully');
             }).catch(error => {
-                console.error('Failed to initialize null services:', error);
+                safeLogger.error('DreamMetricsPlugin', 'Failed to initialize null services', error);
             });
         } catch (e) {
-            console.error('Error initializing null services:', e);
+            safeLogger.error('DreamMetricsPlugin', 'Error initializing null services', 
+                e instanceof Error ? e : new Error(String(e)));
         }
 
         // Load settings first
@@ -354,15 +357,15 @@ export default class DreamMetricsPlugin extends Plugin {
             safeLogger.debug('DreamMetricsPlugin', 'Initializing Service Registry');
             
             // Log metrics status
-            console.log('Settings metrics status before registry init:', 
-                this.settings.metrics ? 
-                `Found ${Object.keys(this.settings.metrics).length} metrics` : 
-                'No metrics found');
+            safeLogger.debug('Settings', 'Settings metrics status before registry init', { 
+                metricsCount: this.settings.metrics ? Object.keys(this.settings.metrics).length : 0,
+                metricsAvailable: this.settings.metrics ? true : false
+            });
             
-            // Make sure metrics object exists
+            // Make sure metrics object exists and is initialized
             if (!this.settings.metrics) {
                 this.settings.metrics = {};
-                console.log('Created empty metrics object');
+                safeLogger.info('Settings', 'Created empty metrics object');
             }
             
             // Verify each required metric exists
@@ -378,8 +381,10 @@ export default class DreamMetricsPlugin extends Plugin {
                 metricName => !this.settings.metrics[metricName]
             );
             
-            console.log('Missing metrics before initialization:', 
-                missingMetrics.length ? missingMetrics.join(', ') : 'None');
+            safeLogger.debug('Settings', 'Missing metrics before initialization', { 
+                missingCount: missingMetrics.length,
+                missingMetrics: missingMetrics.length ? missingMetrics.join(', ') : 'None'
+            });
             
             // Add any missing metrics from DEFAULT_METRICS
             let metricAdded = false;
@@ -402,29 +407,32 @@ export default class DreamMetricsPlugin extends Plugin {
                         step: 1
                     };
                     metricAdded = true;
-                    console.log(`Added missing metric during init: ${metric.name}`);
+                    safeLogger.info('Settings', `Added missing metric during init: ${metric.name}`);
                 }
             });
             
             // Save settings if any metrics were added
             if (metricAdded) {
-                console.log('Saving settings with newly added metrics');
+                safeLogger.info('Settings', 'Saving settings with newly added metrics');
                 await this.saveSettings();
             }
             
             // Create and register the settings adapter
             const settingsAdapter = createAndRegisterSettingsAdapter(this.settings, this.app);
             
-            // Register the logging service
-            registerService(SERVICE_NAMES.LOGGER, globalLogger);
+            // Always register a basic logger to ensure something is available early
+            // This prevents "Service not found: logger" warnings
+            registerService(SERVICE_NAMES.LOGGER, safeLogger);
             
             // Log final metrics status
-            console.log('Final metrics in registry:', 
-                Object.keys(this.settings.metrics).join(', '));
-                
+            safeLogger.debug('Settings', 'Final metrics in registry', { 
+                metrics: Object.keys(this.settings.metrics).join(', ')
+            });
+            
             safeLogger.debug('DreamMetricsPlugin', 'Service Registry initialized with settings and logger');
         } catch (e) {
             console.error('Error initializing Service Registry:', e);
+            safeLogger.error('DreamMetricsPlugin', 'Error initializing Service Registry', e instanceof Error ? e : new Error(String(e)));
         }
 
         // Initialize the logger with settings from the registry
@@ -450,12 +458,15 @@ export default class DreamMetricsPlugin extends Plugin {
             // Update the global logger with the configured instance
             globalLogger = this.logger;
             
-            // Register the configured logger in the registry
+            // Update the logger in the registry with the fully configured version
             registerService(SERVICE_NAMES.LOGGER, this.logger);
-            
             globalLogger.debug('DreamMetricsPlugin', 'Logger initialized and registered with registry');
+            
+            // Initialize the log viewer UI
+            initializeLogUI(this);
         } catch (e) {
-            console.error('Error initializing logger:', e);
+            safeLogger.error('DreamMetricsPlugin', 'Error initializing logger', 
+                e instanceof Error ? e : new Error(String(e)));
         }
 
         // Initialize mutable state and app state
@@ -591,10 +602,12 @@ export default class DreamMetricsPlugin extends Plugin {
                     })
                 );
             } catch (e) {
-                console.error("Error in onLayoutReady:", e);
+                safeLogger.error('Plugin', 'Error in onLayoutReady', 
+                    e instanceof Error ? e : new Error(String(e)));
                 // Try to log using globalLogger if available
                 if (globalLogger) {
-                    globalLogger.error('Plugin', 'Error in onLayoutReady', e as Error);
+                    globalLogger.error('Plugin', 'Error in onLayoutReady', 
+                        e instanceof Error ? e : new Error(String(e)));
                 }
             }
         });
@@ -1035,70 +1048,6 @@ export default class DreamMetricsPlugin extends Plugin {
         } catch (e) {
             globalLogger?.error('Filter', 'Error during filter settings validation', e);
         }
-        try {
-            // Validate that the filter settings are present and have valid values
-            if (!this.settings.lastAppliedFilter || 
-                typeof this.settings.lastAppliedFilter !== 'string' ||
-                !['all', 'today', 'yesterday', 'thisWeek', 'thisMonth', 'last30', 
-                 'last6months', 'thisYear', 'last12months', 'custom'].includes(this.settings.lastAppliedFilter)) {
-                
-                // Try to recover from localStorage backup first
-                const savedFilter = localStorage.getItem('oom-last-applied-filter');
-                if (savedFilter) {
-                    this.settings.lastAppliedFilter = savedFilter;
-                    globalLogger?.info('Filter', `Recovered filter setting from localStorage: ${savedFilter}`);
-                } else {
-                    // Default to 'all' if no valid filter found
-                    this.settings.lastAppliedFilter = 'all';
-                    globalLogger?.info('Filter', 'Set default filter: all');
-                }
-            } else {
-                globalLogger?.info('Filter', `Loaded saved filter: ${this.settings.lastAppliedFilter}`);
-            }
-            
-            // Make sure we have a valid customDateRange if the filter is set to 'custom'
-            if (this.settings.lastAppliedFilter === 'custom') {
-                if (!this.settings.customDateRange || 
-                    !this.settings.customDateRange.start || 
-                    !this.settings.customDateRange.end) {
-                    
-                    // Try to recover from localStorage
-                    try {
-                        const savedRangeStr = localStorage.getItem('oom-custom-date-range');
-                        if (savedRangeStr) {
-                            const savedRange = JSON.parse(savedRangeStr);
-                            if (savedRange && savedRange.start && savedRange.end) {
-                                this.settings.customDateRange = savedRange;
-                                customDateRange = { ...savedRange };
-                                globalLogger?.info('Filter', 'Recovered custom date range from localStorage', { range: savedRange });
-                            } else {
-                                // If we can't recover the custom range, switch to 'all'
-                                this.settings.lastAppliedFilter = 'all';
-                                this.settings.customDateRange = undefined;
-                                customDateRange = null;
-                            }
-                        } else {
-                            // If no custom range found, switch to 'all'
-                            this.settings.lastAppliedFilter = 'all';
-                            this.settings.customDateRange = undefined;
-                            customDateRange = null;
-                        }
-                    } catch (e) {
-                        // If there's any error, default to 'all'
-                        this.settings.lastAppliedFilter = 'all';
-                        this.settings.customDateRange = undefined;
-                        customDateRange = null;
-                        globalLogger?.error('Filter', 'Error recovering custom date range', e);
-                    }
-                } else {
-                    // Valid custom date range exists, synchronize with global variable
-                    customDateRange = { ...this.settings.customDateRange };
-                    globalLogger?.info('Filter', 'Loaded saved custom date range', { range: this.settings.customDateRange });
-                }
-            }
-        } catch (e) {
-            globalLogger?.error('Filter', 'Error validating filter settings', e);
-        }
         
         // Initialize metrics if they don't exist
         if (!this.settings.metrics) {
@@ -1106,10 +1055,12 @@ export default class DreamMetricsPlugin extends Plugin {
         }
         
         // Log metrics state for debugging
-        console.log('Initial metrics state:', 
-            Object.keys(this.settings.metrics || {}).length ? 
-            Object.keys(this.settings.metrics).join(', ') : 
-            'No metrics found');
+        (globalLogger || safeLogger).debug('Settings', 'Initial metrics state', { 
+            count: Object.keys(this.settings.metrics || {}).length,
+            metrics: Object.keys(this.settings.metrics || {}).length ? 
+                Object.keys(this.settings.metrics).join(', ') : 
+                'No metrics found'
+        });
         
         // Ensure all default metrics exist in settings by merging with existing metrics
         let metricsUpdated = false;
@@ -1135,21 +1086,23 @@ export default class DreamMetricsPlugin extends Plugin {
                     step: 1
                 };
                 metricsUpdated = true;
-                console.log(`Added missing metric: ${defaultMetric.name}`);
+                (globalLogger || safeLogger).info('Settings', `Added missing metric: ${defaultMetric.name}`);
             }
         });
         
         // Save settings if we updated any metrics
         if (metricsUpdated) {
-            console.log('Saving settings with updated metrics...');
+            (globalLogger || safeLogger).info('Settings', 'Saving settings with updated metrics...');
             await this.saveSettings();
         }
         
         // Log the final metrics state
-        console.log('Final metrics state:', 
-            Object.keys(this.settings.metrics).length ? 
-            Object.keys(this.settings.metrics).join(', ') : 
-            'No metrics found');
+        (globalLogger || safeLogger).debug('Settings', 'Final metrics state', {
+            count: Object.keys(this.settings.metrics).length,
+            metrics: Object.keys(this.settings.metrics).length ? 
+                Object.keys(this.settings.metrics).join(', ') : 
+                'No metrics found'
+        });
         
         // Use the expandedStates helper instead of direct access
         this.expandedStates = new Set<string>();
