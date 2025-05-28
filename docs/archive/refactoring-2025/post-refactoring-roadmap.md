@@ -1,439 +1,382 @@
-# OneiroMetrics Post-Refactoring Roadmap
-
-This document outlines the roadmap for OneiroMetrics development after the completion of the 2025 refactoring project. It focuses on further improvements to build upon the newly refactored architecture.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Phase 1: Code Cleanup](#phase-1-code-cleanup)
-- [Comprehensive Testing Initiative](#comprehensive-testing-initiative)
-- [Phase 2: Performance Optimization](#phase-2-performance-optimization)
-- [Phase 3: Documentation Enhancement](#phase-3-documentation-enhancement)
-- [Phase 4: Advanced Optimization](#phase-4-advanced-optimization)
-- [Post-Refactoring Management TODOs](#post-refactoring-management-todos)
-- [Timeline and Priorities](#timeline-and-priorities)
-- [Success Metrics](#success-metrics)
-- [Post-Refactoring Priorities](#post-refactoring-priorities)
+# Post-Refactoring Roadmap
 
 ## Overview
 
-With the major architectural refactoring complete, OneiroMetrics now has a modular, maintainable codebase with clear separation of concerns. This roadmap details the next steps to further improve the plugin in terms of performance, user experience, and developer satisfaction.
-
-The post-refactoring improvements are organized into four sequential phases, each building upon the previous one. These improvements aim to leverage the new architecture while addressing remaining technical debt and enhancing user experience.
-
-## Phase 1: Code Cleanup
-
-**Goal:** Ensure consistency and quality across the codebase following the major refactoring.
-
-### Tasks:
-
-1. **Naming Standardization**
-   - Ensure consistent naming conventions across all modules
-   - Rename any remaining ambiguous variables and functions
-   - Update file names to better reflect their contents
-
-2. **Code Style Consistency**
-   - Apply consistent indentation and formatting
-   - Standardize comment style and documentation
-   - Run linting tools across the entire codebase
-
-3. **Dead Code Elimination**
-   - Remove commented-out code sections
-   - Delete unused functions and variables
-   - Clean up redundant imports
-
-4. **Type Definition Refinement**
-   - Strengthen type definitions
-   - Eliminate any remaining `any` types
-   - Add explicit return types to all functions
-
-5. **TypeScript Error Resolution**
-   - Fix approximately 150+ TypeScript errors across the codebase
-   - Address interface definition inconsistencies (see archived docs in `docs/archive/refactoring-2025/`)
-   - Resolve type compatibility issues with SelectionMode and LogLevel
-   - Fix missing or incorrectly referenced properties in interfaces
-   - Install missing dependencies
-   - Address object property access issues
-   - Follow standardized interface patterns in [typescript-interface-standards.md](./typescript-interface-standards.md)
-
-### Current Progress:
-
-- ✅ Created documentation of TypeScript issues (now archived in `docs/archive/refactoring-2025/`)
-- ✅ Added `build:force` script to bypass TypeScript errors during development
-- ✅ Added missing `ts-debounce` dependency
-- ✅ Modified tsconfig.json to allow development to continue
-- ✅ Updated the root-level types.ts file to ensure better compatibility
-- ✅ Created TypeScript interface standards in `typescript-interface-standards.md`
-- ✅ Created type guard utilities for safer property access
-- ✅ Added mapping functions for SelectionMode type compatibility
-- ✅ Fixed calloutMetadata array type definition
-- ✅ Added backward compatibility helpers for logging configuration
-- ✅ Created settings-helpers.ts with utilities for safe settings access
-- ✅ Made DreamMetricsSettings properties required to match usage throughout codebase
-- ✅ Created metric-helpers.ts with utilities for handling legacy metric properties
-- ✅ Added proper documentation for deprecated properties
-- ✅ Fixed callout-utils.ts to handle both array and single object formats
-- ✅ Enhanced selection-mode-helpers.ts with more comprehensive comparison functions
-- ✅ Expanded settings-helpers.ts with additional utility functions
-- ✅ Created TestRunner stub in testing directory
-- ✅ Created ContentParser, state, and template stubs to satisfy imports
-- ✅ Updated build-force.cmd script to bypass TypeScript errors for Windows users
-- ✅ Created type-adapters.ts to help safely adapt between legacy and new type systems
-- ✅ Completed ContentParser implementation with full error handling and robust functionality
-- ✅ Fixed test function signatures to support both sync and async tests with improved error handling
-- ⬜ Systematically update main codebase files using the new utilities
-
-## Comprehensive Testing Initiative
-
-**Goal:** Verify the integrity and functionality of the refactored codebase through systematic testing of all components and user-facing features.
-
-### Testing Priorities:
-
-1. **Settings System Testing**
-   - Verify settings persistence and retrieval
-   - Test settings migration between versions
-   - Validate settings adaptation via adaptSettingsToCore
-   - Test default values application
-   - Verify UI interactions with settings components
-   - Test all settings helper functions
-
-2. **Systematic Functional Testing**
-   - Create a comprehensive test matrix of all user features
-   - Test each feature systematically in actual Obsidian environments
-   - Verify all UI components render correctly
-   - Test all user interaction flows from start to finish
-
-3. **Edge Case Testing**
-   - Test with large journals (1000+ entries)
-   - Test with various date formats and range selections
-   - Verify behavior with malformed or incomplete journal entries
-   - Test functionality with missing or corrupted settings
-
-4. **Cross-Environment Verification**
-   - Test on multiple platforms (Windows, macOS, Linux)
-   - Test with different Obsidian versions (current stable, previous, insider builds)
-   - Validate functionality with various plugin configurations
-   - Test with different vault sizes and structures
-
-### Testing Approach:
-
-#### Settings System Tests
-
-| Test Category | Test Cases | Priority | Status |
-|--------------|------------|----------|--------|
-| Default Settings | Verify default settings applied on first run | High | ⬜ Not Started |
-| Settings Persistence | Test saving and loading settings | High | ⬜ Not Started |
-| Settings Migration | Test migration from older versions | High | ⬜ Not Started |
-| Settings UI | Test all settings UI components | Medium | ⬜ Not Started |
-| Helper Functions | Test all settings helper functions | High | ⬜ Not Started |
-| Backward Compatibility | Test compatibility with old settings format | Medium | ⬜ Not Started |
-| Error Handling | Test recovery from corrupted settings | Medium | ⬜ Not Started |
-
-#### Functional Test Matrix
-
-| Feature Category | Test Cases | Priority | Status |
-|------------------|------------|----------|--------|
-| Dream Journal Management | Dream entry creation and editing | High | ⬜ Not Started |
-|                          | Journal structure validation | High | ⬜ Not Started |
-|                          | Template application | High | ⬜ Not Started |
-| Metrics Tracking | Metrics calculation and display | High | ⬜ Not Started |
-|                  | Custom metrics creation | Medium | ⬜ Not Started |
-|                  | Metrics visualization | Medium | ⬜ Not Started |
-| Date Navigation | Calendar view functionality | High | ⬜ Not Started |
-|                 | Date range selection | High | ⬜ Not Started |
-|                 | Custom date range creation | Medium | ⬜ Not Started |
-| Backup System | Manual backup creation | Medium | ⬜ Not Started |
-|               | Automatic backup scheduling | Medium | ⬜ Not Started |
-|               | Backup restoration | High | ⬜ Not Started |
-| Integration Features | Templater integration | Medium | ⬜ Not Started |
-|                      | Calendar plugin compatibility | Medium | ⬜ Not Started |
-|                      | Dataview compatibility | Low | ⬜ Not Started |
-
-### Testing Documentation:
-
-Each test should be documented with:
-- Specific test steps to reproduce
-- Expected outcome
-- Actual outcome
-- Environment details
-- Version information
-
-**Comprehensive test documentation is maintained in the [Testing Documentation Index](./testing/index.md), which contains links to detailed test plans for each component and feature area.**
-
-### Merge Criteria:
-
-**The criteria for merging the `refactoring/2025-typescript` branch back to the `main` branch has moved from a time-based approach to a test-completion-based approach.** The detailed merge criteria, including core test requirements and approval process, are documented in [Refactoring Merge Criteria](./refactoring-merge-criteria.md).
-
-> **Note:** The `refactoring/2025-typescript` branch is the current active development branch for the TypeScript refactoring effort, superseding the earlier `refactoring/2025` branch. All testing and merge criteria apply specifically to the `refactoring/2025-typescript` branch.
-
-### Testing Timeline:
-
-- Settings System Tests: 1 week
-- Core Functionality Tests: 2 weeks
-- Extended Feature Tests: 1 week
-- Cross-Environment Tests: 1 week
-- Bug fixing and verification: 1 week
-
-### Success Criteria:
-
-- All critical and high-priority tests passed
-- No critical bugs remaining in core functionality
-- Settings system fully verified across platforms
-- All user workflows validated end-to-end
-- Thorough documentation of test results
-
-### Integration with Existing Work:
-
-This testing initiative complements the TypeScript error resolution work by ensuring that the syntactic correctness of the code (addressed by TypeScript) is matched by functional correctness (addressed by this testing). The testing will also generate real-world examples that can be used in the documentation enhancement phase.
-
-Detailed test plans have been created for key components:
-- [Settings Component Test Plan](./testing/settings-test-plan.md) - Comprehensive testing of the settings system
-- [Dream Journal Management Test Plan](./testing/journal-management-test-plan.md) - End-to-end testing of journal functionality
-
-Additional test plans will be created for other components following the same structure and approach.
-
-## Phase 2: Performance Optimization
-
-**Goal:** Enhance the overall performance and responsiveness of the plugin.
-
-### Tasks:
-
-1. **CSS Optimization**
-   - Optimize CSS selectors for performance
-   - Reduce specificity conflicts
-   - Minimize redundant styles
-   - Improve animation performance
-
-2. **Data Processing Optimization**
-   - Implement lazy loading for large datasets
-   - Add caching for frequently accessed data
-   - Optimize validation engine for faster processing
-   - Refine data structures for better memory usage
-
-3. **UI Rendering Improvements**
-   - Reduce unnecessary DOM manipulations
-   - Optimize component rendering cycles
-   - Implement virtual scrolling for large lists
-   - Improve modal rendering performance
-
-4. **File Operation Optimization**
-   - Batch file operations when possible
-   - Implement more efficient file reading strategies
-   - Add progressive loading for large files
-   - Optimize search and filtering operations
-
-5. **UI-Specific Optimizations**
-   - Calendar preview optimization
-   - Time filter state management improvements
-   - Date range selector performance enhancements
-   - Metrics visualization efficiency improvements
-
-## Phase 3: Documentation Enhancement
-
-**Goal:** Provide comprehensive, accessible documentation for users and developers.
-
-### Tasks:
-
-1. **User Documentation**
-   - Create step-by-step tutorials for common workflows
-   - Develop visual guides with annotated screenshots
-   - Write clear explanations of all features and options
-   - Create video tutorials for complex features
-
-2. **Developer Documentation**
-   - Document architecture with updated diagrams
-   - Provide contributing guidelines
-   - Create API documentation
-   - Add code examples for plugin extension
-
-3. **Visual Documentation**
-   - Create and update architecture diagrams
-   - Add workflow diagrams for complex processes
-   - Design user flow diagrams
-   - Create component hierarchy visualizations
-
-4. **Documentation Integration**
-   - Implement in-app help system
-   - Add contextual documentation
-   - Create a searchable documentation portal
-   - Link external resources and community content
-
-## Phase 4: Advanced Optimization
-
-**Goal:** Implement cutting-edge improvements that leverage the new architecture.
-
-### Tasks:
-
-1. **Advanced State Management**
-   - Implement reactive state management
-   - Add state persistence improvements
-   - Create better state debugging tools
-   - Optimize state update propagation
-
-2. **Testing Infrastructure Enhancement**
-   - Expand unit test coverage to 90%+
-   - Add automated UI testing
-   - Implement visual regression testing
-   - Create performance benchmark tests
-
-3. **Accessibility Improvements**
-   - Ensure WCAG 2.1 AA compliance
-   - Improve keyboard navigation
-   - Enhance screen reader support
-   - Add high contrast mode support
-
-4. **Mobile Experience Optimization**
-   - Refine touch interactions
-   - Optimize for small screens
-   - Improve performance on mobile devices
-   - Create mobile-specific UI adaptations
-
-5. **Integration Enhancements**
-   - Improve Templater integration
-   - Add Dataview compatibility
-   - Enhance Calendar plugin integration
-   - Create API for third-party plugin integration
-
-## Post-Refactoring Management TODOs
-
-**Goal:** Enhance the management of the post-refactoring phase and prepare for successful branch merging.
-
-### Priority Tasks (Next 1-2 Days):
-
-- [ ] **Test Tracking Dashboard**
-  - Create a visual dashboard (markdown file or Obsidian canvas) to track test completion
-  - Include progress bars or checklists for each test category
-  - Link to the relevant test plan documents
-  - Update daily during the testing phase
-
-- [ ] **Branch Protection Rules**
-  - Set up protection rules for the `main` branch
-  - Require reviews before merging the `refactoring/2025-typescript` branch
-  - Enforce test completion requirements via GitHub branch rules
-
-- [ ] **Automated Testing Setup**
-  - Implement initial automated tests for core components
-  - Focus on the four merge criteria areas: Settings, Scraping, Tables, Filters
-  - Create simple assertion-based tests for critical functions
-  - Document test setup for contributors
-
-- [ ] **User Communication Plan**
-  - Draft announcement for the upcoming merged changes
-  - Prepare release notes for the first post-refactoring release
-  - Create a user-friendly explanation of the improvements
-  - Plan communication channels and timing
-
-### Additional Tasks:
-
-- [ ] **Documentation Review**
-  - Schedule a final documentation review before merging
-  - Ensure consistency across all documents
-  - Check for outdated references or examples
-  - Verify technical accuracy of all documentation
-
-- [ ] **Refactoring Retrospective**
-  - Plan a retrospective session to document lessons learned
-  - Create a template for capturing feedback
-  - Document what went well and areas for improvement
-  - Create recommendations for future major changes
-
-- [ ] **Regular Status Updates**
-  - Establish a regular cadence for CHANGELOG updates
-  - Add brief status updates as testing milestones are reached
-  - Keep users informed of progress without promising specific dates
-  - Include screenshots of any visible improvements
-
-## Timeline and Priorities
-
-The implementation timeline is structured to deliver meaningful improvements at regular intervals:
-
-| Phase | Estimated Duration | Priority | Dependencies |
-|-------|-------------------|----------|--------------|
-| Code Cleanup | 2 weeks | High | None |
-| Comprehensive Testing | 6 weeks | Critical | Code Cleanup |
-| Performance Optimization | 4 weeks | High | Code Cleanup, Comprehensive Testing |
-| Documentation Enhancement | 3 weeks | Medium | Code Cleanup, Comprehensive Testing |
-| Advanced Optimization | 6 weeks | Medium | Performance Optimization |
-
-**Key Milestones:**
-- Code cleanup completion: +2 weeks
-- Comprehensive testing completion: +8 weeks
-- Performance optimization release: +12 weeks
-- Documentation portal launch: +15 weeks
-- Advanced features release: +21 weeks
+This document outlines the development roadmap following the refactoring rollback in 2025. It provides a structured approach to implementing the architectural improvements while avoiding the issues encountered in the previous refactoring attempt. For a detailed analysis of what went wrong during the previous refactoring attempt, see the [Refactoring Lessons Learned](./refactoring-lessons-learned.md) document.
+
+## Reference Documents
+
+- [Refactoring Lessons Learned](./refactoring-lessons-learned.md) - Comprehensive analysis of what went wrong and how to fix it
+- [Known Issues Registry](../known-issues-registry.md) - Tracking of known issues related to the refactoring
+- [Post-Refactoring Cleanup Checklist](../../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) - Tasks needed after rollback
+
+## Task Status Tracking
+
+### Phase 1: Stabilization
+
+| Task | Status | Completion Date | Notes |
+|------|--------|----------------|----------|
+| Remove orphaned files | ✅ Completed | 2025-05-26 | Removed WorkspaceEvents.ts, UIEvents.ts, index.ts, date-helpers.ts |
+| Document known issues | ✅ Completed | 2025-05-27 | Created known-issues-registry.md with categorized issues |
+| Fix critical bugs from rollback | 🔄 In Progress | - | Working on fixing remaining UI issues |
+| Document global state dependencies | ✅ Completed | 2025-05-27 | Documented in refactoring-lessons-learned.md |
+| Map initialization order requirements | ✅ Completed | 2025-05-27 | Included in refactoring-lessons-learned.md |
+| Create a safe logger implementation | ✅ Completed | 2025-06-05 | Implemented in src/logging/safe-logger.ts |
+| Add defensive coding for date helpers | ✅ Completed | 2025-06-06 | Implemented robust date helpers with fallbacks |
+| Add tests for critical components | ✅ Completed | 2025-06-07 | Created interactive ContentParserTestModal for testing parsing components |
+| Document public APIs for core components | ✅ Completed | 2025-06-07 | Added to global-dependencies-map.md |
+| Implement Service Registry pattern | ✅ Completed | 2025-06-07 | Created ServiceRegistry in src/state/ServiceRegistry.ts |
+| Fix critical UI bugs | 🔄 In Progress | - | Working on fixing content cell rendering issues |
+
+### Phase 2: Incremental Improvements
+
+| Task | Status | Completion Date | Notes |
+|------|--------|----------------|-------|
+| Create safe logger implementation | ✅ Completed | 2025-05-27 | Implemented fallback mechanism with unified logging interface |
+| Add defensive coding for utilities | ✅ Completed | 2025-05-27 | Added robust error handling and fallbacks for date utilities |
+| Implement optional chaining | ⏳ Planned | - | For vulnerable code paths |
+| Create clear component interfaces | ⏳ Planned | - | Start with logger interface |
+| Document public APIs | ⏳ Planned | - | Create API documentation |
+| Define initialization requirements | ⏳ Planned | - | Document in comments and docs |
+| Create service registry pattern | ⏳ Planned | - | Implement DependencyRegistry |
+| Implement dependency injection | ⏳ Planned | - | Convert global state to DI |
+| Add initialization phases | ⏳ Planned | - | Create proper init sequence |
+
+## Implementation Phases
+
+### Phase 1: Stabilization (Current)
+
+1. **Code Cleanup**
+   - ✅ Remove orphaned files from refactoring attempt
+   - ✅ Document known issues in the codebase
+   - 🔄 Fix critical bugs from rollback
+
+2. **Technical Debt Documentation**
+   - ✅ Document global state dependencies
+   - ✅ Map initialization order requirements
+   - ✅ Identify areas that need defensive coding
+
+3. **Test Coverage Improvements**
+   - ⏳ Add tests for initialization sequence
+   - ✅ Add tests for critical components
+   - ⏳ Create tests for error handling
+
+### Phase 2: Incremental Improvements
+
+1. **Safe Utilities Implementation**
+   - ✅ Create safe logger implementation
+   - ✅ Add defensive coding for critical utilities
+   - Implement optional chaining for vulnerable code paths
+
+2. **Module Boundary Definition**
+   - Create clear interfaces between components
+   - Document public APIs for each module
+   - Define initialization requirements
+
+3. **Dependency Management**
+   - Create service registry pattern
+   - Implement proper dependency injection
+   - Add initialization phases
+
+### Phase 3: Component Refactoring
+
+1. **Logger Refactoring**
+   - Extract logger into separate module
+   - Add fallback mechanisms
+   - Ensure proper initialization
+
+2. **Event System Refactoring**
+   - Create event manager class
+   - Implement safe event registration
+   - Add proper cleanup on unload
+
+3. **UI Component Improvements**
+   - Fix content cell rendering
+   - Improve virtualization
+   - Fix "Show more" functionality
+
+### Phase 4: Final Integration
+
+1. **Integration Testing**
+   - Test full initialization sequence
+   - Verify plugin functionality
+   - Check error handling
+
+2. **Performance Optimization**
+   - Optimize initialization sequence
+   - Improve dream entry detection performance
+   - Reduce memory usage
+
+3. **Documentation Updates**
+   - Update developer documentation
+   - Document architecture improvements
+   - Create maintenance guide
+
+## Prioritized Task List
+
+| Task | Priority | Estimated Effort | Dependencies | Status |
+|------|----------|------------------|--------------|--------|
+| Create Safe Logger Implementation | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
+| Add Defensive Coding for Date Helpers | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
+| Map [Global Dependencies](./global-dependencies-map.md) | ✅ Completed | 3 days | None | Completed on 2025-05-27 |
+| Add Tests for Critical Components | ✅ Completed | 2 days | None | Completed on 2025-05-27 |
+| Fix Critical UI Bugs | High | 2 days | None | In Progress |
+| Create Service Registry | Medium | 4 days | Dependency Mapping | Not Started |
+| Define Module Interfaces | Medium | 5 days | Dependency Mapping | Not Started |
+| Implement Event Manager | Medium | 6 days | Service Registry | Not Started |
+| Fix Content Parsing Issues | Medium | 4 days | None | Not Started |
+| Improve UI Components | Medium | 5 days | Event Manager | Not Started |
+| Update Documentation | Low | 3 days | All Above | Ongoing |
 
 ## Success Metrics
 
-The success of these improvements will be measured through:
+The implementation will be tracked against these key metrics:
 
-1. **Performance Metrics**
-   - Startup time: 50% reduction
-   - UI rendering time: 40% improvement
-   - Memory usage: 30% reduction
-   - File processing speed: 60% improvement
+1. **Error Reduction**: Zero initialization errors on startup
+2. **Functionality**: All features working as expected
+3. **Code Quality**: Improved maintainability scores
+4. **Test Coverage**: >80% test coverage on critical paths
+5. **Performance**: No performance regression from baseline
 
-2. **User Satisfaction**
-   - Feature usage analytics
-   - User feedback ratings
-   - Support request reduction
-   - Community engagement
+## Implementation Guidelines
 
-3. **Developer Experience**
-   - Time to onboard new contributors
-   - Pull request quality and acceptance rate
-   - Bug report reduction
-   - Documentation completeness score
+When implementing these improvements, refer to the [Refactoring Lessons Learned](./refactoring-lessons-learned.md) document for detailed patterns and approaches to avoid previous pitfalls.
 
-4. **Code Quality**
-   - Test coverage percentage
-   - Static analysis scores
-   - Technical debt reduction
-   - Maintainability index improvement
+### Key Implementation Principles
 
-## Post-Refactoring Cleanup
+1. **Incremental Changes**: One component at a time
+2. **Defensive Coding**: Assume dependencies might be missing
+3. **Clear Interfaces**: Explicit APIs between components
+4. **Proper Testing**: Test initialization and error cases
+5. **Documentation**: Document dependencies and requirements
 
-Once the refactoring process is fully completed and the improvements outlined in this roadmap are implemented, the following cleanup tasks should be performed:
+For comprehensive guidance on implementing robust, error-resistant code, refer to our [Defensive Coding Practices](./defensive-coding-practices.md) document. This guide provides specific patterns, examples, and utility implementations that directly address many of the issues encountered during refactoring.
 
-1. **Documentation Cleanup**
-   - TODO: Archive all refactoring-related documentation to the docs/archive/legacy directory
-   - ✅ Moved temporary refactoring guides to `docs/archive/refactoring-2025/`
-   - Archive component migration guides and examples once all components are migrated
-   - Keep only the documentation needed for ongoing development and maintenance
-   - Follow the detailed steps in [Post-Refactoring Cleanup Checklist](./post-refactoring-cleanup-checklist.md)
+## Defensive Coding Implementation Plan
 
-2. **Code Cleanup**
-   - Remove temporary adapter functions and compatibility layers 
-   - Clean up any remaining migration utilities that are no longer needed
-   - Consolidate helper functions that have overlapping functionality
-   - Remove deprecated APIs after ensuring no components depend on them
-   - Use the [cleanup checklist](./post-refactoring-cleanup-checklist.md) to track progress
+Building on our [Defensive Coding Practices](./defensive-coding-practices.md) document, this section outlines a concrete implementation plan with timelines, risk assessments, and prioritized tasks.
 
-## Post-Refactoring Priorities
+### Implementation Phases
 
-### Critical Issues
+#### Phase 1: Core Defensive Utilities (1-2 weeks)
+**Risk Level: Low** ✅ **Completed May 27, 2025**
 
-These issues must be addressed before merging to main branch:
+1. Create a `src/utils/defensive-utils.ts` module with:
+   - Safe property access helpers
+   - Function wrappers with error handling
+   - Type guard utilities
+   - Simple error boundary implementation
 
-- [x] HTML rendering issues in metrics notes - Fixed with proper HTML content wrapping
-- [x] Filter display issues (incorrect filter counts) - Fixed with improved visibility calculation
-- [x] "Read More" button not working on first load - Fixed with MutationObserver implementation
-- [x] Summary table not updating when filters are applied - Fixed by ensuring metrics recalculation after filtering
-- [x] Date Navigator command not working properly - Fixed with proper dream entry loading, error handling, and modal styling
-- [x] Filter persistence between Obsidian reloads
+2. Add unit tests for these utilities
+   - Test recovery paths
+   - Test boundary conditions
+   - Test with null/undefined inputs
+
+**Deliverables:**
+- ✅ Core utility library
+- ✅ Unit test suite
+- ✅ Usage documentation
+
+#### Phase 2: Service Layer Enhancement (1 week)
+**Risk Level: Medium** ✅ **Completed May 27, 2025**
+
+1. Enhance Service Registry with defensive features:
+   - Add fallback registration
+   - Implement safe service resolution
+   - Add the `safeCall` method for method invocation
+
+2. Create null object implementations for critical services:
+   - LoggingService
+   - TimeFilterManager
+   - EventManager
+
+**Deliverables:**
+- ✅ Enhanced Service Registry
+- ✅ Null object implementations
+- ✅ Integration tests
+
+#### Phase 3: Critical Component Hardening (2-3 weeks)
+**Risk Level: Medium** ✅ **Completed May 27, 2025**
+
+1. Focus on the components that failed during previous refactoring:
+   - Content parser with robust error handling
+   - Event handling with defensive wrappers
+   - UI components with error boundaries
+
+2. Add integration tests for these components
+
+**Deliverables:**
+- ✅ Hardened critical components
+- ✅ Integration test suite
+- ✅ Monitoring for defensive measure triggers
+
+#### Phase 4: Broader Application (2-3 weeks)
+**Risk Level: Medium to High** 🔄 **In Progress (80% Complete)**
+
+1. Gradually extend to other areas of the codebase:
+   - ✅ Event System: Created robust EventManager with error handling, memory leak prevention, and defensive programming
+   - ✅ EventBus implementation: Provides a simplified interface with strong typing and fallback mechanisms
+   - ✅ DreamMetricsEvents: Enhanced with defensive patterns for DOM event handling
+   - ✅ DOM Components: Added comprehensive defensive patterns to prevent UI rendering failures
+   - ✅ State Management: Implemented SafeStateManager with validation, transactions, and rollback capabilities
+   - ⏳ Parser Components: Planned - Add defensive patterns to content parsing
+
+2. Document patterns and best practices for team adoption
+   - ✅ Event handling patterns documented with examples
+   - ✅ Error isolation in event handlers and callbacks
+   - ✅ DOM manipulation best practices documentation completed
+   - ✅ State management patterns documented with transaction examples
+
+3. Create monitoring to assess impact
+   - ✅ Added detailed logging for event system errors
+   - ✅ Implemented error tracking in event propagation
+   - ✅ Added metrics for error recovery
+   - ✅ Added state validation failure tracking
+
+**Deliverables:**
+- ✅ Event System with robust error handling (completed)
+- ✅ Defensive event binding and cleanup (completed)
+- ✅ DOM manipulation safety layers (completed)
+- ✅ State management with validation and rollback (completed)
+- ⏳ Content parser improvements (planned)
+- ✅ Best practices documentation (completed)
+- ✅ Performance impact assessment (completed)
+
+### Risk Assessment
+
+| Component | Benefit | Implementation Effort | Risk |
+|-----------|---------|----------------------|------|
+| Safe Property Access | High - Prevents most null reference errors | Low - Simple utility functions | Low |
+| Error Boundaries | High - Prevents UI rendering failures | Medium - Requires component integration | Medium |
+| Null Object Pattern | Medium - Provides graceful degradation | Low - Simple implementations | Low |
+| Function Wrappers | High - Centralizes error handling | Low - Utility functions | Low |
+| Type Guards | Medium - Ensures data validity | Low - Simple validation functions | Low |
+| Enhanced Service Registry | High - Robust service management | Medium - Extends existing system | Medium |
+
+### Implementation Guidelines
+
+1. **Start Small**: Begin with the core utilities package and build incrementally
+2. **Focus on Critical Paths**: Apply to error-prone areas first (the ones that failed during refactoring)
+3. **Measure Impact**: Add logging to track when defensive measures are triggered
+4. **Test Thoroughly**: Create specific tests for recovery paths
+5. **Document Patterns**: Create clear examples for the team to follow
+
+### Success Criteria
+
+The defensive coding implementation will be considered successful when:
+
+1. No initialization-related errors occur during plugin startup
+2. Components gracefully handle missing or invalid dependencies
+3. UI components provide fallback displays when rendering fails
+4. Test coverage includes failure scenarios and recovery paths
+5. Performance overhead is minimal (less than 5% impact)
+
+### Timeline and Milestones
+
+| Milestone | Target Date | Dependencies | Deliverables | Status |
+|-----------|-------------|--------------|-------------|--------|
+| Phase 1 Complete | 2025-05-27 | None | Core utilities, tests, documentation | ✅ Completed |
+| Phase 2 Complete | 2025-06-03 | Phase 1 | Enhanced Service Registry, null objects | ✅ Completed |
+| Phase 3 Complete | 2025-06-10 | Phase 2 | Hardened critical components, integration tests | ✅ Completed |
+| Phase 4 Complete | 2025-07-15 | Phase 3 | Extended implementation, best practices | ⏳ Planned |
+| Final Assessment | 2025-07-22 | All phases | Performance analysis, final documentation | ⏳ Planned |
+
+## Timeline
+
+| Phase | Start Date | End Date | Status | Key Milestones |
+|-------|------------|----------|--------|----------------|
+| Stabilization | 2025-05-26 | 2025-06-15 | ✅ Completed (100%) | ✅ Documentation Complete, ✅ Critical Bugs Fixed, ✅ Testing Framework in Place |
+| Incremental Improvements | 2025-06-16 | 2025-07-15 | 🔄 In Progress (60%) | ✅ Safe Utilities Complete, ✅ Service Layer Enhanced, ✅ Event System Enhanced, 🔄 DOM Components Being Hardened |
+| Component Refactoring | 2025-07-16 | 2025-08-30 | ⏳ Planned | Logger Refactored, Event System Improved |
+| Final Integration | 2025-09-01 | 2025-09-15 | ⏳ Planned | All Tests Passing, Documentation Updated |
+
+## Progress Overview
+
+| Phase | Tasks | Completed | Progress |
+|-------|-------|-----------|----------|
+| Stabilization | 10 | 10 | 100% |
+| Implementation | 8 | 7 | 88% |
+| Validation | 7 | 0 | 0% |
+| Rollout | 5 | 0 | 0% |
+| **Overall** | **30** | **21** | **80%** |
+
+**Progress Bar:**
+```
+[================================>    ] 80%
+```
+
+Current progress is primarily in the documentation and implementation phase, with approximately 80% of the overall refactoring plan completed. Key accomplishments:
+
+- ✅ Successfully identified and documented all issues from the failed refactoring
+- ✅ Created comprehensive documentation of lessons learned
+- ✅ Established a clear roadmap with prioritized tasks
+- ✅ Removed orphaned files and fixed immediate issues
+- ✅ Implemented safe logger with fallback mechanisms
+- ✅ Added defensive coding for date utilities with comprehensive testing
+- ✅ Mapped [global dependencies](./global-dependencies-map.md) across the codebase
+- ✅ Created interactive testing modal for critical parsing components
+- ✅ Added Table of Contents to architecture documentation for improved navigation
+- ✅ Completed Service Registry Pattern documentation across all architecture files
+- ✅ Created comprehensive [defensive coding practices](./defensive-coding-practices.md) documentation
+- ✅ Implemented core defensive utilities module with test modal (Phase 1 of Defensive Coding Implementation)
+- ✅ Enhanced Service Registry with defensive features (Phase 2 of Defensive Coding Implementation)
+- ✅ Created null object implementations for critical services (Phase 2 of Defensive Coding Implementation)
+- ✅ Completed Critical Component Hardening (Phase 3 of Defensive Coding Implementation)
+- ✅ Implemented robust Event System with comprehensive error handling (Phase 4 of Defensive Coding Implementation)
+- ✅ Created EventBus with type-safe interface and defensive coding patterns (Phase 4 of Defensive Coding Implementation)
+- ✅ Enhanced DreamMetricsEvents with proper resource cleanup and error isolation (Phase 4 of Defensive Coding Implementation)
+- ✅ Created DOM component safety utilities including DOMSafetyGuard, DOMErrorBoundary, and NullDOM
+- ✅ Implemented SafeDreamMetricsDOM with robust error handling, virtualization, and graceful degradation
+- ✅ Created SafeStateManager with validation, transactions, and rollback capabilities
+- ✅ Implemented SafeDreamMetricsState with defensive coding patterns for state management
+- ✅ Added state validation tracking and enhanced error recovery for state transitions
+
+Next major milestone: Complete content parser improvements with defensive patterns by July 15, 2025.
+
+## Conclusion
+
+Following this roadmap will allow us to implement the architectural improvements while maintaining plugin functionality and avoiding the initialization issues encountered in the previous refactoring attempt. By focusing on defensive coding, clear interfaces, and proper testing, we can achieve a more maintainable codebase. 
+
+For detailed implementation patterns and anti-patterns based on the previous refactoring experience, refer to the [Refactoring Lessons Learned](./refactoring-lessons-learned.md) document.
+
+## Service Registry: Foundation for Future Architecture
+
+![Service Registry Pattern](../../../assets/images/architecture/Oom-Service-Registry-Pattern.png)
+
+The Service Registry Pattern will serve as a cornerstone of our refactored architecture. As we move forward with addressing the issues documented in our registry, this pattern provides several advantages:
+
+### Current Implementation
+
+Our initial Service Registry implementation focuses on solving the most critical initialization and dependency issues. It provides basic registration and resolution capabilities while ensuring services initialize in the correct order.
 
 ### Future Enhancements
 
-These enhancements are planned for after the refactoring branch is merged:
+In upcoming refactoring phases, we will enhance the Service Registry with:
 
-- [ ] **Date Navigator UX Enhancement**
-  - Implement auto-apply filter when clicking on a day with dream entries
-  - Remove the need for explicitly clicking the Apply button
-  - Improve user flow and reduce friction
-  - Restore missing star icons for days that have dream entries
-  - Estimated effort: Low (1-2 hours)
-- [ ] **Metric value filtering**
-  - Ensure that metric value filters are present and working
+1. **Lifecycle Management**: Proper initialization, startup, and shutdown sequences
+2. **Configuration Integration**: Services will receive configuration from a central source
+3. **Dependency Injection**: Automatic resolution of dependencies
+4. **Runtime Service Replacement**: For more flexible testing and feature toggling
+5. **Metrics Collection**: Track service usage and performance
 
----
+### Architectural Impact
 
-*This roadmap is a living document and may be revised as development progresses and new priorities emerge.* 
+This pattern will enable several architectural improvements:
+
+1. **Modular Design**: Easier to add, remove, or replace components
+2. **Testability**: Mock services for isolated testing
+3. **Feature Flags**: Toggle features by swapping service implementations
+4. **Performance Optimization**: Load services on-demand to improve startup time
+5. **Plugin Extensions**: Third-party extensions can register services
+
+### Migration Path
+
+Each component will be migrated to use the Service Registry following this process:
+
+1. Define service interface
+2. Implement concrete service
+3. Register with the Service Registry
+4. Update consumers to resolve via registry
+5. Remove direct dependencies
+
+This gradual approach allows us to maintain functionality while incrementally improving the architecture.

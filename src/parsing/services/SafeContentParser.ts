@@ -300,7 +300,7 @@ export class SafeContentParser {
           parsingContext.errorCount++;
           const errorMessage = `Error processing callout: ${error instanceof Error ? error.message : String(error)}`;
           parsingContext.errors.push(errorMessage);
-          safeLogger.error('ContentParser', errorMessage, { source: sourcePath });
+          safeLogger.error('ContentParser', `${errorMessage} (source: ${sourcePath})`);
           
           if (options.strict) {
             throw error; // Re-throw in strict mode
@@ -399,7 +399,7 @@ export class SafeContentParser {
             parsingContext.errorCount++;
             const errorMessage = `Error processing nested callout: ${error instanceof Error ? error.message : String(error)}`;
             parsingContext.errors.push(errorMessage);
-            safeLogger.error('ContentParser', errorMessage);
+            safeLogger.error('ContentParser', `${errorMessage} (source: ${sourcePath})`);
             
             if (options.strict) {
               throw error;
