@@ -3,6 +3,11 @@
 ## Overview
 This document outlines the detailed implementation plan for Phase 5 of our defensive coding initiative: API Integration Hardening. The goal is to make all external API interactions robust, resilient to failures, and capable of graceful degradation when services are unavailable.
 
+## Related Documents
+- [Defensive Coding Implementation Plan](defensive-coding-implementation.md) - Overall defensive coding strategy
+- [Post-Refactoring Roadmap](../../developer/implementation/post-refactoring-roadmap.md) - Broader context for these improvements
+- [Code Cleanup Plan](../../developer/implementation/code-cleanup-plan.md) - Related cleanup activities
+
 ## Objectives
 1. Improve resilience of external API calls
 2. Prevent cascading failures due to external dependencies

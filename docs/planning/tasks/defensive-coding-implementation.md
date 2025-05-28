@@ -2,6 +2,11 @@
 
 This document outlines the phased approach for implementing defensive coding practices across the OneiroMetrics Obsidian Plugin (OOMP).
 
+## Related Documents
+- [Post-Refactoring Roadmap](../../developer/implementation/post-refactoring-roadmap.md) - Broader context for these improvements
+- [Code Cleanup Plan](../../developer/implementation/code-cleanup-plan.md) - Related cleanup activities
+- [API Integration Hardening Plan](api-integration-hardening-plan.md) - Detailed plan for Phase 5
+
 ## Overview
 
 The implementation will follow a phased approach, targeting different components of the application in order of priority. Each phase will focus on making specific components more robust through defensive coding patterns.
@@ -39,6 +44,8 @@ The implementation will follow a phased approach, targeting different components
 - Add circuit breaker pattern for failing dependencies
 - Create fallback mechanisms for offline operation
 - Enhance error reporting for API failures
+
+See the [detailed API Integration Hardening Plan](api-integration-hardening-plan.md) for implementation specifics, timeline, and strategies.
 
 ### Phase 6: Testing and Validation ⬜
 - Develop failure injection tests
