@@ -9,6 +9,8 @@
  */
 
 import { Notice } from 'obsidian';
+import { error, warn, debug } from '../logging';
+import safeLogger from '../logging/safe-logger';
 
 // Type for a function that takes any arguments and returns any value
 type AnyFunction = (...args: any[]) => any;
@@ -29,7 +31,7 @@ export function getSafe<T, R>(obj: T, getter: (obj: T) => R, fallback: R): R {
     const result = getter(obj);
     return result === undefined || result === null ? fallback : result;
   } catch (e) {
-    console.error('Error accessing property:', e);
+    error('DefensiveUtils', 'Error accessing property', e);
     return fallback;
   }
 }
@@ -57,7 +59,7 @@ export function getNestedProperty<T, R>(
     }
     return current === undefined || current === null ? fallback : current as R;
   } catch (e) {
-    console.error(`Error accessing nested property ${path.join('.')}:`, e);
+    error('DefensiveUtils', `Error accessing nested property ${path.join('.')}`, e);
     return fallback;
   }
 }
@@ -97,7 +99,7 @@ export function withErrorHandling<T extends AnyFunction>(
         const options = optionsOrFallback as ErrorHandlingOptions<ReturnType<T>>;
         
         if (options.errorMessage) {
-          console.error(`${options.errorMessage}:`, e);
+          error('DefensiveUtils', options.errorMessage, e);
         }
         
         if (options.onError) {
@@ -110,7 +112,7 @@ export function withErrorHandling<T extends AnyFunction>(
         if (errorHandler) {
           errorHandler(e);
         } else {
-          console.error(`Error in function ${fn.name || 'anonymous'}:`, e);
+          error('DefensiveUtils', `Error in function ${fn.name || 'anonymous'}`, e);
         }
         
         return optionsOrFallback as ReturnType<T>;
@@ -159,7 +161,7 @@ export function safeQuerySelector(
       return element as HTMLElement;
     }
   } catch (e) {
-    console.error(`Error querying for ${selector}:`, e);
+    error('DefensiveUtils', `Error querying for ${selector}`, e);
   }
   
   // Return fallback or create an invisible div
@@ -203,7 +205,7 @@ export function safeAddEventListener(
       try {
         handler(e);
       } catch (error) {
-        console.error(`Error in event handler for ${event}:`, error);
+        error('DefensiveUtils', `Error in event handler for ${event}`, error);
       }
     }) as EventListener;
     
@@ -214,11 +216,11 @@ export function safeAddEventListener(
       try {
         element.removeEventListener(event, wrappedHandler, options);
       } catch (e) {
-        console.error(`Error removing event listener for ${event}:`, e);
+        error('DefensiveUtils', `Error removing event listener for ${event}`, e);
       }
     };
   } catch (e) {
-    console.error(`Error adding event listener for ${event}:`, e);
+    error('DefensiveUtils', `Error adding event listener for ${event}`, e);
     return () => {}; // No-op cleanup function
   }
 }
@@ -302,7 +304,7 @@ export class ErrorBoundary {
     container.appendChild(this.contentUI);
     
     this.errorLogger = errorLogger || ((error, componentName) => {
-      console.error(`Error in UI component ${componentName}:`, error);
+      error('DefensiveUtils', `Error in UI component ${componentName}`, error);
     });
   }
   
@@ -366,7 +368,7 @@ export function safeJsonParse<T>(text: string, fallback: T): T {
   try {
     return JSON.parse(text) as T;
   } catch (e) {
-    console.error('Error parsing JSON:', e);
+    error('DefensiveUtils', 'Error parsing JSON', e);
     return fallback;
   }
 }
@@ -382,7 +384,7 @@ export function safeJsonStringify(value: unknown, fallback = '{}'): string {
   try {
     return JSON.stringify(value);
   } catch (e) {
-    console.error('Error stringifying to JSON:', e);
+    error('DefensiveUtils', 'Error stringifying to JSON', e);
     return fallback;
   }
 }
@@ -408,7 +410,7 @@ export function getSafeService<T>(
     const service = serviceRegistry.getService(serviceId);
     return service || fallback;
   } catch (e) {
-    console.error(`Error resolving service ${serviceId}:`, e);
+    error('DefensiveUtils', `Error resolving service ${serviceId}`, e);
     return fallback;
   }
 } 
