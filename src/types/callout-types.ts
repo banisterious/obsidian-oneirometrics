@@ -29,6 +29,12 @@ export interface CalloutMetadata {
   
   /** Flag indicating if recovery was attempted */
   recoveryAttempted?: boolean;
+  
+  /** Whether the callout was successfully parsed */
+  isValid?: boolean;
+  
+  /** Additional properties extracted from the callout */
+  [key: string]: any;
 }
 
 /**
