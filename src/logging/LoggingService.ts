@@ -31,6 +31,7 @@ export class LoggingService implements ILoggingService {
   private maxSize: number = 1024 * 1024; // 1MB
   private maxBackups: number = 5;
   private app: App;
+  private isHandlingError: boolean = false;
 
   /**
    * Private constructor to enforce singleton pattern.
@@ -88,6 +89,31 @@ export class LoggingService implements ILoggingService {
   }
 
   /**
+   * Internal method for logging system errors without infinite recursion
+   * @param message The error message
+   * @param error The error object
+   */
+  private logInternalError(message: string, error?: any): void {
+    // Prevent infinite recursion with a flag
+    if (this.isHandlingError) return;
+    
+    this.isHandlingError = true;
+    try {
+      const errorMessage = `LoggingService internal error: ${message}`;
+      const details = error ? ` - ${error.message || JSON.stringify(error)}` : '';
+      const fullMessage = errorMessage + details;
+      
+      // Fallback to console.error for internal logging errors
+      console.error(fullMessage);
+      if (error && error.stack) {
+        console.error(error.stack);
+      }
+    } finally {
+      this.isHandlingError = false;
+    }
+  }
+
+  /**
    * Write a message to the log file.
    * @param message The message to write
    */
@@ -114,7 +140,7 @@ export class LoggingService implements ILoggingService {
       // Append to log file
       await this.app.vault.adapter.append(this.logFile, logEntry);
     } catch (error) {
-      console.error('Failed to write to log:', error);
+      this.logInternalError('Failed to write to log', error);
     }
   }
 
@@ -145,7 +171,7 @@ export class LoggingService implements ILoggingService {
         await this.app.vault.adapter.remove(fullPath);
       }
     } catch (error) {
-      console.error('Failed to rotate log:', error);
+      this.logInternalError('Failed to rotate log', error);
     }
   }
 
