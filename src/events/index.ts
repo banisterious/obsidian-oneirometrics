@@ -12,6 +12,8 @@ export * from './event-types';
 export { EventManager } from './EventManager';
 export { EventBus } from './EventBus';
 export { NullEventManager } from './NullEventManager';
+export { ProjectNoteEvents } from './ProjectNoteEvents';
+export { FilterEvents } from './FilterEvents';
 
 // Export the default EventBus instance for easy access
 import { EventBus } from './EventBus';
