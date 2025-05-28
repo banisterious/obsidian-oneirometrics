@@ -7,7 +7,6 @@
 
 import { Notice } from 'obsidian';
 import { ILogger } from '../../logging/LoggerTypes';
-import safeLogger from '../../logging/safe-logger';
 
 export class ContentToggler {
     private container: HTMLElement | null = null;
