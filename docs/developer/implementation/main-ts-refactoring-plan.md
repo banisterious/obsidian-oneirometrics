@@ -19,11 +19,11 @@ The `main.ts` file currently contains:
 | Component | Description | Status | Date | Notes |
 |-----------|-------------|--------|------|-------| 
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
-| Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converted to structured logging |
-| UI Components | Modal generation, tables | 🔄 80% Complete | 2025-05-29 | Extracted TableGenerator, ContentToggler, and FilterUI |
-| Metrics Processing | Calculation, organization | 🔄 70% Complete | 2025-05-29 | Moved to src/metrics/MetricsProcessor.ts |
+| Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converting to structured logging |
+| UI Components | Modal generation, tables | 🔄 80% Complete | 2025-05-28 | Extracted TableGenerator, ContentToggler, and FilterUI |
+| Metrics Processing | Calculation, organization | ✅ Complete | 2025-05-28 | Moved to src/metrics/MetricsProcessor.ts |
 | Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
-| Settings | Loading, saving | ✅ Complete | 2025-05-30 | Implemented SettingsManager class for centralized settings handling |
+| Settings Management | Loading, saving | ✅ Complete | 2025-05-28 | Moved to src/state/SettingsManager.ts |
 
 ## Next Steps
 

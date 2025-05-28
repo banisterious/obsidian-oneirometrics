@@ -7,11 +7,63 @@
 
 import { App, Modal, Notice, Setting, TFile, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../main';
-import { DreamMetricData, DreamMetricsSettings } from '../types/core';
+import { DreamMetricData, DreamMetricsSettings } from '../../types';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { isMetricEnabled, standardizeMetric } from '../utils/metric-helpers';
 import safeLogger from '../logging/safe-logger';
+
+/**
+ * Extract date from journal entry lines and file information
+ * 
+ * @param journalLines - Array of lines that might contain date information
+ * @param filePath - Path to the journal file
+ * @param fileContent - Content of the journal file
+ * @returns Formatted date string in ISO format (YYYY-MM-DD)
+ */
+export function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {
+    // 1. Block Reference (^YYYYMMDD) on the callout line or the next line
+    const blockRefRegex = /\^(\d{8})/;
+    for (let i = 0; i < Math.min(2, journalLines.length); i++) {
+        const blockRefMatch = journalLines[i].match(blockRefRegex);
+        if (blockRefMatch) {
+            const dateStr = blockRefMatch[1];
+            return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+        }
+    }
+    // 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
+    const calloutLine = journalLines[0] || '';
+    const longDateRegex = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})/;
+    const longDateMatch = calloutLine.match(longDateRegex);
+    if (longDateMatch) {
+        const [_, day, year] = longDateMatch;
+        const dateObj = new Date(`${longDateMatch[0]}`);
+        if (!isNaN(dateObj.getTime())) {
+            return dateObj.toISOString().split('T')[0];
+        }
+    }
+    // 3. YAML 'created' field
+    const yamlCreatedMatch = fileContent.match(/created:\s*(\d{8})/);
+    if (yamlCreatedMatch) {
+        const dateStr = yamlCreatedMatch[1];
+        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+    }
+    // 4. YAML 'modified' field
+    const yamlModifiedMatch = fileContent.match(/modified:\s*(\d{8})/);
+    if (yamlModifiedMatch) {
+        const dateStr = yamlModifiedMatch[1];
+        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+    }
+    // 5. Folder or filename (for year only, as a fallback)
+    // Try to extract year from folder or filename
+    const yearRegex = /\b(\d{4})\b/;
+    const pathMatch = filePath.match(yearRegex);
+    if (pathMatch) {
+        return pathMatch[1];
+    }
+    // 6. Current date
+    return new Date().toISOString().split('T')[0];
+}
 
 export class MetricsProcessor {
     private readonly settings: DreamMetricsSettings;
@@ -102,11 +154,170 @@ export class MetricsProcessor {
                         this.logger?.debug('Scrape', `Processing file: ${path}`, { contentLength: content.length });
 
                         // --- Processing logic for dream journal entries ---
-                        // Process content and extract metrics here
-                        // This would be more complex logic from main.ts's scrapeMetrics method
+                        // Split content into lines
+                        const lines = content.split('\n');
+                        let journals: any[] = [];
+                        let currentJournal: any = null;
+                        let currentDiary: any = null;
+                        let currentMetrics: any = null;
+                        let blockLevel = 0;
+                        let blockStack: any[] = [];
                         
+                        // Helper to get callout type from a line
+                        const getCalloutType = (line: string) => {
+                            const match = line.match(/^>+\s*\[!(\w[\w-]*)/i);
+                            return match ? match[1].toLowerCase() : null;
+                        };
+                        
+                        // Helper to get blockquote level
+                        const getBlockLevel = (line: string) => {
+                            const match = line.match(/^(>+)/);
+                            return match ? match[1].length : 0;
+                        };
+                        
+                        // BEGIN IMPROVED STACK LOGIC
+                        for (let idx = 0; idx < lines.length; idx++) {
+                            const line = lines[idx];
+                            const level = getBlockLevel(line);
+                            const calloutType = getCalloutType(line);
+                            
+                            // Only pop the stack if the current level is LESS than the top of the stack's level
+                            while (blockStack.length > 0 && blockStack[blockStack.length - 1].level > level) {
+                                blockStack.pop();
+                            }
+                            
+                            if (calloutType === 'journal-entry') {
+                                currentJournal = {
+                                    lines: [line],
+                                    level,
+                                    idx,
+                                    diaries: []
+                                };
+                                journals.push(currentJournal);
+                                blockStack.push({ type: 'journal-entry', obj: currentJournal, level });
+                                calloutsFound++;
+                            } else if (calloutType === 'dream-diary') {
+                                currentDiary = {
+                                    lines: [line],
+                                    level,
+                                    idx,
+                                    metrics: []
+                                };
+                                // Attach to parent journal-entry if present
+                                if (blockStack.length > 0 && blockStack[blockStack.length - 1].type === 'journal-entry') {
+                                    blockStack[blockStack.length - 1].obj.diaries.push(currentDiary);
+                                }
+                                blockStack.push({ type: 'dream-diary', obj: currentDiary, level });
+                                calloutsFound++;
+                            } else if (calloutType === 'dream-metrics') {
+                                currentMetrics = {
+                                    lines: [line],
+                                    level,
+                                    idx
+                                };
+                                // Attach to parent dream-diary if present
+                                if (blockStack.length > 0 && blockStack[blockStack.length - 1].type === 'dream-diary') {
+                                    blockStack[blockStack.length - 1].obj.metrics.push(currentMetrics);
+                                }
+                                blockStack.push({ type: 'dream-metrics', obj: currentMetrics, level });
+                                calloutsFound++;
+                            } else if (blockStack.length > 0) {
+                                // Add line to current block
+                                blockStack[blockStack.length - 1].obj.lines.push(line);
+                            }
+                        }
+                        
+                        // Now extract data from the parsed structure
+                        for (const journal of journals) {
+                            if (journal.diaries.length > 0) {
+                                foundAnyJournalEntries = true;
+                                for (const diary of journal.diaries) {
+                                    for (const metricsBlock of diary.metrics) {
+                                        // Extract metrics text
+                                        const metricsText = metricsBlock.lines.map((l: string) => l.replace(/^>+\s*/, '')).join(' ').replace(/\s+/g, ' ').trim();
+                                        
+                                        // Extract dream content (all lines in diary except metrics blocks)
+                                        const diaryContentLines = diary.lines.filter((l: string) => !/^>+\s*\[!dream-diary/i.test(l) && !/^>+\s*\[!dream-metrics/i.test(l));
+                                        let dreamContent = diaryContentLines.map((l: string) => l.replace(/^>+\s*/, '').trim()).join(' ').replace(/\s+/g, ' ').trim();
+                                        
+                                        // Extract date and title from the journal and diary callout lines
+                                        const journalLine = journal.lines[0];
+                                        const diaryLine = diary.lines[0];
+                                        
+                                        // More flexible date extraction
+                                        let date = getDreamEntryDate([journalLine, lines[journal.idx + 1] || ''], path, content);
+                                        
+                                        // More flexible title extraction
+                                        let title = '';
+                                        let blockId = '';
+                                        // Try dream-diary callout format
+                                        const titleMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*?)(?:\s*\[\[|$)/);
+                                        if (titleMatch) {
+                                            title = titleMatch[1].trim();
+                                        }
+                                        // Try block reference format
+                                        if (!title) {
+                                            const blockRefMatch = diaryLine.match(/\[\[.*?\|(.*?)\]\]/);
+                                            if (blockRefMatch) {
+                                                title = blockRefMatch[1].trim();
+                                            }
+                                        }
+                                        // Try plain text after callout
+                                        if (!title) {
+                                            const plainTextMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*)/);
+                                            if (plainTextMatch) {
+                                                title = plainTextMatch[1].trim();
+                                            }
+                                        }
+                                        // Default if no title found
+                                        if (!title) {
+                                            title = 'Untitled Dream';
+                                        }
+
+                                        // Extract block ID if present
+                                        const blockIdMatch = diaryLine.match(/\^(\d{8})/);
+                                        if (blockIdMatch) {
+                                            blockId = blockIdMatch[1];
+                                            this.logger?.debug('Scrape', `Found block ID: ${blockId}`);
+                                        }
+                                        
+                                        // Parse metrics
+                                        const dreamMetrics = this.processMetrics(metricsText, metrics);
+                                        dreamMetrics['Words'] = dreamContent.split(/\s+/).length;
+                                        if (!metrics['Words']) {
+                                            metrics['Words'] = [];
+                                        }
+                                        metrics['Words'].push(dreamMetrics['Words']);
+                                        
+                                        // Add dream entry
+                                        foundAnyMetrics = true;
+                                        const dreamTitle = title || 'Untitled Dream';
+                                        const dreamEntry: any = {  // Use any temporarily to avoid type errors
+                                            date: date,
+                                            title: dreamTitle,
+                                            content: dreamContent,
+                                            source: {
+                                                file: path,
+                                                id: blockId // Store the block ID
+                                            },
+                                            wordCount: dreamMetrics['Words'],
+                                            metrics: dreamMetrics,
+                                            calloutMetadata: {
+                                                type: 'dream', // Default type for dream callouts
+                                                id: blockId
+                                            }
+                                        };
+                                        dreamEntries.push(dreamEntry);
+                                        entriesProcessed++;
+                                    }
+                                }
+                            }
+                        }
+                        // END IMPROVED STACK LOGIC
+                        this.logger?.debug('Scrape', `Parsed callout structure for file: ${path}`, { journals, blockStack: blockStack.length });
                     } catch (error) {
-                        this.logger?.error('Scrape', `Error processing file: ${path}`, error as Error);
+                        this.logger?.error('Scrape', `Error processing file ${path}:`, error as Error);
+                        new Notice(`Error processing file: ${path}`);
                     }
                 });
                 
@@ -226,11 +437,10 @@ export class MetricsProcessor {
      * @param metrics - Record of metrics data to update
      * @param dreamEntries - Array of dream entries to include
      */
-    private async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
+    public async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
             // Call the plugin's method
-            // We'll need to update main.ts to make this method public
-            await (this.plugin as any).updateProjectNote(metrics, dreamEntries);
+            await this.plugin.updateProjectNote(metrics, dreamEntries);
         } catch (error) {
             this.logger?.error('MetricsNote', 'Error updating project note', error as Error);
             throw error;
