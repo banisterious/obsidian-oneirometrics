@@ -37,6 +37,7 @@ export class FileAdapter implements LogAdapter {
   private flushPromise: Promise<void> | null = null;
   private readonly FLUSH_INTERVAL = 5000; // 5 seconds
   private flushTimer: NodeJS.Timeout | null = null;
+  private isHandlingInternalError = false;
   
   /**
    * Create a new file adapter
@@ -54,6 +55,30 @@ export class FileAdapter implements LogAdapter {
     
     // Start periodic flush
     this.flushTimer = setInterval(() => this.flush(), this.FLUSH_INTERVAL);
+  }
+
+  /**
+   * Handle internal errors without risking recursive loops
+   * @param message Error message
+   * @param error Error object
+   */
+  private logInternalError(message: string, error?: any): void {
+    // Prevent recursive error handling
+    if (this.isHandlingInternalError) return;
+    
+    try {
+      this.isHandlingInternalError = true;
+      const errorMessage = `FileAdapter internal error: ${message}`;
+      const details = error ? ` - ${error.message || JSON.stringify(error)}` : '';
+      
+      // Safely log to console as a last resort
+      console.error(errorMessage + details);
+      if (error && error.stack) {
+        console.error(error.stack);
+      }
+    } finally {
+      this.isHandlingInternalError = false;
+    }
   }
   
   /**
@@ -137,7 +162,7 @@ export class FileAdapter implements LogAdapter {
       // Append to log file
       await this.app.vault.adapter.append(this.config.filePath, content + '\n');
     } catch (error) {
-      console.error('Failed to write to log file:', error);
+      this.logInternalError('Failed to write to log file', error);
     }
   }
   
@@ -169,7 +194,7 @@ export class FileAdapter implements LogAdapter {
         await this.app.vault.adapter.remove(fullPath);
       }
     } catch (error) {
-      console.error('Failed to rotate log:', error);
+      this.logInternalError('Failed to rotate log', error);
     }
   }
   
