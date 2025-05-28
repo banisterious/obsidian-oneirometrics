@@ -32,7 +32,7 @@ This document outlines the plan for systematically eliminating dead code as part
 | Adapter Migration | ✅ Complete | 2025-05-26 | All adapter modules have permanent implementations |
 | Type System Migration | ✅ Complete | 2025-05-25 | All imports now use domain-specific type modules |
 | Logging System Refactoring | ✅ Complete | 2025-05-28 | Replaced all console.log with structured logging (100%) |
-| main.ts Cleanup | 🔄 In Progress | 2025-06-03 | Refactoring core functionality into modules (30%) |
+| main.ts Cleanup | ✅ Complete | 2025-05-28 | Refactored core functionality into modules (100%) |
 | Date Utils Refactoring | ✅ Complete | 2025-05-26 | Centralized date handling functions |
 | TypeScript Error Resolution | 🔄 In Progress | 2025-05-28 | Fixing remaining TypeScript errors |
 | Performance Optimization | ⬜ Not Started | - | Optimizing key operations for better performance |
