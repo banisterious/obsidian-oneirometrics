@@ -1,11 +1,8 @@
 import { App } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../types/core';
 import { DateRangeFilter } from '../filters/DateRangeFilter';
 import { OneiroMetricsEvents } from '../events';
-import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
-import { debounce } from 'ts-debounce';
-import { format } from 'date-fns';
+import { getSourceFile } from '../utils/type-guards';
 import { warn } from '../logging';
 import safeLogger from '../logging/safe-logger';
 

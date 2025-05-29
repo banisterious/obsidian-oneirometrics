@@ -1,7 +1,5 @@
-import { App, MarkdownView, TFile } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DreamMetricData } from '../types';
-import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
 import { calculateWordCount } from '../utils/helpers';
 import { adaptDreamMetricDataArray } from '../utils/type-adapters';
 import {

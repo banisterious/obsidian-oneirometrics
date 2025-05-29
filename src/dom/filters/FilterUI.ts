@@ -8,7 +8,6 @@
 import { App, Notice } from 'obsidian';
 import { DreamMetricsSettings } from '../../types/core';
 import { ILogger } from '../../logging/LoggerTypes';
-import safeLogger from '../../logging/safe-logger';
 import { parseDate } from '../../utils/date-utils';
 
 // Constants
