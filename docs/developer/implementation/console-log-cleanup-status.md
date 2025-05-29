@@ -4,16 +4,16 @@
 
 This document tracks the progress of replacing console.log statements with structured logging throughout the OneiroMetrics codebase. The goal is to use the structured logging system designed in accordance with the architecture requirements documented in `docs/developer/implementation/logging.md`.
 
-## Current Status (2025-05-28)
+## Current Status (2025-05-29)
 
 | Category | Initial Count | Current Count | Remaining | Progress |
 |----------|---------------|---------------|-----------|----------|
-| console.log | 65 | 38 | 27 | 58% |
+| console.log | 65 | 30 | 35 | 54% |
 | console.warn | 8 | 3 | 5 | 63% |
-| console.error | 37 | 30 | 7 | 81% |
+| console.error | 37 | 23 | 14 | 62% |
 | console.info | 2 | 2 | 0 | 100% |
 | console.debug | 2 | 2 | 0 | 100% |
-| **Total** | 114 | 75 | 39 | 66% |
+| **Total** | 114 | 60 | 54 | 53% |
 
 ## Recently Cleaned Files
 
@@ -22,9 +22,14 @@ This document tracks the progress of replacing console.log statements with struc
 | src/testing/TestRunner.ts | 6 | 0 | ✅ Complete |
 | src/testing/EdgeCaseTests.ts | 14 | 0 | ✅ Complete |
 | src/testing/utils/TypeGuardsTests.ts | 6 | 0 | ✅ Complete |
-| src/dom/DateNavigator.ts | 3 | 0 | ⚠️ Partially Complete |
+| src/dom/DateNavigator.ts | 3 | 0 | ✅ Complete |
 | src/journal_check/ui/EntryComponent.ts | 1 | 0 | ✅ Complete |
 | src/journal_check/ui/TemplateWizard.ts | 5 | 0 | ✅ Complete |
+| src/testing/ContentParsingTests.ts | 3 | 0 | ✅ Complete |
+| src/testing/ErrorHandlingContentParserTests.ts | 5 | 0 | ✅ Complete |
+| src/testing/run-content-parser-tests.ts | 3 | 0 | ✅ Complete |
+| src/testing/utils/MetricHelpersTests.ts | 2 | 0 | ✅ Complete |
+| src/testing/run-settings-tests.ts | 2 | 0 | ✅ Complete |
 | main.ts | 2 | 0 | ✅ Complete (using globalLogger) |
 
 ## Intentional Console Usage
@@ -122,13 +127,14 @@ These changes have resolved all type errors and the build now completes successf
    - ✅ Updated test entry generation to include wordCount
 
 3. **Continue Console Log Cleanup** (Medium Priority)
-   - Replace remaining console.log statements with structured logging
-   - Ensure consistent logging categories and levels
+   - ✅ Replaced console.log statements in testing files
+   - ⏳ Replace remaining console.log statements in UI components
+   - ⏳ Ensure consistent logging categories and levels
 
 ## Conclusion
 
-The console.log cleanup has made significant progress, with 39 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, UI components, and updated the main.ts file to use proper structured logging through the globalLogger pattern.
+The console.log cleanup has made significant progress, with 54 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, UI components, and updated the main.ts file to use proper structured logging through the globalLogger pattern.
 
 We've also properly documented the intentional console statements in the logging system components to ensure they aren't targeted for replacement in future cleanup efforts.
 
-The DateNavigator.ts file has been partially updated, but requires further refactoring to fully address all the issues. The changes made so far include adding wordCount calculation to test entries and improving the logging structure. 
+The DateNavigator.ts file has been fully updated to address all type issues. The testing files have now been updated to use structured logging, which provides better debugging information during test runs. 

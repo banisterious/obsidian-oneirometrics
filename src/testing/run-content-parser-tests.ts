@@ -7,13 +7,15 @@
 
 import { TestRunner } from './TestRunner';
 import { registerContentParserParameterTests } from './ContentParserParameterTests';
+import { getLogger } from '../logging';
 
 /**
  * Run the ContentParser parameter tests
  * @returns A promise that resolves when tests are complete
  */
 export async function runContentParserParameterTests(): Promise<void> {
-  console.log('Running ContentParser parameter variation tests...');
+  const logger = getLogger('ContentParserTests');
+  logger.info('Test', 'Running ContentParser parameter variation tests...');
   
   const testRunner = TestRunner.create();
   registerContentParserParameterTests(testRunner);
@@ -21,13 +23,13 @@ export async function runContentParserParameterTests(): Promise<void> {
   const results = await testRunner.runTests();
   
   const passedCount = results.filter(r => r.passed).length;
-  console.log(`ContentParser parameter tests complete: ${passedCount}/${results.length} tests passed`);
+  logger.info('Test', `ContentParser parameter tests complete: ${passedCount}/${results.length} tests passed`);
   
   // Log any failures
   results.filter(r => !r.passed).forEach(failure => {
-    console.error(`Test failed: ${failure.name}`);
+    logger.error('Test', `Test failed: ${failure.name}`);
     if (failure.error) {
-      console.error(failure.error);
+      logger.error('Test', 'Error details:', failure.error);
     }
   });
 }
@@ -36,9 +38,11 @@ export async function runContentParserParameterTests(): Promise<void> {
 if (require.main === module) {
   runContentParserParameterTests()
     .then(() => {
-      console.log('ContentParser parameter tests execution complete');
+      const logger = getLogger('ContentParserTests');
+      logger.info('Test', 'ContentParser parameter tests execution complete');
     })
     .catch(error => {
-      console.error('Error running ContentParser parameter tests:', error);
+      const logger = getLogger('ContentParserTests');
+      logger.error('Test', 'Error running ContentParser parameter tests:', error);
     });
 } 

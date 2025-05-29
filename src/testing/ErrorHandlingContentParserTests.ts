@@ -1,6 +1,7 @@
 import { TestRunner } from './TestRunner';
 import { ContentParser } from '../parsing/services/ContentParser';
 import { DreamMetricData } from '../../types';
+import { getLogger } from '../logging';
 
 /**
  * Register content parser error handling tests to the test runner
@@ -10,6 +11,7 @@ export function registerErrorHandlingContentParserTests(
   testRunner: TestRunner
 ): void {
   const contentParser = new ContentParser();
+  const logger = getLogger('ErrorHandlingContentParserTests');
   
   // ================================
   // MALFORMED METRICS TESTS
@@ -41,10 +43,10 @@ Sensory Detail - 4, Emotional Recall -> 3, Descriptiveness = 2`;
       // The current regex looks for colon-separated values, so this might not extract as expected
       // We're testing that it doesn't crash, not that it succeeds in extracting
       try {
-        console.log(`Extracted metrics text: "${metricsText}"`);
+        logger.debug('Test', `Extracted metrics text: "${metricsText}"`);
         return true; // Test passes if no exception is thrown
       } catch (error) {
-        console.error("Error extracting metrics with incorrect format:", error);
+        logger.error('Test', "Error extracting metrics with incorrect format:", error);
         return false;
       }
     }
@@ -109,7 +111,7 @@ Sensory Detail: 5, Emotional Recall: 2
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       // The parser should still extract the valid entries
-      console.log(`Extracted ${entries.length} entries with one corrupted entry`);
+      logger.debug('Test', `Extracted ${entries.length} entries with one corrupted entry`);
       
       // We should have at least 2 entries (the valid ones)
       return entries.length >= 2;
@@ -132,7 +134,7 @@ Sensory Detail: 4, Emotional Recall: 3
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       // Should extract the entry and use a fallback date
-      console.log(`Extracted entry with invalid date: ${entries[0]?.date}`);
+      logger.debug('Test', `Extracted entry with invalid date: ${entries[0]?.date}`);
       
       // Parser should extract the entry and use today's date or some default
       return entries.length === 1 && (entries[0].date.match(/^\d{4}-\d{2}-\d{2}$/) !== null);
@@ -167,7 +169,7 @@ Sensory Detail: 3, Emotional Recall: 2
       
       const entries = contentParser.extractDreamEntries(longContent, 'dream');
       
-      console.log(`Extracted ${entries.length} entries including one very long entry`);
+      logger.debug('Test', `Extracted ${entries.length} entries including one very long entry`);
       
       // Should extract both the long entry and the normal one
       return entries.length === 2 && 
@@ -198,7 +200,7 @@ Sensory Detail: 5, Emotional Recall: 4
       
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
-      console.log(`Extracted ${entries.length} entries with unclosed callout syntax`);
+      logger.debug('Test', `Extracted ${entries.length} entries with unclosed callout syntax`);
       
       // Should extract at least the valid entries
       return entries.length >= 2;
