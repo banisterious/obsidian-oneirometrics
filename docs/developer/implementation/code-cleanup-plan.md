@@ -228,54 +228,22 @@ Based on initial analysis, these areas have the highest concentration of dead co
 | OneiroMetricsModal | main.ts | src/dom/modals/OneiroMetricsModal.bak.ts | June 2025 | Removed | Replaced by DreamJournalManager and direct calls to scrapeMetrics |
 | ConfirmModal | main.ts | src/dom/modals/ConfirmModal.bak.ts | June 2025 | Removed | Generic confirmation dialog that was defined but not actually used in the codebase |
 
-**Progress (2025-05-27):**
-- Refactored metrics processing functionality:
-  - Created new src/metrics/MetricsProcessor.ts class to encapsulate metrics functionality
-  - Created src/metrics/index.ts to export the metrics components
-  - Moved scrapeMetrics() implementation from main.ts to MetricsProcessor class
-  - Updated main.ts to use the new MetricsProcessor
-  - Made updateProjectNote() method public to support the refactored structure
-  - Used proper logger implementation for consistent logging
-  - Reduced main.ts by ~400 lines
-- Fixed TypeScript errors in the new metrics components:
-  - Added proper imports and fixed method signatures
-  - Created wrapper method to handle cross-file method access
-  - Used appropriate error handling for metric processing operations
-- Updated the main.ts file:
-  - Simplified scrapeMetrics() method to use the new MetricsProcessor
-  - Changed updateProjectNote() from private to public
-  - Ensured backward compatibility for existing calls
+**Progress (2025-05-29):**
+- Created new branch for dead code cleanup: refactoring/2025-dead-code
+- Started with removing unused imports from key files:
+  - src/api/resilience/examples/ApiResilienceDemo.ts - removed ApiRequestOptions and OfflineSupport
+  - src/dom/DateNavigator.ts - removed App, MarkdownView, TFile, getSourceFile, getSourceId, and isObjectSource
+  - src/dom/filters/FilterUI.ts - removed safeLogger which was imported but never used
+  - src/dom/DreamMetricsDOM.ts - removed DreamMetricData, getSourceId, isObjectSource, debounce, and format
+- Created a utility script (utils/clean-unused-imports.ps1) to help with the cleanup process:
+  - Can identify and remove unused imports from multiple files
+  - Provides different output modes: summary, patch, or edit
+  - Can handle both single-line and multi-line import statements
+- The utility found 121 potentially unused imports across 60 files, providing a clear roadmap for additional cleanup
 - Next steps:
-  - Complete the implementation of the MetricsProcessor class with the processing logic
-  - Refactor processMetrics() and processDreamContent() methods
-  - Update DreamJournalManager to use the new MetricsProcessor class
-
-**Progress (2025-05-28):**
-- Completed the logging system refactoring throughout the entire codebase:
-  - Updated remaining console.log/error/warn statements across all modules
-  - Enhanced core logging components with proper error handling:
-    - Added internal error handling in LoggingService.ts to prevent recursion
-    - Implemented isHandlingError flag to avoid infinite loops
-    - Created logInternalError method for safe error handling within logging components
-  - Updated FileAdapter.ts with similar error handling improvements:
-    - Added isHandlingInternalError flag to prevent cascading errors
-    - Implemented logInternalError method with clean fallback mechanism
-    - Fixed potential issues in log rotation and file writing logic
-  - Enhanced journal_check and DOM modules:
-    - Updated TemplaterIntegration.ts with robust error handling
-    - Fixed DreamMetricsDOM.ts logging for better diagnostics
-    - Improved ContentParser.ts error handling for regex patterns
-    - Updated LintingEngine.ts with structured logging for Templater integration
-  - Finalized documentation updates:
-    - Updated logging-refactoring-plan.md to mark all phases as complete
-    - Updated post-refactoring-cleanup-checklist.md to reflect logging completion
-    - Added error handling best practices to documentation
-  - Implemented consistent safeguards across the codebase:
-    - Added try-catch blocks with fallback to direct error function
-    - Used safeLogger with appropriate error context in all modules
-    - Standardized category naming conventions for better log filtering
-
-With this update, all console.log/error/warn statements have been replaced with structured logging throughout the codebase. The logging system now provides consistent, configurable, and reliable logging with proper error handling and defensive measures.
+  - Continue removing unused imports from more files
+  - Focus on high-impact files like main.ts that have multiple unused imports
+  - Use the utility script to process multiple files efficiently
 
 ### Phase 2: Import Cleanup
 
@@ -699,6 +667,23 @@ No TODOs were found in the codebase during our scan. This suggests that the team
 - src/metrics/MetricsProcessor.ts: 4 unused imports
 
 *Note: For the complete list, run `.\utils\find-unused-imports.ps1`*
+
+### Progress Update (2025-05-29)
+
+Started work on the unused imports cleanup:
+- Created new branch `refactoring/2025-dead-code` for dead code cleanup
+- Started cleaning up unused imports in key files:
+  - src/api/resilience/examples/ApiResilienceDemo.ts - removed ApiRequestOptions and OfflineSupport
+  - src/dom/DateNavigator.ts - removed App, MarkdownView, TFile, getSourceFile, getSourceId, and isObjectSource
+  - src/dom/filters/FilterUI.ts - removed safeLogger which was imported but never used
+  - src/dom/DreamMetricsDOM.ts - removed DreamMetricData, getSourceId, isObjectSource, debounce, and format
+- Created utility script `utils/clean-unused-imports.ps1` to help identify and remove unused imports
+- Identified 121 potentially unused imports across 60 files that need further cleanup
+
+Next steps for imports cleanup:
+- Continue removing unused imports from more files
+- Focus on high-impact files like main.ts that have multiple unused imports
+- Use the utility script to process multiple files efficiently
 
 ## Cleanup Process
 
