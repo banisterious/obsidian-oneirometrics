@@ -10,6 +10,9 @@
   - [Phase 1: Logging Cleanup](#phase-1-logging-cleanup)
   - [Phase 2: Import Cleanup](#phase-2-import-cleanup)
   - [Phase 3: Transitional Code Removal](#phase-3-transitional-code-removal)
+    - [Extract Large Methods from DreamMetricsPlugin Class](#extract-large-methods-from-dreammetricsplugin-class)
+    - [Extract Standalone Utility Functions](#extract-standalone-utility-functions)
+    - [Additional main.ts Line Count Reduction](#additional-maints-line-count-reduction)
   - [Phase 4: Unused Code Elimination](#phase-4-unused-code-elimination)
   - [Phase 5: TypeScript Adapter Cleanup](#phase-5-typescript-adapter-cleanup)
 - [Success Criteria](#success-criteria)
@@ -341,6 +344,68 @@ In addition to large methods, there are many standalone utility functions that s
 4. Update imports and references in all files that use these functions
 5. Test thoroughly to ensure functionality is maintained
 
+#### 3.3 Additional main.ts Line Count Reduction
+
+To further reduce the size and complexity of main.ts, we can extract additional components and modules. This phase focuses on isolating coherent groups of functionality into dedicated classes that follow the single responsibility principle.
+
+| Component Name | Lines | Source Section | Target Module | Status | Date | Notes |
+|----------------|-------|---------------|--------------|--------|------|-------|
+| FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ⬜ Not Started | - | Manage all filter-related operations |
+| FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ⬜ Not Started | - | Handle filter UI updates |
+| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ⬜ Not Started | - | Initialize, update and manage metrics tables |
+| EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventManager.ts | ⬜ Not Started | - | Handle all event attachments in one place |
+| DebugTools | ~400 | debugTableData, debugDateNavigator, etc. | src/utils/DebugTools.ts | ⬜ Not Started | - | Consolidate debugging utilities |
+| ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
+| TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
+| MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
+| GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ⬜ Not Started | - | Utility functions used globally |
+| WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ⬜ Not Started | - | Manage window-level extensions |
+
+**Implementation Approach:**
+1. Create a new class for each component with proper interfaces and documentation
+2. Extract the functionality from main.ts to the new class
+3. Add necessary imports and dependencies in the new module
+4. Update main.ts to initialize and use the new component
+5. Remove the original code from main.ts once tests confirm the new component works correctly
+6. Update any dependent components to use the new module directly instead of through main.ts
+
+**Benefits of Additional Extraction:**
+- Improved code organization and maintainability
+- Better separation of concerns
+- Easier testing of isolated components
+- Reduced cognitive load when working with main.ts
+- Simplified debugging of specific functionality
+- Support for parallel development on different components
+
+**Example Component Design: FilterManager**
+```typescript
+// src/dom/filters/FilterManager.ts
+import { App, Notice } from 'obsidian';
+import { ILogger } from '../../logging/LoggerTypes';
+import { DreamMetricsSettings } from '../../types/core';
+
+export class FilterManager {
+    constructor(
+        private app: App,
+        private settings: DreamMetricsSettings,
+        private saveSettings: () => Promise<void>,
+        private logger?: ILogger
+    ) { }
+    
+    public applyFilters(previewEl: HTMLElement): void {
+        // Implementation extracted from main.ts
+    }
+    
+    public applyFilterToDropdown(filterDropdown: HTMLSelectElement, previewEl: HTMLElement): boolean {
+        // Implementation extracted from main.ts
+    }
+    
+    public forceApplyFilterDirect(previewEl: HTMLElement, startDate: string, endDate: string): void {
+        // Implementation extracted from main.ts
+    }
+}
+```
+
 ### Phase 4: Unused Code Elimination
 
 1. Identify and remove unused functions
@@ -447,7 +512,8 @@ The dead code elimination phase will be considered successful when:
 2. Remove remaining identified unused code
 3. Fix TypeScript errors in the codebase
 4. Add better log level controls for filtering debug messages
-5. Update documentation to reflect the changes 
+5. Extract additional components identified in Phase 3.3 to further reduce main.ts line count
+6. Update documentation to reflect the changes 
 
 **Progress (2025-05-28):**
 - Consolidated and fixed type definitions to improve TypeScript compatibility:
