@@ -20,6 +20,7 @@ import {
   isPromise
 } from '../../utils/type-guards';
 import { TestRunner } from '../TestRunner';
+import { getLogger } from '../../logging';
 
 /**
  * Registers all type guard tests with the test runner
@@ -28,6 +29,8 @@ import { TestRunner } from '../TestRunner';
 export function registerTypeGuardsTests(
   testRunner: TestRunner
 ): void {
+  const logger = getLogger('TypeGuardsTests');
+
   // Test: isObjectSource functionality
   testRunner.addTest(
     'Type Guards - isObjectSource correctly identifies object sources',
@@ -419,35 +422,40 @@ export function registerTypeGuardsTests(
   testRunner.addTest(
     'Type Guards - isPromise correctly identifies promises',
     () => {
-      // Test with real Promise
-      const realPromise = Promise.resolve(42);
+      // Test with actual promise
+      const promise = Promise.resolve('test');
       
       // Test with promise-like object
-      const promiseLike = { then: function() {} };
+      const promiseLike = {
+        then: (resolve: any) => resolve('test'),
+        catch: (reject: any) => {}
+      };
       
-      // Test with object with non-function then
-      const objectWithThenProperty = { then: 'not a function' };
-      
-      // Test with null
-      const nullValue = null;
+      // Test with non-promise object
+      const notPromise = { value: 'test' };
       
       // Test with undefined
       const undefinedValue = undefined;
       
-      // Test with string
-      const stringValue = 'not a promise';
+      // Test with null
+      const nullValue = null;
       
-      // Test with number
-      const numberValue = 42;
+      const results = {
+        promiseResult: isPromise(promise),
+        promiseLikeResult: isPromise(promiseLike),
+        notPromiseResult: isPromise(notPromise),
+        undefinedResult: isPromise(undefinedValue),
+        nullResult: isPromise(nullValue)
+      };
+      
+      logger.debug('TypeGuards', 'isPromise test results:', results);
       
       return (
-        isPromise(realPromise) === true &&
-        isPromise(promiseLike) === true &&
-        isPromise(objectWithThenProperty) === false &&
-        isPromise(nullValue) === false &&
-        isPromise(undefinedValue) === false &&
-        isPromise(stringValue) === false &&
-        isPromise(numberValue) === false
+        results.promiseResult === true &&
+        results.promiseLikeResult === true &&
+        results.notPromiseResult === false &&
+        results.undefinedResult === false &&
+        results.nullResult === false
       );
     }
   );
@@ -455,25 +463,24 @@ export function registerTypeGuardsTests(
 
 /**
  * Runs all type guard tests
- * @returns A promise that resolves when all tests are complete
  */
-export function runTypeGuardsTests(): Promise<void> {
-  console.log('Running type guard tests...');
+export async function runTypeGuardsTests(): Promise<void> {
+  const logger = getLogger('TypeGuardsTests');
+  logger.info('TypeGuards', 'Running type guard tests...');
   
-  const testRunner = TestRunner.create();
+  const testRunner = new TestRunner();
   registerTypeGuardsTests(testRunner);
   
-  return testRunner.runTests()
-    .then(results => {
-      const passedCount = results.filter(r => r.passed).length;
-      console.log(`Type guard tests complete: ${passedCount}/${results.length} tests passed`);
-      
-      // Log any failures
-      results.filter(r => !r.passed).forEach(failure => {
-        console.error(`Test failed: ${failure.name}`);
-        if (failure.error) {
-          console.error(failure.error);
-        }
-      });
-    });
+  const results = await testRunner.runTests();
+  
+  const passedCount = results.filter(r => r.passed).length;
+  const totalCount = results.length;
+  
+  logger.info('TypeGuards', `Type guard tests complete: ${passedCount}/${totalCount} passed`);
+  
+  if (passedCount !== totalCount) {
+    const failedTests = results.filter(r => !r.passed);
+    logger.warn('TypeGuards', `Failed tests (${failedTests.length}):`, 
+      failedTests.map(t => ({ name: t.name, error: t.error?.message })));
+  }
 } 

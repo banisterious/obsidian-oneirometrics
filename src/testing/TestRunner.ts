@@ -8,6 +8,7 @@
 // Import the legacy TestResult interface from journal-check types for compatibility
 import { TestResult as JournalCheckTestResult } from '../types/journal-check';
 import { ValidationResult } from '../journal_check/types';
+import { getLogger } from '../logging';
 
 /**
  * Test result interface for the modern test runner
@@ -82,6 +83,7 @@ export function adaptFromJournalCheckTestResult(result: JournalCheckTestResult):
 
 export class TestRunner {
   private tests: Array<{name: string, callback: TestCallback}> = [];
+  private logger = getLogger('TestRunner');
 
   /**
    * Registers a test with the test runner
@@ -90,7 +92,7 @@ export class TestRunner {
    */
   registerTest(name: string, callback: TestCallback): void {
     this.tests.push({name, callback});
-    console.log(`Test registered: ${name}`);
+    this.logger.debug('Test', `Test registered: ${name}`);
   }
 
   /**
@@ -107,12 +109,12 @@ export class TestRunner {
    * @returns A promise that resolves to an array of test results
    */
   async runTests(): Promise<TestResult[]> {
-    console.log(`Running ${this.tests.length} tests...`);
+    this.logger.info('Test', `Running ${this.tests.length} tests...`);
     
     const results: TestResult[] = [];
     
     for (const test of this.tests) {
-      console.log(`Running test: ${test.name}`);
+      this.logger.debug('Test', `Running test: ${test.name}`);
       
       const startTime = performance.now();
       let passed = false;
@@ -154,15 +156,15 @@ export class TestRunner {
         duration
       });
       
-      console.log(`Test '${test.name}' ${passed ? 'PASSED' : 'FAILED'} in ${duration.toFixed(2)}ms`);
+      this.logger.info('Test', `Test '${test.name}' ${passed ? 'PASSED' : 'FAILED'} in ${duration.toFixed(2)}ms`);
       if (error) {
-        console.error(`Error in test '${test.name}':`, error);
+        this.logger.error('Test', `Error in test '${test.name}':`, error);
       }
     }
     
     // Log summary
     const passedCount = results.filter(r => r.passed).length;
-    console.log(`Test run complete: ${passedCount}/${results.length} tests passed`);
+    this.logger.info('Test', `Test run complete: ${passedCount}/${results.length} tests passed`);
     
     return results;
   }

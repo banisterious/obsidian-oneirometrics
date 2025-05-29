@@ -1,6 +1,7 @@
 import { TestRunner } from './TestRunner';
 import { ContentParser } from '../parsing/services/ContentParser';
 import { DreamMetricData } from '../../types';
+import { getLogger } from '../logging';
 
 /**
  * Register edge case tests to the test runner
@@ -10,6 +11,7 @@ export function registerEdgeCaseTests(
   testRunner: TestRunner
 ): void {
   const contentParser = new ContentParser();
+  const logger = getLogger('EdgeCaseTests');
   
   // ================================
   // EMPTY JOURNAL FILES
@@ -24,7 +26,7 @@ export function registerEdgeCaseTests(
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       // Should return an empty array, not crash
-      console.log(`Empty content test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Empty content test: extracted ${entries.length} entries`);
       return entries.length === 0;
     }
   );
@@ -43,7 +45,7 @@ Some more text here.
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       // Should return an empty array, not crash
-      console.log(`No entries test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `No entries test: extracted ${entries.length} entries`);
       return entries.length === 0;
     }
   );
@@ -66,7 +68,7 @@ Some more text here.
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       // Should extract the minimal entries without crashing
-      console.log(`Minimal entries test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Minimal entries test: extracted ${entries.length} entries`);
       return entries.length === 2;
     }
   );
@@ -88,9 +90,9 @@ Some more text here.
       const entries = contentParser.extractDreamEntries(hugeContent, 'dream');
       
       // Should extract the entry without crashing, with all the content
-      console.log(`Huge entry test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Huge entry test: extracted ${entries.length} entries`);
       if (entries.length > 0) {
-        console.log(`Huge entry length: ${entries[0].content.length} characters`);
+        logger.debug('EdgeCase', `Huge entry length: ${entries[0].content.length} characters`);
       }
       
       return entries.length === 1 && 
@@ -113,7 +115,7 @@ Some more text here.
       const entries = contentParser.extractDreamEntries(multiEntryContent, 'dream');
       
       // Should extract all entries without crashing
-      console.log(`Many entries test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Many entries test: extracted ${entries.length} entries`);
       
       return entries.length === 100;
     }
@@ -138,9 +140,9 @@ Sensory Detail: 4, Emotional Recall: 3
       
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
-      console.log(`Unicode test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Unicode test: extracted ${entries.length} entries`);
       if (entries.length > 0) {
-        console.log(`Unicode entry title: ${entries[0].title}`);
+        logger.debug('EdgeCase', `Unicode entry title: ${entries[0].title}`);
       }
       
       return entries.length === 1 && 
@@ -194,7 +196,7 @@ Sensory Detail*: 4.5, Emotional-Recall: very_high, Descriptiveness?: !uncertain!
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       const metricsText = entries[0]?.calloutMetadata?.[0] || '';
-      console.log(`Special metrics text: ${metricsText}`);
+      logger.debug('EdgeCase', `Special metrics text: ${metricsText}`);
       
       return entries.length === 1 && 
              metricsText.includes("Sensory Detail*: 4.5") &&
@@ -232,9 +234,9 @@ Emotional Recall: 3
       
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
-      console.log(`Nested callouts test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Nested callouts test: extracted ${entries.length} entries`);
       if (entries.length > 0) {
-        console.log(`First entry content length: ${entries[0].content.length}`);
+        logger.debug('EdgeCase', `First entry content length: ${entries[0].content.length}`);
       }
       
       return entries.length === 2 && 
@@ -263,9 +265,9 @@ Sensory Detail: 5
       
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
-      console.log(`Overlapping callouts test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Overlapping callouts test: extracted ${entries.length} entries`);
       entries.forEach((entry, i) => {
-        console.log(`Entry ${i+1} content: ${entry.content.substring(0, 50)}...`);
+        logger.debug('EdgeCase', `Entry ${i+1} content: ${entry.content.substring(0, 50)}...`);
       });
       
       // Depending on the implementation, we might get 2 or 3 entries
@@ -293,7 +295,7 @@ Sensory Detail: 5
       
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
-      console.log(`Indented callouts test: extracted ${entries.length} entries`);
+      logger.debug('EdgeCase', `Indented callouts test: extracted ${entries.length} entries`);
       
       return entries.length === 2;
     }
