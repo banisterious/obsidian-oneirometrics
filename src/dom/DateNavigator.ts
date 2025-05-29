@@ -22,7 +22,9 @@ import {
     differenceInDays,
     getDaysInMonth,
     getDay,
-    parse
+    parse,
+    parseISO,
+    isValid
 } from 'date-fns';
 import { getLogger } from '../logging';
 
@@ -576,7 +578,8 @@ export class DateNavigator {
                                             title: row.title || 'Dream Entry',
                                             content: row.content || '',
                                             source: 'table-data',
-                                            metrics: row.metrics || {}
+                                            metrics: row.metrics || {},
+                                            wordCount: calculateWordCount(row.content || '')
                                         };
                                         tableEntries.push(entry);
                                     }
@@ -2111,10 +2114,11 @@ export class DateNavigator {
                                             // Create a dream entry from this row
                                             const entry: DreamMetricData = {
                                                 date: date,
-                                                title: row.title || row.dream_title || 'Dream Entry',
-                                                content: row.content || row.dream_content || '',
+                                                title: row.title || 'Dream Entry',
+                                                content: row.content || '',
                                                 source: `table-${key}`,
-                                                metrics: row.metrics || {}
+                                                metrics: row.metrics || {},
+                                                wordCount: calculateWordCount(row.content || '')
                                             };
                                             
                                             // Add any numeric fields as metrics
@@ -2344,11 +2348,13 @@ export class DateNavigator {
             const entries: DreamMetricData[] = [];
             
             // Add entry for today
+            const todayContent = 'This is a guaranteed entry created for today to debug the calendar display.';
             entries.push({
                 date: todayStr,
                 title: 'Guaranteed Entry for Today',
-                content: 'This is a guaranteed entry created for today to debug the calendar display.',
+                content: todayContent,
                 source: 'debug-guaranteed',
+                wordCount: calculateWordCount(todayContent),
                 metrics: {
                     clarity: 10,
                     vividness: 10,
@@ -2373,6 +2379,7 @@ export class DateNavigator {
                     title: `Guaranteed Entry ${i + 1}`,
                     content: `This is a guaranteed entry created for ${dateStr} to debug the calendar display.`,
                     source: 'debug-guaranteed',
+                    wordCount: calculateWordCount(`This is a guaranteed entry created for ${dateStr} to debug the calendar display.`),
                     metrics: {
                         clarity: 8 - i,
                         vividness: 9 - i,
