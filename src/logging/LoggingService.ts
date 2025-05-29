@@ -39,6 +39,12 @@ export class LoggingService implements ILoggingService {
    */
   private constructor(app: App) {
     this.app = app;
+    
+    // Initialize logger with safe defaults
+    this.logLevel = 'info'; // Start with info level by default
+    
+    // Set default log file path based on vault path
+    this.initializeLogPath();
   }
 
   /**
@@ -125,7 +131,20 @@ export class LoggingService implements ILoggingService {
       // Ensure logs directory exists
       const logsDir = this.logFile.substring(0, this.logFile.lastIndexOf('/'));
       if (logsDir && !(await this.app.vault.adapter.exists(logsDir))) {
-        await this.app.vault.adapter.mkdir(logsDir);
+        try {
+          await this.app.vault.adapter.mkdir(logsDir);
+          this.logInternalError(`Created logs directory: ${logsDir}`);
+        } catch (mkdirError) {
+          this.logInternalError(`Failed to create logs directory: ${logsDir}`, mkdirError);
+          
+          // Try using Obsidian's createFolder API as a fallback
+          try {
+            await this.app.vault.createFolder(logsDir);
+            this.logInternalError(`Created logs directory using Obsidian API: ${logsDir}`);
+          } catch (folderError) {
+            this.logInternalError(`Failed to create logs directory using Obsidian API: ${logsDir}`, folderError);
+          }
+        }
       }
       
       // Check log size and rotate if needed
@@ -149,26 +168,75 @@ export class LoggingService implements ILoggingService {
    */
   private async rotateLog(): Promise<void> {
     try {
+      // Check if the log file exists before attempting to rotate
+      const logExists = await this.app.vault.adapter.exists(this.logFile);
+      if (!logExists) {
+        this.logInternalError(`Log file doesn't exist for rotation: ${this.logFile}`);
+        return; // Exit early if the log file doesn't exist
+      }
+
       // Create backup with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const backupName = `${this.logFile}.${timestamp}.bak`;
       
-      // Rename current log to backup
-      await this.app.vault.adapter.rename(this.logFile, backupName);
+      // Ensure the logs directory exists
+      const logsDir = this.logFile.substring(0, this.logFile.lastIndexOf('/'));
+      if (logsDir && !(await this.app.vault.adapter.exists(logsDir))) {
+        try {
+          await this.app.vault.adapter.mkdir(logsDir);
+          this.logInternalError(`Created logs directory during rotation: ${logsDir}`);
+        } catch (mkdirError) {
+          this.logInternalError(`Failed to create logs directory during rotation: ${logsDir}`, mkdirError);
+          return; // Exit if we can't create the directory
+        }
+      }
+
+      // Check if backup file already exists (could happen with very rapid logging)
+      const backupExists = await this.app.vault.adapter.exists(backupName);
+      if (backupExists) {
+        this.logInternalError(`Destination file already exists! Will create unique backup name instead`);
+        // Add unique suffix to avoid conflicts
+        const uniqueSuffix = Math.floor(Math.random() * 10000);
+        const uniqueBackupName = `${backupName}.${uniqueSuffix}`;
+        await this.app.vault.adapter.rename(this.logFile, uniqueBackupName);
+      } else {
+        // Rename current log to backup
+        try {
+          await this.app.vault.adapter.rename(this.logFile, backupName);
+        } catch (renameError) {
+          this.logInternalError(`Failed to rename log file, will try a copy+delete approach`, renameError);
+          
+          // Fallback approach: read, write to new file, then delete old
+          try {
+            const content = await this.app.vault.adapter.read(this.logFile);
+            await this.app.vault.adapter.write(backupName, content);
+            await this.app.vault.adapter.remove(this.logFile);
+            this.logInternalError(`Successfully backed up log using copy+delete approach`);
+          } catch (fallbackError) {
+            this.logInternalError(`Failed backup using fallback approach`, fallbackError);
+            // Just create an empty log file and continue
+            await this.app.vault.adapter.write(this.logFile, '');
+            return;
+          }
+        }
+      }
 
       // Clean up old backups
-      const logsDir = this.logFile.substring(0, this.logFile.lastIndexOf('/'));
-      const files = await this.app.vault.adapter.list(logsDir || '');
-      const logFileName = this.logFile.substring(this.logFile.lastIndexOf('/') + 1);
-      
-      const backups = files.files
-        .filter((file: string) => file.startsWith(logFileName + '.') && file.endsWith('.bak'))
-        .sort((a: string, b: string) => b.localeCompare(a));
+      try {
+        const files = await this.app.vault.adapter.list(logsDir || '');
+        const logFileName = this.logFile.substring(this.logFile.lastIndexOf('/') + 1);
+        
+        const backups = files.files
+          .filter((file: string) => file.startsWith(logFileName + '.') && file.endsWith('.bak'))
+          .sort((a: string, b: string) => b.localeCompare(a));
 
-      // Remove excess backups
-      for (let i = this.maxBackups; i < backups.length; i++) {
-        const fullPath = logsDir ? `${logsDir}/${backups[i]}` : backups[i];
-        await this.app.vault.adapter.remove(fullPath);
+        // Remove excess backups
+        for (let i = this.maxBackups; i < backups.length; i++) {
+          const fullPath = logsDir ? `${logsDir}/${backups[i]}` : backups[i];
+          await this.app.vault.adapter.remove(fullPath);
+        }
+      } catch (listError) {
+        this.logInternalError('Failed to list log backups for cleanup', listError);
       }
     } catch (error) {
       this.logInternalError('Failed to rotate log', error);
@@ -294,6 +362,43 @@ export class LoggingService implements ILoggingService {
       metadata: context.metadata || {}
     };
     return wrapped;
+  }
+
+  /**
+   * Initialize the log file path and ensure directory exists
+   */
+  private async initializeLogPath(): Promise<void> {
+    try {
+      // Normalize log path based on OS
+      this.logFile = this.logFile.replace(/\\/g, '/');
+      
+      // Ensure logs directory exists
+      const logsDir = this.logFile.substring(0, this.logFile.lastIndexOf('/'));
+      
+      if (logsDir) {
+        // Check if directory exists, create if it doesn't
+        const dirExists = await this.app.vault.adapter.exists(logsDir);
+        if (!dirExists) {
+          try {
+            // Try to create the logs directory
+            await this.app.vault.adapter.mkdir(logsDir);
+            console.log(`[LoggingService] Created logs directory: ${logsDir}`);
+          } catch (mkdirError) {
+            console.error(`[LoggingService] Failed to create logs directory: ${logsDir}`, mkdirError);
+            
+            // Try using Obsidian's createFolder API as a fallback
+            try {
+              await this.app.vault.createFolder(logsDir);
+              console.log(`[LoggingService] Created logs directory using Obsidian API: ${logsDir}`);
+            } catch (folderError) {
+              console.error(`[LoggingService] Failed to create logs directory using Obsidian API: ${logsDir}`, folderError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`[LoggingService] Error initializing log path: ${error}`);
+    }
   }
 }
 
