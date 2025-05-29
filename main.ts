@@ -316,6 +316,9 @@ import { RibbonManager } from './src/dom/RibbonManager';
 // Import the PluginLoader
 import { PluginLoader } from './src/plugin/PluginLoader';
 
+// Import debugging tools
+import { DebugTools } from './src/utils';
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -353,6 +356,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private projectNoteManager: ProjectNoteManager;
     private ribbonManager: RibbonManager;
     private dateFilter: DateFilter;
+    private debugTools: DebugTools;
 
     async onload() {
         // Create a new PluginLoader and delegate the initialization to it
@@ -381,6 +385,10 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize DateFilter
         this.dateFilter = new DateFilter(this.app, this.settings, this.saveSettings.bind(this), this.logger);
         this.dateFilter.registerGlobalHandler();
+
+        // Initialize DebugTools
+        this.debugTools = new DebugTools(this, this.app, this.logger);
+        this.debugTools.registerGlobalDebugFunctions();
     }
 
     onunload() {
@@ -2378,345 +2386,23 @@ Applied: ${new Date().toLocaleTimeString()}`;
     }
 
     /**
-     * Debug helper function to be called from the developer console
+     * Debug the table data in the plugin
      * This will dump all table data to help diagnose issues with the date navigator
      */
     public debugTableData(): void {
-        try {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('Plugin', 'Running debugTableData function');
-            }
-            
-            // Output basic info about available data
-            globalLogger?.debug('Debug', '==== DREAM METRICS DEBUG ====');
-            globalLogger?.debug('Debug', 'Plugin initialized', { available: !!this });
-            globalLogger?.debug('Debug', 'State initialized', { available: !!this.state });
-            globalLogger?.debug('Debug', 'State has getDreamEntries', { 
-                available: !!(this.state && typeof this.state.getDreamEntries === 'function') 
-            });
-            
-            // Check for direct entries
-            if (this.state && typeof this.state.getDreamEntries === 'function') {
-                const entries = this.state.getDreamEntries();
-                globalLogger?.debug('Debug', 'Direct state entries', { count: entries?.length || 0 });
-                if (entries && entries.length > 0) {
-                    globalLogger?.debug('Debug', 'Sample entry', { entry: entries[0] });
-                }
-            }
-            
-            // Check table data
-            if (this.memoizedTableData) {
-                globalLogger?.debug('Debug', 'Table data', { count: this.memoizedTableData.size });
-                
-                // Loop through all tables
-                this.memoizedTableData.forEach((data, key) => {
-                    globalLogger?.debug('Debug', `Table ${key}`, { rowCount: data?.length || 0 });
-                    
-                    // Check the first row if available
-                    if (data && data.length > 0) {
-                        globalLogger?.debug('Debug', `Table ${key} sample`, { row: data[0] });
-                        globalLogger?.debug('Debug', `Row fields`, { fields: Object.keys(data[0]) });
-                        
-                        // Check for date fields
-                        const hasDate = data[0].date !== undefined;
-                        const hasDreamDate = data[0].dream_date !== undefined;
-                        globalLogger?.debug('Debug', 'Date fields availability', { 
-                            hasDate, 
-                            hasDreamDate 
-                        });
-                        
-                        // Find all date-like fields
-                        const dateFields = Object.keys(data[0]).filter(key => 
-                            key.includes('date') || 
-                            (typeof data[0][key] === 'string' && data[0][key].match(/^\d{4}-\d{2}-\d{2}/))
-                        );
-                        globalLogger?.debug('Debug', 'Potential date fields', { fields: dateFields });
-                        
-                        // Show values of these fields
-                        dateFields.forEach(field => {
-                            globalLogger?.debug('Debug', `Values of field ${field}`, { 
-                                values: data.slice(0, 5).map(row => row[field])
-                            });
-                        });
-                        
-                        // Check for metrics
-                        const numericFields = Object.keys(data[0]).filter(key => 
-                            typeof data[0][key] === 'number' && 
-                            !['id', 'index'].includes(key)
-                        );
-                        globalLogger?.debug('Debug', 'Potential metric fields', { fields: numericFields });
-                        
-                        // Create an example dream entry from this data
-                        if (dateFields.length > 0) {
-                            globalLogger?.debug('Debug', 'Example entry conversion');
-                            const dateField = dateFields[0];
-                            const example = {
-                                date: data[0][dateField],
-                                title: data[0].title || data[0].dream_title || 'Dream Entry',
-                                content: data[0].content || data[0].dream_content || '',
-                                source: `table-${key}`,
-                                metrics: {}
-                            };
-                            
-                            // Add metrics
-                            numericFields.forEach(field => {
-                                example.metrics[field] = data[0][field];
-                            });
-                            
-                            globalLogger?.debug('Debug', 'Example entry', { entry: example });
-                        }
-                    }
-                });
-            } else {
-                globalLogger?.debug('Debug', 'No memoizedTableData available');
-            }
-            
-            // DIRECT TABLE SCANNING FROM THE ACTIVE NOTE VIEW
-            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (activeView) {
-                globalLogger?.debug('Debug', '==== ACTIVE NOTE TABLE SCAN ====');
-                globalLogger?.debug('Debug', 'Active note', { path: activeView.file?.path || 'Unknown' });
-                
-                // Get the HTML content from the preview
-                const previewEl = activeView.previewMode?.containerEl?.querySelector('.markdown-preview-view');
-                if (previewEl) {
-                    globalLogger?.debug('Debug', 'Found preview element, scanning for tables');
-                    
-                    // Find all tables in the preview
-                    const tables = previewEl.querySelectorAll('table');
-                    globalLogger?.debug('Debug', 'Tables found in active note', { count: tables.length });
-                    
-                    // Process each table
-                    const extractedEntries: any[] = [];
-                    
-                    tables.forEach((table, tableIndex) => {
-                        globalLogger?.debug('Debug', `Processing table`, { index: tableIndex + 1, total: tables.length });
-                        
-                        // Get headers
-                        const headerRow = table.querySelector('thead tr');
-                        if (!headerRow) {
-                            globalLogger?.debug('Debug', `Table has no header row, skipping`, { tableIndex: tableIndex + 1 });
-                            return;
-                        }
-                        
-                        const headers: string[] = [];
-                        headerRow.querySelectorAll('th').forEach(th => {
-                            headers.push(th.textContent?.trim() || '');
-                        });
-                        
-                        globalLogger?.debug('Debug', `Table headers`, { tableIndex: tableIndex + 1, headers });
-                        
-                        // Find date column index
-                        const dateColumnIndex = headers.findIndex(h => 
-                            h.toLowerCase().includes('date') || 
-                            h.toLowerCase() === 'when'
-                        );
-                        
-                        if (dateColumnIndex === -1) {
-                            globalLogger?.debug('Debug', `Table has no date column, skipping`, { tableIndex: tableIndex + 1 });
-                            return;
-                        }
-                        
-                        globalLogger?.debug('Debug', `Date column found`, { 
-                            tableIndex: tableIndex + 1, 
-                            column: headers[dateColumnIndex], 
-                            index: dateColumnIndex 
-                        });
-                        
-                        // Process rows
-                        const rows = table.querySelectorAll('tbody tr');
-                        globalLogger?.debug('Debug', `Table rows`, { tableIndex: tableIndex + 1, count: rows.length });
-                        
-                        // Keep track of columns that might contain metrics
-                        const potentialMetricColumns: number[] = [];
-                        
-                        // Process each row
-                        rows.forEach((row, rowIndex) => {
-                            const cells = row.querySelectorAll('td');
-                            if (cells.length < headers.length) {
-                                return; // Skip incomplete rows
-                            }
-                            
-                            // Get date value
-                            const dateCell = cells[dateColumnIndex];
-                            const dateText = dateCell.textContent?.trim() || '';
-                            
-                            // Skip rows without dates
-                            if (!dateText) {
-                                return;
-                            }
-                            
-                            // Try to parse the date
-                            let parsedDate = '';
-                            
-                            // Try different date formats
-                            try {
-                                // Check if it's already in YYYY-MM-DD format
-                                if (/^\d{4}-\d{2}-\d{2}/.test(dateText)) {
-                                    parsedDate = dateText.substring(0, 10);
-                                } else {
-                                    // Try to parse as a Date object
-                                    const date = new Date(dateText);
-                                    if (!isNaN(date.getTime())) {
-                                        parsedDate = date.toISOString().split('T')[0];
-                                    }
-                                }
-                            } catch (e) {
-                                globalLogger?.debug('Debug', `Error parsing date`, { dateText, error: e });
-                            }
-                            
-                            if (!parsedDate) {
-                                globalLogger?.debug('Debug', `Could not parse date, skipping row`, { dateText });
-                                return;
-                            }
-                            
-                            // Create an entry object
-                            const entry: any = {
-                                date: parsedDate,
-                                source: `active-note-table-${tableIndex + 1}`,
-                                metrics: {}
-                            };
-                            
-                            // Process other cells
-                            cells.forEach((cell, cellIndex) => {
-                                if (cellIndex === dateColumnIndex) return; // Skip date column
-                                
-                                const header = headers[cellIndex] || `column${cellIndex}`;
-                                const value = cell.textContent?.trim() || '';
-                                
-                                // Check if this is a title/content column
-                                if (header.toLowerCase().includes('title') || 
-                                    header.toLowerCase().includes('dream') || 
-                                    header.toLowerCase() === 'what') {
-                                    entry.title = value;
-                                } else if (header.toLowerCase().includes('content') || 
-                                           header.toLowerCase().includes('description') || 
-                                           header.toLowerCase() === 'notes') {
-                                    entry.content = value;
-                                } else {
-                                    // Try to parse as number for metrics
-                                    const numValue = parseFloat(value);
-                                    if (!isNaN(numValue)) {
-                                        entry.metrics[header.toLowerCase()] = numValue;
-                                        
-                                        // Track this as a potential metric column
-                                        if (!potentialMetricColumns.includes(cellIndex)) {
-                                            potentialMetricColumns.push(cellIndex);
-                                        }
-                                    } else {
-                                        // Store as regular property
-                                        entry[header.toLowerCase()] = value;
-                                    }
-                                }
-                            });
-                            
-                            // Make sure we have title and content
-                            if (!entry.title) {
-                                entry.title = `Dream on ${parsedDate}`;
-                            }
-                            
-                            if (!entry.content) {
-                                entry.content = `Dream entry from table ${tableIndex + 1}, row ${rowIndex + 1}`;
-                            }
-                            
-                            // Add to entries
-                            extractedEntries.push(entry);
-                        });
-                        
-                        globalLogger?.debug('Debug', 'Potential metric columns', { 
-                            tableIndex: tableIndex + 1,
-                            columns: potentialMetricColumns.map(i => headers[i])
-                        });
-                    });
-                    
-                    globalLogger?.debug('Debug', 'Extracted entries from tables', { count: extractedEntries.length });
-                    
-                    // Show some sample entries
-                    if (extractedEntries.length > 0) {
-                        globalLogger?.debug('Debug', 'Sample entries');
-                        extractedEntries.slice(0, 3).forEach((entry, i) => {
-                            globalLogger?.debug('Debug', `Entry ${i + 1}`, { entry });
-                        });
-                        
-                        // Add these entries to our global dreamEntries
-                        if (!window['dreamEntries']) {
-                            window['dreamEntries'] = [];
-                        }
-                        window['dreamEntries'].push(...extractedEntries);
-                        globalLogger?.debug('Debug', 'Added entries to window.dreamEntries', { count: extractedEntries.length });
-                        
-                        // Try to add to state too
-                        if (this.state && typeof this.state.updateDreamEntries === 'function') {
-                            this.state.updateDreamEntries(extractedEntries);
-                            globalLogger?.debug('Debug', 'Added entries to state', { count: extractedEntries.length });
-                        }
-                    }
-                } else {
-                    globalLogger?.debug('Debug', 'No preview element found in active note');
-                }
-                
-                // Create a direct test in the current note
-                const editor = activeView.editor;
-                const position = editor.getCursor();
-                
-                // Create a test entry for today
-                const today = new Date();
-                const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
-                
-                const testEntry = {
-                    date: todayStr,
-                    title: 'Test Entry ' + Math.floor(Math.random() * 1000),
-                    content: 'This is a test entry created for debugging',
-                    source: 'debug-test',
-                    wordCount: 8, // Count of words in 'This is a test entry created for debugging'
-                    metrics: {
-                        clarity: 8,
-                        vividness: 9,
-                        intensity: 7
-                    }
-                };
-                
-                // Insert at cursor
-                editor.replaceRange(
-                    `\n\n## Debug Test Entry\n\`\`\`json\n${JSON.stringify(testEntry, null, 2)}\n\`\`\`\n`,
-                    position
-                );
-                
-                globalLogger?.debug('Debug', 'Created test entry', { entry: testEntry });
-                
-                // Directly add to global entries
-                if (!window['dreamEntries']) {
-                    window['dreamEntries'] = [];
-                }
-                window['dreamEntries'].push(testEntry);
-                globalLogger?.debug('Debug', 'Added test entry to window.dreamEntries');
-                
-                // Try to add to state too
-                if (this.state && typeof this.state.updateDreamEntries === 'function') {
-                    this.state.updateDreamEntries([testEntry]);
-                    globalLogger?.debug('Debug', 'Added test entry to state');
-                }
-            }
-            
-            globalLogger?.debug('Debug', '==== END DEBUG ====');
-            globalLogger?.debug('Debug', 'Now open the date navigator to see if test entry appears');
-            globalLogger?.debug('Debug', 'Type window.oneiroMetricsPlugin.showDateNavigator() to test');
-        } catch (error) {
-            globalLogger?.error('Debug', 'Error in debugTableData', { error });
-        }
+        // Delegate to the DebugTools implementation
+        this.debugTools.debugTableData();
     }
 
     /**
      * Add a debug ribbon icon specifically for testing the calendar
      */
     private addCalendarDebugRibbon(): void {
-        // This method is currently disabled to hide the debug ribbon
-        // The debug functionality is still accessible via window.oneiroMetricsPlugin.debugDateNavigator()
-        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-            window['globalLogger'].debug('Plugin', 'Calendar debug ribbon is disabled');
-        }
-        
-        // No ribbon icon will be added
+        // Add a ribbon icon for testing the calendar
+        const ribbonEl = this.addRibbonIcon('calendar-plus', 'Test Calendar', () => {
+            this.debugTools.debugDateNavigator();
+        });
+        this.ribbonIcons.push(ribbonEl);
     }
 
     /**
@@ -2725,177 +2411,14 @@ Applied: ${new Date().toLocaleTimeString()}`;
      * window.oneiroMetricsPlugin.debugDateNavigator()
      */
     debugDateNavigator() {
-        try {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('Plugin', '===== CALENDAR DEBUG FUNCTION =====');
-            }
-            
-            // First show the date navigator
-            this.showDateNavigator();
-            
-            // Capture the modal that was created
-            const dateNavigatorModals = document.querySelectorAll('.dream-metrics-navigator-modal');
-            
-            if (dateNavigatorModals.length > 0) {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('Plugin', `Found ${dateNavigatorModals.length} date navigator modals`);
-                }
-                
-                // Focus on the first modal
-                const modal = dateNavigatorModals[0];
-                
-                // Check for day cells in the modal
-                const dayCells = modal.querySelectorAll('.oom-day-cell');
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('Plugin', `Found ${dayCells.length} day cells in modal`);
-                }
-                
-                // Check for day cells with entries
-                const dayCellsWithEntries = modal.querySelectorAll('.oom-day-cell.has-entries');
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('Plugin', `Found ${dayCellsWithEntries.length} day cells with entries`);
-                    
-                    // Check for indicators in cells
-                    const dotsElements = modal.querySelectorAll('.oom-dream-indicators');
-                    window['globalLogger'].debug('Plugin', `Found ${dotsElements.length} dot indicator elements`);
-                    
-                    const metricsElements = modal.querySelectorAll('.oom-day-metrics');
-                    window['globalLogger'].debug('Plugin', `Found ${metricsElements.length} metrics star elements`);
-                }
-                
-                // IMPORTANT: Find the actual DateNavigator instance
-                setTimeout(() => {
-                    try {
-                        // First, find the modal container
-                        const dateNavComponent = this.dateNavigator;
-                        if (dateNavComponent && dateNavComponent.dateNavigator) {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].debug('Plugin', 'Found DateNavigator component instance');
-                            }
-                            
-                            // Simple approach - just create test entries for now
-                            // We'll revisit this after the refactoring
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].debug('Plugin', 'Creating test entries for calendar visualization');
-                            }
-                            
-                            // Create guaranteed test entries for the calendar
-                            dateNavComponent.dateNavigator.createGuaranteedEntriesForCurrentMonth();
-                            
-                            // Force update UI
-                            dateNavComponent.dateNavigator.updateMonthGrid();
-                            
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].debug('Plugin', 'Forced creation of guaranteed entries for calendar');
-                            }
-                        } else {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].warn('Plugin', 'Could not find DateNavigator component instance');
-                            }
-                        }
-                    } catch (err) {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].error('Plugin', 'Error accessing DateNavigator component:', err);
-                        }
-                    }
-                }, 100);
-            } else {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].warn('Plugin', 'No date navigator modal found in DOM');
-                }
-            }
-            
-            // Try another approach - see if the debug function is available globally
-            if (window['debugDateNavigator'] && typeof window['debugDateNavigator'] === 'function') {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('Plugin', 'Calling global debugDateNavigator function');
-                }
-                window['debugDateNavigator']();
-            } else {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].warn('Plugin', 'Global debugDateNavigator function not available');
-                }
-            }
-            
-            // Run a special debug check on global entries
-            const globalEntries = window['dreamEntries'] || [];
-            
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('Plugin', `Found ${globalEntries.length} entries in window.dreamEntries`);
-                
-                // Get entries for current month
-                const today = new Date();
-                const currentMonthYear = format(today, 'yyyy-MM');
-                const entriesForCurrentMonth = globalEntries.filter(entry => 
-                    entry && typeof entry.date === 'string' && entry.date.startsWith(currentMonthYear)
-                );
-                
-                window['globalLogger'].debug('Plugin', `Found ${entriesForCurrentMonth.length} entries for current month ${currentMonthYear}`);
-                
-                // Log sample entries
-                if (entriesForCurrentMonth.length > 0) {
-                    window['globalLogger'].debug('Plugin', 'Sample entries for current month:');
-                    entriesForCurrentMonth.slice(0, 3).forEach((entry, i) => {
-                        window['globalLogger'].debug('Plugin', `Entry ${i+1}:`, entry);
-                    });
-                }
-            }
-            
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('Plugin', '===== END CALENDAR DEBUG FUNCTION =====');
-            }
-        } catch (e) {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].error('Plugin', 'Error in debugDateNavigator:', e);
-            }
-        }
+        // Delegate to the DebugTools implementation
+        this.debugTools.debugDateNavigator();
     }
 
     // Add this method to the plugin class
     private testContentParserDirectly() {
-        const logger = getLogger('ContentParserTest');
-        
-        // Create a ContentParser instance
-        const parser = new ContentParser();
-        
-        // Test note content with a dream callout
-        const testContent = `
-# Test Note
-
-[!dream] Test Dream
-This is a test dream.
-Clarity: 4, Vividness: 3
-
-[!memory] Memory Entry
-This is a memory.
-Emotional Impact: 5, Detail: 4
-`;
-
-        // Test parameter variations
-        logger.debug('Test', '=== CONTENT PARSER PARAMETER VARIATION TESTS ===');
-        
-        // Test 1: content only
-        const test1 = parser.extractDreamEntries(testContent);
-        logger.debug('Test', 'Test 1 (content only)', { result: test1 });
-        
-        // Test 2: content + callout type
-        const test2 = parser.extractDreamEntries(testContent, 'memory');
-        logger.debug('Test', 'Test 2 (content, type)', { result: test2 });
-        
-        // Test 3: content + source
-        const test3 = parser.extractDreamEntries(testContent, 'test.md');
-        logger.debug('Test', 'Test 3 (content, source)', { result: test3 });
-        
-        // Test 4: content + type + source
-        const test4 = parser.extractDreamEntries(testContent, 'dream', 'test.md');
-        logger.debug('Test', 'Test 4 (content, type, source)', { result: test4 });
-        
-        // Test 5: static factory method
-        const parser2 = ContentParser.create();
-        const test5 = parser2.extractDreamEntries(testContent);
-        logger.debug('Test', 'Test 5 (factory method)', { result: test5 });
-        
-        return "ContentParser direct tests complete - check logs for results";
+        // Delegate to the DebugTools implementation
+        return this.debugTools.testContentParserDirectly();
     }
 
     // Add this method to the DreamMetricsPlugin class
