@@ -2,7 +2,7 @@ import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, 
 import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from "./types";
 import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
-import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers, Shell } from 'lucide-static';
+import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 import { debug, info, error } from './src/logging';
 
 // Define the correct order for recommended metrics
@@ -73,7 +73,7 @@ import {
 import { SettingsAdapter } from './src/state/adapters/SettingsAdapter';
 
 // Import utilities 
-import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
+import { createSelectedNotesAutocomplete } from './autocomplete';
 
 import { JournalStructureSettings as LintingSettings } from './src/types/journal-check';
 

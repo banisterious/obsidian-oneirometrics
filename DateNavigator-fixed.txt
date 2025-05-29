@@ -1,0 +1,82 @@
+// Fix for line 468
+try {
+    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+        window['globalLogger'].debug('DateNavigator', `${inMonthEntries.length} entries match current month ${monthStartStr}`);
+        
+        // DIAGNOSTIC: Log the exact matching and non-matching dates
+        if (windowEntries.length > 0) {
+            const matchingDates = inMonthEntries.map(e => e.date);
+            const nonMatchingDates = windowEntries
+                .filter(e => !e.date.startsWith(monthStartStr))
+                .map(e => e.date)
+                .slice(0, 5); // Just take the first 5 to avoid log bloat
+                
+            window['globalLogger'].debug('DateNavigator', 'DIAGNOSTIC - Date filtering:', {
+                matchingDates: matchingDates.slice(0, 5), // Sample of matching
+                nonMatchingDates,
+                monthStartStr,
+                currentMonth: format(month, 'yyyy-MM')
+            });
+        }
+    }
+} catch (e) {
+    // Silent failure - logging should never break functionality
+}
+
+// Fix for line 543
+try {
+    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+        window['globalLogger'].debug('DateNavigator', `Processing entry for ${dateKey}`);
+        
+        // DIAGNOSTIC: Add detailed date parsing logging
+        window['globalLogger'].debug('DateNavigator', 'DIAGNOSTIC - Date parsing:', {
+            originalDate: entry.date,
+            parsedDate: entryDate.toString(),
+            isValid: !isNaN(entryDate.getTime()),
+            dateKey,
+            year: entryDate.getFullYear(),
+            month: entryDate.getMonth() + 1,
+            day: entryDate.getDate()
+        });
+    }
+} catch (e) {
+    // Silent failure - logging should never break functionality
+}
+
+// Fix for line 635
+} else {
+    try {
+        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+            window['globalLogger'].debug('DateNavigator', 'No window.dreamEntries found');
+        }
+    } catch (e) {
+        // Silent failure - logging should never break functionality
+    }
+}
+
+// Fix for line 778
+try {
+    // Previous content
+} catch (e) {
+    try {
+        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+            window['globalLogger'].error('DateNavigator', "Error during entry loading:", e);
+        }
+    } catch (error) {
+        // Silent failure - logging should never break functionality
+    }
+    // Continue execution - logging should never break functionality
+}
+
+// Fix for line 903
+    } catch (e) {
+        // Silent failure - logging should never break functionality
+    }
+    
+    // Update the UI with the loaded entries
+    this.updateMonthGrid();
+}
+
+// New helper method to process entries for display
+private processEntriesToDisplay(entries: DreamMetricData[], month: Date): void {
+} 

@@ -137,7 +137,7 @@ import { SettingsManager } from './src/state/SettingsManager';
 import { MetricsProcessor } from './src/metrics';
 
 // Import EventHandling utilities for event handling
-import { attachClickEvent, attachEvent, createEventHandler, createClickHandler, debounceEventHandler, throttleEventHandler } from './src/templates/ui/EventHandling';
+import { attachClickEvent } from './src/templates/ui/EventHandling';
 
 // For backward compatibility with legacy types
 import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types';

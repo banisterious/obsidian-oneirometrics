@@ -1,0 +1,11 @@
+                            window['globalLogger'].debug('DateNavigator', 'DIAGNOSTIC - Date filtering:', {
+                                matchingDates: matchingDates.slice(0, 5), // Sample of matching
+                                nonMatchingDates,
+                                monthStartStr,
+                                currentMonth: format(month, 'yyyy-MM')
+                            });
+                        }
+                    }
+                } catch (e) {
+                    // Silent failure - logging should never break functionality
+                } 

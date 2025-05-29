@@ -6,8 +6,7 @@
  */
 
 import { App, MarkdownView, Notice } from 'obsidian';
-import { ILogger } from '../logging/LoggerTypes';
-import safeLogger from '../logging/safe-logger';
+import { debug, info, warn, error } from '../logging';
 import { DreamMetricsSettings } from '../types/core';
 import { ContentToggler } from '../dom/content';
 
@@ -187,8 +186,7 @@ export class ProjectNoteEvents {
     }
     
     /**
-     * Helper function to safely attach click event with console warning for debugging
-     * 
+     * Helper function to safely attach click event with console warning for debugging     * 
      * @param element - The element to attach the event to
      * @param callback - The callback function to execute on click
      * @param elementName - The name of the element for logging

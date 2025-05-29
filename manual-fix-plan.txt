@@ -1,0 +1,59 @@
+# Manual Fix Plan for DateNavigator.ts
+
+## Error 1: Line 468 - 'try' expected
+Problem: Missing proper try block
+Fix: Replace lines 468-470 with:
+```typescript
+                } catch (e) {
+                    // Silent failure - logging should never break functionality
+                }
+```
+
+## Error 2: Line 543 - 'catch' or 'finally' expected / 'try' expected
+Problem: Malformed catch block
+Fix: Replace lines 543-545 with:
+```typescript
+                } catch (e) {
+                    // Silent failure - logging should never break functionality
+                }
+```
+
+## Error 3: Line 635 - 'catch' or 'finally' expected
+Problem: Missing catch block
+Fix: Replace lines 635-638 with:
+```typescript
+            } catch (e) {
+                // Silent failure - logging should never break functionality
+            }
+            } else {
+                try {
+```
+
+## Error 4: Line 778 - 'try' expected
+Problem: Missing try block
+Fix: Replace lines 778-781 with:
+```typescript
+        } catch (e) {
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('DateNavigator', "Error during entry loading:", e);
+```
+
+## Error 5: Line 903 - 'catch' or 'finally' expected
+Problem: Missing catch block before method definition
+Fix: Insert before line 903:
+```typescript
+        } catch (e) {
+            // Silent failure - logging should never break functionality
+        }
+        
+        // Update the UI with the loaded entries
+        this.updateMonthGrid();
+    }
+    
+```
+
+## Approach
+1. Make a backup of the file
+2. Edit each section manually in a code editor
+3. Test after all changes 
