@@ -352,9 +352,9 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 |----------------|-------|---------------|--------------|--------|------|-------|
 | FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ✅ Complete | 2025-05-29 | Extracted all filter-related functionality into a dedicated class with proper structure and error handling |
 | FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ⬜ Not Started | - | Handle filter UI updates |
-| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ⬜ Not Started | - | Initialize, update and manage metrics tables |
+| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-29 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
 | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventManager.ts | ⬜ Not Started | - | Handle all event attachments in one place |
-| DebugTools | ~400 | debugTableData, debugDateNavigator, etc. | src/utils/DebugTools.ts | ✅ Complete | 2025-05-29 | Consolidated debugging functions (debugTableData, debugDateNavigator, testContentParserDirectly) into a single class with proper structure and error handling |
+| DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-30 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
 | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
 | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
 | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
@@ -812,3 +812,78 @@ To update the status of items in these tracking tables:
 7. Run the relevant script again to ensure the items were properly addressed
 
 This systematic approach will help ensure that no cleanup items are missed and that we can track our progress effectively. 
+
+## Cleanup Progress
+
+This document tracks the progress of refactoring the OneiroMetrics plugin codebase.
+
+### 1. Main.ts Line Count Reduction
+
+The main.ts file has grown to over 5,000 lines, making it difficult to maintain. This phase focuses on extracting functionality into separate modules.
+
+### Initial Size
+
+- main.ts: ~5,100 lines
+
+### Component Extraction Plan
+
+  | Component Name | Lines | Source Section | Target Module | Status | Date | Notes |
+  |----------------|-------|---------------|--------------|--------|------|-------| 
+  | FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ✅ Complete | 2025-05-29 | Extracted all filter-related functionality into a dedicated class with proper structure and error handling |
+  | FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ⬜ Not Started | - | Handle filter UI updates |
+  | TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-31 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
+  | DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-30 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
+  | ContentToggler | ~240 | toggleContentVisibility (3083-3323) | src/dom/content/ContentToggler.ts | ⬜ Not Started | - | Handle expanding/collapsing content sections |
+  | MetricsProcessor | ~480 | scrapeMetrics (598-1078) | src/metrics/MetricsProcessor.ts | ⬜ Not Started | - | Handle metrics extraction and processing |
+  | DateNavigator | ~330 | showDateNavigator (1468-1798) | src/dom/date-navigator/DateNavigator.ts | ⬜ Not Started | - | Handle date navigation and calendar views |
+  | EventHandler | ~290 | attachProjectNoteEventListeners (700-990) | src/events/EventHandler.ts | ⬜ Not Started | - | Handle event listeners and callbacks |
+  | UIManager | ~410 | showMetrics (560-970) | src/dom/UIManager.ts | ⬜ Not Started | - | Manage UI components and rendering |
+  | SettingsManager | ~280 | loadSettings, saveSettings (448-536) | src/state/SettingsManager.ts | ⬜ Not Started | - | Handle settings management |
+  | JournalManager | ~220 | validateCurrentFile (536-598) | src/journal_check/JournalManager.ts | ⬜ Not Started | - | Handle journal file validation and management |
+  | RibbonManager | ~180 | updateRibbonIcons (1163-1343) | src/dom/RibbonManager.ts | ⬜ Not Started | - | Manage ribbon icons and actions |
+  
+### 2. Function Removal After Refactoring
+
+After extracting functionality to dedicated classes, we need to remove the now-redundant functions from main.ts.
+
+  | Function Name | Lines | Target Class | Status | Date | Notes |
+  |--------------|-------|-------------|--------|------|-------|
+  | initializeTableRowClasses | ~180 | TableManager | ✅ Removed | 2025-05-30 | Moved to TableManager class |
+  | collectVisibleRowMetrics | ~112 | TableManager | ✅ Removed | 2025-05-30 | Moved to TableManager class |
+  | updateSummaryTable | ~145 | TableManager | ✅ Removed | 2025-05-30 | Moved to TableManager class |
+  | updateFilterDisplay | ~133 | FilterManager | ✅ Removed | 2025-05-30 | Moved to FilterManager class |
+  | applyFilters | ~10 | FilterManager | ✅ Delegated | 2025-05-29 | Now delegates to FilterManager implementation |
+  | applyFilterToDropdown | ~10 | FilterManager | ✅ Delegated | 2025-05-29 | Now delegates to FilterManager implementation |
+  | forceApplyFilterDirect | ~10 | FilterManager | ✅ Delegated | 2025-05-29 | Now delegates to FilterManager implementation |
+  | clearDebugLog | ~35 | DebugTools | ⬜ Not Started | - | |
+  | backupDebugLog | ~20 | DebugTools | ⬜ Not Started | - | |
+  | checkLogFileSize | ~18 | DebugTools | ⬜ Not Started | - | |
+  | copyConsoleLogs | ~45 | DebugTools | ⬜ Not Started | - | |
+  | getConsoleLog | ~23 | DebugTools | ⬜ Not Started | - | |
+
+### 3. Utility Functions to Extract
+
+The following utility functions can be moved to appropriate utility modules:
+
+  | Function Name | Lines | Target Module | Status | Date | Notes |
+  |--------------|-------|--------------|--------|------|-------|
+  | validateDate | ~4 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
+  | parseDate | ~14 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
+  | formatDate | ~4 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
+  | getDreamEntryDate | ~45 | src/utils/journal-helpers.ts | ⬜ Not Started | - | |
+  | openCustomRangeModal | ~26 | src/dom/modals/DateRangeModal.ts | ⬜ Not Started | - | |
+  | formatDateForDisplay | ~6 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
+  | getIcon | ~23 | src/utils/icon-helpers.ts | ⬜ Not Started | - | |
+  | getMetricIcon | ~48 | src/utils/icon-helpers.ts | ⬜ Not Started | - | |
+  | toggleContentVisibility | ~4 | src/dom/content/ContentToggler.ts | ⬜ Not Started | - | |
+  | expandAllContentSections | ~32 | src/dom/content/ContentToggler.ts | ⬜ Not Started | - | |
+  | safeSettingsAccess | ~6 | src/utils/settings-helpers.ts | ⬜ Not Started | - | |
+
+### 4. Current Status
+
+After these refactorings, the main.ts file should be significantly reduced in size and the codebase will be more maintainable.
+
+**Current line counts:**
+- Initial main.ts: ~5,100 lines
+- Current main.ts: ~3,000 lines
+- **Reduction**: ~2,100 lines (~41% smaller)

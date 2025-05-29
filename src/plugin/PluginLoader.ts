@@ -64,6 +64,7 @@ export class PluginLoader {
      */
     public async initialize(): Promise<void> {
         await this.initializeLogging();
+        await this.cleanupLogs();
         await this.initializeNullServices();
         await this.initializeSettingsManager();
         await this.initializeServiceRegistry();
@@ -108,6 +109,66 @@ export class PluginLoader {
                     safeLogger.error('Plugin', "Could not create logs directory", mkdirError instanceof Error ? mkdirError : new Error(String(mkdirError)));
                 }
             }
+        }
+    }
+
+    /**
+     * Clean up old log files as we're disabling file logging
+     */
+    private async cleanupLogs(): Promise<void> {
+        try {
+            // Check if logs directory exists
+            if (this.app.vault.adapter instanceof FileSystemAdapter) {
+                const baseFolder = (this.app.vault.adapter as FileSystemAdapter).getBasePath();
+                const logsPath = `${baseFolder}/logs`;
+                
+                safeLogger.info('Plugin', 'Cleaning up old log files from previous versions');
+                
+                // Check if logs directory exists
+                const exists = await this.app.vault.adapter.exists(logsPath);
+                if (!exists) {
+                    // No logs directory, nothing to clean up
+                    return;
+                }
+                
+                try {
+                    // List all files in the logs directory
+                    const { files } = await this.app.vault.adapter.list(logsPath);
+                    
+                    // Log what we found
+                    safeLogger.debug('Plugin', `Found ${files.length} log files to clean up`);
+                    
+                    // Delete each log file
+                    for (const file of files) {
+                        if (file.endsWith('.txt') || file.endsWith('.log') || file.endsWith('.bak')) {
+                            try {
+                                await this.app.vault.adapter.remove(`${logsPath}/${file}`);
+                                safeLogger.debug('Plugin', `Removed old log file: ${file}`);
+                            } catch (removeError) {
+                                safeLogger.warn('Plugin', `Could not remove log file: ${file}`);
+                            }
+                        }
+                    }
+                    
+                    // Try to remove the logs directory
+                    try {
+                        // Only remove if it's empty
+                        const { files: remainingFiles } = await this.app.vault.adapter.list(logsPath);
+                        if (remainingFiles.length === 0) {
+                            await this.app.vault.adapter.rmdir(logsPath, false);
+                            safeLogger.info('Plugin', 'Removed empty logs directory');
+                        } else {
+                            safeLogger.info('Plugin', `Logs directory not empty (${remainingFiles.length} files), skipping removal`);
+                        }
+                    } catch (rmdirError) {
+                        safeLogger.warn('Plugin', 'Could not remove logs directory');
+                    }
+                } catch (error) {
+                    safeLogger.warn('Plugin', 'Error cleaning up log files');
+                }
+            }
+        } catch (e) {
+            safeLogger.warn('Plugin', 'Error in cleanupLogs');
         }
     }
 
@@ -347,7 +408,7 @@ export class PluginLoader {
         plugin.projectNoteManager = new ProjectNoteManager(this.app, settings, plugin.logger);
         
         // Initialize the RibbonManager
-        plugin.ribbonManager = new RibbonManager(this.app, settings, this.plugin, plugin.logger);
+        plugin.ribbonManager = new RibbonManager(this.app, settings, this.plugin as any, plugin.logger);
         
         // Initialize the ContentToggler
         const contentToggler = new ContentToggler(plugin.logger);
