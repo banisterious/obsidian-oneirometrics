@@ -2,6 +2,13 @@
  * ConsoleAdapter - Log adapter for console output
  * 
  * This adapter sends log messages to the browser console.
+ * 
+ * IMPORTANT: This file contains intentional and necessary console.* statements.
+ * These are NOT targets for replacement with structured logging, as this class
+ * IS the structured logging implementation for console output.
+ * 
+ * The console statements in this file are the final destination in the logging
+ * pipeline - they represent the actual output mechanism, not ad-hoc logging.
  */
 
 import { LogAdapter, LogEntry, LogFormatter } from '../LoggerTypes';
@@ -24,10 +31,15 @@ export class ConsoleAdapter implements LogAdapter {
   
   /**
    * Write a log entry to the console
+   * 
+   * INTENTIONAL CONSOLE USAGE: This adapter is specifically designed to output
+   * to the console, so these console.* calls are required and should not be
+   * replaced with structured logging calls.
    */
   log(entry: LogEntry): void {
     const formattedMessage = this.formatter.format(entry);
     
+    // INTENTIONAL CONSOLE USAGE: These statements are the actual logging implementation
     switch (entry.level) {
       case 'error':
         console.error(formattedMessage);
@@ -51,7 +63,7 @@ export class ConsoleAdapter implements LogAdapter {
         console.log(formattedMessage);
     }
     
-    // Log data object separately if present
+    // INTENTIONAL CONSOLE USAGE: Log data object separately if present
     if (entry.data && entry.level !== 'error') {
       console.log(entry.data);
     }
