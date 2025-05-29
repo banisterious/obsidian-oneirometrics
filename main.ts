@@ -3,7 +3,26 @@
 // https://opensource.org/licenses/MIT
 
 // Import the safe logger immediately at the top
-import safeLogger, { getSafeLogger, SafeLogger } from './src/logging/safe-logger';
+import safeLogger, { getSafeLogger, SafeLogger, initializeSafeLogger } from './src/logging/safe-logger';
+
+// Import getLogger but not LoggingAdapter since it's imported elsewhere
+import { getLogger } from './src/logging';
+
+/**
+ * IMPORTANT: This file uses a globalLogger pattern for backward compatibility 
+ * with older parts of the codebase and to support global utility functions.
+ * 
+ * The globalLogger is initialized with safeLogger first for early logging,
+ * then upgraded to the full structured logging system once the plugin is loaded.
+ * 
+ * New code should use the structured logging system directly via:
+ *   import { getLogger } from './src/logging';
+ *   const logger = getLogger('ComponentName');
+ */
+
+// Create a global logger instance for functions outside the plugin class
+// Initialize with safe logger first, but will be replaced with structured logger during plugin initialization
+let globalLogger: any = safeLogger;
 
 // Import test modals
 import { openContentParserTestModal, openDateUtilsTestModal, openServiceRegistryTestModal } from './src/testing';
@@ -177,10 +196,6 @@ import { MetricsTabsModal } from './src/dom/modals/MetricsTabsModal';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
-
-// Create a global logger instance for functions outside the plugin class
-// Initialize with safe logger first, but keep the type compatible with LoggingAdapter
-let globalLogger: any = safeLogger;
 
 // Default settings for linting functionality
 const DEFAULT_LINTING_SETTINGS: LintingSettings = {
@@ -3925,6 +3940,8 @@ Applied: ${new Date().toLocaleTimeString()}`;
 
     // Add this method to the plugin class
     private testContentParserDirectly() {
+        const logger = getLogger('ContentParserTest');
+        
         // Create a ContentParser instance
         const parser = new ContentParser();
         
@@ -3942,28 +3959,28 @@ Emotional Impact: 5, Detail: 4
 `;
 
         // Test parameter variations
-        globalLogger?.debug('Debug', '=== CONTENT PARSER PARAMETER VARIATION TESTS ===');
+        logger.debug('Test', '=== CONTENT PARSER PARAMETER VARIATION TESTS ===');
         
         // Test 1: content only
         const test1 = parser.extractDreamEntries(testContent);
-        globalLogger?.debug('Debug', 'Test 1 (content only)', { result: test1 });
+        logger.debug('Test', 'Test 1 (content only)', { result: test1 });
         
         // Test 2: content + callout type
         const test2 = parser.extractDreamEntries(testContent, 'memory');
-        globalLogger?.debug('Debug', 'Test 2 (content, type)', { result: test2 });
+        logger.debug('Test', 'Test 2 (content, type)', { result: test2 });
         
         // Test 3: content + source
         const test3 = parser.extractDreamEntries(testContent, 'test.md');
-        globalLogger?.debug('Debug', 'Test 3 (content, source)', { result: test3 });
+        logger.debug('Test', 'Test 3 (content, source)', { result: test3 });
         
         // Test 4: content + type + source
         const test4 = parser.extractDreamEntries(testContent, 'dream', 'test.md');
-        globalLogger?.debug('Debug', 'Test 4 (content, type, source)', { result: test4 });
+        logger.debug('Test', 'Test 4 (content, type, source)', { result: test4 });
         
         // Test 5: static factory method
         const parser2 = ContentParser.create();
         const test5 = parser2.extractDreamEntries(testContent);
-        globalLogger?.debug('Debug', 'Test 5 (factory method)', { result: test5 });
+        logger.debug('Test', 'Test 5 (factory method)', { result: test5 });
         
         return "ContentParser direct tests complete - check logs for results";
     }
