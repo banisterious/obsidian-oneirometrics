@@ -4821,32 +4821,6 @@ declare global {
     }
 }
 
-// Function to toggle content visibility for a given button - alternative implementation
-function toggleContentVisibility(button: HTMLElement) {
-    globalLogger?.debug('UI', 'Using ContentToggler implementation for toggleContentVisibility');
-    
-    // Use the ContentToggler implementation
-    if (globalContentToggler) {
-        globalContentToggler.toggleContentVisibility(button);
-    } else {
-        globalLogger?.error('UI', 'ContentToggler not initialized');
-        new Notice('Error: Content toggler not initialized');
-    }
-}
-
-// Helper function to expand all content sections - useful for debugging
-function expandAllContentSections(previewEl: HTMLElement) {
-    globalLogger?.debug('UI', 'Using ContentToggler implementation for expandAllContentSections');
-    
-    // Use the ContentToggler implementation
-    if (globalContentToggler) {
-        globalContentToggler.expandAllContentSections(previewEl);
-    } else {
-        globalLogger?.error('UI', 'ContentToggler not initialized');
-        new Notice('Error: Content toggler not initialized');
-    }
-}
-
 // Debug helper - expose content expansion function to window object for console debugging
 (window as any).debugContentExpansion = function(showExpanded: boolean = true) {
     globalLogger?.debug('UI', 'Manual content expansion debug triggered', { showExpanded });
