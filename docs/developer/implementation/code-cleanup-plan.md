@@ -351,10 +351,10 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 | Component Name | Lines | Source Section | Target Module | Status | Date | Notes |
 |----------------|-------|---------------|--------------|--------|------|-------|
 | FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ✅ Complete | 2025-05-29 | Extracted all filter-related functionality into a dedicated class with proper structure and error handling |
-| FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ✅ Complete | 2025-05-31 | Created dedicated class for filter display management with consistent styling, proper error handling, and support for various filter types including date filters and custom ranges |
-| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-31 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
-| EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventHandler.ts | ✅ Complete | 2025-05-31 | Created EventHandler to manage all DOM event attachments including buttons, filters, and content toggles with robust error handling and centralized event management |
-| DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-30 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
+| FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ✅ Complete | 2025-05-29 | Created dedicated class for filter display management with consistent styling, proper error handling, and support for various filter types including date filters and custom ranges |
+| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-29 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
+| EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventHandler.ts | ✅ Complete | 2025-05-29 | Created EventHandler to manage all DOM event attachments including buttons, filters, and content toggles with robust error handling and centralized event management |
+| DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-29 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
 | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
 | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
 | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
@@ -674,6 +674,16 @@ This cleanup improves code organization by:
 2. Removing duplicate implementations of display update methods
 3. Making filter display behavior more consistent across the application
 4. Reducing complexity in both FilterManager and FilterUI classes
+
+### Progress Update (2025-06-01)
+
+Marked table-related global functions in main.ts for removal following their extraction to TableManager:
+- Added removal comments for `initializeTableRowClasses` function
+- Added removal comments for `collectVisibleRowMetrics` function 
+- Added removal comments for `updateSummaryTable` function
+
+These global functions are now redundant as their functionality has been properly encapsulated in the TableManager class.
+The next cleanup step should be to completely remove these functions once all references to them have been removed.
 
 The next steps in the cleanup are to:
 1. Establish clear boundaries between filter management and display logic

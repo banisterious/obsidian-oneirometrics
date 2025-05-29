@@ -2060,6 +2060,7 @@ function applyCustomDateRangeFilter() {
 }
 
 // The following function has been moved to FilterManager
+// REMOVE: This function has been extracted to TableManager and should be removed
 function initializeTableRowClasses() {
     // Use a flag to ensure this only runs once per page load
     if ((window as any).__tableRowsInitialized) {
@@ -2247,6 +2248,7 @@ function initializeTableRowClasses() {
 }
 
 // Function to collect metrics data from visible rows only
+// REMOVE: This function has been extracted to TableManager and should be removed
 function collectVisibleRowMetrics(container: HTMLElement): Record<string, number[]> {
     globalLogger?.debug('Metrics', 'Collecting metrics from visible rows');
     
@@ -2359,136 +2361,8 @@ function collectVisibleRowMetrics(container: HTMLElement): Record<string, number
 }
 
 // Function to update the summary table with new metrics
+// REMOVE: This function has been extracted to TableManager and should be removed
 function updateSummaryTable(container: HTMLElement, metrics: Record<string, number[]>) {
-    globalLogger?.debug('UI', 'Updating summary table with filtered metrics');
-    const summarySection = container.querySelector('.oom-stats-section');
-    if (!summarySection) {
-        globalLogger?.warn('UI', 'No summary section found for metrics update');
-        return;
-    }
-    
-    // Set will-change to optimize for upcoming changes
-    summarySection.setAttribute('style', 'will-change: contents;');
-    
-    // Generate new summary table content
-    let content = '<h2 class="oom-table-title oom-stats-title">Statistics (Filtered)</h2>';
-    content += '<div class="oom-table-container">\n';
-    content += '<table class="oom-table oom-stats-table">\n';
-    content += '<thead>\n';
-    content += '<tr>\n';
-    content += '<th>Metric</th>\n';
-    content += '<th>Average</th>\n';
-    content += '<th>Min</th>\n';
-    content += '<th>Max</th>\n';
-    content += '<th>Count</th>\n';
-    content += '</tr>\n';
-    content += '</thead>\n';
-    content += '<tbody>\n';
-
-    // CRITICAL FIX: Process metrics in a specific order with data validation
-    // This ensures no duplicate or inconsistent metrics in the table
-    
-    // First, get a clean, deduplicated list of metric names
-    // Skip any metrics that aren't properly formatted
-    const metricNames = Array.from(new Set(Object.keys(metrics).map(name => name.trim())))
-        .filter(name => name && typeof name === 'string' && name.length > 0);
-    
-    // Log what metrics we found for debugging
-    globalLogger?.debug('Metrics', 'Processing metrics for summary table', {
-        foundMetrics: metricNames.join(', '),
-        count: metricNames.length
-    });
-    
-    // Process metrics in a consistent order - always put Words first
-    const orderedMetrics = ['Words'].concat(
-        metricNames.filter(name => name !== 'Words').sort()
-    );
-    
-    let hasMetrics = false;
-    
-    // Process each metric in our controlled order
-    for (const name of orderedMetrics) {
-        // Skip if this metric doesn't exist in our data
-        if (!metrics[name]) continue;
-        
-        const values = metrics[name];
-        if (!values || !Array.isArray(values) || values.length === 0) continue;
-        
-        // Validate all values are numbers
-        const validValues = values.filter(v => typeof v === 'number' && !isNaN(v));
-        if (validValues.length === 0) continue;
-        
-        hasMetrics = true;
-        const avg = validValues.reduce((a, b) => a + b) / validValues.length;
-        const min = Math.min(...validValues);
-        const max = Math.max(...validValues);
-        let label = name;
-        
-        if (name === 'Words') {
-            const total = validValues.reduce((a, b) => a + b, 0);
-            label = `Words <span class="oom-words-total">(total: ${total})</span>`;
-        }
-        
-        content += '<tr>\n';
-        content += `<td>${label}</td>\n`;
-        content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
-        content += `<td class="metric-value">${min}</td>\n`;
-        content += `<td class="metric-value">${max}</td>\n`;
-        content += `<td class="metric-value">${validValues.length}</td>\n`;
-        content += '</tr>\n';
-    }
-
-    if (!hasMetrics) {
-        content += '<tr><td colspan="5" class="oom-no-metrics">No metrics available for filtered results</td></tr>\n';
-    }
-
-    content += '</tbody>\n';
-    content += '</table>\n';
-    content += '</div>\n';
-    
-    // Update the summary section in a requestAnimationFrame to avoid forced reflows
-    requestAnimationFrame(() => {
-                    // CRITICAL FIX: Only update the summary section, not any other tables
-            // Make sure we're actually updating the right element to avoid duplicate content
-            if (summarySection.classList.contains('oom-stats-section')) {
-                // First, completely remove all existing content to ensure a fresh start
-                summarySection.innerHTML = '';
-                
-                // Log what we're about to do
-                globalLogger?.debug('UI', 'Completely replacing summary section content');
-                
-                // Force reflow before adding new content to ensure clean replacement
-                void (summarySection as HTMLElement).offsetHeight;
-                
-                // Now add the new content
-                summarySection.innerHTML = content;
-            
-            // Additional verification - check for duplicated tables after update
-            setTimeout(() => {
-                const allStatsTables = container.querySelectorAll('.oom-stats-table');
-                if (allStatsTables.length > 1) {
-                    // Found multiple stats tables - something went wrong
-                    globalLogger?.error('UI', `Found ${allStatsTables.length} stats tables after update - attempting emergency fix`);
-                    
-                    // Emergency fix: Keep only the first stats table and remove others
-                    allStatsTables.forEach((table, index) => {
-                        if (index > 0) {
-                            table.remove();
-                        }
-                    });
-                }
-            }, 50);
-        } else {
-            globalLogger?.error('UI', 'Attempted to update incorrect element as summary section', {
-                foundElement: summarySection.className
-            });
-        }
-        
-        // Remove will-change property after update
-        setTimeout(() => {
-            summarySection.removeAttribute('style');
-        }, 100);
-    });
 }
 
 // Helper function to format a date for display
