@@ -3,6 +3,7 @@ import DreamMetricsPlugin from '../../../main';
 import { CalloutStructure, JournalTemplate } from '../types';
 import { TemplaterIntegration } from '../TemplaterIntegration';
 import { DreamMetric } from '../../types';
+import { getLogger } from '../../logging';
 
 /**
  * Wizard for creating or editing journal templates
@@ -812,8 +813,9 @@ export class TemplateWizard extends Modal {
         const templates = this.plugin.settings.linting.templates;
         
         // Log debugging information
-        console.log('Saving template:', template);
-        console.log('Current templates:', templates);
+        const logger = getLogger('TemplateWizard');
+        logger.debug('Template', 'Saving template:', template);
+        logger.debug('Template', 'Current templates:', templates);
         
         // If editing an existing template, replace it
         const existingIndex = templates.findIndex((t: JournalTemplate) => t.id === this.templateId);
@@ -824,18 +826,18 @@ export class TemplateWizard extends Modal {
             templates.push(template);
         }
         
-        console.log('Templates after update:', templates);
+        logger.debug('Template', 'Templates after update:', templates);
         
         // Save settings and ensure the changes persist
         this.plugin.saveSettings().then(() => {
             // Show confirmation notice
             new Notice(`Template "${this.templateName}" saved successfully!`);
-            console.log('Settings saved successfully');
+            logger.debug('Template', 'Settings saved successfully');
             
             // Close the modal
             this.close();
         }).catch((error: Error) => {
-            console.error('Failed to save template:', error);
+            logger.error('Template', 'Failed to save template:', error);
             new Notice('Failed to save template. Please try again.');
         });
     }
