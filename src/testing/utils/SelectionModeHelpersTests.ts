@@ -17,6 +17,7 @@ import {
   getCompatibleSelectionMode
 } from '../../utils/selection-mode-helpers';
 import { TestRunner } from '../TestRunner';
+import { getLogger } from '../../logging';
 
 /**
  * Registers all selection mode helper tests with the test runner
@@ -179,7 +180,8 @@ export function registerSelectionModeHelperTests(
 
 // Example of how to use these tests
 export function runSelectionModeHelperTests(): Promise<void> {
-  console.log('Running selection mode helper tests...');
+  const logger = getLogger('SelectionModeHelpersTests');
+  logger.info('Test', 'Running selection mode helper tests...');
   
   const testRunner = TestRunner.create();
   registerSelectionModeHelperTests(testRunner);
@@ -187,13 +189,13 @@ export function runSelectionModeHelperTests(): Promise<void> {
   return testRunner.runTests()
     .then(results => {
       const passedCount = results.filter(r => r.passed).length;
-      console.log(`Selection mode helper tests complete: ${passedCount}/${results.length} tests passed`);
+      logger.info('Test', `Selection mode helper tests complete: ${passedCount}/${results.length} tests passed`);
       
       // Log any failures
       results.filter(r => !r.passed).forEach(failure => {
-        console.error(`Test failed: ${failure.name}`);
+        logger.error('Test', `Test failed: ${failure.name}`);
         if (failure.error) {
-          console.error(failure.error);
+          logger.error('Test', 'Error details:', failure.error);
         }
       });
     });

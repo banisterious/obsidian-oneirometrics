@@ -14,6 +14,7 @@ import {
   createUIComponent
 } from '../../templates/ui/ComponentFactory';
 import { BaseComponent, EventableComponent } from '../../templates/ui/BaseComponent';
+import { getLogger } from '../../logging';
 
 /**
  * Register tests for the ComponentFactory module
@@ -22,6 +23,8 @@ import { BaseComponent, EventableComponent } from '../../templates/ui/BaseCompon
 export function registerComponentFactoryTests(
   testRunner: TestRunner
 ): void {
+  const logger = getLogger('ComponentFactoryTests');
+  
   // Test: createComponent should instantiate a component
   testRunner.addTest(
     'ComponentFactory - createComponent creates a properly configured BaseComponent',
@@ -62,7 +65,7 @@ export function registerComponentFactoryTests(
       });
       
       // For debugging
-      console.log('Test component:', {
+      logger.debug('Test', 'Test component:', {
         id: component['id'],
         className: component['className'],
         value: component['value'],
@@ -154,9 +157,23 @@ export function registerComponentFactoryTests(
  * Run tests for the ComponentFactory module
  */
 export async function runComponentFactoryTests(): Promise<void> {
+  const logger = getLogger('ComponentFactoryTests');
   const testRunner = new TestRunner();
   registerComponentFactoryTests(testRunner);
-  await testRunner.runTests();
+  
+  return testRunner.runTests()
+    .then(results => {
+      const passedCount = results.filter(r => r.passed).length;
+      logger.info('Test', `ComponentFactory tests: ${passedCount}/${results.length} passed`);
+      
+      // Log any failures
+      results.filter(r => !r.passed).forEach(failure => {
+        logger.error('Test', `Test failed: ${failure.name}`);
+        if (failure.error) {
+          logger.error('Test', 'Error details:', failure.error);
+        }
+      });
+    });
 }
 
 // Allow direct execution of tests

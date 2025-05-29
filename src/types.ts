@@ -6,11 +6,16 @@
 // Re-export all types from the new location
 export * from './types/index';
 
-// Log deprecation warning
-console.warn(
-  "DEPRECATION WARNING: Importing from src/types.ts is deprecated. " +
-  "Import from src/types/ instead. This file will be removed in a future version."
-);
+// Import debug mode utility
+import { isDebugMode } from './utils/debug-mode';
+
+// Only show deprecation warnings in development mode
+if (isDebugMode()) {
+  console.warn(
+    "DEPRECATION WARNING: Importing from src/types.ts is deprecated. " +
+    "Import from src/types/ instead. This file will be removed in a future version."
+  );
+}
 
 import { LintingSettings } from './journal_check/types';
 

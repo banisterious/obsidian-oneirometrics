@@ -14,6 +14,7 @@ import {
   extractMetricValue
 } from '../../utils/property-helpers';
 import { TestRunner } from '../TestRunner';
+import { getLogger } from '../../logging';
 
 /**
  * Registers all property helper tests with the test runner
@@ -286,7 +287,8 @@ export function registerPropertyHelpersTests(
  * @returns A promise that resolves when tests are complete
  */
 export function runPropertyHelpersTests(): Promise<void> {
-  console.log('Running property helper tests...');
+  const logger = getLogger('PropertyHelpersTests');
+  logger.info('Test', 'Running property helper tests...');
   
   const testRunner = TestRunner.create();
   registerPropertyHelpersTests(testRunner);
@@ -294,13 +296,13 @@ export function runPropertyHelpersTests(): Promise<void> {
   return testRunner.runTests()
     .then(results => {
       const passedCount = results.filter(r => r.passed).length;
-      console.log(`Property helper tests complete: ${passedCount}/${results.length} tests passed`);
+      logger.info('Test', `Property helper tests complete: ${passedCount}/${results.length} tests passed`);
       
       // Log any failures
       results.filter(r => !r.passed).forEach(failure => {
-        console.error(`Test failed: ${failure.name}`);
+        logger.error('Test', `Test failed: ${failure.name}`);
         if (failure.error) {
-          console.error(failure.error);
+          logger.error('Test', 'Error details:', failure.error);
         }
       });
     });

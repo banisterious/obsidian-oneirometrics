@@ -9,6 +9,7 @@ import { setIcon } from 'obsidian';
 import { BaseComponent, EventableComponent } from './BaseComponent';
 import { DreamMetric } from '../../types/core';
 import { standardizeMetric } from '../../utils/metric-helpers';
+import { getLogger } from '../../logging';
 
 // Import directly from absolute path without the .ts extension
 // This matches what main.ts is doing (line 114)
@@ -128,7 +129,8 @@ export class MetricComponent extends EventableComponent {
           }
         } catch (error) {
           // Fallback: Use the first letter of the icon name
-          console.warn(`Failed to set icon ${this.metric.icon}:`, error);
+          const logger = getLogger('MetricComponent');
+          logger.warn('UI', `Failed to set icon ${this.metric.icon}:`, error);
           this.iconElement.addClass('oom-icon-fallback');
           this.iconElement.setText(this.metric.icon.substring(0, 1).toUpperCase());
         }
