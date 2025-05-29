@@ -299,8 +299,9 @@ const DEFAULT_LINTING_SETTINGS: LintingSettings = {
  */
 
 // Import ContentToggler
-import { ContentToggler } from './src/dom/content';
-import { TableGenerator } from './src/dom/tables';
+import { ContentToggler } from './src/dom/content/ContentToggler';
+import { FilterUI } from './src/dom/filters/FilterUI';
+import { TableGenerator, TableManager } from './src/dom/tables';
 
 // Global instance for functions that need access to ContentToggler
 // Initialize to null; it will be properly set during plugin initialization
@@ -327,6 +328,9 @@ import { DebugTools } from './src/utils/DebugTools';
 
 // Import FilterManager
 import { FilterManager } from './src/dom/filters/FilterManager';
+
+// In the imports section, add the EventHandler import
+import { EventHandler } from './src/events/EventHandler';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -367,6 +371,13 @@ export default class DreamMetricsPlugin extends Plugin {
     private dateFilter: DateFilter;
     private debugTools: DebugTools;
     private filterManager: FilterManager;
+    private tableManager: TableManager;
+    // In the class properties, add a property for the EventHandler
+    private eventHandler: EventHandler;
+
+    // Add these properties to the DreamMetricsPlugin class with the other properties
+    private contentToggler: ContentToggler;
+    private filterUI: FilterUI;
 
     async onload() {
         // Create a new PluginLoader and delegate the initialization to it
@@ -397,12 +408,34 @@ export default class DreamMetricsPlugin extends Plugin {
         this.dateFilter.registerGlobalHandler();
 
         // Initialize FilterManager
-        this.filterManager = new FilterManager(this.app, this.settings, this.saveSettings.bind(this), this.saveData.bind(this), this.logger);
+        this.filterManager = new FilterManager(this.app, this.settings, () => this.saveSettings(), this.saveData.bind(this), this.logger);
         this.filterManager.initialize();
 
         // Initialize DebugTools
         this.debugTools = new DebugTools(this, this.app, this.logger);
         this.debugTools.registerGlobalDebugFunctions();
+        
+        // Initialize TableManager
+        this.tableManager = new TableManager(this.app, this.settings, this.logger);
+
+        // Initialize these properties in the onload method, before initializing the EventHandler
+        // Add these initializations before creating the EventHandler
+        this.contentToggler = new ContentToggler(this.logger);
+        this.filterUI = new FilterUI(this.app, this.settings, this.saveSettings.bind(this), this.logger);
+
+        // In the onload method, after other manager initializations, initialize the EventHandler
+        // Add this code where other managers are initialized
+        this.eventHandler = new EventHandler(
+            this.app,
+            this.settings,
+            this.contentToggler, // Assume this exists
+            this.filterManager,
+            this.filterUI, // Assume this exists or needs to be created
+            this.scrapeMetrics.bind(this),
+            this.showDateNavigator.bind(this),
+            this.saveSettings.bind(this),
+            this.logger
+        );
     }
 
     onunload() {
@@ -666,12 +699,12 @@ export default class DreamMetricsPlugin extends Plugin {
         // Only update if the current file is a project note
         
         // Setup event listeners for project notes
-        this.attachProjectNoteEventListeners();
+        this.eventHandler.attachProjectNoteEventListeners();
         
         // Initialize the table row classes for improved filtering
         // Defer initialization to avoid blocking initial render
         setTimeout(() => {
-            initializeTableRowClasses();
+            this.tableManager.initializeTableRowClasses();
         }, 250);
         
         // Apply debug mode classes if needed
@@ -691,234 +724,6 @@ export default class DreamMetricsPlugin extends Plugin {
         const date = contentCell.closest('.oom-dream-row')?.getAttribute('data-date');
         const title = contentCell.closest('.oom-dream-row')?.querySelector('.oom-dream-title')?.textContent;
         return `${date}-${title}`.replace(/[^a-zA-Z0-9-]/g, '');
-    }
-
-    private attachProjectNoteEventListeners() {
-        globalLogger?.debug('UI', 'Attaching metrics note event listeners');
-        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!view || view.getMode() !== 'preview') return;
-        
-        const previewEl = view.previewMode?.containerEl;
-        if (!previewEl) {
-            globalLogger?.warn('UI', 'No preview element found for attaching event listeners');
-            return;
-        }
-        
-        // CRITICAL FIX: Robust, failsafe filter application in event listeners
-        // Check if filters are already applied before trying again
-        if ((window as any).oomFiltersApplied) {
-            globalLogger?.info('Filter', 'Filters already applied, skipping filter application in event listeners');
-        }
-        
-        // Helper function to safely attach click event with console warning for debugging
-        const attachClickEvent = (element: Element | null, callback: () => void, elementName: string) => {
-            if (!element) {
-                globalLogger?.warn('UI', `${elementName} not found`);
-                return false;
-            }
-            
-            try {
-                // Remove existing listeners by cloning
-                const newElement = element.cloneNode(true) as HTMLElement;
-                newElement.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    callback();
-                });
-                element.parentNode?.replaceChild(newElement, element);
-                globalLogger?.debug('UI', `Attached event listener to ${elementName}`);
-                return true;
-            } catch (error) {
-                globalLogger?.error('UI', `Error attaching event to ${elementName}`, error as Error);
-                return false;
-            }
-        };
-        
-        // Try multiple ways to find the buttons, falling back to more general selectors
-        const findButton = (id: string, className: string, fallbackSelector: string): HTMLElement | null => {
-            // Try by ID first (most specific)
-            const buttonById = document.getElementById(id);
-            if (buttonById) return buttonById as HTMLElement;
-            
-            // Try by class in preview element
-            const buttonByClass = previewEl.querySelector(`.${className}`);
-            if (buttonByClass) return buttonByClass as HTMLElement;
-            
-            // Try fallback selector as last resort
-            const buttonByFallback = previewEl.querySelector(fallbackSelector);
-            if (buttonByFallback) return buttonByFallback as HTMLElement;
-            
-            return null;
-        };
-        
-        // Find the rescrape button with multiple fallbacks
-        const rescrapeBtn = findButton(
-            'oom-rescrape-button', 
-            'oom-rescrape-button', 
-            'button.mod-cta:not(.oom-settings-button):not(.oom-date-navigator-button)'
-        );
-        
-        attachClickEvent(rescrapeBtn, () => {
-            globalLogger?.debug('UI', 'Rescrape button clicked');
-            new Notice('Rescraping metrics...');
-            this.scrapeMetrics();
-        }, 'Rescrape button');
-        
-        // Find the settings button with multiple fallbacks
-        const settingsBtn = findButton(
-            'oom-settings-button', 
-            'oom-settings-button', 
-            'button.mod-cta:not(.oom-rescrape-button):not(.oom-date-navigator-button)'
-        );
-        
-        attachClickEvent(settingsBtn, () => {
-            globalLogger?.debug('UI', 'Settings button clicked');
-            new Notice('Opening settings...');
-            (this.app as any).setting.open();
-            (this.app as any).setting.openTabById('oneirometrics');
-        }, 'Settings button');
-        
-        // Find the date navigator button with multiple fallbacks
-        const dateNavigatorBtn = findButton(
-            'oom-date-navigator-button', 
-            'oom-date-navigator-button', 
-            'button.mod-cta:not(.oom-rescrape-button):not(.oom-settings-button)'
-        );
-        
-        attachClickEvent(dateNavigatorBtn, () => {
-            globalLogger?.debug('UI', 'Date navigator button clicked');
-            new Notice('Opening date navigator...');
-            this.showDateNavigator();
-        }, 'Date navigator button');
-        
-        // Add event listeners for debug buttons
-        const debugBtn = previewEl.querySelector('.oom-debug-attach-listeners');
-        if (debugBtn) {
-            // Remove existing listeners
-            const newDebugBtn = debugBtn.cloneNode(true);
-            newDebugBtn.addEventListener('click', () => {
-                new Notice('Manually attaching Show More listeners...');
-                this.attachProjectNoteEventListeners();
-            });
-            debugBtn.parentNode?.replaceChild(newDebugBtn, debugBtn);
-        }
-        
-        // Add debug expand all button in debug mode
-        if (this.settings.logging?.level === 'debug' || this.settings.logging?.level === 'trace') {
-            const expandAllDebugBtn = previewEl.querySelector('.oom-debug-expand-all');
-            if (!expandAllDebugBtn) {
-                // Create a new debug button if it doesn't exist
-                const debugBtnContainer = previewEl.querySelector('.oom-filter-controls');
-                if (debugBtnContainer) {
-                    const newDebugBtn = document.createElement('button');
-                    newDebugBtn.className = 'oom-button oom-debug-expand-all';
-                    newDebugBtn.innerHTML = '<span class="oom-button-text">Debug: Expand All Content</span>';
-                    newDebugBtn.style.backgroundColor = 'var(--color-red)';
-                    newDebugBtn.style.color = 'white';
-                    newDebugBtn.style.marginLeft = '8px';
-                    newDebugBtn.addEventListener('click', () => {
-                        new Notice('Expanding all content sections for debugging...');
-                        expandAllContentSections(previewEl);
-                    });
-                    debugBtnContainer.appendChild(newDebugBtn);
-                }
-            }
-        }
-
-        // Find date range filter with multiple attempts
-        const findDateRangeFilter = (): HTMLSelectElement | null => {
-            // Try by ID first
-            const filterById = document.getElementById('oom-date-range-filter');
-            if (filterById) return filterById as HTMLSelectElement;
-            
-            // Try by class in preview element
-            const filterByClass = previewEl.querySelector('.oom-select');
-            if (filterByClass) return filterByClass as HTMLSelectElement;
-            
-            // Try more generic selector
-            const filterBySelector = previewEl.querySelector('select[id*="date-range"]');
-            if (filterBySelector) return filterBySelector as HTMLSelectElement;
-            
-            return null;
-        };
-        
-        const dateRangeFilter = findDateRangeFilter();
-        if (dateRangeFilter) {
-            globalLogger?.debug('UI', 'Found date range filter', { element: dateRangeFilter?.tagName });
-            // First remove any existing event listeners by cloning the node
-            const newDateRangeFilter = dateRangeFilter.cloneNode(true) as HTMLSelectElement;
-            newDateRangeFilter.addEventListener('change', () => {
-                globalLogger?.debug('UI', 'Date range filter changed', { value: newDateRangeFilter?.value });
-                
-                // Clear any custom date range when using dropdown
-                customDateRange = null;
-                
-                // Reset any active state on custom range button - do this in a requestAnimationFrame
-                // to avoid forced reflow
-                const customRangeBtn = document.getElementById('oom-custom-range-btn');
-                if (customRangeBtn) {
-                    requestAnimationFrame(() => {
-                        customRangeBtn.classList.remove('active');
-                    });
-                }
-                
-                // Apply the filter in a delayed manner to avoid UI jank
-                setTimeout(() => this.applyFilters(previewEl), 50);
-            });
-            dateRangeFilter.parentNode?.replaceChild(newDateRangeFilter, dateRangeFilter);
-            globalLogger?.debug('UI', 'Attached event listener to date range filter');
-        } else {
-            globalLogger?.warn('UI', 'Date range filter not found');
-        }
-
-        // Existing show more/less button handlers
-        const buttons = previewEl.querySelectorAll('.oom-button--expand');
-        globalLogger?.debug('UI', 'Found show more/less buttons', { count: buttons?.length });
-        buttons.forEach((button) => {
-            // Remove any existing click listeners by replacing the node
-            const newButton = button.cloneNode(true) as HTMLElement;
-            newButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                globalLogger?.debug('UI', 'Show more/less button clicked');
-                
-                // Use the dedicated function to handle content visibility toggle
-                toggleContentVisibility(newButton);
-            });
-            button.parentNode?.replaceChild(newButton, button);
-        });
-
-        // Find custom range button with fallbacks
-        const findCustomRangeBtn = (): HTMLElement | null => {
-            // Try by ID first
-            const btnById = document.getElementById('oom-custom-range-btn');
-            if (btnById) return btnById as HTMLElement;
-            
-            // Try by class within the filter controls
-            const filterControls = previewEl.querySelector('.oom-filter-controls') || previewEl;
-            const btnByClass = filterControls.querySelector('.oom-button:not(.oom-button--expand)');
-            if (btnByClass) return btnByClass as HTMLElement;
-            
-            return null;
-        };
-        
-        const customRangeBtn = findCustomRangeBtn();
-        if (customRangeBtn) {
-            globalLogger?.debug('UI', 'Found custom range button');
-            // Clone the button to remove any existing listeners
-            const newCustomRangeBtn = customRangeBtn.cloneNode(true) as HTMLElement;
-            newCustomRangeBtn.addEventListener('click', () => {
-                globalLogger?.debug('UI', 'Custom range button clicked');
-                openCustomRangeModal(this.app);
-            });
-            customRangeBtn.parentNode?.replaceChild(newCustomRangeBtn, customRangeBtn);
-            globalLogger?.debug('UI', 'Attached event listener to custom range button');
-        } else {
-            globalLogger?.warn('UI', 'Custom range button not found');
-        }
-        
-        globalLogger?.debug('UI', 'Finished attaching metrics note event listeners');
     }
 
     /**
@@ -1807,7 +1612,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 }
                 
                 // Force initialization of table rows for robust filtering
-                initializeTableRowClasses();
+                this.tableManager.initializeTableRowClasses();
                 
                 // Check if filter is available immediately
                 const immediateDropdown = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
@@ -1842,7 +1647,7 @@ export default class DreamMetricsPlugin extends Plugin {
                         globalLogger?.info('Filter', `Retry filter application at ${delay}ms`);
                         
                         // Force initialize tables before applying filters
-                        initializeTableRowClasses();
+                        this.tableManager.initializeTableRowClasses();
                         
                         // Apply the filter with high priority
                         this.applyFilterToDropdown(filterDropdown, previewEl);
@@ -2059,7 +1864,7 @@ function applyCustomDateRangeFilter() {
     }
     
     // Ensure table styles are initialized before filtering
-    initializeTableRowClasses();
+    this.tableManager.initializeTableRowClasses();
     
     // Performance optimization: Prevent layout thrashing by reading all data at once
     const tableContainer = previewEl.querySelector('.oom-table-container');
@@ -2227,11 +2032,11 @@ function applyCustomDateRangeFilter() {
                 }
                 
                 // Update metrics with filtered data
-                const filteredMetrics = collectVisibleRowMetrics(previewEl);
-                updateSummaryTable(previewEl, filteredMetrics);
+                const filteredMetrics = this.tableManager.collectVisibleRowMetrics(previewEl);
+                this.tableManager.updateSummaryTable(previewEl, filteredMetrics);
                 
                 // Update filter display with counts
-                updateFilterDisplay(visibleCount);
+                // Removed call to updateFilterDisplay which was moved to FilterManager
                 
                 // Show notification with filter results
                 new Notice(`Custom date filter applied: ${visibleCount} entries visible`);
@@ -2254,139 +2059,7 @@ function applyCustomDateRangeFilter() {
     setTimeout(() => processNextChunk(), 10);
 }
 
-function updateFilterDisplay(entryCount: number) {
-    // Mark filters as successfully applied
-    (window as any).oomFiltersApplied = true;
-    (window as any).oomFiltersPending = false;
-    
-    // Log at INFO level to ensure it's visible in logs
-    globalLogger?.info('Filter', `Filter display updated with ${entryCount} entries`, { 
-        customRange: customDateRange ? 'active' : 'none',
-        success: true
-    });
-    
-    globalLogger?.debug('Filter', 'Updating filter display', {
-        entryCount,
-        customDateRange: customDateRange ? 'active' : 'none'
-    });
-    
-    const filterDisplay = document.getElementById('oom-time-filter-display');
-    if (!filterDisplay) {
-        globalLogger?.warn('Filter', 'Filter display element not found');
-        return;
-    }
-    
-    // Temporarily set will-change to optimize for layout changes
-    filterDisplay.style.willChange = 'contents';
-    
-    // Create a complete HTML string instead of multiple DOM manipulations
-    // This is more efficient as it causes only one reflow when inserted
-    let htmlContent = '';
-    
-    // Icon element
-    htmlContent += '<span class="oom-filter-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg></span>';
-    
-    // Text content with appropriate class
-    if (customDateRange) {
-        htmlContent += `<span class="oom-filter-text oom-filter--custom-range"> Custom Range: ${customDateRange.start} to ${customDateRange.end} (${entryCount} entries) <span class="oom-filter-clear" title="Clear custom range" tabindex="0" role="button" aria-label="Clear date filter">×</span></span>`;
-    } else {
-        // Show dropdown label
-        const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-        const label = dropdown ? dropdown.options[dropdown.selectedIndex].text : 'All Time';
-        htmlContent += `<span class="oom-filter-text oom-filter--all-visible"> ${label} (${entryCount} entries) </span>`;
-    }
-    
-    // Use a single update to minimize reflows
-    requestAnimationFrame(() => {
-        // First, remove the transition for immediate change
-        filterDisplay.style.transition = 'none';
-        filterDisplay.classList.remove('oom-filter-display--updated');
-        
-        // Force a reflow to ensure the removal of the class takes effect immediately
-        void filterDisplay.offsetHeight;
-        
-        // Apply the HTML content in one operation
-        filterDisplay.innerHTML = htmlContent;
-        
-        // Now add event listeners to the clear button if present
-        const clearBtn = filterDisplay.querySelector('.oom-filter-clear');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', (e) => {
-                // Prevent event bubbling for better performance
-                e.stopPropagation();
-                
-                globalLogger?.info('Filter', 'User cleared custom date filter');
-                globalLogger?.debug('Events', 'Clear filter button clicked', {
-                    previousFilter: customDateRange ? 'custom' : 'none'
-                });
-                
-                customDateRange = null;
-                
-                // Clear the saved filter in plugin settings
-                if (window.oneiroMetricsPlugin) {
-                    try {
-                        // Update filter settings
-                        window.oneiroMetricsPlugin.settings.lastAppliedFilter = 'all';
-                        window.oneiroMetricsPlugin.settings.customDateRange = undefined;
-                        
-                        // Force save to ensure persistence
-                        window.oneiroMetricsPlugin.saveSettings().then(() => {
-                            globalLogger?.info('Filter', 'Settings saved after clearing filter');
-                            globalLogger?.debug('State', 'Settings persisted after filter cleared', {
-                                success: true,
-                                filter: 'all'
-                            });
-                            
-                            // Show notification
-                            new Notice('Filter cleared - showing all entries');
-                        }).catch(err => {
-                            globalLogger?.error('State', 'Failed to clear filter setting', err as Error);
-                        });
-                    } catch (e) {
-                        globalLogger?.error('State', 'Failed to clear filter setting', e as Error);
-                    }
-                }
-                
-                // Batch related DOM operations together
-                requestAnimationFrame(() => {
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) btn.classList.remove('active');
-                    
-                    const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                    if (dropdown) {
-                        dropdown.value = 'all'; // Reset to show all
-                        dropdown.dispatchEvent(new Event('change'));
-                    }
-                });
-            });
-            
-            // Keyboard accessibility
-            clearBtn.addEventListener('keydown', (e: KeyboardEvent) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    (e.target as HTMLElement).click();
-                }
-            });
-        }
-        
-        // Add the animation class in the next frame
-        setTimeout(() => {
-            // Reset will-change property
-            filterDisplay.style.willChange = 'auto';
-            
-            // Restore transition and add the updated class
-            filterDisplay.style.removeProperty('transition');
-            filterDisplay.classList.add('oom-filter-display--updated');
-            
-            // Remove class after transition completes
-            setTimeout(() => {
-                filterDisplay.classList.remove('oom-filter-display--updated');
-            }, 1000);
-        }, 20);
-    });
-}
-
-// Add this function to initialize CSS classes for table rows with performance optimizations
+// The following function has been moved to FilterManager
 function initializeTableRowClasses() {
     // Use a flag to ensure this only runs once per page load
     if ((window as any).__tableRowsInitialized) {
@@ -2557,6 +2230,12 @@ function initializeTableRowClasses() {
                             rowsProcessed: rows.length,
                             performance: 'chunked'
                         });
+                        
+                        // Set the flag to prevent reinitialization
+                        (window as any).__tableRowsInitialized = true;
+                        
+                        // Run date attribute repair after initialization
+                        runDateAttributeRepair();
                     }
                 });
             };
@@ -2564,12 +2243,6 @@ function initializeTableRowClasses() {
             // Start processing chunks with slight delay to allow initial render
             setTimeout(processNextChunk, 50);
         });
-        
-        // Set the flag to prevent reinitialization
-        (window as any).__tableRowsInitialized = true;
-        
-        // Run date attribute repair after initialization
-        runDateAttributeRepair();
     }, { timeout: 1000 });
 }
 
@@ -2820,8 +2493,7 @@ function updateSummaryTable(container: HTMLElement, metrics: Record<string, numb
 
 // Helper function to format a date for display
 function formatDateForDisplay(date: Date): string {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    return format(date, 'MMM d, yyyy');
 }
 
 // Function to force apply a date filter, called from DateNavigatorModal
@@ -2941,8 +2613,8 @@ window.forceApplyDateFilter = function(selectedDate: Date) {
     }
     
     // IMPORTANT: Update summary table with filtered metrics
-    const filteredMetrics = collectVisibleRowMetrics(previewEl as HTMLElement);
-    updateSummaryTable(previewEl as HTMLElement, filteredMetrics);
+    const filteredMetrics = this.tableManager.collectVisibleRowMetrics(previewEl as HTMLElement);
+    this.tableManager.updateSummaryTable(previewEl as HTMLElement, filteredMetrics);
     
     new Notice(`Date filter applied: ${visibleCount} entries visible`);
 }
