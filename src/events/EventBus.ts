@@ -5,7 +5,7 @@
  * robust error handling and defensive programming.
  */
 
-import { withErrorHandling, isNonEmptyString } from '../utils/defensive-utils';
+import { withErrorHandling } from '../utils/defensive-utils';
 import safeLogger from '../logging/safe-logger';
 import { EventManager } from './EventManager';
 import { 
@@ -190,7 +190,7 @@ export class EventBus {
   }
   
   /**
-   * Get debug information about the event bus
+   * Get debug information about the event bus.
    */
   debug(): Record<string, any> {
     try {
@@ -207,7 +207,7 @@ export class EventBus {
   cleanup(): void {
     try {
       this.reset();
-      // The EventManager singleton will be cleaned up separately
+      // The EventManager singleton will be cleaned up separately.
       safeLogger.debug('EventBus', 'Event bus cleaned up');
     } catch (error) {
       safeLogger.error('EventBus', 'Error cleaning up event bus', error);

@@ -6,7 +6,7 @@
  * unexpected DOM structures.
  */
 
-import { withErrorHandling, safeQuerySelector } from '../utils/defensive-utils';
+import { withErrorHandling } from '../utils/defensive-utils';
 import safeLogger from '../logging/safe-logger';
 
 export class DOMSafetyGuard {
@@ -16,13 +16,13 @@ export class DOMSafetyGuard {
   private static instance: DOMSafetyGuard;
   
   /**
-   * Fallback container that's guaranteed to exist
+   * Fallback container that is guaranteed to exist
    * Used when target elements can't be found
    */
   private fallbackContainer: HTMLDivElement;
   
   /**
-   * Map of element IDs to elements for fast access
+   * Map of element IDs to elements for fast access.
    */
   private elementCache: Map<string, HTMLElement> = new Map();
   

@@ -240,10 +240,24 @@ Based on initial analysis, these areas have the highest concentration of dead co
   - Provides different output modes: summary, patch, or edit
   - Can handle both single-line and multi-line import statements
 - The utility found 121 potentially unused imports across 60 files, providing a clear roadmap for additional cleanup
+- Fixed an issue with the clean-unused-imports.ps1 script related to variable delimiters
+- Identified unused imports in main.ts:
+  - Removed attachEvent, createEventHandler, createClickHandler, debounceEventHandler, and throttleEventHandler from EventHandling imports
+  - Identified createFolderAutocomplete and createSelectedNotesAutocomplete imports for potential removal after verification
+  - Identified CustomDateRangeModal import for potential removal after verification
+- Verified via grep search that these imports are not used directly in main.ts
+- Continued removing unused imports from more files:
+  - src/dom/DOMSafetyGuard.ts - removed safeQuerySelector from defensive-utils imports
+  - settings.ts - removed Shell from lucide-static imports and createFolderAutocomplete from autocomplete imports
+  - src/events/EventBus.ts - removed isNonEmptyString from defensive-utils imports
+  - src/events/FilterEvents.ts - removed safeLogger import and replaced with specific logging functions
+  - src/events/ProjectNoteEvents.ts - removed safeLogger import and replaced with specific logging functions
+  - src/metrics/MetricsProcessor.ts - removed Modal and Setting from obsidian, isMetricEnabled and standardizeMetric from utils/metric-helpers, and safeLogger from logging/safe-logger
 - Next steps:
   - Continue removing unused imports from more files
-  - Focus on high-impact files like main.ts that have multiple unused imports
+  - Focus on high-impact files that have multiple unused imports
   - Use the utility script to process multiple files efficiently
+  - Add checks to ensure removed imports don't break functionality
 
 ### Phase 2: Import Cleanup
 

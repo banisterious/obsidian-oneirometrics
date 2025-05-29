@@ -1,0 +1,13 @@
+                        window['globalLogger'].debug('DateNavigator', 'DIAGNOSTIC - Date parsing:', {
+                            originalDate: entry.date,
+                            parsedDate: entryDate.toString(),
+                            isValid: !isNaN(entryDate.getTime()),
+                            dateKey,
+                            year: entryDate.getFullYear(),
+                            month: entryDate.getMonth() + 1,
+                            day: entryDate.getDate()
+                        });
+                    }
+                } catch (e) {
+                    // Silent failure - logging should never break functionality
+                } 

@@ -5,13 +5,11 @@
  * Extracted from main.ts during the refactoring process.
  */
 
-import { App, Modal, Notice, Setting, TFile, TFolder } from 'obsidian';
+import { App, Notice, TFile, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../main';
 import { DreamMetricData, DreamMetricsSettings } from '../../types';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
-import { isMetricEnabled, standardizeMetric } from '../utils/metric-helpers';
-import safeLogger from '../logging/safe-logger';
 
 /**
  * Extract date from journal entry lines and file information
@@ -431,7 +429,7 @@ export class MetricsProcessor {
     }
     
     /**
-     * Update the project note with the metrics data
+     * Update the metrics note with the metrics data
      * This is a wrapper that calls the plugin's updateProjectNote method
      * 
      * @param metrics - Record of metrics data to update

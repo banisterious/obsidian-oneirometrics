@@ -179,7 +179,7 @@ function Process-File {
         
         # Show diff if requested
         if ($outputMode -eq "patch") {
-            Write-Host "Diff for $filePath:" -ForegroundColor Magenta
+            Write-Host "Diff for ${filePath}:" -ForegroundColor Magenta
             $originalLines = $original -split "`n"
             $updatedLines = $newContent -split "`n"
             

@@ -1,13 +1,10 @@
 /**
- * FilterEvents
- * 
- * Handles event listeners for filter functionality.
- * Extracted from main.ts during the refactoring process.
+ * Filter-related events
+ * This module defines events related to filtering in the Dream Metrics plugin.
  */
 
 import { App, Modal, Notice } from 'obsidian';
-import { ILogger } from '../logging/LoggerTypes';
-import safeLogger from '../logging/safe-logger';
+import { debug, info, warn, error } from '../logging';
 import { DreamMetricsSettings } from '../types/core';
 import { FilterUI } from '../dom/filters';
 import { CustomDateRangeModal } from '../dom/modals/CustomDateRangeModal';
