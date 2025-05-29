@@ -1,6 +1,7 @@
 import { TestRunner } from './TestRunner';
 import { ContentParser } from '../parsing/services/ContentParser';
 import { DreamMetricData } from '../../types';
+import { getLogger } from '../logging';
 
 /**
  * Register content parsing tests to the test runner
@@ -10,6 +11,7 @@ export function registerContentParsingTests(
   testRunner: TestRunner
 ): void {
   const contentParser = new ContentParser();
+  const logger = getLogger('ContentParsingTests');
   
   // Test: Extracting dream entries
   testRunner.addTest(
@@ -32,11 +34,11 @@ Sensory Detail: 5, Emotional Recall: 2
       const entries = contentParser.extractDreamEntries(content, 'dream');
       
       // Debug information to help identify issues
-      console.log(`Extracted ${entries.length} entries`);
+      logger.debug('Test', `Extracted ${entries.length} entries`);
       if (entries.length > 0) {
-        console.log(`First entry title: "${entries[0].title}"`);
+        logger.debug('Test', `First entry title: "${entries[0].title}"`);
         if (entries.length > 1) {
-          console.log(`Second entry title: "${entries[1].title}"`);
+          logger.debug('Test', `Second entry title: "${entries[1].title}"`);
         }
       }
       

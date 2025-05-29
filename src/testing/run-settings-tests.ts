@@ -6,12 +6,16 @@
  */
 
 import { runSettingsHelpersTests } from './utils/SettingsHelpersTests';
+import { getLogger } from '../logging';
+
+// Create a logger
+const logger = getLogger('SettingsTests');
 
 // Run the tests
 runSettingsHelpersTests()
   .then(() => {
-    console.log('Settings helper tests complete');
+    logger.info('Test', 'Settings helper tests complete');
   })
   .catch(error => {
-    console.error('Error running settings helper tests:', error);
+    logger.error('Test', 'Error running settings helper tests:', error);
   }); 

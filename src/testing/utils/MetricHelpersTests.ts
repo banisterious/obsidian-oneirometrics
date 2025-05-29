@@ -20,6 +20,7 @@ import {
   getAggregatedMetricValue
 } from '../../utils/metric-helpers';
 import { TestRunner } from '../TestRunner';
+import { getLogger } from '../../logging';
 
 /**
  * Registers all metric helper tests with the test runner
@@ -489,7 +490,8 @@ export function registerMetricHelpersTests(
 
 // Example of how to use these tests
 export function runMetricHelpersTests(): Promise<void> {
-  console.log('Running metric helper tests...');
+  const logger = getLogger('MetricHelpersTests');
+  logger.info('Test', 'Running metric helper tests...');
   
   const testRunner = TestRunner.create();
   registerMetricHelpersTests(testRunner);
@@ -497,13 +499,13 @@ export function runMetricHelpersTests(): Promise<void> {
   return testRunner.runTests()
     .then(results => {
       const passedCount = results.filter(r => r.passed).length;
-      console.log(`Metric helper tests complete: ${passedCount}/${results.length} tests passed`);
+      logger.info('Test', `Metric helper tests complete: ${passedCount}/${results.length} tests passed`);
       
       // Log any failures
       results.filter(r => !r.passed).forEach(failure => {
-        console.error(`Test failed: ${failure.name}`);
+        logger.error('Test', `Test failed: ${failure.name}`);
         if (failure.error) {
-          console.error(failure.error);
+          logger.error('Test', 'Error details:', failure.error);
         }
       });
     });
