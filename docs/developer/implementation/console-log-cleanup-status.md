@@ -8,12 +8,12 @@ This document tracks the progress of replacing console.log statements with struc
 
 | Category | Initial Count | Current Count | Remaining | Progress |
 |----------|---------------|---------------|-----------|----------|
-| console.log | 65 | 40 | 25 | 62% |
+| console.log | 65 | 38 | 27 | 58% |
 | console.warn | 8 | 3 | 5 | 63% |
 | console.error | 37 | 30 | 7 | 81% |
 | console.info | 2 | 2 | 0 | 100% |
 | console.debug | 2 | 2 | 0 | 100% |
-| **Total** | 114 | 77 | 37 | 68% |
+| **Total** | 114 | 75 | 39 | 66% |
 
 ## Recently Cleaned Files
 
@@ -25,6 +25,7 @@ This document tracks the progress of replacing console.log statements with struc
 | src/dom/DateNavigator.ts | 3 | 0 | ⚠️ Completed with linter errors |
 | src/journal_check/ui/EntryComponent.ts | 1 | 0 | ✅ Complete |
 | src/journal_check/ui/TemplateWizard.ts | 5 | 0 | ✅ Complete |
+| main.ts | 2 | 0 | ✅ Complete (using globalLogger) |
 
 ## Intentional Console Usage
 
@@ -36,11 +37,22 @@ The following files contain intentional console statements that should **NOT** b
 | src/logging/safe-logger.ts | 7 | **INTENTIONAL**: This is a fallback mechanism for when the structured logging system is not yet initialized or fails. It ensures logging works during startup and system failures. |
 | src/journal_check/types.ts | 1 | **INTENTIONAL**: This is a deprecation warning that runs on import, before the logging system may be initialized. |
 
-## Remaining Files with Console Statements
+## Global Logger Pattern
 
-| File | Count | Priority | Notes |
-|------|-------|----------|-------|
-| main.ts | 2 | Medium | Debug utility functions |
+The main.ts file uses a special pattern with a `globalLogger` variable that provides logging capabilities for global utility functions outside the plugin class. This is implemented as follows:
+
+1. Initialize with safe logger at the top of the file:
+   ```typescript
+   let globalLogger: any = safeLogger;
+   ```
+
+2. During plugin initialization, replace with the structured logger:
+   ```typescript
+   // Inside onload()
+   globalLogger = this.logger;
+   ```
+
+3. This pattern has been documented at the top of main.ts file to explain its purpose.
 
 ## Implementation Notes
 
@@ -86,17 +98,18 @@ When replacing console.log statements, follow these patterns:
 
 The DateNavigator.ts file has been updated to use the structured logging system, and we've fixed the missing date-fns imports (parseISO and isValid). However, there are still type-related linter errors regarding the DreamMetricData type and missing wordCount properties. These need more significant changes to resolve.
 
+### main.ts DreamMetricData Type Error
+
+There's a type error in main.ts related to the DreamMetricData interface, where test data entries are missing the required wordCount property. This would require modifying test data generation to include wordCount, but would be a more invasive change.
+
 ## Next Steps
 
-1. **Fix DateNavigator.ts Linter Errors** (High Priority)
+1. **Fix DateNavigator.ts and main.ts Linter Errors** (Medium Priority)
    - Resolve type incompatibility issues between different DreamMetricData versions
    - Add wordCount to test entries
 
-2. **Update main.ts Debug Functions** (Medium Priority)
-   - Replace 2 console statements with structured logging
-
 ## Conclusion
 
-The console.log cleanup has made significant progress, with 37 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, the DateNavigator, and UI components in the journal_check system.
+The console.log cleanup has made significant progress, with 39 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, the DateNavigator, UI components, and updated the main.ts file to use proper structured logging through the globalLogger pattern.
 
 We've also properly documented the intentional console statements in the logging system components to ensure they aren't targeted for replacement in future cleanup efforts. 
