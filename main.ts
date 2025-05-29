@@ -300,9 +300,12 @@ const DEFAULT_LINTING_SETTINGS: LintingSettings = {
 
 // Import ContentToggler
 import { ContentToggler } from './src/dom/content';
+import { TableGenerator } from './src/dom/tables';
 
 // Global instance for functions that need access to ContentToggler
 let globalContentToggler: ContentToggler;
+// Global instance for table generation
+let globalTableGenerator: TableGenerator;
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -966,6 +969,9 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Initialize the global ContentToggler
         globalContentToggler = new ContentToggler(this.logger);
+        
+        // Initialize the global TableGenerator
+        globalTableGenerator = new TableGenerator(this.settings, this.logger);
     }
 
     onunload() {
@@ -1391,296 +1397,13 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private generateSummaryTable(metrics: Record<string, number[]>): string {
-        let content = "";
-        content += `<div class="oom-table-section oom-stats-section">`;
-        content += '<h2 class="oom-table-title oom-stats-title">Statistics</h2>';
-        content += '<div class="oom-table-container">\n';
-        content += '<table class="oom-table oom-stats-table" id="oom-stats-table">\n';
-        content += "<thead>\n";
-        content += "<tr>\n";
-        content += "<th>Metric</th>\n";
-        content += "<th>Average</th>\n";
-        content += "<th>Min</th>\n";
-        content += "<th>Max</th>\n";
-        content += "<th>Count</th>\n";
-        content += "</tr>\n";
-        content += "</thead>\n";
-        content += "<tbody>\n";
-        
-        // CRITICAL FIX: More explicit and controlled metrics ordering
-        const combinedOrder = ["Words", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
-        
-        // Create a lookup map for metrics by name
-        const metricsLookup: Record<string, DreamMetric> = {};
-        Object.values(this.settings.metrics).forEach(metric => {
-            metricsLookup[metric.name] = metric;
-        });
-        
-        // Track metrics we've processed to avoid duplicates
-        const processedMetrics = new Set<string>();
-        let hasMetrics = false;
-        
-        // First, handle special case for Words
-        if (metrics["Words"] && metrics["Words"].length > 0) {
-            hasMetrics = true;
-            const values = metrics["Words"];
-            const avg = values.reduce((a, b) => a + b) / values.length;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            const total = values.reduce((a, b) => a + b, 0);
-            
-            content += "<tr>\n";
-            content += `<td>Words <span class="oom-words-total">(total: ${total})</span></td>\n`;
-            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
-            content += `<td class="metric-value">${min}</td>\n`;
-            content += `<td class="metric-value">${max}</td>\n`;
-            content += `<td class="metric-value">${values.length}</td>\n`;
-            content += "</tr>\n";
-            
-            processedMetrics.add("Words");
-        }
-        
-        // Then process the rest in the defined order
-        for (const name of combinedOrder) {
-            // Skip already processed metrics
-            if (processedMetrics.has(name)) continue;
-            
-            const values = metrics[name];
-            if (!values || values.length === 0) continue;
-            
-            hasMetrics = true;
-            const avg = values.reduce((a, b) => a + b) / values.length;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            
-            let label = name;
-            const metric = metricsLookup[name];
-            
-            // CRITICAL FIX: Proper icon handling and display
-            if (metric?.icon) {
-                // Ensure icon name is valid, use fallbacks for problematic icons
-                let iconName = metric.icon;
-                if (iconName === 'circle-off') iconName = 'circle-minus';
-                
-                // Get icon from lucideIconMap
-                const svgContent = lucideIconMap[iconName];
-                if (svgContent) {
-                    // Ensure SVG has proper dimensions and attributes for consistent display
-                    const iconHtml = svgContent
-                        .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
-                        .replace('stroke-width="2"', 'stroke-width="2.5"');
-                    
-                    label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
-                }
-            }
-            
-            content += "<tr>\n";
-            content += `<td>${label}</td>\n`;
-            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
-            content += `<td class="metric-value">${min}</td>\n`;
-            content += `<td class="metric-value">${max}</td>\n`;
-            content += `<td class="metric-value">${values.length}</td>\n`;
-            content += "</tr>\n";
-            
-            processedMetrics.add(name);
-        }
-        
-        // Finally, handle any metrics not covered by our predefined lists
-        for (const name of Object.keys(metrics)) {
-            // Skip already processed metrics
-            if (processedMetrics.has(name)) continue;
-            
-            const values = metrics[name];
-            if (!values || values.length === 0) continue;
-            
-            hasMetrics = true;
-            const avg = values.reduce((a, b) => a + b) / values.length;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            
-            let label = name;
-            const metric = metricsLookup[name];
-            
-            // Handle icons the same way as above for consistency
-            if (metric?.icon) {
-                let iconName = metric.icon;
-                if (iconName === 'circle-off') iconName = 'circle-minus';
-                
-                const svgContent = lucideIconMap[iconName];
-                if (svgContent) {
-                    const iconHtml = svgContent
-                        .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
-                        .replace('stroke-width="2"', 'stroke-width="2.5"');
-                    
-                    label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
-                }
-            }
-            
-            content += "<tr>\n";
-            content += `<td>${label}</td>\n`;
-            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
-            content += `<td class="metric-value">${min}</td>\n`;
-            content += `<td class="metric-value">${max}</td>\n`;
-            content += `<td class="metric-value">${values.length}</td>\n`;
-            content += "</tr>\n";
-        }
-        
-        if (!hasMetrics) {
-            content += '<tr><td colspan="5" class="oom-no-metrics">No metrics available</td></tr>\n';
-        }
-        
-        content += "</tbody>\n";
-        content += "</table>\n";
-        content += "</div>\n"; // Close table-container
-        content += "</div>\n"; // Close stats-section
-        
-        return content;
+        // Use the TableGenerator implementation
+        return globalTableGenerator.generateSummaryTable(metrics);
     }
 
     private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
-        globalLogger?.debug('Table', 'Generating metrics table');
-        globalLogger?.debug('Table', 'Table entries', { count: dreamEntries.length });
-        let content = "";
-        
-        const cacheKey = JSON.stringify({ metrics, dreamEntries });
-        if (this.memoizedTableData.has(cacheKey)) {
-            globalLogger?.debug('Table', 'Using cached table data');
-            return this.memoizedTableData.get(cacheKey);
-        }
-        
-        // CRITICAL FIX: Ensure all HTML is rendered properly by Obsidian's parser
-        // Use data-render-html and proper div enclosures
-        content += "<div data-render-html=\"true\">\n";
-        content += '<h1 class="oneirometrics-title">OneiroMetrics (Dream Metrics)</h1>\n';
-        
-        // IMPORTANT: Use simpler HTML structure with fewer nesting levels but add distinct classes
-        content += '<div class="oom-buttons-container">\n';
-        content += '<button class="mod-cta oom-button oom-rescrape-button" id="oom-rescrape-button" type="button">Rescrape Metrics</button>\n';
-        content += '<button class="mod-cta oom-button oom-settings-button" id="oom-settings-button" type="button">Settings</button>\n';
-        content += '<button class="mod-cta oom-button oom-date-navigator-button" id="oom-date-navigator-button" type="button">Date Navigator</button>\n';
-        content += '</div>\n';
-        
-        content += '<div class="oom-metrics-container">\n';
-        
-        // Add metrics summary table
-        content += this.generateSummaryTable(metrics);
-        
-        // Add Dream Entries heading
-        content += '<h2 class="oom-dream-entries-title">Dream Entries</h2>\n';
-        
-        // Add filter controls with simplified structure
-        content += '<div class="oom-filter-controls" id="oom-filter-controls">\n';
-        content += '<select id="oom-date-range-filter" class="oom-select">\n';
-        content += '<option value="all">All Time</option>\n';
-        content += '<option value="today">Today</option>\n';
-        content += '<option value="yesterday">Yesterday</option>\n';
-        content += '<option value="thisWeek">This Week</option>\n';
-        content += '<option value="thisMonth">This Month</option>\n';
-        content += '<option value="last30">Last 30 Days</option>\n';
-        content += '<option value="last6months">Last 6 Months</option>\n';
-        content += '<option value="thisYear">This Year</option>\n';
-        content += '<option value="last12months">Last 12 Months</option>\n';
-        content += '</select>\n';
-        content += '<button id="oom-custom-range-btn" class="oom-button" type="button">Custom Range</button>\n';
-        content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
-        content += '</div>\n';
-        
-        // Add dream entries table with clear IDs
-        content += '<div class="oom-table-section" id="oom-dream-entries-table-section">\n';
-        content += '<table class="oom-table" id="oom-dream-entries-table">\n';
-        content += "<thead>\n<tr>\n";
-        content += '<th class="column-date">Date</th>\n';
-        content += '<th class="column-dream-title">Dream Title</th>\n';
-        content += '<th class="column-words">Words</th>\n';
-        content += '<th class="column-content">Content</th>\n';
-        
-        // Get all enabled metrics
-        const enabledMetrics = Object.values(this.settings.metrics).filter(metric => isMetricEnabled(metric));
-        
-        // Sort metrics by the recommended order
-        const metricNames = enabledMetrics.map(m => m.name);
-        const combinedOrder = ["Words", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
-        const sortedMetricNames = sortMetricsByOrder(metricNames, combinedOrder);
-        
-        // Sort the enabled metrics based on the sorted names
-        const sortedEnabledMetrics = sortedMetricNames.map(name => 
-            enabledMetrics.find(m => m.name === name)
-        ).filter(m => m !== undefined) as DreamMetric[];
-        
-        // Add metric column headers
-        for (const metric of sortedEnabledMetrics) {
-            const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
-            const iconHtml = getMetricIcon(metric.icon) || '';
-            content += `<th class="${metricClass}"><span class="oom-metric-header">${iconHtml} ${metric.name}</span></th>\n`;
-        }
-        content += "</tr>\n</thead>\n<tbody>\n";
-        
-        // Sort dream entries by date (chronological order - oldest first)
-        dreamEntries.sort((a, b) => {
-            const dateA = parseDate(a.date) || new Date();
-            const dateB = parseDate(b.date) || new Date();
-            return dateA.getTime() - dateB.getTime(); // Chronological order - oldest first
-        });
-        
-        // Add dream entry rows
-        for (const entry of dreamEntries) {
-            // Ensure entry.date exists and has a valid format
-            if (!entry.date || typeof entry.date !== 'string') {
-                globalLogger?.error('Table', 'Entry missing date attribute', { entry });
-                continue; // Skip entries without dates
-            }
-            
-            // Log each row being created with its date attribute for debugging
-            globalLogger?.info('Table', 'Creating row with date attribute', { date: entry.date });
-            
-            // Explicitly ensure date attribute is set multiple times for redundancy
-            // This ensures filtering will work correctly even if some attributes are missing
-            content += `<tr class="oom-dream-row" data-date="${entry.date}" data-date-raw="${entry.date}" data-iso-date="${entry.date}">\n`;
-            content += `<td class="column-date" data-date="${entry.date}" data-iso-date="${entry.date}">${formatDate(parseDate(entry.date) || new Date(), 'MMM d, yyyy')}</td>\n`;
-            
-            // Create a proper link to the source
-            const sourceFile = getSourceFile(entry);
-            const sourceId = getSourceId(entry);
-            content += `<td class="oom-dream-title column-dream-title"><a href="${sourceFile.replace(/\.md$/, "")}#${sourceId}" data-href="${sourceFile.replace(/\.md$/, "")}#${sourceId}" class="internal-link" data-link-type="block" data-link-path="${sourceFile.replace(/\.md$/, "")}" data-link-hash="${sourceId}" title="${entry.title}">${entry.title}</a></td>\n`;
-            
-            // Add word count
-            content += `<td class="column-words">${entry.metrics["Words"] || 0}</td>\n`;
-            
-            // Process content for display
-            let dreamContent = this.processDreamContent(entry.content);
-            if (!dreamContent || !dreamContent.trim()) {
-                dreamContent = "";
-            }
-            
-            // Create unique ID for content cell
-            const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, "")}`;
-            const preview = dreamContent.length > 200 ? dreamContent.substring(0, 200) + "..." : dreamContent;
-            
-            // Add content cell with expand/collapse button if needed
-            if (dreamContent.length > 200) {
-                content += `<td class="oom-dream-content column-content" id="${cellId}"><div class="oom-content-wrapper"><div class="oom-content-preview">${preview}</div><div class="oom-content-full">${dreamContent}</div><button type="button" class="oom-button oom-button--expand oom-button--state-default" aria-expanded="false" aria-controls="${cellId}" data-expanded="false" data-content-id="${cellId}" data-parent-cell="${cellId}"><span class="oom-button-text">Show more</span><span class="oom-button-icon">▼</span><span class="visually-hidden"> full dream content</span></button></div></td>\n`;
-            } else {
-                content += `<td class="oom-dream-content column-content"><div class="oom-content-wrapper"><div class="oom-content-preview">${dreamContent}</div></div></td>\n`;
-            }
-            
-            // Add metrics columns using the same sorted order as the headers
-            for (const metric of sortedEnabledMetrics) {
-                const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
-                const value = entry.metrics[metric.name];
-                content += `<td class="metric-value ${metricClass}" data-metric="${metric.name}">${value !== undefined ? value : ""}</td>\n`;
-            }
-            
-            content += "</tr>\n";
-        }
-        
-        content += "</tbody>\n</table>\n";
-        content += "</div>\n"; // Close table-section
-        content += "</div>\n"; // Close metrics-container
-        content += "</div>\n"; // Close data-render-html
-        
-        const result = content;
-        this.memoizedTableData.set(cacheKey, result);
-        return result;
+        // Use the TableGenerator implementation
+        return globalTableGenerator.generateMetricsTable(metrics, dreamEntries);
     }
 
     // Using the centralized date utils from src/utils/date-utils.ts
@@ -5243,4 +4966,13 @@ function getMetricIcon(iconName: string): string | null {
     
     // Last resort fallback - return nothing
     return null;
+}
+
+// These global functions now delegate to the ContentToggler instance
+function toggleContentVisibility(button: HTMLElement) {
+    globalContentToggler.toggleContentVisibility(button);
+}
+
+function expandAllContentSections(previewEl: HTMLElement) {
+    globalContentToggler.expandAllContentSections(previewEl);
 }
