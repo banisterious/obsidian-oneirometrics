@@ -34,12 +34,23 @@ import {
     getJournalStructure,
     getLogMaxSize
 } from '../utils/settings-helpers';
+import { ContentToggler } from '../dom/content';
+// Import DreamMetricsSettingTab
+import { DreamMetricsSettingTab } from '../../settings';
 
 // Import safeLogger directly from the module
 import safeLogger from '../logging/safe-logger';
 
 // Global logger variable (matches main.ts declaration)
 let globalLogger: any = safeLogger;
+
+// Create the global ContentToggler variable
+(window as any).globalContentToggler = null; // Initialize with null until properly set
+
+// Global instance for content toggling (used by global functions)
+declare global {
+    var globalContentToggler: ContentToggler;
+}
 
 export class PluginLoader {
     constructor(
@@ -60,6 +71,9 @@ export class PluginLoader {
         await this.registerEventListeners();
         await this.registerCommands();
         await this.setupRibbonIcons();
+        
+        // Register the settings tab
+        this.plugin.addSettingTab(new DreamMetricsSettingTab(this.app, this.plugin as any));
         
         // Set plugin instance for global access (used by filter persistence)
         (window as any).oneiroMetricsPlugin = this.plugin;
@@ -334,6 +348,11 @@ export class PluginLoader {
         
         // Initialize the RibbonManager
         plugin.ribbonManager = new RibbonManager(this.app, settings, this.plugin, plugin.logger);
+        
+        // Initialize the ContentToggler
+        const contentToggler = new ContentToggler(plugin.logger);
+        globalContentToggler = contentToggler;  // Set the global instance for legacy code
+        plugin.contentToggler = contentToggler; // Store on the plugin instance
     }
 
     /**
@@ -410,7 +429,7 @@ export class PluginLoader {
             plugin.ribbonManager.updateRibbonIcons();
         }
         
-        // Add debug ribbon for calendar testing
-        plugin.addCalendarDebugRibbon();
+        // Remove debug ribbon - no longer needed in production
+        // plugin.addCalendarDebugRibbon();
     }
 } 
