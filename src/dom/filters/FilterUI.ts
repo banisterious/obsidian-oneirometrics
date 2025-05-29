@@ -9,6 +9,7 @@ import { App, Notice } from 'obsidian';
 import { DreamMetricsSettings } from '../../types/core';
 import { ILogger } from '../../logging/LoggerTypes';
 import { parseDate } from '../../utils/date-utils';
+import { FilterDisplayManager } from './FilterDisplayManager';
 
 // Constants
 const CUSTOM_RANGE_KEY = 'oom-custom-range';
@@ -18,13 +19,17 @@ let customDateRange: { start: string, end: string } | null = null;
 
 export class FilterUI {
     private container: HTMLElement | null = null;
+    private filterDisplayManager: FilterDisplayManager;
     
     constructor(
         private app: App,
         private settings: DreamMetricsSettings,
         private saveSettings: () => Promise<void>,
         private logger?: ILogger
-    ) {}
+    ) {
+        // Initialize FilterDisplayManager
+        this.filterDisplayManager = new FilterDisplayManager(app, logger);
+    }
     
     /**
      * Set the container element for filter operations
@@ -308,7 +313,8 @@ export class FilterUI {
                 });
                 
                 // Update the filter display
-                this.updateFilterDisplayWithDetails(
+                this.filterDisplayManager.updateFilterDisplay(
+                    previewEl,
                     dateRange,
                     visibleCount,
                     totalRows,
@@ -346,106 +352,6 @@ export class FilterUI {
         
         // Start processing chunks
         requestAnimationFrame(processNextChunk);
-    }
-    
-    /**
-     * Update the filter display with detailed information
-     * 
-     * @param filterType - The type of filter applied
-     * @param visible - Number of visible entries
-     * @param total - Total number of entries
-     * @param invalid - Number of entries with invalid dates
-     * @param outOfRange - Number of entries outside the date range
-     */
-    private updateFilterDisplayWithDetails(
-        filterType: string, 
-        visible: number, 
-        total: number, 
-        invalid: number, 
-        outOfRange: number
-    ): void {
-        if (!this.container) return;
-        
-        const filterDisplay = this.container.querySelector('#oom-time-filter-display');
-        if (!filterDisplay) return;
-        
-        let filterIcon = '🔍';
-        let filterText = '';
-        
-        switch (filterType) {
-            case 'all':
-                filterIcon = '📊';
-                filterText = `All Entries (${visible})`;
-                break;
-            case 'today':
-                filterIcon = '📅';
-                filterText = `Today (${visible})`;
-                break;
-            case 'yesterday':
-                filterIcon = '⏪';
-                filterText = `Yesterday (${visible})`;
-                break;
-            case 'thisWeek':
-                filterIcon = '📆';
-                filterText = `This Week (${visible})`;
-                break;
-            case 'thisMonth':
-                filterIcon = '📆';
-                filterText = `This Month (${visible})`;
-                break;
-            case 'thisYear':
-                filterIcon = '🗓️';
-                filterText = `This Year (${visible})`;
-                break;
-            case 'last30':
-                filterIcon = '📅';
-                filterText = `Last 30 Days (${visible})`;
-                break;
-            case 'last6months':
-                filterIcon = '📅';
-                filterText = `Last 6 Months (${visible})`;
-                break;
-            case 'last12months':
-                filterIcon = '📅';
-                filterText = `Last 12 Months (${visible})`;
-                break;
-            case 'custom':
-                filterIcon = '🗓️';
-                if (customDateRange) {
-                    filterText = `Custom Range: ${customDateRange.start} to ${customDateRange.end} (${visible})`;
-                } else {
-                    filterText = `Custom Range (${visible})`;
-                }
-                break;
-            default:
-                filterText = `Filtered: ${visible} of ${total} entries`;
-                break;
-        }
-        
-        // Create the filter display HTML
-        let filterDisplayHTML = `
-            <span class="oom-filter-icon">${filterIcon}</span>
-            <span class="oom-filter-text oom-filter--${filterType}">${filterText}</span>
-        `;
-        
-        // Add details if there were issues
-        if (invalid > 0 || outOfRange > 0) {
-            filterDisplayHTML += `<span class="oom-filter-details">`;
-            
-            if (invalid > 0) {
-                filterDisplayHTML += `<span class="oom-filter-invalid">${invalid} invalid dates</span>`;
-            }
-            
-            if (outOfRange > 0) {
-                if (invalid > 0) filterDisplayHTML += ` | `;
-                filterDisplayHTML += `<span class="oom-filter-out-of-range">${outOfRange} out of range</span>`;
-            }
-            
-            filterDisplayHTML += `</span>`;
-        }
-        
-        // Update the display
-        filterDisplay.innerHTML = filterDisplayHTML;
     }
     
     /**
@@ -508,14 +414,10 @@ export class FilterUI {
                         this.settings.customDateRange.end
                     );
                     
-                    // 3. Update the filter display manually
-                    const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
-                    if (filterDisplay) {
+                    // 3. Update the filter display using FilterDisplayManager
+                    if (this.settings.customDateRange) {
                         const range = this.settings.customDateRange;
-                        (filterDisplay as HTMLElement).innerHTML = 
-                            `<span class="oom-filter-icon">🗓️</span>` +
-                            `<span class="oom-filter-text oom-filter--custom-range">` + 
-                            `Custom Range: ${range.start} to ${range.end}</span>`;
+                        this.filterDisplayManager.updateCustomRangeDisplay(previewEl, range.start, range.end);
                     }
                 } else {
                     // Apply standard filter
@@ -570,6 +472,8 @@ export class FilterUI {
             const rows = previewEl.querySelectorAll('.oom-dream-row');
             this.logger?.debug('Filter', 'Found rows to filter', { count: rows.length });
             
+            let visibleCount = 0;
+            
             rows.forEach(row => {
                 const dateAttr = row.getAttribute('data-date');
                 if (!dateAttr) {
@@ -581,6 +485,7 @@ export class FilterUI {
                     (row as HTMLElement).style.display = '';
                     (row as HTMLElement).classList.add('oom-row--visible');
                     (row as HTMLElement).classList.remove('oom-row--hidden');
+                    visibleCount++;
                 } else {
                     (row as HTMLElement).style.display = 'none';
                     (row as HTMLElement).classList.add('oom-row--hidden');
@@ -588,113 +493,107 @@ export class FilterUI {
                 }
             });
             
-            // Update filter display
-            const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
-            if (filterDisplay) {
-                filterDisplay.innerHTML = `<span class="oom-filter-icon">🔍</span> <span class="oom-filter-text">Custom Range: ${startDate} to ${endDate}</span>`;
-            }
+            // Update filter display using FilterDisplayManager
+            this.filterDisplayManager.updateCustomRangeDisplay(previewEl, startDate, endDate, visibleCount);
         } catch (e) {
             this.logger?.error('Filter', 'Error in direct filter application', e as Error);
         }
     }
     
     /**
-     * Force apply a date filter for a specific date
+     * Force apply a date filter to the view
      * 
-     * @param date - The date to filter for
+     * @param date - The date to filter by
      */
     public forceApplyDateFilter(date: Date): void {
-        this.logger?.debug('Filter', 'forceApplyDateFilter called', { date });
-        
-        if (!date || isNaN(date.getTime())) {
-            this.logger?.error('Filter', 'Invalid date provided to forceApplyDateFilter');
+        if (!this.container) {
+            this.logger?.warn('Filter', 'Container not set, cannot apply date filter');
             return;
         }
         
+        this.logger?.debug('Filter', 'Force applying date filter', { date: date.toISOString() });
+        
         try {
-            // Extract year, month, day components directly to avoid timezone issues
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1; // JavaScript months are 0-indexed
-            const day = date.getDate();
+            const previewEl = this.container;
+            const rows = previewEl.querySelectorAll('.oom-dream-row');
             
-            // Format dates as YYYY-MM-DD strings for consistency
-            const start = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            const end = start; // For a single day selection, start and end are the same
+            this.logger?.debug('Filter', 'Found rows to filter', { count: rows.length });
             
-            this.logger?.debug('Filter', 'Setting date range for filtering', {
-                selectedDate: date.toISOString(),
-                selectedYear: year, 
-                selectedMonth: month, 
-                selectedDay: day,
-                formattedStart: start,
-                formattedEnd: end
+            // Convert the target date to YYYY-MM-DD string for comparison
+            const selectedDate = date;
+            const startStr = selectedDate.toISOString().split('T')[0];
+            
+            // Track some metrics for debugging
+            let visibleCount = 0;
+            let hiddenCount = 0;
+            let invalidDateCount = 0;
+            
+            // Apply the filter
+            rows.forEach(row => {
+                const dateCell = row.querySelector('.column-date');
+                if (!dateCell || !dateCell.textContent) {
+                    (row as HTMLElement).style.display = 'none';
+                    hiddenCount++;
+                    return;
+                }
+                
+                try {
+                    // Parse date from cell
+                    const dateText = dateCell.textContent.trim();
+                    const rowDate = new Date(dateText);
+                    const rowDateStr = rowDate.toISOString().split('T')[0];
+                    
+                    // Check if the date matches the selected date
+                    const isVisible = rowDateStr === startStr;
+                    
+                    if (isVisible) {
+                        (row as HTMLElement).classList.remove('oom-row--hidden');
+                        (row as HTMLElement).classList.add('oom-row--visible');
+                        visibleCount++;
+                    } else {
+                        (row as HTMLElement).classList.add('oom-row--hidden');
+                        (row as HTMLElement).classList.remove('oom-row--visible');
+                        hiddenCount++;
+                    }
+                } catch (e) {
+                    this.logger?.error('Filter', 'Error processing row date', { 
+                        dateText: dateCell.textContent, 
+                        error: e instanceof Error ? e : new Error(String(e))
+                    });
+                    invalidDateCount++;
+                    (row as HTMLElement).classList.add('oom-row--hidden');
+                    (row as HTMLElement).classList.remove('oom-row--visible');
+                }
             });
             
-            // First, set customDateRange to trigger filtering
-            // This must happen BEFORE updating the UI to prevent event handlers from clearing it
-            customDateRange = { start: start, end: end };
+            this.logger?.debug('Filter', 'Date filter applied', { 
+                visibleCount, 
+                hiddenCount, 
+                invalidDateCount 
+            });
             
-            this.logger?.debug('Filter', 'Setting customDateRange', { customDateRange });
+            // Update the filter display using FilterDisplayManager
+            this.filterDisplayManager.updateDateFilterDisplay(previewEl, selectedDate, visibleCount);
             
-            // Save to localStorage for persistence
-            localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
-            
-            // Create a small delay to ensure customDateRange is set before any event handlers run
-            setTimeout(() => {
-                // Update UI to show filter is active
-                requestAnimationFrame(() => {
-                    // Update button state
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) {
-                        btn.classList.add('active');
-                    }
-                    
-                    // Update filter info display
-                    const filterDisplay = document.getElementById('oom-time-filter-display');
-                    if (filterDisplay) {
-                        // Quick update to give immediate feedback
-                        const formattedDate = date.toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short', 
-                            day: 'numeric',
-                            year: 'numeric'
-                        });
-                        filterDisplay.innerHTML = `<span class="oom-filter-icon">🗓️</span> <span class="oom-filter-text">Filtering for: ${formattedDate}</span>`;
-                    }
-                    
-                    // Update dropdown to show "Custom" is selected - AFTER setting customDateRange
-                    const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                    if (dropdown) {
-                        // Add a custom option if it doesn't exist
-                        let customOption = dropdown.querySelector('option[value="custom"]') as HTMLOptionElement;
-                        if (!customOption) {
-                            customOption = document.createElement('option');
-                            customOption.value = 'custom';
-                            customOption.text = 'Custom Date';
-                            dropdown.appendChild(customOption);
-                        }
-                        
-                        // Set the value WITHOUT dispatching a change event
-                        dropdown.value = 'custom';
-                        
-                        // Dispatch a custom event instead that won't trigger our change handler
-                        dropdown.dispatchEvent(new CustomEvent('oom-value-set', { 
-                            bubbles: true,
-                            detail: { isDateNavigator: true }
-                        }));
-                    }
-                });
+            // Update summary table with filtered metrics
+            try {
+                // Import functions for metrics calculation
+                const collectVisibleRowMetrics = (window as any).collectVisibleRowMetrics;
+                const updateSummaryTable = (window as any).updateSummaryTable;
                 
-                // Apply the filter after UI updates to avoid jank
-                setTimeout(() => {
-                    this.logger?.debug('Filter', 'Calling applyCustomDateRangeFilter');
-                    this.applyCustomDateRangeFilter();
-                }, 100);
-                
-                this.logger?.debug('Filter', 'Filter applied for date', { date: date.toLocaleDateString() });
-            }, 50);
-        } catch (error) {
-            this.logger?.error('Filter', 'Error in forceApplyDateFilter', { error });
+                if (typeof collectVisibleRowMetrics === 'function' && 
+                    typeof updateSummaryTable === 'function') {
+                    const filteredMetrics = collectVisibleRowMetrics(previewEl);
+                    updateSummaryTable(previewEl, filteredMetrics);
+                    this.logger?.debug('Filter', 'Updated summary table after date filtering');
+                }
+            } catch (e) {
+                this.logger?.error('Filter', 'Error updating summary table after date filtering', 
+                    e instanceof Error ? e : new Error(String(e)));
+            }
+        } catch (e) {
+            this.logger?.error('Filter', 'Error applying date filter', 
+                e instanceof Error ? e : new Error(String(e)));
         }
     }
     

@@ -627,6 +627,11 @@ The dead code elimination phase will be considered successful when:
      - ✅ `forceApplyDateFilter()` method from main.ts
      - ✅ `applyCustomDateRangeFilter()` method from main.ts
      - ✅ Added custom date range management
+   - ✅ Created `FilterDisplayManager` class in src/dom/filters/ with:
+     - ✅ `updateFilterDisplay()` method (previously updateFilterDisplayWithDetails)
+     - ✅ `updateDateFilterDisplay()` method for date-specific filtering
+     - ✅ `updateCustomRangeDisplay()` method for custom date ranges
+     - ✅ Removed redundant display update methods from FilterManager and FilterUI
 
 3. **Complete Event Handlers Refactoring (Medium Priority)**
    - ✅ Created `ProjectNoteEvents` class in src/events/ with:
@@ -655,233 +660,23 @@ The dead code elimination phase will be considered successful when:
    - ✅ Updated progress tracking in code-cleanup-plan.md
    - Planned: Update CHANGELOG.md with user-visible changes 
 
-## Cleanup Tracking
+### Progress Update (2025-05-31)
 
-This section tracks cleanup items identified by our utility scripts in the `utils/` folder.
+Completed dead code cleanup after FilterDisplayManager extraction:
+- Removed redundant `updateFilterDisplayWithDetails` method from FilterManager class
+- Removed redundant `updateFilterDisplayWithDetails` method from FilterUI class
+- Updated FilterUI to use the new FilterDisplayManager for display updates
+- Integrated the FilterDisplayManager with existing filter components
+- Fixed all related references to ensure consistent usage of the new component
 
-### Console.log Statements
+This cleanup improves code organization by:
+1. Centralizing filter display logic in a single class
+2. Removing duplicate implementations of display update methods
+3. Making filter display behavior more consistent across the application
+4. Reducing complexity in both FilterManager and FilterUI classes
 
-| File | Line | Type | Status | Notes |
-|------|------|------|--------|-------|
-| main.ts | 342 | console.debug | Completed | Replaced with safeLogger.debug |
-| main.ts | 447 | console.error | Completed | Replaced with safeLogger.error |
-| main.ts | 538 | console.warn | Completed | Replaced with safeLogger.warn |
-| main.ts | 1270 | console.log | Completed | Replaced with this.logger?.debug |
-| main.ts | 1275 | console.log | Completed | Replaced with this.logger?.debug |
-| main.ts | 1280 | console.log | Completed | Replaced with this.logger?.debug |
-| main.ts | 1291 | console.log | Completed | Replaced with this.logger?.debug |
-| main.ts | 1666 | console.error | Completed | Removed (already had globalLogger?.error) |
-| main.ts | 2638 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 2641 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 2811 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3154 | console.warn | Completed | Replaced with this.logger?.warn |
-| main.ts | 3178 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3198 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3203 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3216 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3238 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3247 | console.error | Completed | Replaced with this.logger?.error |
-| main.ts | 3272 | console.error | Completed | Replaced with this.logger?.error |
-| settings.ts | 617 | console.error | Completed | Replaced with error() function from logging |
-| settings.ts | 761 | console.log | Completed | Replaced with debug() for folder suggestions |
-| settings.ts | 762 | console.log | Completed | Replaced with debug() for folder suggestions |
-| settings.ts | 1032 | console.log | Completed | Removed (redundant with structured debug call) |
-| settings.ts | 1033 | console.log | Completed | Removed (redundant with structured debug call) |
-| settings.ts | 1034 | console.log | Completed | Removed (redundant with structured debug call) |
-| settings.ts | 1193 | console.log | Completed | Replaced with debug() for folder suggestions |
-| settings.ts | 1194 | console.log | Completed | Replaced with debug() for folder suggestions |
-
-#### Console.log Statistics
-
-- Total files with console statements: 28 (down from 33)
-- Total console statements: 83 (down from 114)
-- By type: console.log (44), console.warn (4), console.error (31), console.info (2), console.debug (2)
-- Completed: 
-  - 19 statements in main.ts
-  - 8 statements in settings.ts
-  - 6 statements in src/testing/TestRunner.ts
-  - 14 statements in src/testing/EdgeCaseTests.ts
-  - 6 statements in src/testing/utils/TypeGuardsTests.ts
-  - 3 statements in src/dom/DateNavigator.ts (with linter errors to fix)
-
-#### Notable Console.log Files (Remaining):
-- src/logging/adapters/ConsoleAdapter.ts: 7 statements (intentional)
-- src/logging/safe-logger.ts: 7 statements (intentional)
-- src/testing/JournalCheckTests.ts: 4 statements
-- src/journal_check/JournalCheckEngine.ts: 2 statements
-- main.ts: 2 statements (remaining)
-
-*Note: For the complete list, run `.\utils\find-console-logs.ps1`*
-
-### Progress Update (2025-05-28)
-
-The console.log cleanup effort has made significant progress:
-- Cleaned up 31 console statements across 4 key files
-- Reduced total console statements from 114 to 83 (27% reduction)
-- Completed cleanup in all major testing files
-- Created a comprehensive status document at `docs/developer/implementation/console-log-cleanup-status.md`
-
-### Progress Update (2025-05-30)
-
-Completed extraction of debugging tools into a dedicated DebugTools class. This refactoring removed ~500 lines of debug code from main.ts by consolidating three large debugging methods (debugTableData, debugDateNavigator, testContentParserDirectly) into a well-structured class with proper error handling.
-
-Next steps in the cleanup effort:
-1. Fix linter errors in DateNavigator.ts (high priority)
-2. Clean up remaining non-logging-system console statements
-3. Add documentation to console statements that are intentional parts of the logging system
-4. Update logger configuration to properly filter log levels in production builds
-
-### Commented Code Blocks
-
-We found primarily documentation comments related to TypeScript interfaces rather than commented-out code blocks. The commented-code analysis should be run again with adjusted parameters to better identify actual code blocks.
-
-| File | Lines | Type | Status | Notes |
-|------|-------|------|--------|-------|
-| src/journal_check/types.ts | 1-4 | Multi-line | Pending | Deprecation notice for types file |
-| src/types.ts | 1-4 | Multi-line | Pending | Deprecation notice for types file |
-| main.ts | 3820-3824 | Multi-line | Pending | Debug function accessible from console |
-
-#### Commented Code Statistics
-
-- Most comments are properly formatted TypeScript documentation (JSDoc style)
-- 3 deprecation notices for files being phased out
-- Several commented-out code snippets that appear to be examples rather than dead code
-
-*Note: Run `.\utils\find-commented-code.ps1` for the complete list*
-
-### Outdated TODOs
-
-No TODOs were found in the codebase during our scan. This suggests that the team has been diligent about addressing TODOs as part of the refactoring process.
-
-*Note: Run `.\utils\find-outdated-todos.ps1` to verify*
-
-### Unused Imports
-
-| File | Import | Status | Notes |
-|------|--------|--------|-------|
-| src/dom/filters/FilterUI.ts | TFile | Completed | Removed unused TFile import while keeping safeLogger |
-| main.ts | FileView, Menu, Scope, WorkspaceLeaf, ButtonComponent | Completed | Already removed in newer version |
-| main.ts | registerSettings | Completed | Already removed in newer version |
-| main.ts | FilterUI | Completed | Already removed in newer version |
-| main.ts | Multiple date-fns imports | Completed | Already updated in newer version |
-
-#### Unused Imports Statistics
-
-- Total files with unused imports: 60
-- Total potentially unused imports: 116
-- 9 instances of unused safeLogger import across different files
-- 7 instances of unused App from 'obsidian'
-- 5 instances of unused TFile from 'obsidian'
-
-#### Notable Files with Unused Imports:
-- main.ts: 8 unused imports
-- src/dom/DreamMetricsDOM.ts: 5 unused imports
-- src/journal_check/ui/DreamJournalManager.ts: 5 unused imports
-- src/dom/date-navigator/DateNavigator.ts: 4 unused imports
-- src/metrics/MetricsProcessor.ts: 4 unused imports
-
-*Note: For the complete list, run `.\utils\find-unused-imports.ps1`*
-
-### Progress Update (2025-05-29)
-
-Started work on the unused imports cleanup:
-- Created new branch `refactoring/2025-dead-code` for dead code cleanup
-- Started cleaning up unused imports in key files:
-  - src/api/resilience/examples/ApiResilienceDemo.ts - removed ApiRequestOptions and OfflineSupport
-  - src/dom/DateNavigator.ts - removed App, MarkdownView, TFile, getSourceFile, getSourceId, and isObjectSource
-  - src/dom/filters/FilterUI.ts - removed safeLogger which was imported but never used
-  - src/dom/DreamMetricsDOM.ts - removed DreamMetricData, getSourceId, isObjectSource, debounce, and format
-- Created utility script `utils/clean-unused-imports.ps1` to help identify and remove unused imports
-- Identified 121 potentially unused imports across 60 files that need further cleanup
-
-Next steps for imports cleanup:
-- Continue removing unused imports from more files
-- Focus on high-impact files like main.ts that have multiple unused imports
-- Use the utility script to process multiple files efficiently
-
-## Cleanup Process
-
-To update the status of items in these tracking tables:
-
-1. Identify a batch of related items to clean up (e.g., console.log statements in a specific file)
-2. Update the "Status" column to "In Progress"
-3. Make the necessary code changes
-4. Test thoroughly
-5. Commit changes with a message following the format: `cleanup: [area] - [specific change]`
-6. Update the "Status" column to "Complete" with the date
-7. Run the relevant script again to ensure the items were properly addressed
-
-This systematic approach will help ensure that no cleanup items are missed and that we can track our progress effectively. 
-
-## Cleanup Progress
-
-This document tracks the progress of refactoring the OneiroMetrics plugin codebase.
-
-### 1. Main.ts Line Count Reduction
-
-The main.ts file has grown to over 5,000 lines, making it difficult to maintain. This phase focuses on extracting functionality into separate modules.
-
-### Initial Size
-
-- main.ts: ~5,100 lines
-
-### Component Extraction Plan
-
-  | Component Name | Lines | Source Section | Target Module | Status | Date | Notes |
-  |----------------|-------|---------------|--------------|--------|------|-------| 
-  | FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ✅ Complete | 2025-05-29 | Extracted all filter-related functionality into a dedicated class with proper structure and error handling |
-  | FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ✅ Complete | 2025-05-31 | Created dedicated class for filter display management with consistent styling, proper error handling, and support for various filter types including date filters and custom ranges |
-  | TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-31 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
-  | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventHandler.ts | ⬜ Not Started | - | Handle all event attachments in one place |
-  | DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-30 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
-  | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
-  | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
-  | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
-  | GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ⬜ Not Started | - | Utility functions used globally |
-  | WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ⬜ Not Started | - | Manage window-level extensions |
-
-### 2. Function Removal After Refactoring
-
-After extracting functionality to dedicated classes, we need to remove the now-redundant functions from main.ts.
-
-  | Function Name | Lines | Target Class | Status | Date | Notes |
-  |--------------|-------|-------------|--------|------|-------|
-  | initializeTableRowClasses | ~180 | TableManager | ✅ Removed | 2025-05-30 | Moved to TableManager class |
-  | collectVisibleRowMetrics | ~112 | TableManager | ✅ Removed | 2025-05-30 | Moved to TableManager class |
-  | updateSummaryTable | ~145 | TableManager | ✅ Removed | 2025-05-30 | Moved to TableManager class |
-  | updateFilterDisplay | ~133 | FilterManager | ✅ Removed | 2025-05-30 | Moved to FilterManager class |
-  | applyFilters | ~10 | FilterManager | ✅ Delegated | 2025-05-29 | Now delegates to FilterManager implementation |
-  | applyFilterToDropdown | ~10 | FilterManager | ✅ Delegated | 2025-05-29 | Now delegates to FilterManager implementation |
-  | forceApplyFilterDirect | ~10 | FilterManager | ✅ Delegated | 2025-05-29 | Now delegates to FilterManager implementation |
-  | clearDebugLog | ~35 | DebugTools | ⬜ Not Started | - | |
-  | backupDebugLog | ~20 | DebugTools | ⬜ Not Started | - | |
-  | checkLogFileSize | ~18 | DebugTools | ⬜ Not Started | - | |
-  | copyConsoleLogs | ~45 | DebugTools | ⬜ Not Started | - | |
-  | getConsoleLog | ~23 | DebugTools | ⬜ Not Started | - | |
-
-### 3. Utility Functions to Extract
-
-The following utility functions can be moved to appropriate utility modules:
-
-  | Function Name | Lines | Target Module | Status | Date | Notes |
-  |--------------|-------|--------------|--------|------|-------|
-  | validateDate | ~4 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
-  | parseDate | ~14 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
-  | formatDate | ~4 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
-  | getDreamEntryDate | ~45 | src/utils/journal-helpers.ts | ⬜ Not Started | - | |
-  | openCustomRangeModal | ~26 | src/dom/modals/DateRangeModal.ts | ⬜ Not Started | - | |
-  | formatDateForDisplay | ~6 | src/utils/date-helpers.ts | ⬜ Not Started | - | |
-  | getIcon | ~23 | src/utils/icon-helpers.ts | ⬜ Not Started | - | |
-  | getMetricIcon | ~48 | src/utils/icon-helpers.ts | ⬜ Not Started | - | |
-  | toggleContentVisibility | ~4 | src/dom/content/ContentToggler.ts | ⬜ Not Started | - | |
-  | expandAllContentSections | ~32 | src/dom/content/ContentToggler.ts | ⬜ Not Started | - | |
-  | safeSettingsAccess | ~6 | src/utils/settings-helpers.ts | ⬜ Not Started | - | |
-
-### 4. Current Status
-
-After these refactorings, the main.ts file should be significantly reduced in size and the codebase will be more maintainable.
-
-**Current line counts:**
-- Initial main.ts: ~5,100 lines
-- Current main.ts: ~3,000 lines
-- **Reduction**: ~2,100 lines (~41% smaller)
+The next steps in the cleanup are to:
+1. Establish clear boundaries between filter management and display logic
+2. Update the FilterEvents class to work with the new FilterDisplayManager
+3. Create a proper interface for the FilterDisplayManager
+4. Reduce remaining dependencies on global window objects

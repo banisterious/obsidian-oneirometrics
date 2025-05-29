@@ -342,13 +342,23 @@ export class FilterManager {
                         });
                     }
                     
-                    // Update summary table with filtered metrics
-                    const filteredMetrics = this.collectVisibleRowMetrics(previewEl);
-                    this.updateSummaryTable(previewEl, filteredMetrics);
-                    
                     // Update filter display in the next animation frame
                     requestAnimationFrame(() => {
-                        this.updateFilterDisplayWithDetails(dateRange, visibleCount, totalRows, invalidDates, outOfRangeDates, previewEl);
+                        // Use the FilterDisplayManager directly
+                        this.filterDisplayManager.updateFilterDisplay(
+                            previewEl,
+                            dateRange,
+                            visibleCount,
+                            totalRows,
+                            invalidDates,
+                            outOfRangeDates
+                        );
+                        
+                        // Collect metrics from visible rows only
+                        const metrics = this.collectVisibleRowMetrics(previewEl);
+                        
+                        // Update the summary table with these metrics
+                        this.updateSummaryTable(previewEl, metrics);
                     });
                 }
             });
@@ -482,34 +492,6 @@ export class FilterManager {
             customDateRange = { ...this.settings.customDateRange };
             log?.info?.('Filter', 'Initialized global customDateRange from settings');
         }
-    }
-
-    /**
-     * This function updates the filter display with detailed information
-     */
-    private updateFilterDisplayWithDetails(
-        filterType: string, 
-        visible: number, 
-        total: number, 
-        invalid: number, 
-        outOfRange: number,
-        previewEl: HTMLElement
-    ) {
-        // Use the FilterDisplayManager to handle display updates
-        this.filterDisplayManager.updateFilterDisplay(
-            previewEl,
-            filterType,
-            visible,
-            total,
-            invalid,
-            outOfRange
-        );
-        
-        // Collect metrics from visible rows only
-        const metrics = this.collectVisibleRowMetrics(previewEl);
-        
-        // Update the summary table with these metrics
-        this.updateSummaryTable(previewEl, metrics);
     }
 
     /**
