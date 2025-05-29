@@ -351,8 +351,8 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 | Component Name | Lines | Source Section | Target Module | Status | Date | Notes |
 |----------------|-------|---------------|--------------|--------|------|-------|
 | FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ✅ Complete | 2025-05-29 | Extracted all filter-related functionality into a dedicated class with proper structure and error handling |
-| FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ⬜ Not Started | - | Handle filter UI updates |
-| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-29 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
+| FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ✅ Complete | 2025-05-31 | Created dedicated class for filter display management with consistent styling, proper error handling, and support for various filter types including date filters and custom ranges |
+| TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-31 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
 | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventManager.ts | ⬜ Not Started | - | Handle all event attachments in one place |
 | DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-30 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
 | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
@@ -830,18 +830,16 @@ The main.ts file has grown to over 5,000 lines, making it difficult to maintain.
   | Component Name | Lines | Source Section | Target Module | Status | Date | Notes |
   |----------------|-------|---------------|--------------|--------|------|-------| 
   | FilterManager | ~430 | applyFilters (897-1329) | src/dom/filters/FilterManager.ts | ✅ Complete | 2025-05-29 | Extracted all filter-related functionality into a dedicated class with proper structure and error handling |
-  | FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ⬜ Not Started | - | Handle filter UI updates |
+  | FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ✅ Complete | 2025-05-31 | Created dedicated class for filter display management with consistent styling, proper error handling, and support for various filter types including date filters and custom ranges |
   | TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-31 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
+  | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventHandler.ts | ⬜ Not Started | - | Handle all event attachments in one place |
   | DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-30 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
-  | ContentToggler | ~240 | toggleContentVisibility (3083-3323) | src/dom/content/ContentToggler.ts | ⬜ Not Started | - | Handle expanding/collapsing content sections |
-  | MetricsProcessor | ~480 | scrapeMetrics (598-1078) | src/metrics/MetricsProcessor.ts | ⬜ Not Started | - | Handle metrics extraction and processing |
-  | DateNavigator | ~330 | showDateNavigator (1468-1798) | src/dom/date-navigator/DateNavigator.ts | ⬜ Not Started | - | Handle date navigation and calendar views |
-  | EventHandler | ~290 | attachProjectNoteEventListeners (700-990) | src/events/EventHandler.ts | ⬜ Not Started | - | Handle event listeners and callbacks |
-  | UIManager | ~410 | showMetrics (560-970) | src/dom/UIManager.ts | ⬜ Not Started | - | Manage UI components and rendering |
-  | SettingsManager | ~280 | loadSettings, saveSettings (448-536) | src/state/SettingsManager.ts | ⬜ Not Started | - | Handle settings management |
-  | JournalManager | ~220 | validateCurrentFile (536-598) | src/journal_check/JournalManager.ts | ⬜ Not Started | - | Handle journal file validation and management |
-  | RibbonManager | ~180 | updateRibbonIcons (1163-1343) | src/dom/RibbonManager.ts | ⬜ Not Started | - | Manage ribbon icons and actions |
-  
+  | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
+  | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
+  | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
+  | GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ⬜ Not Started | - | Utility functions used globally |
+  | WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ⬜ Not Started | - | Manage window-level extensions |
+
 ### 2. Function Removal After Refactoring
 
 After extracting functionality to dedicated classes, we need to remove the now-redundant functions from main.ts.
