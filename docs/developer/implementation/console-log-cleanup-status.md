@@ -26,14 +26,21 @@ This document tracks the progress of replacing console.log statements with struc
 | src/journal_check/ui/EntryComponent.ts | 1 | 0 | ✅ Complete |
 | src/journal_check/ui/TemplateWizard.ts | 5 | 0 | ✅ Complete |
 
+## Intentional Console Usage
+
+The following files contain intentional console statements that should **NOT** be replaced with structured logging:
+
+| File | Count | Reason |
+|------|-------|--------|
+| src/logging/adapters/ConsoleAdapter.ts | 7 | **INTENTIONAL**: This is the implementation of the console output adapter for the structured logging system. These console statements are the final destination for log messages. |
+| src/logging/safe-logger.ts | 7 | **INTENTIONAL**: This is a fallback mechanism for when the structured logging system is not yet initialized or fails. It ensures logging works during startup and system failures. |
+| src/journal_check/types.ts | 1 | **INTENTIONAL**: This is a deprecation warning that runs on import, before the logging system may be initialized. |
+
 ## Remaining Files with Console Statements
 
 | File | Count | Priority | Notes |
 |------|-------|----------|-------|
-| src/logging/adapters/ConsoleAdapter.ts | 7 | Low | Intentional part of logging system |
-| src/logging/safe-logger.ts | 7 | Low | Intentional fallback mechanism |
 | main.ts | 2 | Medium | Debug utility functions |
-| src/journal_check/types.ts | 1 | Low | Deprecation warning |
 
 ## Implementation Notes
 
@@ -88,12 +95,8 @@ The DateNavigator.ts file has been updated to use the structured logging system,
 2. **Update main.ts Debug Functions** (Medium Priority)
    - Replace 2 console statements with structured logging
 
-3. **Document Intentional Exceptions** (Low Priority)
-   - Add comments to ConsoleAdapter.ts and safe-logger.ts
-   - Clearly mark these as intentional parts of the logging system
-
 ## Conclusion
 
 The console.log cleanup has made significant progress, with 37 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, the DateNavigator, and UI components in the journal_check system.
 
-The remaining console statements are primarily in the logging system itself (intentional) and a few isolated instances in main.ts and types.ts. 
+We've also properly documented the intentional console statements in the logging system components to ensure they aren't targeted for replacement in future cleanup efforts. 

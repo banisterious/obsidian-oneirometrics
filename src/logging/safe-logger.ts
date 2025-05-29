@@ -3,6 +3,16 @@
  * 
  * This provides a simple logger that's always available, even during
  * early initialization when the full logging system might not be ready.
+ * 
+ * IMPORTANT: This file contains intentional and necessary console.* statements.
+ * These statements serve as a critical fallback mechanism when the structured
+ * logging system is not yet initialized or fails. They should NOT be replaced
+ * with structured logging calls as they are the safety net for when structured
+ * logging is unavailable.
+ * 
+ * The console statements here are only used when:
+ * 1. The application is first starting up and the logging system isn't ready
+ * 2. An error occurs in the main logging system itself
  */
 
 import { LogLevel } from './LoggerTypes';
@@ -25,6 +35,10 @@ export interface SafeLogger {
 
 /**
  * Simple safe logger implementation that just writes to console
+ * 
+ * This is a fallback mechanism that ensures logging works even when
+ * the main logging system isn't available. It transitions to using
+ * the main logger once it's initialized.
  */
 class SafeLoggerImpl implements SafeLogger {
   private level: LogLevel = 'debug';
@@ -64,6 +78,7 @@ class SafeLoggerImpl implements SafeLogger {
    */
   error(category: string, message: string, error?: any): void {
     this.logWithLevel('error', category, message, error);
+    // INTENTIONAL CONSOLE USAGE: Direct console output for error stacks as fallback
     if (error && error.stack) {
       console.error(error.stack);
     }
@@ -98,6 +113,7 @@ class SafeLoggerImpl implements SafeLogger {
       }
     }
     
+    // INTENTIONAL CONSOLE USAGE: These are fallback mechanisms when the structured logging is unavailable
     // Fall back to console
     const timestamp = new Date().toISOString();
     const formattedMsg = `[${timestamp}] ${level.toUpperCase()} [SafeLogger:${category}] ${message}`;
@@ -110,6 +126,7 @@ class SafeLoggerImpl implements SafeLogger {
       case 'trace': console.log(formattedMsg); break;
     }
     
+    // INTENTIONAL CONSOLE USAGE: Log additional data for context when structured logging is unavailable
     if (data && level !== 'error') {
       console.log(data);
     }
