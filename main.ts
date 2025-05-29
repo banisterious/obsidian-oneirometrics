@@ -1958,7 +1958,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 globalLogger?.debug('UI', 'Show more/less button clicked');
                 
                 // Use the dedicated function to handle content visibility toggle
-                toggleContentVisibility(newButton, previewEl);
+                toggleContentVisibility(newButton);
             });
             button.parentNode?.replaceChild(newButton, button);
         });
@@ -4797,7 +4797,7 @@ function collectVisibleRowMetrics(container: HTMLElement): Record<string, number
     }
     
     // Collect metrics from visible rows with robust column mapping
-    visibleRows.forEach((row, rowIndex) => {
+    visibleRows.forEach((row) => {
         // Get all cells in the row
         const cells = Array.from(row.querySelectorAll('td'));
         
@@ -5126,7 +5126,7 @@ declare global {
 }
 
 // Function to toggle content visibility for a given button - alternative implementation
-function toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement) {
+function toggleContentVisibility(button: HTMLElement) {
     globalLogger?.debug('UI', 'Using alternative content visibility implementation');
     
     try {
@@ -5248,7 +5248,7 @@ function expandAllContentSections(previewEl: HTMLElement) {
             globalLogger?.debug('UI', 'Expanding content section', { 
                 contentCellId: button.getAttribute('data-parent-cell') 
             });
-            toggleContentVisibility(button as HTMLElement, previewEl);
+            toggleContentVisibility(button as HTMLElement);
         }
     });
     
@@ -5286,7 +5286,7 @@ function expandAllContentSections(previewEl: HTMLElement) {
                 current: isCurrentlyExpanded, 
                 target: showExpanded 
             });
-            toggleContentVisibility(button as HTMLElement, previewEl);
+            toggleContentVisibility(button as HTMLElement);
             processed++;
         }
     });

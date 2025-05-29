@@ -177,7 +177,7 @@ export class ProjectNoteEvents {
                 const contentCellId = newButton.getAttribute('data-content-id');
                 if (contentCellId) {
                     const previewContent = document.getElementById(contentCellId)?.parentElement?.querySelector('.oom-content-summary');
-                    this.contentToggler.toggleContentVisibility(newButton, previewEl);
+                    this.contentToggler.toggleContentVisibility(newButton);
                 } else {
                     this.logger?.warn('UI', 'Button clicked but no content ID found');
                 }
