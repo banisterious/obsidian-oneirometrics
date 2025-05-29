@@ -7,7 +7,7 @@ const RECOMMENDED_METRICS_ORDER = [
   'Lost Segments',
   'Descriptiveness',
   'Confidence Score',
-  'Characters Role'
+  'Character Roles'
 ];
 
 // Define the correct order for disabled metrics
@@ -17,9 +17,10 @@ const DISABLED_METRICS_ORDER = [
   'Unfamiliar Count',
   'Characters List',
   'Dream Theme',
+  'Character Clarity/Familiarity',
   'Lucidity Level',
   'Dream Coherence',
-  'Setting Familiarity',
+  'Environmental Familiarity',
   'Ease of Recall',
   'Recall Stability'
 ];

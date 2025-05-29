@@ -11,19 +11,21 @@ export const RECOMMENDED_METRICS_ORDER = [
   'Emotional Recall',
   'Lost Segments',
   'Descriptiveness',
-  'Confidence Score',
-  'Character Roles'
+  'Confidence Score'
 ];
 
 // Define the correct order for disabled metrics
 export const DISABLED_METRICS_ORDER = [
+  'Words',
+  'Dream Theme',
+  'Dream Coherence',
+  'Lucidity Level',
+  'Character Roles',
   'Characters Count',
+  'Characters List',
   'Familiar Count',
   'Unfamiliar Count',
-  'Characters List',
-  'Dream Theme',
-  'Lucidity Level',
-  'Dream Coherence',
+  'Character Clarity/Familiarity',
   'Environmental Familiarity',
   'Ease of Recall',
   'Recall Stability'
@@ -904,9 +906,15 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .setName('View Metrics Descriptions')
             .setDesc('View detailed descriptions of all available metrics')
             .addButton(button => {
-                button.setButtonText('View Descriptions')
+                button.setButtonText('Classic View')
                     .onClick(() => {
                         new MetricsDescriptionsModal(this.app, this.plugin).open();
+                    });
+            })
+            .addButton(button => {
+                button.setButtonText('Tabbed View')
+                    .onClick(() => {
+                        this.plugin.showMetricsTabsModal();
                     });
             });
 
@@ -1017,10 +1025,19 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             disabled: [] as [string, DreamMetric][]
         };
 
+        // Function to check if a metric should be displayed in settings
+        const shouldDisplayInSettings = (metric: DreamMetric): boolean => {
+            // Skip the Words metric as it's a calculated value
+            return metric.name !== 'Words';
+        };
+
         // Sort into enabled/disabled groups
         Object.entries(this.plugin.settings.metrics || {}).forEach(([key, metric]) => {
-            const group = isMetricEnabled(metric) ? groupedMetrics.enabled : groupedMetrics.disabled;
-            group.push([key, metric]);
+            // Only include metrics that should be displayed in settings
+            if (shouldDisplayInSettings(metric)) {
+                const group = isMetricEnabled(metric) ? groupedMetrics.enabled : groupedMetrics.disabled;
+                group.push([key, metric]);
+            }
         });
 
         // Log metrics information

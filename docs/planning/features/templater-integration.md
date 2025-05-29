@@ -41,8 +41,8 @@ To support users who haven't installed Templater, we'll implement a fallback mec
 ### 2. Template Preprocessing
 - When saving Templater templates, store both the dynamic version and a "static" version with placeholders
 - Convert Templater variables to user-friendly, editable placeholders:
-  - Example: `<% tp.date.now("YYYY-MM-DD") %>` becomes `[[DATE: YYYY-MM-DD]]`
-  - Example: `<% tp.system.prompt("Enter mood", "neutral") %>` becomes `[[PROMPT: Enter mood (default: neutral)]]`
+  - Example: `2025-05-28` becomes `[[DATE: YYYY-MM-DD]]`
+  - Example: `null` becomes `[[PROMPT: Enter mood (default: neutral)]]`
 
 ### 3. Insertion Logic
 ```typescript
@@ -86,10 +86,10 @@ if (template.isTemplaterTemplate && template.templaterFile) {
 │                                                               │
 │  Preview:                                                     │
 │  ┌─────────────────────────────────────────────────────────┐  │
-│  │ ## Dream Entry: <% tp.date.now("YYYY-MM-DD") %>         │  │
+│  │ ## Dream Entry: 2025-05-28         │  │
 │  │                                                         │  │
-│  │ **Mood:** <% tp.system.prompt("Enter mood", "neutral") %>│  │
-│  │ **Time:** <% tp.system.prompt("Time of day", "night") %>│  │
+│  │ **Mood:** null│  │
+│  │ **Time:** null│  │
 │  │                                                         │  │
 │  │ [!dream-metrics]                                        │  │
 │  │ clarity: 3                                              │  │

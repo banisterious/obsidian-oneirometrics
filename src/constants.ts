@@ -11,14 +11,6 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         enabled: true
     },
     {
-        name: 'Reading Time',
-        icon: 'clock',
-        minValue: 0,
-        maxValue: 60,
-        description: 'Estimated reading time in minutes',
-        enabled: true
-    },
-    {
         name: 'Sensory Detail',
         icon: 'eye',
         minValue: 1,
@@ -59,12 +51,12 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         enabled: true
     },
     {
-        name: 'Characters Role',
+        name: 'Character Roles',
         icon: 'user-cog',
         minValue: 1,
         maxValue: 5,
         description: 'Significance of familiar characters in the dream narrative',
-        enabled: true
+        enabled: false
     },
     {
         name: 'Characters Count',
@@ -111,6 +103,14 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         format: 'tags'
     },
     {
+        name: 'Character Clarity/Familiarity',
+        icon: 'user-search',
+        minValue: 1,
+        maxValue: 5,
+        description: 'The distinctness and recognizability of the individual characters appearing in your dream',
+        enabled: false
+    },
+    {
         name: 'Lucidity Level',
         icon: 'wand-2',
         minValue: 1,
@@ -127,7 +127,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         enabled: false
     },
     {
-        name: 'Setting Familiarity',
+        name: 'Environmental Familiarity',
         icon: 'glasses',
         minValue: 1,
         maxValue: 5,

@@ -9,8 +9,9 @@ This document provides detailed descriptions of all available metrics in OneiroM
    2. [Emotional Recall](#emotional-recall-score-1-5)
    3. [Descriptiveness](#descriptiveness-score-1-5)
    4. [Lost Segments](#lost-segments-number)
-   5. [Characters Role](#characters-role-score-1-5)
+   5. [Character Roles](#character-roles-score-1-5)
    6. [Confidence Score](#confidence-score-score-1-5)
+   7. [Character Clarity/Familiarity](#character-clarityfamiliarity-1-5-score)
 2. [Optional Metrics](#optional-metrics)
    1. [Characters Count](#characters-count)
    2. [Familiar Count](#familiar-count)
@@ -19,7 +20,7 @@ This document provides detailed descriptions of all available metrics in OneiroM
    5. [Dream Theme](#dream-theme)
    6. [Lucidity Level](#lucidity-level-score-1-5)
    7. [Dream Coherence](#dream-coherence-score-1-5)
-   8. [Setting Familiarity](#setting-familiarity-score-1-5)
+   8. [Environmental Familiarity](#environmental-familiarity-score-1-5)
    9. [Ease of Recall](#ease-of-recall-score-1-5)
    10. [Recall Stability](#recall-stability-score-1-5)
 3. [Using Metrics](#using-metrics)
@@ -35,7 +36,7 @@ The following metrics are enabled by default in OneiroMetrics.
 
 **Helper text:**
 
-This metric captures the richness and vividness of the sensory information you recall from your dream.
+The richness and vividness of the sensory information you recall from your dream.
 
 **Detailed description:**
 
@@ -53,7 +54,7 @@ This metric captures the **richness and vividness of the sensory information** y
 
 **Helper text:**
 
-This metric focuses on your ability to remember and articulate the emotions you experienced within the dream.
+Focuses on your ability to remember and articulate the emotions you experienced within the dream.
 
 **Detailed description:**
 
@@ -71,7 +72,7 @@ This metric focuses on your **ability to remember and articulate the emotions yo
 
 **Helper text:**
 
-This metric assesses the level of detail and elaboration in your written dream capture, beyond just sensory details.
+Assesses the level of detail and elaboration in your written dream capture, beyond just sensory details.
 
 **Detailed description:**
 
@@ -93,11 +94,11 @@ The number of distinct instances where you have a clear feeling or awareness tha
 
 **Detailed description:**
 
-This metric tracks the number of distinct instances where you have a clear feeling or awareness that a part of the dream is missing or has been forgotten. This isn’t about omitting fragments you never recalled in the first place. It’s about those “gaps” in your recalled narrative where you feel like “there was something else there,” or you have a fleeting image or feeling that then vanishes.
+This metric tracks the number of distinct instances where you have a clear feeling or awareness that a part of the dream is missing or has been forgotten. This isn't about omitting fragments you never recalled in the first place. It's about those "gaps" in your recalled narrative where you feel like "there was something else there," or you have a fleeting image or feeling that then vanishes.
 
 If you recall the dream as a complete, seamless narrative with no sense of missing parts, this score would be 0.
 
-If you have a distinct feeling of one or more breaks or missing chunks in the dream’s sequence, you would count each of those instances.
+If you have a distinct feeling of one or more breaks or missing chunks in the dream's sequence, you would count each of those instances.
 
 #### Character Roles (Score 1-5)
 
@@ -114,7 +115,7 @@ This metric tracks the **presence and significance of all individuals** (both fa
 | 1 (None)             | No familiar characters appear in the dream. |
 | 2 (Background)       | Familiar characters appear but only in minor or background roles. |
 | 3 (Supporting)       | Familiar characters play supporting roles in the dream narrative. |
-| 4 (Major)            | Familiar characters are central to the dream’s events or narrative. |
+| 4 (Major)            | Familiar characters are central to the dream's events or narrative. |
 | 5 (Dominant)         | The dream is primarily about or dominated by interactions with familiar characters. |
 
 #### Confidence Score (Score 1-5)
@@ -135,6 +136,24 @@ This is a **subjective metric reflecting your overall sense of how complete and 
 | 4 (High)      | You feel confident that you've recalled the majority of the dream with a good level of detail and coherence. You have a strong sense of its narrative flow and content, with only minor gaps or uncertainties. |
 | 5 (Very High) | You feel extremely confident that you've recalled the entire dream in vivid detail and with strong accuracy. The memory feels robust, complete, and fully accessible, leaving you with no significant sense of missing parts or uncertainty. |
 
+#### Character Clarity/Familiarity (1-5 score)
+
+**Helper text:**
+
+The distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream.
+
+**Detailed description:**
+
+This metric assesses the distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream. It focuses on how clearly you perceived their features, identity, or presence. When used in conjunction with the other Characters metrics, this metric adds the dimension of _how well you saw/perceived them_."
+
+| Score                     | Description                                                                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Indistinct/Absent)     | No characters were recalled, or any perceived characters were entirely formless, shadowy, or too indistinct to even categorize as familiar or unfamiliar.                                   |
+| 2 (Vague Presence)        | Characters were present but highly blurred, featureless, or rapidly shifting. You had a sense of their presence but couldn't make out details or their identity clearly.                    |
+| 3 (Partially Discernible) | Characters were somewhat discernible; you might have caught glimpses of features or had a vague sense of their identity (e.g., "a man," "a child") but lacked clear details or certainty.   |
+| 4 (Clearly Recognized)    | Characters were clearly perceived, and their features/identity were distinct enough to recognize, even if they were unfamiliar. For familiar characters, you recognized them without doubt. |
+| 5 (Vivid & Defined)       | Characters appeared with exceptional clarity and detail, almost as if seen in waking life. Their features, expressions, and presence were sharply defined and fully formed in your recall.  |
+
 ### Optional Metrics
 
 The following metrics are available as optional additions to your dream journal.
@@ -143,7 +162,7 @@ The following metrics are available as optional additions to your dream journal.
 
 **Helper text:**
 
-This metric represents the total number of characters in your dream. It is automatically calculated as the sum of Familiar Count and Unfamiliar Count.
+Represents the total number of characters in your dream. (Automatically calculated as the sum of Familiar Count and Unfamiliar Count.)
 
 **Detailed Description:**
 
@@ -160,7 +179,7 @@ This metric tracks the **total number of distinct individual characters** that a
 
 **Helper text:**
 
-This metric tracks the number of characters you know from your waking life that appear in the dream. This includes people, pets, or any other familiar beings.
+The number of characters you know from your waking life that appear in the dream. Includes people, pets, or any other familiar beings.
 
 **Detailed Description:**
 
@@ -176,7 +195,7 @@ This metric tracks the **total number of distinct individuals appearing in your 
 
 **Helper text:**
 
-This metric tracks the number of characters you don’t know from your waking life that appear in the dream. This includes strangers, fictional characters, or any other unfamiliar beings.
+Tracks the number of characters you don't know from your waking life that appear in the dream. Includes strangers, fictional characters, or any other unfamiliar beings.
 
 **Detailed Description:**
 
@@ -192,7 +211,7 @@ This metric tracks the **total number of distinct individuals appearing in your 
 
 **Helper text:**
 
-This metric allows you to list all characters that appeared in your dream.
+Allows you to list all characters that appeared in your dream.
 
 **Detailed description:**
 
@@ -239,29 +258,11 @@ This metric aims to identify the dominant subjects, ideas, or emotional undercur
     * Vulnerability
 * **Use:** To track recurring patterns in the subject matter and emotional tone of your dreams over time. Identifying themes can provide insights into your subconscious concerns, interests, and emotional processing. You can select multiple themes if a dream has several prominent aspects.
 
-#### Character Clarity/Familiarity (1-5 score)
-
-**Helper text:**
-
-The distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream.
-
-**Detailed description:**
-
-This metric assesses the distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream. It focuses on how clearly you perceived their features, identity, or presence. When used in conjunction with the other Characters metrics, this metric adds the dimension of _how well you saw/perceived them_."
-
-| Score                     | Description                                                                                                                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 (Indistinct/Absent)     | No characters were recalled, or any perceived characters were entirely formless, shadowy, or too indistinct to even categorize as familiar or unfamiliar.                                   |
-| 2 (Vague Presence)        | Characters were present but highly blurred, featureless, or rapidly shifting. You had a sense of their presence but couldn't make out details or their identity clearly.                    |
-| 3 (Partially Discernible) | Characters were somewhat discernible; you might have caught glimpses of features or had a vague sense of their identity (e.g., "a man," "a child") but lacked clear details or certainty.   |
-| 4 (Clearly Recognized)    | Characters were clearly perceived, and their features/identity were distinct enough to recognize, even if they were unfamiliar. For familiar characters, you recognized them without doubt. |
-| 5 (Vivid & Defined)       | Characters appeared with exceptional clarity and detail, almost as if seen in waking life. Their features, expressions, and presence were sharply defined and fully formed in your recall.  |
-
 #### Lucidity Level (Score 1-5)
 
 **Helper text:**
 
-This metric tracks your degree of awareness that you are dreaming while the dream is in progress."
+Tracks your degree of awareness that you are dreaming while the dream is in progress."
 
 **Detailed description:**
 
@@ -279,7 +280,7 @@ This metric tracks your **degree of awareness that you are dreaming while the dr
 
 **Helper text:**
 
-This metric assesses the logical consistency and narrative flow of your dream."
+Assesses the logical consistency and narrative flow of your dream."
 
 **Detailed description:**
 
@@ -297,7 +298,7 @@ This metric assesses the **logical consistency and narrative flow of your dream*
 
 **Helper text:**
 
-This metric tracks the degree to which the locations and environments in your dream are recognizable from your waking life.
+Tracks the degree to which the locations and environments in your dream are recognizable from your waking life.
 
 **Detailed description:**
 
@@ -315,7 +316,7 @@ This metric assesses the degree to which the locations and environments within y
 
 **Helper text:**
 
-This metric assesses how readily and effortlessly you can remember the dream upon waking.
+Assesses how readily and effortlessly you can remember the dream upon waking.
 
 **Detailed description:**
 
@@ -333,7 +334,7 @@ This metric assesses **how readily and effortlessly you could remember the dream
 
 **Helper text:**
 
-This metric assesses how well your memory of the dream holds up in the minutes immediately following waking.
+Assesses how well your memory of the dream holds up in the minutes immediately following waking.
 
 **Detailed description:**
 
@@ -398,7 +399,7 @@ You can add metadata to the callout for custom styling:
 
 1. Score immediately after waking when recall is freshest
 2. Be consistent with your scoring across different dreams
-3. Use the full range of scores (don’t cluster in the middle)
+3. Use the full range of scores (don't cluster in the middle)
 4. Consider each metric independently
 5. Review your scoring patterns periodically
 

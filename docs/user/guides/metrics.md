@@ -38,11 +38,12 @@ OneiroMetrics comes with several built-in metrics:
 | Sensory Detail | Vividness of sensory experiences | 1-5 | Rate how vividly you experienced sensations (sight, sound, touch, etc.) |
 | Emotional Recall | Ability to recall emotions | 1-5 | Rate how clearly you remember the emotions felt in the dream |
 | Descriptiveness | Detail level in written description | 1-5 | Rate how detailed your written account is |
-| Characters Role | Prominence of characters | 1-5 | Rate the significance of characters in the dream narrative |
+| Character Roles | Prominence of characters | 1-5 | Rate the significance of characters in the dream narrative |
 | Confidence Score | Confidence in your memory | 1-5 | Rate how confident you are in remembering the dream correctly |
 | Characters Count | Number of characters appearing | Any whole number | Count distinct characters/entities in the dream |
 | Familiar Count | Number of familiar people/entities | Any whole number | Count people or entities you recognize from waking life |
 | Unfamiliar Count | Number of unfamiliar entities | Any whole number | Count people or entities that were new/unknown to you |
+| Character Clarity/Familiarity | Distinctness of characters | 1-5 | Rate how clearly you perceived individual characters |
 
 ### Metric Rating Scales
 
@@ -226,7 +227,7 @@ Consider adding these custom metrics to track specific aspects of dreams:
 - **Color Intensity (1-5)**: Vividness of colors in the dream
 - **Time Perception (1-5)**: How time seemed to flow in the dream
 - **Body Sensations (1-5)**: Unusual bodily sensations experienced
-- **Setting Familiarity (1-5)**: How familiar the dream setting was
+- **Environmental Familiarity (1-5)**: How familiar the dream setting was
 - **Dream Coherence (1-5)**: How logical or coherent the dream narrative was
 
 ### Modifying Existing Metrics

@@ -173,6 +173,8 @@ import { runEventHandlingTests } from './src/testing/utils/EventHandlingTests';
 import { runComponentFactoryTests } from './src/testing/utils/ComponentFactoryTests';
 import { runDreamMetricsStateTests } from './src/testing/DreamMetricsStateTests';
 
+import { MetricsTabsModal } from './src/dom/modals/MetricsTabsModal';
+
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
 
@@ -367,9 +369,9 @@ export default class DreamMetricsPlugin extends Plugin {
             // Verify each required metric exists
             const requiredMetrics = [
                 "Sensory Detail", "Emotional Recall", "Lost Segments", "Descriptiveness", 
-                "Confidence Score", "Characters Role", "Characters Count", "Familiar Count", 
-                "Unfamiliar Count", "Characters List", "Dream Theme", "Lucidity Level", 
-                "Dream Coherence", "Setting Familiarity", "Ease of Recall", "Recall Stability"
+                "Confidence Score", "Character Roles", "Characters Count", "Familiar Count", 
+                "Unfamiliar Count", "Characters List", "Dream Theme", "Character Clarity/Familiarity", "Lucidity Level", 
+                "Dream Coherence", "Environmental Familiarity", "Ease of Recall", "Recall Stability"
             ];
             
             // Check which metrics are missing
@@ -931,6 +933,15 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Initialize the DateRangeService
         this.dateRangeService = new DateRangeService(this.app);
+
+        // Inside the onload() method, where other commands are added
+        this.addCommand({
+            id: 'open-metrics-tabs-modal',
+            name: 'Open Metrics Guide (Tabbed View)',
+            callback: () => {
+                this.showMetricsTabsModal();
+            }
+        });
     }
 
     onunload() {
@@ -1409,7 +1420,7 @@ export default class DreamMetricsPlugin extends Plugin {
         content += "<tbody>\n";
         
         // CRITICAL FIX: More explicit and controlled metrics ordering
-        const combinedOrder = ["Words", "Reading Time", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
+        const combinedOrder = ["Words", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
         
         // Create a lookup map for metrics by name
         const metricsLookup: Record<string, DreamMetric> = {};
@@ -1421,7 +1432,7 @@ export default class DreamMetricsPlugin extends Plugin {
         const processedMetrics = new Set<string>();
         let hasMetrics = false;
         
-        // First, handle special cases (Words, Reading Time)
+        // First, handle special case for Words
         if (metrics["Words"] && metrics["Words"].length > 0) {
             hasMetrics = true;
             const values = metrics["Words"];
@@ -1439,24 +1450,6 @@ export default class DreamMetricsPlugin extends Plugin {
             content += "</tr>\n";
             
             processedMetrics.add("Words");
-        }
-        
-        if (metrics["Reading Time"] && metrics["Reading Time"].length > 0) {
-            hasMetrics = true;
-            const values = metrics["Reading Time"];
-            const avg = values.reduce((a, b) => a + b) / values.length;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            
-            content += "<tr>\n";
-            content += `<td>Reading Time</td>\n`;
-            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
-            content += `<td class="metric-value">${min}</td>\n`;
-            content += `<td class="metric-value">${max}</td>\n`;
-            content += `<td class="metric-value">${values.length}</td>\n`;
-            content += "</tr>\n";
-            
-            processedMetrics.add("Reading Time");
         }
         
         // Then process the rest in the defined order
@@ -1618,7 +1611,7 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Sort metrics by the recommended order
         const metricNames = enabledMetrics.map(m => m.name);
-        const combinedOrder = ["Words", "Reading Time", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
+        const combinedOrder = ["Words", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
         const sortedMetricNames = sortMetricsByOrder(metricNames, combinedOrder);
         
         // Sort the enabled metrics based on the sorted names
@@ -3973,6 +3966,11 @@ Emotional Impact: 5, Detail: 4
         globalLogger?.debug('Debug', 'Test 5 (factory method)', { result: test5 });
         
         return "ContentParser direct tests complete - check logs for results";
+    }
+
+    // Add this method to the DreamMetricsPlugin class
+    showMetricsTabsModal() {
+        new MetricsTabsModal(this.app, this).open();
     }
 
 }

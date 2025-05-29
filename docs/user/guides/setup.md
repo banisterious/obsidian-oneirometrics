@@ -221,8 +221,8 @@ If using Templater plugin:
    
 3. **Sample Templater-Enhanced Template**
    ```markdown
-   # Dream: <% tp.file.title %>
-   Date: <% tp.date.now("YYYY-MM-DD") %>
+   # Dream: settings-test-plan
+   Date: 2025-05-28
    
    ## Dream Description
    
@@ -233,10 +233,10 @@ If using Templater plugin:
    - Emotions: 
    
    > [!dream-metrics]
-   > Sensory Detail: <% tp.system.prompt("Sensory Detail (1-5):", "3") %>, 
-   > Emotional Recall: <% tp.system.prompt("Emotional Recall (1-5):", "3") %>, 
-   > Descriptiveness: <% tp.system.prompt("Descriptiveness (1-5):", "3") %>, 
-   > Confidence Score: <% tp.system.prompt("Confidence Score (1-5):", "3") %>
+   > Sensory Detail: null, 
+   > Emotional Recall: null, 
+   > Descriptiveness: null, 
+   > Confidence Score: null
    ```
 
 4. **Configure Templater**

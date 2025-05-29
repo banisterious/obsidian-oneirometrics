@@ -100,7 +100,7 @@ Default metrics include:
 | Sensory Detail | Vividness of sensory experiences | 1-5 | eye |
 | Emotional Recall | Ability to recall emotions from the dream | 1-5 | heart |
 | Descriptiveness | Detail level in your written description | 1-5 | file-text |
-| Characters Role | Prominence of characters in the dream | 1-5 | users |
+| Character Roles | Prominence of characters in the dream | 1-5 | users |
 | Confidence Score | Confidence in your memory of the dream | 1-5 | check-circle |
 | Characters Count | Number of characters appearing in the dream | Any whole number | users |
 | Familiar Count | Number of familiar people or entities | Any whole number | user-check |
