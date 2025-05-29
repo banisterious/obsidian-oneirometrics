@@ -307,6 +307,12 @@ let globalContentToggler: ContentToggler;
 // Global instance for table generation
 let globalTableGenerator: TableGenerator;
 
+// Import ProjectNoteManager
+import { ProjectNoteManager } from './src/state/ProjectNoteManager';
+
+// Import RibbonManager
+import { RibbonManager } from './src/dom/RibbonManager';
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -341,6 +347,8 @@ export default class DreamMetricsPlugin extends Plugin {
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
     private settingsManager: SettingsManager;
     public dateRangeService: DateRangeService;
+    private projectNoteManager: ProjectNoteManager;
+    private ribbonManager: RibbonManager;
 
     async onload() {
         // Initialize the logging system immediately
@@ -762,7 +770,41 @@ export default class DreamMetricsPlugin extends Plugin {
         customDateRange = loadLastCustomRange();
         
         // Initialize ribbon icons
-        this.addRibbonIcons();
+        if (this.ribbonManager) {
+            this.ribbonManager.addRibbonIcons();
+        } else {
+            // Fallback implementation when ribbonManager isn't available yet
+            this.logger?.debug('UI', 'RibbonManager not initialized, using fallback implementation');
+            
+            // Clear existing ribbon icons first
+            this.ribbonIcons.forEach(icon => icon.remove());
+            this.ribbonIcons = [];
+            
+            if (this.journalManagerRibbonEl) {
+                this.journalManagerRibbonEl.remove();
+                this.journalManagerRibbonEl = null;
+            }
+            
+            // Add ribbon icons if enabled in settings
+            if (this.settings?.showRibbonButtons) {
+                // Add journal manager button with lucide-moon icon
+                this.journalManagerRibbonEl = this.addRibbonIcon('lucide-moon', 'Dream Journal Manager', () => {
+                    if (this.dreamJournalManager) {
+                        // Just use open() method which we know exists
+                        this.dreamJournalManager.open();
+                    } else {
+                        new JournalStructureModal(this.app, this).open();
+                    }
+                });
+                this.ribbonIcons.push(this.journalManagerRibbonEl);
+                
+                // Add metrics guide button with lucide-scroll-text icon
+                const metricsGuideRibbonEl = this.addRibbonIcon('lucide-scroll-text', 'Dream Metrics Reference', () => {
+                    this.showMetricsTabsModal();
+                });
+                this.ribbonIcons.push(metricsGuideRibbonEl);
+            }
+        }
         
         // Add debug ribbon for calendar testing
         this.addCalendarDebugRibbon();
@@ -975,13 +1017,30 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Clear any cached data
         globalTableGenerator.clearCache();
+
+        // Initialize ProjectNoteManager
+        this.projectNoteManager = new ProjectNoteManager(this.app, this.settings, this.logger);
+
+        // Initialize RibbonManager
+        this.ribbonManager = new RibbonManager(this.app, this.settings, this, this.logger);
     }
 
     onunload() {
         safeLogger.info('Plugin', 'Unloading Dream Metrics plugin');
         
-        // Remove ribbon icons
-        this.removeRibbonIcons();
+        // Remove ribbon icons - safely check if ribbonManager exists
+        if (this.ribbonManager) {
+            this.ribbonManager.removeRibbonIcons();
+        } else {
+            // Fallback: clean up ribbon icons directly
+            this.ribbonIcons.forEach(icon => icon.remove());
+            this.ribbonIcons = [];
+            
+            if (this.journalManagerRibbonEl) {
+                this.journalManagerRibbonEl.remove();
+                this.journalManagerRibbonEl = null;
+            }
+        }
         
         // Clean up any registered event listeners and observers
         for (const cleanup of this.cleanupFunctions) {
@@ -1005,8 +1064,10 @@ export default class DreamMetricsPlugin extends Plugin {
     async saveSettings() {
         await this.settingsManager.saveSettings();
         
-        // Update ribbon icons after saving settings
-        this.updateRibbonIcons();
+        // Update ribbon icons after saving settings, only if ribbonManager exists
+        if (this.ribbonManager) {
+            this.ribbonManager.updateRibbonIcons();
+        }
     }
 
     async loadSettings() {
@@ -1182,221 +1243,7 @@ export default class DreamMetricsPlugin extends Plugin {
      * @param dreamEntries - Array of dream entries to include
      */
     public async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
-        const projectNotePath = getProjectNotePath(this.settings);
-        
-        globalLogger?.debug('MetricsNote', 'updateProjectNote called', { 
-            projectNote: projectNotePath,
-            entriesCount: dreamEntries.length 
-        });
-        
-        const projectFile = this.app.vault.getAbstractFileByPath(projectNotePath);
-        new Notice(`[DEBUG] updateProjectNote called for: ${projectNotePath}`);
-        
-        if (!(projectFile instanceof TFile)) {
-            globalLogger?.error('MetricsNote', 'Project note not found', { path: projectNotePath });
-            new Notice(`[DEBUG] Project note not found: ${projectNotePath}`);
-            return;
-        }
-        
-        if (dreamEntries.length === 0) {
-            globalLogger?.warn('MetricsNote', 'No dream entries to update', { projectNote: projectNotePath });
-            new Notice('[DEBUG] updateProjectNote called with zero dream entries. No update will be performed.');
-            return;
-        }
-
-        try {
-            const existingContent = await this.app.vault.read(projectFile);
-            
-            // Define markers for the metrics section
-            // CRITICAL FIX: Add data-render-html to ensure proper HTML rendering
-            const startMarker = '<!-- OOM METRICS START --><div data-render-html="true">';
-            const endMarker = '</div><!-- OOM METRICS END -->';
-
-            // Generate new content with markers
-            const newMetricsContent = startMarker + '\n' + this.generateMetricsTable(metrics, dreamEntries) + '\n' + endMarker;
-
-            let newContent = '';
-            const regexPattern = /<!-- OOM METRICS START -->([\s\S]*?)<!-- OOM METRICS END -->/;
-            
-            if (existingContent.match(regexPattern)) {
-                // Replace content between markers
-                newContent = existingContent.replace(regexPattern, newMetricsContent);
-            } else {
-                // If no markers exist, append to the end of the file
-                newContent = existingContent.trim() + '\n\n' + newMetricsContent;
-            }
-
-            // Only proceed if content has changed
-            if (newContent !== existingContent) {
-                await this.app.vault.modify(projectFile, newContent);
-                new Notice('Metrics tables updated successfully!');
-                globalLogger?.info('MetricsNote', 'Project note updated with new metrics and dream entries');
-                
-                // Force reload of the project note in all open leaves
-                let reloaded = false;
-                this.app.workspace.iterateAllLeaves(leaf => {
-                    if (leaf.view instanceof MarkdownView && leaf.view.file && leaf.view.file.path === projectNotePath) {
-                        leaf.openFile(projectFile, { active: leaf === this.app.workspace.activeLeaf });
-                        reloaded = true;
-                        globalLogger?.debug('MetricsNote', 'Forced reload of project note in workspace leaf');
-                    }
-                });
-                
-                if (!reloaded) {
-                    globalLogger?.debug('MetricsNote', 'Project note was not open in any workspace leaf');
-                }
-                
-                // Update view after content change
-                this.updateProjectNoteView();
-                
-                // Apply saved filters after a delay
-                setTimeout(() => {
-                    globalLogger?.debug('Filter', 'Applying saved filters after project note update');
-                    this.applyInitialFilters();
-                }, 1500);
-                
-                // Attach event listeners after table render with multiple attempts to ensure they're attached
-                setTimeout(() => {
-                    this.logger?.debug('UI', 'Attempting to attach event listeners (first attempt)');
-                    this.attachProjectNoteEventListeners();
-                    
-                    // Try again after a longer delay to ensure content is fully rendered
-                    setTimeout(() => {
-                        this.logger?.debug('UI', 'Attempting to attach event listeners (second attempt)');
-                        this.attachProjectNoteEventListeners();
-                        
-                        // One final attempt to catch any late rendering
-                        setTimeout(() => {
-                            this.logger?.debug('UI', 'Attempting to attach event listeners (final attempt)');
-                            this.attachProjectNoteEventListeners();
-                        }, 1000);
-                    }, 500);
-                }, 200);
-            } else {
-                new Notice('[DEBUG] No changes to metrics tables.');
-                globalLogger?.debug('MetricsNote', 'No changes detected in project note content');
-                
-                // Attach event listeners even if no changes
-                setTimeout(() => {
-                    this.logger?.debug('UI', 'Attempting to attach event listeners (no changes)');
-                    this.attachProjectNoteEventListeners();
-                }, 200);
-            }
-        } catch (error) {
-            globalLogger?.error('MetricsNote', 'Failed to update project note', error as Error);
-            new Notice(`[ERROR] Failed to update project note: ${error.message}`);
-        }
-    }
-
-    private async backupProjectNote(file: TFile) {
-        if (!isBackupEnabled(this.settings)) {
-            const shouldProceed = await this.confirmProceedWithoutBackup();
-            if (!shouldProceed) {
-                return false;
-            }
-            return true;
-        }
-        
-        const backupFolderPath = getBackupFolderPath(this.settings);
-        
-        if (!backupFolderPath) {
-            new Notice("Backup folder path not set. Please configure in settings.");
-            return false;
-        }
-
-        try {
-            // Read the file content
-            const content = await this.app.vault.read(file);
-            
-            // Generate timestamp in a more readable format
-            const now = new Date();
-            const pad = (n: number) => n.toString().padStart(2, '0');
-            const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-            
-            // Create backup filename with original filename and timestamp
-            const fileName = file.basename;
-            const backupFilePath = `${backupFolderPath}/${fileName}.backup-${timestamp}.bak`;
-            
-            // Check if backup folder exists
-            const backupFolderObj = this.app.vault.getAbstractFileByPath(backupFolderPath);
-            if (!backupFolderObj) {
-                try {
-                    await this.app.vault.createFolder(backupFolderPath);
-                    globalLogger?.info('Backup', `Created backup folder: ${backupFolderPath}`);
-                } catch (error) {
-                    globalLogger?.error('Backup', 'Error creating backup folder', error as Error);
-                    throw new Error(`Failed to create backup folder: ${error.message}`);
-                }
-            }
-            
-            // Check if backup file already exists
-            const existingBackup = this.app.vault.getAbstractFileByPath(backupFilePath);
-            if (existingBackup) {
-                globalLogger?.warn('Backup', `Backup file already exists: ${backupFilePath}`);
-                throw new Error('Backup file already exists');
-            }
-            
-            // Create the backup file
-            await this.app.vault.create(backupFilePath, content);
-            globalLogger?.info('Backup', `Created backup at: ${backupFilePath}`);
-            
-            // Clean up old backups (keep last 5)
-            try {
-                const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith(backupFolderPath) && 
-                        f.basename.startsWith(fileName) && 
-                        f.basename.includes('.backup-'))
-                    .sort((a, b) => b.stat.mtime - a.stat.mtime);
-                
-                // Delete backups older than the 5 most recent
-                for (let i = 5; i < backupFiles.length; i++) {
-                    await this.app.vault.delete(backupFiles[i]);
-                    globalLogger?.debug('Backup', `Deleted old backup: ${backupFiles[i].path}`);
-                }
-            } catch (error) {
-                globalLogger?.warn('Backup', 'Error cleaning up old backups', error as Error);
-                // Don't throw here, as the main backup was successful
-            }
-            
-            new Notice(`Backup created: ${backupFilePath}`);
-        } catch (error) {
-            globalLogger?.error('Backup', 'Error creating backup', error as Error);
-            throw new Error(`Failed to create backup: ${error.message}`);
-        }
-    }
-
-    private async confirmProceedWithoutBackup(): Promise<boolean> {
-        return new Promise((resolve) => {
-            const modal = new Modal(this.app);
-            modal.titleEl.setText('Backup Failed');
-            modal.contentEl.createEl('p', {
-                text: 'Failed to create a backup. Would you like to proceed without a backup?'
-            });
-            
-            const buttonContainer = modal.contentEl.createEl('div', {
-                cls: 'oom-modal-button-container'
-            });
-            
-            const cancelButton = buttonContainer.createEl('button', {
-                text: 'Cancel',
-                cls: 'mod-warning'
-            });
-            cancelButton.addEventListener('click', () => {
-                modal.close();
-                resolve(false);
-            });
-            
-            const proceedButton = buttonContainer.createEl('button', {
-                text: 'Proceed',
-                cls: 'mod-cta'
-            });
-            proceedButton.addEventListener('click', () => {
-                modal.close();
-                resolve(true);
-            });
-            
-            modal.open();
-        });
+        return this.projectNoteManager.updateProjectNote(metrics, dreamEntries);
     }
 
     private generateSummaryTable(metrics: Record<string, number[]>): string {
@@ -2332,42 +2179,50 @@ Applied: ${new Date().toLocaleTimeString()}`;
 
     // Method to update ribbon icon based on settings
     updateRibbonIcons() {
-        // Remove existing ribbon icons
-        this.removeRibbonIcons();
-        
-        // Only add ribbon icons if enabled
-        if (shouldShowRibbonButtons(this.settings)) {
-            this.addRibbonIcons();
+        // Only delegate if ribbonManager is initialized
+        if (this.ribbonManager) {
+            this.ribbonManager.updateRibbonIcons();
+        } else {
+            // Fallback implementation
+            this.logger?.debug('UI', 'RibbonManager not initialized, using fallback implementation');
+            // Original implementation from the RibbonManager class
+            // Clear existing ribbon icons
+            this.ribbonIcons.forEach(icon => icon.remove());
+            this.ribbonIcons = [];
+            
+            // Clear the journalManager ribbon if it exists
+            if (this.journalManagerRibbonEl) {
+                this.journalManagerRibbonEl.remove();
+                this.journalManagerRibbonEl = null;
+            }
+            
+            // Only add ribbon icons if enabled in settings
+            if (this.settings?.showRibbonButtons) {
+                // Add main metrics ribbon icon
+                this.ribbonIcons.push(
+                    this.addRibbonIcon('dice', 'OneiroMetrics', () => {
+                        this.showMetrics();
+                    })
+                );
+                
+                // Add journal manager button with lucide-moon icon
+                this.journalManagerRibbonEl = this.addRibbonIcon('lucide-moon', 'Dream Journal Manager', () => {
+                    if (this.dreamJournalManager) {
+                        // Just use open() method which we know exists
+                        this.dreamJournalManager.open();
+                    } else {
+                        new JournalStructureModal(this.app, this).open();
+                    }
+                });
+                this.ribbonIcons.push(this.journalManagerRibbonEl);
+                
+                // Add metrics guide button with lucide-scroll-text icon
+                const metricsGuideRibbonEl = this.addRibbonIcon('lucide-scroll-text', 'Dream Metrics Reference', () => {
+                    this.showMetricsTabsModal();
+                });
+                this.ribbonIcons.push(metricsGuideRibbonEl);
+            }
         }
-    }
-
-    private removeRibbonIcons(): void {
-        // Remove icons if they exist
-        this.ribbonIcons.forEach(icon => {
-            icon.remove();
-        });
-        this.ribbonIcons = [];
-        this.journalManagerRibbonEl = null;
-    }
-
-    private addRibbonIcons(): void {
-        // Check if ribbon icons should be shown - exit early if not
-        if (!shouldShowRibbonButtons(this.settings)) {
-            this.removeRibbonIcons(); // Make sure to remove any existing icons
-            return;
-        }
-        
-        // Add journal manager button
-        this.journalManagerRibbonEl = this.addRibbonIcon('moon', 'Dream Journal Manager', () => {
-            new DreamJournalManager(this.app, this, 'dashboard').open();
-        });
-        this.journalManagerRibbonEl.addClass('oom-journal-manager-button');
-        this.ribbonIcons.push(this.journalManagerRibbonEl); // Add to the array for proper tracking
-        
-        this.journalManagerRibbonEl.addEventListener('contextmenu', (evt: MouseEvent) => {
-            evt.preventDefault();
-            (this.app as any).setting.open('oneirometrics');
-        });
     }
 
     /**

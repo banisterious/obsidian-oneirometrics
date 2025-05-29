@@ -295,13 +295,17 @@ The main.ts file remains over 5,000 lines long, with many large methods inside t
 |-------------|-------|--------------|--------|------|-------|
 | onload | ~400 | src/plugin/PluginLoader.ts | ⬜ Not Started | - | Core plugin initialization |
 | scrapeMetrics | ~350 | src/metrics/MetricsCollector.ts | ✅ Complete | 2025-05-29 | Created MetricsCollector class to handle metrics collection |
-| generateMetricsTable | ~300 | src/dom/tables/MetricsTable.ts | ⬜ Not Started | - | Create HTML table for metrics |
-| updateProjectNote | ~250 | src/metrics/ProjectNoteUpdater.ts | 🔄 In Progress | 2025-05-29 | Started implementation but needs access to several private methods in DreamMetricsPlugin |
+| generateMetricsTable | ~300 | src/dom/tables/TableGenerator.ts | ✅ Complete | 2025-06-15 | Created TableGenerator class to handle metrics table generation |
+| updateProjectNote | ~250 | src/state/ProjectNoteManager.ts | ✅ Complete | 2025-06-15 | Created ProjectNoteManager class to handle project note operations |
+| backupProjectNote | ~120 | src/state/ProjectNoteManager.ts | ✅ Complete | 2025-06-15 | Included in ProjectNoteManager class |
+| confirmProceedWithoutBackup | ~50 | src/state/ProjectNoteManager.ts | ✅ Complete | 2025-06-15 | Included in ProjectNoteManager class |
 | processMetrics | ~200 | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
 | buildFilterControls | ~180 | src/dom/filters/FilterControls.ts | ⬜ Not Started | - | Build filter UI controls |
-| backupProjectNote | ~120 | src/utils/BackupManager.ts | ⬜ Not Started | - | Backup project note |
 | toggleContentVisibility | ~100 | src/dom/content/ContentToggler.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
-| expandAllContentSections | ~80 | src/dom/content/ContentExpander.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
+| expandAllContentSections | ~80 | src/dom/content/ContentToggler.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
+| updateRibbonIcons | ~30 | src/dom/RibbonManager.ts | ✅ Complete | 2025-06-15 | Created RibbonManager class to handle ribbon icons |
+| removeRibbonIcons | ~20 | src/dom/RibbonManager.ts | ✅ Complete | 2025-06-15 | Included in RibbonManager class |
+| addRibbonIcons | ~40 | src/dom/RibbonManager.ts | ✅ Complete | 2025-06-15 | Included in RibbonManager class |
 | forceApplyDateFilter | ~75 | src/dom/filters/DateFilter.ts | ⬜ Not Started | - | Apply date filter |
 
 **Extraction Process:**
