@@ -4,12 +4,12 @@
  * Demonstrates how to use the API resilience components in a typical Obsidian plugin.
  */
 
-import { ApiClient, ApiRequestOptions } from '../ApiClient';
+import { ApiClient } from '../ApiClient';
 import safeLogger from '../../../logging/safe-logger';
 import { ResilienceManager } from '../ResilienceManager';
 import { RetryPolicy } from '../RetryPolicy';
 import { CircuitBreaker } from '../CircuitBreaker';
-import { OfflineSupport, OfflineEventType } from '../OfflineSupport';
+import { OfflineEventType } from '../OfflineSupport';
 
 /**
  * Example response from a weather API
