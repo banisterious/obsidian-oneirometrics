@@ -321,7 +321,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         icon: "user-cog",
         minValue: 1,
         maxValue: 5,
-        enabled: true,
+        enabled: false,
         category: "dream",
         type: "number",
         format: "number"

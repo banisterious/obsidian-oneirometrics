@@ -461,9 +461,6 @@ export class MetricsProcessor {
             const wordCount = content.trim().split(/\s+/).length;
             metrics['Words'] = wordCount;
             
-            // Reading time (assuming average reading speed of 200 words per minute)
-            metrics['Reading Time'] = Math.ceil(wordCount / 200);
-            
             // Sentence count
             const sentenceCount = (content.match(/[.!?]+\s/g) || []).length + 1;
             metrics['Sentences'] = sentenceCount;

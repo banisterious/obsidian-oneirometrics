@@ -41,9 +41,6 @@ export class DreamMetricsProcessor {
         // Ensure wordCount property is set for compatibility
         processedEntry.wordCount = wordCount;
 
-        // Calculate reading time (assuming average reading speed of 200 words per minute)
-        processedEntry.metrics['Reading Time'] = Math.ceil(wordCount / 200);
-
         // Calculate sentiment
         processedEntry.metrics['Sentiment'] = this.calculateSentiment(entry.content);
 

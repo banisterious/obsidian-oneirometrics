@@ -194,7 +194,7 @@ export class TableGenerator {
         content += "<tbody>\n";
         
         // CRITICAL FIX: More explicit and controlled metrics ordering
-        const combinedOrder = ["Words", "Reading Time", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
+        const combinedOrder = ["Words", ...RECOMMENDED_METRICS_ORDER, ...DISABLED_METRICS_ORDER];
         
         // Create a lookup map for metrics by name
         const metricsLookup: Record<string, DreamMetric> = {};
@@ -206,7 +206,7 @@ export class TableGenerator {
         const processedMetrics = new Set<string>();
         let hasMetrics = false;
         
-        // First, handle special cases (Words, Reading Time)
+        // First, handle special case for Words
         if (metrics["Words"] && metrics["Words"].length > 0) {
             hasMetrics = true;
             const values = metrics["Words"];
@@ -224,24 +224,6 @@ export class TableGenerator {
             content += "</tr>\n";
             
             processedMetrics.add("Words");
-        }
-        
-        if (metrics["Reading Time"] && metrics["Reading Time"].length > 0) {
-            hasMetrics = true;
-            const values = metrics["Reading Time"];
-            const avg = values.reduce((a, b) => a + b) / values.length;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            
-            content += "<tr>\n";
-            content += `<td>Reading Time</td>\n`;
-            content += `<td class="metric-value">${avg.toFixed(2)}</td>\n`;
-            content += `<td class="metric-value">${min}</td>\n`;
-            content += `<td class="metric-value">${max}</td>\n`;
-            content += `<td class="metric-value">${values.length}</td>\n`;
-            content += "</tr>\n";
-            
-            processedMetrics.add("Reading Time");
         }
         
         // Then process the rest in the defined order

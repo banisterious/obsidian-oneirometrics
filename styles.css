@@ -6159,43 +6159,19 @@ tr.oom-dream-row {
 
 /* Button styling with subtle hover effect */
 .oom-button--expand {
+    margin-top: 5px;
+    padding: 4px 8px;
     color: var(--text-on-accent);
     background-color: var(--interactive-accent);
     border-radius: 4px;
-    padding: 4px 8px;
     transition: background-color 0.2s ease;
     cursor: pointer;
-    margin-top: 5px;
 }
 
 .oom-button--expand:hover {
     background-color: var(--interactive-accent-hover);
     /* Remove the transform for a more subtle effect */
 }
-
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
-
-
-
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
-
-
-
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
-
-
-
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
-
-
 
 /* ==========================================================================
    Component Styles
@@ -6377,4 +6353,229 @@ tr.oom-dream-row {
 
 .oom-log-trace {
   border-left: 4px solid var(--background-secondary);
+}
+
+/* ==========================================================================
+   Metrics Tabs Modal Styles
+   ========================================================================== */
+
+/* Modal that displays dream metrics information in a tabbed interface */
+
+/* Set overall dimensions */
+
+.modal:has(.oom-metrics-tabs-modal) {
+    width: 1000px;
+    height: 900px;
+}
+
+
+
+
+.oom-metrics-tabs-modal {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    padding: 1rem;
+    height: 100%;
+    max-width: 980px;
+}
+
+.oom-metrics-tabs-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    text-align: center;
+    font-size: 1.8rem;
+    border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+}
+
+.oom-metrics-tabs-container {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    background-color: var(--background-primary);
+}
+
+/* Sidebar with tabs */
+.oom-metrics-tabs-sidebar {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    width: 220px;
+    padding: 1rem 0;
+    overflow-y: auto;
+    border-right: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+}
+
+.oom-metrics-tabs-group-header {
+    margin: 0.5rem 0 0.25rem 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    color: var(--text-muted);
+}
+
+.oom-metrics-tabs-button {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    border-left: 3px solid transparent;
+    color: var(--text-normal);
+}
+
+.oom-metrics-tabs-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-metrics-tabs-active {
+    border-left-color: var(--text-accent);
+    font-weight: 600;
+    color: var(--text-accent);
+    background-color: var(--background-primary) !important;
+}
+
+.oom-metrics-tabs-icon {
+    display: flex;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.oom-metrics-tabs-active .oom-metrics-tabs-icon {
+    color: var(--text-accent);
+}
+
+.oom-metrics-tabs-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Content area */
+.oom-metrics-tabs-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-tabs-metric-header {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+}
+
+.oom-metrics-tabs-description {
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.oom-metrics-tabs-score-table {
+    margin-top: 1.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+.oom-metrics-tabs-score-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.oom-metrics-tabs-score-table th,
+.oom-metrics-tabs-score-table td {
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-metrics-tabs-score-table th {
+    font-weight: 600;
+    background-color: var(--background-secondary-alt);
+}
+
+.oom-metrics-tabs-overview-text {
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.oom-metrics-tabs-sources-content {
+    padding: 1.5rem;
+    border-radius: 6px;
+    background-color: var(--background-secondary);
+}
+
+.oom-metrics-tabs-sources-content h2,
+.oom-metrics-tabs-sources-content h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-normal);
+}
+
+.oom-metrics-tabs-sources-content ul {
+    margin-left: 1.5rem;
+}
+
+.oom-metrics-tabs-sources-content li {
+    margin-bottom: 0.5rem;
+}
+
+.oom-metrics-tabs-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding: 1rem 0 0 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .oom-metrics-tabs-container {
+        flex-direction: column;
+    }
+    
+    .oom-metrics-tabs-sidebar {
+        max-height: 200px;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--background-modifier-border);
+    }
+}
+
+/* Forced colors (high contrast) mode */
+@media (forced-colors: active) {
+    .oom-metrics-tabs-button {
+        border-left-width: 2px;
+    }
+    
+    .oom-metrics-tabs-active {
+        border-left-color: Highlight;
+        color: Highlight;
+    }
+    
+    .oom-metrics-tabs-active .oom-metrics-tabs-icon {
+        color: Highlight;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .oom-metrics-tabs-button {
+        transition: none;
+    }
 }

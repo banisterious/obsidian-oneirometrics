@@ -36,7 +36,7 @@ OneiroMetrics includes several categories of metrics to capture different aspect
 ### Advanced Metrics
 - **Lucidity Level (1-5)**: Degree of awareness that you were dreaming
 - **Dream Coherence (1-5)**: How logical or coherent the dream narrative was
-- **Setting Familiarity (1-5)**: How familiar the dream setting was
+- **Environmental Familiarity (1-5)**: How familiar the dream setting was
 - **Recall Stability (1-5)**: How stable your memory of the dream has been
 
 ## Why Track Dream Metrics?

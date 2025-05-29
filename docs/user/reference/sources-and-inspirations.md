@@ -48,7 +48,7 @@ Understanding how memory works, particularly the nature of dream recall and its 
 ### Dream Content Metrics
 
 - **Characters Count/List**: Influenced by Hall and Van de Castle's system of dream content analysis
-- **Setting Familiarity**: Draws from research on place recognition and environmental psychology
+- **Environmental Familiarity**: Draws from research on place recognition and environmental psychology
 - **Dream Theme**: Inspired by archetypal and thematic approaches to dream interpretation
 
 ### Lucidity and Awareness
