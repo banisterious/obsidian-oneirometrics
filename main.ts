@@ -970,7 +970,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize the global ContentToggler
         globalContentToggler = new ContentToggler(this.logger);
         
-        // Initialize the global TableGenerator
+        // Initialize the global TableGenerator with proper content processing
         globalTableGenerator = new TableGenerator(this.settings, this.logger);
     }
 
