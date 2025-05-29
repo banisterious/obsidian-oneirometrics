@@ -1834,8 +1834,221 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     }
 }
 
-// --- Metrics Descriptions Modal ---
 // --- Metrics Descriptions Modal has been moved to src/dom/modals/MetricsDescriptionsModal.ts ---
+
+// --- Metrics Callout Customizations Modal ---
+class MetricsCalloutCustomizationsModal extends Modal {
+    plugin: DreamMetricsPlugin;
+    constructor(app: App, plugin: DreamMetricsPlugin) {
+        super(app);
+        this.plugin = plugin;
+    }
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass('oom-callout-modal');
+        contentEl.createEl('h2', { text: 'Metrics Callout Customizations' });
+        // State for the callout structure
+        let calloutMetadata = '';
+        let singleLine = false;
+        // Helper to build the callout structure
+        const buildCallout = () => {
+            const meta = calloutMetadata.trim();
+            const metaStr = meta ? `|${meta}` : '';
+            const header = `> [!dream-metrics${metaStr}]`;
+            const metrics = [
+                'Sensory Detail:',
+                'Emotional Recall:',
+                'Lost Segments:',
+                'Descriptiveness:',
+                'Confidence Score:'
+            ];
+            if (singleLine) {
+                return `${header}\n> ${metrics.join(' , ')}`;
+            } else {
+                return `${header}\n> ${metrics.join(' \n> ')}`;
+            }
+        };
+        // Callout Structure Preview (styled div)
+        const calloutBox = contentEl.createEl('div', {
+            cls: 'oom-callout-structure-box',
+        });
+        calloutBox.style.width = '100%';
+        calloutBox.style.minHeight = '90px';
+        calloutBox.style.fontFamily = 'var(--font-monospace, monospace)';
+        calloutBox.style.fontSize = '0.93em';
+        calloutBox.style.background = '#f5f5f5';
+        calloutBox.style.border = '1px solid #bbb';
+        calloutBox.style.borderRadius = '4px';
+        calloutBox.style.marginBottom = '0.7em';
+        calloutBox.style.padding = '8px 12px';
+        calloutBox.style.whiteSpace = 'pre-wrap';
+        calloutBox.style.wordBreak = 'break-word';
+        calloutBox.style.userSelect = 'all';
+        calloutBox.textContent = buildCallout();
+        // Copy button
+        const copyBtn = contentEl.createEl('button', { text: 'Copy', cls: 'oom-copy-btn' });
+        copyBtn.style.fontSize = '0.92em';
+        copyBtn.style.padding = '2px 10px';
+        copyBtn.style.borderRadius = '4px';
+        copyBtn.style.border = '1px solid #bbb';
+        copyBtn.style.background = '#f5f5f5';
+        copyBtn.style.cursor = 'pointer';
+        copyBtn.style.marginBottom = '1em';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(calloutBox.textContent || '');
+            new Notice('Copied!');
+        };
+        // Single-Line Toggle
+        new Setting(contentEl)
+            .setName('Single-Line Callout Structure')
+            .setDesc('Show all metric fields on a single line in the callout structure')
+            .addToggle(toggle => {
+                toggle.setValue(singleLine)
+                    .onChange(async (value) => {
+                        singleLine = value;
+                        calloutBox.textContent = buildCallout();
+                    });
+            });
+        // Callout Metadata Field
+        new Setting(contentEl)
+            .setName('Callout Metadata')
+            .setDesc('Default metadata to include in dream callouts')
+            .addText(text => text
+                .setPlaceholder('Enter metadata')
+                .setValue(calloutMetadata)
+                .onChange(async (value) => {
+                    calloutMetadata = value;
+                    await this.plugin.saveSettings();
+                }));
+    }
+}
+
+// Import for file suggestion modal
+class FileSuggestModal extends Modal {
+    constructor(app: App) { 
+        super(app);
+    }
+    
+    setPlaceholder(placeholder: string) {
+        return this;
+    }
+    
+    onChooseItem: (item: string) => void = () => {};
+    
+    open() {
+        super.open();
+        // This is a stub implementation
+        setTimeout(() => {
+            if (this.onChooseItem) {
+                this.onChooseItem('');
+            }
+            this.close();
+        }, 100);
+    }
+}
+
+// Helper function to get selection mode description
+function getSelectionModeDescription(mode: string): string {
+    if (mode === 'notes' || mode === 'manual') {
+        return 'Select individual notes to include in dream metrics';
+    }
+    if (mode === 'folder' || mode === 'automatic') {
+        return 'Select a folder to recursively search for dream metrics';
+    }
+    return 'Choose how to select notes for metrics processing';
+} 
+
+// Stub implementation of JournalStructureModal
+class JournalStructureModal extends Modal {
+  private plugin: DreamMetricsPlugin;
+  
+  constructor(app: App, plugin: DreamMetricsPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+  
+  open() {
+    super.open();
+    this.contentEl.createEl('h2', { text: 'Journal Structure Settings' });
+    // This is a stub implementation
+  }
+}
+
+// Stub implementation for TemplateWizard
+class TemplateWizard extends Modal {
+    constructor(app: App, plugin: DreamMetricsPlugin, templaterIntegration?: any) {
+        super(app);
+    }
+    
+    open() {
+        super.open();
+        this.contentEl.createEl('h2', { text: 'Template Wizard' });
+        // This is a stub implementation
+    }
+}
+
+// Add a helper function to sort metrics by a predefined order
+export function sortMetricsByOrder(metrics: string[], orderArray: string[]): string[] {
+  // Create a copy to avoid modifying the original array
+  const sortedMetrics = [...metrics];
+  
+  // Sort by the predefined order
+  sortedMetrics.sort((a, b) => {
+    const indexA = orderArray.indexOf(a);
+    const indexB = orderArray.indexOf(b);
+    
+    // If both are in the order array, sort by their position
+    if (indexA >= 0 && indexB >= 0) {
+      return indexA - indexB;
+    }
+    
+    // If only one is in the order array, prioritize it
+    if (indexA >= 0) return -1;
+    if (indexB >= 0) return 1;
+    
+    // If neither is in the order array, sort alphabetically
+    return a.localeCompare(b);
+  });
+  
+  return sortedMetrics;
+}
+
+// Add a specialized function for sorting metric entries
+function sortMetricEntriesByOrder(
+  metricEntries: [string, DreamMetric][],
+  orderArray: string[]
+): [string, DreamMetric][] {
+  try {
+    // Create a map for O(1) lookup of position
+    const orderMap: Record<string, number> = {};
+    orderArray.forEach((name, index) => {
+      orderMap[name] = index;
+    });
+    
+    // Sort based on the order array
+    return [...metricEntries].sort(([_keyA, metricA], [_keyB, metricB]) => {
+      const nameA = metricA.name;
+      const nameB = metricB.name;
+      
+      // If both are in the order array, sort by their position
+      const posA = orderMap[nameA];
+      const posB = orderMap[nameB];
+      
+      if (posA !== undefined && posB !== undefined) {
+        return posA - posB;
+      }
+      
+      // If only one is in the order array, prioritize it
+      if (posA !== undefined) return -1;
+      if (posB !== undefined) return 1;
+      
+      // If neither is in the order array, sort alphabetically
+      return nameA.localeCompare(nameB);
+    });
+  } catch (error) {
+    error('Settings', 'Error sorting metric entries', error);
+    // Return the original entries if there's an error
     return metricEntries;
   }
 }
