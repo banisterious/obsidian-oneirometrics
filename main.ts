@@ -134,7 +134,7 @@ import {
 // Import the SettingsAdapter from state/adapters
 import { SettingsAdapter, createAndRegisterSettingsAdapter } from './src/state/adapters/SettingsAdapter';
 import { SettingsManager } from './src/state/SettingsManager';
-import { MetricsProcessor } from './src/metrics';
+import { MetricsProcessor, DreamMetricsProcessor, MetricsCollector } from './src/metrics';
 
 // Import EventHandling utilities for event handling
 import { attachClickEvent } from './src/templates/ui/EventHandling';
@@ -297,6 +297,12 @@ const DEFAULT_LINTING_SETTINGS: LintingSettings = {
  * A backup of this code is available at src/dom/modals/OneiroMetricsModal.bak.ts 
  * in case restoration is needed.
  */
+
+// Import ContentToggler
+import { ContentToggler } from './src/dom/content';
+
+// Global instance for functions that need access to ContentToggler
+let globalContentToggler: ContentToggler;
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -957,6 +963,9 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.showMetricsTabsModal();
             }
         });
+
+        // Initialize the global ContentToggler
+        globalContentToggler = new ContentToggler(this.logger);
     }
 
     onunload() {
@@ -1134,11 +1143,11 @@ export default class DreamMetricsPlugin extends Plugin {
 
     async scrapeMetrics() {
         try {
-            // Create a metrics processor instance
-            const metricsProcessor = new MetricsProcessor(this.app, this, this.logger);
+            // Create a metrics collector instance
+            const metricsCollector = new MetricsCollector(this.app, this, this.logger);
             
-            // Call the processor's scrapeMetrics method
-            await metricsProcessor.scrapeMetrics();
+            // Call the collector's scrapeMetrics method
+            await metricsCollector.scrapeMetrics();
         } catch (error) {
             this.logger?.error('Scrape', 'Error in scrapeMetrics', error as Error);
             new Notice(`Error scraping metrics: ${error.message}`);
@@ -1146,51 +1155,15 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private processDreamContent(content: string): string {
-        // Remove callouts and images
-        content = content.replace(/\[!.*?\]/g, '')
-                       .replace(/!\[\[.*?\]\]/g, '')
-                       .replace(/\[\[.*?\]\]/g, '')
-                       .trim();
-        
-        // Remove any remaining markdown artifacts
-        content = content.replace(/[#*_~`]/g, '')
-                       .replace(/\n{3,}/g, '\n\n')
-                       .replace(/^>\s*>/g, '') // Remove nested blockquotes
-                       .replace(/^>\s*/gm, '') // Remove single blockquotes
-                       .trim();
-        
-        return content;
+        // Use the MetricsProcessor implementation
+        const metricsProcessor = new MetricsProcessor(this.app, this, this.logger);
+        return metricsProcessor.processDreamContent(content);
     }
 
     private processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number> {
-        const dreamMetrics: Record<string, number> = {};
-        const metricPairs = metricsText.split(',').map(pair => pair.trim());
-        
-        globalLogger?.debug('Metrics', 'Processing metrics text', { text: metricsText });
-        
-        for (const pair of metricPairs) {
-            const [name, value] = pair.split(':').map(s => s.trim());
-            if (name && value !== '—' && !isNaN(Number(value))) {
-                const numValue = Number(value);
-                // Find the matching metric name from settings (case-insensitive)
-                const metricName = Object.values(this.settings.metrics).find(
-                    m => m.name.toLowerCase() === name.toLowerCase()
-                )?.name || name;
-                
-                dreamMetrics[metricName] = numValue;
-                
-                // Update global metrics record
-                if (!metrics[metricName]) {
-                    metrics[metricName] = [];
-                }
-                metrics[metricName].push(numValue);
-                
-                globalLogger?.debug('Metrics', `Processed metric: ${metricName} = ${numValue}`);
-            }
-        }
-        
-        globalLogger?.debug('Metrics', 'Completed metrics processing', { dreamMetrics });
-        return dreamMetrics;
+        // Use the MetricsProcessor implementation
+        const metricsProcessor = new MetricsProcessor(this.app, this, this.logger);
+        return metricsProcessor.processMetrics(metricsText, metrics);
     }
 
     /**
@@ -5127,132 +5100,28 @@ declare global {
 
 // Function to toggle content visibility for a given button - alternative implementation
 function toggleContentVisibility(button: HTMLElement) {
-    globalLogger?.debug('UI', 'Using alternative content visibility implementation');
+    globalLogger?.debug('UI', 'Using ContentToggler implementation for toggleContentVisibility');
     
-    try {
-        // Get the content cell ID from the button
-        const contentCellId = button.getAttribute('data-parent-cell');
-        if (!contentCellId) {
-            globalLogger?.error('UI', 'No data-parent-cell attribute on button');
-            new Notice('Error: Cannot find content to expand');
-            return;
-        }
-        
-        const contentCell = document.getElementById(contentCellId);
-        if (!contentCell) {
-            globalLogger?.error('UI', 'Could not find content cell with ID', { contentCellId });
-            new Notice('Error: Content cell not found');
-            return;
-        }
-        
-        // Get the current state
-        const isExpanded = button.getAttribute('data-expanded') === 'true';
-        globalLogger?.debug('UI', 'Current expansion state', { isExpanded });
-        
-        // Get elements
-        const contentWrapper = contentCell.querySelector('.oom-content-wrapper');
-        const previewContent = contentCell.querySelector('.oom-content-preview');
-        const fullContent = contentCell.querySelector('.oom-content-full');
-        
-        if (!contentWrapper || !previewContent || !fullContent) {
-            globalLogger?.error('UI', 'Missing required content elements');
-            return;
-        }
-        
-        // Force browser reflow first
-        void contentCell.offsetHeight;
-        
-        // Direct DOM manipulation approach
-        if (!isExpanded) {
-            globalLogger?.debug('UI', 'Expanding content', { contentCellId });
-            
-            // 1. First update button state
-            button.setAttribute('data-expanded', 'true');
-            button.setAttribute('aria-expanded', 'true');
-            const buttonText = button.querySelector('.oom-button-text');
-            if (buttonText) buttonText.textContent = 'Show less';
-            const buttonIcon = button.querySelector('.oom-button-icon');
-            if (buttonIcon) buttonIcon.textContent = '▲';
-            
-            // 2. Update content wrapper with CSS class
-            contentWrapper.classList.add('expanded');
-            
-            // 3. Create a transition effect by temporarily setting overflow to hidden
-            contentCell.style.overflow = 'hidden';
-            
-            // 4. Set styles directly - use requestAnimationFrame for better performance
-            requestAnimationFrame(() => {
-                (previewContent as HTMLElement).style.display = 'none';
-                (fullContent as HTMLElement).style.display = 'block';
-                
-                // 5. Update the table row height to fit the new content
-                const tableRow = contentCell.closest('tr');
-                if (tableRow) {
-                    (tableRow as HTMLElement).style.height = 'auto';
-                    (tableRow as HTMLElement).style.minHeight = 'fit-content';
-                }
-                
-                // 6. Remove overflow constraint after transition
-                setTimeout(() => {
-                    contentCell.style.overflow = '';
-                }, 300);
-                
-                new Notice('Content expanded');
-            });
-        } else {
-            globalLogger?.debug('UI', 'Collapsing content', { contentCellId });
-            
-            // 1. First update button state
-            button.setAttribute('data-expanded', 'false');
-            button.setAttribute('aria-expanded', 'false');
-            const buttonText = button.querySelector('.oom-button-text');
-            if (buttonText) buttonText.textContent = 'Show more';
-            const buttonIcon = button.querySelector('.oom-button-icon');
-            if (buttonIcon) buttonIcon.textContent = '▼';
-            
-            // 2. Update content wrapper with CSS class
-            contentWrapper.classList.remove('expanded');
-            
-            // 3. Set styles directly - use requestAnimationFrame for better performance
-            requestAnimationFrame(() => {
-                (previewContent as HTMLElement).style.display = 'block';
-                (fullContent as HTMLElement).style.display = 'none';
-                
-                new Notice('Content collapsed');
-            });
-        }
-        
-        // Store the expanded state in localStorage for persistence
-        try {
-            const expandedStates = JSON.parse(localStorage.getItem('oom-expanded-states') || '{}');
-            expandedStates[contentCellId] = !isExpanded;
-            localStorage.setItem('oom-expanded-states', JSON.stringify(expandedStates));
-        } catch (e) {
-            globalLogger?.error('UI', 'Error saving expanded state', { error: e });
-        }
-        
-    } catch (error) {
-        globalLogger?.error('UI', 'Error in toggleContentVisibility', { error });
+    // Use the ContentToggler implementation
+    if (globalContentToggler) {
+        globalContentToggler.toggleContentVisibility(button);
+    } else {
+        globalLogger?.error('UI', 'ContentToggler not initialized');
+        new Notice('Error: Content toggler not initialized');
     }
 }
 
 // Helper function to expand all content sections - useful for debugging
 function expandAllContentSections(previewEl: HTMLElement) {
-    globalLogger?.debug('UI', 'Expanding all content sections for debugging');
+    globalLogger?.debug('UI', 'Using ContentToggler implementation for expandAllContentSections');
     
-    const expandButtons = previewEl.querySelectorAll('.oom-button--expand');
-    expandButtons.forEach(button => {
-        const isExpanded = button.getAttribute('data-expanded') === 'true';
-        if (!isExpanded) {
-            // Only expand sections that aren't already expanded
-            globalLogger?.debug('UI', 'Expanding content section', { 
-                contentCellId: button.getAttribute('data-parent-cell') 
-            });
-            toggleContentVisibility(button as HTMLElement);
-        }
-    });
-    
-    globalLogger?.debug('UI', 'Finished expanding all content sections');
+    // Use the ContentToggler implementation
+    if (globalContentToggler) {
+        globalContentToggler.expandAllContentSections(previewEl);
+    } else {
+        globalLogger?.error('UI', 'ContentToggler not initialized');
+        new Notice('Error: Content toggler not initialized');
+    }
 }
 
 // Debug helper - expose content expansion function to window object for console debugging

@@ -7,6 +7,7 @@
 
 import { App, MarkdownView, Notice } from 'obsidian';
 import { debug, info, warn, error } from '../logging';
+import { ILogger } from '../logging/LoggerTypes';
 import { DreamMetricsSettings } from '../types/core';
 import { ContentToggler } from '../dom/content';
 

@@ -247,17 +247,20 @@ Based on initial analysis, these areas have the highest concentration of dead co
   - Identified CustomDateRangeModal import for potential removal after verification
 - Verified via grep search that these imports are not used directly in main.ts
 - Continued removing unused imports from more files:
-  - src/dom/DOMSafetyGuard.ts - removed safeQuerySelector from defensive-utils imports
-  - settings.ts - removed Shell from lucide-static imports and createFolderAutocomplete from autocomplete imports
-  - src/events/EventBus.ts - removed isNonEmptyString from defensive-utils imports
-  - src/events/FilterEvents.ts - removed safeLogger import and replaced with specific logging functions
-  - src/events/ProjectNoteEvents.ts - removed safeLogger import and replaced with specific logging functions
-  - src/metrics/MetricsProcessor.ts - removed Modal and Setting from obsidian, isMetricEnabled and standardizeMetric from utils/metric-helpers, and safeLogger from logging/safe-logger
-- Next steps:
-  - Continue removing unused imports from more files
-  - Focus on high-impact files that have multiple unused imports
-  - Use the utility script to process multiple files efficiently
-  - Add checks to ensure removed imports don't break functionality
+  - Analyzed CustomDateRangeModal.ts - No unused imports found
+  - Analyzed DreamMetricsDOM.ts - No unused imports found
+  - Analyzed ApiResilienceDemo.ts - No unused imports found
+  - Analyzed DateNavigator.ts - No unused imports found
+  - Analyzed FilterEvents.ts - No unused imports found
+  - Analyzed ProjectNoteEvents.ts - No unused imports found
+  - Analyzed MetricsProcessor.ts - No unused imports found
+  - Analyzed settings.ts - No unused imports found
+  - Attempted to remove unused imports from main.ts - Tool identified potential unused imports but editing was unsuccessful
+
+#### Next Steps for Import Cleanup:
+- Need to verify if the unused imports in main.ts are truly unused, as the tool reported possible unused imports but might include false positives
+- Consider focusing on the remaining high-impact files identified by the analysis tool
+- Use the utility script with more specific file targeting
 
 ### Phase 2: Import Cleanup
 
@@ -284,37 +287,55 @@ Based on initial analysis, these areas have the highest concentration of dead co
 
 ### Phase 3: Transitional Code Removal
 
-1. Complete migration of types system
-   - Update all imports to use new types system
-   - Remove bridge files and legacy type definitions
+#### 3.1 Extract Large Methods from DreamMetricsPlugin Class
 
-2. Remove commented-out code blocks
-   - Review for any valuable information
-   - Remove after confirmation
+The main.ts file remains over 5,000 lines long, with many large methods inside the DreamMetricsPlugin class that should be extracted into separate modules. This will significantly reduce the size of main.ts and improve code organization and maintainability.
 
-**Progress (2025-05-24):**
-- Updated utils/logger.ts to use the new consolidated type system
-  - Fixed import path to use src/types/logging instead of deprecated root types.ts
-  - Updated code to use the new LogLevel type with proper values
-  - Fixed type comparison for error level checking
+| Method Name | Lines | Target Module | Status | Date | Notes |
+|-------------|-------|--------------|--------|------|-------|
+| onload | ~400 | src/plugin/PluginLoader.ts | ⬜ Not Started | - | Core plugin initialization |
+| scrapeMetrics | ~350 | src/metrics/MetricsCollector.ts | ✅ Complete | 2025-05-29 | Created MetricsCollector class to handle metrics collection |
+| generateMetricsTable | ~300 | src/dom/tables/MetricsTable.ts | ⬜ Not Started | - | Create HTML table for metrics |
+| updateProjectNote | ~250 | src/metrics/ProjectNoteUpdater.ts | 🔄 In Progress | 2025-05-29 | Started implementation but needs access to several private methods in DreamMetricsPlugin |
+| processMetrics | ~200 | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
+| buildFilterControls | ~180 | src/dom/filters/FilterControls.ts | ⬜ Not Started | - | Build filter UI controls |
+| backupProjectNote | ~120 | src/utils/BackupManager.ts | ⬜ Not Started | - | Backup project note |
+| toggleContentVisibility | ~100 | src/dom/content/ContentToggler.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
+| expandAllContentSections | ~80 | src/dom/content/ContentExpander.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
+| forceApplyDateFilter | ~75 | src/dom/filters/DateFilter.ts | ⬜ Not Started | - | Apply date filter |
 
-**Progress (2025-05-25):**
-- Continued migration to the consolidated type system
-  - Updated DreamMetricsProcessor.ts to use imports from types/core.ts
-  - Fixed type compatibility issues with the new DreamMetricData interface
-  - Added proper type checks for metrics that can be either string or number
-  - Updated DreamMetricsEvents.ts to use the new type imports
-  - Updated constants.ts to use domain-specific imports from core.ts and logging.ts
-  - Fixed DEFAULT_LOGGING object to match the new LoggingSettings interface
-  - Updated DateNavigator.ts to use the consolidated type system
-  - Updated DateRangeFilter.ts to use types/core.ts and replaced console.log calls with structured logging
-  - Updated DreamMetricsState.ts to use the consolidated type system
-- Reorganized CHANGELOG.md to be more concise and user-focused
-  - Moved detailed implementation notes from CHANGELOG to code-cleanup-plan.md
-  - Shortened entries to focus on user-visible changes
-  - Grouped related changes into higher-level bullet points
+**Extraction Process:**
+1. Create a new file for each extracted module
+2. Move the method code to the new file
+3. Update imports and dependencies
+4. Create a class to encapsulate related functionality
+5. Update main.ts to use the new module
+6. Test thoroughly to ensure functionality is maintained
 
-**MILESTONE ACHIEVED (2025-05-25):** Completed the migration to the consolidated type system across the codebase. Verified that all imports are now using the new domain-specific type modules, and all console.log statements have been replaced with structured logging calls.
+#### 3.2 Extract Standalone Utility Functions
+
+In addition to large methods, there are many standalone utility functions that should be extracted from main.ts and other files into dedicated utility modules.
+
+| Function Name | Source File | Target Module | Status | Date | Notes |
+|---------------|-------------|--------------|--------|------|-------|
+| debugTableData | main.ts | src/utils/debugging.ts | ⬜ Not Started | - | Debug table data |
+| testContentParserDirectly | main.ts | src/testing/ContentParser.ts | ⬜ Not Started | - | Test content parser |
+| validateDate | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Validate date string |
+| parseDate | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Parse date string |
+| formatDate | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Format date object |
+| processDreamContent | main.ts | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
+| generateUniqueId | main.ts | src/utils/id-generator.ts | ⬜ Not Started | - | Generate unique ID |
+| cleanContent | main.ts | src/utils/content-cleaner.ts | ⬜ Not Started | - | Clean content text |
+| validateMetricFormat | main.ts | src/utils/validation.ts | ⬜ Not Started | - | Validate metric format |
+| processTagString | main.ts | src/utils/tag-processor.ts | ⬜ Not Started | - | Process tag string |
+| formatMetricValue | main.ts | src/utils/formatters.ts | ⬜ Not Started | - | Format metric value |
+
+**Extraction Process:**
+1. Identify standalone utility functions that don't depend on class instance state
+2. Create appropriate utility modules based on function purpose
+3. Move functions to the new modules
+4. Update imports and references in all files that use these functions
+5. Test thoroughly to ensure functionality is maintained
 
 ### Phase 4: Unused Code Elimination
 
