@@ -158,7 +158,7 @@ import {
     DATE_NAVIGATOR_VIEW_TYPE,
     DateNavigatorIntegration
 } from './src/dom/date-navigator';
-import { DateRangeService } from './src/dom/filters';
+import { DateRangeService, DateFilter } from './src/dom/filters';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
 import { 
@@ -352,6 +352,7 @@ export default class DreamMetricsPlugin extends Plugin {
     public dateRangeService: DateRangeService;
     private projectNoteManager: ProjectNoteManager;
     private ribbonManager: RibbonManager;
+    private dateFilter: DateFilter;
 
     async onload() {
         // Create a new PluginLoader and delegate the initialization to it
@@ -376,6 +377,10 @@ export default class DreamMetricsPlugin extends Plugin {
             // Show error notification to user
             new Notice('Failed to initialize OneiroMetrics plugin: ' + (error instanceof Error ? error.message : String(error)));
         }
+
+        // Initialize DateFilter
+        this.dateFilter = new DateFilter(this.app, this.settings, this.saveSettings.bind(this), this.logger);
+        this.dateFilter.registerGlobalHandler();
     }
 
     onunload() {
@@ -3023,102 +3028,22 @@ function deleteFavoriteRange(name: string) {
 
 // Utility function to force filtering - called directly from DateNavigatorModal
 function forceApplyDateFilter(date: Date) {
-    globalLogger?.debug('Filter', 'forceApplyDateFilter called', { date });
+    // This function is now just a wrapper for the DateFilter implementation
+    // The actual implementation has been moved to DateFilter class
+    // This wrapper remains for backward compatibility
+    globalLogger?.debug('Filter', 'Legacy forceApplyDateFilter called, forwarding to DateFilter implementation', { date });
     
-    if (!date || isNaN(date.getTime())) {
-        globalLogger?.error('Filter', 'Invalid date provided to forceApplyDateFilter');
-        return;
-    }
-    
-    try {
-        // Extract year, month, day components directly to avoid timezone issues
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1; // JavaScript months are 0-indexed
-        const day = date.getDate();
-        
-        // Format dates as YYYY-MM-DD strings for consistency
-        const start = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        const end = start; // For a single day selection, start and end are the same
-        
-        globalLogger?.debug('Filter', 'Setting date range for filtering', {
-            selectedDate: date.toISOString(),
-            selectedYear: year, 
-            selectedMonth: month, 
-            selectedDay: day,
-            formattedStart: start,
-            formattedEnd: end
-        });
-        
-        // First, set customDateRange to trigger filtering
-        // This must happen BEFORE updating the UI to prevent event handlers from clearing it
-        customDateRange = { start: start, end: end };
-        
-        globalLogger?.debug('Filter', 'Setting customDateRange', { customDateRange });
-        
-        // Save to localStorage for persistence
-        localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(customDateRange));
-        
-        // Create a small delay to ensure customDateRange is set before any event handlers run
-        setTimeout(() => {
-            // Update UI to show filter is active
-            requestAnimationFrame(() => {
-                // Update button state
-                const btn = document.getElementById('oom-custom-range-btn');
-                if (btn) {
-                    btn.classList.add('active');
-                }
-                
-                // Update filter info display
-                const filterDisplay = document.getElementById('oom-time-filter-display');
-                if (filterDisplay) {
-                    // Quick update to give immediate feedback
-                    const formattedDate = date.toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short', 
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
-                    filterDisplay.innerHTML = `<span class="oom-filter-icon">🗓️</span> <span class="oom-filter-text">Filtering for: ${formattedDate}</span>`;
-                }
-                
-                // Update dropdown to show "Custom" is selected - AFTER setting customDateRange
-                const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                if (dropdown) {
-                    // Add a custom option if it doesn't exist
-                    let customOption = dropdown.querySelector('option[value="custom"]') as HTMLOptionElement;
-                    if (!customOption) {
-                        customOption = document.createElement('option');
-                        customOption.value = 'custom';
-                        customOption.text = 'Custom Date';
-                        dropdown.appendChild(customOption);
-                    }
-                    
-                    // Set the value WITHOUT dispatching a change event
-                    dropdown.value = 'custom';
-                    
-                    // Dispatch a custom event instead that won't trigger our change handler
-                    dropdown.dispatchEvent(new CustomEvent('oom-value-set', { 
-                        bubbles: true,
-                        detail: { isDateNavigator: true }
-                    }));
-                }
-            });
-            
-            // Apply the filter after UI updates to avoid jank
-            setTimeout(() => {
-                globalLogger?.debug('Filter', 'Calling applyCustomDateRangeFilter');
-                applyCustomDateRangeFilter();
-            }, 100);
-            
-            globalLogger?.debug('Filter', 'Filter applied for date', { date: date.toLocaleDateString() });
-        }, 50);
-    } catch (error) {
-        globalLogger?.error('Filter', 'Error in forceApplyDateFilter', { error });
+    // The global instance will be initialized by the DateFilter.registerGlobalHandler() method
+    if (window.forceApplyDateFilter) {
+        window.forceApplyDateFilter(date);
+    } else {
+        globalLogger?.error('Filter', 'Global forceApplyDateFilter is not initialized');
+        new Notice('Error: DateFilter not initialized. Please reload the plugin.');
     }
 }
 
-// Expose the function globally so it can be called from DateNavigatorModal
-(window as any).forceApplyDateFilter = forceApplyDateFilter;
+// The global registration is now handled by DateFilter.registerGlobalHandler()
+// (window as any).forceApplyDateFilter = forceApplyDateFilter;
 
 // Phase 1: CSS-based visibility optimization to reduce browser reflows
 function applyCustomDateRangeFilter() {

@@ -320,19 +320,19 @@ The main.ts file remains over 5,000 lines long, with many large methods inside t
 
 In addition to large methods, there are many standalone utility functions that should be extracted from main.ts and other files into dedicated utility modules.
 
-| Function Name | Source File | Target Module | Status | Date | Notes |
-|---------------|-------------|--------------|--------|------|-------|
-| debugTableData | main.ts | src/utils/debugging.ts | ⬜ Not Started | - | Debug table data |
-| testContentParserDirectly | main.ts | src/testing/ContentParser.ts | ⬜ Not Started | - | Test content parser |
-| validateDate | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Validate date string |
-| parseDate | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Parse date string |
-| formatDate | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Format date object |
-| processDreamContent | main.ts | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
-| generateUniqueId | main.ts | src/utils/id-generator.ts | ⬜ Not Started | - | Generate unique ID |
-| cleanContent | main.ts | src/utils/content-cleaner.ts | ⬜ Not Started | - | Clean content text |
-| validateMetricFormat | main.ts | src/utils/validation.ts | ⬜ Not Started | - | Validate metric format |
-| processTagString | main.ts | src/utils/tag-processor.ts | ⬜ Not Started | - | Process tag string |
-| formatMetricValue | main.ts | src/utils/formatters.ts | ⬜ Not Started | - | Format metric value |
+| Function Name | Lines | Source File | Target Module | Status | Date | Notes |
+|---------------|-------|-------------|--------------|--------|------|-------|
+| debugTableData | ~60 | main.ts | src/utils/debugging.ts | ⬜ Not Started | - | Debug table data |
+| testContentParserDirectly | ~80 | main.ts | src/testing/ContentParser.ts | ⬜ Not Started | - | Test content parser |
+| validateDate | ~20 | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Validate date string |
+| parseDate | ~25 | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Parse date string |
+| formatDate | ~15 | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Format date object |
+| processDreamContent | ~100 | main.ts | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
+| generateUniqueId | ~10 | main.ts | src/utils/id-generator.ts | ⬜ Not Started | - | Generate unique ID |
+| cleanContent | ~30 | main.ts | src/utils/content-cleaner.ts | ⬜ Not Started | - | Clean content text |
+| validateMetricFormat | ~25 | main.ts | src/utils/validation.ts | ⬜ Not Started | - | Validate metric format |
+| processTagString | ~20 | main.ts | src/utils/tag-processor.ts | ⬜ Not Started | - | Process tag string |
+| formatMetricValue | ~15 | main.ts | src/utils/formatters.ts | ⬜ Not Started | - | Format metric value |
 
 **Extraction Process:**
 1. Identify standalone utility functions that don't depend on class instance state
