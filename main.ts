@@ -3756,6 +3756,7 @@ Applied: ${new Date().toLocaleTimeString()}`;
                     title: 'Test Entry ' + Math.floor(Math.random() * 1000),
                     content: 'This is a test entry created for debugging',
                     source: 'debug-test',
+                    wordCount: 8, // Count of words in 'This is a test entry created for debugging'
                     metrics: {
                         clarity: 8,
                         vividness: 9,

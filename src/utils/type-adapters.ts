@@ -145,4 +145,76 @@ export function getActiveTabSafe(settings: any): string {
  */
 export function getJournalStructureSafe(settings: any): any {
   return getJournalStructure(settings);
-} 
+}
+
+/**
+ * Type adapter functions for safe conversion between similar types
+ * with different module origins
+ */
+
+import { DreamMetricData as TypesDreamMetricData } from '../types';
+import { DreamMetricData as CoreDreamMetricData } from '../types/core';
+import { calculateWordCount } from './helpers';
+
+/**
+ * Safely converts an array of DreamMetricData objects from one module to another
+ * This handles incompatible type definitions between modules
+ * 
+ * @param entries Array of entries that might be from either module
+ * @returns Array of entries compatible with the types module
+ */
+export function adaptDreamMetricDataArray(entries: any[]): TypesDreamMetricData[] {
+    if (!entries || !Array.isArray(entries)) {
+        return [];
+    }
+    
+    return entries.map(entry => adaptDreamMetricData(entry));
+}
+
+/**
+ * Adapts a single DreamMetricData object to be compatible with the types module
+ * 
+ * @param entry The entry to adapt (from any source)
+ * @returns The adapted entry compatible with types module
+ */
+export function adaptDreamMetricData(entry: any): TypesDreamMetricData {
+    if (!entry) {
+        // Create a minimal valid entry
+        return {
+            date: new Date().toISOString().split('T')[0],
+            title: 'Unknown Entry',
+            content: '',
+            source: 'adapter',
+            wordCount: 0,
+            metrics: {}
+        };
+    }
+    
+    // Handle source property which differs between types
+    let source = 'unknown';
+    if (typeof entry.source === 'string') {
+        source = entry.source;
+    } else if (entry.source && typeof entry.source === 'object' && entry.source.file) {
+        // Handle object format source
+        source = entry.source.file;
+    }
+    
+    // Ensure wordCount is present
+    let wordCount = entry.wordCount;
+    if (wordCount === undefined) {
+        wordCount = calculateWordCount(entry.content || '');
+    }
+    
+    // Create a type-compatible object
+    return {
+        date: entry.date || new Date().toISOString().split('T')[0],
+        title: entry.title || 'Untitled Entry',
+        content: entry.content || '',
+        source,
+        wordCount,
+        metrics: entry.metrics || {},
+        calloutMetadata: entry.calloutMetadata
+    };
+}
+
+// Export other type adapter functions as needed 
