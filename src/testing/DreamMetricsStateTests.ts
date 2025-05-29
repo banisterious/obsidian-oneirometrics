@@ -1,6 +1,7 @@
 import { TestRunner } from './TestRunner';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DreamMetricData } from '../types/core';
+import { getLogger } from '../logging';
 
 /**
  * Registers tests for the DreamMetricsState class
@@ -209,20 +210,21 @@ export function registerDreamMetricsStateTests(
  * @returns A promise that resolves when all tests have completed
  */
 export async function runDreamMetricsStateTests(): Promise<void> {
-  console.log('Running DreamMetricsState tests...');
+  const logger = getLogger('DreamMetricsStateTests');
+  logger.info('Test', 'Running DreamMetricsState tests...');
   
   const testRunner = TestRunner.create();
   registerDreamMetricsStateTests(testRunner);
   const results = await testRunner.runTests();
   
   const passedCount = results.filter(r => r.passed).length;
-  console.log(`DreamMetricsState tests complete: ${passedCount}/${results.length} tests passed`);
+  logger.info('Test', `DreamMetricsState tests complete: ${passedCount}/${results.length} tests passed`);
   
   // Log any failures
   results.filter(r => !r.passed).forEach(failure => {
-    console.error(`Test failed: ${failure.name}`);
+    logger.error('Test', `Test failed: ${failure.name}`);
     if (failure.error) {
-      console.error(failure.error);
+      logger.error('Test', 'Error details:', failure.error);
     }
   });
   

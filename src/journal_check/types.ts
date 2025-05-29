@@ -6,13 +6,18 @@
 // Re-export journal structure check types from new location
 export * from '../types/journal-check';
 
+// Import debug mode utility
+import { isDebugMode } from '../utils/debug-mode';
+
 // INTENTIONAL CONSOLE USAGE: This warning is necessary to inform developers about
 // deprecated imports during development. This should not be replaced with structured
 // logging as it needs to run immediately upon import regardless of logging system state.
-console.warn(
-  "DEPRECATION WARNING: Importing from src/journal_check/types.ts is deprecated. " +
-  "Import from src/types instead. This file will be removed in a future version."
-);
+if (isDebugMode()) {
+  console.warn(
+    "DEPRECATION WARNING: Importing from src/journal_check/types.ts is deprecated. " +
+    "Import from src/types instead. This file will be removed in a future version."
+  );
+}
 
 /**
  * Types for the journal structure validation system

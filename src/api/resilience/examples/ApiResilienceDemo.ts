@@ -227,7 +227,6 @@ export class ApiResilienceDemo {
   private notifyUser(message: string): void {
     // In a real Obsidian plugin, this would use Obsidian's notification API
     safeLogger.info('ApiResilienceDemo', `NOTIFICATION: ${message}`);
-    console.log(`NOTIFICATION: ${message}`);
   }
   
   /**

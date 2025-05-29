@@ -1,5 +1,6 @@
 import { TestRunner } from './TestRunner';
 import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from '../../types';
+import { getLogger } from '../logging';
 
 // Define an extended settings interface for testing
 interface TestDreamMetricsSettings extends DreamMetricsSettings {
@@ -59,12 +60,13 @@ export function registerConfigurationTests(
       
       // Simulate a migration function (this would typically be in the settings handler)
       const migrateToV2 = (settings: Record<string, any>): TestDreamMetricsSettings => {
+        const logger = getLogger('ConfigurationTests');
         const newSettings = { ...settings } as TestDreamMetricsSettings;
         
         // Add version field if it doesn't exist
         if (!newSettings.metricsVersion) {
           newSettings.metricsVersion = '2.0.0';
-          console.log('Migrated settings to version 2.0.0');
+          logger.info('Migration', 'Migrated settings to version 2.0.0');
         }
         
         return newSettings;

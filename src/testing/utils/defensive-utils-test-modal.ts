@@ -12,6 +12,7 @@ import {
   getSafeService,
   ErrorBoundary
 } from '../../utils/defensive-utils';
+import { getLogger } from '../../logging';
 
 interface TestResult {
   name: string;
@@ -58,7 +59,8 @@ export class DefensiveUtilsTestModal extends Modal {
           } catch (e) {
             statusEl.empty();
             statusEl.createEl('p', { text: `Error running tests: ${e.message}`, cls: 'oom-test-error' });
-            console.error('Error running tests:', e);
+            const logger = getLogger('DefensiveUtilsTestModal');
+            logger.error('Test', 'Error running tests:', e);
           }
         }));
   }

@@ -18,6 +18,7 @@ import {
   throttleEventHandler,
   convertEventHandlers
 } from '../../templates/ui/EventHandling';
+import { getLogger } from '../../logging';
 
 /**
  * Register tests for the EventHandling module
@@ -266,17 +267,18 @@ export function registerEventHandlingTests(
  * @returns Promise that resolves when tests are complete
  */
 export async function runEventHandlingTests(): Promise<void> {
+  const logger = getLogger('EventHandlingTests');
   const testRunner = TestRunner.create();
   registerEventHandlingTests(testRunner);
   
   return testRunner.runTests().then((results) => {
     const passedCount = results.filter(r => r.passed).length;
-    console.log(`EventHandling tests: ${passedCount}/${results.length} passed`);
+    logger.info('Test', `EventHandling tests: ${passedCount}/${results.length} passed`);
     
     if (passedCount < results.length) {
-      console.error("Failed tests:");
+      logger.error('Test', "Failed tests:");
       results.filter(r => !r.passed).forEach(result => {
-        console.error(`- ${result.name}: ${result.error}`);
+        logger.error('Test', `- ${result.name}: ${result.error}`);
       });
     }
   });

@@ -32,6 +32,7 @@ import {
   setActiveTab
 } from '../../utils/settings-helpers';
 import { TestRunner } from '../TestRunner';
+import { getLogger } from '../../logging';
 
 /**
  * Registers all settings helper tests with the test runner
@@ -653,7 +654,8 @@ export function registerSettingsHelpersTests(
 
 // Example of how to use these tests
 export function runSettingsHelpersTests(): Promise<void> {
-  console.log('Running settings helper tests...');
+  const logger = getLogger('SettingsHelpersTests');
+  logger.info('Test', 'Running settings helper tests...');
   
   const testRunner = TestRunner.create();
   registerSettingsHelpersTests(testRunner);
@@ -661,13 +663,13 @@ export function runSettingsHelpersTests(): Promise<void> {
   return testRunner.runTests()
     .then(results => {
       const passedCount = results.filter(r => r.passed).length;
-      console.log(`Settings helper tests complete: ${passedCount}/${results.length} tests passed`);
+      logger.info('Test', `Settings helper tests complete: ${passedCount}/${results.length} tests passed`);
       
       // Log any failures
       results.filter(r => !r.passed).forEach(failure => {
-        console.error(`Test failed: ${failure.name}`);
+        logger.error('Test', `Test failed: ${failure.name}`);
         if (failure.error) {
-          console.error(failure.error);
+          logger.error('Test', 'Error details:', failure.error);
         }
       });
     });

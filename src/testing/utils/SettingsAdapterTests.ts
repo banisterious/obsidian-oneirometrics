@@ -7,6 +7,7 @@
 
 import { TestRunner } from '../TestRunner';
 import { SettingsAdapter } from '../../state/adapters/SettingsAdapter';
+import { getLogger } from '../../logging';
 
 /**
  * Register tests for the SettingsAdapter
@@ -266,17 +267,18 @@ export function registerSettingsAdapterTests(
  * @returns Promise that resolves when tests are complete
  */
 export async function runSettingsAdapterTests(): Promise<void> {
+  const logger = getLogger('SettingsAdapterTests');
   const testRunner = TestRunner.create();
   registerSettingsAdapterTests(testRunner);
   
   return testRunner.runTests().then((results) => {
     const passedCount = results.filter(r => r.passed).length;
-    console.log(`Settings adapter tests: ${passedCount}/${results.length} passed`);
+    logger.info('Test', `Settings adapter tests: ${passedCount}/${results.length} passed`);
     
     if (passedCount < results.length) {
-      console.error("Failed tests:");
+      logger.error('Test', "Failed tests:");
       results.filter(r => !r.passed).forEach(result => {
-        console.error(`- ${result.name}: ${result.error}`);
+        logger.error('Test', `- ${result.name}: ${result.error}`);
       });
     }
   });
