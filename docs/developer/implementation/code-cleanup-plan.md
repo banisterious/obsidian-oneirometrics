@@ -325,17 +325,17 @@ In addition to large methods, there are many standalone utility functions that s
 
 | Function Name | Lines | Source File | Target Module | Status | Date | Notes |
 |---------------|-------|-------------|--------------|--------|------|-------|
-| debugTableData | ~60 | main.ts | src/utils/debugging.ts | ⬜ Not Started | - | Debug table data |
-| testContentParserDirectly | ~80 | main.ts | src/testing/ContentParser.ts | ⬜ Not Started | - | Test content parser |
-| validateDate | ~20 | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Validate date string |
-| parseDate | ~25 | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Parse date string |
-| formatDate | ~15 | main.ts | src/utils/date-utils.ts | ⬜ Not Started | - | Format date object |
+| debugTableData | ~60 | main.ts | src/utils/debugging.ts | ✅ Complete | 2025-05-29 | Debug table data |
+| testContentParserDirectly | ~80 | main.ts | src/testing/ContentParser.ts | ✅ Complete | 2025-05-29 | Test content parser |
+| validateDate | ~20 | main.ts | src/utils/date-utils.ts | ✅ Complete | 2025-05-29 | Validate date string |
+| parseDate | ~25 | main.ts | src/utils/date-utils.ts | ✅ Complete | 2025-05-29 | Parse date string |
+| formatDate | ~15 | main.ts | src/utils/date-utils.ts | ✅ Complete | 2025-05-29 | Format date object |
 | processDreamContent | ~100 | main.ts | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
-| generateUniqueId | ~10 | main.ts | src/utils/id-generator.ts | ⬜ Not Started | - | Generate unique ID |
-| cleanContent | ~30 | main.ts | src/utils/content-cleaner.ts | ⬜ Not Started | - | Clean content text |
-| validateMetricFormat | ~25 | main.ts | src/utils/validation.ts | ⬜ Not Started | - | Validate metric format |
-| processTagString | ~20 | main.ts | src/utils/tag-processor.ts | ⬜ Not Started | - | Process tag string |
-| formatMetricValue | ~15 | main.ts | src/utils/formatters.ts | ⬜ Not Started | - | Format metric value |
+| generateUniqueId | ~10 | main.ts | src/utils/id-generator.ts | ✅ Complete | 2025-05-29 | Generate unique ID |
+| cleanContent | ~30 | main.ts | src/utils/content-cleaner.ts | ✅ Complete | 2025-05-29 | Clean content text |
+| validateMetricFormat | ~25 | main.ts | src/utils/validation.ts | ✅ Complete | 2025-05-29 | Validate metric format |
+| processTagString | ~20 | main.ts | src/utils/tag-processor.ts | ✅ Complete | 2025-05-29 | Process tag string |
+| formatMetricValue | ~15 | main.ts | src/utils/formatters.ts | ✅ Complete | 2025-05-29 | Format metric value |
 
 **Extraction Process:**
 1. Identify standalone utility functions that don't depend on class instance state
@@ -354,7 +354,7 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 | FilterDisplayManager | ~180 | updateFilterDisplay (3334-3466) | src/dom/filters/FilterDisplayManager.ts | ⬜ Not Started | - | Handle filter UI updates |
 | TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ⬜ Not Started | - | Initialize, update and manage metrics tables |
 | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventManager.ts | ⬜ Not Started | - | Handle all event attachments in one place |
-| DebugTools | ~400 | debugTableData, debugDateNavigator, etc. | src/utils/DebugTools.ts | ⬜ Not Started | - | Consolidate debugging utilities |
+| DebugTools | ~400 | debugTableData, debugDateNavigator, etc. | src/utils/DebugTools.ts | ✅ Complete | 2025-05-29 | Consolidated debugging functions (debugTableData, debugDateNavigator, testContentParserDirectly) into a single class with proper structure and error handling |
 | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
 | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
 | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
@@ -597,6 +597,7 @@ The dead code elimination phase will be considered successful when:
 | Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
 | Settings Management | Loading, saving | ✅ Complete | 2025-05-28 | Moved to src/state/SettingsManager.ts |
 | Ribbon Management | Icon creation and handling | ✅ Complete | 2025-06-15 | Moved to src/dom/RibbonManager.ts |
+| Debug Tools | Debugging and testing utilities | ✅ Complete | 2025-05-30 | Moved to src/utils/DebugTools.ts |
 | Project Note Management | Updating and backing up project notes | ✅ Complete | 2025-06-15 | Moved to src/state/ProjectNoteManager.ts |
 
 ### Next Steps (May 29-June 7, 2025)
@@ -718,6 +719,10 @@ The console.log cleanup effort has made significant progress:
 - Reduced total console statements from 114 to 83 (27% reduction)
 - Completed cleanup in all major testing files
 - Created a comprehensive status document at `docs/developer/implementation/console-log-cleanup-status.md`
+
+### Progress Update (2025-05-30)
+
+Completed extraction of debugging tools into a dedicated DebugTools class. This refactoring removed ~500 lines of debug code from main.ts by consolidating three large debugging methods (debugTableData, debugDateNavigator, testContentParserDirectly) into a well-structured class with proper error handling.
 
 Next steps in the cleanup effort:
 1. Fix linter errors in DateNavigator.ts (high priority)
