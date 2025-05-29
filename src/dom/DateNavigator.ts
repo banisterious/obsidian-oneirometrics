@@ -1,6 +1,6 @@
-import { App } from 'obsidian';
+import { App, MarkdownView, TFile } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../types/core';
+import { DreamMetricData } from '../../types/core';
 import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
 import {
     startOfMonth,
@@ -24,12 +24,15 @@ import {
     getDay,
     parse
 } from 'date-fns';
+import { getLogger } from '../logging';
 
 // Safely reference global logger without causing errors if it's not defined
 // This approach avoids the ReferenceError when the plugin initializes
 declare global {
     interface Window {
         globalLogger?: any;
+        dreamEntries?: DreamMetricData[];
+        debugDateNavigator?: () => void;
     }
 }
 
@@ -67,6 +70,7 @@ export class DateNavigator {
     private metrics: Map<string, MetricSummary> = new Map();
     private filterActive: boolean = false;
     private dayElements: Map<string, HTMLElement> = new Map();
+    private logger = getLogger('DateNavigator');
     
     constructor(container: HTMLElement, state: DreamMetricsState) {
         this.container = container;
@@ -2430,88 +2434,54 @@ export class DateNavigator {
      * @returns A valid Date object or null if parsing fails
      */
     private parseEntryDate(dateStr: string): Date | null {
-        if (!dateStr) return null;
-        
         try {
-            // First try direct parsing - works for ISO format (YYYY-MM-DD)
-            const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) {
-                return date;
+            // Check for null or empty string
+            if (!dateStr) {
+                this.logger.warn('DateNavigator', 'Empty date string provided');
+                return null;
             }
             
-            // Try various date formats
-            // Format: MM/DD/YYYY
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
-                const parts = dateStr.split('/');
-                return new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
-            }
-            
-            // Format: DD/MM/YYYY
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
-                const parts = dateStr.split('/');
-                return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-            }
-            
-            // Format: DD-MM-YYYY
-            if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
-                const parts = dateStr.split('-');
-                return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-            }
-            
-            // Format: YYYY.MM.DD
-            if (/^\d{4}\.\d{1,2}\.\d{1,2}$/.test(dateStr)) {
-                const parts = dateStr.split('.');
-                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            }
-            
-            // Try using date-fns parsing with various formats
-            const formats = [
-                'yyyy-MM-dd',
-                'MM/dd/yyyy',
-                'dd/MM/yyyy',
-                'dd-MM-yyyy',
-                'yyyy.MM.dd',
-                'yyyy-MM-dd HH:mm:ss',
-                'MM/dd/yyyy HH:mm:ss',
-            ];
-            
-            for (const formatStr of formats) {
-                try {
-                    const parsedDate = parse(dateStr, formatStr, new Date());
-                    if (!isNaN(parsedDate.getTime())) {
-                        return parsedDate;
-                    }
-                } catch (e) {
-                    // Try next format
-                }
-            }
-            
-            // If all else fails, try to extract a date using regex
-            const dateRegex = /(\d{4})[-./](\d{1,2})[-./](\d{1,2})/;
-            const match = dateStr.match(dateRegex);
-            if (match) {
-                const [_, year, month, day] = match;
-                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            }
-            
-            // Logging the failed parse attempt
             try {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].warn('DateNavigator', `Failed to parse date: ${dateStr}`);
+                // First try ISO format
+                const isoDate = parseISO(dateStr);
+                if (isValid(isoDate)) {
+                    return isoDate;
                 }
+                
+                // Try YYYY-MM-DD format
+                if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+                    const dateParts = dateStr.split('-').map(part => parseInt(part, 10));
+                    if (dateParts.length >= 3) {
+                        const [year, month, day] = dateParts;
+                        const parsedDate = new Date(year, month - 1, day);
+                        if (isValid(parsedDate)) {
+                            return parsedDate;
+                        }
+                    }
+                }
+                
+                // Try MM/DD/YYYY format
+                if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(dateStr)) {
+                    const parsed = parse(dateStr, 'MM/dd/yyyy', new Date());
+                    if (isValid(parsed)) {
+                        return parsed;
+                    }
+                }
+                
+                // Try more flexible parsing as last resort
+                const parsed = new Date(dateStr);
+                if (isValid(parsed)) {
+                    return parsed;
+                }
+                
+                this.logger.warn('DateNavigator', `Failed to parse date: ${dateStr}`);
             } catch (e) {
                 // Silent failure - logging should never break functionality
             }
             
             return null;
         } catch (e) {
-            try {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].error('DateNavigator', `Error parsing date: ${dateStr}`, e);
-                }
-            } catch (error) {
-                // Silent failure - logging should never break functionality
-            }
+            this.logger.error('DateNavigator', `Error parsing date: ${dateStr}`, e);
             return null;
         }
     }
@@ -2522,16 +2492,12 @@ export class DateNavigator {
      */
     public debugDisplay(): void {
         try {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', '===== DEBUG DISPLAY FUNCTION =====');
-                window['globalLogger'].debug('DateNavigator', `Current month: ${format(this.currentMonth, 'MMMM yyyy')}`);
-            }
+            this.logger.debug('DateNavigator', '===== DEBUG DISPLAY FUNCTION =====');
+            this.logger.debug('DateNavigator', `Current month: ${format(this.currentMonth, 'MMMM yyyy')}`);
             
             // Check global entries
             const globalEntries = window['dreamEntries'] || [];
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Global entries: ${globalEntries.length}`);
-            }
+            this.logger.debug('DateNavigator', `Global entries: ${globalEntries.length}`);
             
             // Get all entries for current month
             const monthStartStr = format(startOfMonth(this.currentMonth), 'yyyy-MM');
@@ -2542,9 +2508,7 @@ export class DateNavigator {
                 return false;
             });
             
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Entries for current month ${monthStartStr}: ${entriesForMonth.length}`);
-            }
+            this.logger.debug('DateNavigator', `Entries for current month ${monthStartStr}: ${entriesForMonth.length}`);
             
             // Force clear all existing entries
             this.dreamEntries.clear();
@@ -2552,24 +2516,18 @@ export class DateNavigator {
             
             // Add entries for all days of the current month
             if (entriesForMonth.length > 0) {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('DateNavigator', 'Processing entries for days in current month...');
-                }
+                this.logger.debug('DateNavigator', 'Processing entries for days in current month...');
                 
                 entriesForMonth.forEach(entry => {
                     try {
                         const entryDate = this.parseEntryDate(entry.date);
                         if (!entryDate) {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].warn('DateNavigator', `Failed to parse date: ${entry.date}`);
-                            }
+                            this.logger.warn('DateNavigator', `Failed to parse date: ${entry.date}`);
                             return;
                         }
                         
                         const dateKey = this.formatDateKey(entryDate);
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].debug('DateNavigator', `Adding entry for ${dateKey}: ${entry.title}`);
-                        }
+                        this.logger.debug('DateNavigator', `Adding entry for ${dateKey}: ${entry.title}`);
                         
                         if (!this.dreamEntries.has(dateKey)) {
                             this.dreamEntries.set(dateKey, []);
@@ -2580,24 +2538,18 @@ export class DateNavigator {
                         // Calculate metrics
                         this.calculateDayMetrics(dateKey, this.dreamEntries.get(dateKey) || []);
                     } catch (e) {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].error('DateNavigator', `Error processing entry: ${e.message}`);
-                        }
+                        this.logger.error('DateNavigator', `Error processing entry: ${e.message}`, e);
                     }
                 });
                 
                 // Log final state
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('DateNavigator', `After processing, dreamEntries map has ${this.dreamEntries.size} date keys`);
-                    this.dreamEntries.forEach((entries, key) => {
-                        window['globalLogger'].debug('DateNavigator', `Date ${key}: ${entries.length} entries`);
-                    });
-                }
+                this.logger.debug('DateNavigator', `After processing, dreamEntries map has ${this.dreamEntries.size} date keys`);
+                this.dreamEntries.forEach((entries, key) => {
+                    this.logger.debug('DateNavigator', `Date ${key}: ${entries.length} entries`);
+                });
             } else {
                 // If no entries for this month, create some test entries
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('DateNavigator', 'No entries for current month, creating test entries');
-                }
+                this.logger.debug('DateNavigator', 'No entries for current month, creating test entries');
                 
                 // Create test entries for current month
                 const testEntries = this.createTestEntriesForMonth(this.currentMonth);
@@ -2605,16 +2557,12 @@ export class DateNavigator {
                     try {
                         const entryDate = this.parseEntryDate(entry.date);
                         if (!entryDate) {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].warn('DateNavigator', `Failed to parse date: ${entry.date}`);
-                            }
+                            this.logger.warn('DateNavigator', `Failed to parse date: ${entry.date}`);
                             return;
                         }
                         
                         const dateKey = this.formatDateKey(entryDate);
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].debug('DateNavigator', `Adding test entry for ${dateKey}: ${entry.title}`);
-                        }
+                        this.logger.debug('DateNavigator', `Adding test entry for ${dateKey}: ${entry.title}`);
                         
                         if (!this.dreamEntries.has(dateKey)) {
                             this.dreamEntries.set(dateKey, []);
@@ -2625,9 +2573,7 @@ export class DateNavigator {
                         // Calculate metrics
                         this.calculateDayMetrics(dateKey, this.dreamEntries.get(dateKey) || []);
                     } catch (e) {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].error('DateNavigator', `Error processing test entry: ${e.message}`);
-                        }
+                        this.logger.error('DateNavigator', `Error processing test entry: ${e.message}`, e);
                     }
                 });
             }
@@ -2635,9 +2581,7 @@ export class DateNavigator {
             // Also add an entry for today
             const today = new Date();
             const todayStr = this.formatDateKey(today);
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Adding special test entry for today (${todayStr})`);
-            }
+            this.logger.debug('DateNavigator', `Adding special test entry for today (${todayStr})`);
             
             const todayEntry = {
                 date: todayStr,
@@ -2660,34 +2604,22 @@ export class DateNavigator {
             this.calculateDayMetrics(todayStr, this.dreamEntries.get(todayStr) || []);
             
             // Update the display
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', 'Updating month grid display...');
-            }
+            this.logger.debug('DateNavigator', 'Updating month grid display...');
             this.updateMonthGrid();
             
             // Verify display after update
             const daysWithEntries = document.querySelectorAll('.oom-day-cell.has-entries');
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `DOM elements with has-entries class: ${daysWithEntries.length}`);
-            }
+            this.logger.debug('DateNavigator', `DOM elements with has-entries class: ${daysWithEntries.length}`);
             
             const dotsElements = document.querySelectorAll('.oom-dream-indicators');
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `DOM elements with dream indicators: ${dotsElements.length}`);
-            }
+            this.logger.debug('DateNavigator', `DOM elements with dream indicators: ${dotsElements.length}`);
             
             const metricsElements = document.querySelectorAll('.oom-day-metrics');
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `DOM elements with metrics stars: ${metricsElements.length}`);
-            }
+            this.logger.debug('DateNavigator', `DOM elements with metrics stars: ${metricsElements.length}`);
             
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', '===== END DEBUG DISPLAY FUNCTION =====');
-            }
+            this.logger.debug('DateNavigator', '===== END DEBUG DISPLAY FUNCTION =====');
         } catch (e) {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].error('DateNavigator', 'Error in debugDisplay:', e);
-            }
+            this.logger.error('DateNavigator', 'Error in debugDisplay:', e);
         }
         
         // Make this function accessible globally for easy console debugging
@@ -2696,9 +2628,7 @@ export class DateNavigator {
                 this.debugDisplay();
             };
         } catch (e) {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].error('DateNavigator', 'Error setting global debug function:', e);
-            }
+            this.logger.error('DateNavigator', 'Error setting global debug function:', e);
         }
     }
 } 

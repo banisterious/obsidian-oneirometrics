@@ -615,19 +615,39 @@ This section tracks cleanup items identified by our utility scripts in the `util
 
 #### Console.log Statistics
 
-- Total files with console statements: 31 (down from 33)
-- Total console statements: 114 (down from 141)
-- By type: console.log (65), console.warn (8), console.error (37), console.info (2), console.debug (2)
-- Completed: 19 statements in main.ts, 8 statements in settings.ts
+- Total files with console statements: 28 (down from 33)
+- Total console statements: 83 (down from 114)
+- By type: console.log (44), console.warn (4), console.error (31), console.info (2), console.debug (2)
+- Completed: 
+  - 19 statements in main.ts
+  - 8 statements in settings.ts
+  - 6 statements in src/testing/TestRunner.ts
+  - 14 statements in src/testing/EdgeCaseTests.ts
+  - 6 statements in src/testing/utils/TypeGuardsTests.ts
+  - 3 statements in src/dom/DateNavigator.ts (with linter errors to fix)
 
-#### Notable Console.log Files:
-- src/testing/EdgeCaseTests.ts: 14 statements
-- src/testing/utils/TypeGuardsTests.ts: 6 statements
-- src/testing/TestRunner.ts: 6 statements
-- src/logging/adapters/ConsoleAdapter.ts: 7 statements
-- src/logging/safe-logger.ts: 7 statements
+#### Notable Console.log Files (Remaining):
+- src/logging/adapters/ConsoleAdapter.ts: 7 statements (intentional)
+- src/logging/safe-logger.ts: 7 statements (intentional)
+- src/testing/JournalCheckTests.ts: 4 statements
+- src/journal_check/JournalCheckEngine.ts: 2 statements
+- main.ts: 2 statements (remaining)
 
 *Note: For the complete list, run `.\utils\find-console-logs.ps1`*
+
+### Progress Update (2025-05-28)
+
+The console.log cleanup effort has made significant progress:
+- Cleaned up 31 console statements across 4 key files
+- Reduced total console statements from 114 to 83 (27% reduction)
+- Completed cleanup in all major testing files
+- Created a comprehensive status document at `docs/developer/implementation/console-log-cleanup-status.md`
+
+Next steps in the cleanup effort:
+1. Fix linter errors in DateNavigator.ts (high priority)
+2. Clean up remaining non-logging-system console statements
+3. Add documentation to console statements that are intentional parts of the logging system
+4. Update logger configuration to properly filter log levels in production builds
 
 ### Commented Code Blocks
 
