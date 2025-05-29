@@ -85,9 +85,8 @@ export class ContentToggler {
      * Toggle content visibility
      * 
      * @param button - The button that triggered the toggle
-     * @param previewEl - The preview element containing the content
      */
-    public toggleContentVisibility(button: HTMLElement, previewEl: HTMLElement): void {
+    public toggleContentVisibility(button: HTMLElement): void {
         this.logger?.debug('UI', 'Toggling content visibility');
         
         try {
@@ -204,7 +203,7 @@ export class ContentToggler {
                     this.logger?.debug('UI', 'Expanding content section', { 
                         contentCellId: button.getAttribute('data-content-id') 
                     });
-                    this.toggleContentVisibility(button as HTMLElement, previewEl);
+                    this.toggleContentVisibility(button as HTMLElement);
                     expanded++;
                 }
             });
@@ -243,7 +242,7 @@ export class ContentToggler {
                 if (contentId && this.expandedStates.has(contentId)) {
                     const isCurrentlyExpanded = button.getAttribute('data-expanded') === 'true';
                     if (!isCurrentlyExpanded) {
-                        this.toggleContentVisibility(button as HTMLElement, previewEl);
+                        this.toggleContentVisibility(button as HTMLElement);
                         applied++;
                     }
                 }
