@@ -5,6 +5,7 @@
 
 import { App, Modal, Notice } from 'obsidian';
 import { debug, info, warn, error } from '../logging';
+import { ILogger } from '../logging/LoggerTypes';
 import { DreamMetricsSettings } from '../types/core';
 import { FilterUI } from '../dom/filters';
 import { CustomDateRangeModal } from '../dom/modals/CustomDateRangeModal';
