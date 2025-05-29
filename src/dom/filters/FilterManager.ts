@@ -9,6 +9,7 @@ import { App, Notice, TFile } from 'obsidian';
 import { LoggingAdapter } from '../../logging/LoggingAdapter';
 import { DreamMetricsSettings } from '../../types/core';
 import { parseDate } from '../../utils/date-utils';
+import { FilterDisplayManager } from './FilterDisplayManager';
 
 // Import for logging support
 import safeLogger, { getSafeLogger } from '../../logging/safe-logger';
@@ -20,6 +21,8 @@ declare global {
 }
 
 export class FilterManager {
+    private filterDisplayManager: FilterDisplayManager;
+    
     constructor(
         private app: App,
         private settings: DreamMetricsSettings,
@@ -31,6 +34,9 @@ export class FilterManager {
         if (typeof window.customDateRange === 'undefined') {
             window.customDateRange = null;
         }
+        
+        // Initialize the FilterDisplayManager
+        this.filterDisplayManager = new FilterDisplayManager(app, logger);
     }
 
     /**
@@ -420,6 +426,9 @@ export class FilterManager {
         // Apply the filter
         this.applyFilters(previewEl);
         
+        // Use the FilterDisplayManager to update the display
+        this.filterDisplayManager.updateCustomRangeDisplay(previewEl, startDate, endDate);
+        
         // Log application complete
         log?.info?.('Filter', 'Direct filter application complete', {
             startDate,
@@ -486,83 +495,21 @@ export class FilterManager {
         outOfRange: number,
         previewEl: HTMLElement
     ) {
-        // Use local logger if globalLogger is not defined
-        const log = typeof globalLogger !== 'undefined' ? globalLogger : this.logger;
-        
-        log?.debug?.('Filter', 'Filter application complete', {
+        // Use the FilterDisplayManager to handle display updates
+        this.filterDisplayManager.updateFilterDisplay(
+            previewEl,
             filterType,
             visible,
             total,
             invalid,
             outOfRange
-        });
-        
-        // Mark filters as successfully applied
-        (window as any).oomFiltersApplied = true;
-        (window as any).oomFiltersPending = false;
-        
-        // Log success at INFO level
-        log?.info?.('Filter', `Filter successfully applied: ${filterType}`, {
-            visible,
-            total,
-            invalid,
-            outOfRange,
-            percentVisible: total > 0 ? Math.round((visible / total) * 100) : 0
-        });
-        
-        // Assemble a human-readable filter explanation
-        let filterExplanation = '';
-        switch (filterType) {
-            case 'all':
-                filterExplanation = 'Showing all entries';
-                break;
-            case 'last7':
-                filterExplanation = 'Showing last 7 days';
-                break;
-            case 'last30':
-                filterExplanation = 'Showing last 30 days';
-                break;
-            case 'last90':
-                filterExplanation = 'Showing last 90 days';
-                break;
-            case 'currentMonth':
-                filterExplanation = 'Showing current month';
-                break;
-            case 'lastMonth':
-                filterExplanation = 'Showing last month';
-                break;
-            case 'currentYear':
-                filterExplanation = 'Showing current year';
-                break;
-            case 'custom':
-                if (customDateRange) {
-                    filterExplanation = `Custom range: ${customDateRange.start} to ${customDateRange.end}`;
-                } else {
-                    filterExplanation = 'Custom date range (no dates selected)';
-                }
-                break;
-            default:
-                filterExplanation = `Filter: ${filterType}`;
-        }
-        
-        // Update the filter display
-        const filterDisplay = previewEl.querySelector('#oom-time-filter-display') as HTMLElement;
-        if (!filterDisplay) {
-            log?.warn?.('Filter', 'Filter display element not found');
-            return;
-        }
-        
-        // Include count information
-        filterDisplay.innerHTML = `${filterExplanation} (${visible} of ${total} entries)`;
+        );
         
         // Collect metrics from visible rows only
         const metrics = this.collectVisibleRowMetrics(previewEl);
         
         // Update the summary table with these metrics
         this.updateSummaryTable(previewEl, metrics);
-        
-        // Update view with any custom status indicators
-        this.updateFilterStatus(previewEl, filterType, visible, total);
     }
 
     /**
@@ -720,16 +667,5 @@ export class FilterManager {
                 console.error('Failed to update summary table:', e);
             }
         }
-    }
-
-    /**
-     * Update filter status indicators in the UI
-     */
-    private updateFilterStatus(container: HTMLElement, filterType: string, visible: number, total: number) {
-        // Use local logger if globalLogger is not defined
-        const log = typeof globalLogger !== 'undefined' ? globalLogger : this.logger;
-        
-        // Add any custom filter status indicators here
-        // For example, you might add a badge or icon to indicate active filters
     }
 } 
