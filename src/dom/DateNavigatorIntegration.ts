@@ -2,9 +2,12 @@ import { App, Notice } from 'obsidian';
 import { DateNavigator } from './DateNavigator';
 import { TimeFilterManager, DateRange } from '../timeFilters';
 import { DreamMetricsState } from '../state/DreamMetricsState';
-import { format } from 'date-fns';
+import { DreamMetricData } from '../types';
+import { calculateWordCount } from '../utils/helpers';
+import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
 import { getService, registerService, SERVICE_NAMES } from '../state/ServiceRegistry';
 import { error, info, debug, warn } from '../logging';
+import { adaptDreamMetricDataArray } from '../utils/type-adapters';
 
 // Safely reference global logger without causing errors if it's not defined
 declare global {
@@ -157,30 +160,28 @@ export class DateNavigatorIntegration {
     private checkAndPopulateEntries(): void {
         try {
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigatorIntegration', 'Starting entries check');
-                window['globalLogger'].debug('DateNavigatorIntegration', 'Checking for entries in state');
+                window['globalLogger'].debug('DateNavigatorIntegration', 'Checking for entries');
             }
             
-            // First check if state already has entries
-            const stateEntries = this.state?.getDreamEntries?.() || [];
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigatorIntegration', `State has ${stateEntries.length} entries`);
-            }
-            
-            if (stateEntries && stateEntries.length > 0) {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('DateNavigatorIntegration', `State already has ${stateEntries.length} entries`);
-                }
-                
-                // Even if state has entries, let's also try to make sure the DateNavigator has them
-                if (this.dateNavigator && stateEntries.length > 0) {
+            // Check if state already has entries through getDreamEntries method
+            if (this.state && typeof this.state.getDreamEntries === 'function') {
+                const stateEntries = this.state.getDreamEntries();
+                if (stateEntries && Array.isArray(stateEntries) && stateEntries.length > 0) {
                     if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('DateNavigatorIntegration', `Explicitly setting ${stateEntries.length} entries from state to DateNavigator`);
+                        window['globalLogger'].debug('DateNavigatorIntegration', `Found ${stateEntries.length} entries in state`);
                     }
-                    this.dateNavigator.setDreamEntries(stateEntries);
+                    
+                    // Even if state has entries, let's also try to make sure the DateNavigator has them
+                    if (this.dateNavigator && stateEntries.length > 0) {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigatorIntegration', `Explicitly setting ${stateEntries.length} entries from state to DateNavigator`);
+                        }
+                        // Use the adapter to ensure type compatibility
+                        this.dateNavigator.setDreamEntries(adaptDreamMetricDataArray(stateEntries));
+                    }
+                    
+                    return; // State already has entries
                 }
-                
-                return; // State already has entries
             }
             
             // If we're here, we need to check for entries in other places

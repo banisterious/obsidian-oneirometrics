@@ -2,6 +2,8 @@ import { App, MarkdownView, TFile } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DreamMetricData } from '../types';
 import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
+import { calculateWordCount } from '../utils/helpers';
+import { adaptDreamMetricDataArray } from '../utils/type-adapters';
 import {
     startOfMonth,
     endOfMonth,
@@ -611,7 +613,7 @@ export class DateNavigator {
                         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                             window['globalLogger'].debug('DateNavigator', `Loaded ${stateEntries.length} entries from state.getDreamEntries()`);
                         }
-                        allEntries = stateEntries;
+                        allEntries = adaptDreamMetricDataArray(stateEntries);
                         this.processEntriesToDisplay(allEntries, month);
                         return; // Use these entries directly
                     }
@@ -636,7 +638,7 @@ export class DateNavigator {
                             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                                 window['globalLogger'].debug('DateNavigator', `Found ${pluginEntries.length} entries from global plugin state`);
                             }
-                            allEntries = pluginEntries;
+                            allEntries = adaptDreamMetricDataArray(pluginEntries);
                             this.processEntriesToDisplay(allEntries, month);
                             return; // Use these entries directly
                         }
@@ -1990,6 +1992,7 @@ export class DateNavigator {
                 title: `Test Dream Entry ${i+1}`,
                 content: `This is a test dream entry for debugging the calendar display. Created for ${dateStr}.`,
                 source: 'test-generator',
+                wordCount: calculateWordCount(`This is a test dream entry for debugging the calendar display. Created for ${dateStr}.`),
                 metrics: {
                     // Add some random metrics with different values
                     lucidity: Math.floor(Math.random() * 10) + 1,
@@ -2056,7 +2059,7 @@ export class DateNavigator {
             }
             
             // Array to collect entries from all sources
-            const allPossibleEntries: DreamMetricData[] = [];
+            const rawEntries: any[] = [];
             
             // 1. Check global objects
             if (window['oneiroMetricsPlugin']) {
@@ -2067,7 +2070,7 @@ export class DateNavigator {
                     if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                         window['globalLogger'].debug('DateNavigator', `Found ${plugin.dreamEntries.length} entries in plugin.dreamEntries`);
                     }
-                    allPossibleEntries.push(...plugin.dreamEntries);
+                    rawEntries.push(...plugin.dreamEntries);
                 }
                 
                 // Check for entries in state
@@ -2077,7 +2080,7 @@ export class DateNavigator {
                         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                             window['globalLogger'].debug('DateNavigator', `Found ${plugin.state.entries.length} entries in plugin.state.entries`);
                         }
-                        allPossibleEntries.push(...plugin.state.entries);
+                        rawEntries.push(...plugin.state.entries);
                     }
                     
                     // Via state method
@@ -2087,7 +2090,7 @@ export class DateNavigator {
                             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                                 window['globalLogger'].debug('DateNavigator', `Found ${stateEntries.length} entries via plugin.state.getDreamEntries()`);
                             }
-                            allPossibleEntries.push(...stateEntries);
+                            rawEntries.push(...stateEntries);
                         }
                     }
                 }
@@ -2112,7 +2115,7 @@ export class DateNavigator {
                                         const date = row.date || row.dream_date;
                                         if (date) {
                                             // Create a dream entry from this row
-                                            const entry: DreamMetricData = {
+                                            const entry = {
                                                 date: date,
                                                 title: row.title || 'Dream Entry',
                                                 content: row.content || '',
@@ -2129,7 +2132,7 @@ export class DateNavigator {
                                                 }
                                             });
                                             
-                                            allPossibleEntries.push(entry);
+                                            rawEntries.push(entry);
                                         }
                                     });
                                 }
@@ -2149,7 +2152,7 @@ export class DateNavigator {
                         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                             window['globalLogger'].debug('DateNavigator', `Found ${plugin[prop].length} entries in plugin.${prop}`);
                         }
-                        allPossibleEntries.push(...plugin[prop]);
+                        rawEntries.push(...plugin[prop]);
                     }
                 });
             }
@@ -2162,7 +2165,7 @@ export class DateNavigator {
                     if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                         window['globalLogger'].debug('DateNavigator', `Found ${stateObj.entries.length} entries in state.entries`);
                     }
-                    allPossibleEntries.push(...stateObj.entries);
+                    rawEntries.push(...stateObj.entries);
                 }
                 
                 // Try state method
@@ -2172,7 +2175,7 @@ export class DateNavigator {
                         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                             window['globalLogger'].debug('DateNavigator', `Found ${stateEntries.length} entries via state.getDreamEntries()`);
                         }
-                        allPossibleEntries.push(...stateEntries);
+                        rawEntries.push(...stateEntries);
                     }
                 }
             }
@@ -2182,8 +2185,11 @@ export class DateNavigator {
                 if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                     window['globalLogger'].debug('DateNavigator', `Found ${window['dreamEntries'].length} entries in window.dreamEntries`);
                 }
-                allPossibleEntries.push(...window['dreamEntries']);
+                rawEntries.push(...window['dreamEntries']);
             }
+            
+            // Process all found entries - convert to proper type
+            const allPossibleEntries = adaptDreamMetricDataArray(rawEntries);
             
             // Process all found entries
             if (allPossibleEntries.length > 0) {
@@ -2595,6 +2601,7 @@ export class DateNavigator {
                 title: "Debug Test Entry",
                 content: "This is a special test entry created by the debug function",
                 source: "debug-special",
+                wordCount: calculateWordCount("This is a special test entry created by the debug function"),
                 metrics: {
                     "Sensory Detail": 5,
                     "Emotional Recall": 5,
