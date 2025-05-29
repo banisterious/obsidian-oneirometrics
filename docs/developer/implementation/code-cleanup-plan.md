@@ -300,7 +300,7 @@ The main.ts file remains over 5,000 lines long, with many large methods inside t
 | backupProjectNote | ~120 | src/state/ProjectNoteManager.ts | ✅ Complete | 2025-05-29 | Included in ProjectNoteManager class |
 | confirmProceedWithoutBackup | ~50 | src/state/ProjectNoteManager.ts | ✅ Complete | 2025-05-29 | Included in ProjectNoteManager class |
 | processMetrics | ~200 | src/metrics/MetricsProcessor.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use MetricsProcessor implementation |
-| buildFilterControls | ~180 | src/dom/filters/FilterControls.ts | ⬜ Not Started | - | Build filter UI controls |
+| buildFilterControls | ~180 | src/dom/filters/FilterControls.ts | ✅ Complete | 2025-05-29 | Created FilterControls class to handle filter UI generation |
 | toggleContentVisibility | ~100 | src/dom/content/ContentToggler.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
 | expandAllContentSections | ~80 | src/dom/content/ContentToggler.ts | ✅ Complete | 2025-05-29 | Updated main.ts to use ContentToggler implementation |
 | updateRibbonIcons | ~30 | src/dom/RibbonManager.ts | ✅ Complete | 2025-05-29 | Created RibbonManager class to handle ribbon icons |

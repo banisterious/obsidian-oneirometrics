@@ -5,4 +5,5 @@
  */
 
 export { FilterUI } from './FilterUI';
-export { DateRangeService } from './date-range'; 
+export { FilterControls } from './FilterControls';
+export { DateRangeService } from './date-range/DateRangeService'; 
