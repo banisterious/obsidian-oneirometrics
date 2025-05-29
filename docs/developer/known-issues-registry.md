@@ -81,7 +81,9 @@ This document tracks technical issues, limitations, and known bugs that have bee
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-004 | Date Range Filter | Custom Date Range Filter has significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Medium - Makes custom date range filtering difficult for users; quick filter buttons work as expected | 2025-05-26 (UI Components Migration) | 2025-07-30 |
 | ISSUE-25-006 | Statistics Table | Icons missing and incorrect metric ordering in the Statistics Table despite proper configuration | Medium - Statistics table shows data but with inconsistent/missing visuals and suboptimal ordering | 2025-05-27 | 2025-07-30 |
-| ISSUE-25-009 | Statistics Table | Duplicate Words metric appearing in Statistics Table after refactoring | Low - Table functions correctly but displays redundant information | 2025-06-15 | 2025-07-30 |
+| ISSUE-25-009 | Statistics Table | Duplicate Words metric appearing in Statistics Table after refactoring | Low - Table functions correctly but displays redundant information | 2025-05-29 | 2025-07-30 |
+| ISSUE-25-010 | Statistics Table | Multiple "Words" rows appearing in Statistics Table with different values | Low - Statistics table functions correctly but shows redundant and inconsistent word count data | 2025-05-29 | 2025-07-30 |
+| ISSUE-25-011 | Ribbon UI | Debug "Test Calendar" button appearing in ribbon that opens Date Navigator test functionality | Low - Button is functional but not intended for production use | 2025-05-29 | 2025-05-29 |
 
 ### Scraping and Metrics Note Issues
 
@@ -186,6 +188,7 @@ Issues can be resolved in multiple ways:
 | ISSUE-25-005 | Metric Component | Metric icons not displaying properly in some UI contexts despite proper icon property values | Fully Fixed - Updated icon rendering in MetricComponent and EntryComponent with fallback mechanism | 2025-05-26 |
 | ISSUE-25-007 | DateNavigator | Type incompatibilities between DreamMetricData from '../types' and '../types/core' causing build errors | Fully Fixed - Created type adapter in utils/type-adapters.ts, added calculateWordCount utility, and ensured consistent wordCount property on all test entries | 2025-06-01 |
 | ISSUE-25-008 | Code Quality | Unused parameters in multiple component functions causing TypeScript warnings | Fully Fixed - Removed unused parameters from toggleContentVisibility and other functions across main.ts, ContentToggler.ts, and ProjectNoteEvents.ts | 2025-06-01 |
+| ISSUE-25-011 | Ribbon UI | Debug "Test Calendar" button appearing in ribbon that opens Date Navigator test functionality | Fully Fixed - Removed the button by commenting out the addCalendarDebugRibbon call in PluginLoader.ts | 2025-06-15 |
 
 > Note: Some issues with workarounds (like ISSUE-25-003) remain in the Active Issues section until a proper fix is implemented, even if they are no longer blocking development.
 
@@ -207,6 +210,7 @@ Issues can be resolved in multiple ways:
 | INIT-003 | `getProjectNotePath` called before available | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
 | INIT-004 | Event handlers rely on global state | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
 | INIT-005 | Logger service expected in components before initialization | High | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| INIT-006 | `globalContentToggler` used before initialization | High | Fixed | Created proper window-level initialization for global variable |
 
 ### Module Boundaries and Dependencies
 
