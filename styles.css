@@ -6364,28 +6364,28 @@ tr.oom-dream-row {
 /* Set overall dimensions */
 
 .modal:has(.oom-metrics-tabs-modal) {
-    width: 1000px;
-    height: 900px;
+    width: var(--modal-width);
+    height: var(--modal-height);
+    max-width: var(--modal-max-width);
+    max-height: var(--modal-max-height);
 }
-
-
-
 
 .oom-metrics-tabs-modal {
     display: flex;
     flex-direction: column;
-    margin: 0 auto;
-    padding: 1rem;
     height: 100%;
-    max-width: 980px;
+    /*max-width: 980px;*/
+    margin: 0;
+    padding: .5rem;
 }
 
 .oom-metrics-tabs-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    margin-block-start: .5em;
     padding-bottom: 0.5rem;
     text-align: center;
-    font-size: 1.8rem;
-    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--h1-size);
+    /*border-bottom: 1px solid var(--background-modifier-border);*/
     color: var(--text-normal);
 }
 
@@ -6413,11 +6413,9 @@ tr.oom-dream-row {
 }
 
 .oom-metrics-tabs-group-header {
-    margin: 0.5rem 0 0.25rem 0;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
+    margin: 0.25rem 0 0.25rem 0;
+    padding: 0.5rem .5rem;
+    font-weight: 700;
     letter-spacing: 0.05rem;
     color: var(--text-muted);
 }
@@ -6473,10 +6471,10 @@ tr.oom-dream-row {
 }
 
 .oom-metrics-tabs-metric-header {
-    font-size: 1.6rem;
+    margin-top: 0;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--h2-size);
     color: var(--text-normal);
 }
 
@@ -6515,9 +6513,9 @@ tr.oom-dream-row {
 }
 
 .oom-metrics-tabs-sources-content {
-    padding: 1.5rem;
+    /*padding: 1.5rem;
     border-radius: 6px;
-    background-color: var(--background-secondary);
+    background-color: var(--background-secondary);*/
 }
 
 .oom-metrics-tabs-sources-content h2,

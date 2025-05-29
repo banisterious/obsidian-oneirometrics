@@ -22,7 +22,7 @@ This document tracks the progress of replacing console.log statements with struc
 | src/testing/TestRunner.ts | 6 | 0 | ✅ Complete |
 | src/testing/EdgeCaseTests.ts | 14 | 0 | ✅ Complete |
 | src/testing/utils/TypeGuardsTests.ts | 6 | 0 | ✅ Complete |
-| src/dom/DateNavigator.ts | 3 | 0 | ⚠️ Completed with linter errors |
+| src/dom/DateNavigator.ts | 3 | 0 | ⚠️ Partially Complete |
 | src/journal_check/ui/EntryComponent.ts | 1 | 0 | ✅ Complete |
 | src/journal_check/ui/TemplateWizard.ts | 5 | 0 | ✅ Complete |
 | main.ts | 2 | 0 | ✅ Complete (using globalLogger) |
@@ -86,6 +86,7 @@ When replacing console.log statements, follow these patterns:
    - 'Metrics' - For metrics operations
    - 'Settings' - For settings operations
    - 'Template' - For template operations
+   - 'Calendar' - For DateNavigator calendar operations
 
 5. **Include relevant context data**:
    ```typescript
@@ -94,9 +95,16 @@ When replacing console.log statements, follow these patterns:
 
 ## Known Issues
 
-### DateNavigator.ts Linter Errors
+### DateNavigator.ts Issues
 
-The DateNavigator.ts file has been updated to use the structured logging system, and we've fixed the missing date-fns imports (parseISO and isValid). However, there are still type-related linter errors regarding the DreamMetricData type and missing wordCount properties. These need more significant changes to resolve.
+The DateNavigator.ts file has been partially updated to use structured logging, and we've addressed some of the type compatibility issues with the DreamMetricData interface by:
+
+1. Adding a calculateWordCount function to ensure all test entries have the required wordCount property
+2. Updating the import to use DreamMetricData from '../types/core' instead of '../types'
+3. Creating a processDreamEntries method to handle entry processing consistently
+4. Adding an ensureValidEntries method to ensure all entries have the required properties
+
+However, there are still some linter errors in the file related to incomplete/malformed try/catch blocks, likely from overlapping changes. These would require a more comprehensive refactoring of the file.
 
 ### main.ts DreamMetricData Type Error
 
@@ -104,12 +112,18 @@ There's a type error in main.ts related to the DreamMetricData interface, where 
 
 ## Next Steps
 
-1. **Fix DateNavigator.ts and main.ts Linter Errors** (Medium Priority)
-   - Resolve type incompatibility issues between different DreamMetricData versions
-   - Add wordCount to test entries
+1. **Complete DateNavigator.ts Refactoring** (Medium Priority)
+   - Fix the remaining try/catch issues
+   - Ensure consistent use of the logger throughout the file
+   - Fix any remaining type incompatibilities with DreamMetricData
+
+2. **Fix main.ts Test Entry Generation** (Medium Priority)
+   - Update test entry generation to include wordCount
 
 ## Conclusion
 
-The console.log cleanup has made significant progress, with 39 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, the DateNavigator, UI components, and updated the main.ts file to use proper structured logging through the globalLogger pattern.
+The console.log cleanup has made significant progress, with 39 out of 114 console statements now using the structured logging system across multiple files. We've cleaned up test modules, UI components, and updated the main.ts file to use proper structured logging through the globalLogger pattern.
 
-We've also properly documented the intentional console statements in the logging system components to ensure they aren't targeted for replacement in future cleanup efforts. 
+We've also properly documented the intentional console statements in the logging system components to ensure they aren't targeted for replacement in future cleanup efforts.
+
+The DateNavigator.ts file has been partially updated, but requires further refactoring to fully address all the issues. The changes made so far include adding wordCount calculation to test entries and improving the logging structure. 
