@@ -596,10 +596,10 @@ The dead code elimination phase will be considered successful when:
 | Metrics Processing | Calculation, organization | ✅ Complete | 2025-05-28 | Moved to src/metrics/MetricsProcessor.ts |
 | Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
 | Settings Management | Loading, saving | ✅ Complete | 2025-05-28 | Moved to src/state/SettingsManager.ts |
-| Ribbon Management | Icon creation and handling | ✅ Complete | 2025-06-15 | Moved to src/dom/RibbonManager.ts |
-| Debug Tools | Debugging and testing utilities | ✅ Complete | 2025-05-30 | Moved to src/utils/DebugTools.ts |
-| Filter Management | Filter application and control | ✅ Complete | 2025-05-30 | Moved to src/dom/filters/FilterManager.ts |
-| Project Note Management | Updating and backing up project notes | ✅ Complete | 2025-06-15 | Moved to src/state/ProjectNoteManager.ts |
+| Ribbon Management | Icon creation and handling | ✅ Complete | 2025-05-29 | Moved to src/dom/RibbonManager.ts |
+| Debug Tools | Debugging and testing utilities | ✅ Complete | 2025-05-29 | Moved to src/utils/DebugTools.ts |
+| Filter Management | Filter application and control | ✅ Complete | 2025-05-29 | Moved to src/dom/filters/FilterManager.ts |
+| Project Note Management | Updating and backing up project notes | ✅ Complete | 2025-05-29 | Moved to src/state/ProjectNoteManager.ts |
 
 ### Next Steps (May 29-June 7, 2025)
 
@@ -660,7 +660,7 @@ The dead code elimination phase will be considered successful when:
    - ✅ Updated progress tracking in code-cleanup-plan.md
    - Planned: Update CHANGELOG.md with user-visible changes 
 
-### Progress Update (2025-05-31)
+### Progress Update (2025-05-29)
 
 Completed dead code cleanup after FilterDisplayManager extraction:
 - Removed redundant `updateFilterDisplayWithDetails` method from FilterManager class
@@ -675,7 +675,7 @@ This cleanup improves code organization by:
 3. Making filter display behavior more consistent across the application
 4. Reducing complexity in both FilterManager and FilterUI classes
 
-### Progress Update (2025-06-01)
+### Progress Update (2025-05-29)
 
 Marked table-related global functions in main.ts for removal following their extraction to TableManager:
 - Added removal comments for `initializeTableRowClasses` function
@@ -690,3 +690,31 @@ The next steps in the cleanup are to:
 2. Update the FilterEvents class to work with the new FilterDisplayManager
 3. Create a proper interface for the FilterDisplayManager
 4. Reduce remaining dependencies on global window objects
+
+### Progress Update (2025-05-30)
+
+Attempted to remove the marked table-related global functions from main.ts:
+- Attempted to remove `initializeTableRowClasses` function (lines 2063-2250)
+- Attempted to remove `collectVisibleRowMetrics` function (lines 2251-2363)
+- Attempted to remove `updateSummaryTable` function (lines 2364-2365)
+
+The removal was unsuccessful due to file size limitations when using the edit_file tool. Created a new document to track this refactoring task:
+- Created `docs/refactoring-2025/main-ts-function-removal.md` to document the functions that need to be removed
+- Documented the line numbers and replacement patterns for the three functions
+- Added a note that manual editing will be required due to file size limitations
+
+All calls to these functions have already been updated to use the TableManager class methods:
+```typescript
+this.tableManager.initializeTableRowClasses();
+this.tableManager.collectVisibleRowMetrics(element);
+this.tableManager.updateSummaryTable(element, metrics);
+```
+
+The next steps in the cleanup are to:
+1. Manually remove these redundant global functions from main.ts
+2. Verify that all functionality still works correctly after removal
+3. Continue with the remaining cleanup tasks:
+   - Establish clear boundaries between filter management and display logic
+   - Update the FilterEvents class to work with the new FilterDisplayManager
+   - Create a proper interface for the FilterDisplayManager
+   - Reduce remaining dependencies on global window objects
