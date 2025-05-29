@@ -1,6 +1,6 @@
 import { App, MarkdownView, TFile } from 'obsidian';
 import { DreamMetricsState } from '../state/DreamMetricsState';
-import { DreamMetricData } from '../../types/core';
+import { DreamMetricData } from '../types';
 import { getSourceFile, getSourceId, isObjectSource } from '../utils/type-guards';
 import {
     startOfMonth,
