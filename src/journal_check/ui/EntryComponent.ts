@@ -6,6 +6,7 @@
  */
 
 import { setIcon } from 'obsidian';
+import { getLogger } from '../../logging';
 import { EventableComponent } from '../../templates/ui/BaseComponent';
 import type { DreamEntry } from '../../../src/types/declarations/dream-entry';
 
@@ -214,7 +215,8 @@ export class EntryComponent extends EventableComponent {
               }
             } catch (error) {
               // Fallback: Use the first letter of the icon name
-              console.warn(`Failed to set icon ${metric.icon}:`, error);
+              const logger = getLogger('EntryComponent');
+              logger.warn('UI', `Failed to set icon ${metric.icon}:`, error);
               iconElement.addClass('oom-icon-fallback');
               iconElement.setText(metric.icon.substring(0, 1).toUpperCase());
             }
