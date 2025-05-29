@@ -293,7 +293,7 @@ The main.ts file remains over 5,000 lines long, with many large methods inside t
 
 | Method Name | Lines | Target Module | Status | Date | Notes |
 |-------------|-------|--------------|--------|------|-------|
-| onload | ~400 | src/plugin/PluginLoader.ts | ⬜ Not Started | - | Core plugin initialization |
+| onload | ~400 | src/plugin/PluginLoader.ts | ✅ Complete | 2025-05-29 | Created PluginLoader class to handle plugin initialization |
 | scrapeMetrics | ~350 | src/metrics/MetricsCollector.ts | ✅ Complete | 2025-05-29 | Created MetricsCollector class to handle metrics collection |
 | generateMetricsTable | ~300 | src/dom/tables/TableGenerator.ts | ✅ Complete | 2025-06-15 | Created TableGenerator class to handle metrics table generation |
 | updateProjectNote | ~250 | src/state/ProjectNoteManager.ts | ✅ Complete | 2025-06-15 | Created ProjectNoteManager class to handle project note operations |
@@ -522,13 +522,16 @@ The dead code elimination phase will be considered successful when:
 **A detailed plan for main.ts refactoring has been created: [main-ts-refactoring-plan.md](main-ts-refactoring-plan.md)**
 
 | Component | Description | Status | Date | Notes |
-|-----------|-------------|--------|------|-------| 
+|-----------|-------------|--------|------|-------|
+| onload | Plugin initialization and setup | ✅ Complete | 2025-06-15 | Moved to src/plugin/PluginLoader.ts |
 | Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
 | Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converting to structured logging |
 | UI Components | Modal generation, tables | ✅ Complete | 2025-05-28 | Extracted TableGenerator, ContentToggler, FilterUI, DateNavigator, DateRangeService components |
 | Metrics Processing | Calculation, organization | ✅ Complete | 2025-05-28 | Moved to src/metrics/MetricsProcessor.ts |
 | Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
 | Settings Management | Loading, saving | ✅ Complete | 2025-05-28 | Moved to src/state/SettingsManager.ts |
+| Ribbon Management | Icon creation and handling | ✅ Complete | 2025-06-15 | Moved to src/dom/RibbonManager.ts |
+| Project Note Management | Updating and backing up project notes | ✅ Complete | 2025-06-15 | Moved to src/state/ProjectNoteManager.ts |
 
 ### Next Steps (May 29-June 7, 2025)
 
