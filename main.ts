@@ -972,6 +972,9 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Initialize the global TableGenerator with proper content processing
         globalTableGenerator = new TableGenerator(this.settings, this.logger);
+        
+        // Clear any cached data
+        globalTableGenerator.clearCache();
     }
 
     onunload() {

@@ -82,7 +82,6 @@ export class TableGenerator {
         content += '<thead>\n<tr>\n';
         content += '<th class="column-date">Date</th>\n';
         content += '<th class="column-dream-title">Dream Title</th>\n';
-        content += '<th class="column-words">Words</th>\n';
         content += '<th class="column-content">Content</th>\n';
         
         // Get all enabled metrics
@@ -107,7 +106,7 @@ export class TableGenerator {
         content += "</tr>\n</thead>\n<tbody>\n";
         
         if (dreamEntries.length === 0) {
-            content += '<tr><td colspan="' + (4 + sortedEnabledMetrics.length) + '" class="oom-no-entries">No dream entries found</td></tr>\n';
+            content += '<tr><td colspan="' + (3 + sortedEnabledMetrics.length) + '" class="oom-no-entries">No dream entries found</td></tr>\n';
         } else {
             // Sort dream entries by date (chronological order - oldest first)
             const sortedEntries = [...dreamEntries].sort((a, b) => {
@@ -136,24 +135,36 @@ export class TableGenerator {
                 const sourceId = this.getSourceId(entry);
                 content += `<td class="oom-dream-title column-dream-title"><a href="${sourceFile.replace(/\.md$/, "")}#${sourceId}" data-href="${sourceFile.replace(/\.md$/, "")}#${sourceId}" class="internal-link" data-link-type="block" data-link-path="${sourceFile.replace(/\.md$/, "")}" data-link-hash="${sourceId}" title="${entry.title}">${entry.title}</a></td>\n`;
                 
-                // Add word count
-                content += `<td class="column-words">${entry.metrics["Words"] || 0}</td>\n`;
-                
-                // Process content for display - convert markdown to HTML
+                // Process content for display - properly sanitize markdown elements
                 let dreamContent = this.processDreamContent(entry.content);
                 if (!dreamContent || !dreamContent.trim()) {
                     dreamContent = "";
                 }
                 
                 // Create unique ID for content cell
-                const cellId = `oom-content-${entry.date}-${entry.title.replace(/[^a-zA-Z0-9]/g, "")}`;
+                const cellId = `oom-content-${entry.date.replace(/[^0-9]/g, '')}-${entry.title.replace(/[^a-zA-Z0-9]/g, "")}`;
                 const preview = dreamContent.length > 200 ? dreamContent.substring(0, 200) + "..." : dreamContent;
                 
                 // Add content cell with expand/collapse button if needed
                 if (dreamContent.length > 200) {
-                    content += `<td class="oom-dream-content column-content" id="${cellId}"><div class="oom-content-wrapper"><div class="oom-content-preview">${preview}</div><div class="oom-content-full">${dreamContent}</div><button type="button" class="oom-button oom-button--expand oom-button--state-default" aria-expanded="false" aria-controls="${cellId}" data-expanded="false" data-content-id="${cellId}" data-parent-cell="${cellId}"><span class="oom-button-text">Show more</span><span class="oom-button-icon">▼</span><span class="visually-hidden"> full dream content</span></button></div></td>\n`;
+                    // Match exactly the structure the ContentToggler expects
+                    content += `<td class="oom-dream-content column-content">\n`;
+                    content += `  <div class="oom-content-wrapper">\n`;
+                    content += `    <div class="oom-content-preview">${preview}</div>\n`;
+                    content += `    <div class="oom-content-full" id="${cellId}" style="display: none;">${dreamContent}</div>\n`;
+                    content += `    <button type="button" class="oom-button oom-button--expand oom-button--state-default" aria-expanded="false" aria-controls="${cellId}" data-expanded="false" data-content-id="${cellId}" data-parent-cell="${cellId}">\n`;
+                    content += `      <span class="oom-button-text">Show more</span>\n`;
+                    content += `      <span class="oom-button-icon">▼</span>\n`;
+                    content += `      <span class="visually-hidden"> full dream content</span>\n`;
+                    content += `    </button>\n`;
+                    content += `  </div>\n`;
+                    content += `</td>\n`;
                 } else {
-                    content += `<td class="oom-dream-content column-content"><div class="oom-content-wrapper"><div class="oom-content-preview">${dreamContent}</div></div></td>\n`;
+                    content += `<td class="oom-dream-content column-content">\n`;
+                    content += `  <div class="oom-content-wrapper">\n`;
+                    content += `    <div class="oom-content-preview">${dreamContent}</div>\n`;
+                    content += `  </div>\n`;
+                    content += `</td>\n`;
                 }
                 
                 // Add metrics columns using the same sorted order as the headers
@@ -180,13 +191,44 @@ export class TableGenerator {
     
     /**
      * Process dream content to make it suitable for display
-     * Converts markdown to HTML
+     * Properly cleans markdown formatting while preserving readable text
      */
     private processDreamContent(content: string): string {
         if (!content) return '';
         
-        // Replace newlines with <br> tags for proper display
-        return content.replace(/\n/g, '<br>');
+        try {
+            // Remove callouts and images
+            let processedContent = content.replace(/\[!.*?\]/g, '')
+                           .replace(/!\[\[.*?\]\]/g, '')
+                           .replace(/\[\[.*?\]\]/g, '')
+                           .trim();
+            
+            // Remove any remaining markdown artifacts
+            processedContent = processedContent.replace(/[#*_~`]/g, '')
+                           .replace(/\n{3,}/g, '\n\n')
+                           .replace(/^>\s*>/g, '') // Remove nested blockquotes
+                           .replace(/^>\s*/gm, '') // Remove single blockquotes
+                           .trim();
+            
+            // Escape HTML entities
+            processedContent = processedContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            
+            // Convert newlines to <br> tags
+            processedContent = processedContent.replace(/\n/g, '<br>');
+            
+            return processedContent;
+        } catch (error) {
+            this.logger?.error('Content', 'Error processing dream content', error as Error);
+            // Return sanitized original content if processing fails
+            return content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+        }
     }
     
     /**
@@ -316,7 +358,7 @@ export class TableGenerator {
         const processedMetrics = new Set<string>();
         let hasMetrics = false;
         
-        // First, handle special case for Words
+        // First, ALWAYS handle Words metric specially (even if not in enabled metrics)
         if (metrics["Words"] && metrics["Words"].length > 0) {
             hasMetrics = true;
             const values = metrics["Words"];
@@ -333,10 +375,11 @@ export class TableGenerator {
             content += `<td class="metric-value">${values.length}</td>\n`;
             content += "</tr>\n";
             
+            // Mark Words as processed to avoid duplication
             processedMetrics.add("Words");
         }
         
-        // Then process the rest in the defined order
+        // Then process the rest in the defined order, skipping Words which we already processed
         for (const name of combinedOrder) {
             // Skip already processed metrics
             if (processedMetrics.has(name)) continue;

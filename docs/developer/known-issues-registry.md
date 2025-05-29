@@ -80,7 +80,8 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-004 | Date Range Filter | Custom Date Range Filter has significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Medium - Makes custom date range filtering difficult for users; quick filter buttons work as expected | 2025-05-26 (UI Components Migration) | 2025-07-30 |
-| ISSUE-25-006 | Statistics Table | Icons missing and incorrect metric ordering in the Statistics table despite proper configuration | Medium - Statistics table shows data but with inconsistent/missing visuals and suboptimal ordering | 2025-05-27 | 2025-07-30 |
+| ISSUE-25-006 | Statistics Table | Icons missing and incorrect metric ordering in the Statistics Table despite proper configuration | Medium - Statistics table shows data but with inconsistent/missing visuals and suboptimal ordering | 2025-05-27 | 2025-07-30 |
+| ISSUE-25-009 | Statistics Table | Duplicate Words metric appearing in Statistics Table after refactoring | Low - Table functions correctly but displays redundant information | 2025-06-15 | 2025-07-30 |
 
 ### Scraping and Metrics Note Issues
 

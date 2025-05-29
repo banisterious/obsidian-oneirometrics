@@ -109,9 +109,9 @@ export class ContentToggler {
             const isExpanded = button.getAttribute('data-expanded') === 'true';
             this.logger?.debug('UI', 'Current expansion state', { isExpanded });
             
-            // Get elements
-            const contentWrapper = contentCell.closest('.oom-content-cell');
-            const previewContent = contentCell.parentElement?.querySelector('.oom-content-summary');
+            // Get elements - UPDATED selectors to match TableGenerator's HTML structure
+            const contentWrapper = button.closest('.oom-content-wrapper');
+            const previewContent = contentWrapper?.querySelector('.oom-content-preview');
             const fullContent = document.getElementById(contentCellId);
             
             if (!contentWrapper || !previewContent || !fullContent) {
@@ -129,7 +129,12 @@ export class ContentToggler {
                 // 1. First update button state
                 button.setAttribute('data-expanded', 'true');
                 button.setAttribute('aria-expanded', 'true');
-                button.textContent = '-';
+                
+                // Update button text and icon
+                const buttonText = button.querySelector('.oom-button-text');
+                if (buttonText) {
+                    buttonText.textContent = 'Show less';
+                }
                 
                 // 2. Update content wrapper with CSS class
                 contentWrapper.classList.add('expanded');
@@ -142,7 +147,7 @@ export class ContentToggler {
                     fullContent.style.display = 'block';
                     
                     // 5. Update the table row height to fit the new content
-                    const tableRow = contentCell.closest('tr');
+                    const tableRow = contentWrapper.closest('tr');
                     if (tableRow) {
                         (tableRow as HTMLElement).style.height = 'auto';
                         (tableRow as HTMLElement).style.minHeight = 'fit-content';
@@ -162,7 +167,12 @@ export class ContentToggler {
                 // 1. First update button state
                 button.setAttribute('data-expanded', 'false');
                 button.setAttribute('aria-expanded', 'false');
-                button.textContent = '+';
+                
+                // Update button text
+                const buttonText = button.querySelector('.oom-button-text');
+                if (buttonText) {
+                    buttonText.textContent = 'Show more';
+                }
                 
                 // 2. Update content wrapper with CSS class
                 contentWrapper.classList.remove('expanded');
@@ -193,7 +203,8 @@ export class ContentToggler {
         this.logger?.debug('UI', 'Expanding all content sections');
         
         try {
-            const expandButtons = previewEl.querySelectorAll('.oom-toggle-content');
+            // UPDATED: Use the class that matches our new structure
+            const expandButtons = previewEl.querySelectorAll('.oom-button--expand');
             let expanded = 0;
             
             expandButtons.forEach(button => {
@@ -234,7 +245,8 @@ export class ContentToggler {
                 return;
             }
             
-            const buttons = previewEl.querySelectorAll('.oom-toggle-content');
+            // UPDATED: Use the class that matches our new structure
+            const buttons = previewEl.querySelectorAll('.oom-button--expand');
             let applied = 0;
             
             buttons.forEach(button => {
