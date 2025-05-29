@@ -303,7 +303,13 @@ import { ContentToggler } from './src/dom/content';
 import { TableGenerator } from './src/dom/tables';
 
 // Global instance for functions that need access to ContentToggler
-let globalContentToggler: ContentToggler;
+// Initialize to null; it will be properly set during plugin initialization
+(window as any).globalContentToggler = null;
+// Use the proper declaration to match the one in PluginLoader.ts
+declare global {
+    var globalContentToggler: ContentToggler;
+}
+
 // Global instance for table generation
 let globalTableGenerator: TableGenerator;
 
@@ -317,7 +323,10 @@ import { RibbonManager } from './src/dom/RibbonManager';
 import { PluginLoader } from './src/plugin/PluginLoader';
 
 // Import debugging tools
-import { DebugTools } from './src/utils';
+import { DebugTools } from './src/utils/DebugTools';
+
+// Import FilterManager
+import { FilterManager } from './src/dom/filters/FilterManager';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -357,6 +366,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private ribbonManager: RibbonManager;
     private dateFilter: DateFilter;
     private debugTools: DebugTools;
+    private filterManager: FilterManager;
 
     async onload() {
         // Create a new PluginLoader and delegate the initialization to it
@@ -385,6 +395,10 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize DateFilter
         this.dateFilter = new DateFilter(this.app, this.settings, this.saveSettings.bind(this), this.logger);
         this.dateFilter.registerGlobalHandler();
+
+        // Initialize FilterManager
+        this.filterManager = new FilterManager(this.app, this.settings, this.saveSettings.bind(this), this.saveData.bind(this), this.logger);
+        this.filterManager.initialize();
 
         // Initialize DebugTools
         this.debugTools = new DebugTools(this, this.app, this.logger);
@@ -907,437 +921,35 @@ export default class DreamMetricsPlugin extends Plugin {
         globalLogger?.debug('UI', 'Finished attaching metrics note event listeners');
     }
 
+    /**
+     * Apply filters to the metrics table
+     * @param previewEl The preview element containing the metrics table
+     */
     private applyFilters(previewEl: HTMLElement) {
-        globalLogger?.debug('Filter', 'applyFilters called');
+        // Delegate to the FilterManager implementation
+        this.filterManager.applyFilters(previewEl);
+    }
 
-        // Get important elements early before any DOM operations
-        const tableContainer = previewEl.querySelector('.oom-table-container');
-        const rows = previewEl.querySelectorAll('.oom-dream-row');
-        
-        // If no rows found, table might not be ready yet
-        if (!rows.length) {
-            globalLogger?.warn('Filter', 'No rows found in table, may need to retry later');
-        }
-        
-        // Get the selected filter value
-        const filterDropdown = previewEl.querySelector('#oom-date-range-filter') as HTMLSelectElement;
-        if (!filterDropdown) {
-            globalLogger?.warn('Filter', 'Filter dropdown not found, unable to apply filter');
-            return;
-        }
-        
-        // CRITICAL FIX: Check for an intended filter passed directly from applyFilterToDropdown
-        // This prevents filters from being overridden during the filter application process
-        const intendedFilter = (window as any).oomIntendedFilter;
-        const dateRange = intendedFilter || filterDropdown.value || 'all';
-        
-        // If we're using an intended filter, update the dropdown to match
-        if (intendedFilter && filterDropdown.value !== intendedFilter) {
-            filterDropdown.value = intendedFilter;
-            globalLogger?.info('Filter', `Corrected dropdown value to match intended filter: ${intendedFilter}`);
-        }
-        
-        // Clear the intended filter after use
-        (window as any).oomIntendedFilter = null;
-        globalLogger?.debug('Filter', `Applying filter: ${dateRange}`);
-        
-        // Save filter selection to settings for persistence
-        this.settings.lastAppliedFilter = dateRange;
-        
-        // Clear customDateRange if we're not using a custom filter
-        if (dateRange !== 'custom') {
-            this.settings.customDateRange = undefined;
-            customDateRange = null;
-        } else if (customDateRange) {
-            // If this is a custom filter, make sure we save the custom date range
-            this.settings.customDateRange = { ...customDateRange };
-        }
-        
-        // CRITICAL FIX: Save filter persistence data to localStorage as a backup
-        try {
-            localStorage.setItem('oom-last-applied-filter', dateRange);
-            if (dateRange === 'custom' && customDateRange) {
-                localStorage.setItem('oom-custom-date-range', JSON.stringify(customDateRange));
-            } else {
-                localStorage.removeItem('oom-custom-date-range');
-            }
-            globalLogger?.info('Filter', `Saved filter settings to localStorage: ${dateRange}`);
-        } catch (e) {
-            globalLogger?.error('Filter', 'Failed to save filter settings to localStorage', e);
-        }
-        
-        // CRITICAL FIX: Force immediate settings save to ensure persistence
-        // Save to both settings and localStorage for redundancy
-        this.saveSettings()
-            .then(() => {
-                globalLogger?.info('Filter', 'Successfully saved filter setting to Obsidian settings');
-                // Update flag to indicate filter has been successfully saved
-                (window as any).oomFiltersSaved = true;
-            })
-            .catch(err => {
-                globalLogger?.error('Filter', 'Failed to save filter setting to Obsidian settings', err);
-            });
-            
-        // Also save filter settings to disk as an additional safety measure
-        try {
-            // Use the specific plugin's method to save data, which is properly typed
-            this.saveData({
-                ...this.settings,
-                lastAppliedFilter: dateRange,
-                customDateRange: dateRange === 'custom' ? customDateRange : undefined
-            });
-            globalLogger?.info('Filter', 'Force-saved filter settings to disk');
-        } catch (e) {
-            globalLogger?.error('Filter', 'Failed to force-save filter settings to disk', e);
-        }
-        
-        // Apply will-change to the table container for better performance
-        if (tableContainer) {
-            tableContainer.setAttribute('style', 'will-change: contents;');
-        }
-        
-        this.logger.log('Filter', `Applying filter: ${dateRange}`, {
-            totalRows: rows.length
-        });
+    /**
+     * Apply a filter to a dropdown element
+     * @param filterDropdown The dropdown element
+     * @param previewEl The preview element containing the metrics table
+     * @returns Whether the filter was successfully applied
+     */
+    private applyFilterToDropdown(filterDropdown: HTMLSelectElement, previewEl: HTMLElement) {
+        // Delegate to the FilterManager implementation
+        return this.filterManager.applyFilterToDropdown(filterDropdown, previewEl);
+    }
 
-        // Prepare date ranges before any DOM operations
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const startOfYear = new Date(today.getFullYear(), 0, 1);
-        const last30 = new Date(today);
-        last30.setDate(today.getDate() - 30);
-        const last6months = new Date(today);
-        last6months.setMonth(today.getMonth() - 6);
-        const last12months = new Date(today);
-        last12months.setFullYear(today.getFullYear() - 1);
-        
-        // Process in chunks to avoid UI freezing
-        const CHUNK_SIZE = 20;
-        const totalRows = rows.length;
-        let currentChunk = 0;
-        
-        // Prep counters
-        let visibleCount = 0;
-        let invalidDates = 0;
-        let outOfRangeDates = 0;
-        
-        globalLogger?.debug('Filter', 'Starting filter process', { totalRows, dateRange });
-
-        // Show a loading indicator for large tables
-        let loadingIndicator: HTMLElement | null = null;
-        if (totalRows > 50) {
-            loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'oom-loading-indicator';
-            loadingIndicator.textContent = 'Filtering entries...';
-            loadingIndicator.style.position = 'fixed';
-            loadingIndicator.style.top = '10px';
-            loadingIndicator.style.right = '10px';
-            loadingIndicator.style.background = 'var(--background-primary)';
-            loadingIndicator.style.color = 'var(--text-normal)';
-            loadingIndicator.style.padding = '8px 12px';
-            loadingIndicator.style.borderRadius = '4px';
-            loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
-            loadingIndicator.style.zIndex = '1000';
-            document.body.appendChild(loadingIndicator);
-        }
-        
-        // First, pre-compute all row visibility states without touching the DOM
-        const rowVisibility: boolean[] = [];
-        
-        for (let i = 0; i < totalRows; i++) {
-            const rowEl = rows[i] as HTMLElement;
-            let date = rowEl.getAttribute('data-date');
-            
-            // Emergency fix for missing date attributes
-            if (!date) {
-                this.logger.warn('Filter', `Row ${i} has no date attribute, attempting to fix`);
-                
-                // Try to extract date from the date column
-                const dateCell = rowEl.querySelector('.column-date');
-                if (dateCell && dateCell.textContent) {
-                    const dateText = dateCell.textContent.trim();
-                    try {
-                        // Parse the displayed date back to YYYY-MM-DD format
-                        const dateObj = new Date(dateText);
-                        if (!isNaN(dateObj.getTime())) {
-                            date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
-                            globalLogger?.debug('Filter', `Fixed missing date attribute on row ${i} with date`, { rowIndex: i, date });
-                            rowEl.setAttribute('data-date', date);
-                            dateCell.setAttribute('data-date', date);
-                        }
-                    } catch (e) {
-                        globalLogger?.error('Filter', 'Failed to fix date attribute for row', { rowIndex: i, error: e as Error });
-                    }
-                }
-                
-                // If still no date after fix attempt, skip this row
-                if (!date) {
-                    this.logger.warn('Filter', `Unable to fix missing date attribute on row ${i}`);
-                    rowVisibility.push(false);
-                    continue;
-                }
-            }
-
-            const dreamDate = parseDate(date) || new Date();
-            if (isNaN(dreamDate.getTime())) {
-                this.logger.error('Filter', `Invalid date for row ${i}: ${date}`);
-                invalidDates++;
-                rowVisibility.push(false);
-                continue;
-            }
-
-            let isVisible = true;
-            // Only compute visibility based on the selected date range
-            // We've already calculated the date ranges above
-            switch (dateRange) {
-                case 'all':
-                    isVisible = true;
-                    break;
-                case 'today':
-                    isVisible = dreamDate >= today && dreamDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
-                    break;
-                case 'yesterday':
-                    isVisible = dreamDate >= yesterday && dreamDate < today;
-                    break;
-                case 'thisWeek':
-                    isVisible = dreamDate >= startOfWeek && dreamDate <= now;
-                    break;
-                case 'thisMonth':
-                    isVisible = dreamDate >= startOfMonth && dreamDate <= now;
-                    break;
-                case 'last30':
-                    isVisible = dreamDate >= last30 && dreamDate <= now;
-                    break;
-                case 'last6months':
-                    isVisible = dreamDate >= last6months && dreamDate <= now;
-                    break;
-                case 'thisYear':
-                    isVisible = dreamDate >= startOfYear && dreamDate <= now;
-                    break;
-                case 'last12months':
-                    isVisible = dreamDate >= last12months && dreamDate <= now;
-                    break;
-                default:
-                    isVisible = true;
-            }
-
-            if (isVisible) {
-                visibleCount++;
-                this.logger.log('Filter', `Row ${i} visible`, {
-                    date: dreamDate.toISOString(),
-                    title: rowEl.querySelector('.oom-dream-title')?.textContent
-                });
-            } else {
-                outOfRangeDates++;
-            }
-            
-            rowVisibility.push(isVisible);
-        }
-        
-        // Create a function to process chunks of rows
-        const processNextChunk = () => {
-            const start = currentChunk * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, totalRows);
-            
-            // Update loading indicator if present
-            if (loadingIndicator) {
-                const percent = Math.floor((currentChunk * CHUNK_SIZE / totalRows) * 100);
-                loadingIndicator.textContent = `Filtering entries... ${percent}%`;
-            }
-            
-            // Batch all DOM operations inside requestAnimationFrame
-            requestAnimationFrame(() => {
-                // Apply visibility to this chunk of rows
-                for (let i = start; i < end; i++) {
-                    const rowEl = rows[i] as HTMLElement;
-                    const isVisible = rowVisibility[i];
-                    
-                    // Ensure row has a data-date attribute
-                    if (!rowEl.hasAttribute('data-date')) {
-                        const dateCell = rowEl.querySelector('.column-date');
-                        if (dateCell && dateCell.textContent) {
-                            try {
-                                const dateObj = new Date(dateCell.textContent.trim());
-                                if (!isNaN(dateObj.getTime())) {
-                                    // Format as YYYY-MM-DD
-                                    const dateStr = dateObj.toISOString().split('T')[0];
-                                    rowEl.setAttribute('data-date', dateStr);
-                                    globalLogger?.debug('Filter', `Added missing date attribute to row ${i}`);
-                                }
-                            } catch (e) {
-                                globalLogger?.warn('Filter', `Could not add date attribute to row ${i}`, e as Error);
-                            }
-                        }
-                    }
-                    
-                    if (isVisible) {
-                        rowEl.classList.remove('oom-row--hidden');
-                        rowEl.classList.add('oom-row--visible');
-                    } else {
-                        rowEl.classList.add('oom-row--hidden');
-                        rowEl.classList.remove('oom-row--visible');
-                    }
-                }
-                
-                // Move to next chunk or finish
-                currentChunk++;
-                
-                if (currentChunk * CHUNK_SIZE < totalRows) {
-                    // Schedule next chunk with a slight delay to allow rendering
-                    setTimeout(() => processNextChunk(), 5);
-                } else {
-                    // All done, update UI
-                    if (loadingIndicator) {
-                        document.body.removeChild(loadingIndicator);
-                    }
-                    
-                    // Reset will-change property once filtering is complete
-                    if (tableContainer) {
-                        requestAnimationFrame(() => {
-                            tableContainer.removeAttribute('style');
-                        });
-                    }
-                    
-                    // Update summary table with filtered metrics
-                    const filteredMetrics = collectVisibleRowMetrics(previewEl);
-                    updateSummaryTable(previewEl, filteredMetrics);
-                    
-                    // Update filter display in the next animation frame
-                    requestAnimationFrame(() => {
-                        updateFilterDisplayWithDetails(dateRange, visibleCount, totalRows, invalidDates, outOfRangeDates);
-                    });
-                }
-            });
-        };
-        
-        // Delay the start of processing slightly to avoid UI jank
-        setTimeout(() => processNextChunk(), 20);
-        
-        // This function updates the filter display with detailed information
-        function updateFilterDisplayWithDetails(
-            filterType: string, 
-            visible: number, 
-            total: number, 
-            invalid: number, 
-            outOfRange: number
-        ) {
-            globalLogger?.debug('Filter', 'Filter application complete', {
-                filterType,
-                visible,
-                total,
-                invalid,
-                outOfRange
-            });
-            
-            // Mark filters as successfully applied
-            (window as any).oomFiltersApplied = true;
-            (window as any).oomFiltersPending = false;
-            
-            // Log success at INFO level
-            globalLogger?.info('Filter', `Filter successfully applied: ${filterType}`, {
-                visible,
-                total,
-                success: true
-            });
-            
-            // Show notification to user
-            if (visible > 0) {
-                new Notice(`OneiroMetrics: Applied filter - showing ${visible} of ${total} entries`);
-            }
-            
-            const filterDisplay = previewEl.querySelector('#oom-time-filter-display') as HTMLElement;
-            if (!filterDisplay) {
-                globalLogger?.warn('Filter', 'Filter display element not found');
-                return;
-            }
-            
-            // Temporarily set will-change for better performance
-            filterDisplay.style.willChange = 'contents';
-            
-            const hiddenCount = total - visible;
-            const colorClass = visible === total 
-                ? 'oom-filter--all-visible' 
-                : visible > 0 
-                    ? 'oom-filter--partially-visible' 
-                    : 'oom-filter--none-visible';
-                    
-            // Map filter keys to human-friendly labels
-            const filterLabels: Record<string, string> = {
-                all: 'All Time',
-                today: 'Today',
-                yesterday: 'Yesterday',
-                thisWeek: 'This Week',
-                thisMonth: 'This Month',
-                last30: 'Last 30 Days',
-                last6months: 'Last 6 Months',
-                thisYear: 'This Year',
-                last12months: 'Last 12 Months',
-            };
-            
-            const displayLabel = filterLabels[filterType] || filterType;
-            
-            // Build HTML content in a single string to minimize DOM operations
-            let htmlContent = '';
-            
-            htmlContent += `<span class="oom-filter-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-range">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                    <path d="M16 2v4"/>
-                    <path d="M8 2v4"/>
-                    <path d="M3 10h18"/>
-                    <path d="M17 14h-6"/>
-                    <path d="M13 18H7"/>
-                </svg>
-            </span>`;
-            
-            htmlContent += `<span class="oom-filter-text ${colorClass}">
-                ${displayLabel} (${visible} entries)
-                ${hiddenCount > 0 ? `<span class="oom-filter-hidden">- ${hiddenCount} hidden</span>` : ''}
-            </span>`;
-            
-            // Set detailed title attribute
-            const titleInfo = `Total Entries: ${total}
-Visible: ${visible}
-Hidden: ${hiddenCount}
-Invalid Dates: ${invalid}
-Out of Range: ${outOfRange}
-Filter Type: ${filterType}
-Applied: ${new Date().toLocaleTimeString()}`;
-            
-            // Use requestAnimationFrame for smooth transition
-            requestAnimationFrame(() => {
-                // First, remove the transition for immediate change
-                filterDisplay.style.transition = 'none';
-                filterDisplay.classList.remove('oom-filter-display--updated');
-                
-                // Force a reflow to ensure the removal of the class takes effect immediately
-                void filterDisplay.offsetHeight;
-                
-                // Apply all changes at once
-                filterDisplay.innerHTML = htmlContent;
-                filterDisplay.setAttribute('title', titleInfo);
-                
-                // Add animation back in the next frame
-                setTimeout(() => {
-                    // Reset will-change property
-                    filterDisplay.style.willChange = 'auto';
-                    
-                    // Restore transition and add the updated class
-                    filterDisplay.style.removeProperty('transition');
-                    filterDisplay.classList.add('oom-filter-display--updated');
-                    
-                    // Remove class after transition completes
-                    setTimeout(() => {
-                        filterDisplay.classList.remove('oom-filter-display--updated');
-                    }, 1000);
-                }, 20);
-            });
-        }
+    /**
+     * Force apply a filter directly to the DOM
+     * @param previewEl The preview element containing the metrics table
+     * @param startDate The start date of the filter range
+     * @param endDate The end date of the filter range
+     */
+    private forceApplyFilterDirect(previewEl: HTMLElement, startDate: string, endDate: string) {
+        // Delegate to the FilterManager implementation
+        this.filterManager.forceApplyFilterDirect(previewEl, startDate, endDate);
     }
 
     private async clearDebugLog() {
@@ -2248,143 +1860,6 @@ Applied: ${new Date().toLocaleTimeString()}`;
         }
     }
     
-    /**
-     * Helper method to apply a filter to a dropdown element
-     * PRIORITY FIX: More robust filter application for persistence
-     */
-    private applyFilterToDropdown(filterDropdown: HTMLSelectElement, previewEl: HTMLElement) {
-        // Check for saved filter
-        if (this.settings.lastAppliedFilter) {
-            globalLogger?.info('Filter', `Applying saved filter: ${this.settings.lastAppliedFilter}`, {
-                customRange: this.settings.customDateRange ? JSON.stringify(this.settings.customDateRange) : 'none'
-            });
-            
-            try {
-                // First ensure all tables are properly initialized
-                initializeTableRowClasses();
-                
-                // Apply date attribute repairs for correct filtering
-                const rows = previewEl.querySelectorAll('.oom-dream-row');
-                if (rows.length > 0) {
-                    globalLogger?.info('Filter', `Found ${rows.length} table rows before applying filter`);
-                } else {
-                    globalLogger?.warn('Filter', 'No table rows found, may need to wait for DOM');
-                    return; // Exit and let next retry handle it
-                }
-                
-                // Set the dropdown value and store the intended filter value
-                filterDropdown.value = this.settings.lastAppliedFilter;
-                
-                // CRITICAL FIX: Store the intended filter value globally to ensure it doesn't get overridden
-                const intendedFilter = this.settings.lastAppliedFilter;
-                (window as any).oomIntendedFilter = intendedFilter;
-                
-                globalLogger?.info('Filter', `Setting global intended filter: ${intendedFilter}`);
-                
-                // Apply the appropriate filter
-                if (intendedFilter === 'custom' && this.settings.customDateRange) {
-                    // First set global customDateRange
-                    customDateRange = this.settings.customDateRange;
-                    
-                    // Update custom range button state
-                    const customRangeBtn = previewEl.querySelector('#oom-custom-range-btn');
-                    if (customRangeBtn) {
-                        (customRangeBtn as HTMLElement).classList.add('active');
-                    }
-                    
-                    // Try multiple approaches to ensure filter is applied
-                    globalLogger?.info('Filter', 'Applying custom date range filter with multiple approaches');
-                    
-                    // 1. First call the function directly
-                    applyCustomDateRangeFilter();
-                    
-                    // 2. Then force apply directly to DOM as backup
-                    this.forceApplyFilterDirect(
-                        previewEl, 
-                        this.settings.customDateRange.start, 
-                        this.settings.customDateRange.end
-                    );
-                    
-                    // 3. Update the filter display manually
-                    const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
-                    if (filterDisplay) {
-                        const range = this.settings.customDateRange;
-                        (filterDisplay as HTMLElement).innerHTML = 
-                            `<span class="oom-filter-icon">🗓️</span>` +
-                            `<span class="oom-filter-text oom-filter--custom-range">` + 
-                            `Custom Range: ${range.start} to ${range.end}</span>`;
-                    }
-                } else {
-                    // Apply standard filter
-                    this.applyFilters(previewEl);
-                }
-                
-                // Mark as successfully applied
-                (window as any).oomFiltersApplied = true;
-                (window as any).oomFiltersPending = false;
-                
-                globalLogger?.info('Filter', `Filter persistence: Successfully applied saved filter`);
-                new Notice('OneiroMetrics: Restored your previous filter settings');
-                
-                // Update summary table after filter application
-                setTimeout(() => {
-                    try {
-                        const filteredMetrics = collectVisibleRowMetrics(previewEl);
-                        updateSummaryTable(previewEl, filteredMetrics);
-                        globalLogger?.info('Filter', 'Updated summary table after filter application');
-                    } catch (e) {
-                        globalLogger?.error('Filter', 'Error updating summary table', e as Error);
-                    }
-                }, 500);
-                
-                return true;
-            } catch (e) {
-                globalLogger?.error('Filter', 'Error applying saved filter', e as Error);
-                return false;
-            }
-        } else {
-            globalLogger?.debug('Filter', 'No saved filter found in settings');
-            return false;
-        }
-    }
-    
-    /**
-     * Last resort direct DOM manipulation for filter application
-     */
-    private forceApplyFilterDirect(previewEl: HTMLElement, startDate: string, endDate: string) {
-        globalLogger?.debug('Filter', 'Force applying filter directly to DOM');
-        try {
-            const rows = previewEl.querySelectorAll('.oom-dream-row');
-            globalLogger?.debug('Filter', 'Found rows to filter', { count: rows.length });
-            
-            rows.forEach(row => {
-                const dateAttr = row.getAttribute('data-date');
-                if (!dateAttr) {
-                    (row as HTMLElement).style.display = 'none';
-                    return;
-                }
-                
-                if (dateAttr >= startDate && dateAttr <= endDate) {
-                    (row as HTMLElement).style.display = '';
-                    (row as HTMLElement).classList.add('oom-row--visible');
-                    (row as HTMLElement).classList.remove('oom-row--hidden');
-                } else {
-                    (row as HTMLElement).style.display = 'none';
-                    (row as HTMLElement).classList.add('oom-row--hidden');
-                    (row as HTMLElement).classList.remove('oom-row--visible');
-                }
-            });
-            
-            // Update filter display
-            const filterDisplay = previewEl.querySelector('#oom-time-filter-display');
-            if (filterDisplay) {
-                filterDisplay.innerHTML = `<span class="oom-filter-icon">🔍</span> <span class="oom-filter-text">Custom Range: ${startDate} to ${endDate}</span>`;
-            }
-        } catch (e) {
-            globalLogger?.error('Filter', 'Error in direct filter application', e as Error);
-        }
-    }
-
     /**
      * Debug the table data in the plugin
      * This will dump all table data to help diagnose issues with the date navigator
