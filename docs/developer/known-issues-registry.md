@@ -152,6 +152,27 @@ Resolution approach:
 4. Add clear visual indication of valid/invalid states
 5. Consider replacing with a more user-friendly interface like a calendar view
 
+### ISSUE-25-007 (DateNavigator Type Compatibility)
+The DateNavigator.ts file had several type errors related to incompatibilities between the DreamMetricData interface defined in different locations:
+
+1. Main issues:
+   - Missing wordCount property on test entries and sample data
+   - Type incompatibility between DreamMetricData from '../types' and '../types/core'
+   - Different definitions of the source property (string vs string|object)
+   - Missing imports for date-fns functions (parseISO, isValid)
+
+2. Resolution details:
+   - Created a calculateWordCount utility function in src/utils/helpers.ts to ensure consistent word counting
+   - Developed a type adapter in src/utils/type-adapters.ts with adaptDreamMetricData and adaptDreamMetricDataArray functions
+   - Updated all test entries and sample data to include the wordCount property
+   - Fixed imports in DateNavigator.ts and DateNavigatorIntegration.ts
+   - Used the adapter functions to handle type conversions between incompatible interfaces
+
+3. Future recommendations:
+   - Consider consolidating the two DreamMetricData interfaces into a single definition
+   - Update all imports to use the consolidated type
+   - Remove duplicate type definitions to prevent future incompatibilities
+
 ## Resolved Issues
 
 Issues can be resolved in multiple ways:
@@ -162,6 +183,7 @@ Issues can be resolved in multiple ways:
 | ID | Component | Description | Resolution | Resolved Date |
 |----|-----------|-------------|------------|---------------|
 | ISSUE-25-005 | Metric Component | Metric icons not displaying properly in some UI contexts despite proper icon property values | Fully Fixed - Updated icon rendering in MetricComponent and EntryComponent with fallback mechanism | 2025-05-26 |
+| ISSUE-25-007 | DateNavigator | Type incompatibilities between DreamMetricData from '../types' and '../types/core' causing build errors | Fully Fixed - Created type adapter in utils/type-adapters.ts, added calculateWordCount utility, and ensured consistent wordCount property on all test entries | 2025-06-01 |
 
 > Note: Some issues with workarounds (like ISSUE-25-003) remain in the Active Issues section until a proper fix is implemented, even if they are no longer blocking development.
 
