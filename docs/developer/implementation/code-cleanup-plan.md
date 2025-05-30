@@ -609,7 +609,7 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 - Remove wrapper methods and update callers
 
 **Phase B: Major Refactoring (High Impact, Medium Risk)**  
-- Extract applyCustomDateRangeFilter to FilterManager
+- Extract applyCustomDateRangeFilter to CustomDateRangeFilter
 - Move getDreamEntryDate to date utilities
 - Consolidate import statements
 
