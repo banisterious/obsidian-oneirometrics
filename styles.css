@@ -6379,7 +6379,7 @@ tr.oom-dream-row {
 }
 
 .oom-metrics-tabs-header {
-    margin-bottom: 1rem;
+    margin-bottom: .5rem;
     margin-block-start: .5em;
     padding-bottom: 0.5rem;
     text-align: center;
@@ -6412,9 +6412,10 @@ tr.oom-dream-row {
 }
 
 .oom-metrics-tabs-group-header {
-    margin: 0.25rem 0 0.25rem 0;
-    padding: 0.5rem .5rem;
+    margin: 0.25rem 0 0 0;
+    padding: 0.25rem .5rem;
     font-weight: 700;
+    font-size: var(--h4-size);
     letter-spacing: 0.05rem;
     color: var(--text-muted);
 }
@@ -6422,11 +6423,15 @@ tr.oom-dream-row {
 .oom-metrics-tabs-button {
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: 0.25rem 1rem;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
     border-left: 3px solid transparent;
     color: var(--text-normal);
+}
+
+.modal-content:has(.oom-metrics-tabs-label) .oom-metrics-tabs-label {
+    font-size: calc(var(--font-ui-small) + 1px);
 }
 
 .oom-metrics-tabs-button:hover {
@@ -6459,6 +6464,16 @@ tr.oom-dream-row {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+h2.oom-metrics-tabs-label {
+    margin-block-start:0;
+    margin-block-end:0;
+    font-size: var(--h3-size);
+}
+
+.oom-metrics-tabs-button[data-tab-id="overview"] {
+    padding: 0 0 0 .25rem;
 }
 
 /* Content area */
@@ -6509,6 +6524,10 @@ tr.oom-dream-row {
 .oom-metrics-tabs-overview-text {
     margin-bottom: 2rem;
     line-height: 1.6;
+}
+
+.oom-metrics-tabs-overview-text p:first-child {
+    margin-top: 0;
 }
 
 .oom-metrics-tabs-sources-content {

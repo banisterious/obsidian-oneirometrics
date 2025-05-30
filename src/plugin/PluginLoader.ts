@@ -41,6 +41,9 @@ import { DreamMetricsSettingTab } from '../../settings';
 // Import safeLogger directly from the module
 import safeLogger from '../logging/safe-logger';
 
+// Import plugin compatibility utilities
+import { initializePluginCompatibility } from '../utils/plugin-compatibility';
+
 // Global logger variable (matches main.ts declaration)
 let globalLogger: any = safeLogger;
 
@@ -65,8 +68,12 @@ export class PluginLoader {
     public async initialize(): Promise<void> {
         await this.initializeLogging();
         await this.cleanupLogs();
-        await this.initializeNullServices();
         await this.initializeSettingsManager();
+        
+        // Initialize plugin compatibility early, before other services
+        await this.initializePluginCompatibility();
+        
+        await this.initializeNullServices();
         await this.initializeServiceRegistry();
         await this.initializeComponents();
         await this.registerEventListeners();
@@ -81,6 +88,25 @@ export class PluginLoader {
         if (!(window as any).oneiroMetricsPlugin) {
             (window as any).oneiroMetricsPlugin = this.plugin;
             globalLogger?.debug('State', 'Set global plugin instance for filter persistence');
+        }
+    }
+
+    /**
+     * Initialize compatibility with other plugins
+     */
+    private async initializePluginCompatibility(): Promise<void> {
+        try {
+            const plugin = this.plugin as any;
+            
+            safeLogger.debug('DreamMetricsPlugin', 'Initializing plugin compatibility');
+            
+            // Use our compatibility utility
+            await initializePluginCompatibility(this.app, this.plugin, plugin.settings);
+            
+            safeLogger.debug('DreamMetricsPlugin', 'Plugin compatibility initialized');
+        } catch (e) {
+            safeLogger.error('DreamMetricsPlugin', 'Error initializing plugin compatibility', 
+                e instanceof Error ? e : new Error(String(e)));
         }
     }
 
