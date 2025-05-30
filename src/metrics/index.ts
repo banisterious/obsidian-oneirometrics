@@ -6,4 +6,5 @@
 
 export { MetricsProcessor, getDreamEntryDate } from './MetricsProcessor';
 export { DreamMetricsProcessor } from './DreamMetricsProcessor';
-export { MetricsCollector } from './MetricsCollector'; 
+export { MetricsCollector } from './MetricsCollector';
+export { TableStatisticsUpdater } from './TableStatisticsUpdater'; 
