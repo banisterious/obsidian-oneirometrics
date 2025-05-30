@@ -6434,6 +6434,10 @@ tr.oom-dream-row {
     font-size: calc(var(--font-ui-small) + 1px);
 }
 
+.modal-content:has(.oom-metrics-tabs-label) .oom-metrics-tabs-label:first-of-type {
+    font-size: var(h3-size);
+}
+
 .oom-metrics-tabs-button:hover {
     background-color: var(--background-modifier-hover);
 }
@@ -6473,7 +6477,11 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-metrics-tabs-button[data-tab-id="overview"] {
-    padding: 0 0 0 .25rem;
+    padding: 0 0 0 .3rem;
+}
+
+.oom-metrics-tabs-button[data-tab-id="overview"] h2 {
+    font-size:var(--h3-size);
 }
 
 /* Content area */

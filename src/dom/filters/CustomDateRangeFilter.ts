@@ -200,17 +200,17 @@ export class CustomDateRangeFilter {
                         const dateObj = new Date(dateText);
                         if (!isNaN(dateObj.getTime())) {
                             dateAttr = dateObj.toISOString().split('T')[0];
-                            logger.debug(`Fixed missing date attribute on row ${index}`, { date: dateAttr });
+                            logger.debug('Filter', `Fixed missing date attribute on row ${index}`, { date: dateAttr });
                             row.setAttribute('data-date', dateAttr);
                             dateCell.setAttribute('data-date', dateAttr);
                         }
                     } catch (e) {
-                        logger.error(`Failed to fix date attribute for row ${index}`, e as Error);
+                        logger.error('Filter', `Failed to fix date attribute for row ${index}`, e as Error);
                     }
                 }
                 
                 if (!dateAttr || dateAttr.trim() === '') {
-                    logger.warn(`Row ${index} missing date attribute and cannot be fixed`);
+                    logger.warn('Filter', `Row ${index} missing date attribute and cannot be fixed`);
                     rowVisibility.push(false);
                     invalidDates++;
                     return;
@@ -222,7 +222,7 @@ export class CustomDateRangeFilter {
             
             if (isInRange) {
                 visibleCount++;
-                logger.debug(`Row ${index} matches date range: ${dateAttr}`);
+                logger.debug('Filter', `Row ${index} matches date range: ${dateAttr}`);
             } else {
                 outOfRangeDates++;
             }
@@ -230,7 +230,7 @@ export class CustomDateRangeFilter {
             rowVisibility.push(isInRange);
         });
 
-        logger.debug('Row visibility computed', { 
+        logger.debug('Filter', 'Row visibility computed', { 
             visibleCount, 
             invalidDates, 
             outOfRangeDates, 
@@ -329,7 +329,7 @@ export class CustomDateRangeFilter {
         // Save the filter in plugin settings
         this.saveFilterSettings(dateRange);
         
-        logger.info('Custom date range filter completed', { 
+        logger.info('Filter', 'Custom date range filter completed', { 
             visibleCount, 
             dateRange 
         });
@@ -344,9 +344,9 @@ export class CustomDateRangeFilter {
                 window.oneiroMetricsPlugin.settings.lastAppliedFilter = 'custom';
                 window.oneiroMetricsPlugin.settings.customDateRange = dateRange;
                 window.oneiroMetricsPlugin.saveSettings();
-                logger.debug('Filter settings saved', { dateRange });
+                logger.debug('Filter', 'Filter settings saved', { dateRange });
             } catch (e) {
-                logger.error('Failed to save filter setting', e as Error);
+                logger.error('Filter', 'Failed to save filter setting', e as Error);
             }
         }
     }
