@@ -47,7 +47,6 @@ import {
   FileSystemAdapter, 
   MarkdownView, 
   MetadataCache, 
-  Modal, 
   Notice, 
   Plugin, 
   Setting, 
@@ -137,15 +136,12 @@ import { SettingsAdapter, createAndRegisterSettingsAdapter } from './src/state/a
 import { SettingsManager } from './src/state/SettingsManager';
 import { MetricsProcessor, DreamMetricsProcessor, MetricsCollector, TableStatisticsUpdater } from './src/metrics';
 
-// Import EventHandling utilities for event handling
-import { attachClickEvent } from './src/templates/ui/EventHandling';
 
 // For backward compatibility with legacy types
 import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types';
 
 // Internal imports - Settings
 import { DreamMetricsSettingTab, lucideIconMap, RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER, sortMetricsByOrder } from './settings';
-import { createFolderAutocomplete, createSelectedNotesAutocomplete } from './autocomplete';
 
 // Internal imports - Logging
 import { LoggingAdapter } from './src/logging';
@@ -163,7 +159,6 @@ import { DateRangeService, DateFilter } from './src/dom/filters';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
 import { TestModal } from './src/journal_check/ui/TestModal';
-import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
 
 // Internal imports - Services
 import { LintingEngine } from './src/journal_check/LintingEngine';
@@ -194,8 +189,6 @@ import { MetricsTabsModal } from './src/dom/modals/MetricsTabsModal';
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
 
-// Import the default linting settings
-import { defaultLintingSettings } from './src/types/journal-check-defaults';
 
 // Import ContentToggler
 import { ContentToggler } from './src/dom/content/ContentToggler';
@@ -248,6 +241,9 @@ import {
   deleteFavoriteRange
 } from './src/utils/storage-helpers';
 
+// Import TemplateManager
+import { TemplateManager } from './src/templates/TemplateManager';
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -296,6 +292,7 @@ export default class DreamMetricsPlugin extends Plugin {
     // Add these properties to the DreamMetricsPlugin class with the other properties
     public contentToggler: ContentToggler;
     private filterUI: FilterUI;
+    private templateManager: TemplateManager;
 
     async onload() {
         // Assign the plugin instance to window.oneiroMetricsPlugin first
@@ -378,6 +375,14 @@ export default class DreamMetricsPlugin extends Plugin {
         // Initialize the linting engine with safe property access
         const journalStructure = getJournalStructure(this.settings);
         this.lintingEngine = new LintingEngine(this, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
+
+        // Initialize TemplateManager
+        this.templateManager = new TemplateManager(
+            this.app,
+            this.settings,
+            this.templaterIntegration,
+            this.logger
+        );
     }
 
     onunload() {
@@ -857,207 +862,8 @@ export default class DreamMetricsPlugin extends Plugin {
      * Insert a journal template into the current editor
      */
     async insertTemplate(editor: Editor) {
-        // Get templates from settings
-        const templates = this.settings.linting?.templates || [];
-        if (templates.length === 0) {
-            new Notice('No templates available. Create templates in the OneiroMetrics settings.');
-            return;
-        }
-
-        // Open template selection modal
-        const modal = new Modal(this.app);
-        modal.titleEl.setText('Insert Journal Template');
-        modal.contentEl.addClass('oom-template-selection-modal');
-        
-        // Create template list
-        for (const template of templates) {
-            const templateItem = modal.contentEl.createDiv({ cls: 'oom-template-item' });
-            
-            // Create template header with name
-            const headerEl = templateItem.createDiv({ cls: 'oom-template-header' });
-            headerEl.createEl('h3', { text: template.name });
-            
-            // Get structure info to display structure type
-            const structures = this.settings.linting?.structures || [];
-            const structure = structures.find(s => s.id === template.structure);
-            
-            if (structure) {
-                // Add structure type indicator with visual cue
-                const typeIndicator = headerEl.createEl('span', { 
-                    cls: `oom-template-type oom-${structure.type}-type`,
-                    attr: { title: structure.type === 'nested' ? 'Nested Structure' : 'Flat Structure' }
-                });
-                const typeIcon = structure.type === 'nested' ? '📦' : '📄';
-                typeIndicator.setText(`${typeIcon} ${structure.type}`);
-            }
-            
-            // Add templater badge if applicable
-            if (template.isTemplaterTemplate) {
-                const templaterBadge = headerEl.createEl('span', {
-                    cls: 'oom-templater-badge',
-                    attr: { title: 'Uses Templater for dynamic content' }
-                });
-                templaterBadge.setText('⚡ Templater');
-            }
-            
-            // Add description if available
-            if (template.description) {
-                templateItem.createEl('p', { text: template.description, cls: 'oom-template-description' });
-            }
-            
-            // Preview button and insert button in a button container
-            const buttonContainer = templateItem.createDiv({ cls: 'oom-template-buttons' });
-            
-            // Preview button
-            const previewButton = buttonContainer.createEl('button', {
-                text: 'Preview',
-                cls: 'oom-preview-button'
-            });
-            
-            previewButton.addEventListener('click', () => {
-                // Toggle preview visibility
-                const previewEl = templateItem.querySelector('.oom-template-preview');
-                if (previewEl) {
-                    previewEl.remove();
-                    previewButton.setText('Preview');
-                } else {
-                    const newPreviewEl = templateItem.createDiv({ cls: 'oom-template-preview' });
-                    
-                    // Dynamic/static toggle if it's a Templater template
-                    if (template.isTemplaterTemplate && template.staticContent) {
-                        const toggleContainer = newPreviewEl.createDiv({ cls: 'oom-preview-toggle-container' });
-                        const dynamicToggle = toggleContainer.createEl('button', {
-                            text: 'Dynamic (Templater)',
-                            cls: 'oom-preview-toggle oom-preview-toggle-active'
-                        });
-                        const staticToggle = toggleContainer.createEl('button', {
-                            text: 'Static (Fallback)',
-                            cls: 'oom-preview-toggle'
-                        });
-                        
-                        const previewContent = newPreviewEl.createDiv({ cls: 'oom-preview-content' });
-                        previewContent.createEl('pre', { text: template.content });
-                        
-                        dynamicToggle.addEventListener('click', () => {
-                            dynamicToggle.addClass('oom-preview-toggle-active');
-                            staticToggle.removeClass('oom-preview-toggle-active');
-                            previewContent.empty();
-                            previewContent.createEl('pre', { text: template.content });
-                        });
-                        
-                        staticToggle.addEventListener('click', () => {
-                            staticToggle.addClass('oom-preview-toggle-active');
-                            dynamicToggle.removeClass('oom-preview-toggle-active');
-                            previewContent.empty();
-                            previewContent.createEl('pre', { text: template.staticContent });
-                        });
-                    } else {
-                        // Regular preview for non-Templater templates
-                        newPreviewEl.createEl('pre', { text: template.content });
-                    }
-                    
-                    previewButton.setText('Hide Preview');
-                }
-            });
-            
-            // Insert button
-            const insertButton = buttonContainer.createEl('button', { 
-                text: 'Insert',
-                cls: 'mod-cta'
-            });
-            
-            insertButton.addEventListener('click', async () => {
-                modal.close();
-                
-                // Get template content
-                let content = '';
-                let usingFallback = false;
-                
-                // If it's a Templater template, process it
-                if (template.isTemplaterTemplate && template.templaterFile) {
-                    if (this.templaterIntegration && this.templaterIntegration.isTemplaterInstalled()) {
-                        try {
-                            content = await this.templaterIntegration.processTemplaterTemplate(template.templaterFile);
-                        } catch (error) {
-                            this.logger?.error('Templates', 'Error processing Templater template', error instanceof Error ? error : new Error(String(error)));
-                            new Notice('Error processing Templater template');
-                            
-                            // Fallback to static content if available
-                            if (template.staticContent) {
-                                content = template.staticContent;
-                                usingFallback = true;
-                            } else {
-                                content = template.content;
-                            }
-                        }
-                    } else {
-                        // Templater not installed, use static version
-                        if (template.staticContent) {
-                            content = template.staticContent;
-                        } else {
-                            // Generate static content on the fly if not available
-                            if (this.templaterIntegration) {
-                                content = this.templaterIntegration.convertToStaticTemplate(template.content);
-                            } else {
-                                content = template.content;
-                            }
-                        }
-                        usingFallback = true;
-                        new Notice('Templater plugin is not installed. Using static template with placeholders.');
-                    }
-                } else {
-                    // Regular non-Templater template
-                    content = template.content;
-                }
-                
-                // Insert content at cursor position
-                const initialCursorPosition = editor.getCursor();
-                editor.replaceSelection(content);
-                
-                // Handle placeholder navigation if using static version
-                if (usingFallback && this.templaterIntegration) {
-                    // Find placeholders
-                    const placeholders = this.templaterIntegration.findPlaceholders(content);
-                    
-                    if (placeholders.length > 0) {
-                        // Navigate to first placeholder
-                        const firstPlaceholder = placeholders[0];
-                        const lines = content.substring(0, firstPlaceholder.position.start).split('\n');
-                        
-                        const position = {
-                            line: initialCursorPosition.line + lines.length - 1,
-                            ch: lines.length > 1 ? lines[lines.length - 1].length : initialCursorPosition.ch + firstPlaceholder.position.start
-                        };
-                        
-                        editor.setCursor(position);
-                        
-                        // Select the placeholder
-                        const endPosition = {
-                            line: position.line,
-                            ch: position.ch + (firstPlaceholder.position.end - firstPlaceholder.position.start)
-                        };
-                        
-                        editor.setSelection(position, endPosition);
-                        
-                        // Show instructional notice
-                        new Notice(`Fill in the ${placeholders.length} placeholder(s). Press Tab to navigate between them.`);
-                    }
-                }
-                
-                // Show confirmation with structure type
-                if (structure) {
-                    if (usingFallback) {
-                        new Notice(`Inserted "${template.name}" (${structure.type} structure) using static placeholders.`);
-                    } else {
-                        new Notice(`Inserted "${template.name}" (${structure.type} structure)`);
-                    }
-                } else {
-                    new Notice(`Template "${template.name}" inserted`);
-                }
-            });
-        }
-        
-        modal.open();
+        // Delegate to the TemplateManager implementation
+        await this.templateManager.insertTemplate(editor);
     }
 
     // Add the updateTestRibbon method
