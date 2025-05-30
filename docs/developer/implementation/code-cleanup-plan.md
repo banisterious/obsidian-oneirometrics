@@ -359,7 +359,7 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-29 | Implemented as part of TableManager with improved performance for large tables and optimized date attribute handling |
 | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ✅ Complete | 2025-05-29 | Collection of metrics from DOM with robust error handling |
 | TableStatisticsUpdater | ~120 | updateSummaryTable (3766-3880) | src/metrics/TableStatisticsUpdater.ts | ✅ Complete | 2025-05-29 | Updating summary table UI with calculated statistics |
-| GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ⬜ Not Started | - | Utility functions used globally |
+| GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ✅ Complete | 2025-05-29 | Extracted utility functions used globally throughout the codebase into a centralized module |
 | WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ✅ Complete | 2025-05-29 | Removed redundant window.forceApplyDateFilter implementation, relying on DateFilter class implementation |
 
 **Implementation Approach:**
