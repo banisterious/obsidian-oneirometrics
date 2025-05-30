@@ -1171,35 +1171,46 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-metrics-tabs-journal-structure-text' 
         });
         
-        welcomeText.createEl('h3', { text: 'Journal Structure' });
+        welcomeText.createEl('h2', { text: 'Journal Structure' });
         
         welcomeText.createEl('p', { 
             text: 'Configure journal structure settings, templates, validation rules, and interface preferences.'
         });
         
+        // Create main content container for sections
+        const sectionsContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-journal-structure-sections' 
+        });
+        
         // Overview Section
-        const overviewContent = this.createCollapsibleSection(this.contentContainer, 'Overview');
-        this.buildOverviewSection(overviewContent);
+        const overviewSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        overviewSection.createEl('h3', { text: 'Overview', cls: 'oom-section-header' });
+        this.buildOverviewSection(overviewSection);
         
         // Structures Section
-        const structuresContent = this.createCollapsibleSection(this.contentContainer, 'Structures');
-        this.buildStructuresSection(structuresContent);
+        const structuresSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        structuresSection.createEl('h3', { text: 'Structures', cls: 'oom-section-header' });
+        this.buildStructuresSection(structuresSection);
         
         // Templates Section
-        const templatesContent = this.createCollapsibleSection(this.contentContainer, 'Templates');
-        this.buildTemplatesSection(templatesContent);
+        const templatesSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        templatesSection.createEl('h3', { text: 'Templates', cls: 'oom-section-header' });
+        this.buildTemplatesSection(templatesSection);
         
         // Templater Integration Section
-        const templaterContent = this.createCollapsibleSection(this.contentContainer, 'Templater Integration');
-        this.buildTemplaterSection(templaterContent);
+        const templaterSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        templaterSection.createEl('h3', { text: 'Templater Integration', cls: 'oom-section-header' });
+        this.buildTemplaterSection(templaterSection);
         
         // Content Isolation Settings Section
-        const contentIsolationContent = this.createCollapsibleSection(this.contentContainer, 'Content Isolation');
-        this.buildContentIsolationSection(contentIsolationContent);
+        const contentIsolationSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        contentIsolationSection.createEl('h3', { text: 'Content Isolation', cls: 'oom-section-header' });
+        this.buildContentIsolationSection(contentIsolationSection);
         
         // Interface Settings Section
-        const interfaceContent = this.createCollapsibleSection(this.contentContainer, 'Interface');
-        this.buildInterfaceSection(interfaceContent);
+        const interfaceSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        interfaceSection.createEl('h3', { text: 'Interface', cls: 'oom-section-header' });
+        this.buildInterfaceSection(interfaceSection);
     }
     
     // Helper method to create collapsible sections
@@ -1207,7 +1218,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const sectionEl = containerEl.createDiv({ cls: 'oom-collapsible-section' });
         
         const headerEl = sectionEl.createDiv({ cls: 'oom-collapsible-header' });
-        headerEl.createEl('h4', { text: title });
+        headerEl.createEl('h3', { text: title });
         
         const toggleEl = headerEl.createDiv({ cls: 'oom-collapsible-toggle' });
         setIcon(toggleEl, expanded ? 'chevron-down' : 'chevron-right');
@@ -1238,7 +1249,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         onChange: (value: boolean) => void,
         defaultValue: boolean = true
     ) {
-        const settingEl = containerEl.createDiv({ cls: 'oom-setting' });
+        const settingEl = containerEl.createDiv({ cls: 'oom-setting oom-setting-toggle' });
         
         const infoEl = settingEl.createDiv({ cls: 'oom-setting-info' });
         infoEl.createDiv({ text: name, cls: 'oom-setting-name' });
@@ -1246,17 +1257,51 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         const controlEl = settingEl.createDiv({ cls: 'oom-setting-control' });
         
-        const toggleEl = controlEl.createEl('input', {
+        // Create toggle container
+        const toggleContainer = controlEl.createDiv({ cls: 'oom-toggle-container' });
+        
+        // Create hidden checkbox for functionality
+        const toggleInput = toggleContainer.createEl('input', {
             type: 'checkbox',
-            cls: 'oom-toggle'
+            cls: 'oom-toggle-input'
         });
+        toggleInput.checked = defaultValue;
         
-        toggleEl.checked = defaultValue;
+        // Create visual toggle switch
+        const toggleSwitch = toggleContainer.createDiv({ cls: 'oom-toggle-switch' });
+        const toggleSlider = toggleSwitch.createDiv({ cls: 'oom-toggle-slider' });
         
-        toggleEl.addEventListener('change', () => {
-            onChange(toggleEl.checked);
+        // Update visual state based on input
+        const updateToggleVisual = () => {
+            if (toggleInput.checked) {
+                toggleSwitch.addClass('oom-toggle-on');
+                toggleSwitch.removeClass('oom-toggle-off');
+            } else {
+                toggleSwitch.addClass('oom-toggle-off');
+                toggleSwitch.removeClass('oom-toggle-on');
+            }
+        };
+        
+        // Set initial visual state
+        updateToggleVisual();
+        
+        // Handle toggle interaction
+        const handleToggle = () => {
+            toggleInput.checked = !toggleInput.checked;
+            updateToggleVisual();
+            onChange(toggleInput.checked);
+            this.plugin.saveSettings();
+        };
+        
+        // Add click handlers to both input and visual switch
+        toggleInput.addEventListener('change', () => {
+            updateToggleVisual();
+            onChange(toggleInput.checked);
             this.plugin.saveSettings();
         });
+        
+        toggleSwitch.addEventListener('click', handleToggle);
+        toggleContainer.addEventListener('click', handleToggle);
         
         return settingEl;
     }
