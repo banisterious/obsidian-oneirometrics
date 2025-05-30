@@ -643,7 +643,7 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 | Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
 | **insertTemplate** | ~205 | main.ts (859-1064) | src/templates/TemplateManager.ts | Critical | ✅ Completed | Template modal creation, Templater integration, preview functionality |
-| **showDateNavigator** | ~179 | main.ts (1087-1266) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ⏳ Planned | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
+| **showDateNavigator** | ~199 | main.ts (892-1091) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ⏳ Planned | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
 | **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ⏳ Planned | **Third largest** - Complex filter restoration logic with localStorage recovery, DOM waiting, retry mechanisms |
 | updateRibbonIcons | ~35 | main.ts (825-859) | Already delegated to RibbonManager | Medium | 🔄 Partial | Method exists but contains fallback logic |
 | Log management methods | ~100 | main.ts (621-731) | src/logging/LogFileManager.ts | Medium | ⏳ Planned | Combined: clearDebugLog, backupDebugLog, checkLogFileSize, copyConsoleLogs, getConsoleLog |
@@ -672,7 +672,7 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 - Complex error handling and user feedback
 - **Extraction Strategy**: Create TemplateManager class to handle all template-related operations
 
-**showDateNavigator Method (Lines 1087-1266, ~179 lines):**
+**showDateNavigator Method (Lines 892-1091, ~199 lines):**
 - Entry collection from multiple sources (state, memoized table data)
 - Test data generation for empty datasets
 - Complex error handling and logging
@@ -707,164 +707,28 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 
 #### 4.1.5 Success Metrics
 
-Upon completion of all identified cleanup tasks:
+**Current Progress Summary (2025-05-30):**
+- **Main.ts Original Size**: 2,053 lines
+- **Main.ts Current Size**: 1,377 lines  
+- **Total Lines Extracted**: 676 lines
+- **Current Reduction Percentage**: 33%
+
+**Completed Extractions:**
+- ✅ **applyCustomDateRangeFilter** (~250 lines) → `src/dom/filters/CustomDateRangeFilter.ts`
+- ✅ **insertTemplate** (~205 lines) → `src/templates/TemplateManager.ts`
+- ✅ **DEFAULT_LINTING_SETTINGS** (~95 lines) → `src/types/journal-check.ts`
+- ✅ **getDreamEntryDate** (~50 lines) → `src/utils/date-utils.ts`
+- ✅ **Storage helpers** (~50 lines) → `src/utils/storage-helpers.ts`
+- ✅ **forceApplyDateFilter** (~19 lines) → REMOVED (redundant wrapper)
+- ✅ **Dead code cleanup** (~7 lines) → Removed unused imports
+
+**Next Targets:**
+- ⏳ **showDateNavigator** (~199 lines) → `DateNavigatorManager`
+- ⏳ **applyInitialFilters** (~200 lines) → `FilterPersistenceManager`
+
+**Target upon completion of all identified cleanup tasks:**
 - main.ts line count reduced by approximately 680 lines (33%)
 - Improved code organization and maintainability
 - Better separation of concerns
 - Reduced cognitive load for developers
 - Enhanced testability of extracted components
-
-## Success Criteria
-
-The dead code elimination phase will be considered successful when:
-
-1. All `console.log` statements have been replaced with proper logging
-2. Redundant imports have been consolidated
-3. Transitional code has been removed
-4. No unused functions remain in the codebase
-5. All TODOs have been addressed or documented in ISSUES.md
-6. The codebase passes all tests and functions as expected
-
-## Next Steps
-
-1. Continue replacing remaining console.log statements with structured logging
-2. Remove remaining identified unused code
-3. Fix TypeScript errors in the codebase
-4. Add better log level controls for filtering debug messages
-5. Extract additional components identified in Phase 3.3 to further reduce main.ts line count
-6. Update documentation to reflect the changes 
-
-**Progress (2025-05-28):**
-- Consolidated and fixed type definitions to improve TypeScript compatibility:
-  - Created a SelectionMode type to handle 'notes'|'folder' vs 'manual'|'automatic' compatibility 
-  - Updated DreamMetricData.source to support both string and object formats
-  - Fixed calloutMetadata property to include required type field
-  - Added missing properties to DreamMetricsSettings interface
-  - Added proper type imports across files
-  - Created backwards compatibility aliases where needed
-- Fixed build issues despite remaining TypeScript errors:
-  - Used appropriate type assertions to handle legacy properties
-  - Added helper functions to safely access potentially missing properties
-  - Fixed missing dreamTitle variable in dream entry creation
-  - Updated properties access to avoid type errors
-  - Verified build process works correctly with node esbuild.config.mjs production
-- Added documentation for remaining type issues to address in future updates
-
-### Phase 5: TypeScript Adapter Cleanup
-
-1. **Consolidate Helper Utilities**
-   - Review helper utilities created during refactoring
-   - Identify which should be permanent vs. temporary
-   - Create a plan for standardizing utility usage
-
-2. **Clean Up Temporary Code**
-   - Identify code added purely for migration
-   - Mark temporary compatibility layers
-   - Create a schedule for removal
-
-3. **Remove Temporary Compatibility Code**
-   - Review adapter utilities
-   - Check for remaining dependencies on adapter files
-   - Create replacement implementations where needed
-   - Remove temporary adapter code when safe
-
-**Progress (2025-05-24):**
-- Reviewed the adapter files to identify their usage patterns:
-  - src/utils/adapter-functions.ts
-  - src/utils/type-adapters.ts
-  - src/utils/property-compatibility.ts
-  - src/utils/component-migrator.ts
-- Added migration notices to all adapter files pointing to typescript-architecture-lessons.md
-- Created a phased approach for adapter removal (documented in typescript-architecture-lessons.md)
-- Consolidated remaining TypeScript-related documentation:
-  - Moved implementation recommendations from post-refactoring-documentation-plan.md to code-cleanup-plan.md
-  - Ensured all key information is preserved in active documentation
-
-**Next Steps (Phase 5):**
-- Create dependency audit of all adapter file usage
-- Create classification table (keep, refactor, remove) for adapter functionality
-- Implement permanent replacements for essential adapter functionality
-- Update imports one file at a time, starting with non-critical components
-- Remove adapter files once all dependencies have been updated 
-
-**Progress (2025-05-25):**
-- Refactored date handling functions in main.ts to use centralized utilities
-  - Replaced local validateDate, parseDate, and formatDate implementations with imports from src/utils/date-utils.ts
-  - Updated method references across the file to use the shared utilities
-  - Added proper null handling for parseDate return values
-  - Maintained compatibility with existing code through wrapper methods
-  - Added import statement for date utilities
-  - Verified functionality with testing
-- Identified potential areas for further date handling improvements:
-  - Add consistent error handling for date parsing failures
-  - Standardize date format strings across the codebase
-  - Create more robust date range handling utilities
-
-## Progress Tracking
-
-### Main.ts Cleanup Progress
-
-**A detailed plan for main.ts refactoring has been created: [main-ts-refactoring-plan.md](main-ts-refactoring-plan.md)**
-
-| Component | Description | Status | Date | Notes |
-|-----------|-------------|--------|------|-------|
-| onload | Plugin initialization and setup | ✅ Complete | 2025-06-15 | Moved to src/plugin/PluginLoader.ts |
-| Date Functions | Date validation, parsing, formatting | ✅ Complete | 2025-05-26 | Moved to src/utils/date-utils.ts |
-| Logging | Debug logging statements | ✅ Complete | 2025-05-28 | Converting to structured logging |
-| UI Components | Modal generation, tables | ✅ Complete | 2025-05-28 | Extracted TableGenerator, ContentToggler, FilterUI, DateNavigator, DateRangeService components |
-| Metrics Processing | Calculation, organization | ✅ Complete | 2025-05-28 | Moved to src/metrics/MetricsProcessor.ts |
-| Event Handlers | Button clicks, interactions | ✅ Complete | 2025-05-28 | Created ProjectNoteEvents and FilterEvents classes |
-| Settings Management | Loading, saving | ✅ Complete | 2025-05-28 | Moved to src/state/SettingsManager.ts |
-| Ribbon Management | Icon creation and handling | ✅ Complete | 2025-05-29 | Moved to src/dom/RibbonManager.ts |
-| Debug Tools | Debugging and testing utilities | ✅ Complete | 2025-05-29 | Moved to src/utils/DebugTools.ts |
-| Filter Management | Filter application and control | ✅ Complete | 2025-05-29 | Moved to src/dom/filters/FilterManager.ts |
-| Project Note Management | Updating and backing up project notes | ✅ Complete | 2025-05-29 | Moved to src/state/ProjectNoteManager.ts |
-
-### Next Steps (May 29-June 7, 2025)
-
-1. **Complete Metrics Processing (High Priority)**
-   - ✅ Implemented `MetricsProcessor.ts` with:
-     - ✅ `processMetrics()` method for processing metric text
-     - ✅ `processDreamContent()` method for cleaning content
-     - ✅ Added comprehensive error handling
-   - Remaining: Complete implementation of content parsing logic from scrapeMetrics()
-
-2. **Continue UI Components Refactoring (High Priority)**
-   - ✅ Created `TableGenerator` class in src/dom/tables/ with:
-     - ✅ `generateSummaryTable()` method from main.ts
-     - ✅ `generateMetricsTable()` method from main.ts
-     - ✅ Added error handling and caching
-   - ✅ Created `ContentToggler` class in src/dom/content/ with:
-     - ✅ `updateContentVisibility()` method from main.ts
-     - ✅ `toggleContentVisibility()` method from main.ts
-     - ✅ `expandAllContentSections()` method from main.ts
-     - ✅ Added state persistence with localStorage
-   - ✅ Created `FilterUI` class in src/dom/filters/ with:
-     - ✅ `applyFilters()` method from main.ts
-     - ✅ `applyFilterToDropdown()` method from main.ts
-     - ✅ `forceApplyFilterDirect()` method from main.ts
-     - ✅ `forceApplyDateFilter()` method from main.ts
-     - ✅ `applyCustomDateRangeFilter()` method from main.ts
-     - ✅ Added custom date range management
-   - ✅ Created `FilterDisplayManager` class in src/dom/filters/ with:
-     - ✅ `updateFilterDisplay()` method (previously updateFilterDisplayWithDetails)
-     - ✅ `updateDateFilterDisplay()` method for date-specific filtering
-     - ✅ `updateCustomRangeDisplay()` method for custom date ranges
-     - ✅ Removed redundant display update methods from FilterManager and FilterUI
-
-3. **Complete Event Handlers Refactoring (Medium Priority)**
-   - ✅ Created `ProjectNoteEvents` class in src/events/ with:
-     - ✅ `attachProjectNoteEventListeners()` method from main.ts
-     - ✅ `attachButtonEventListeners()` helper method
-     - ✅ `attachDebugFunctionality()` helper method
-     - ✅ `attachContentToggleEventListeners()` helper method
-   - ✅ Created `FilterEvents` class in src/events/ with:
-     - ✅ `attachFilterEventListeners()` method 
-     - ✅ `openCustomRangeModal()` method from main.ts
-     - ✅ `saveLastCustomRange()` and `loadLastCustomRange()` methods
-     - ✅ `saveFavoriteRange()` and `loadFavoriteRanges()` methods
-     - ✅ Created `CustomDateRangeModal` class in src/dom/modals/
-
-4. **Complete Settings Management Refactoring (Medium Priority)**
-   - ✅ Implemented `SettingsManager` class in src/state/SettingsManager.ts:
-     - ✅ Moved `
