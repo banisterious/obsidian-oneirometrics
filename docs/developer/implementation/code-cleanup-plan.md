@@ -643,7 +643,7 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 | Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
 | **insertTemplate** | ~205 | main.ts (859-1064) | src/templates/TemplateManager.ts | Critical | ✅ Completed | Template modal creation, Templater integration, preview functionality |
-| **showDateNavigator** | ~199 | main.ts (892-1091) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ⏳ Planned | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
+| **showDateNavigator** | ~163 | main.ts (892-1091) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ✅ Completed | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
 | **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ✅ Completed | Filter persistence and recovery logic with localStorage backup/recovery, DOM waiting, retry mechanisms |
 | updateRibbonIcons | ~35 | main.ts (825-859) | Already delegated to RibbonManager | Medium | 🔄 Partial | Method exists but contains fallback logic |
 | Log management methods | ~100 | main.ts (621-731) | src/logging/LogFileManager.ts | Medium | ⏳ Planned | Combined: clearDebugLog, backupDebugLog, checkLogFileSize, copyConsoleLogs, getConsoleLog |
@@ -672,13 +672,12 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 - Complex error handling and user feedback
 - **Extraction Strategy**: Create TemplateManager class to handle all template-related operations
 
-**showDateNavigator Method (Lines 892-1091, ~199 lines):**
+**showDateNavigator Method (Lines 892-1091, ~163 lines):** ✅ **COMPLETED**
 - Entry collection from multiple sources (state, memoized table data)
 - Test data generation for empty datasets
-- Complex error handling and logging
-- Global state management (window.dreamEntries)
-- Modal initialization and configuration
-- **Extraction Strategy**: Create DateNavigatorManager class to handle navigator setup and data preparation
+- Complex modal initialization and error handling
+- Global state exposure for DateNavigator access
+- **Extraction Strategy**: ✅ Created DateNavigatorManager class to handle date navigation functionality
 
 **applyInitialFilters Method (Lines 1290-1489, ~200 lines):** ✅ **COMPLETED**
 - Filter persistence and recovery logic
@@ -709,19 +708,20 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 
 **Current Progress Summary (2025-05-30):**
 - **Main.ts Original Size**: 2,053 lines
-- **Main.ts Current Size**: 1,197 lines  
-- **Total Lines Extracted**: 856 lines
-- **Current Reduction Percentage**: 42%
+- **Main.ts Current Size**: 1,034 lines  
+- **Total Lines Extracted**: 1,019 lines
+- **Current Reduction Percentage**: 50%
 
 **Completed Extractions:**
 - ✅ **applyCustomDateRangeFilter** (~250 lines) → `src/dom/filters/CustomDateRangeFilter.ts`
 - ✅ **insertTemplate** (~205 lines) → `src/templates/TemplateManager.ts`
 - ✅ **applyInitialFilters** (~200 lines) → `src/dom/filters/FilterPersistenceManager.ts`
+- ✅ **showDateNavigator** (~163 lines) → `src/dom/date-navigator/DateNavigatorManager.ts`
 - ✅ **DEFAULT_LINTING_SETTINGS** (~95 lines) → `src/types/journal-check.ts`
 - ✅ **getDreamEntryDate** (~50 lines) → `src/utils/date-utils.ts`
 - ✅ **Storage helpers** (~50 lines) → `src/utils/storage-helpers.ts`
 - ✅ **forceApplyDateFilter** (~19 lines) → REMOVED (redundant wrapper)
-- ✅ **Dead code cleanup** (~7 lines) → Removed unused imports
+- ✅ **Dead code cleanup** (~7 lines) → REMOVED (unused imports)
 
 **Next Targets:**
-- ⏳ **showDateNavigator** (~199 lines) → `DateNavigatorManager`
+- ⏳ **showDateNavigator** (~163 lines) → `DateNavigatorManager`
