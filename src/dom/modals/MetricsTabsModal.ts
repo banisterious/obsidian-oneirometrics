@@ -5,10 +5,11 @@
  * Provides comprehensive descriptions of all metrics available in the plugin.
  */
 
-import { App, Modal, MarkdownRenderer, setIcon, Notice } from 'obsidian';
+import { App, Modal, MarkdownRenderer, setIcon, Notice, TFile } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
 import { DreamMetric } from '../../types/core';
 import safeLogger from '../../logging/safe-logger';
+import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
 
 // Interface for grouped metrics
 interface MetricGroup {
@@ -21,8 +22,28 @@ export class MetricsTabsModal extends Modal {
     private contentContainer: HTMLElement;
     private selectedTab: string | null = null;
     
+    // Dream Scrape related properties
+    private selectionMode: 'notes' | 'folder' = 'notes';
+    private selectedNotes: string[] = [];
+    private selectedFolder: string = '';
+    private isScraping: boolean = false;
+    private hasScraped: boolean = false;
+    private progressContent: HTMLElement | null = null;
+    private statusText: HTMLElement | null = null;
+    private progressBar: HTMLElement | null = null;
+    private progressFill: HTMLElement | null = null;
+    private detailsText: HTMLElement | null = null;
+    private scrapeButton: HTMLButtonElement | null = null;
+    private openNoteButton: HTMLButtonElement | null = null;
+    
     constructor(app: App, private plugin: DreamMetricsPlugin) {
         super(app);
+        
+        // Initialize Dream Scrape properties using safe accessors
+        const settingsMode = this.plugin.settings.selectionMode || 'notes';
+        this.selectionMode = (settingsMode === 'manual') ? 'notes' : settingsMode as 'notes' | 'folder';
+        this.selectedNotes = this.plugin.settings.selectedNotes || [];
+        this.selectedFolder = this.plugin.settings.selectedFolder || '';
     }
     
     onOpen() {
@@ -81,6 +102,7 @@ export class MetricsTabsModal extends Modal {
     private createTabs() {
         // Create new management tabs first
         this.createDashboardTab();
+        this.createDreamScrapeTab();
         this.createJournalStructureTab();
         
         // Create Overview tab (renamed to Reference Overview)
@@ -107,6 +129,23 @@ export class MetricsTabsModal extends Modal {
         
         dashboardTab.addEventListener('click', () => {
             this.selectTab('dashboard');
+        });
+    }
+    
+    // Create Dream Scrape tab
+    private createDreamScrapeTab() {
+        const dreamScrapeTab = this.tabsContainer.createDiv({
+            cls: 'oom-metrics-tabs-button',
+            attr: { 'data-tab-id': 'dream-scrape' }
+        });
+        
+        dreamScrapeTab.createEl('h2', { 
+            text: 'Dream Scrape', 
+            cls: 'oom-metrics-tabs-label' 
+        });
+        
+        dreamScrapeTab.addEventListener('click', () => {
+            this.selectTab('dream-scrape');
         });
     }
     
@@ -201,6 +240,8 @@ export class MetricsTabsModal extends Modal {
         // Load appropriate content
         if (tabId === 'dashboard') {
             this.loadDashboardContent();
+        } else if (tabId === 'dream-scrape') {
+            this.loadDreamScrapeContent();
         } else if (tabId === 'journal-structure') {
             this.loadJournalStructureContent();
         } else if (tabId === 'overview') {
@@ -842,8 +883,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         });
         
         this.createQuickActionButton(quickActionsGrid, 'Scrape Metrics', 'sparkles', () => {
-            // Launch scrape metrics functionality
-            this.plugin.scrapeMetrics();
+            // Navigate to Dream Scrape tab
+            this.selectTab('dream-scrape');
         });
         
         this.createQuickActionButton(quickActionsGrid, 'Journal Structure', 'check-circle', () => {
@@ -929,6 +970,196 @@ This metric assesses **how well your memory of the dream holds up and remains co
         button.addEventListener('click', callback);
         
         return button;
+    }
+
+    // Display Dream Scrape content
+    private loadDreamScrapeContent() {
+        this.contentContainer.empty();
+        
+        // Add welcome text
+        const welcomeText = this.contentContainer.createDiv({ 
+            cls: 'oom-metrics-tabs-dream-scrape-text' 
+        });
+        
+        welcomeText.createEl('h3', { text: 'Dream Scrape' });
+        
+        welcomeText.createEl('p', { 
+            text: 'Extract dream metrics from journal entries.'
+        });
+        
+        // Mode Selection Section
+        const modeSection = this.contentContainer.createDiv({ cls: 'oom-modal-section' });
+        
+        modeSection.createEl('h4', { text: 'Selection Mode' });
+        modeSection.createEl('p', { 
+            text: 'Choose whether to scrape individual notes or a folder',
+            cls: 'oom-section-helper'
+        });
+        
+        const modeRow = modeSection.createDiv({ cls: 'oom-actions-row' });
+        
+        const modeDropdown = modeRow.createEl('select', { cls: 'oom-dropdown' });
+        modeDropdown.createEl('option', { text: 'Notes', value: 'notes' });
+        modeDropdown.createEl('option', { text: 'Folder', value: 'folder' });
+        modeDropdown.value = this.selectionMode;
+        
+        // File/Folder Selector Section
+        const selectorSection = this.contentContainer.createDiv({ cls: 'oom-modal-section' });
+        
+        if (this.selectionMode === 'folder') {
+            selectorSection.createEl('h4', { text: 'Selected Folder' });
+            selectorSection.createEl('p', { 
+                text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)',
+                cls: 'oom-section-helper'
+            });
+            
+            // Replace placeholder with actual folder selector
+            const folderSelectorContainer = selectorSection.createDiv('oom-folder-selector-container');
+            createFolderAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: folderSelectorContainer,
+                selectedFolder: this.selectedFolder,
+                onChange: (folder: string) => {
+                    this.selectedFolder = folder;
+                    this.plugin.settings.selectedFolder = folder;
+                    this.plugin.saveSettings();
+                }
+            });
+        } else {
+            selectorSection.createEl('h4', { text: 'Selected Notes' });
+            selectorSection.createEl('p', { 
+                text: 'Notes to search for dream metrics (select one or more)',
+                cls: 'oom-section-helper'
+            });
+            
+            // Replace placeholder with actual notes selector
+            const notesSelectorContainer = selectorSection.createDiv('oom-notes-selector-container');
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: notesSelectorContainer,
+                selectedNotes: this.selectedNotes,
+                onChange: (notes: string[]) => {
+                    this.selectedNotes = notes;
+                    this.plugin.settings.selectedNotes = notes;
+                    this.plugin.saveSettings();
+                }
+            });
+        }
+        
+        // Progress Section
+        const progressSection = this.contentContainer.createDiv({ cls: 'oom-modal-section oom-progress-section' });
+        
+        progressSection.createEl('h4', { text: 'Progress' });
+        
+        this.progressContent = progressSection.createDiv({ cls: 'oom-progress-content' });
+        this.statusText = this.progressContent.createEl('div', { cls: 'oom-status-text' });
+        this.progressBar = this.progressContent.createEl('div', { cls: 'oom-progress-bar' });
+        this.progressFill = this.progressBar.createEl('div', { cls: 'oom-progress-fill' });
+        this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
+        
+        // Create the sticky footer for scrape actions
+        const scrapeFooter = this.contentContainer.createDiv({ cls: 'oom-dream-scrape-footer' });
+        
+        // Scrape Action Section
+        const scrapeRow = scrapeFooter.createDiv({ cls: 'oom-actions-row' });
+        
+        this.scrapeButton = scrapeRow.createEl('button', {
+            text: 'Scrape Notes',
+            cls: 'mod-cta oom-button oom-scrape-button'
+        });
+        
+        this.openNoteButton = scrapeRow.createEl('button', {
+            text: 'Open OneiroMetrics',
+            cls: 'oom-button oom-open-note-button',
+            attr: { title: 'Run a scrape to enable this' }
+        });
+        this.openNoteButton.disabled = true;
+        
+        // Set up event handlers
+        
+        // Mode dropdown change handler
+        modeDropdown.addEventListener('change', (e) => {
+            const value = (e.target as HTMLSelectElement).value as 'notes' | 'folder';
+            this.selectionMode = value;
+            this.plugin.settings.selectionMode = value;
+            this.plugin.saveSettings();
+            
+            // Rebuild the selector section with the new mode
+            selectorSection.empty();
+            
+            if (value === 'folder') {
+                selectorSection.createEl('h4', { text: 'Selected Folder' });
+                selectorSection.createEl('p', { 
+                    text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)',
+                    cls: 'oom-section-helper'
+                });
+                
+                // Add folder selector
+                const folderSelectorContainer = selectorSection.createDiv('oom-folder-selector-container');
+                createFolderAutocomplete({
+                    app: this.app,
+                    plugin: this.plugin,
+                    containerEl: folderSelectorContainer,
+                    selectedFolder: this.selectedFolder,
+                    onChange: (folder: string) => {
+                        this.selectedFolder = folder;
+                        this.plugin.settings.selectedFolder = folder;
+                        this.plugin.saveSettings();
+                    }
+                });
+            } else {
+                selectorSection.createEl('h4', { text: 'Selected Notes' });
+                selectorSection.createEl('p', { 
+                    text: 'Notes to search for dream metrics (select one or more)',
+                    cls: 'oom-section-helper'
+                });
+                
+                // Add notes selector
+                const notesSelectorContainer = selectorSection.createDiv('oom-notes-selector-container');
+                createSelectedNotesAutocomplete({
+                    app: this.app,
+                    plugin: this.plugin,
+                    containerEl: notesSelectorContainer,
+                    selectedNotes: this.selectedNotes,
+                    onChange: (notes: string[]) => {
+                        this.selectedNotes = notes;
+                        this.plugin.settings.selectedNotes = notes;
+                        this.plugin.saveSettings();
+                    }
+                });
+            }
+        });
+        
+        // Scrape button click handler
+        this.scrapeButton.addEventListener('click', () => {
+            if (!this.isScraping) {
+                this.isScraping = true;
+                this.scrapeButton.disabled = true;
+                this.plugin.scrapeMetrics();
+                // Set timer to enable the open note button after scraping
+                setTimeout(() => {
+                    if (this.openNoteButton) {
+                        this.openNoteButton.disabled = false;
+                        this.openNoteButton.classList.add('enabled');
+                        this.hasScraped = true;
+                    }
+                }, 2000); // This is a placeholder, actual enabling would happen when scraping completes
+            }
+        });
+        
+        // Open note button click handler
+        this.openNoteButton.addEventListener('click', () => {
+            if (this.openNoteButton?.disabled) return;
+            const file = this.app.vault.getAbstractFileByPath(this.plugin.settings.projectNote);
+            if (file instanceof TFile) {
+                this.app.workspace.openLinkText(this.plugin.settings.projectNote, '', true);
+            } else {
+                new Notice('Metrics note not found. Please set the path in settings.');
+                (this.app as any).setting.open('oneirometrics');
+            }
+        });
     }
 
     // Placeholder for Journal Structure content (to be implemented)
