@@ -356,11 +356,11 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventHandler.ts | ✅ Complete | 2025-05-29 | Created EventHandler to manage all DOM event attachments including buttons, filters, and content toggles with robust error handling and centralized event management |
 | DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-29 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
 | ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ✅ Complete | 2025-05-29 | Centralized modal creation and management with a common interface, tracking of active modals, and standardized modal utilities |
-| TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
-| MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ✅ Complete | 2025-06-02 | Collection of metrics from DOM with robust error handling |
-| TableStatisticsUpdater | ~120 | updateSummaryTable (3766-3880) | src/metrics/TableStatisticsUpdater.ts | ✅ Complete | 2025-06-02 | Updating summary table UI with calculated statistics |
+| TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-29 | Implemented as part of TableManager with improved performance for large tables and optimized date attribute handling |
+| MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ✅ Complete | 2025-05-29 | Collection of metrics from DOM with robust error handling |
+| TableStatisticsUpdater | ~120 | updateSummaryTable (3766-3880) | src/metrics/TableStatisticsUpdater.ts | ✅ Complete | 2025-05-29 | Updating summary table UI with calculated statistics |
 | GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ⬜ Not Started | - | Utility functions used globally |
-| WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ✅ Complete | 2025-05-30 | Removed redundant window.forceApplyDateFilter implementation, relying on DateFilter class implementation |
+| WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ✅ Complete | 2025-05-29 | Removed redundant window.forceApplyDateFilter implementation, relying on DateFilter class implementation |
 
 **Implementation Approach:**
 1. Create a new class for each component with proper interfaces and documentation
