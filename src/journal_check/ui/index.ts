@@ -5,8 +5,7 @@
  * allowing them to be imported using a barrel import pattern.
  */
 
-// Re-export all UI components
-export { DreamJournalManager } from './DreamJournalManager';
+// Export all UI components
 export { JournalStructureModal } from './JournalStructureModal';
 export { TestModal } from './TestModal';
 export { TemplateWizard } from './TemplateWizard'; 

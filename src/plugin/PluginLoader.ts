@@ -13,7 +13,6 @@ import { TimeFilterManager } from '../timeFilters';
 import { TemplaterIntegration } from '../journal_check/TemplaterIntegration';
 import { DateNavigatorIntegration } from '../dom/date-navigator/DateNavigatorIntegration';
 import { LintingEngine } from '../journal_check/LintingEngine';
-import { DreamJournalManager } from '../journal_check/ui/DreamJournalManager';
 import { SettingsManager } from '../state/SettingsManager';
 import { DateRangeService } from '../dom/filters/date-range/DateRangeService';
 import { RibbonManager } from '../dom/RibbonManager';
@@ -423,9 +422,6 @@ export class PluginLoader {
         // Initialize the linting engine with safe property access
         const journalStructure = getJournalStructure(settings);
         plugin.lintingEngine = new LintingEngine(this.plugin as any, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
-        
-        // Initialize UI components
-        plugin.dreamJournalManager = new DreamJournalManager(this.app, this.plugin as any);
         
         // Initialize date navigator for reuse
         plugin.dateNavigatorIntegration = new DateNavigatorIntegration(this.app, this.plugin as any);
