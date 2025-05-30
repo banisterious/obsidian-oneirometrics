@@ -634,7 +634,7 @@ With the newly identified opportunities, main.ts could be reduced to a minimal p
 
 **Fresh Analysis Reveals Major Missed Opportunities:**
 
-Upon re-analysis of the current main.ts (1,571 lines) with Model 4.0, several **major extraction opportunities** were identified that were missed in the original Model 3.7 analysis. These represent the largest remaining opportunities for main.ts size reduction:
+Upon re-analysis of the current main.ts (1,571 lines), several **major extraction opportunities** were identified that were missed in the original Model 3.7 analysis. These represent the largest remaining opportunities for main.ts size reduction:
 
 | Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
