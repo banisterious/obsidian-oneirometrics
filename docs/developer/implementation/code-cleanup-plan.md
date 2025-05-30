@@ -276,6 +276,26 @@ Based on initial analysis, these areas have the highest concentration of dead co
    - Consistent order (external, internal, types)
    - Consistent syntax (destructuring vs namespace)
 
+#### 2.1 Main.ts Import Optimization (2025-05-30)
+
+**Excessive Import Analysis - Additional Cleanup Opportunities:**
+
+Current main.ts has extensive import statements that could be consolidated:
+
+| Improvement Type | Estimated Lines | Priority | Status | Notes |
+|------------------|-----------------|----------|--------|-------|
+| Consolidate same-module imports | ~15 | Medium | ⏳ Planned | Multiple imports from same modules can be combined |
+| Remove test-related imports | ~20 | Medium | ⏳ Planned | Test imports should only be conditional/development |
+| Remove wrapper function imports | ~10 | Medium | ⏳ Planned | After wrapper methods are removed |
+| Consolidate utility imports | ~5 | Low | ⏳ Planned | Group utility functions better |
+
+**Test-related imports that could be conditional:**
+- Multiple `run*Tests` imports (lines 181-190)
+- `openContentParserTestModal`, `openDateUtilsTestModal`, etc.
+- `DefensiveUtilsTestModal`
+
+**Estimated Line Savings from Import Cleanup: ~50 lines**
+
 **Progress (2025-05-23):**
 - Reorganized imports in main.ts:
   - Grouped imports by external/internal sources
@@ -343,6 +363,62 @@ In addition to large methods, there are many standalone utility functions that s
 3. Move functions to the new modules
 4. Update imports and references in all files that use these functions
 5. Test thoroughly to ensure functionality is maintained
+
+#### 3.2.1 Additional Standalone Functions Identified for Extraction (2025-05-30)
+
+**Current main.ts Analysis - Remaining Standalone Functions:**
+
+| Function Name | Lines | Current Location | Target Module | Priority | Status | Notes |
+|---------------|-------|------------------|--------------|----------|--------|-------|
+| getDreamEntryDate | ~50 | main.ts (1721) | src/utils/date-utils.ts | High | ⏳ Planned | Extract date parsing from journal content |
+| saveLastCustomRange | ~5 | main.ts (1771) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Custom date range persistence |
+| loadLastCustomRange | ~16 | main.ts (1776) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Custom date range loading |
+| saveFavoriteRange | ~7 | main.ts (1792) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range persistence |
+| loadFavoriteRanges | ~10 | main.ts (1799) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range loading |
+| deleteFavoriteRange | ~12 | main.ts (1809) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range deletion |
+| forceApplyDateFilter | ~19 | main.ts (1821) | src/dom/filters/DateFilter.ts | High | ⏳ Planned | Legacy wrapper, should delegate to DateFilter |
+| applyCustomDateRangeFilter | ~250 | main.ts (1840) | src/dom/filters/FilterManager.ts | **Critical** | ⏳ Planned | **Massive function**, largest single opportunity |
+
+**Estimated Line Savings from Function Extraction: ~370 lines**
+
+#### 3.2.2 Large Configuration Objects for Extraction
+
+| Object Name | Lines | Current Location | Target Module | Priority | Status | Notes |
+|-------------|-------|------------------|--------------|----------|--------|-------|
+| DEFAULT_LINTING_SETTINGS | ~95 | main.ts (200-295) | src/types/journal-check-defaults.ts | High | ⏳ Planned | Large configuration object, pure data |
+
+**Estimated Line Savings from Configuration Extraction: ~95 lines**
+
+#### 3.2.3 Wrapper Methods That Just Delegate
+
+Many methods in the plugin class are thin wrappers that should be removed, with callers updated to use services directly:
+
+| Method Name | Lines | Current Location | Delegates To | Priority | Status | Notes |
+|-------------|-------|------------------|--------------|----------|--------|-------|
+| processDreamContent | ~5 | main.ts | MetricsProcessor | Medium | ⏳ Planned | Just calls MetricsProcessor |
+| processMetrics | ~5 | main.ts | MetricsProcessor | Medium | ⏳ Planned | Just calls MetricsProcessor |
+| generateSummaryTable | ~5 | main.ts | TableGenerator | Medium | ⏳ Planned | Just calls TableGenerator |
+| generateMetricsTable | ~5 | main.ts | TableGenerator | Medium | ⏳ Planned | Just calls TableGenerator |
+| validateDate | ~5 | main.ts | date-utils | Low | ⏳ Planned | Just calls utility function |
+| parseDate | ~10 | main.ts | date-utils | Low | ⏳ Planned | Just calls utility function with fallback |
+| formatDate | ~5 | main.ts | date-utils | Low | ⏳ Planned | Just calls utility function |
+| applyFilters | ~5 | main.ts | FilterManager | Medium | ⏳ Planned | Just calls FilterManager |
+| applyFilterToDropdown | ~5 | main.ts | FilterManager | Medium | ⏳ Planned | Just calls FilterManager |
+| forceApplyFilterDirect | ~5 | main.ts | FilterManager | Medium | ⏳ Planned | Just calls FilterManager |
+
+**Estimated Line Savings from Wrapper Method Removal: ~50 lines**
+
+#### 3.2.4 Global Variables and State for Encapsulation
+
+| Variable Name | Lines | Current Location | Target Solution | Priority | Status | Notes |
+|---------------|-------|------------------|-----------------|----------|--------|-------|
+| globalContentToggler | ~1 | main.ts | Encapsulate in service | Medium | ⏳ Planned | Should be managed by plugin instance |
+| globalTableGenerator | ~1 | main.ts | Encapsulate in service | Medium | ⏳ Planned | Should be managed by plugin instance |
+| customDateRange | ~1 | main.ts | Move to FilterManager | Medium | ⏳ Planned | Filter-specific state |
+
+**Estimated Line Savings from Global Variable Cleanup: ~10 lines**
+
+**Total Estimated Line Savings from Section 3.2 Improvements: ~525 lines**
 
 #### 3.3 Additional main.ts Line Count Reduction
 
@@ -495,6 +571,61 @@ The remaining tasks are:
 2. Remove remaining unused code identified through analysis
 3. Add better log-level controls for filtering debug messages
 4. Address TypeScript errors that still exist in the codebase
+
+#### 4.1 Main.ts Dead Code Summary (2025-05-30)
+
+**Comprehensive Analysis of Remaining main.ts Cleanup Opportunities:**
+
+Based on detailed analysis of the current main.ts file (2063 lines), the following cleanup opportunities have been identified:
+
+| Category | Estimated Lines Saved | Priority Level | Implementation Phase |
+|----------|----------------------|----------------|---------------------|
+| **Standalone Utility Functions** | ~370 | High | Phase 3.2.1 |
+| **Large Configuration Objects** | ~95 | High | Phase 3.2.2 |
+| **Wrapper Methods** | ~50 | Medium | Phase 3.2.3 |
+| **Import Consolidation** | ~50 | Medium | Phase 2.1 |
+| **Global Variables** | ~10 | Medium | Phase 3.2.4 |
+| **Debug/Testing Methods** | ~100 | Low | Phase 4.2 |
+| **Deprecated Comments** | ~5 | Low | Phase 4.3 |
+| **Total Potential Reduction** | **~680 lines** | - | - |
+
+**Current Size vs. Target:**
+- **Current main.ts size**: 2063 lines
+- **Potential target size**: ~1380 lines
+- **Reduction percentage**: 33%
+
+#### 4.1.1 Critical Priority Items (Largest Impact)
+
+1. **applyCustomDateRangeFilter function** (~250 lines) - Single largest opportunity
+2. **DEFAULT_LINTING_SETTINGS object** (~95 lines) - Large configuration data
+3. **getDreamEntryDate function** (~50 lines) - Complex utility function
+4. **Storage helper functions** (~50 lines combined) - Date range persistence
+
+#### 4.1.2 Implementation Roadmap
+
+**Phase A: Quick Wins (High Impact, Low Risk)**
+- Move DEFAULT_LINTING_SETTINGS to config file
+- Extract storage helper functions to utilities
+- Remove wrapper methods and update callers
+
+**Phase B: Major Refactoring (High Impact, Medium Risk)**  
+- Extract applyCustomDateRangeFilter to FilterManager
+- Move getDreamEntryDate to date utilities
+- Consolidate import statements
+
+**Phase C: Final Cleanup (Medium Impact, Low Risk)**
+- Remove debug methods
+- Clean up global variables
+- Remove deprecated comments
+
+#### 4.1.3 Success Metrics
+
+Upon completion of all identified cleanup tasks:
+- main.ts line count reduced by approximately 680 lines (33%)
+- Improved code organization and maintainability
+- Better separation of concerns
+- Reduced cognitive load for developers
+- Enhanced testability of extracted components
 
 ## Success Criteria
 
