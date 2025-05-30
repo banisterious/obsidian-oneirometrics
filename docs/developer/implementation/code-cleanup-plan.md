@@ -973,3 +973,19 @@ With these changes, we have:
 4. Continued to modularize the codebase and reduce dependencies on main.ts
 
 Next steps should focus on completing the remaining extraction tasks and removing any other global function dependencies.
+
+**Progress Update (2025-05-30)**
+
+Successfully extracted the largest single function from main.ts:
+- **applyCustomDateRangeFilter** (~250 lines) extracted to `src/dom/filters/CustomDateRangeFilter.ts`
+- Created a comprehensive CustomDateRangeFilter class with proper separation of concerns:
+  - Date validation and creation
+  - Loading indicator management
+  - Row visibility computation
+  - Chunked processing for performance
+  - Cleanup and finalization
+- Reduced main.ts by approximately 200 lines (the largest single reduction achieved)
+- Updated main.ts to use a simple wrapper that delegates to the new class
+- Maintained all existing functionality while improving code organization
+
+This represents the **largest single opportunity** identified in the cleanup plan and significantly reduces the complexity of main.ts.

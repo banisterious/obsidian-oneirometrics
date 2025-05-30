@@ -6415,7 +6415,7 @@ tr.oom-dream-row {
     margin: 0.25rem 0 0 0;
     padding: 0.25rem .5rem;
     font-weight: 700;
-    font-size: var(--h4-size);
+    font-size: 1em;
     letter-spacing: 0.05rem;
     color: var(--text-muted);
 }
