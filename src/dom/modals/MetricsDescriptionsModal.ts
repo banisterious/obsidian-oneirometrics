@@ -10,6 +10,7 @@ import safeLogger from '../../logging/safe-logger';
 import { lucideIconMap } from '../../../settings';
 import DreamMetricsPlugin from '../../../main';
 import { MetricsTabsModal } from './MetricsTabsModal';
+import { ModalsManager } from './ModalsManager';
 
 export class MetricsDescriptionsModal extends Modal {
     constructor(
@@ -64,7 +65,8 @@ export class MetricsDescriptionsModal extends Modal {
             
             tabbedViewButton.addEventListener('click', () => {
                 this.close();
-                this.plugin.showMetricsTabsModal();
+                const modalsManager = new ModalsManager(this.app, this.plugin, null);
+                modalsManager.openMetricsTabsModal();
             });
         } catch (error) {
             safeLogger.error('UI', 'Error opening metrics descriptions modal', error as Error);

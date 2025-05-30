@@ -33,7 +33,8 @@ export class FilterUI {
         private logger?: ILogger
     ) {
         this.filterDisplayManager = new FilterDisplayManager(logger);
-        this.metricsCollector = new MetricsCollector(app, null, logger);
+        const plugin = (window as any).oneiroMetricsPlugin;
+        this.metricsCollector = new MetricsCollector(app, plugin, logger);
         this.tableStatisticsUpdater = new TableStatisticsUpdater(logger);
         this.tableManager = new TableManager(app, settings, logger);
     }

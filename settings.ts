@@ -4,6 +4,7 @@ import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 import { debug, info, error } from './src/logging';
+import { ModalsManager } from './src/dom/modals/ModalsManager';
 
 // Define the correct order for recommended metrics
 export const RECOMMENDED_METRICS_ORDER = [
@@ -908,7 +909,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .addButton(button => {
                 button.setButtonText('View Metrics Guide')
                     .onClick(() => {
-                        this.plugin.showMetricsTabsModal();
+                        // Use ModalsManager instead of the removed showMetricsTabsModal method
+                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
+                        modalsManager.openMetricsTabsModal();
                     });
             });
 

@@ -36,7 +36,7 @@ export class FilterManager {
         }
         
         // Initialize the FilterDisplayManager
-        this.filterDisplayManager = new FilterDisplayManager(app, logger);
+        this.filterDisplayManager = new FilterDisplayManager(logger);
     }
 
     /**
