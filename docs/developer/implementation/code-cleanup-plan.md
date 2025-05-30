@@ -355,11 +355,11 @@ To further reduce the size and complexity of main.ts, we can extract additional 
 | TableManager | ~340 | Combined table operations | src/dom/tables/TableManager.ts | ✅ Complete | 2025-05-29 | Extracted table initialization, metrics collection, and summary table updating with proper error handling, performance optimizations, and support for various table formats |
 | EventManager | ~220 | attachProjectNoteEventListeners (669-896) | src/events/EventHandler.ts | ✅ Complete | 2025-05-29 | Created EventHandler to manage all DOM event attachments including buttons, filters, and content toggles with robust error handling and centralized event management |
 | DebugTools | ~320 | Debug functions (1880-2200) | src/debug/DebugTools.ts | ✅ Complete | 2025-05-29 | Extracted debug tools and functions into a dedicated class for better organization and to remove debug code from main.ts |
-| ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ⬜ Not Started | - | Centralize modal creation and management |
+| ModalsManager | ~150 | Modal creation & management | src/dom/modals/ModalsManager.ts | ✅ Complete | 2025-05-29 | Centralized modal creation and management with a common interface, tracking of active modals, and standardized modal utilities |
 | TableInitializer | ~140 | initializeTableRowClasses (3467-3653) | src/dom/tables/TableInitializer.ts | ⬜ Not Started | - | Handle table initialization |
 | MetricsCollector | ~180 | collectVisibleRowMetrics (3654-3765) | src/metrics/MetricsCollector.ts | ⬜ Not Started | - | Collection of metrics from DOM |
 | GlobalHelpers | ~120 | safeSettingsAccess, getIcon, etc. | src/utils/GlobalHelpers.ts | ⬜ Not Started | - | Utility functions used globally |
-| WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ✅ Complete | 2025-05-29 | Removed redundant window.forceApplyDateFilter implementation, relying on DateFilter class implementation |
+| WindowExtensions | ~100 | window.forceApplyDateFilter, etc. | src/dom/WindowExtensions.ts | ✅ Complete | 2025-05-30 | Removed redundant window.forceApplyDateFilter implementation, relying on DateFilter class implementation |
 
 **Implementation Approach:**
 1. Create a new class for each component with proper interfaces and documentation
@@ -797,3 +797,22 @@ This achieves the following benefits:
 2. Improved code organization by centralizing date filtering logic in DateFilter class
 3. Removed duplication while maintaining backward compatibility
 4. Provided clearer code ownership and responsibility boundaries
+
+### Progress Update (2025-05-31)
+
+Implemented ModalsManager for centralized modal management:
+- Created `src/dom/modals/ModalsManager.ts` with comprehensive modal creation and management functionality
+- Implemented tracking of active modals to prevent duplicate modals of the same type
+- Added consistent APIs for common modal types (basic, progress, confirmation)
+- Provided specialized methods for application-specific modals (metrics, date range, etc.)
+- Added robust error handling with proper logger integration
+- Updated the modals index file to export the new ModalsManager
+- Updated the code cleanup plan to mark ModalsManager as complete
+
+Benefits of the ModalsManager implementation:
+1. Centralized modal creation and management
+2. Improved reusability of common modal patterns
+3. Ability to track and control active modals
+4. Consistent error handling and logging
+5. Better organization of modal-related code
+6. Reduced redundancy in modal creation throughout the application
