@@ -5,6 +5,7 @@ import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 import { debug, info, error } from './src/logging';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
+import { defaultLintingSettings } from './src/types/journal-check-defaults';
 
 // Define the correct order for recommended metrics
 export const RECOMMENDED_METRICS_ORDER = [
@@ -137,38 +138,6 @@ function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric {
     // Let standardizeMetric handle all the normalization
     return standardizeMetric(metricWithRequired);
 }
-
-// Define DEFAULT_LINTING_SETTINGS for the settings tab to use
-const DEFAULT_LINTING_SETTINGS: LintingSettings = {
-    enabled: true,
-    rules: [],
-    structures: [],
-    templates: [],
-    templaterIntegration: {
-        enabled: false,
-        folderPath: 'templates/dreams',
-        defaultTemplate: 'templates/dreams/default.md'
-    },
-    contentIsolation: {
-        ignoreImages: true,
-        ignoreLinks: false,
-        ignoreFormatting: true,
-        ignoreHeadings: false,
-        ignoreCodeBlocks: true,
-        ignoreFrontmatter: true,
-        ignoreComments: true,
-        customIgnorePatterns: []
-    },
-    userInterface: {
-        showInlineValidation: true,
-        severityIndicators: {
-            error: '❌',
-            warning: '⚠️',
-            info: 'ℹ️'
-        },
-        quickFixesEnabled: true
-    }
-};
 
 // Validation functions
 function validateMetricName(name: string, existingMetrics: DreamMetric[]): string | null {
@@ -1398,7 +1367,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.linting?.enabled ?? true)
                 .onChange(async (value) => {
                     if (!this.plugin.settings.linting) {
-                        this.plugin.settings.linting = { ...DEFAULT_LINTING_SETTINGS };
+                        this.plugin.settings.linting = { ...defaultLintingSettings };
                     }
                     this.plugin.settings.linting.enabled = value;
                     await this.plugin.saveSettings();

@@ -3,38 +3,7 @@ import DreamMetricsPlugin from '../../../main';
 import { CalloutStructure, JournalTemplate, LintingRule, ContentIsolationSettings, LintingSettings } from '../types';
 import { TemplaterIntegration } from '../TemplaterIntegration';
 import { TemplateWizard } from './TemplateWizard';
-
-// Default settings to use when initializing
-const DEFAULT_LINTING_SETTINGS: LintingSettings = {
-    enabled: true,
-    rules: [],
-    structures: [],
-    templates: [],
-    templaterIntegration: {
-        enabled: false,
-        folderPath: 'templates/dreams',
-        defaultTemplate: ''
-    },
-    contentIsolation: {
-        ignoreImages: true,
-        ignoreLinks: false,
-        ignoreFormatting: true,
-        ignoreHeadings: false,
-        ignoreCodeBlocks: true,
-        ignoreFrontmatter: true,
-        ignoreComments: true,
-        customIgnorePatterns: []
-    },
-    userInterface: {
-        showInlineValidation: true,
-        severityIndicators: {
-            error: '❌',
-            warning: '⚠️',
-            info: 'ℹ️'
-        },
-        quickFixesEnabled: true
-    }
-};
+import { defaultLintingSettings } from '../../types/journal-check-defaults';
 
 /**
  * Modal for managing Journal Structure settings
@@ -56,7 +25,7 @@ export class JournalStructureModal extends Modal {
      * Helper method to get default linting settings
      */
     private getDefaultLintingSettings(): LintingSettings {
-        return { ...DEFAULT_LINTING_SETTINGS };
+        return { ...defaultLintingSettings };
     }
     
     onOpen() {
