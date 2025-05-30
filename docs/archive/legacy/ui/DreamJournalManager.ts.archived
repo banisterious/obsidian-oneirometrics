@@ -1,10 +1,25 @@
-import { App, Modal, Setting, MarkdownRenderer, ToggleComponent, TextComponent, ButtonComponent, Notice, setIcon, TFile } from 'obsidian';
-import DreamMetricsPlugin from '../../../main';
-import { CalloutStructure, JournalTemplate, LintingRule, ContentIsolationSettings, LintingSettings } from '../types';
-import { TemplaterIntegration } from '../TemplaterIntegration';
-import { TemplateWizard } from './TemplateWizard';
-import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
-import { getSelectionMode, getSelectedFolder } from '../../../src/utils/settings-helpers';
+/**
+ * ARCHIVED FILE - NO LONGER IN USE
+ * 
+ * This file has been archived as of 2025-05-30
+ * 
+ * MIGRATION: DreamJournalManager → OneiroMetrics Hub
+ * - All functionality moved to: src/dom/modals/MetricsTabsModal.ts
+ * - Access via: OneiroMetrics Hub ribbon button (shell icon)
+ * - Migration docs: docs/archive/legacy/ui/dream-journal-manager-migration.md
+ * 
+ * DO NOT USE THIS FILE - It is preserved for reference only
+ * NOTE: Import paths are broken due to archival location
+ */
+
+// Original imports (now broken due to archive location):
+// import { App, Modal, Setting, MarkdownRenderer, ToggleComponent, TextComponent, ButtonComponent, Notice, setIcon, TFile } from 'obsidian';
+// import DreamMetricsPlugin from '../../../main';
+// import { CalloutStructure, JournalTemplate, LintingRule, ContentIsolationSettings, LintingSettings } from '../types';
+// import { TemplaterIntegration } from '../TemplaterIntegration';
+// import { TemplateWizard } from './TemplateWizard';
+// import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
+// import { getSelectionMode, getSelectedFolder } from '../../../src/utils/settings-helpers';
 
 /**
  * Dream Journal Manager Modal
