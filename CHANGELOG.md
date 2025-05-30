@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.7.x](#070---2025-05-30)
   - [Version 0.6.x](#060---2025-05-25)
   - [Version 0.5.x](#050---2025-05-20)
   - [Version 0.4.x](#043---2025-05-19)
@@ -30,6 +31,22 @@
 - Reorganized refactoring documentation for better maintainability
 
 ## Released Versions
+
+## [0.7.0] - 2025-05-30
+### Added
+- **Infrastructure Modernization**: Complete logging system overhaul with structured logging categories and levels
+- **UI Consolidation**: Journal Structure functionality integrated into OneiroMetrics Hub for streamlined user experience
+- **Defensive Coding Patterns**: Enhanced error handling and recovery mechanisms throughout the application
+
+### Changed
+- **Code Quality**: Replaced console.log statements with structured logging across 65% of codebase
+- **Error Handling**: Improved user feedback and system stability with safe logger implementation
+- **Module Organization**: Better separation of concerns and reduced technical debt
+
+### Developer Experience
+- Enhanced debugging capabilities with categorized logging system
+- Improved code maintainability and future development foundation
+- Comprehensive technical documentation for ongoing development
 
 ## [0.6.0] - 2025-05-25
 ### Added
