@@ -44,6 +44,7 @@ export interface LoggerConfig {
   maxSize?: number;
   maxBackups?: number;
   logFilePath?: string;
+  enableFileLogging?: boolean;
 }
 
 /**

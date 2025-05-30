@@ -32,6 +32,7 @@ export class LoggingService implements ILoggingService {
   private maxBackups: number = 5;
   private app: App;
   private isHandlingError: boolean = false;
+  private enableFileLogging: boolean = false; // Disabled by default
 
   /**
    * Private constructor to enforce singleton pattern.
@@ -81,7 +82,12 @@ export class LoggingService implements ILoggingService {
       this.logFile = config.logFilePath;
     }
     
-    this.debug('Logger', `Logger configured with level=${config.level}, maxSize=${this.maxSize}, maxBackups=${this.maxBackups}, logFile=${this.logFile}`);
+    // Set file logging flag if provided
+    if (config.enableFileLogging !== undefined) {
+      this.enableFileLogging = config.enableFileLogging;
+    }
+    
+    this.debug('Logger', `Logger configured with level=${config.level}, fileLogging=${this.enableFileLogging}, maxSize=${this.maxSize}, maxBackups=${this.maxBackups}, logFile=${this.logFile}`);
   }
 
   /**
@@ -124,6 +130,9 @@ export class LoggingService implements ILoggingService {
    * @param message The message to write
    */
   private async writeToLog(message: string): Promise<void> {
+    // Skip file logging if disabled
+    if (!this.enableFileLogging) return;
+
     try {
       const timestamp = new Date().toISOString();
       const logEntry = `[${timestamp}] ${message}\n`;
@@ -167,6 +176,9 @@ export class LoggingService implements ILoggingService {
    * Rotate the log file when it exceeds the maximum size.
    */
   private async rotateLog(): Promise<void> {
+    // Skip if file logging is disabled
+    if (!this.enableFileLogging) return;
+
     try {
       // Check if the log file exists before attempting to rotate
       const logExists = await this.app.vault.adapter.exists(this.logFile);
@@ -268,7 +280,7 @@ export class LoggingService implements ILoggingService {
       console.log(logMessage);
     }
     
-    // Write to log file
+    // Write to log file if file logging is enabled
     this.writeToLog(logMessage);
     
     // Show notice for errors
@@ -368,6 +380,9 @@ export class LoggingService implements ILoggingService {
    * Initialize the log file path and ensure directory exists
    */
   private async initializeLogPath(): Promise<void> {
+    // Skip if file logging is disabled
+    if (!this.enableFileLogging) return;
+
     try {
       // Normalize log path based on OS
       this.logFile = this.logFile.replace(/\\/g, '/');

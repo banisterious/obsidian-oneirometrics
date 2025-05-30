@@ -12,6 +12,7 @@ import { DreamMetricsSettings } from '../types/core';
 import { ContentToggler } from '../dom/content';
 import { FilterManager } from '../dom/filters/FilterManager';
 import { FilterUI } from '../dom/filters/FilterUI';
+import { ModalsManager } from '../dom/modals/ModalsManager';
 
 // For backward compatibility with the global customDateRange variable
 declare global {
@@ -273,13 +274,20 @@ export class EventHandler {
      * Open the custom date range modal
      */
     private openCustomRangeModal(): void {
-        // Delegate to FilterUI to handle the custom range modal
-        // This is just a placeholder until we have a proper implementation
-        if (typeof (window as any).openCustomRangeModal === 'function') {
-            (window as any).openCustomRangeModal(this.app);
-        } else {
-            this.logger?.error('UI', 'openCustomRangeModal function not found on window object');
+        try {
+            // Use ModalsManager to handle the custom range modal
+            const modalsManager = new ModalsManager(this.app, null, this.logger);
+            modalsManager.openCustomDateRangeModal();
+            this.logger?.debug('UI', 'Opened custom date range modal via ModalsManager');
+        } catch (error) {
+            this.logger?.error('UI', 'Failed to open custom date range modal', error instanceof Error ? error : new Error(String(error)));
             new Notice('Custom date range not available. Please try again later.');
+            
+            // Fallback to old method if ModalsManager fails
+            if (typeof (window as any).openCustomRangeModal === 'function') {
+                this.logger?.debug('UI', 'Falling back to window.openCustomRangeModal');
+                (window as any).openCustomRangeModal(this.app);
+            }
         }
     }
     

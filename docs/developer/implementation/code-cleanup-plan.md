@@ -737,7 +737,7 @@ The new refactoring steps are to:
 3. Keep the wrapper function at lines 1833-1847 that delegates to the DateFilter implementation
 4. Ensure the Window interface declaration is maintained for TypeScript compatibility
 
-### Progress Update (2025-05-30)
+### Progress Update (2025-05-29)
 
 Attempted to remove the marked table-related global functions from main.ts:
 - Attempted to remove `initializeTableRowClasses` function (lines 2063-2250)
@@ -765,7 +765,7 @@ The next steps in the cleanup are to:
    - Create a proper interface for the FilterDisplayManager
    - Reduce remaining dependencies on global window objects
 
-### Progress Update (2025-05-30)
+### Progress Update (2025-05-29)
 
 Identified additional redundant code for removal:
 - The global `window.forceApplyDateFilter` function (lines 2067-2189) is now redundant as this functionality has been properly encapsulated in the DateFilter class
@@ -783,7 +783,7 @@ The new refactoring steps are to:
 3. Keep the wrapper function at lines 1833-1847 that delegates to the DateFilter implementation
 4. Ensure the Window interface declaration is maintained for TypeScript compatibility
 
-### Progress Update (2025-05-31)
+### Progress Update (2025-05-29)
 
 Completed removal of redundant window functions:
 - Successfully removed the redundant `window.forceApplyDateFilter` implementation (lines 2067-2189)
@@ -798,7 +798,7 @@ This achieves the following benefits:
 3. Removed duplication while maintaining backward compatibility
 4. Provided clearer code ownership and responsibility boundaries
 
-### Progress Update (2025-05-31)
+### Progress Update (2025-05-29)
 
 Implemented ModalsManager for centralized modal management:
 - Created `src/dom/modals/ModalsManager.ts` with comprehensive modal creation and management functionality
@@ -816,3 +816,36 @@ Benefits of the ModalsManager implementation:
 4. Consistent error handling and logging
 5. Better organization of modal-related code
 6. Reduced redundancy in modal creation throughout the application
+
+### Progress Update (2025-05-29)
+
+Removed redundant modal methods from main.ts:
+- Removed `openMetricsDescriptionsModal()` method (lines 1242-1264) that is now handled by ModalsManager
+- Identified additional dead code that should be removed now that ModalsManager exists:
+  - `showMetricsTabsModal()` method (lines 1705-1707)
+  - `openCustomRangeModal(app: App)` function (lines 1756-1781)
+
+This cleanup continues to improve code organization by:
+1. Removing redundant code that has been properly encapsulated in ModalsManager
+2. Centralizing modal-related functionality in a dedicated class
+3. Ensuring consistent modal behavior across the application
+4. Reducing main.ts size and complexity
+
+The next cleanup steps should target the remaining modal-related methods identified above.
+
+### Progress Update (2025-05-29)
+
+Removed additional redundant modal methods from main.ts:
+- Removed `showMetricsTabsModal()` method (lines 1676-1679) that is now handled by ModalsManager
+- Removed `openCustomRangeModal(app: App)` function (lines 1729-1743) that is now handled by ModalsManager
+- Updated `RibbonManager` to use ModalsManager directly instead of the removed showMetricsTabsModal method
+- Updated `EventHandler` to use ModalsManager directly instead of the global openCustomRangeModal function
+
+These changes complete the migration of modal functionality to the ModalsManager class, which provides:
+1. Centralized modal management with consistent APIs
+2. Modal tracking to prevent duplicate modals
+3. Better error handling with proper logging
+4. Type-safe interfaces for each modal type
+5. Clear organization of related functionality
+
+With these changes, we've eliminated more redundant code from main.ts and further improved the separation of concerns.

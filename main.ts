@@ -302,6 +302,7 @@ const DEFAULT_LINTING_SETTINGS: LintingSettings = {
 import { ContentToggler } from './src/dom/content/ContentToggler';
 import { FilterUI } from './src/dom/filters/FilterUI';
 import { TableGenerator, TableManager } from './src/dom/tables';
+import { ModalsManager } from './src/dom/modals/ModalsManager';
 
 // Global instance for functions that need access to ContentToggler
 // Initialize to null; it will be properly set during plugin initialization
@@ -1001,7 +1002,9 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 // Add metrics guide button with lucide-scroll-text icon
                 const metricsGuideRibbonEl = this.addRibbonIcon('lucide-scroll-text', 'Dream Metrics Reference', () => {
-                    this.showMetricsTabsModal();
+                    // Use ModalsManager instead of removed showMetricsTabsModal method
+                    const modalsManager = new ModalsManager(this.app, this, this.logger);
+                    modalsManager.openMetricsTabsModal();
                 });
                 this.ribbonIcons.push(metricsGuideRibbonEl);
             }
@@ -1234,33 +1237,6 @@ export default class DreamMetricsPlugin extends Plugin {
     private loadStyles() {
         // Journal structure check styles are now in styles.css
         // This method is kept for backwards compatibility
-    }
-
-    /**
-     * Opens the settings tab and shows a notice prompting the user to click "View Metrics Descriptions"
-     */
-    public openMetricsDescriptionsModal(): void {
-        try {
-            // Import the modal from our refactored module
-            const { MetricsDescriptionsModal } = require('./src/dom/modals');
-            
-            // Create and open the modal
-            new MetricsDescriptionsModal(this.app, this).open();
-            
-            // Log for debugging
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('UI', 'Opened metrics descriptions modal');
-            }
-        } catch (error) {
-            // Fallback to the old method if there's an error
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].error('UI', 'Error opening metrics descriptions modal, using fallback', error);
-            }
-            
-            (this.app as any).setting.open();
-            (this.app as any).setting.openTabById('oneirometrics');
-            new Notice('Click on "View Metrics Descriptions" in the settings panel');
-        }
     }
 
     /**
@@ -1701,11 +1677,7 @@ export default class DreamMetricsPlugin extends Plugin {
         return this.debugTools.testContentParserDirectly();
     }
 
-    // Add this method to the DreamMetricsPlugin class
-    showMetricsTabsModal() {
-        new MetricsTabsModal(this.app, this).open();
-    }
-
+    // Method removed: showMetricsTabsModal() is now handled by ModalsManager
 }
 
 // Helper to extract date for a dream entry
@@ -1753,28 +1725,7 @@ function getDreamEntryDate(journalLines: string[], filePath: string, fileContent
     return new Date().toISOString().split('T')[0];
 }
 
-// Function to open the custom date range modal
-function openCustomRangeModal(app: App) {
-    // Get the plugin instance
-    if (window.oneiroMetricsPlugin) {
-        // Use the dateRangeService from the plugin instance
-        window.oneiroMetricsPlugin.dateRangeService.openCustomRangeModal((range) => {
-            if (range) {
-                // Apply the custom date range filter
-                applyCustomDateRangeFilter();
-            }
-        });
-    } else {
-        // Fallback to creating a new service if the plugin instance is not available
-        const dateRangeService = new DateRangeService(app);
-        dateRangeService.openCustomRangeModal((range) => {
-            if (range) {
-                // Apply the custom date range filter
-                applyCustomDateRangeFilter();
-            }
-        });
-    }
-}
+// Function removed: openCustomRangeModal(app: App) is now handled by ModalsManager
 
 // Helper functions for range management
 const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';

@@ -46,7 +46,8 @@ export class LoggingAdapter {
             level: level,
             maxSize: maxSize,
             maxLogSize: maxSize, // Add maxLogSize for backward compatibility
-            maxBackups: maxBackups
+            maxBackups: maxBackups,
+            enableFileLogging: false // Disable file logging
         });
     }
     
@@ -58,12 +59,26 @@ export class LoggingAdapter {
         // Ensure backward compatibility between maxSize and maxLogSize
         const maxSize = config.maxSize ?? config.maxLogSize ?? this.maxSize;
         
-        // Configure using the standard method
-        this.configure(
-            config.level, 
-            maxSize,
-            config.maxBackups ?? this.maxBackups
-        );
+        // Set up a complete config with file logging disabled
+        const fullConfig: LoggerConfig = {
+            level: config.level,
+            maxSize: maxSize,
+            maxLogSize: maxSize,
+            maxBackups: config.maxBackups ?? this.maxBackups,
+            logFilePath: config.logFilePath,
+            enableFileLogging: false // Explicitly disable file logging
+        };
+        
+        // Configure the logging service directly with the full config
+        this.loggingService.configure(fullConfig);
+        
+        // Update local properties for backward compatibility
+        this.logLevel = config.level;
+        this.maxSize = maxSize;
+        this.maxBackups = fullConfig.maxBackups;
+        if (config.logFilePath) {
+            this.logFile = config.logFilePath;
+        }
     }
     
     /**
