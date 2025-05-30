@@ -824,3 +824,19 @@ The implementation maintains the same functionality while providing better separ
 - TableStatisticsUpdater focuses exclusively on updating the UI with calculated statistics
 
 Next steps include updating references to use these new classes and removing the redundant functions from main.ts.
+
+### Progress Update (2025-05-29)
+
+Fixed import references and removed global function references:
+- Updated FilterUI class to use MetricsCollector and TableStatisticsUpdater instead of window global functions
+- Updated main.ts to use MetricsCollector and TableStatisticsUpdater instead of TableManager methods
+- Fixed import duplication issues and ensured proper object initialization
+- Removed redundant code and global function dependencies
+
+With these changes, we have:
+1. Further improved code organization by removing global function dependencies
+2. Made the code more maintainable by using proper class methods
+3. Improved type safety and reduced potential runtime errors
+4. Continued to modularize the codebase and reduce dependencies on main.ts
+
+Next steps should focus on completing the remaining extraction tasks and removing any other global function dependencies.
