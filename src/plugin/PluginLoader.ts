@@ -22,7 +22,7 @@ import { DEFAULT_METRICS, DEFAULT_LOGGING } from '../constants';
 import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../types/journal-check';
 import { initializeLogUI } from '../logging/ui';
 import { createAndRegisterSettingsAdapter } from '../state/adapters/SettingsAdapter';
-import { SERVICE_NAMES, registerService } from '../state/ServiceRegistry';
+import { SERVICE_NAMES, registerService, upgradeService, getService } from '../state/ServiceRegistry';
 import { LogLevel } from '../types/logging';
 import {
     getProjectNotePath,
@@ -350,7 +350,7 @@ export class PluginLoader {
             plugin.logger = logger;
             
             // Update the logger in the registry with the fully configured version
-            registerService(SERVICE_NAMES.LOGGER, logger);
+            upgradeService(SERVICE_NAMES.LOGGER, logger);
             globalLogger.debug('DreamMetricsPlugin', 'Logger initialized and registered with registry');
             
             // Initialize the log viewer UI
