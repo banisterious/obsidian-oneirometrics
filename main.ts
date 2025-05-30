@@ -244,6 +244,7 @@ import {
 // Import TemplateManager
 import { TemplateManager } from './src/templates/TemplateManager';
 import { FilterPersistenceManager } from './src/dom/filters/FilterPersistenceManager';
+import { DateNavigatorManager } from './src/dom/date-navigator/DateNavigatorManager';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -295,6 +296,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private filterUI: FilterUI;
     private templateManager: TemplateManager;
     private filterPersistenceManager: FilterPersistenceManager;
+    private dateNavigatorManager: DateNavigatorManager;
 
     async onload() {
         // Assign the plugin instance to window.oneiroMetricsPlugin first
@@ -393,6 +395,15 @@ export default class DreamMetricsPlugin extends Plugin {
             this.saveSettings.bind(this),
             this.tableManager,
             this.applyFilterToDropdown.bind(this),
+            this.logger
+        );
+
+        // Initialize DateNavigatorManager
+        this.dateNavigatorManager = new DateNavigatorManager(
+            this.app,
+            this.state,
+            this.timeFilterManager,
+            this.memoizedTableData,
             this.logger
         );
     }
@@ -903,182 +914,8 @@ export default class DreamMetricsPlugin extends Plugin {
      * Shows the date navigator
      */
     showDateNavigator() {
-        try {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('Plugin', 'showDateNavigator called - creating DateNavigatorModal');
-            }
-            
-            // Make sure state and timeFilterManager are available
-            if (!this.state) {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].error('Plugin', 'Cannot show DateNavigator: state is undefined');
-                }
-                new Notice('Error: Dream state not available');
-                return;
-            }
-            
-            if (!this.timeFilterManager) {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].error('Plugin', 'Cannot show DateNavigator: timeFilterManager is undefined');
-                }
-                new Notice('Error: Time filter manager not available');
-                return;
-            }
-            
-            // Get all possible dream entries from various sources
-            const allEntries: any[] = [];
-            
-            // Diagnostic log to check if there are entries
-            try {
-                // 1. Try direct state entries
-                const entries = this.state.getDreamEntries();
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('Plugin', `Found ${entries?.length || 0} entries in state.getDreamEntries()`);
-                }
-                
-                if (entries && Array.isArray(entries) && entries.length > 0) {
-                    allEntries.push(...entries);
-                }
-                
-                // 2. Try to directly extract data from our tables
-                if (this.memoizedTableData && this.memoizedTableData.size > 0) {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('Plugin', `Found ${this.memoizedTableData.size} tables to scan for entries`);
-                    }
-                    
-                    // Look at each table in the memoized data
-                    this.memoizedTableData.forEach((tableData, key) => {
-                        if (Array.isArray(tableData) && tableData.length > 0) {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].debug('Plugin', `Processing table ${key} with ${tableData.length} rows`);
-                            }
-                            
-                            // Only process tables with rows that have date fields
-                            if (tableData[0] && (tableData[0].date || tableData[0].dream_date)) {
-                                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                    window['globalLogger'].debug('Plugin', `Table ${key} has valid date format`);
-                                }
-                                
-                                // Extract dream entries from table rows
-                                tableData.forEach(row => {
-                                    if (row && (row.date || row.dream_date)) {
-                                        const dateField = row.date || row.dream_date;
-                                        
-                                        // Create a dream entry from this row
-                                        const entry = {
-                                            date: dateField,
-                                            title: row.title || row.dream_title || 'Dream Entry',
-                                            content: row.content || row.dream_content || '',
-                                            source: `table-${key}`,
-                                            metrics: row.metrics || {}
-                                        };
-                                        
-                                        // Add any numeric properties as metrics
-                                        Object.keys(row).forEach(field => {
-                                            if (typeof row[field] === 'number' && !['id', 'index'].includes(field)) {
-                                                if (!entry.metrics) entry.metrics = {};
-                                                entry.metrics[field] = row[field];
-                                            }
-                                        });
-                                        
-                                        allEntries.push(entry);
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }
-                
-                // Log what we found
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('Plugin', `Found ${allEntries.length} total entries from all sources`);
-                    
-                    // Log a sample for debugging
-                    if (allEntries.length > 0) {
-                        window['globalLogger'].debug('Plugin', 'Sample entry:', allEntries[0]);
-                    }
-                }
-                
-                // Create some test entries if none exist
-                if (allEntries.length === 0) {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('Plugin', 'No entries found, creating test entries for calendar');
-                    }
-                    
-                    // Create simple test entries for May 2025
-                    const testEntries = [];
-                    const month = new Date(2025, 4, 1); // May 2025
-                    
-                    // Add 10 entries on random days
-                    for (let i = 0; i < 10; i++) {
-                        const day = Math.floor(Math.random() * 28) + 1;
-                        const dateStr = `2025-05-${day.toString().padStart(2, '0')}`;
-                        
-                        testEntries.push({
-                            date: dateStr,
-                            title: `Test Dream ${i+1}`,
-                            content: `Test dream content for ${dateStr}`,
-                            source: 'test-generator',
-                            metrics: {
-                                clarity: Math.floor(Math.random() * 10) + 1,
-                                intensity: Math.floor(Math.random() * 10) + 1
-                            }
-                        });
-                    }
-                    
-                    // Add to our collected entries
-                    allEntries.push(...testEntries);
-                    
-                    // Update the state with these test entries
-                    if (typeof this.state.updateDreamEntries === 'function') {
-                        this.state.updateDreamEntries(testEntries);
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].debug('Plugin', 'Added test entries to state');
-                        }
-                    } else {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].error('Plugin', 'Cannot add test entries: updateDreamEntries not available');
-                        }
-                    }
-                }
-                
-                // Expose entries globally so the DateNavigator can find them
-                try {
-                    window['dreamEntries'] = allEntries;
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('Plugin', `Exposed ${allEntries.length} entries to window.dreamEntries`);
-                    }
-                } catch (e) {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].error('Plugin', 'Failed to expose entries globally:', e);
-                    }
-                }
-            } catch (err) {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].error('Plugin', 'Error checking entries:', err);
-                }
-            }
-            
-            // Create a new DateNavigatorModal instance
-            const modal = new DateNavigatorModal(this.app, this.state, this.timeFilterManager);
-            
-            // Log the modal initialization for debugging
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('Plugin', 'Opening DateNavigatorModal with state and filter manager');
-            }
-            
-            // Open the modal
-
-                          modal.open();
-            
-            // Add a notice to help users understand how to use the navigator
-            new Notice('Select a date to filter your dream entries');
-        } catch (error) {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].error('Plugin', 'Failed to open date navigator:', error);
-            }
-            new Notice('Error opening Date Navigator. See console for details.');
-        }
+        // Delegate to DateNavigatorManager
+        this.dateNavigatorManager.showDateNavigator();
     }
 
     async openProjectNote(): Promise<void> {
