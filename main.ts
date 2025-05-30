@@ -931,15 +931,8 @@ export default class DreamMetricsPlugin extends Plugin {
             
             // Only add ribbon icons if enabled in settings
             if (this.settings?.showRibbonButtons) {
-                // Add main metrics ribbon icon
-                this.ribbonIcons.push(
-                    this.addRibbonIcon('dice', 'OneiroMetrics', () => {
-                        this.showMetrics();
-                    })
-                );
-                
-                // Add OneiroMetrics Hub button with lucide-moon icon
-                const metricsHubRibbonEl = this.addRibbonIcon('lucide-moon', 'OneiroMetrics Hub', () => {
+                // Add OneiroMetrics Hub button with lucide-shell icon
+                const metricsHubRibbonEl = this.addRibbonIcon('lucide-shell', 'OneiroMetrics Hub', () => {
                     // Use ModalsManager to open the consolidated hub
                     const modalsManager = new ModalsManager(this.app, this, this.logger);
                     modalsManager.openMetricsTabsModal();
