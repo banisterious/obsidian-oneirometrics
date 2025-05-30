@@ -518,18 +518,6 @@ export default class DreamMetricsPlugin extends Plugin {
         }
     }
 
-    private processDreamContent(content: string): string {
-        // Use the MetricsProcessor implementation
-        const metricsProcessor = new MetricsProcessor(this.app, this, this.logger);
-        return metricsProcessor.processDreamContent(content);
-    }
-
-    private processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number> {
-        // Use the MetricsProcessor implementation
-        const metricsProcessor = new MetricsProcessor(this.app, this, this.logger);
-        return metricsProcessor.processMetrics(metricsText, metrics);
-    }
-
     /**
      * Update the project note with metrics data
      * 
@@ -540,43 +528,7 @@ export default class DreamMetricsPlugin extends Plugin {
         return this.projectNoteManager.updateProjectNote(metrics, dreamEntries);
     }
 
-    private generateSummaryTable(metrics: Record<string, number[]>): string {
-        // Use the TableGenerator implementation
-        return globalTableGenerator.generateSummaryTable(metrics);
-    }
-
-    private generateMetricsTable(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): string {
-        // Use the TableGenerator implementation
-        return globalTableGenerator.generateMetricsTable(metrics, dreamEntries);
-    }
-
-    // Using the centralized date utils from src/utils/date-utils.ts
-    // These methods are wrappers that provide compatibility with existing code
-    // while delegating to the shared utility functions
-    
-    private validateDate(date: Date): boolean {
-        return validateDate(date);
-    }
-
-    private parseDate(dateStr: string): Date {
-        const startTime = performance.now();
-        this.logger.log('Date', `Processing date: ${dateStr}`);
-        
-        // Use the shared parseDate utility, but handle null result by returning current date
-        const parsedDate = parseDate(dateStr);
-        if (parsedDate) {
-            return parsedDate;
-        } else {
-            this.logger.error('Date', `Failed to parse date: ${dateStr}`, new Error('Date parsing failed'));
-            return new Date();
-        }
-    }
-
-    private formatDate(date: Date): string {
-        return formatDate(date, 'MMM d, yyyy');
-    }
-
-        private updateProjectNoteView(currentLogLevel?: string) {
+    private updateProjectNoteView(currentLogLevel?: string) {
         // Only update if the current file is a project note
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view || view.getMode() !== 'preview') {
@@ -624,15 +576,6 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     /**
-     * Apply filters to the metrics table
-     * @param previewEl The preview element containing the metrics table
-     */
-    private applyFilters(previewEl: HTMLElement) {
-        // Delegate to the FilterManager implementation
-        this.filterManager.applyFilters(previewEl);
-    }
-
-    /**
      * Apply a filter to a dropdown element
      * @param filterDropdown The dropdown element
      * @param previewEl The preview element containing the metrics table
@@ -641,37 +584,6 @@ export default class DreamMetricsPlugin extends Plugin {
     private applyFilterToDropdown(filterDropdown: HTMLSelectElement, previewEl: HTMLElement) {
         // Delegate to the FilterManager implementation
         return this.filterManager.applyFilterToDropdown(filterDropdown, previewEl);
-    }
-
-    /**
-     * Force apply a filter directly to the DOM
-     * @param previewEl The preview element containing the metrics table
-     * @param startDate The start date of the filter range
-     * @param endDate The end date of the filter range
-     */
-    private forceApplyFilterDirect(previewEl: HTMLElement, startDate: string, endDate: string) {
-        // Delegate to the FilterManager implementation
-        this.filterManager.forceApplyFilterDirect(previewEl, startDate, endDate);
-    }
-
-    private async clearDebugLog() {
-        // Delegate to LogFileManager
-        await this.logFileManager.clearDebugLog();
-    }
-
-    private async backupDebugLog() {
-        // Delegate to LogFileManager
-        await this.logFileManager.backupDebugLog();
-    }
-
-    private async checkLogFileSize() {
-        // Delegate to LogFileManager
-        await this.logFileManager.checkLogFileSize();
-    }
-
-    private async copyConsoleLogs() {
-        // Delegate to LogFileManager
-        await this.logFileManager.copyConsoleLogs();
     }
 
     /**
@@ -842,8 +754,18 @@ export default class DreamMetricsPlugin extends Plugin {
      * This is a crucial function for filter persistence between Obsidian reloads
      */
     private applyInitialFilters() {
-        // Delegate to FilterPersistenceManager
-        this.filterPersistenceManager.applyInitialFilters();
+        try {
+            // Check if filterPersistenceManager is initialized
+            if (!this.filterPersistenceManager) {
+                this.logger?.warn('Filter', 'FilterPersistenceManager not initialized, skipping initial filters');
+                return;
+            }
+            
+            // Delegate to FilterPersistenceManager
+            this.filterPersistenceManager.applyInitialFilters();
+        } catch (error) {
+            this.logger?.error('Filter', 'Error in applyInitialFilters', error instanceof Error ? error : new Error(String(error)));
+        }
     }
     
     /**
@@ -874,12 +796,6 @@ export default class DreamMetricsPlugin extends Plugin {
     debugDateNavigator() {
         // Delegate to the DebugTools implementation
         this.debugTools.debugDateNavigator();
-    }
-
-    // Add this method to the plugin class
-    private testContentParserDirectly() {
-        // Delegate to the DebugTools implementation
-        return this.debugTools.testContentParserDirectly();
     }
 
     // Method removed: showMetricsTabsModal() is now handled by ModalsManager
