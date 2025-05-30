@@ -634,7 +634,7 @@ With the newly identified opportunities, main.ts could be reduced to a minimal p
 
 **Fresh Analysis Reveals Major Missed Opportunities:**
 
-Upon re-analysis of the current main.ts (1,571 lines), several **major extraction opportunities** were identified that were missed in the original Model 3.7 analysis. These represent the largest remaining opportunities for main.ts size reduction:
+Upon re-analysis of the current main.ts (1,571 lines), several **major extraction opportunities** were identified that were missed in the original analysis. These represent the largest remaining opportunities for main.ts size reduction:
 
 | Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
@@ -646,9 +646,8 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 | Global wrapper functions | ~18 | main.ts (1544-1561) | Remove/consolidate | Low | ⏳ Planned | applyCustomDateRangeFilter global function wrapper |
 
 **Why These Were Missed in Original Analysis:**
-1. **Model Evolution**: Model 3.7 → 4.0 has improved pattern recognition for large method extraction
-2. **Fresh Perspective**: Analysis of current cleaned-up codebase reveals these methods more clearly  
-3. **Context Understanding**: Better recognition of cohesive functionality that can be extracted as dedicated managers
+1. **Fresh Perspective**: Analysis of current cleaned-up codebase reveals these methods more clearly  
+2. **Context Understanding**: Better recognition of cohesive functionality that can be extracted as dedicated managers
 
 **Newly Identified Line Savings: ~737 lines**
 
