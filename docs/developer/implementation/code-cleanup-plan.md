@@ -21,8 +21,9 @@
   - [Phase 4: Unused Code Elimination](#phase-4-unused-code-elimination)
     - [Main.ts Dead Code Summary](#41-maints-dead-code-summary-2025-05-30)
       - [Critical Priority Items](#411-critical-priority-items-largest-impact)
-      - [Implementation Roadmap](#412-implementation-roadmap)
-      - [Success Metrics](#413-success-metrics)
+      - [Additional Large Extraction Opportunities (Model 4.0 Analysis - 2025-05-30)](#412-additional-large-extraction-opportunities-model-40-analysis-2025-05-30)
+      - [Implementation Roadmap](#414-implementation-roadmap)
+      - [Success Metrics](#415-success-metrics)
   - [Phase 5: TypeScript Adapter Cleanup](#phase-5-typescript-adapter-cleanup)
 - [Success Criteria](#success-criteria)
 - [Next Steps](#next-steps)
@@ -385,10 +386,19 @@ In addition to large methods, there are many standalone utility functions that s
 | saveFavoriteRange | ~7 | main.ts (1792) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Favorite range persistence |
 | loadFavoriteRanges | ~10 | main.ts (1799) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Favorite range loading |
 | deleteFavoriteRange | ~12 | main.ts (1809) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Favorite range deletion |
-| forceApplyDateFilter | ~19 | main.ts (1821) | src/dom/filters/DateFilter.ts | High | ⏳ Planned | Legacy wrapper, should delegate to DateFilter |
+| forceApplyDateFilter | ~19 | main.ts (1821) | src/dom/filters/DateFilter.ts | High | ✅ Completed | Legacy wrapper, removed in favor of DateFilter class |
 | applyCustomDateRangeFilter | ~250 | main.ts (1840) | src/dom/filters/CustomDateRangeFilter.ts | **Critical** | ✅ Completed | **Massive function**, largest single opportunity |
 
 **Estimated Line Savings from Function Extraction: ~370 lines**
+
+**Progress Update (2025-05-30):** Successfully completed all Critical Priority extractions:
+- ✅ **applyCustomDateRangeFilter** (~250 lines) → src/dom/filters/CustomDateRangeFilter.ts 
+- ✅ **DEFAULT_LINTING_SETTINGS** (~95 lines) → src/types/journal-check.ts
+- ✅ **getDreamEntryDate** (~50 lines) → src/utils/date-utils.ts
+- ✅ **Storage helpers** (~50 lines) → src/utils/storage-helpers.ts
+- ✅ **forceApplyDateFilter** (~19 lines) → REMOVED (redundant wrapper, functionality in DateFilter class)
+
+**Total Critical Priority Lines Extracted: ~464 lines**
 
 #### 3.2.2 Large Configuration Objects for Extraction
 
@@ -599,9 +609,19 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 | **Total Potential Reduction** | **~680 lines** | - | - |
 
 **Current Size vs. Target:**
-- **Current main.ts size**: 2063 lines
-- **Potential target size**: ~1380 lines
-- **Reduction percentage**: 33%
+- **Current main.ts size**: 1,571 lines (as of 2025-05-30)
+- **Previously identified reduction**: ~680 lines
+- **Newly identified opportunities**: ~737 lines
+- **Total potential reduction**: ~1,417 lines  
+- **Target main.ts size**: ~150-200 lines (core plugin class only)
+- **Total reduction percentage**: ~90%
+
+**Revised Cleanup Strategy:**
+With the newly identified opportunities, main.ts could be reduced to a minimal plugin class containing only:
+- Plugin lifecycle methods (onload/onunload)
+- Settings delegation to SettingsManager
+- Component initialization and wiring
+- Essential plugin API implementations
 
 #### 4.1.1 Critical Priority Items (Largest Impact)
 
@@ -610,7 +630,62 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 3. **getDreamEntryDate function** ✅ **COMPLETED** - Moved to `src/utils/date-utils.ts` (~50 lines extracted)
 4. **Storage helper functions** ✅ **COMPLETED** - Moved to `src/utils/storage-helpers.ts` (~50 lines extracted)
 
-#### 4.1.2 Implementation Roadmap
+#### 4.1.2 Additional Large Extraction Opportunities (Model 4.0 Analysis - 2025-05-30)
+
+**Fresh Analysis Reveals Major Missed Opportunities:**
+
+Upon re-analysis of the current main.ts (1,571 lines) with Model 4.0, several **major extraction opportunities** were identified that were missed in the original Model 3.7 analysis. These represent the largest remaining opportunities for main.ts size reduction:
+
+| Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
+|-------------|-------|------------------|--------------|----------|--------|-------|
+| **insertTemplate** | ~205 | main.ts (859-1064) | src/templates/TemplateManager.ts | **Critical** | ⏳ Planned | **Largest remaining method** - Complex template insertion with modal creation, Templater integration, preview functionality |
+| **showDateNavigator** | ~179 | main.ts (1087-1266) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ⏳ Planned | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
+| **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ⏳ Planned | **Third largest** - Complex filter restoration logic with localStorage recovery, DOM waiting, retry mechanisms |
+| updateRibbonIcons | ~35 | main.ts (825-859) | Already delegated to RibbonManager | Medium | 🔄 Partial | Method exists but contains fallback logic |
+| Log management methods | ~100 | main.ts (621-731) | src/logging/LogFileManager.ts | Medium | ⏳ Planned | Combined: clearDebugLog, backupDebugLog, checkLogFileSize, copyConsoleLogs, getConsoleLog |
+| Global wrapper functions | ~18 | main.ts (1544-1561) | Remove/consolidate | Low | ⏳ Planned | applyCustomDateRangeFilter global function wrapper |
+
+**Why These Were Missed in Original Analysis:**
+1. **Model Evolution**: Model 3.7 → 4.0 has improved pattern recognition for large method extraction
+2. **Fresh Perspective**: Analysis of current cleaned-up codebase reveals these methods more clearly  
+3. **Context Understanding**: Better recognition of cohesive functionality that can be extracted as dedicated managers
+
+**Newly Identified Line Savings: ~737 lines**
+
+**Combined with Previous Extractions:**
+- **Previous Critical Priority Items**: ~464 lines
+- **Newly Identified Opportunities**: ~737 lines
+- **Total Potential Main.ts Reduction**: ~1,201 lines
+- **Target Main.ts Size**: ~370 lines (from current 1,571 lines)
+- **Reduction Percentage**: ~76%
+
+#### 4.1.3 Detailed Method Analysis
+
+**insertTemplate Method (Lines 859-1064, ~205 lines):**
+- Template selection modal creation and management
+- Templater integration and fallback handling  
+- Preview functionality with dynamic/static toggle
+- Placeholder navigation and cursor positioning
+- Complex error handling and user feedback
+- **Extraction Strategy**: Create TemplateManager class to handle all template-related operations
+
+**showDateNavigator Method (Lines 1087-1266, ~179 lines):**
+- Entry collection from multiple sources (state, memoized table data)
+- Test data generation for empty datasets
+- Complex error handling and logging
+- Global state management (window.dreamEntries)
+- Modal initialization and configuration
+- **Extraction Strategy**: Create DateNavigatorManager class to handle navigator setup and data preparation
+
+**applyInitialFilters Method (Lines 1290-1489, ~200 lines):**
+- Filter persistence and recovery logic
+- localStorage backup/recovery mechanisms  
+- DOM waiting and retry logic with exponential backoff
+- Project note detection and workspace iteration
+- Complex state management for filter application
+- **Extraction Strategy**: Create FilterPersistenceManager class to handle filter restoration and persistence
+
+#### 4.1.4 Implementation Roadmap
 
 **Phase A: Quick Wins (High Impact, Low Risk)**
 - Move DEFAULT_LINTING_SETTINGS to config file
@@ -627,7 +702,7 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 - Clean up global variables
 - Remove deprecated comments
 
-#### 4.1.3 Success Metrics
+#### 4.1.5 Success Metrics
 
 Upon completion of all identified cleanup tasks:
 - main.ts line count reduced by approximately 680 lines (33%)
@@ -869,7 +944,7 @@ Identified additional redundant code for removal:
 
 This removal will:
 1. Further reduce the size of main.ts
-2. Consolidate date filtering logic in the DateFilter class
+2. Consolidated date filtering logic in the DateFilter class
 3. Remove redundant code while maintaining backward compatibility through the wrapper function (lines 1833-1847)
 
 The new refactoring steps are to:
@@ -889,7 +964,7 @@ Completed removal of redundant window functions:
 
 This achieves the following benefits:
 1. Reduced main.ts by approximately 120 lines
-2. Improved code organization by centralizing date filtering logic in DateFilter class
+2. Consolidated date filtering logic in the DateFilter class
 3. Removed duplication while maintaining backward compatibility
 4. Provided clearer code ownership and responsibility boundaries
 
@@ -911,6 +986,8 @@ Benefits of the ModalsManager implementation:
 4. Consistent error handling and logging
 5. Better organization of modal-related code
 6. Reduced redundancy in modal creation throughout the application
+
+With these changes, we've eliminated more redundant code from main.ts and further improved the separation of concerns.
 
 ### Progress Update (2025-05-29)
 
