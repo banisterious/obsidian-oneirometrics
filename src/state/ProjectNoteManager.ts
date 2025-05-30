@@ -87,23 +87,19 @@ export class ProjectNoteManager {
             const leaf = this.app.workspace.getLeaf();
             await leaf.openFile(file);
             
-            // Force re-render to ensure Obsidian processes all HTML
+            // Force re-render in a safer way
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
-                // Get the current mode
-                const currentMode = view.getMode();
-                if (currentMode === 'preview') {
-                    // Use the editor property to toggle between modes
-                    // This is a workaround to force Obsidian to re-render the preview
-                    view.editor.focus();
-                    // Toggle to source mode
-                    // @ts-ignore - Obsidian API types may not be up to date
-                    view.setMode('source');
+                this.logger?.debug('ProjectNote', 'Refreshing view');
+                
+                try {
+                    // Simple approach - just re-open the file which will refresh the view
                     setTimeout(() => {
-                        // Toggle back to preview mode
-                        // @ts-ignore - Obsidian API types may not be up to date
-                        view.setMode('preview');
-                    }, 50);
+                        leaf.openFile(file, { active: true });
+                    }, 100);
+                } catch (refreshError) {
+                    this.logger?.warn('ProjectNote', 'Error refreshing view', refreshError as Error);
+                    // Non-critical error, continue execution
                 }
             }
         } catch (error) {

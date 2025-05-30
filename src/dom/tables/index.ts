@@ -5,3 +5,4 @@
  */
 
 export { TableGenerator } from './TableGenerator'; 
+export { TableManager } from './TableManager'; 
