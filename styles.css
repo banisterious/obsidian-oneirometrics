@@ -6604,20 +6604,184 @@ h2.oom-metrics-tabs-label {
     }
 }
 
-
 /* ==========================================================================
-   Component Styles
+   Journal Structure Toggle Settings
    ========================================================================== */
 
+/* Toggle Settings Layout */
+.oom-setting-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+}
 
+.oom-setting-toggle:last-child {
+    border-bottom: none;
+}
 
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
+.oom-setting-info {
+    flex: 1;
+    margin-right: 1rem;
+}
 
+.oom-setting-name {
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
 
+.oom-setting-desc {
+    line-height: 1.4;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
 
-/* ==========================================================================
-   Component Styles
-   ========================================================================== */
+/* Toggle Control Container */
+.oom-setting-control {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.oom-toggle-container {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Hidden Input */
+.oom-toggle-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Toggle Switch */
+.oom-toggle-switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    border-radius: 12px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-modifier-border);
+}
+
+.oom-toggle-switch:hover {
+    background-color: var(--background-modifier-border-hover);
+}
+
+/* Toggle Slider */
+.oom-toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    background-color: var(--background-primary);
+}
+
+/* Toggle States */
+.oom-toggle-switch.oom-toggle-on {
+    border-color: var(--interactive-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-toggle-switch.oom-toggle-on:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-toggle-switch.oom-toggle-on .oom-toggle-slider {
+    transform: translateX(18px);
+}
+
+.oom-toggle-switch.oom-toggle-off {
+    background-color: var(--background-modifier-border);
+}
+
+/* Focus States */
+.oom-toggle-input:focus + .oom-toggle-switch {
+    box-shadow: 0 0 0 2px var(--background-modifier-border), 0 0 0 4px var(--interactive-accent);
+}
+
+/* Journal Structure Sections */
+.oom-journal-structure-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.oom-journal-section {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-journal-section:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.oom-section-header {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--interactive-accent);
+    font-size: var(--h3-size);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .oom-toggle-slider {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    background-color: var(--background-primary);
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+    .oom-toggle-switch {
+        border-width: 2px;
+    }
+    
+    .oom-toggle-switch.oom-toggle-on {
+        border-color: Highlight;
+        background-color: Highlight;
+    }
+    
+    .oom-toggle-slider {
+        background-color: ButtonText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-toggle-switch,
+    .oom-toggle-slider {
+        transition: none;
+    }
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .oom-setting-toggle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .oom-setting-info {
+        margin-right: 0;
+    }
+    
+    .oom-setting-control {
+        align-self: flex-end;
+        margin-left: 0;
+    }
+}
 
