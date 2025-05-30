@@ -27,13 +27,17 @@ export class FilterPersistenceManager {
      */
     public applyInitialFilters(): void {
         try {
+            globalLogger?.info('Filter', 'FilterPersistenceManager.applyInitialFilters() called');
+            
             if (globalLogger) {
                 globalLogger.info('Filter', 'Running applyInitialFilters - attempt to restore saved filters');
             }
             
             // Ensure settings are initialized
             if (!this.settings) {
-                this.logger?.warn('Filter', 'Settings not initialized in applyInitialFilters');
+                const errorMsg = 'Settings not initialized in applyInitialFilters';
+                this.logger?.warn('Filter', errorMsg);
+                globalLogger?.warn('Filter', errorMsg);
                 return;
             }
             
@@ -56,23 +60,42 @@ export class FilterPersistenceManager {
                 }
                 return;
             }
+            
+            globalLogger?.info('Filter', 'Proceeding with filter initialization checks');
+            
         } catch (e) {
-            this.logger?.error('Filter', 'Error in applyInitialFilters initialization', e instanceof Error ? e : new Error(String(e)));
+            const errorMsg = 'Error in applyInitialFilters initialization';
+            const error = e instanceof Error ? e : new Error(String(e));
+            this.logger?.error('Filter', errorMsg, error);
+            globalLogger?.error('Filter', errorMsg, error);
             return;
         }
         
-        // CRITICAL FIX: Double check that filter settings are consistent and load from backups if needed
-        if (this.settings && !this.settings.lastAppliedFilter) {
-            this.recoverFilterFromLocalStorage();
+        try {
+            // CRITICAL FIX: Double check that filter settings are consistent and load from backups if needed
+            if (this.settings && !this.settings.lastAppliedFilter) {
+                globalLogger?.info('Filter', 'No lastAppliedFilter found, attempting recovery');
+                this.recoverFilterFromLocalStorage();
+            }
+            
+            // Ensure customDateRange is set from settings - with proper null checks
+            if (this.settings && this.settings.lastAppliedFilter === 'custom') {
+                globalLogger?.info('Filter', 'Custom filter detected, restoring custom date range');
+                this.restoreCustomDateRange();
+            }
+            
+            // Find and apply filters to any open metrics notes
+            globalLogger?.info('Filter', 'Finding and processing metrics notes');
+            this.findAndProcessMetricsNotes();
+            
+            globalLogger?.info('Filter', 'FilterPersistenceManager.applyInitialFilters() completed successfully');
+            
+        } catch (e) {
+            const errorMsg = 'Error in applyInitialFilters processing';
+            const error = e instanceof Error ? e : new Error(String(e));
+            this.logger?.error('Filter', errorMsg, error);
+            globalLogger?.error('Filter', errorMsg, error);
         }
-        
-        // Ensure customDateRange is set from settings - with proper null checks
-        if (this.settings && this.settings.lastAppliedFilter === 'custom') {
-            this.restoreCustomDateRange();
-        }
-        
-        // Find and apply filters to any open metrics notes
-        this.findAndProcessMetricsNotes();
     }
 
     /**
