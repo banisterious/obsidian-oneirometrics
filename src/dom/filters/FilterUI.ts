@@ -11,6 +11,7 @@ import { ILogger } from '../../logging/LoggerTypes';
 import { parseDate } from '../../utils/date-utils';
 import { FilterDisplayManager } from './FilterDisplayManager';
 import { MetricsCollector, TableStatisticsUpdater } from '../../metrics';
+import { TableManager } from '../../dom/tables';
 
 // Constants
 const CUSTOM_RANGE_KEY = 'oom-custom-range';
@@ -23,6 +24,7 @@ export class FilterUI {
     private filterDisplayManager: FilterDisplayManager;
     private metricsCollector: MetricsCollector;
     private tableStatisticsUpdater: TableStatisticsUpdater;
+    private tableManager: TableManager;
     
     constructor(
         private app: App,
@@ -33,6 +35,7 @@ export class FilterUI {
         this.filterDisplayManager = new FilterDisplayManager(logger);
         this.metricsCollector = new MetricsCollector(app, null, logger);
         this.tableStatisticsUpdater = new TableStatisticsUpdater(logger);
+        this.tableManager = new TableManager(app, settings, logger);
     }
     
     /**
@@ -368,7 +371,7 @@ export class FilterUI {
             
             try {
                 // First ensure all tables are properly initialized
-                (window as any).initializeTableRowClasses();
+                this.tableManager.initializeTableRowClasses();
                 
                 // Apply date attribute repairs for correct filtering
                 const rows = previewEl.querySelectorAll('.oom-dream-row');
@@ -602,7 +605,7 @@ export class FilterUI {
         }
         
         // Ensure table styles are initialized before filtering
-        (window as any).initializeTableRowClasses();
+        this.tableManager.initializeTableRowClasses();
         
         // Performance optimization: Prevent layout thrashing by reading all data at once
         const tableContainer = previewEl.querySelector('.oom-table-container');

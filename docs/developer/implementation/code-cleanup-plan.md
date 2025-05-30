@@ -832,6 +832,8 @@ Fixed import references and removed global function references:
 - Updated main.ts to use MetricsCollector and TableStatisticsUpdater instead of TableManager methods
 - Fixed import duplication issues and ensured proper object initialization
 - Removed redundant code and global function dependencies
+- Replaced (window as any).initializeTableRowClasses global function calls in FilterUI with TableManager methods
+- Verified that the functions mentioned in docs/refactoring-2025/main-ts-function-removal.md (initializeTableRowClasses, collectVisibleRowMetrics, updateSummaryTable) have already been removed from main.ts
 
 With these changes, we have:
 1. Further improved code organization by removing global function dependencies
