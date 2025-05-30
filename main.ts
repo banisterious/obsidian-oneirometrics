@@ -161,7 +161,6 @@ import {
 import { DateRangeService, DateFilter } from './src/dom/filters';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
-import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
 import { TestModal } from './src/journal_check/ui/TestModal';
 import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
 
