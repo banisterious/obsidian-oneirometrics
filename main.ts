@@ -938,24 +938,13 @@ export default class DreamMetricsPlugin extends Plugin {
                     })
                 );
                 
-                // Add journal manager button with lucide-moon icon
-                this.journalManagerRibbonEl = this.addRibbonIcon('lucide-moon', 'Dream Journal Manager', () => {
-                    if (this.dreamJournalManager) {
-                        // Just use open() method which we know exists
-                        this.dreamJournalManager.open();
-                    } else {
-                        new JournalStructureModal(this.app, this).open();
-                    }
-                });
-                this.ribbonIcons.push(this.journalManagerRibbonEl);
-                
-                // Add metrics guide button with lucide-scroll-text icon
-                const metricsGuideRibbonEl = this.addRibbonIcon('lucide-scroll-text', 'Dream Metrics Reference', () => {
-                    // Use ModalsManager instead of removed showMetricsTabsModal method
+                // Add OneiroMetrics Hub button with lucide-moon icon
+                const metricsHubRibbonEl = this.addRibbonIcon('lucide-moon', 'OneiroMetrics Hub', () => {
+                    // Use ModalsManager to open the consolidated hub
                     const modalsManager = new ModalsManager(this.app, this, this.logger);
                     modalsManager.openMetricsTabsModal();
                 });
-                this.ribbonIcons.push(metricsGuideRibbonEl);
+                this.ribbonIcons.push(metricsHubRibbonEl);
             }
         }
     }

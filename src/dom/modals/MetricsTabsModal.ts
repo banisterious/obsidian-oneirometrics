@@ -54,7 +54,7 @@ export class MetricsTabsModal extends Modal {
             
             // Create header
             contentEl.createEl('h1', { 
-                text: 'Dream Metrics', 
+                text: 'OneiroMetrics Hub', 
                 cls: 'oom-metrics-tabs-header' 
             });
             
