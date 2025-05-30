@@ -644,7 +644,7 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 |-------------|-------|------------------|--------------|----------|--------|-------|
 | **insertTemplate** | ~205 | main.ts (859-1064) | src/templates/TemplateManager.ts | Critical | ✅ Completed | Template modal creation, Templater integration, preview functionality |
 | **showDateNavigator** | ~199 | main.ts (892-1091) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ⏳ Planned | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
-| **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ⏳ Planned | **Third largest** - Complex filter restoration logic with localStorage recovery, DOM waiting, retry mechanisms |
+| **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ✅ Completed | Filter persistence and recovery logic with localStorage backup/recovery, DOM waiting, retry mechanisms |
 | updateRibbonIcons | ~35 | main.ts (825-859) | Already delegated to RibbonManager | Medium | 🔄 Partial | Method exists but contains fallback logic |
 | Log management methods | ~100 | main.ts (621-731) | src/logging/LogFileManager.ts | Medium | ⏳ Planned | Combined: clearDebugLog, backupDebugLog, checkLogFileSize, copyConsoleLogs, getConsoleLog |
 | Global wrapper functions | ~18 | main.ts (1544-1561) | Remove/consolidate | Low | ⏳ Planned | applyCustomDateRangeFilter global function wrapper |
@@ -680,13 +680,13 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 - Modal initialization and configuration
 - **Extraction Strategy**: Create DateNavigatorManager class to handle navigator setup and data preparation
 
-**applyInitialFilters Method (Lines 1290-1489, ~200 lines):**
+**applyInitialFilters Method (Lines 1290-1489, ~200 lines):** ✅ **COMPLETED**
 - Filter persistence and recovery logic
 - localStorage backup/recovery mechanisms  
 - DOM waiting and retry logic with exponential backoff
 - Project note detection and workspace iteration
 - Complex state management for filter application
-- **Extraction Strategy**: Create FilterPersistenceManager class to handle filter restoration and persistence
+- **Extraction Strategy**: ✅ Created FilterPersistenceManager class to handle filter restoration and persistence
 
 #### 4.1.4 Implementation Roadmap
 
@@ -709,13 +709,14 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 
 **Current Progress Summary (2025-05-30):**
 - **Main.ts Original Size**: 2,053 lines
-- **Main.ts Current Size**: 1,377 lines  
-- **Total Lines Extracted**: 676 lines
-- **Current Reduction Percentage**: 33%
+- **Main.ts Current Size**: 1,197 lines  
+- **Total Lines Extracted**: 856 lines
+- **Current Reduction Percentage**: 42%
 
 **Completed Extractions:**
 - ✅ **applyCustomDateRangeFilter** (~250 lines) → `src/dom/filters/CustomDateRangeFilter.ts`
 - ✅ **insertTemplate** (~205 lines) → `src/templates/TemplateManager.ts`
+- ✅ **applyInitialFilters** (~200 lines) → `src/dom/filters/FilterPersistenceManager.ts`
 - ✅ **DEFAULT_LINTING_SETTINGS** (~95 lines) → `src/types/journal-check.ts`
 - ✅ **getDreamEntryDate** (~50 lines) → `src/utils/date-utils.ts`
 - ✅ **Storage helpers** (~50 lines) → `src/utils/storage-helpers.ts`
@@ -724,11 +725,3 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 
 **Next Targets:**
 - ⏳ **showDateNavigator** (~199 lines) → `DateNavigatorManager`
-- ⏳ **applyInitialFilters** (~200 lines) → `FilterPersistenceManager`
-
-**Target upon completion of all identified cleanup tasks:**
-- main.ts line count reduced by approximately 680 lines (33%)
-- Improved code organization and maintainability
-- Better separation of concerns
-- Reduced cognitive load for developers
-- Enhanced testability of extracted components
