@@ -240,6 +240,14 @@ import {
   debugContentExpansion
 } from './src/utils/GlobalHelpers';
 
+import {
+  saveLastCustomRange,
+  loadLastCustomRange,
+  saveFavoriteRange,
+  loadFavoriteRanges,
+  deleteFavoriteRange
+} from './src/utils/storage-helpers';
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -1519,55 +1527,9 @@ export default class DreamMetricsPlugin extends Plugin {
 
 // Function removed: openCustomRangeModal(app: App) is now handled by ModalsManager
 
-// Helper functions for range management
-const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
-const SAVED_RANGES_KEY = 'oneirometrics-saved-custom-ranges';
-
-function saveLastCustomRange(range: { start: string, end: string }) {
-    localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(range));
-    globalLogger?.debug('Filter', 'Saved custom range to localStorage', { range });
-}
-
-function loadLastCustomRange(): { start: string, end: string } | null {
-    const data = localStorage.getItem(CUSTOM_RANGE_KEY);
-    if (!data) {
-        globalLogger?.debug('Filter', 'No custom range found in localStorage');
-        return null;
-    }
-    try {
-        const range = JSON.parse(data);
-        globalLogger?.debug('Filter', 'Loaded custom range from localStorage', { range });
-        return range;
-    } catch (e) {
-        globalLogger?.error('Filter', 'Failed to parse custom range from localStorage', e);
-        return null;
-    }
-}
-
-function saveFavoriteRange(name: string, range: { start: string, end: string }) {
-    const saved = loadFavoriteRanges();
-    saved[name] = range;
-    localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
-    globalLogger?.debug('Filter', 'Saved favorite range', { name, range });
-}
-
-function loadFavoriteRanges(): Record<string, { start: string, end: string }> {
-    const data = localStorage.getItem(SAVED_RANGES_KEY);
-    if (!data) return {};
-    try {
-        return JSON.parse(data);
-    } catch {
-        return {};
-    }
-}
-
-function deleteFavoriteRange(name: string) {
-    const saved = loadFavoriteRanges();
-    delete saved[name];
-    localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
-    globalLogger?.debug('Filter', 'Deleted favorite range', { name });
-    new Notice(`Deleted favorite: ${name}`);
-}
+// Helper functions for range management - moved to src/utils/storage-helpers.ts
+// Functions removed: saveLastCustomRange, loadLastCustomRange, saveFavoriteRange, loadFavoriteRanges, deleteFavoriteRange
+// These functions are now imported from src/utils/storage-helpers.ts
 
 // Find the DateNavigatorModal's Apply button click handler
 // In src/dom/DateNavigatorModal.ts, replace with this direct implementation in main.ts
