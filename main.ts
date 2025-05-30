@@ -161,9 +161,6 @@ import {
 import { DateRangeService, DateFilter } from './src/dom/filters';
 
 // Import UI components from journal_check/ui using individual imports instead of barrel file
-import { 
-  DreamJournalManager 
-} from './src/journal_check/ui/DreamJournalManager';
 import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
 import { TestModal } from './src/journal_check/ui/TestModal';
 import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
@@ -258,7 +255,6 @@ export default class DreamMetricsPlugin extends Plugin {
     
     // Dream journal manager reference
     activeJournal: ActiveJournal | null = null;
-    private dreamJournalManager: DreamJournalManager;
     private dateNavigator: DateNavigatorIntegration;
     private timeFilterManager: TimeFilterManager;
     
@@ -370,6 +366,10 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add these lines to the onload method to set the global variables
         setGlobalLogger(this.logger);
         setGlobalContentToggler(this.contentToggler);
+
+        // Initialize the linting engine with safe property access
+        const journalStructure = getJournalStructure(this.settings);
+        this.lintingEngine = new LintingEngine(this, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
     }
 
     onunload() {
@@ -423,74 +423,7 @@ export default class DreamMetricsPlugin extends Plugin {
         this.expandedStates = this.settingsManager.expandedStates;
         this.loadedSettings = this.settingsManager.loadedSettings;
         
-        // Initialize the logger with safe property access
-        if (!globalLogger) {
-            const logLevel = this.settings.logging?.level || 'info';
-            const maxSize = getLogMaxSize(this.settings);
-            const maxBackups = this.settings.logging?.maxBackups || 3;
-            
-            // Fix the constructor to use the correct signature
-            this.logger = new LoggingAdapter(this.app);
-            // Then configure it separately
-            this.logger.configure(logLevel as LogLevel, maxSize, maxBackups);
-            globalLogger = this.logger;
-        } else {
-            this.logger = globalLogger;
-        }
-        
-        // Initialize other components with consistent settings access
-        
-        // Create proper settings object for DreamMetricsState
-        const stateSettings = {
-            projectNote: getProjectNotePath(this.settings),
-            selectedNotes: this.settings.selectedNotes || [],
-            selectedFolder: getSelectedFolder(this.settings),
-            selectionMode: getSelectionMode(this.settings),
-            calloutName: this.settings.calloutName || 'dream',
-            metrics: this.settings.metrics || {},
-            showRibbonButtons: shouldShowRibbonButtons(this.settings),
-            backupEnabled: isBackupEnabled(this.settings),
-            backupFolderPath: getBackupFolderPath(this.settings),
-            logging: {
-                level: this.settings.logging?.level || 'info'
-            }
-        };
-        
-        // Initialize state management with proper constructor parameters
-        this.state = new DreamMetricsState(stateSettings);
-        
-        // Initialize the time filter manager with proper parameters
-        this.timeFilterManager = new TimeFilterManager();
-        
-        // TimeFilterManager is already registered in onload, no need to register again here
-        // registerService(SERVICE_NAMES.TIME_FILTER, this.timeFilterManager);
-        
-        // Create proper settings object for TemplaterIntegration
-        const templaterSettings = {
-            enabled: true,
-            templateFolder: this.settings.journalStructure?.templaterIntegration?.folderPath || 'templates/dreams',
-            defaultTemplate: this.settings.journalStructure?.templaterIntegration?.defaultTemplate || ''
-        };
-        
-        // Use type-safe property access for integration components
-        this.templaterIntegration = new TemplaterIntegration(
-            this.app,
-            this,
-            templaterSettings
-        );
-        
-        // Use proper constructor parameters for DateNavigatorIntegration
-        this.dateNavigator = new DateNavigatorIntegration(
-            this.app,
-            this
-        );
-        
-        // Initialize the linting engine with safe property access
-        const journalStructure = getJournalStructure(this.settings);
-        this.lintingEngine = new LintingEngine(this, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
-        
-        // Initialize UI components
-        this.dreamJournalManager = new DreamJournalManager(this.app, this);
+        // Note: Component initialization is handled by PluginLoader.ts
     }
 
     /**
@@ -521,40 +454,10 @@ export default class DreamMetricsPlugin extends Plugin {
     }
     
     public async showMetrics() {
-        // This method previously opened the OneiroMetricsModal
-        // Now we directly start the scraping process
-        
+        // This method directly starts the scraping process
         globalLogger?.info('Plugin', 'showMetrics called - directly launching scrapeMetrics');
         
-        // Attempt to use the journal manager if available
-        if (this.dreamJournalManager) {
-            // Use type assertion to access potential methods without TypeScript errors
-            const journalManager = this.dreamJournalManager as any;
-            
-            try {
-                // Try various possible method names that might exist
-                if (typeof journalManager.show === 'function') {
-                    journalManager.show();
-                    return;
-                } else if (typeof journalManager.open === 'function') {
-                    journalManager.open();
-                    return;
-                } else if (typeof journalManager.openUI === 'function') {
-                    journalManager.openUI();
-                    return;
-                } else if (typeof journalManager.display === 'function') {
-                    journalManager.display();
-                    return;
-                }
-                
-                // Log that we couldn't find a suitable method
-                globalLogger?.warn('Plugin', 'Journal Manager available but no suitable open method found');
-            } catch (error) {
-                globalLogger?.error('Plugin', 'Failed to open Journal Manager', error as Error);
-            }
-        }
-        
-        // Fall back to direct scraping
+        // Direct scraping (DreamJournalManager has been replaced by OneiroMetrics Hub)
         this.scrapeMetrics();
     }
 
