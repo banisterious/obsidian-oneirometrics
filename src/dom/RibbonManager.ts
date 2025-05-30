@@ -9,6 +9,7 @@ import { DreamMetricsSettings } from '../types/core';
 import { ILogger } from '../logging/LoggerTypes';
 import { shouldShowRibbonButtons } from '../utils/settings-helpers';
 import { ModalsManager } from './modals/ModalsManager';
+import { getProjectNotePath } from '../utils/settings-helpers';
 
 export class RibbonManager {
     private ribbonIcons: HTMLElement[] = [];
@@ -58,6 +59,9 @@ export class RibbonManager {
         // Remove existing icons first
         this.removeRibbonIcons();
         
+        // Ensure plugin compatibility - check if folders exist before adding buttons
+        this.ensurePluginCompatibility();
+        
         // Add journal manager button
         // @ts-ignore - Obsidian typings aren't fully accurate
         this.journalManagerRibbonEl = this.plugin.addRibbonIcon(
@@ -105,6 +109,75 @@ export class RibbonManager {
         this.ribbonIcons.push(metricsGuideRibbonEl);
         
         this.logger?.debug('UI', 'Added ribbon icons');
+    }
+    
+    /**
+     * Ensure compatibility with other plugins like folder-notes
+     * by ensuring required folders exist in the vault
+     */
+    private ensurePluginCompatibility(): void {
+        try {
+            // Get project note path and ensure parent folders exist
+            const projectNotePath = getProjectNotePath(this.settings);
+            if (projectNotePath) {
+                // Extract folder path from the full path
+                const folderPath = projectNotePath.substring(0, projectNotePath.lastIndexOf('/'));
+                if (folderPath) {
+                    // Check if folder exists and create if needed
+                    this.ensureFolderExists(folderPath);
+                }
+            }
+            
+            // For folder-notes compatibility, ensure known paths referenced in errors exist
+            // This helps prevent "Cannot read properties of undefined" errors
+            const knownPaths = [
+                'Journals',
+                'Journals/Dream Diary',
+                'Journals/Dream Diary/Metrics'
+            ];
+            
+            for (const path of knownPaths) {
+                this.ensureFolderExists(path);
+            }
+        } catch (e) {
+            this.logger?.warn('Compatibility', 'Error ensuring plugin compatibility', e instanceof Error ? e : new Error(String(e)));
+        }
+    }
+    
+    /**
+     * Ensure a folder exists in the vault, creating it if necessary
+     */
+    private ensureFolderExists(folderPath: string): void {
+        try {
+            const folder = this.app.vault.getAbstractFileByPath(folderPath);
+            if (!folder) {
+                // Create folder if it doesn't exist
+                this.logger?.debug('Compatibility', `Creating folder: ${folderPath}`);
+                // Use recursive creation to handle nested paths
+                this.createFolderRecursively(folderPath);
+            }
+        } catch (e) {
+            this.logger?.warn('Compatibility', `Error ensuring folder exists: ${folderPath}`, e instanceof Error ? e : new Error(String(e)));
+        }
+    }
+    
+    /**
+     * Create a folder recursively, handling parent folders if needed
+     */
+    private async createFolderRecursively(folderPath: string): Promise<void> {
+        try {
+            await this.app.vault.createFolder(folderPath);
+        } catch (e) {
+            // If folder creation failed, it might be because the parent folder doesn't exist
+            const lastSlashIndex = folderPath.lastIndexOf('/');
+            if (lastSlashIndex > 0) {
+                const parentFolder = folderPath.substring(0, lastSlashIndex);
+                // Create parent folder first
+                await this.createFolderRecursively(parentFolder);
+                // Then try creating the original folder again
+                await this.app.vault.createFolder(folderPath);
+            }
+        }
     }
     
     /**
