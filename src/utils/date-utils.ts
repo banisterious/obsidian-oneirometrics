@@ -358,4 +358,99 @@ export function safeDateOrDefault(
         safeLogger.error('Date', 'Error in safeDateOrDefault', error instanceof Error ? error : new Error(String(error)));
         return defaultDate;
     }
+}
+
+/**
+ * Extracts the date for a dream entry using multiple fallback strategies
+ * 
+ * This function attempts to find a date associated with a dream journal entry
+ * by checking various sources in order of preference:
+ * 1. Block reference (^YYYYMMDD) in the first two lines
+ * 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
+ * 3. YAML 'created' field
+ * 4. YAML 'modified' field
+ * 5. Year from folder or filename
+ * 6. Current date as fallback
+ * 
+ * @param journalLines Array of lines from the journal entry
+ * @param filePath Path to the file containing the entry
+ * @param fileContent Full content of the file
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {
+    try {
+        // 1. Block Reference (^YYYYMMDD) on the callout line or the next line
+        const blockRefRegex = /\^(\d{8})/;
+        for (let i = 0; i < Math.min(2, journalLines.length); i++) {
+            const blockRefMatch = journalLines[i].match(blockRefRegex);
+            if (blockRefMatch) {
+                const dateStr = blockRefMatch[1];
+                const formattedDate = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+                safeLogger.debug('Date', 'Found date via block reference', { dateStr, formattedDate, line: journalLines[i] });
+                return formattedDate;
+            }
+        }
+
+        // 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
+        const calloutLine = journalLines[0] || '';
+        const longDateRegex = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})/;
+        const longDateMatch = calloutLine.match(longDateRegex);
+        if (longDateMatch) {
+            try {
+                const dateObj = new Date(longDateMatch[0]);
+                if (!isNaN(dateObj.getTime())) {
+                    const formattedDate = dateObj.toISOString().split('T')[0];
+                    safeLogger.debug('Date', 'Found date via callout line parsing', { longDateMatch: longDateMatch[0], formattedDate });
+                    return formattedDate;
+                }
+            } catch (error) {
+                safeLogger.warn('Date', 'Failed to parse long date format', { dateMatch: longDateMatch[0], error });
+            }
+        }
+
+        // 3. YAML 'created' field
+        const yamlCreatedMatch = fileContent.match(/created:\s*(\d{8})/);
+        if (yamlCreatedMatch) {
+            const dateStr = yamlCreatedMatch[1];
+            const formattedDate = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+            safeLogger.debug('Date', 'Found date via YAML created field', { dateStr, formattedDate });
+            return formattedDate;
+        }
+
+        // 4. YAML 'modified' field
+        const yamlModifiedMatch = fileContent.match(/modified:\s*(\d{8})/);
+        if (yamlModifiedMatch) {
+            const dateStr = yamlModifiedMatch[1];
+            const formattedDate = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+            safeLogger.debug('Date', 'Found date via YAML modified field', { dateStr, formattedDate });
+            return formattedDate;
+        }
+
+        // 5. Folder or filename (for year only, as a fallback)
+        const yearRegex = /\b(\d{4})\b/;
+        const pathMatch = filePath.match(yearRegex);
+        if (pathMatch) {
+            const year = pathMatch[1];
+            const fallbackDate = `${year}-01-01`; // Use January 1st as fallback for year-only matches
+            safeLogger.debug('Date', 'Found year via file path, using fallback date', { filePath, year, fallbackDate });
+            return fallbackDate;
+        }
+
+        // 6. Current date as final fallback
+        const currentDate = new Date().toISOString().split('T')[0];
+        safeLogger.warn('Date', 'No date found in dream entry, using current date as fallback', { 
+            filePath, 
+            journalLinesCount: journalLines.length,
+            currentDate 
+        });
+        return currentDate;
+
+    } catch (error) {
+        safeLogger.error('Date', 'Error extracting dream entry date, using current date as fallback', {
+            error: error instanceof Error ? error : new Error(String(error)),
+            filePath,
+            journalLinesCount: journalLines.length
+        });
+        return new Date().toISOString().split('T')[0];
+    }
 } 
