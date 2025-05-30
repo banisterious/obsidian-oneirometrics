@@ -21,7 +21,7 @@
   - [Phase 4: Unused Code Elimination](#phase-4-unused-code-elimination)
     - [Main.ts Dead Code Summary](#41-maints-dead-code-summary-2025-05-30)
       - [Critical Priority Items](#411-critical-priority-items-largest-impact)
-      - [Additional Large Extraction Opportunities (Model 4.0 Analysis - 2025-05-30)](#412-additional-large-extraction-opportunities-model-40-analysis-2025-05-30)
+      - [Additional Large Extraction Opportunities (new Analysis - 2025-05-30)](#412-additional-large-extraction-opportunities-new-analysis-2025-05-30)
       - [Implementation Roadmap](#414-implementation-roadmap)
       - [Success Metrics](#415-success-metrics)
   - [Phase 5: TypeScript Adapter Cleanup](#phase-5-typescript-adapter-cleanup)
@@ -634,11 +634,11 @@ With the newly identified opportunities, main.ts could be reduced to a minimal p
 3. **getDreamEntryDate function** ✅ **COMPLETED** - Moved to `src/utils/date-utils.ts` (~50 lines extracted)
 4. **Storage helper functions** ✅ **COMPLETED** - Moved to `src/utils/storage-helpers.ts` (~50 lines extracted)
 
-#### 4.1.2 Additional Large Extraction Opportunities (Model 4.0 Analysis - 2025-05-30)
+#### 4.1.2 Additional Large Extraction Opportunities (New Analysis - 2025-05-30)
 
 **Fresh Analysis Reveals Major Missed Opportunities:**
 
-Upon re-analysis of the current main.ts (1,571 lines) with Model 4.0, several **major extraction opportunities** were identified that were missed in the original Model 3.7 analysis. These represent the largest remaining opportunities for main.ts size reduction:
+Upon re-analysis of the current main.ts (1,571 lines), several **major extraction opportunities** were identified that were missed in the original analysis. These represent the largest remaining opportunities for main.ts size reduction:
 
 | Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
@@ -650,9 +650,8 @@ Upon re-analysis of the current main.ts (1,571 lines) with Model 4.0, several **
 | Global wrapper functions | ~18 | main.ts (1544-1561) | Remove/consolidate | Low | ⏳ Planned | applyCustomDateRangeFilter global function wrapper |
 
 **Why These Were Missed in Original Analysis:**
-1. **Model Evolution**: Model 3.7 → 4.0 has improved pattern recognition for large method extraction
-2. **Fresh Perspective**: Analysis of current cleaned-up codebase reveals these methods more clearly  
-3. **Context Understanding**: Better recognition of cohesive functionality that can be extracted as dedicated managers
+1. **Fresh Perspective**: Analysis of current cleaned-up codebase reveals these methods more clearly  
+2. **Context Understanding**: Better recognition of cohesive functionality that can be extracted as dedicated managers
 
 **Newly Identified Line Savings: ~737 lines**
 
