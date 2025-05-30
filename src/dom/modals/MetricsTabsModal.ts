@@ -118,13 +118,13 @@ export class MetricsTabsModal extends Modal {
     // Create Dashboard tab
     private createDashboardTab() {
         const dashboardTab = this.tabsContainer.createDiv({
-            cls: 'oom-metrics-tabs-button',
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
             attr: { 'data-tab-id': 'dashboard' }
         });
         
-        dashboardTab.createEl('h2', { 
+        dashboardTab.createDiv({ 
             text: 'Dashboard', 
-            cls: 'oom-metrics-tabs-label' 
+            cls: 'oom-hub-tab-label' 
         });
         
         dashboardTab.addEventListener('click', () => {
@@ -135,13 +135,13 @@ export class MetricsTabsModal extends Modal {
     // Create Dream Scrape tab
     private createDreamScrapeTab() {
         const dreamScrapeTab = this.tabsContainer.createDiv({
-            cls: 'oom-metrics-tabs-button',
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
             attr: { 'data-tab-id': 'dream-scrape' }
         });
         
-        dreamScrapeTab.createEl('h2', { 
+        dreamScrapeTab.createDiv({ 
             text: 'Dream Scrape', 
-            cls: 'oom-metrics-tabs-label' 
+            cls: 'oom-hub-tab-label' 
         });
         
         dreamScrapeTab.addEventListener('click', () => {
@@ -152,13 +152,13 @@ export class MetricsTabsModal extends Modal {
     // Create Journal Structure tab
     private createJournalStructureTab() {
         const journalStructureTab = this.tabsContainer.createDiv({
-            cls: 'oom-metrics-tabs-button',
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
             attr: { 'data-tab-id': 'journal-structure' }
         });
         
-        journalStructureTab.createEl('h2', { 
+        journalStructureTab.createDiv({ 
             text: 'Journal Structure', 
-            cls: 'oom-metrics-tabs-label' 
+            cls: 'oom-hub-tab-label' 
         });
         
         journalStructureTab.addEventListener('click', () => {
@@ -169,13 +169,13 @@ export class MetricsTabsModal extends Modal {
     // Create Overview tab
     private createOverviewTab() {
         const overviewTab = this.tabsContainer.createDiv({
-            cls: 'oom-metrics-tabs-button',
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
             attr: { 'data-tab-id': 'overview' }
         });
         
-        overviewTab.createEl('h2', { 
+        overviewTab.createDiv({ 
             text: 'Reference Overview', 
-            cls: 'oom-metrics-tabs-label' 
+            cls: 'oom-hub-tab-label' 
         });
         
         overviewTab.addEventListener('click', () => {
@@ -186,9 +186,9 @@ export class MetricsTabsModal extends Modal {
     // Helper to create a group of tabs
     private createTabGroup(groupName: string, metrics: DreamMetric[]) {
         // Create group header
-        const groupHeader = this.tabsContainer.createEl('h3', { 
+        const groupHeader = this.tabsContainer.createDiv({ 
             text: groupName,
-            cls: 'oom-metrics-tabs-group-header' 
+            cls: 'vertical-tab-header-group-title oom-hub-tab-group-title' 
         });
         
         // Create tabs for each metric in the group
@@ -201,22 +201,22 @@ export class MetricsTabsModal extends Modal {
     private createTabButton(metric: DreamMetric) {
         const tabId = this.getTabIdFromMetricName(metric.name);
         const tabButton = this.tabsContainer.createDiv({
-            cls: 'oom-metrics-tabs-button',
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
             attr: { 'data-tab-id': tabId }
         });
         
         // Add icon if available
         if (metric.icon) {
             const iconSpan = tabButton.createSpan({ 
-                cls: 'oom-metrics-tabs-icon' 
+                cls: 'oom-hub-tab-icon' 
             });
             // Use Obsidian's setIcon method to properly display the icon
             setIcon(iconSpan, metric.icon);
         }
         
-        tabButton.createSpan({ 
+        tabButton.createDiv({ 
             text: metric.name, 
-            cls: 'oom-metrics-tabs-label' 
+            cls: 'oom-hub-tab-label' 
         });
         
         tabButton.addEventListener('click', () => {
@@ -227,14 +227,14 @@ export class MetricsTabsModal extends Modal {
     // Handle tab selection
     private selectTab(tabId: string) {
         // Clear previous selection
-        this.tabsContainer.querySelectorAll('.oom-metrics-tabs-button').forEach(el => {
-            el.removeClass('oom-metrics-tabs-active');
+        this.tabsContainer.querySelectorAll('.vertical-tab-nav-item').forEach(el => {
+            el.removeClass('is-active');
         });
         
         // Mark selected tab
         const selectedEl = this.tabsContainer.querySelector(`[data-tab-id="${tabId}"]`);
         if (selectedEl) {
-            selectedEl.addClass('oom-metrics-tabs-active');
+            selectedEl.addClass('is-active');
         }
         
         // Load appropriate content
