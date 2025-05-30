@@ -6855,7 +6855,7 @@ h2.oom-metrics-tabs-label {
 
 .oom-metrics-tabs-modal {
     width: 90vw;
-    max-width: 1000px;
+    max-width: 1050px;
     height: 80vh;
     max-height: 700px;
 }
@@ -6909,33 +6909,33 @@ h2.oom-metrics-tabs-label {
     /* Inherit from vertical-tab-nav-item */
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: var(--size-4-1) var(--size-4-2);
     cursor: pointer;
-    color: var(--text-muted);
-    border-left: 3px solid transparent;
     transition: all 0.2s ease;
     gap: 0.5rem;
+    border-left: 3px solid transparent;
+    color: var(--text-muted);
 }
 
 .oom-hub-tab-nav-item:hover {
-    background-color: var(--background-modifier-hover);
     color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
 }
 
 .oom-hub-tab-nav-item.is-active {
-    background-color: var(--background-modifier-active-hover);
     border-left-color: var(--interactive-accent);
     color: var(--text-normal);
+    background-color: var(--background-modifier-active-hover);
 }
 
 /* Tab Icons - Smaller size */
 .oom-hub-tab-icon {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-shrink: 0;
     width: 16px;
     height: 16px;
-    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
 }
 
 .oom-hub-tab-icon svg {
@@ -6950,10 +6950,10 @@ h2.oom-metrics-tabs-label {
 
 /* Tab Labels */
 .oom-hub-tab-label {
+    flex: 1;
+    line-height: 1.4;
     font-size: var(--font-ui-medium);
     font-weight: 400;
-    line-height: 1.4;
-    flex: 1;
 }
 
 /* Content Area */
@@ -6966,9 +6966,9 @@ h2.oom-metrics-tabs-label {
 
 /* Metric Content Styling */
 .oom-metrics-tabs-metric-header {
+    margin-bottom: 1rem;
     font-size: var(--h3-size);
     font-weight: var(--h3-weight);
-    margin-bottom: 1rem;
     color: var(--text-normal);
 }
 
@@ -6994,8 +6994,8 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-metrics-tabs-score-table th {
-    background-color: var(--background-secondary);
     font-weight: 600;
+    background-color: var(--background-secondary);
 }
 
 /* Overview Content */
@@ -7004,8 +7004,8 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-metrics-tabs-overview-text p:first-child {
-    font-size: var(--font-ui-large);
     margin-bottom: 1rem;
+    font-size: var(--font-ui-large);
 }
 
 .oom-metrics-tabs-sources-content {
@@ -7058,8 +7058,8 @@ h2.oom-metrics-tabs-label {
     }
     
     .oom-hub-tab-nav-item.is-active {
-        background-color: Highlight;
         color: HighlightText;
+        background-color: Highlight;
     }
     
     .oom-hub-tab-nav-item.is-active .oom-hub-tab-icon {
@@ -7071,6 +7071,45 @@ h2.oom-metrics-tabs-label {
 @media (prefers-reduced-motion: reduce) {
     .oom-hub-tab-nav-item {
         transition: none;
+    }
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .oom-severity-indicators .oom-setting {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .oom-severity-indicators .oom-setting-info {
+        margin-right: 0;
+    }
+    
+    .oom-severity-indicators .oom-setting-control {
+        align-self: flex-end;
+    }
+}
+
+/* Dream Scrape Notes Selector Alignment */
+.oom-modal-section .oom-notes-selector-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.oom-notes-selector-container .oom-multiselect-container {
+    max-width: 400px;
+    width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+    .oom-modal-section .oom-notes-selector-container {
+        justify-content: stretch;
+    }
+    
+    .oom-notes-selector-container .oom-multiselect-container {
+        max-width: none;
     }
 }
 
