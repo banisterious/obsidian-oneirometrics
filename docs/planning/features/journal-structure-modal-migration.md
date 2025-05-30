@@ -50,6 +50,49 @@ The `JournalStructureModal` will be **consolidated** into the **OneiroMetrics Hu
 - **Settings button** opens OneiroMetrics Hub on Journal Structure tab
 - **Collapsible sections** replace sidebar navigation for better space utilization
 
+### 🏗️ OneiroMetrics Hub Structure (Post-Migration)
+```
+OneiroMetrics Hub
+├── Dashboard Tab (unchanged)
+├── Dream Scrape Tab (unchanged) 
+├── Journal Structure Tab ← ENHANCED with collapsible sections
+│   ├── 📁 Overview Section (collapsible)
+│   │   ├── Enable/disable structure validation toggle
+│   │   ├── Configuration summary statistics
+│   │   └── Quick stats about structures and templates
+│   ├── 📁 Structures Section (collapsible)
+│   │   ├── List of defined journal structures
+│   │   ├── Create new structure functionality
+│   │   ├── Edit/delete existing structures
+│   │   └── Structure type management (nested/flat)
+│   ├── 📁 Templates Section (collapsible)
+│   │   ├── Template management interface
+│   │   ├── TemplateWizard integration
+│   │   ├── Template editing and deletion
+│   │   └── Import/export functionality
+│   ├── 📁 Templater Section (collapsible)
+│   │   ├── Templater plugin integration settings
+│   │   ├── Template folder configuration
+│   │   ├── Default template settings
+│   │   └── Integration status display
+│   ├── 📁 Content Isolation Section (collapsible)
+│   │   ├── Configure ignored content types
+│   │   ├── Formatting exclusion settings
+│   │   ├── Heading and code block handling
+│   │   └── Frontmatter processing options
+│   └── 📁 Interface Section (collapsible)
+│       ├── UI preferences and customization
+│       ├── Display options
+│       └── User experience settings
+└── [Future tabs] (unchanged)
+```
+
+**🔒 Scope-Limited Changes:**
+- ✅ **Only Journal Structure tab content** enhanced with collapsible sections
+- ✅ **Other tabs** (Dashboard, Dream Scrape) remain completely unchanged  
+- ✅ **Hub tab navigation** and overall architecture preserved
+- ✅ **Existing functionality** in other areas untouched
+
 ## Current State Analysis
 
 ### JournalStructureModal Features
@@ -138,6 +181,17 @@ Current implementation is minimal:
    - Modify settings button behavior
    - Update to open OneiroMetrics Hub on Journal Structure tab
    - Remove JournalStructureModal instantiation
+
+3. **Update Documentation**
+   - **Update feature documentation** to reflect consolidated architecture:
+     - `docs/planning/features/dream-journal-manager.md` - Update references to consolidated UI
+     - `docs/planning/features/journal-structure-check.md` - Update modal → hub tab references
+     - `docs/user/guides/journal-structure.md` - Update user instructions for hub access
+     - `docs/user/guides/dream-journal.md` - Update any journal structure modal references
+     - `docs/user/guides/usage.md` - Update general usage instructions to reflect hub access
+     - `docs/user/guides/setup.md` - Update setup documentation for consolidated interface
+   - **Update any screenshots** or UI references in documentation
+   - **Add migration notes** where appropriate for historical context
 
 ## Functionality Mapping
 
