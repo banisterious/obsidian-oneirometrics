@@ -1534,24 +1534,11 @@ export default class DreamMetricsPlugin extends Plugin {
 // Find the DateNavigatorModal's Apply button click handler
 // In src/dom/DateNavigatorModal.ts, replace with this direct implementation in main.ts
 
-// Utility function to force filtering - called directly from DateNavigatorModal
-function forceApplyDateFilter(date: Date) {
-    // This function is now just a wrapper for the DateFilter implementation
-    // The actual implementation has been moved to DateFilter class
-    // This wrapper remains for backward compatibility
-    globalLogger?.debug('Filter', 'Legacy forceApplyDateFilter called, forwarding to DateFilter implementation', { date });
-    
-    // The global instance will be initialized by the DateFilter.registerGlobalHandler() method
-    if (window.forceApplyDateFilter) {
-        window.forceApplyDateFilter(date);
-    } else {
-        globalLogger?.error('Filter', 'Global forceApplyDateFilter is not initialized');
-        new Notice('Error: DateFilter not initialized. Please reload the plugin.');
-    }
-}
+// Utility function to force filtering - REMOVED: now handled by DateFilter class
+// The forceApplyDateFilter function has been moved to DateFilter class
+// Global handler is registered via DateFilter.registerGlobalHandler() in onload()
 
 // The global registration is now handled by DateFilter.registerGlobalHandler()
-// (window as any).forceApplyDateFilter = forceApplyDateFilter;
 
 // Phase 1: CSS-based visibility optimization to reduce browser reflows
 function applyCustomDateRangeFilter() {
@@ -1581,4 +1568,3 @@ declare global {
 
 // Debug helper - expose content expansion function to window object for console debugging
 (window as any).debugContentExpansion = debugContentExpansion;
-
