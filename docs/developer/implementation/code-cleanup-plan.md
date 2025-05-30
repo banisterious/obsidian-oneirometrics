@@ -343,8 +343,8 @@ The main.ts file remains over 5,000 lines long, with many large methods inside t
 
 In addition to large methods, there are many standalone utility functions that should be extracted from main.ts and other files into dedicated utility modules.
 
-| Function Name | Lines | Source File | Target Module | Status | Date | Notes |
-|---------------|-------|-------------|--------------|--------|------|-------|
+| Function Name | Lines | Source File | Target Module | Priority | Status | Notes |
+|---------------|-------|-------------|--------------|----------|--------|-------|
 | debugTableData | ~60 | main.ts | src/utils/debugging.ts | ✅ Complete | 2025-05-29 | Debug table data |
 | testContentParserDirectly | ~80 | main.ts | src/testing/ContentParser.ts | ✅ Complete | 2025-05-29 | Test content parser |
 | validateDate | ~20 | main.ts | src/utils/date-utils.ts | ✅ Complete | 2025-05-29 | Validate date string |
@@ -371,11 +371,11 @@ In addition to large methods, there are many standalone utility functions that s
 | Function Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |---------------|-------|------------------|--------------|----------|--------|-------|
 | getDreamEntryDate | ~50 | main.ts (1721) | src/utils/date-utils.ts | High | ✅ Completed | Moved to date utilities |
-| saveLastCustomRange | ~5 | main.ts (1771) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Custom date range persistence |
-| loadLastCustomRange | ~16 | main.ts (1776) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Custom date range loading |
-| saveFavoriteRange | ~7 | main.ts (1792) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range persistence |
-| loadFavoriteRanges | ~10 | main.ts (1799) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range loading |
-| deleteFavoriteRange | ~12 | main.ts (1809) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range deletion |
+| saveLastCustomRange | ~5 | main.ts (1771) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Custom date range persistence |
+| loadLastCustomRange | ~16 | main.ts (1776) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Custom date range loading |
+| saveFavoriteRange | ~7 | main.ts (1792) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Favorite range persistence |
+| loadFavoriteRanges | ~10 | main.ts (1799) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Favorite range loading |
+| deleteFavoriteRange | ~12 | main.ts (1809) | src/utils/storage-helpers.ts | Medium | ✅ Completed | Favorite range deletion |
 | forceApplyDateFilter | ~19 | main.ts (1821) | src/dom/filters/DateFilter.ts | High | ⏳ Planned | Legacy wrapper, should delegate to DateFilter |
 | applyCustomDateRangeFilter | ~250 | main.ts (1840) | src/dom/filters/CustomDateRangeFilter.ts | **Critical** | ⏳ Planned | **Massive function**, largest single opportunity |
 
@@ -599,7 +599,7 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 1. **applyCustomDateRangeFilter function** ✅ **COMPLETED** - Moved to `src/dom/filters/CustomDateRangeFilter.ts` (~250 lines extracted)
 2. **DEFAULT_LINTING_SETTINGS object** ✅ **COMPLETED** - Moved to `src/types/journal-check.ts` as `DEFAULT_JOURNAL_STRUCTURE_SETTINGS` (~95 lines extracted)
 3. **getDreamEntryDate function** ✅ **COMPLETED** - Moved to `src/utils/date-utils.ts` (~50 lines extracted)
-4. **Storage helper functions** (~50 lines combined) - Date range persistence
+4. **Storage helper functions** ✅ **COMPLETED** - Moved to `src/utils/storage-helpers.ts` (~50 lines extracted)
 
 #### 4.1.2 Implementation Roadmap
 
