@@ -7101,6 +7101,18 @@ h2.oom-metrics-tabs-label {
 .oom-notes-selector-container .oom-multiselect-container {
     max-width: 400px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.oom-notes-selector-container .oom-multiselect-search-container {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.oom-notes-selector-container .oom-multiselect-selected {
+    width: 100%;
 }
 
 @media screen and (max-width: 768px) {
@@ -7110,6 +7122,50 @@ h2.oom-metrics-tabs-label {
     
     .oom-notes-selector-container .oom-multiselect-container {
         max-width: none;
+        align-items: stretch;
+    }
+}
+
+/* Dream Scrape Notes Selector Alignment */
+.oom-modal-section h4 + .oom-section-helper + .oom-notes-selector-container,
+.oom-modal-section .oom-notes-selector-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.oom-modal-section .oom-notes-selector-container .oom-multiselect-container {
+    max-width: 400px;
+    width: 400px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.oom-modal-section .oom-notes-selector-container .oom-multiselect-search-container {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.oom-modal-section .oom-notes-selector-container .oom-multiselect-search-container input {
+    width: 100%;
+}
+
+.oom-modal-section .oom-notes-selector-container .oom-multiselect-selected {
+    width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+    .oom-modal-section .oom-notes-selector-container {
+        justify-content: stretch;
+    }
+    
+    .oom-modal-section .oom-notes-selector-container .oom-multiselect-container {
+        max-width: none !important;
+        width: 100% !important;
+        align-items: stretch;
     }
 }
 
