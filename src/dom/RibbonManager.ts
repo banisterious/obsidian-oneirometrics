@@ -8,6 +8,7 @@ import { App, Plugin } from 'obsidian';
 import { DreamMetricsSettings } from '../types/core';
 import { ILogger } from '../logging/LoggerTypes';
 import { shouldShowRibbonButtons } from '../utils/settings-helpers';
+import { ModalsManager } from './modals/ModalsManager';
 
 export class RibbonManager {
     private ribbonIcons: HTMLElement[] = [];
@@ -92,11 +93,12 @@ export class RibbonManager {
             'lucide-scroll-text',
             'Dream Metrics Reference',
             () => {
-                // Use type assertion to access methods not defined in Plugin
-                const pluginInstance = this.plugin as any;
-                
-                if (typeof pluginInstance.showMetricsTabsModal === 'function') {
-                    pluginInstance.showMetricsTabsModal();
+                // Use ModalsManager instead of the removed showMetricsTabsModal method
+                try {
+                    const modalsManager = new ModalsManager(this.app, this.plugin as any, this.logger);
+                    modalsManager.openMetricsTabsModal();
+                } catch (e) {
+                    this.logger?.error('UI', 'Error opening Metrics Tabs Modal', e instanceof Error ? e : new Error(String(e)));
                 }
             }
         );
