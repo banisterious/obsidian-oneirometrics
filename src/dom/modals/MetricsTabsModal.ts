@@ -1162,7 +1162,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         });
     }
 
-    // Placeholder for Journal Structure content (to be implemented)
+    // Enhanced Journal Structure content with full functionality
     private loadJournalStructureContent() {
         this.contentContainer.empty();
         
@@ -1174,94 +1174,32 @@ This metric assesses **how well your memory of the dream holds up and remains co
         welcomeText.createEl('h3', { text: 'Journal Structure' });
         
         welcomeText.createEl('p', { 
-            text: 'Configure journal structure settings, content isolation, and interface preferences.'
+            text: 'Configure journal structure settings, templates, validation rules, and interface preferences.'
         });
         
-        // Structure Settings Section
-        const structureSettingsContent = this.createCollapsibleSection(this.contentContainer, 'Structure Settings');
+        // Overview Section
+        const overviewContent = this.createCollapsibleSection(this.contentContainer, 'Overview');
+        this.buildOverviewSection(overviewContent);
         
-        this.createJournalStructureSetting(structureSettingsContent, 'Enable Structure Validation', 'Validate journal entries against defined structures', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            this.plugin.settings.linting.enabled = value;
-        });
+        // Structures Section
+        const structuresContent = this.createCollapsibleSection(this.contentContainer, 'Structures');
+        this.buildStructuresSection(structuresContent);
+        
+        // Templates Section
+        const templatesContent = this.createCollapsibleSection(this.contentContainer, 'Templates');
+        this.buildTemplatesSection(templatesContent);
+        
+        // Templater Integration Section
+        const templaterContent = this.createCollapsibleSection(this.contentContainer, 'Templater Integration');
+        this.buildTemplaterSection(templaterContent);
         
         // Content Isolation Settings Section
-        const contentIsolationContent = this.createCollapsibleSection(this.contentContainer, 'Content Isolation Settings');
-        
-        contentIsolationContent.createEl('p', { 
-            text: 'Configure what content elements should be ignored during validation.',
-            cls: 'oom-section-desc'
-        });
-        
-        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Images', 'Do not validate image links and embeds', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            if (!this.plugin.settings.linting.contentIsolation) {
-                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
-            }
-            this.plugin.settings.linting.contentIsolation.ignoreImages = value;
-        }, this.plugin.settings.linting?.contentIsolation?.ignoreImages ?? true);
-        
-        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Links', 'Do not validate internal and external links', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            if (!this.plugin.settings.linting.contentIsolation) {
-                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
-            }
-            this.plugin.settings.linting.contentIsolation.ignoreLinks = value;
-        }, this.plugin.settings.linting?.contentIsolation?.ignoreLinks ?? false);
-        
-        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Formatting', 'Do not validate bold, italic, and other formatting', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            if (!this.plugin.settings.linting.contentIsolation) {
-                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
-            }
-            this.plugin.settings.linting.contentIsolation.ignoreFormatting = value;
-        }, this.plugin.settings.linting?.contentIsolation?.ignoreFormatting ?? true);
-        
-        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Code Blocks', 'Do not validate code blocks and inline code', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            if (!this.plugin.settings.linting.contentIsolation) {
-                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
-            }
-            this.plugin.settings.linting.contentIsolation.ignoreCodeBlocks = value;
-        }, this.plugin.settings.linting?.contentIsolation?.ignoreCodeBlocks ?? true);
+        const contentIsolationContent = this.createCollapsibleSection(this.contentContainer, 'Content Isolation');
+        this.buildContentIsolationSection(contentIsolationContent);
         
         // Interface Settings Section
-        const interfaceContent = this.createCollapsibleSection(this.contentContainer, 'User Interface Settings');
-        
-        interfaceContent.createEl('p', { 
-            text: 'Configure how the journal structure validator appears in the editor.',
-            cls: 'oom-section-desc'
-        });
-        
-        this.createJournalStructureSetting(interfaceContent, 'Show Inline Validation', 'Display structure validation warnings directly in the editor', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            if (!this.plugin.settings.linting.userInterface) {
-                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
-            }
-            this.plugin.settings.linting.userInterface.showInlineValidation = value;
-        }, this.plugin.settings.linting?.userInterface?.showInlineValidation ?? true);
-        
-        this.createJournalStructureSetting(interfaceContent, 'Enable Quick Fixes', 'Allow quick fixing of validation issues', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            if (!this.plugin.settings.linting.userInterface) {
-                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
-            }
-            this.plugin.settings.linting.userInterface.quickFixesEnabled = value;
-        }, this.plugin.settings.linting?.userInterface?.quickFixesEnabled ?? true);
+        const interfaceContent = this.createCollapsibleSection(this.contentContainer, 'Interface');
+        this.buildInterfaceSection(interfaceContent);
     }
     
     // Helper method to create collapsible sections
@@ -1355,5 +1293,547 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 quickFixesEnabled: true
             }
         };
+    }
+
+    // Build the Overview section with validation toggle and stats
+    private buildOverviewSection(containerEl: HTMLElement) {
+        containerEl.createEl('p', { 
+            text: 'Journal Structure Check helps you maintain consistent formatting in your dream journal entries.' 
+        });
+        
+        // Enable/disable structure validation
+        this.createJournalStructureSetting(containerEl, 'Enable Structure Validation', 'Validate journal entries against defined structures', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            this.plugin.settings.linting.enabled = value;
+        }, this.plugin.settings.linting?.enabled ?? true);
+        
+        // Quick stats about configured structures and templates
+        const statsEl = containerEl.createDiv({ cls: 'oom-structure-stats' });
+        
+        const structures = this.plugin.settings.linting?.structures || [];
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        statsEl.createEl('h4', { text: 'Configuration Summary' });
+        statsEl.createEl('div', { 
+            text: `Structures: ${structures.length}`,
+            cls: 'oom-stat-item' 
+        });
+        statsEl.createEl('div', { 
+            text: `Templates: ${templates.length}`,
+            cls: 'oom-stat-item' 
+        });
+        statsEl.createEl('div', { 
+            text: `Templater Integration: ${this.plugin.settings.linting?.templaterIntegration?.enabled ? 'Enabled' : 'Disabled'}`,
+            cls: 'oom-stat-item' 
+        });
+        
+        // Quick action buttons
+        const actionsEl = containerEl.createDiv({ cls: 'oom-quick-actions' });
+        actionsEl.createEl('h4', { text: 'Quick Actions' });
+        
+        const actionsGrid = actionsEl.createDiv({ cls: 'oom-actions-grid' });
+        
+        this.createQuickActionButton(actionsGrid, 'Create Structure', 'layout', () => {
+            // Future: Navigate to structures section
+            new Notice('Structure creation will be implemented soon');
+        });
+        
+        this.createQuickActionButton(actionsGrid, 'Create Template', 'file-text', () => {
+            // Open TemplateWizard
+            const { TemplateWizard } = require('../../journal_check/ui/TemplateWizard');
+            new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
+        });
+        
+        this.createQuickActionButton(actionsGrid, 'Validate Current Note', 'check-circle', () => {
+            new Notice('Validation will be implemented soon');
+        });
+        
+        this.createQuickActionButton(actionsGrid, 'Apply Template', 'file-plus', () => {
+            new Notice('Template application will be implemented soon');
+        });
+    }
+
+    // Build the Structures section
+    private buildStructuresSection(containerEl: HTMLElement) {
+        containerEl.createEl('p', { 
+            text: 'Define and manage structures that define the expected format of your journal entries.' 
+        });
+        
+        // Structures list
+        const structures = this.plugin.settings.linting?.structures || [];
+        
+        if (structures.length === 0) {
+            containerEl.createEl('p', { 
+                text: 'No structures defined yet. Create your first structure to get started.',
+                cls: 'oom-empty-state'
+            });
+        } else {
+            const listEl = containerEl.createDiv({ cls: 'oom-structures-list' });
+            
+            for (const structure of structures) {
+                this.createStructureListItem(listEl, structure);
+            }
+        }
+        
+        // Create new structure button
+        const createBtnContainer = containerEl.createDiv({ cls: 'oom-setting' });
+        const createBtn = createBtnContainer.createEl('button', { 
+            text: 'Create New Structure',
+            cls: 'oom-button-primary'
+        });
+        createBtn.addEventListener('click', () => {
+            new Notice('Structure creation will be implemented soon');
+        });
+    }
+
+    // Build the Templates section  
+    private buildTemplatesSection(containerEl: HTMLElement) {
+        containerEl.createEl('p', { 
+            text: 'Create and manage templates that follow your defined journal structures.' 
+        });
+        
+        // Templates list
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        if (templates.length === 0) {
+            containerEl.createEl('p', { 
+                text: 'No templates defined yet. Create your first template to get started.',
+                cls: 'oom-empty-state'
+            });
+        } else {
+            const listEl = containerEl.createDiv({ cls: 'oom-templates-list' });
+            
+            for (const template of templates) {
+                this.createTemplateListItem(listEl, template);
+            }
+        }
+        
+        // Create new template button
+        const createBtnContainer = containerEl.createDiv({ cls: 'oom-setting' });
+        const createBtn = createBtnContainer.createEl('button', { 
+            text: 'Create New Template',
+            cls: 'oom-button-primary'
+        });
+        createBtn.addEventListener('click', () => {
+            const { TemplateWizard } = require('../../journal_check/ui/TemplateWizard');
+            new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
+        });
+        
+        // Import/export buttons
+        const importExportEl = containerEl.createDiv({ cls: 'oom-import-export' });
+        importExportEl.createEl('h4', { text: 'Import/Export Templates' });
+        
+        const importBtn = importExportEl.createEl('button', { 
+            text: 'Import',
+            cls: 'oom-button-secondary'
+        });
+        importBtn.addEventListener('click', () => {
+            new Notice('Template import will be implemented soon');
+        });
+        
+        const exportBtn = importExportEl.createEl('button', { 
+            text: 'Export',
+            cls: 'oom-button-secondary'
+        });
+        exportBtn.addEventListener('click', () => {
+            new Notice('Template export will be implemented soon');
+        });
+    }
+
+    // Build the Templater Integration section
+    private buildTemplaterSection(containerEl: HTMLElement) {
+        // Check if Templater is installed
+        const templaterInstalled = this.plugin.templaterIntegration?.isTemplaterInstalled();
+        
+        if (!templaterInstalled) {
+            const infoEl = containerEl.createDiv({ cls: 'oom-notice oom-notice-warning' });
+            setIcon(infoEl.createSpan({ cls: 'oom-notice-icon' }), 'alert-triangle');
+            infoEl.createSpan({ 
+                text: 'Templater plugin is not installed. Install it to use dynamic templates.',
+                cls: 'oom-notice-text'
+            });
+        }
+        
+        // Templater integration settings
+        this.createJournalStructureSetting(containerEl, 'Enable Templater Integration', 'Use Templater templates for journal structures', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.templaterIntegration) {
+                this.plugin.settings.linting.templaterIntegration = {
+                    enabled: false,
+                    folderPath: 'templates/dreams',
+                    defaultTemplate: ''
+                };
+            }
+            this.plugin.settings.linting.templaterIntegration.enabled = value;
+        }, this.plugin.settings.linting?.templaterIntegration?.enabled ?? false);
+        
+        // Only show these settings if Templater is installed
+        if (templaterInstalled) {
+            // Templates folder setting
+            const folderEl = containerEl.createDiv({ cls: 'oom-setting' });
+            const folderInfo = folderEl.createDiv({ cls: 'oom-setting-info' });
+            folderInfo.createDiv({ text: 'Templates Folder', cls: 'oom-setting-name' });
+            folderInfo.createDiv({ text: 'Path to the folder containing Templater templates', cls: 'oom-setting-desc' });
+            
+            const folderControl = folderEl.createDiv({ cls: 'oom-setting-control' });
+            const folderInput = folderControl.createEl('input', {
+                type: 'text',
+                value: this.plugin.settings.linting?.templaterIntegration?.folderPath || 'templates/dreams',
+                placeholder: 'templates/dreams'
+            });
+            
+            folderInput.addEventListener('change', async () => {
+                if (!this.plugin.settings.linting) {
+                    this.plugin.settings.linting = this.getDefaultLintingSettings();
+                }
+                if (!this.plugin.settings.linting.templaterIntegration) {
+                    this.plugin.settings.linting.templaterIntegration = {
+                        enabled: false,
+                        folderPath: 'templates/dreams',
+                        defaultTemplate: ''
+                    };
+                }
+                this.plugin.settings.linting.templaterIntegration.folderPath = folderInput.value;
+                await this.plugin.saveSettings();
+            });
+            
+            // Default template setting
+            const defaultEl = containerEl.createDiv({ cls: 'oom-setting' });
+            const defaultInfo = defaultEl.createDiv({ cls: 'oom-setting-info' });
+            defaultInfo.createDiv({ text: 'Default Template', cls: 'oom-setting-name' });
+            defaultInfo.createDiv({ text: 'Template to use by default', cls: 'oom-setting-desc' });
+            
+            const defaultControl = defaultEl.createDiv({ cls: 'oom-setting-control' });
+            const defaultInput = defaultControl.createEl('input', {
+                type: 'text',
+                value: this.plugin.settings.linting?.templaterIntegration?.defaultTemplate || '',
+                placeholder: 'templates/dreams/default.md'
+            });
+            
+            defaultInput.addEventListener('change', async () => {
+                if (!this.plugin.settings.linting) {
+                    this.plugin.settings.linting = this.getDefaultLintingSettings();
+                }
+                if (!this.plugin.settings.linting.templaterIntegration) {
+                    this.plugin.settings.linting.templaterIntegration = {
+                        enabled: false,
+                        folderPath: 'templates/dreams',
+                        defaultTemplate: ''
+                    };
+                }
+                this.plugin.settings.linting.templaterIntegration.defaultTemplate = defaultInput.value;
+                await this.plugin.saveSettings();
+            });
+        }
+    }
+
+    // Build the Content Isolation section
+    private buildContentIsolationSection(containerEl: HTMLElement) {
+        containerEl.createEl('p', { 
+            text: 'Configure which elements should be ignored during validation.' 
+        });
+        
+        // Get current settings or defaults
+        const contentIsolation = this.plugin.settings.linting?.contentIsolation || this.getDefaultLintingSettings().contentIsolation;
+        
+        // Create settings for each option
+        this.createJournalStructureSetting(containerEl, 'Ignore Images', 'Exclude images from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreImages', value);
+        }, contentIsolation.ignoreImages);
+        
+        this.createJournalStructureSetting(containerEl, 'Ignore Links', 'Exclude links from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreLinks', value);
+        }, contentIsolation.ignoreLinks);
+        
+        this.createJournalStructureSetting(containerEl, 'Ignore Formatting', 'Exclude bold, italic, etc. from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreFormatting', value);
+        }, contentIsolation.ignoreFormatting);
+        
+        this.createJournalStructureSetting(containerEl, 'Ignore Headings', 'Exclude headings from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreHeadings', value);
+        }, contentIsolation.ignoreHeadings);
+        
+        this.createJournalStructureSetting(containerEl, 'Ignore Code Blocks', 'Exclude code blocks from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreCodeBlocks', value);
+        }, contentIsolation.ignoreCodeBlocks);
+        
+        this.createJournalStructureSetting(containerEl, 'Ignore Frontmatter', 'Exclude YAML frontmatter from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreFrontmatter', value);
+        }, contentIsolation.ignoreFrontmatter);
+        
+        this.createJournalStructureSetting(containerEl, 'Ignore Comments', 'Exclude comments from structure validation', (value) => {
+            this.updateContentIsolationSetting('ignoreComments', value);
+        }, contentIsolation.ignoreComments);
+        
+        // Custom ignore patterns
+        const customPatternsEl = containerEl.createDiv({ cls: 'oom-custom-patterns' });
+        customPatternsEl.createEl('h4', { text: 'Custom Ignore Patterns' });
+        
+        const patterns = contentIsolation.customIgnorePatterns || [];
+        
+        if (patterns.length === 0) {
+            customPatternsEl.createEl('p', { 
+                text: 'No custom patterns defined yet.',
+                cls: 'oom-empty-state'
+            });
+        } else {
+            const listEl = customPatternsEl.createDiv({ cls: 'oom-patterns-list' });
+            
+            for (let i = 0; i < patterns.length; i++) {
+                this.createPatternListItem(listEl, patterns[i], i);
+            }
+        }
+        
+        // Add new pattern
+        const addPatternEl = customPatternsEl.createDiv({ cls: 'oom-setting' });
+        const addPatternInfo = addPatternEl.createDiv({ cls: 'oom-setting-info' });
+        addPatternInfo.createDiv({ text: 'Add Custom Pattern', cls: 'oom-setting-name' });
+        addPatternInfo.createDiv({ text: 'Add a regex pattern to ignore during validation', cls: 'oom-setting-desc' });
+        
+        const addPatternControl = addPatternEl.createDiv({ cls: 'oom-setting-control' });
+        const patternInput = addPatternControl.createEl('input', {
+            type: 'text',
+            placeholder: 'RegEx pattern'
+        });
+        
+        const addBtn = addPatternControl.createEl('button', { 
+            text: 'Add',
+            cls: 'oom-button-secondary'
+        });
+        
+        addBtn.addEventListener('click', () => {
+            const pattern = patternInput.value.trim();
+            if (pattern) {
+                const patterns = [...(this.plugin.settings.linting?.contentIsolation?.customIgnorePatterns || [])];
+                patterns.push(pattern);
+                this.updateContentIsolationSetting('customIgnorePatterns', patterns);
+                patternInput.value = '';
+                
+                // Refresh section
+                this.loadJournalStructureContent();
+            }
+        });
+    }
+
+    // Build the Interface section
+    private buildInterfaceSection(containerEl: HTMLElement) {
+        containerEl.createEl('p', { 
+            text: 'Configure how validation results are displayed in the editor.' 
+        });
+        
+        // Get current settings
+        const ui = this.plugin.settings.linting?.userInterface || this.getDefaultLintingSettings().userInterface;
+        
+        // UI settings
+        this.createJournalStructureSetting(containerEl, 'Show Inline Validation', 'Display validation results within the editor', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.showInlineValidation = value;
+        }, ui.showInlineValidation);
+        
+        this.createJournalStructureSetting(containerEl, 'Enable Quick Fixes', 'Allow quick fixing of validation issues', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.quickFixesEnabled = value;
+        }, ui.quickFixesEnabled);
+        
+        // Severity indicators section
+        const indicatorsEl = containerEl.createDiv({ cls: 'oom-severity-indicators' });
+        indicatorsEl.createEl('h4', { text: 'Severity Indicators' });
+        
+        // Error indicator
+        const errorEl = indicatorsEl.createDiv({ cls: 'oom-setting' });
+        const errorInfo = errorEl.createDiv({ cls: 'oom-setting-info' });
+        errorInfo.createDiv({ text: 'Error Indicator', cls: 'oom-setting-name' });
+        errorInfo.createDiv({ text: 'Symbol to use for error severity issues', cls: 'oom-setting-desc' });
+        
+        const errorControl = errorEl.createDiv({ cls: 'oom-setting-control' });
+        const errorInput = errorControl.createEl('input', {
+            type: 'text',
+            value: ui.severityIndicators.error
+        });
+        
+        errorInput.addEventListener('change', async () => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.severityIndicators.error = errorInput.value;
+            await this.plugin.saveSettings();
+        });
+        
+        // Warning indicator
+        const warningEl = indicatorsEl.createDiv({ cls: 'oom-setting' });
+        const warningInfo = warningEl.createDiv({ cls: 'oom-setting-info' });
+        warningInfo.createDiv({ text: 'Warning Indicator', cls: 'oom-setting-name' });
+        warningInfo.createDiv({ text: 'Symbol to use for warning severity issues', cls: 'oom-setting-desc' });
+        
+        const warningControl = warningEl.createDiv({ cls: 'oom-setting-control' });
+        const warningInput = warningControl.createEl('input', {
+            type: 'text',
+            value: ui.severityIndicators.warning
+        });
+        
+        warningInput.addEventListener('change', async () => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.severityIndicators.warning = warningInput.value;
+            await this.plugin.saveSettings();
+        });
+        
+        // Info indicator
+        const infoEl = indicatorsEl.createDiv({ cls: 'oom-setting' });
+        const infoInfo = infoEl.createDiv({ cls: 'oom-setting-info' });
+        infoInfo.createDiv({ text: 'Info Indicator', cls: 'oom-setting-name' });
+        infoInfo.createDiv({ text: 'Symbol to use for info severity issues', cls: 'oom-setting-desc' });
+        
+        const infoControl = infoEl.createDiv({ cls: 'oom-setting-control' });
+        const infoInput = infoControl.createEl('input', {
+            type: 'text',
+            value: ui.severityIndicators.info
+        });
+        
+        infoInput.addEventListener('change', async () => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.severityIndicators.info = infoInput.value;
+            await this.plugin.saveSettings();
+        });
+    }
+
+    // Helper methods for structures and templates
+    private createStructureListItem(containerEl: HTMLElement, structure: any) {
+        const itemEl = containerEl.createDiv({ cls: 'oom-structure-item' });
+        
+        itemEl.createEl('h4', { text: structure.name });
+        
+        const metaEl = itemEl.createDiv({ cls: 'oom-structure-meta' });
+        metaEl.createSpan({ text: `Type: ${structure.type}`, cls: 'oom-meta-item' });
+        
+        if (structure.requiredFields?.length > 0) {
+            metaEl.createSpan({ 
+                text: `Required Fields: ${structure.requiredFields.length}`,
+                cls: 'oom-meta-item' 
+            });
+        }
+        
+        return itemEl;
+    }
+
+    private createTemplateListItem(containerEl: HTMLElement, template: any) {
+        const itemEl = containerEl.createDiv({ cls: 'oom-template-item' });
+        
+        itemEl.createEl('h4', { text: template.name });
+        
+        if (template.description) {
+            itemEl.createEl('p', { text: template.description, cls: 'oom-template-desc' });
+        }
+        
+        const metaEl = itemEl.createDiv({ cls: 'oom-template-meta' });
+        
+        // Find associated structure
+        const structures = this.plugin.settings.linting?.structures || [];
+        const structure = structures.find(s => s.id === template.structure);
+        
+        if (structure) {
+            metaEl.createSpan({ 
+                text: `Structure: ${structure.name}`,
+                cls: 'oom-meta-item' 
+            });
+        }
+        
+        metaEl.createSpan({ 
+            text: template.isTemplaterTemplate ? 'Uses Templater' : 'Static Template',
+            cls: 'oom-meta-item' 
+        });
+        
+        // Actions
+        const actionsEl = itemEl.createDiv({ cls: 'oom-template-actions' });
+        
+        const editBtn = actionsEl.createDiv({ cls: 'oom-action-btn' });
+        setIcon(editBtn, 'edit');
+        editBtn.setAttribute('aria-label', 'Edit');
+        editBtn.addEventListener('click', () => {
+            const { TemplateWizard } = require('../../journal_check/ui/TemplateWizard');
+            new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration, template).open();
+        });
+        
+        const deleteBtn = actionsEl.createDiv({ cls: 'oom-action-btn' });
+        setIcon(deleteBtn, 'trash');
+        deleteBtn.setAttribute('aria-label', 'Delete');
+        deleteBtn.addEventListener('click', () => {
+            if (confirm(`Are you sure you want to delete the template "${template.name}"?`)) {
+                const templates = this.plugin.settings.linting?.templates || [];
+                const index = templates.findIndex(t => t.id === template.id);
+                
+                if (index !== -1) {
+                    templates.splice(index, 1);
+                    this.plugin.saveSettings().then(() => {
+                        // Refresh the templates list
+                        this.loadJournalStructureContent();
+                        new Notice(`Template "${template.name}" deleted`);
+                    });
+                }
+            }
+        });
+        
+        return itemEl;
+    }
+
+    private createPatternListItem(containerEl: HTMLElement, pattern: string, index: number) {
+        const itemEl = containerEl.createDiv({ cls: 'oom-pattern-item' });
+        
+        itemEl.createSpan({ text: pattern, cls: 'oom-pattern-text' });
+        
+        const deleteBtn = itemEl.createSpan({ cls: 'oom-pattern-delete' });
+        setIcon(deleteBtn, 'x');
+        
+        deleteBtn.addEventListener('click', () => {
+            const patterns = [...(this.plugin.settings.linting?.contentIsolation?.customIgnorePatterns || [])];
+            patterns.splice(index, 1);
+            this.updateContentIsolationSetting('customIgnorePatterns', patterns);
+            
+            // Refresh section
+            this.loadJournalStructureContent();
+        });
+        
+        return itemEl;
+    }
+
+    // Helper to update content isolation settings
+    private async updateContentIsolationSetting(key: string, value: any) {
+        if (!this.plugin.settings.linting) {
+            this.plugin.settings.linting = this.getDefaultLintingSettings();
+        }
+        
+        if (!this.plugin.settings.linting.contentIsolation) {
+            this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
+        }
+        
+        // @ts-ignore - Dynamically set property
+        this.plugin.settings.linting.contentIsolation[key] = value;
+        await this.plugin.saveSettings();
     }
 } 

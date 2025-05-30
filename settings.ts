@@ -5,8 +5,11 @@ import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 import { debug, info, error } from './src/logging';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
+import { TemplateWizard } from './src/journal_check/ui/TemplateWizard';
+import { validateDreamJournalContent } from './src/journal_check/validate';
+import { formatContentForValidation } from './src/journal_check/utils';
+import { ICONS } from './src/constants/ui-constants';
 import { defaultLintingSettings } from './src/types/journal-check-defaults';
-import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
 
 // Define the correct order for recommended metrics
 export const RECOMMENDED_METRICS_ORDER = [
@@ -1381,7 +1384,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .addButton(button => button
                 .setButtonText('Open Settings')
                 .onClick(() => {
-                    new JournalStructureModal(this.app, this.plugin).open();
+                    const modalsManager = new ModalsManager(this.app, this.plugin, this.plugin.logger);
+                    modalsManager.openMetricsTabsModal();
                 }));
 
         // Templater status indicator
