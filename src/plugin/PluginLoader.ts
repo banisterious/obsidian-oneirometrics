@@ -17,6 +17,7 @@ import { SettingsManager } from '../state/SettingsManager';
 import { DateRangeService } from '../dom/filters/date-range/DateRangeService';
 import { RibbonManager } from '../dom/RibbonManager';
 import { ProjectNoteManager } from '../state/ProjectNoteManager';
+import { ModalsManager } from '../dom/modals/ModalsManager';
 import { DEFAULT_METRICS, DEFAULT_LOGGING } from '../constants';
 import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../types/journal-check';
 import { initializeLogUI } from '../logging/ui';
@@ -526,9 +527,9 @@ export class PluginLoader {
             id: 'open-journal-structure',
             name: 'Open Journal Structure Settings',
             callback: () => {
-                // Import and open the Journal Structure modal
-                const { JournalStructureModal } = require('../journal_check/ui/JournalStructureModal');
-                new JournalStructureModal(plugin.app, plugin).open();
+                // Open OneiroMetrics Hub instead (Journal Structure functionality has been migrated)
+                const modalsManager = new ModalsManager(plugin.app, plugin, plugin.logger);
+                modalsManager.openMetricsTabsModal();
             }
         });
         
