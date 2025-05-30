@@ -134,7 +134,7 @@ import {
 // Import the SettingsAdapter from state/adapters
 import { SettingsAdapter, createAndRegisterSettingsAdapter } from './src/state/adapters/SettingsAdapter';
 import { SettingsManager } from './src/state/SettingsManager';
-import { MetricsProcessor, DreamMetricsProcessor, MetricsCollector } from './src/metrics';
+import { MetricsProcessor, DreamMetricsProcessor, MetricsCollector, TableStatisticsUpdater } from './src/metrics';
 
 // Import EventHandling utilities for event handling
 import { attachClickEvent } from './src/templates/ui/EventHandling';
@@ -303,14 +303,10 @@ import { ContentToggler } from './src/dom/content/ContentToggler';
 import { FilterUI } from './src/dom/filters/FilterUI';
 import { TableGenerator, TableManager } from './src/dom/tables';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
+import { MetricsCollector, TableStatisticsUpdater } from './src/metrics';
 
 // Global instance for functions that need access to ContentToggler
-// Initialize to null; it will be properly set during plugin initialization
-(window as any).globalContentToggler = null;
-// Use the proper declaration to match the one in PluginLoader.ts
-declare global {
-    var globalContentToggler: ContentToggler;
-}
+let globalContentToggler: ContentToggler;
 
 // Global instance for table generation
 let globalTableGenerator: TableGenerator;
@@ -373,6 +369,8 @@ export default class DreamMetricsPlugin extends Plugin {
     private debugTools: DebugTools;
     private filterManager: FilterManager;
     private tableManager: TableManager;
+    private metricsCollector: MetricsCollector;
+    private tableStatisticsUpdater: TableStatisticsUpdater;
     // In the class properties, add a property for the EventHandler
     private eventHandler: EventHandler;
 
@@ -418,6 +416,10 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Initialize TableManager
         this.tableManager = new TableManager(this.app, this.settings, this.logger);
+        
+        // Initialize MetricsCollector and TableStatisticsUpdater
+        this.metricsCollector = new MetricsCollector(this.app, this, this.logger);
+        this.tableStatisticsUpdater = new TableStatisticsUpdater(this.logger);
 
         // Initialize these properties in the onload method, before initializing the EventHandler
         // Add these initializations before creating the EventHandler
@@ -1983,8 +1985,8 @@ function applyCustomDateRangeFilter() {
                 }
                 
                 // Update metrics with filtered data
-                const filteredMetrics = this.tableManager.collectVisibleRowMetrics(previewEl);
-                this.tableManager.updateSummaryTable(previewEl, filteredMetrics);
+                const filteredMetrics = this.metricsCollector.collectVisibleRowMetrics(previewEl);
+                this.tableStatisticsUpdater.updateSummaryTable(previewEl, filteredMetrics);
                 
                 // Update filter display with counts
                 // Removed call to updateFilterDisplay which was moved to FilterManager

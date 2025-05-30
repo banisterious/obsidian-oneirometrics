@@ -19,7 +19,6 @@ declare global {
 
 export class FilterDisplayManager {
     constructor(
-        private app: App,
         private logger?: any // Accept any logger type that has logging methods
     ) { }
 
