@@ -646,8 +646,7 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 | **showDateNavigator** | ~163 | main.ts (892-1091) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ✅ Completed | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
 | **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ✅ Completed | Filter persistence and recovery logic with localStorage backup/recovery, DOM waiting, retry mechanisms |
 | updateRibbonIcons | ~35 | main.ts (825-859) | Already delegated to RibbonManager | Medium | 🔄 Partial | Method exists but contains fallback logic |
-| Log management methods | ~100 | main.ts (621-731) | src/logging/LogFileManager.ts | Medium | ⏳ Planned | Combined: clearDebugLog, backupDebugLog, checkLogFileSize, copyConsoleLogs, getConsoleLog |
-| Global wrapper functions | ~18 | main.ts (1544-1561) | Remove/consolidate | Low | ⏳ Planned | applyCustomDateRangeFilter global function wrapper |
+| Log management methods | ~101 | main.ts (621-731) | src/logging/LogFileManager.ts | Medium | ✅ Completed | Combined: clearDebugLog, backupDebugLog, checkLogFileSize, copyConsoleLogs, getConsoleLog |
 
 **Why These Were Missed in Original Analysis:**
 1. **Fresh Perspective**: Analysis of current cleaned-up codebase reveals these methods more clearly  
@@ -708,15 +707,16 @@ Upon re-analysis of the current main.ts (1,571 lines), several **major extractio
 
 **Current Progress Summary (2025-05-30):**
 - **Main.ts Original Size**: 2,053 lines
-- **Main.ts Current Size**: 1,034 lines  
-- **Total Lines Extracted**: 1,019 lines
-- **Current Reduction Percentage**: 50%
+- **Main.ts Current Size**: 933 lines  
+- **Total Lines Extracted**: 1,120 lines
+- **Current Reduction Percentage**: 55%
 
 **Completed Extractions:**
 - ✅ **applyCustomDateRangeFilter** (~250 lines) → `src/dom/filters/CustomDateRangeFilter.ts`
 - ✅ **insertTemplate** (~205 lines) → `src/templates/TemplateManager.ts`
 - ✅ **applyInitialFilters** (~200 lines) → `src/dom/filters/FilterPersistenceManager.ts`
 - ✅ **showDateNavigator** (~163 lines) → `src/dom/date-navigator/DateNavigatorManager.ts`
+- ✅ **Log management methods** (~101 lines) → `src/logging/LogFileManager.ts`
 - ✅ **DEFAULT_LINTING_SETTINGS** (~95 lines) → `src/types/journal-check.ts`
 - ✅ **getDreamEntryDate** (~50 lines) → `src/utils/date-utils.ts`
 - ✅ **Storage helpers** (~50 lines) → `src/utils/storage-helpers.ts`
