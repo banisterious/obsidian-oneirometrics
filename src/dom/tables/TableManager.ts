@@ -56,7 +56,9 @@ export class TableManager {
             const tableSelectors = [
                 '#oom-dream-entries-table', 
                 '.oom-table:not(.oom-stats-table)',
-                '.oom-table'
+                '.oom-metrics-table',
+                '.oom-table',
+                'table:not(.oom-stats-table)'
             ];
             
             let tables: NodeListOf<Element> | null = null;
@@ -73,78 +75,239 @@ export class TableManager {
             
             if (!tables || tables.length === 0) {
                 log?.warn?.('UI', 'No tables found for row initialization');
+                
+                // Try again after a short delay in case tables are slow to render
+                setTimeout(() => {
+                    const allTables = document.querySelectorAll('table');
+                    if (allTables && allTables.length > 0) {
+                        log?.info?.('UI', `Found ${allTables.length} tables after delay, initializing anyway`);
+                        this.initializeTableRowsForElements(allTables);
+                    } else {
+                        log?.warn?.('UI', 'Still no tables found after delay');
+                    }
+                }, 1000);
+                
                 return;
             }
             
-            // Process tables one at a time to avoid large reflows
-            tables.forEach((table) => {
-                // Use DocumentFragment to batch DOM operations
-                const rows = Array.from(table.querySelectorAll('tbody tr'));
-                
-                if (rows.length === 0) {
-                    log?.warn?.('UI', 'No rows found in table');
-                    return;
-                }
-                
-                log?.debug?.('UI', `Initializing table rows`, { count: rows.length });
-                
-                // Process rows in chunks to avoid long tasks
-                const CHUNK_SIZE = 20;
-                let currentChunk = 0;
-                
-                const processNextChunk = () => {
-                    const start = currentChunk * CHUNK_SIZE;
-                    const end = Math.min(start + CHUNK_SIZE, rows.length);
-                    
-                    // Use a single requestAnimationFrame to batch operations
-                    requestAnimationFrame(() => {
-                        for (let i = start; i < end; i++) {
-                            const row = rows[i];
-                            // Add base class to all rows
-                            row.classList.add('oom-dream-row');
-                            
-                            // Default all rows to visible
-                            row.classList.add('oom-row--visible');
-                            
-                            // Make sure hidden class is not present initially
-                            row.classList.remove('oom-row--hidden');
-                            
-                            // Make sure inline style display is removed if it exists
-                            (row as HTMLElement).style.removeProperty('display');
-                        }
-                        
-                        // Move to next chunk or finish
-                        currentChunk++;
-                        
-                        if (currentChunk * CHUNK_SIZE < rows.length) {
-                            // Schedule next chunk with slight delay
-                            setTimeout(processNextChunk, 10);
-                        } else {
-                            log?.info?.('UI', 'Table row initialization complete', { 
-                                rowsProcessed: rows.length,
-                                performance: 'chunked'
-                            });
-                        }
-                    });
-                };
-                
-                // Start processing chunks with slight delay to allow initial render
-                setTimeout(processNextChunk, 50);
-            });
+            this.initializeTableRowsForElements(tables);
             
             // Set the flag to prevent reinitialization
             window.__tableRowsInitialized = true;
             
             // Run date attribute repair after initialization
             this.runDateAttributeRepair();
-        }, { timeout: 1000 });
+        }, { timeout: 2000 }); // Increased timeout for better reliability
+    }
+
+    /**
+     * Initialize table rows for a collection of table elements
+     * 
+     * @param tables - Collection of table elements to initialize
+     */
+    private initializeTableRowsForElements(tables: NodeListOf<Element> | Array<Element>): void {
+        const log = typeof globalLogger !== 'undefined' ? globalLogger : this.logger;
+        
+        // Process tables one at a time to avoid large reflows
+        Array.from(tables).forEach((table, tableIndex) => {
+            // Use DocumentFragment to batch DOM operations
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            
+            if (rows.length === 0) {
+                log?.warn?.('UI', `No rows found in table ${tableIndex}`);
+                return;
+            }
+            
+            log?.debug?.('UI', `Initializing rows for table ${tableIndex}`, { count: rows.length });
+            
+            // Performance optimization: Break large tables into smaller chunks
+            // Use smaller chunks for larger tables
+            const CHUNK_SIZE = rows.length > 100 ? 10 : rows.length > 50 ? 15 : 20;
+            let currentChunk = 0;
+            
+            // Show a loading indicator for very large tables
+            let loadingIndicator: HTMLElement | null = null;
+            
+            if (rows.length > 200) {
+                try {
+                    loadingIndicator = document.createElement('div');
+                    loadingIndicator.className = 'oom-table-init-indicator';
+                    loadingIndicator.textContent = `Initializing table...`;
+                    loadingIndicator.style.position = 'fixed';
+                    loadingIndicator.style.top = '10px';
+                    loadingIndicator.style.right = '10px';
+                    loadingIndicator.style.background = 'var(--background-primary)';
+                    loadingIndicator.style.color = 'var(--text-normal)';
+                    loadingIndicator.style.padding = '8px 12px';
+                    loadingIndicator.style.borderRadius = '4px';
+                    loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
+                    loadingIndicator.style.zIndex = '1000';
+                    document.body.appendChild(loadingIndicator);
+                } catch (e) {
+                    // Silently ignore errors with the loading indicator
+                    log?.debug?.('UI', 'Error creating loading indicator', e as Error);
+                }
+            }
+            
+            const processNextChunk = () => {
+                const start = currentChunk * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, rows.length);
+                
+                // Update loading indicator if present
+                if (loadingIndicator) {
+                    const percent = Math.floor((start / rows.length) * 100);
+                    loadingIndicator.textContent = `Initializing table... ${percent}%`;
+                }
+                
+                // Use a single requestAnimationFrame to batch operations
+                requestAnimationFrame(() => {
+                    for (let i = start; i < end; i++) {
+                        const row = rows[i];
+                        
+                        // Add base class to all rows
+                        row.classList.add('oom-dream-row');
+                        
+                        // Default all rows to visible
+                        row.classList.add('oom-row--visible');
+                        
+                        // Make sure hidden class is not present initially
+                        row.classList.remove('oom-row--hidden');
+                        
+                        // Make sure inline style display is removed if it exists
+                        (row as HTMLElement).style.removeProperty('display');
+                        
+                        // Initialize date attributes during this pass for efficiency
+                        this.initializeDateAttributesForRow(row, i);
+                    }
+                    
+                    // Move to next chunk or finish
+                    currentChunk++;
+                    
+                    if (currentChunk * CHUNK_SIZE < rows.length) {
+                        // Schedule next chunk with slight delay
+                        // Use larger delays for larger tables to prevent UI freezing
+                        const delay = rows.length > 200 ? 20 : rows.length > 100 ? 15 : 10;
+                        setTimeout(processNextChunk, delay);
+                    } else {
+                        // Clean up loading indicator if present
+                        if (loadingIndicator) {
+                            loadingIndicator.remove();
+                        }
+                        
+                        log?.info?.('UI', 'Table row initialization complete', { 
+                            rowsProcessed: rows.length,
+                            performance: 'chunked'
+                        });
+                    }
+                });
+            };
+            
+            // Start processing chunks with slight delay to allow initial render
+            // Stagger table initialization to avoid overwhelming the browser
+            setTimeout(processNextChunk, 50 + tableIndex * 100);
+        });
+    }
+
+    /**
+     * Initialize date attributes for a specific row
+     * 
+     * @param row - The row element to initialize
+     * @param index - The row index for debugging
+     */
+    private initializeDateAttributesForRow(row: Element, index: number): void {
+        const log = typeof globalLogger !== 'undefined' ? globalLogger : this.logger;
+        
+        // Skip if already has date attribute
+        if (row.getAttribute('data-date')) {
+            return;
+        }
+        
+        // Try different methods to extract date
+        
+        // Method 1: Extract from date column
+        const dateCell = row.querySelector('.column-date');
+        if (dateCell && dateCell.textContent) {
+            const dateText = dateCell.textContent.trim();
+            try {
+                // Parse the displayed date back to YYYY-MM-DD format
+                const date = new Date(dateText);
+                if (!isNaN(date.getTime())) {
+                    const isoDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                    row.setAttribute('data-date', isoDate);
+                    row.setAttribute('data-date-raw', isoDate);
+                    row.setAttribute('data-iso-date', isoDate);
+                    
+                    if (dateCell) {
+                        dateCell.setAttribute('data-date', isoDate);
+                        dateCell.setAttribute('data-iso-date', isoDate);
+                    }
+                    
+                    log?.debug?.('Filter', `Initialized date attribute for row ${index}`, { date: isoDate });
+                    return;
+                }
+            } catch (e) {
+                // Silent failure, continue to next method
+            }
+        }
+        
+        // Method 2: Try to extract from ID attribute
+        const rowId = row.getAttribute('id');
+        if (rowId) {
+            // Look for patterns like "entry-2025-01-15" or "dream-20250115"
+            const dateMatch = rowId.match(/[^-](\d{4}-\d{2}-\d{2})/);
+            if (dateMatch && dateMatch[1]) {
+                const isoDate = dateMatch[1];
+                row.setAttribute('data-date', isoDate);
+                row.setAttribute('data-date-raw', isoDate);
+                row.setAttribute('data-iso-date', isoDate);
+                
+                log?.debug?.('Filter', `Extracted date from row ID: ${isoDate}`);
+                return;
+            }
+            
+            // Try another format like "dream-20250115"
+            const compactDateMatch = rowId.match(/(\d{8})/);
+            if (compactDateMatch && compactDateMatch[1]) {
+                const dateStr = compactDateMatch[1];
+                const isoDate = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+                
+                row.setAttribute('data-date', isoDate);
+                row.setAttribute('data-date-raw', isoDate);
+                row.setAttribute('data-iso-date', isoDate);
+                
+                log?.debug?.('Filter', `Extracted compact date from row ID: ${isoDate}`);
+                return;
+            }
+        }
+        
+        // Method 3: Check for any date-like text in the row
+        const rowText = row.textContent || '';
+        const dateRegex = /\b(\d{4}-\d{2}-\d{2})\b/;
+        const dateMatch = rowText.match(dateRegex);
+        
+        if (dateMatch && dateMatch[1]) {
+            const isoDate = dateMatch[1];
+            row.setAttribute('data-date', isoDate);
+            row.setAttribute('data-date-raw', isoDate);
+            row.setAttribute('data-iso-date', isoDate);
+            
+            log?.debug?.('Filter', `Extracted date from row text: ${isoDate}`);
+            return;
+        }
     }
 
     /**
      * Helper function to repair date attributes on tables
+     * Now primarily used as a secondary pass to catch any missed rows
      */
     private runDateAttributeRepair(): void {
         const log = typeof globalLogger !== 'undefined' ? globalLogger : this.logger;
+        
+        // Skip this if we just initialized the tables (optimization)
+        if (window.__tableRowsInitialized) {
+            log?.debug?.('Filter', 'Skipping secondary date attribute repair since tables were just initialized');
+            return;
+        }
         
         // Try multiple ways to find rows
         const rowsSelectors = [
@@ -176,52 +339,49 @@ export class TableManager {
         log?.info?.('Filter', `Checking date attributes on ${rows.length} rows`);
         log?.debug?.('Filter', 'Starting date attribute verification process', { totalRows: rows.length });
         
-        rows.forEach((row, index) => {
-            const dateAttr = row.getAttribute('data-date');
-            if (!dateAttr) {
-                rowsWithoutDates++;
+        // Process rows in chunks to avoid blocking the UI
+        const CHUNK_SIZE = rows.length > 100 ? 10 : rows.length > 50 ? 15 : 20;
+        let currentChunk = 0;
+        
+        const processNextChunk = () => {
+            const start = currentChunk * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, rows.length);
+            
+            for (let i = start; i < end; i++) {
+                const row = rows[i];
+                const dateAttr = row.getAttribute('data-date');
                 
-                // Try to extract date from the date column
-                const dateCell = row.querySelector('.column-date');
-                if (dateCell && dateCell.textContent) {
-                    const dateText = dateCell.textContent.trim();
-                    try {
-                        // Parse the displayed date back to YYYY-MM-DD format
-                        const date = new Date(dateText);
-                        if (!isNaN(date.getTime())) {
-                            const isoDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
-                            log?.debug?.('Filter', `Fixing date attribute on row ${index}`, { 
-                                rowIndex: index, 
-                                date: isoDate,
-                                dateText: dateText
-                            });
-                            log?.info?.('Filter', `Fixed missing date attribute on row ${index}`, { date: isoDate });
-                            
-                            // Apply the fix to multiple attributes for redundancy
-                            row.setAttribute('data-date', isoDate);
-                            row.setAttribute('data-date-raw', isoDate);
-                            row.setAttribute('data-iso-date', isoDate);
-                            
-                            if (dateCell) {
-                                dateCell.setAttribute('data-date', isoDate);
-                                dateCell.setAttribute('data-iso-date', isoDate);
-                            }
-                            rowsFixed++;
-                        }
-                    } catch (e) {
-                        log?.error?.('Filter', `Failed to fix date attribute for row ${index}`, e as Error);
+                if (!dateAttr) {
+                    rowsWithoutDates++;
+                    this.initializeDateAttributesForRow(row, i);
+                    
+                    // Check if we successfully fixed it
+                    if (row.getAttribute('data-date')) {
+                        rowsFixed++;
                     }
                 }
             }
-        });
+            
+            // Move to next chunk or finish
+            currentChunk++;
+            
+            if (currentChunk * CHUNK_SIZE < rows.length) {
+                // Schedule next chunk with slight delay
+                setTimeout(processNextChunk, 10);
+            } else {
+                // Log completion
+                log?.info?.('Filter', `Date attribute repair complete`, { missing: rowsWithoutDates, fixed: rowsFixed });
+                log?.debug?.('Filter', 'Date attribute verification finished', { 
+                    totalRows: rows.length,
+                    rowsWithoutDates,
+                    rowsFixed,
+                    success: rowsFixed > 0
+                });
+            }
+        };
         
-        log?.info?.('Filter', `Date attribute repair complete`, { missing: rowsWithoutDates, fixed: rowsFixed });
-        log?.debug?.('Filter', 'Date attribute verification finished', { 
-            totalRows: rows.length,
-            rowsWithoutDates,
-            rowsFixed,
-            success: rowsFixed > 0
-        });
+        // Start processing
+        processNextChunk();
     }
 
     /**
