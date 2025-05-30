@@ -26,9 +26,6 @@ import { LogFileManager } from '../logging/LogFileManager';
 // Import the safe logger for early logging
 import safeLogger from '../logging/safe-logger';
 
-// Access to global logger (set during initialization)
-declare let globalLogger: any;
-
 /**
  * PluginInitializer handles all the complex manager initialization logic
  * that was previously in the main plugin's onload() method.
@@ -78,15 +75,15 @@ export class PluginInitializer {
         try {
             await pluginLoader.initialize();
             
-            if (globalLogger) {
-                globalLogger.info('Plugin', 'OneiroMetrics plugin loaded successfully');
-            }
+            // Use the plugin's logger once it's initialized, or fall back to safeLogger
+            const logger = this.plugin.logger || safeLogger;
+            logger.info('Plugin', 'OneiroMetrics plugin loaded successfully');
         } catch (error) {
             console.error('Failed to initialize OneiroMetrics plugin:', error);
-            if (globalLogger) {
-                globalLogger.error('Plugin', 'Failed to initialize OneiroMetrics plugin', 
-                    error instanceof Error ? error : new Error(String(error)));
-            }
+            
+            // Use safeLogger for error logging since plugin.logger might not be available yet
+            safeLogger.error('Plugin', 'Failed to initialize OneiroMetrics plugin', 
+                error instanceof Error ? error : new Error(String(error)));
             
             new Notice('Failed to initialize OneiroMetrics plugin: ' + (error instanceof Error ? error.message : String(error)));
             throw error; // Re-throw to stop initialization
