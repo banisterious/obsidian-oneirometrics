@@ -385,7 +385,7 @@ In addition to large methods, there are many standalone utility functions that s
 
 | Object Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
-| DEFAULT_LINTING_SETTINGS | ~95 | main.ts (200-295) | src/types/journal-check-defaults.ts | High | ⏳ Planned | Large configuration object, pure data |
+| DEFAULT_LINTING_SETTINGS | ~95 | main.ts (200-295) | src/types/journal-check-defaults.ts | High | ✅ Completed | Moved to src/types/journal-check.ts as DEFAULT_JOURNAL_STRUCTURE_SETTINGS |
 
 **Estimated Line Savings from Configuration Extraction: ~95 lines**
 
@@ -596,8 +596,8 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 
 #### 4.1.1 Critical Priority Items (Largest Impact)
 
-1. **applyCustomDateRangeFilter function** (~250 lines) - Single largest opportunity
-2. **DEFAULT_LINTING_SETTINGS object** (~95 lines) - Large configuration data
+1. **applyCustomDateRangeFilter function** ✅ **COMPLETED** - Moved to `src/dom/filters/CustomDateRangeFilter.ts` (~250 lines extracted)
+2. **DEFAULT_LINTING_SETTINGS object** ✅ **COMPLETED** - Moved to `src/types/journal-check.ts` as `DEFAULT_JOURNAL_STRUCTURE_SETTINGS` (~95 lines extracted)
 3. **getDreamEntryDate function** (~50 lines) - Complex utility function
 4. **Storage helper functions** (~50 lines combined) - Date range persistence
 
