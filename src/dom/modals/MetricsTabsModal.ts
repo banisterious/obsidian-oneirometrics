@@ -5,7 +5,7 @@
  * Provides comprehensive descriptions of all metrics available in the plugin.
  */
 
-import { App, Modal, MarkdownRenderer, setIcon } from 'obsidian';
+import { App, Modal, MarkdownRenderer, setIcon, Notice } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
 import { DreamMetric } from '../../types/core';
 import safeLogger from '../../logging/safe-logger';
@@ -33,7 +33,7 @@ export class MetricsTabsModal extends Modal {
             
             // Create header
             contentEl.createEl('h1', { 
-                text: 'Dream Metrics Reference', 
+                text: 'Dream Metrics', 
                 cls: 'oom-metrics-tabs-header' 
             });
             
@@ -53,8 +53,8 @@ export class MetricsTabsModal extends Modal {
             // Build tabs
             this.createTabs();
             
-            // Select Overview tab by default
-            this.selectTab('overview');
+            // Select Dashboard tab by default
+            this.selectTab('dashboard');
             
             // Footer with buttons
             const footerEl = contentEl.createDiv({ 
@@ -79,7 +79,11 @@ export class MetricsTabsModal extends Modal {
     
     // Create tab groups and tabs
     private createTabs() {
-        // Create Overview tab first (special case)
+        // Create new management tabs first
+        this.createDashboardTab();
+        this.createJournalStructureTab();
+        
+        // Create Overview tab (renamed to Reference Overview)
         this.createOverviewTab();
         
         // Create metric categories
@@ -87,6 +91,40 @@ export class MetricsTabsModal extends Modal {
         this.createTabGroup('Character Metrics', this.getCharacterMetrics());
         this.createTabGroup('Dream Experience Metrics', this.getDreamExperienceMetrics());
         this.createTabGroup('Memory & Recall Metrics', this.getMemoryRecallMetrics());
+    }
+    
+    // Create Dashboard tab
+    private createDashboardTab() {
+        const dashboardTab = this.tabsContainer.createDiv({
+            cls: 'oom-metrics-tabs-button',
+            attr: { 'data-tab-id': 'dashboard' }
+        });
+        
+        dashboardTab.createEl('h2', { 
+            text: 'Dashboard', 
+            cls: 'oom-metrics-tabs-label' 
+        });
+        
+        dashboardTab.addEventListener('click', () => {
+            this.selectTab('dashboard');
+        });
+    }
+    
+    // Create Journal Structure tab
+    private createJournalStructureTab() {
+        const journalStructureTab = this.tabsContainer.createDiv({
+            cls: 'oom-metrics-tabs-button',
+            attr: { 'data-tab-id': 'journal-structure' }
+        });
+        
+        journalStructureTab.createEl('h2', { 
+            text: 'Journal Structure', 
+            cls: 'oom-metrics-tabs-label' 
+        });
+        
+        journalStructureTab.addEventListener('click', () => {
+            this.selectTab('journal-structure');
+        });
     }
     
     // Create Overview tab
@@ -97,7 +135,7 @@ export class MetricsTabsModal extends Modal {
         });
         
         overviewTab.createEl('h2', { 
-            text: 'Overview', 
+            text: 'Reference Overview', 
             cls: 'oom-metrics-tabs-label' 
         });
         
@@ -161,7 +199,11 @@ export class MetricsTabsModal extends Modal {
         }
         
         // Load appropriate content
-        if (tabId === 'overview') {
+        if (tabId === 'dashboard') {
+            this.loadDashboardContent();
+        } else if (tabId === 'journal-structure') {
+            this.loadJournalStructureContent();
+        } else if (tabId === 'overview') {
             this.loadOverviewContent();
         } else {
             const metric = this.findMetricByTabId(tabId);
@@ -771,5 +813,316 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 enabled: false
             }
         ];
+    }
+
+    // Display Dashboard content
+    private loadDashboardContent() {
+        this.contentContainer.empty();
+        
+        // Add welcome text
+        const welcomeText = this.contentContainer.createDiv({ 
+            cls: 'oom-metrics-tabs-dashboard-text' 
+        });
+        
+        welcomeText.createEl('h3', { text: 'Dashboard' });
+        
+        welcomeText.createEl('p', { 
+            text: 'Welcome to Dream Metrics! Manage all aspects of your dream journal from this central hub.'
+        });
+        
+        // Quick Actions Section
+        const quickActionsSection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
+        quickActionsSection.createEl('h4', { text: 'Quick Actions' });
+        
+        const quickActionsGrid = quickActionsSection.createDiv({ cls: 'oom-quick-actions-grid' });
+        
+        this.createQuickActionButton(quickActionsGrid, 'Open Settings', 'settings', () => {
+            (this.app as any).setting.open();
+            (this.app as any).setting.openTabById('oneirometrics');
+        });
+        
+        this.createQuickActionButton(quickActionsGrid, 'Scrape Metrics', 'sparkles', () => {
+            // Launch scrape metrics functionality
+            this.plugin.scrapeMetrics();
+        });
+        
+        this.createQuickActionButton(quickActionsGrid, 'Journal Structure', 'check-circle', () => {
+            this.selectTab('journal-structure');
+        });
+        
+        this.createQuickActionButton(quickActionsGrid, 'View Metrics', 'bar-chart', () => {
+            const projectNote = this.plugin.settings.projectNote;
+            if (projectNote) {
+                const file = this.app.vault.getAbstractFileByPath(projectNote);
+                if (file) {
+                    this.app.workspace.openLinkText(projectNote, '', true);
+                } else {
+                    new Notice('Metrics note not found. Please set the path in settings.');
+                }
+            } else {
+                new Notice('No metrics note configured. Please set the path in settings.');
+            }
+        });
+        
+        this.createQuickActionButton(quickActionsGrid, 'Help & Docs', 'help-circle', () => {
+            window.open('https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/user/guides/usage.md', '_blank');
+        });
+        
+        // Recent Activity Section
+        const recentActivitySection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
+        recentActivitySection.createEl('h4', { text: 'Recent Activity' });
+        
+        const recentActivityList = recentActivitySection.createEl('ul', { cls: 'oom-recent-activity-list' });
+        
+        // Placeholder activities - these would be populated from actual usage data in a real implementation
+        recentActivityList.createEl('li', { 
+            text: 'Last scrape: ' + new Date().toLocaleDateString() + ' - 15 entries processed, 7 with metrics' 
+        });
+        
+        recentActivityList.createEl('li', { 
+            text: 'Last validation: ' + new Date().toLocaleDateString() + ' - 2 errors, 1 warning' 
+        });
+        
+        recentActivityList.createEl('li', { 
+            text: 'Recently used template: "Lucid Dream Template"' 
+        });
+        
+        // Status Overview Section
+        const statusSection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
+        statusSection.createEl('h4', { text: 'Status Overview' });
+        
+        const statusList = statusSection.createEl('ul', { cls: 'oom-status-list' });
+        
+        const selectedNotes = this.plugin.settings.selectedNotes || [];
+        statusList.createEl('li', { 
+            text: `Current selection: ${selectedNotes.length} notes selected` 
+        });
+        
+        statusList.createEl('li', { 
+            text: 'Templates: 4 templates defined' 
+        });
+        
+        statusList.createEl('li', { 
+            text: 'Structures: 2 structures defined' 
+        });
+        
+        statusList.createEl('li', { 
+            text: `Validation: ${this.plugin.settings.linting?.enabled ? 'Enabled' : 'Disabled'}` 
+        });
+    }
+    
+    // Create a quick action button for the dashboard
+    private createQuickActionButton(
+        containerEl: HTMLElement, 
+        label: string, 
+        icon: string, 
+        callback: () => void
+    ) {
+        const button = containerEl.createEl('button', { 
+            cls: 'oom-quick-action-button', 
+            text: label 
+        });
+        
+        const iconEl = button.createSpan({ cls: 'oom-quick-action-icon' });
+        setIcon(iconEl, icon);
+        
+        button.addEventListener('click', callback);
+        
+        return button;
+    }
+
+    // Placeholder for Journal Structure content (to be implemented)
+    private loadJournalStructureContent() {
+        this.contentContainer.empty();
+        
+        // Add welcome text
+        const welcomeText = this.contentContainer.createDiv({ 
+            cls: 'oom-metrics-tabs-journal-structure-text' 
+        });
+        
+        welcomeText.createEl('h3', { text: 'Journal Structure' });
+        
+        welcomeText.createEl('p', { 
+            text: 'Configure journal structure settings, content isolation, and interface preferences.'
+        });
+        
+        // Structure Settings Section
+        const structureSettingsContent = this.createCollapsibleSection(this.contentContainer, 'Structure Settings');
+        
+        this.createJournalStructureSetting(structureSettingsContent, 'Enable Structure Validation', 'Validate journal entries against defined structures', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            this.plugin.settings.linting.enabled = value;
+        });
+        
+        // Content Isolation Settings Section
+        const contentIsolationContent = this.createCollapsibleSection(this.contentContainer, 'Content Isolation Settings');
+        
+        contentIsolationContent.createEl('p', { 
+            text: 'Configure what content elements should be ignored during validation.',
+            cls: 'oom-section-desc'
+        });
+        
+        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Images', 'Do not validate image links and embeds', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.contentIsolation) {
+                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
+            }
+            this.plugin.settings.linting.contentIsolation.ignoreImages = value;
+        }, this.plugin.settings.linting?.contentIsolation?.ignoreImages ?? true);
+        
+        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Links', 'Do not validate internal and external links', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.contentIsolation) {
+                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
+            }
+            this.plugin.settings.linting.contentIsolation.ignoreLinks = value;
+        }, this.plugin.settings.linting?.contentIsolation?.ignoreLinks ?? false);
+        
+        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Formatting', 'Do not validate bold, italic, and other formatting', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.contentIsolation) {
+                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
+            }
+            this.plugin.settings.linting.contentIsolation.ignoreFormatting = value;
+        }, this.plugin.settings.linting?.contentIsolation?.ignoreFormatting ?? true);
+        
+        this.createJournalStructureSetting(contentIsolationContent, 'Ignore Code Blocks', 'Do not validate code blocks and inline code', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.contentIsolation) {
+                this.plugin.settings.linting.contentIsolation = this.getDefaultLintingSettings().contentIsolation;
+            }
+            this.plugin.settings.linting.contentIsolation.ignoreCodeBlocks = value;
+        }, this.plugin.settings.linting?.contentIsolation?.ignoreCodeBlocks ?? true);
+        
+        // Interface Settings Section
+        const interfaceContent = this.createCollapsibleSection(this.contentContainer, 'User Interface Settings');
+        
+        interfaceContent.createEl('p', { 
+            text: 'Configure how the journal structure validator appears in the editor.',
+            cls: 'oom-section-desc'
+        });
+        
+        this.createJournalStructureSetting(interfaceContent, 'Show Inline Validation', 'Display structure validation warnings directly in the editor', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.showInlineValidation = value;
+        }, this.plugin.settings.linting?.userInterface?.showInlineValidation ?? true);
+        
+        this.createJournalStructureSetting(interfaceContent, 'Enable Quick Fixes', 'Allow quick fixing of validation issues', (value) => {
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            if (!this.plugin.settings.linting.userInterface) {
+                this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+            }
+            this.plugin.settings.linting.userInterface.quickFixesEnabled = value;
+        }, this.plugin.settings.linting?.userInterface?.quickFixesEnabled ?? true);
+    }
+    
+    // Helper method to create collapsible sections
+    private createCollapsibleSection(containerEl: HTMLElement, title: string, expanded = true): HTMLElement {
+        const sectionEl = containerEl.createDiv({ cls: 'oom-collapsible-section' });
+        
+        const headerEl = sectionEl.createDiv({ cls: 'oom-collapsible-header' });
+        headerEl.createEl('h4', { text: title });
+        
+        const toggleEl = headerEl.createDiv({ cls: 'oom-collapsible-toggle' });
+        setIcon(toggleEl, expanded ? 'chevron-down' : 'chevron-right');
+        
+        const contentEl = sectionEl.createDiv({ 
+            cls: 'oom-collapsible-content' + (expanded ? '' : ' collapsed')
+        });
+        
+        headerEl.addEventListener('click', () => {
+            const isExpanded = toggleEl.getAttribute('data-expanded') !== 'false';
+            toggleEl.setAttribute('data-expanded', isExpanded ? 'false' : 'true');
+            setIcon(toggleEl, isExpanded ? 'chevron-right' : 'chevron-down');
+            if (contentEl) {
+                contentEl.toggleClass('collapsed', isExpanded);
+            }
+        });
+        
+        toggleEl.setAttribute('data-expanded', expanded ? 'true' : 'false');
+        
+        return contentEl;
+    }
+    
+    // Helper method to create journal structure settings
+    private createJournalStructureSetting(
+        containerEl: HTMLElement, 
+        name: string, 
+        description: string, 
+        onChange: (value: boolean) => void,
+        defaultValue: boolean = true
+    ) {
+        const settingEl = containerEl.createDiv({ cls: 'oom-setting' });
+        
+        const infoEl = settingEl.createDiv({ cls: 'oom-setting-info' });
+        infoEl.createDiv({ text: name, cls: 'oom-setting-name' });
+        infoEl.createDiv({ text: description, cls: 'oom-setting-desc' });
+        
+        const controlEl = settingEl.createDiv({ cls: 'oom-setting-control' });
+        
+        const toggleEl = controlEl.createEl('input', {
+            type: 'checkbox',
+            cls: 'oom-toggle'
+        });
+        
+        toggleEl.checked = defaultValue;
+        
+        toggleEl.addEventListener('change', () => {
+            onChange(toggleEl.checked);
+            this.plugin.saveSettings();
+        });
+        
+        return settingEl;
+    }
+    
+    // Helper method to get default linting settings
+    private getDefaultLintingSettings() {
+        return {
+            enabled: true,
+            rules: [],
+            structures: [],
+            templates: [],
+            templaterIntegration: {
+                enabled: false,
+                folderPath: 'templates/dreams',
+                defaultTemplate: ''
+            },
+            contentIsolation: {
+                ignoreImages: true,
+                ignoreLinks: false,
+                ignoreFormatting: true,
+                ignoreHeadings: false,
+                ignoreCodeBlocks: true,
+                ignoreFrontmatter: true,
+                ignoreComments: true,
+                customIgnorePatterns: []
+            },
+            userInterface: {
+                showInlineValidation: true,
+                severityIndicators: {
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                },
+                quickFixesEnabled: true
+            }
+        };
     }
 } 
