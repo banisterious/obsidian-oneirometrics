@@ -3,10 +3,7 @@
 // https://opensource.org/licenses/MIT
 
 // Import the safe logger immediately at the top
-import safeLogger, { getSafeLogger, SafeLogger, initializeSafeLogger } from './src/logging/safe-logger';
-
-// Import getLogger but not LoggingAdapter since it's imported elsewhere
-import { getLogger } from './src/logging';
+import safeLogger from './src/logging/safe-logger';
 
 /**
  * IMPORTANT: This file uses a globalLogger pattern for backward compatibility 
@@ -24,49 +21,15 @@ import { getLogger } from './src/logging';
 // Initialize with safe logger first, but will be replaced with structured logger during plugin initialization
 let globalLogger: any = safeLogger;
 
-// Import test modals
-import { openContentParserTestModal, openDateUtilsTestModal, openServiceRegistryTestModal } from './src/testing';
-import { DefensiveUtilsTestModal } from './src/testing/utils/defensive-utils-test-modal';
-
-// Import Service Registry
-import { 
-  ServiceRegistry, 
-  getServiceRegistry, 
-  registerService, 
-  getService, 
-  SERVICE_NAMES 
-} from './src/state/ServiceRegistry';
-
-// Import log viewer UI components
-import { initializeLogUI } from './src/logging/ui';
-
 // External imports (Obsidian)
 import { 
   App, 
   Editor, 
-  FileSystemAdapter, 
   MarkdownView, 
-  MetadataCache, 
   Notice, 
   Plugin, 
-  Setting, 
-  TFile, 
-  TFolder, 
-  Vault, 
-  parseYaml,
-  parseFrontMatterEntry,
-  parseFrontMatterTags,
-  MarkdownRenderer,
-  MarkdownPreviewView,
-  PluginSettingTab,
-  addIcon
+  TFile
 } from 'obsidian';
-
-// External libraries
-import { 
-  format,
-  addDays
-} from 'date-fns';
 
 // Internal imports - Types
 import { 
@@ -81,67 +44,12 @@ import {
   CalloutMetadata
 } from './types';
 
-// Internal imports - Helper functions
-import {
-  getProjectNotePath,
-  setProjectNotePath,
-  getSelectedFolder,
-  setSelectedFolder,
-  getSelectionMode,
-  setSelectionMode,
-  isBackupEnabled,
-  getBackupFolderPath,
-  getLogMaxSize,
-  shouldShowRibbonButtons,
-  setShowRibbonButtons,
-  getJournalStructure,
-  setJournalStructure
-} from './src/utils/settings-helpers';
-
-import {
-  validateDate,
-  parseDate,
-  formatDate,
-  getDreamEntryDate
-} from './src/utils/date-utils';
-
-import {
-  isMetricEnabled,
-  setMetricEnabled,
-  getMetricMinValue,
-  getMetricMaxValue,
-  setMetricRange,
-  getMetricRange,
-  standardizeMetric
-} from './src/utils/metric-helpers';
-
-import {
-  getSourceFile,
-  getSourceId,
-  isObjectSource,
-  createSource,
-  isCalloutMetadataArray
-} from './src/utils/type-guards';
-
-import {
-  isFolderMode,
-  isNotesMode,
-  areSelectionModesEquivalent,
-  getSelectionModeLabel,
-  normalizeSelectionMode
-} from './src/utils/selection-mode-helpers';
-
-// Import the SettingsAdapter from state/adapters
-import { SettingsAdapter, createAndRegisterSettingsAdapter } from './src/state/adapters/SettingsAdapter';
+// Import the SettingsManager (SettingsAdapter and createAndRegisterSettingsAdapter are unused)
 import { SettingsManager } from './src/state/SettingsManager';
-import { MetricsProcessor, DreamMetricsProcessor, MetricsCollector, TableStatisticsUpdater } from './src/metrics';
-
+import { MetricsProcessor, MetricsCollector, TableStatisticsUpdater } from './src/metrics';
 
 // For backward compatibility with legacy types
 import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types';
-
-// Internal imports - Settings
-import { DreamMetricsSettingTab, lucideIconMap, RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER, sortMetricsByOrder } from './settings';
 
 // Internal imports - Logging
 import { LoggingAdapter } from './src/logging';
@@ -166,29 +74,13 @@ import { TemplaterIntegration } from './src/journal_check/TemplaterIntegration';
 import { TimeFilterManager } from './src/timeFilters';
 import { DreamMetricsState } from './src/state/DreamMetricsState';
 
-import { ContentParser } from './src/parsing/services/ContentParser';
-import { DateUtilsTestModal } from './src/testing/utils/DateUtilsTestModal';
-
 // Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
 import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
-
-// Add near the top with other imports
-import { runSettingsHelpersTests } from './src/testing/utils/SettingsHelpersTests';
-import { runMetricHelpersTests } from './src/testing/utils/MetricHelpersTests';
-import { runSelectionModeHelperTests } from './src/testing/utils/SelectionModeHelpersTests';
-import { runTypeGuardsTests } from './src/testing/utils/TypeGuardsTests';
-import { runPropertyHelpersTests } from './src/testing/utils/PropertyHelpersTests';
-import { runContentParserParameterTests } from './src/testing/run-content-parser-tests';
-import { runSettingsAdapterTests } from './src/testing/utils/SettingsAdapterTests';
-import { runEventHandlingTests } from './src/testing/utils/EventHandlingTests';
-import { runComponentFactoryTests } from './src/testing/utils/ComponentFactoryTests';
-import { runDreamMetricsStateTests } from './src/testing/DreamMetricsStateTests';
 
 import { MetricsTabsModal } from './src/dom/modals/MetricsTabsModal';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
-
 
 // Import ContentToggler
 import { ContentToggler } from './src/dom/content/ContentToggler';
@@ -198,9 +90,6 @@ import { ModalsManager } from './src/dom/modals/ModalsManager';
 
 // Global instance for functions that need access to ContentToggler
 let globalContentToggler: ContentToggler;
-
-// Global instance for table generation
-let globalTableGenerator: TableGenerator;
 
 // Import ProjectNoteManager
 import { ProjectNoteManager } from './src/state/ProjectNoteManager';
@@ -224,28 +113,20 @@ import { EventHandler } from './src/events/EventHandler';
 // Import the globals and GlobalHelpers
 import { setGlobalLogger, setGlobalContentToggler } from './src/globals';
 import {
-  safeSettingsAccess,
-  formatDateForDisplay, // Add this back
-  getIcon,
-  getMetricIcon,
-  toggleContentVisibility,
-  expandAllContentSections,
   debugContentExpansion
 } from './src/utils/GlobalHelpers';
-
-import {
-  saveLastCustomRange,
-  loadLastCustomRange,
-  saveFavoriteRange,
-  loadFavoriteRanges,
-  deleteFavoriteRange
-} from './src/utils/storage-helpers';
 
 // Import TemplateManager
 import { TemplateManager } from './src/templates/TemplateManager';
 import { FilterPersistenceManager } from './src/dom/filters/FilterPersistenceManager';
 import { DateNavigatorManager } from './src/dom/date-navigator/DateNavigatorManager';
 import { LogFileManager } from './src/logging/LogFileManager';
+
+// Essential helper functions that are actually used
+import {
+  getProjectNotePath,
+  getJournalStructure
+} from './src/utils/settings-helpers';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
