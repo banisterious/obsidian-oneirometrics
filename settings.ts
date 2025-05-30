@@ -6,6 +6,7 @@ import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Use
 import { debug, info, error } from './src/logging';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
 import { defaultLintingSettings } from './src/types/journal-check-defaults';
+import { JournalStructureModal } from './src/journal_check/ui/JournalStructureModal';
 
 // Define the correct order for recommended metrics
 export const RECOMMENDED_METRICS_ORDER = [
@@ -1930,22 +1931,6 @@ function getSelectionModeDescription(mode: string): string {
     }
     return 'Choose how to select notes for metrics processing';
 } 
-
-// Stub implementation of JournalStructureModal
-class JournalStructureModal extends Modal {
-  private plugin: DreamMetricsPlugin;
-  
-  constructor(app: App, plugin: DreamMetricsPlugin) {
-    super(app);
-    this.plugin = plugin;
-  }
-  
-  open() {
-    super.open();
-    this.contentEl.createEl('h2', { text: 'Journal Structure Settings' });
-    // This is a stub implementation
-  }
-}
 
 // Stub implementation for TemplateWizard
 class TemplateWizard extends Modal {

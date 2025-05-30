@@ -521,6 +521,17 @@ export class PluginLoader {
             }
         });
         
+        // Add Journal Structure modal command
+        plugin.addCommand({
+            id: 'open-journal-structure',
+            name: 'Open Journal Structure Settings',
+            callback: () => {
+                // Import and open the Journal Structure modal
+                const { JournalStructureModal } = require('../journal_check/ui/JournalStructureModal');
+                new JournalStructureModal(plugin.app, plugin).open();
+            }
+        });
+        
         // Add more commands as needed
     }
 
