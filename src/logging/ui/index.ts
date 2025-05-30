@@ -33,8 +33,7 @@ export function initializeLogUI(plugin: Plugin): {
   const logCommands = new LogCommands(plugin, memoryAdapter);
   logCommands.registerCommands();
   
-  // Add ribbon icon for quick access
-  logCommands.addRibbonIcon();
+  // Ribbon icon removed - log viewer accessible via command palette
   
   return {
     memoryAdapter,

@@ -56,27 +56,10 @@ export class RibbonManager {
         // Ensure plugin compatibility - check if folders exist before adding buttons
         this.ensurePluginCompatibility();
         
-        // Add main metrics ribbon icon
-        // @ts-ignore - Obsidian typings aren't fully accurate
-        const mainMetricsRibbonEl = this.plugin.addRibbonIcon(
-            'dice',
-            'OneiroMetrics',
-            () => {
-                // Use type assertion to access properties not defined in Plugin
-                const pluginInstance = this.plugin as any;
-                if (pluginInstance.showMetrics) {
-                    pluginInstance.showMetrics();
-                } else {
-                    this.logger?.error('UI', 'showMetrics method not found on plugin instance');
-                }
-            }
-        );
-        this.ribbonIcons.push(mainMetricsRibbonEl);
-        
-        // Add OneiroMetrics Hub button with lucide-moon icon
+        // Add OneiroMetrics Hub button with lucide-shell icon
         // @ts-ignore - Obsidian typings aren't fully accurate
         const metricsHubRibbonEl = this.plugin.addRibbonIcon(
-            'lucide-moon',
+            'lucide-shell',
             'OneiroMetrics Hub',
             () => {
                 // Use ModalsManager to open the consolidated hub
