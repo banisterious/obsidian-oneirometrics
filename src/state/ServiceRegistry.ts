@@ -84,6 +84,32 @@ export class ServiceRegistry {
   }
   
   /**
+   * Upgrade an existing service to a newer implementation without warnings
+   * This is useful for replacing temporary services with full implementations
+   * 
+   * @param name The name of the service
+   * @param service The new service instance
+   */
+  public upgrade<T>(name: string, service: T): void {
+    const wasRegistered = this.services.has(name);
+    this.services.set(name, service);
+    
+    try {
+      if (wasRegistered) {
+        safeLogger.debug('ServiceRegistry', `Upgraded service: ${name}`);
+      } else {
+        safeLogger.debug('ServiceRegistry', `Registered service: ${name}`);
+      }
+    } catch (error) {
+      if (wasRegistered) {
+        debug('ServiceRegistry', `Upgraded service: ${name}`);
+      } else {
+        debug('ServiceRegistry', `Registered service: ${name}`);
+      }
+    }
+  }
+  
+  /**
    * Register a factory function that can create a service on demand
    * 
    * @param name The name of the service
@@ -298,7 +324,7 @@ export function getServiceRegistry(): ServiceRegistry {
  * @param service The service instance
  */
 export function registerService<T>(name: string, service: T): void {
-  ServiceRegistry.getInstance().register(name, service);
+  getServiceRegistry().register(name, service);
 }
 
 /**
@@ -378,6 +404,16 @@ export function getSettings<T = any>(): T | null {
  */
 export function getSettingsSafe<T = any>(fallback: T): T {
   return getServiceSafe<T>(SERVICE_NAMES.SETTINGS, fallback);
+}
+
+/**
+ * Upgrade an existing service to a newer implementation without warnings
+ * 
+ * @param name The name of the service
+ * @param service The new service instance
+ */
+export function upgradeService<T>(name: string, service: T): void {
+  getServiceRegistry().upgrade(name, service);
 }
 
 // Export registry constants

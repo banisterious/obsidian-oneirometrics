@@ -182,8 +182,14 @@ export class ProjectNoteManager {
                     await this.app.vault.createFolder(currentPath);
                     this.logger?.debug('ProjectNote', `Created folder ${currentPath}`);
                 } catch (error) {
-                    // Folder might have been created by another process, ignore
-                    this.logger?.warn('ProjectNote', `Error creating folder ${currentPath}`, error as Error);
+                    // Check if error is "Folder already exists" (which is expected and safe to ignore)
+                    const errorMessage = (error as Error).message;
+                    if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
+                        this.logger?.debug('ProjectNote', `Folder ${currentPath} already exists, continuing`);
+                    } else {
+                        // Only warn for unexpected errors
+                        this.logger?.warn('ProjectNote', `Unexpected error creating folder ${currentPath}`, error as Error);
+                    }
                 }
             }
         }
