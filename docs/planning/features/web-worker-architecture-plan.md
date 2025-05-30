@@ -1134,89 +1134,406 @@ private handleWorkerFailure() {
 
 ### 2. Debugging and Logging Strategy
 
-To facilitate effective debugging of worker code, a dedicated debug channel has been added to the worker message protocol:
+To facilitate effective debugging of worker code, the web worker implementation will integrate with OneiroMetrics' existing structured logging system.
+
+#### Integration with OneiroMetrics Logging System
+
+The web worker logging will leverage the existing structured logging infrastructure:
 
 ```typescript
-// Debug message type
-interface DebugMessage extends WorkerMessage {
-  type: 'DEBUG_LOG';
-  data: {
-    level: 'info' | 'warn' | 'error';
-    message: string;
-    context?: any;
-  }
-}
+// Import the existing logging system
+import { getLogger } from '../logging';
 
-// In worker implementation
-function debugLog(level: 'info' | 'warn' | 'error', message: string, context?: any) {
-  if (isDebugMode) {
-    self.postMessage({
-      id: generateUniqueId(),
-      type: 'DEBUG_LOG',
-      timestamp: Date.now(),
-      data: { level, message, context }
+// Worker-specific logging integration
+export class WorkerLoggingBridge {
+  private logger = getLogger('WorkerManager');
+  private workerLogger = getLogger('Worker');
+
+  constructor(private workerManager: DateNavigatorWorkerManager) {}
+
+  // Bridge worker messages to structured logging
+  handleWorkerLog(message: WorkerLogMessage) {
+    const { level, category, message: logMessage, context, workerId } = message.data;
+    
+    // Create contextual logger for this worker
+    const contextualLogger = this.workerLogger.withContext({
+      workerId,
+      workerType: 'date-filter',
+      ...context
+    });
+
+    // Log with appropriate level using structured logging
+    switch (level) {
+      case 'debug':
+        contextualLogger.debug(category, logMessage, context);
+        break;
+      case 'info':
+        contextualLogger.info(category, logMessage, context);
+        break;
+      case 'warn':
+        contextualLogger.warn(category, logMessage, context);
+        break;
+      case 'error':
+        contextualLogger.error(category, logMessage, context);
+        break;
+    }
+  }
+
+  // Performance timing integration
+  startWorkerTimer(operation: string, workerId: string) {
+    const contextualLogger = this.workerLogger.withContext({ workerId, operation });
+    return contextualLogger.time(`worker.${operation}`);
+  }
+
+  // Error enrichment for worker errors
+  enrichWorkerError(error: Error, context: any): Error {
+    return this.workerLogger.enrichError(error, {
+      component: 'DateFilterWorker',
+      operation: context.operation || 'unknown',
+      metadata: {
+        workerId: context.workerId,
+        requestId: context.requestId,
+        timestamp: Date.now(),
+        ...context
+      }
     });
   }
 }
+```
 
-// Usage in worker code
-function handleDateRangeFilter(message) {
-  debugLog('info', 'Starting date range filter', { 
-    messageId: message.id,
-    entriesCount: message.data.entries.length
-  });
-  
-  // Processing logic...
-  
-  if (error) {
-    debugLog('error', 'Filter processing error', { error });
+#### Worker-Side Logging Implementation
+
+```typescript
+// Inside the worker: date-filter-worker.ts
+class WorkerLogger {
+  private workerId: string;
+
+  constructor(workerId: string) {
+    this.workerId = workerId;
+  }
+
+  private sendLog(level: 'debug' | 'info' | 'warn' | 'error', category: string, message: string, context?: any) {
+    // Send structured log message to main thread
+    self.postMessage({
+      id: `log-${Date.now()}`,
+      type: 'WORKER_LOG',
+      timestamp: Date.now(),
+      data: {
+        level,
+        category,
+        message,
+        context: {
+          workerId: this.workerId,
+          ...context
+        }
+      }
+    });
+  }
+
+  debug(category: string, message: string, context?: any) {
+    this.sendLog('debug', category, message, context);
+  }
+
+  info(category: string, message: string, context?: any) {
+    this.sendLog('info', category, message, context);
+  }
+
+  warn(category: string, message: string, context?: any) {
+    this.sendLog('warn', category, message, context);
+  }
+
+  error(category: string, message: string, context?: any) {
+    this.sendLog('error', category, message, context);
+  }
+
+  // Performance timing in worker
+  time(operation: string): () => void {
+    const startTime = performance.now();
+    this.debug('Performance', `Starting ${operation}`, { operation, startTime });
+    
+    return () => {
+      const duration = performance.now() - startTime;
+      this.info('Performance', `Completed ${operation}`, { 
+        operation, 
+        duration: `${duration.toFixed(2)}ms`,
+        startTime,
+        endTime: performance.now()
+      });
+    };
   }
 }
 
-// Main thread handler for debug messages
-private setupWorkerEventHandlers() {
-  if (!this.worker) return;
+// Initialize worker logger
+const workerLogger = new WorkerLogger(`worker-${Math.random().toString(36).substr(2, 9)}`);
+
+// Enhanced message handler with logging
+self.onmessage = function(e) {
+  const message = e.data;
+  const endTimer = workerLogger.time(`process.${message.type}`);
   
-  this.worker.onmessage = (e) => {
-    const message = e.data;
+  workerLogger.debug('Message', `Received ${message.type}`, { 
+    requestId: message.id,
+    messageType: message.type,
+    dataSize: JSON.stringify(message.data).length
+  });
+  
+  try {
+    switch (message.type) {
+      case 'FILTER_BY_DATE_RANGE':
+        handleDateRangeFilter(message);
+        break;
+      case 'FILTER_BY_MULTIPLE_DATES':
+        handleMultipleDatesFilter(message);
+        break;
+      case 'FILTER_BY_PATTERN':
+        handlePatternFilter(message);
+        break;
+      case 'CANCEL_FILTER':
+        handleCancelFilter(message);
+        break;
+      default:
+        workerLogger.warn('Message', `Unknown message type: ${message.type}`, {
+          requestId: message.id,
+          messageType: message.type
+        });
+        sendError(message.id, 'Unknown message type');
+    }
+  } catch (error) {
+    workerLogger.error('Processing', `Error processing ${message.type}`, {
+      requestId: message.id,
+      error: error.message,
+      stack: error.stack
+    });
+    sendError(message.id, error.message);
+  } finally {
+    endTimer();
+  }
+};
+```
+
+#### Main Thread Integration
+
+```typescript
+// Enhanced DateNavigatorWorkerManager with structured logging
+export class DateNavigatorWorkerManager {
+  private logger = getLogger('DateNavigatorWorker');
+  private workerLoggingBridge: WorkerLoggingBridge;
+  private worker: Worker | null = null;
+
+  constructor(app: App, plugin: DreamMetricsPlugin) {
+    this.app = app;
+    this.plugin = plugin;
+    this.workerLoggingBridge = new WorkerLoggingBridge(this);
+    this.initWorker();
+  }
+
+  private initWorker() {
+    const endTimer = this.logger.time('worker.initialization');
     
-    // Handle debug messages
-    if (message.type === 'DEBUG_LOG') {
-      const { level, message: logMessage, context } = message.data;
+    try {
+      this.worker = new Worker(new URL('./date-filter-worker.ts', import.meta.url));
+      this.setupWorkerEventHandlers();
       
-      switch (level) {
-        case 'info':
-          console.log(`[Worker Debug] ${logMessage}`, context);
-          break;
-        case 'warn':
-          console.warn(`[Worker Debug] ${logMessage}`, context);
-          break;
-        case 'error':
-          console.error(`[Worker Debug] ${logMessage}`, context);
-          break;
+      this.logger.info('Initialization', 'Date filter worker initialized successfully', {
+        workerSupported: true,
+        userAgent: navigator.userAgent
+      });
+    } catch (error) {
+      const enrichedError = this.logger.enrichError(error as Error, {
+        component: 'DateNavigatorWorkerManager',
+        operation: 'initWorker',
+        metadata: {
+          userAgent: navigator.userAgent,
+          workerSupported: typeof Worker !== 'undefined'
+        }
+      });
+      
+      this.logger.error('Initialization', 'Failed to initialize worker, falling back to main thread', enrichedError);
+      this.workerSupported = false;
+    } finally {
+      endTimer();
+    }
+  }
+
+  private setupWorkerEventHandlers() {
+    if (!this.worker) return;
+    
+    this.worker.onmessage = (e) => {
+      const message = e.data;
+      
+      // Handle worker log messages
+      if (message.type === 'WORKER_LOG') {
+        this.workerLoggingBridge.handleWorkerLog(message);
+        return;
       }
       
-      // Also log to plugin's logging system if available
-      if (this.logger) {
-        this.logger.log(level, `[Worker] ${logMessage}`, context);
+      // Handle other message types with logging
+      const requestHandlers = this.activeRequests.get(message.data?.requestId);
+      if (!requestHandlers) {
+        this.logger.warn('Message', 'Received response for unknown request', {
+          requestId: message.data?.requestId,
+          messageType: message.type
+        });
+        return;
       }
       
-      return;
+      this.logger.debug('Message', `Received ${message.type} response`, {
+        requestId: message.data.requestId,
+        messageType: message.type,
+        timing: message.data.timing
+      });
+      
+      switch (message.type) {
+        case 'FILTER_RESULTS':
+          if (requestHandlers.onComplete) {
+            requestHandlers.onComplete(message.data.results);
+          }
+          this.logger.info('Filter', 'Filter operation completed', {
+            requestId: message.data.requestId,
+            entriesProcessed: message.data.timing?.entriesProcessed,
+            processingTime: message.data.timing?.processingTime
+          });
+          this.activeRequests.delete(message.data.requestId);
+          break;
+          
+        case 'FILTER_PROGRESS':
+          if (requestHandlers.onProgress) {
+            requestHandlers.onProgress(message.data.progress);
+          }
+          break;
+          
+        case 'FILTER_ERROR':
+          const error = new Error(message.data.error);
+          const enrichedError = this.logger.enrichError(error, {
+            component: 'DateFilterWorker',
+            operation: 'filter',
+            metadata: {
+              requestId: message.data.requestId,
+              errorContext: message.data.context
+            }
+          });
+          
+          if (requestHandlers.onError) {
+            requestHandlers.onError(enrichedError.message);
+          }
+          this.logger.error('Filter', 'Worker filter operation failed', enrichedError);
+          this.activeRequests.delete(message.data.requestId);
+          break;
+      }
+    };
+    
+    this.worker.onerror = (error) => {
+      const enrichedError = this.logger.enrichError(new Error(error.message), {
+        component: 'DateFilterWorker',
+        operation: 'runtime',
+        metadata: {
+          filename: error.filename,
+          lineno: error.lineno,
+          colno: error.colno
+        }
+      });
+      
+      this.logger.error('Worker', 'Worker runtime error occurred', enrichedError);
+      this.handleWorkerFailure();
+    };
+  }
+
+  // Enhanced error recovery with structured logging
+  private handleWorkerFailure() {
+    this.logger.warn('Recovery', 'Web Worker failed, initiating recovery process', {
+      activeRequests: this.activeRequests.size,
+      workerSupported: this.workerSupported
+    });
+    
+    // Terminate failed worker
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
     }
     
-    // Handle regular message types
-    // ... existing message handling code ...
-  };
+    // Process pending requests on main thread
+    const failedRequests = Array.from(this.activeRequests.keys());
+    this.activeRequests.forEach((handlers, requestId) => {
+      this.logger.debug('Recovery', `Reprocessing failed request on main thread`, {
+        requestId,
+        fallbackMode: true
+      });
+      
+      if (handlers.onError) {
+        handlers.onError('Worker failed, processing on main thread');
+      }
+    });
+    
+    this.activeRequests.clear();
+    
+    // Attempt to reinitialize worker after delay
+    setTimeout(() => {
+      this.logger.info('Recovery', 'Attempting worker recovery', {
+        retryAttempt: 1,
+        previousFailure: Date.now()
+      });
+      this.initWorker();
+    }, 5000);
+  }
 }
 ```
 
-This custom worker message protocol with debug channel has been selected as the optimal debugging strategy. It provides several benefits:
-- Worker code can log detailed information without direct console access
-- Debug messages can be filtered by setting a debug mode flag
-- Context objects can be passed for detailed debugging information
-- The main thread can format and route logs appropriately
-- Debug logging can be disabled in production builds
-- Provides visibility into otherwise isolated worker processes
+#### Debug Mode Integration
+
+The worker system integrates with OneiroMetrics' existing debug mode:
+
+```typescript
+// Enhanced debug tools for workers
+export class WorkerDebugTools {
+  private logger = getLogger('WorkerDebug');
+  private isDebugMode: boolean;
+
+  constructor(private settings: DreamMetricsSettings) {
+    this.isDebugMode = settings.logging?.level === 'debug' || settings.logging?.level === 'trace';
+  }
+
+  // Debug panel for worker performance
+  showWorkerDebugPanel() {
+    if (!this.isDebugMode) return;
+
+    const debugPanel = document.createElement('div');
+    debugPanel.className = 'oom-worker-debug-panel';
+    debugPanel.innerHTML = `
+      <h3>Web Worker Debug Information</h3>
+      <div id="worker-performance-metrics"></div>
+      <div id="worker-message-log"></div>
+      <button onclick="this.exportWorkerLogs()">Export Worker Logs</button>
+    `;
+    
+    // Show performance metrics and message logs
+    this.updateDebugPanel(debugPanel);
+  }
+
+  // Export worker logs for debugging
+  exportWorkerLogs() {
+    const logs = this.getWorkerPerformanceReport();
+    const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `worker-debug-${Date.now()}.json`;
+    a.click();
+    
+    this.logger.info('Debug', 'Worker logs exported', {
+      logCount: logs.length,
+      exportTime: Date.now()
+    });
+  }
+}
+```
+
+This integration ensures that:
+- Worker operations are logged with the same structured approach as the rest of the plugin
+- Debug information is available when logging level is set to debug
+- Performance metrics are tracked using the existing timing system
+- Errors are enriched with context using the existing error enrichment system
+- Log messages from workers are properly categorized and can be filtered
 
 ### 3. Monitoring and Telemetry
 
@@ -1512,28 +1829,28 @@ private applyPatternFilter(pattern: DatePattern) {
 
 ## Implementation Timeline
 
-### Phase 1: Core Worker Architecture (2 weeks)
+### Phase 1: Core Worker Architecture
 - Create basic worker implementation
 - Implement message protocol
 - Build worker manager class
 - Develop main thread fallback processing
 - Add basic result caching
 
-### Phase 2: UI Integration and Optimization (2 weeks)
+### Phase 2: UI Integration and Optimization
 - Integrate with DateNavigator and TimeFilterManager
 - Implement progress indicators
 - Add CSS-based visibility optimizations
 - Enhance error handling and recovery
 - Improve caching strategy
 
-### Phase 3: Multi-Date Selection Support (2 weeks)
+### Phase 3: Multi-Date Selection Support
 - Implement multi-date filtering in worker
 - Add range-based selection processing
 - Integrate with DateNavigatorModal UI
 - Add non-contiguous date selection handling
 - Implement pattern-based date selection
 
-### Phase 4: Testing and Performance Optimization (2 weeks)
+### Phase 4: Testing and Performance Optimization
 - Create performance benchmarks
 - Test with large datasets
 - Optimize worker communication
@@ -2487,3 +2804,1339 @@ The documentation strategy will include both user-focused guides and developer-o
    - Method documentation for key components
 
 This balanced documentation approach will ensure both users and developers have the necessary information to effectively use and extend the web worker functionality, without creating an excessive maintenance burden.
+
+### 3. Enhanced TypeScript Integration
+
+#### Strict Type-Safe Worker Communication
+
+Building on OneiroMetrics' strong TypeScript foundation, the worker implementation uses strict typing for all communications:
+
+```typescript
+// Enhanced message type definitions with strict typing
+interface WorkerMessageTypes {
+  'FILTER_BY_DATE_RANGE': {
+    request: { 
+      entries: DreamEntryData[];
+      startDate: string;
+      endDate: string;
+      options?: FilterOptions;
+    };
+    response: { 
+      visibilityMap: VisibilityResult[];
+      statistics: FilterStatistics;
+    };
+  };
+  'FILTER_BY_MULTIPLE_DATES': {
+    request: { 
+      entries: DreamEntryData[];
+      selectedDates: string[];
+      mode: 'include' | 'exclude';
+    };
+    response: { 
+      visibilityMap: VisibilityResult[];
+      affectedDates: string[];
+    };
+  };
+  'FILTER_BY_PATTERN': {
+    request: { 
+      entries: DreamEntryData[];
+      pattern: DatePattern;
+      dateRange?: { start: string; end: string };
+    };
+    response: { 
+      visibilityMap: VisibilityResult[];
+      matchedDates: string[];
+      patternInfo: PatternAnalysis;
+    };
+  };
+  'FILTER_PROGRESS': {
+    request: never;
+    response: { 
+      progress: number;
+      entriesProcessed: number;
+      currentPhase: 'parsing' | 'filtering' | 'optimizing';
+      estimatedTimeRemaining?: number;
+    };
+  };
+  'WORKER_LOG': {
+    request: never;
+    response: {
+      level: LogLevel;
+      category: string;
+      message: string;
+      context: Record<string, any>;
+      workerId: string;
+    };
+  };
+}
+
+// Type-safe worker manager with full generic typing
+class TypedWorkerManager<T extends WorkerMessageTypes> {
+  private logger = getLogger('TypedWorkerManager');
+  private activeRequests = new Map<string, {
+    resolve: (value: any) => void;
+    reject: (error: Error) => void;
+    onProgress?: (progress: T['FILTER_PROGRESS']['response']) => void;
+    startTime: number;
+  }>();
+
+  // Type-safe message sending with compile-time verification
+  async sendMessage<K extends keyof T>(
+    type: K, 
+    data: T[K]['request'],
+    options?: {
+      onProgress?: (progress: T['FILTER_PROGRESS']['response']) => void;
+      timeout?: number;
+    }
+  ): Promise<T[K]['response']> {
+    
+    const requestId = this.generateRequestId();
+    const message: WorkerMessage = {
+      id: requestId,
+      type: type as string,
+      timestamp: Date.now(),
+      data
+    };
+
+    // Type-safe promise with timeout
+    return new Promise<T[K]['response']>((resolve, reject) => {
+      const timer = options?.timeout ? setTimeout(() => {
+        this.activeRequests.delete(requestId);
+        const error = new Error(`Worker request timeout for ${type}`);
+        reject(this.logger.enrichError(error, {
+          component: 'TypedWorkerManager',
+          operation: 'sendMessage',
+          metadata: { requestId, messageType: type, timeout: options.timeout }
+        }));
+      }, options.timeout) : null;
+
+      this.activeRequests.set(requestId, {
+        resolve: (response: T[K]['response']) => {
+          if (timer) clearTimeout(timer);
+          resolve(response);
+        },
+        reject: (error: Error) => {
+          if (timer) clearTimeout(timer);
+          reject(error);
+        },
+        onProgress: options?.onProgress,
+        startTime: Date.now()
+      });
+
+      // Send message with structured logging
+      this.logger.debug('Message', `Sending ${type} to worker`, {
+        requestId,
+        messageType: type,
+        dataSize: JSON.stringify(data).length,
+        hasProgressCallback: !!options?.onProgress,
+        timeout: options?.timeout
+      });
+
+      if (this.worker) {
+        this.worker.postMessage(message);
+      } else {
+        this.activeRequests.delete(requestId);
+        reject(new Error('Worker not available'));
+      }
+    });
+  }
+
+  // Type-safe message handler with runtime type checking
+  private handleWorkerMessage(event: MessageEvent) {
+    const message = event.data as WorkerMessage;
+    const request = this.activeRequests.get(message.data?.requestId);
+
+    if (!request) {
+      this.logger.warn('Message', 'Received response for unknown request', {
+        requestId: message.data?.requestId,
+        messageType: message.type
+      });
+      return;
+    }
+
+    // Runtime type validation for development mode
+    if (this.isDebugMode()) {
+      this.validateMessageType(message);
+    }
+
+    try {
+      switch (message.type) {
+        case 'FILTER_RESULTS':
+        case 'FILTER_BY_DATE_RANGE':
+        case 'FILTER_BY_MULTIPLE_DATES':
+        case 'FILTER_BY_PATTERN':
+          request.resolve(message.data.results || message.data);
+          this.activeRequests.delete(message.data.requestId);
+          break;
+
+        case 'FILTER_PROGRESS':
+          if (request.onProgress) {
+            request.onProgress(message.data as T['FILTER_PROGRESS']['response']);
+          }
+          break;
+
+        case 'FILTER_ERROR':
+          const error = new Error(message.data.error);
+          request.reject(this.logger.enrichError(error, {
+            component: 'Worker',
+            operation: 'filter',
+            metadata: { requestId: message.data.requestId }
+          }));
+          this.activeRequests.delete(message.data.requestId);
+          break;
+      }
+    } catch (error) {
+      this.logger.error('Message', 'Error handling worker message', 
+        this.logger.enrichError(error as Error, {
+          component: 'TypedWorkerManager',
+          operation: 'handleWorkerMessage',
+          metadata: { messageType: message.type, requestId: message.data?.requestId }
+        })
+      );
+      request.reject(error as Error);
+      this.activeRequests.delete(message.data?.requestId);
+    }
+  }
+
+  // Runtime type validation for development
+  private validateMessageType(message: WorkerMessage): void {
+    // Add runtime type checking in debug mode
+    if (!message.id || !message.type || !message.timestamp) {
+      this.logger.warn('Validation', 'Invalid message structure', { message });
+    }
+    
+    // Validate specific message types
+    switch (message.type) {
+      case 'FILTER_RESULTS':
+        if (!message.data.results || !Array.isArray(message.data.results.visibilityMap)) {
+          this.logger.warn('Validation', 'Invalid FILTER_RESULTS structure', { message });
+        }
+        break;
+      // Add other validations as needed
+    }
+  }
+
+  private isDebugMode(): boolean {
+    return this.logger instanceof ContextualLogger && 
+           (this.logger as any).settings?.logging?.level === 'debug';
+  }
+}
+
+// Enhanced DateNavigatorWorkerManager with type safety
+export class DateNavigatorWorkerManager extends TypedWorkerManager<WorkerMessageTypes> {
+  private logger = getLogger('DateNavigatorWorker');
+
+  // Type-safe date range filtering
+  async filterByDateRange(
+    entries: DreamEntryData[],
+    startDate: string,
+    endDate: string,
+    options?: {
+      onProgress?: (progress: WorkerMessageTypes['FILTER_PROGRESS']['response']) => void;
+      includeStatistics?: boolean;
+    }
+  ): Promise<WorkerMessageTypes['FILTER_BY_DATE_RANGE']['response']> {
+    
+    const endTimer = this.logger.time('filter.dateRange');
+    
+    try {
+      const result = await this.sendMessage('FILTER_BY_DATE_RANGE', {
+        entries,
+        startDate,
+        endDate,
+        options: { includeStatistics: options?.includeStatistics }
+      }, {
+        onProgress: options?.onProgress,
+        timeout: 30000 // 30 second timeout
+      });
+
+      this.logger.info('Filter', 'Date range filter completed', {
+        entriesCount: entries.length,
+        startDate,
+        endDate,
+        visibleResults: result.visibilityMap.filter(r => r.visible).length
+      });
+
+      return result;
+    } catch (error) {
+      this.logger.error('Filter', 'Date range filter failed', 
+        this.logger.enrichError(error as Error, {
+          component: 'DateNavigatorWorkerManager',
+          operation: 'filterByDateRange',
+          metadata: { entriesCount: entries.length, startDate, endDate }
+        })
+      );
+      throw error;
+    } finally {
+      endTimer();
+    }
+  }
+
+  // Type-safe multi-date filtering
+  async filterByMultipleDates(
+    entries: DreamEntryData[],
+    selectedDates: string[],
+    mode: 'include' | 'exclude' = 'include'
+  ): Promise<WorkerMessageTypes['FILTER_BY_MULTIPLE_DATES']['response']> {
+    
+    return this.sendMessage('FILTER_BY_MULTIPLE_DATES', {
+      entries,
+      selectedDates,
+      mode
+    });
+  }
+
+  // Type-safe pattern filtering
+  async filterByPattern(
+    entries: DreamEntryData[],
+    pattern: DatePattern,
+    dateRange?: { start: string; end: string }
+  ): Promise<WorkerMessageTypes['FILTER_BY_PATTERN']['response']> {
+    
+    return this.sendMessage('FILTER_BY_PATTERN', {
+      entries,
+      pattern,
+      dateRange
+    });
+  }
+}
+```
+
+#### Enhanced Type Definitions
+
+```typescript
+// Extended type definitions for worker operations
+interface FilterOptions {
+  includeStatistics?: boolean;
+  optimizeForLargeDatasets?: boolean;
+  enableProgressReporting?: boolean;
+  batchSize?: number;
+}
+
+interface FilterStatistics {
+  totalEntries: number;
+  visibleEntries: number;
+  hiddenEntries: number;
+  processingTime: number;
+  memoryUsage?: number;
+  cacheHits?: number;
+  cacheMisses?: number;
+}
+
+interface VisibilityResult {
+  id: string;
+  visible: boolean;
+  matchReason?: string;
+  confidence?: number;
+}
+
+interface DatePattern {
+  type: 'weekday' | 'month-day' | 'custom-interval' | 'regex';
+  value: string | number;
+  description: string;
+  examples?: string[];
+}
+
+interface PatternAnalysis {
+  totalMatches: number;
+  patternEfficiency: number; // 0-1 score
+  suggestedOptimizations?: string[];
+  alternativePatterns?: DatePattern[];
+}
+
+// Integration with existing OneiroMetrics types
+declare module './types' {
+  interface DreamMetricsSettings {
+    webWorkerFeatures?: {
+      enableDateFiltering: boolean;
+      enablePatternFiltering: boolean;
+      enableMultiDateSelection: boolean;
+      maxWorkerMemory: number;
+      progressReportingInterval: number;
+    };
+    workerPerformance?: {
+      maxWorkers: number;
+      batchSize: 'small' | 'medium' | 'large';
+      memoryLimit: number; // MB
+      priorityMode: 'balanced' | 'performance' | 'efficiency';
+    };
+  }
+}
+```
+
+### 4. Enhanced Error Recovery and Circuit Breaker Pattern
+
+#### Circuit Breaker Implementation
+
+To prevent cascading failures and provide graceful degradation, the worker system implements a circuit breaker pattern:
+
+```typescript
+// Circuit breaker for worker operations
+class WorkerCircuitBreaker {
+  private logger = getLogger('WorkerCircuitBreaker');
+  private failureCount = 0;
+  private lastFailure = 0;
+  private state: 'closed' | 'open' | 'half-open' = 'closed';
+  private readonly failureThreshold = 5;
+  private readonly timeoutDuration = 30000; // 30 seconds
+  private readonly recoveryTimeout = 60000; // 1 minute
+
+  constructor(private workerManager: DateNavigatorWorkerManager) {}
+
+  async execute<T>(
+    operation: () => Promise<T>,
+    operationName: string,
+    fallback?: () => Promise<T>
+  ): Promise<T> {
+    
+    // Check circuit breaker state
+    if (this.state === 'open') {
+      if (Date.now() - this.lastFailure < this.recoveryTimeout) {
+        this.logger.warn('CircuitBreaker', `Circuit breaker is open for ${operationName}`, {
+          failureCount: this.failureCount,
+          timeSinceLastFailure: Date.now() - this.lastFailure,
+          state: this.state
+        });
+        
+        if (fallback) {
+          this.logger.info('CircuitBreaker', `Using fallback for ${operationName}`, {
+            reason: 'circuit-breaker-open'
+          });
+          return await fallback();
+        }
+        throw new Error(`Circuit breaker is open for ${operationName}`);
+      } else {
+        // Transition to half-open
+        this.state = 'half-open';
+        this.logger.info('CircuitBreaker', `Transitioning to half-open state for ${operationName}`, {
+          recoveryAttempt: true
+        });
+      }
+    }
+
+    try {
+      const endTimer = this.logger.time(`circuitBreaker.${operationName}`);
+      const result = await operation();
+      endTimer();
+      
+      // Success - reset circuit breaker
+      this.onSuccess(operationName);
+      return result;
+      
+    } catch (error) {
+      this.onFailure(operationName, error as Error);
+      
+      // Try fallback if available
+      if (fallback) {
+        this.logger.info('CircuitBreaker', `Using fallback for ${operationName}`, {
+          reason: 'operation-failed',
+          error: (error as Error).message
+        });
+        return await fallback();
+      }
+      
+      throw error;
+    }
+  }
+
+  private onSuccess(operationName: string): void {
+    if (this.failureCount > 0 || this.state !== 'closed') {
+      this.logger.info('CircuitBreaker', `Circuit breaker reset for ${operationName}`, {
+        previousFailureCount: this.failureCount,
+        previousState: this.state
+      });
+    }
+    
+    this.failureCount = 0;
+    this.state = 'closed';
+  }
+
+  private onFailure(operationName: string, error: Error): void {
+    this.failureCount++;
+    this.lastFailure = Date.now();
+    
+    const enrichedError = this.logger.enrichError(error, {
+      component: 'WorkerCircuitBreaker',
+      operation: operationName,
+      metadata: {
+        failureCount: this.failureCount,
+        currentState: this.state,
+        failureThreshold: this.failureThreshold
+      }
+    });
+    
+    this.logger.error('CircuitBreaker', `Operation failed: ${operationName}`, enrichedError);
+
+    if (this.failureCount >= this.failureThreshold) {
+      this.state = 'open';
+      this.logger.warn('CircuitBreaker', `Circuit breaker opened for ${operationName}`, {
+        failureCount: this.failureCount,
+        threshold: this.failureThreshold,
+        recoveryTimeout: this.recoveryTimeout
+      });
+    }
+  }
+
+  getState(): { state: string; failureCount: number; timeSinceLastFailure: number } {
+    return {
+      state: this.state,
+      failureCount: this.failureCount,
+      timeSinceLastFailure: this.lastFailure ? Date.now() - this.lastFailure : 0
+    };
+  }
+}
+```
+
+#### Enhanced DateNavigatorWorkerManager with Circuit Breaker
+
+```typescript
+export class DateNavigatorWorkerManager extends TypedWorkerManager<WorkerMessageTypes> {
+  private logger = getLogger('DateNavigatorWorker');
+  private circuitBreaker: WorkerCircuitBreaker;
+  private fallbackProcessor: MainThreadFallbackProcessor;
+
+  constructor(app: App, plugin: DreamMetricsPlugin) {
+    super();
+    this.app = app;
+    this.plugin = plugin;
+    this.circuitBreaker = new WorkerCircuitBreaker(this);
+    this.fallbackProcessor = new MainThreadFallbackProcessor(app, plugin);
+    this.initWorker();
+  }
+
+  // Circuit breaker protected date range filtering
+  async filterByDateRange(
+    entries: DreamEntryData[],
+    startDate: string,
+    endDate: string,
+    options?: {
+      onProgress?: (progress: WorkerMessageTypes['FILTER_PROGRESS']['response']) => void;
+      includeStatistics?: boolean;
+    }
+  ): Promise<WorkerMessageTypes['FILTER_BY_DATE_RANGE']['response']> {
+    
+    return this.circuitBreaker.execute(
+      // Primary operation (worker)
+      async () => {
+        return await this.sendMessage('FILTER_BY_DATE_RANGE', {
+          entries,
+          startDate,
+          endDate,
+          options: { includeStatistics: options?.includeStatistics }
+        }, {
+          onProgress: options?.onProgress,
+          timeout: 30000
+        });
+      },
+      'filterByDateRange',
+      // Fallback operation (main thread)
+      async () => {
+        this.logger.info('Fallback', 'Using main thread for date range filtering', {
+          entriesCount: entries.length,
+          reason: 'worker-unavailable'
+        });
+        return await this.fallbackProcessor.filterByDateRange(entries, startDate, endDate, options);
+      }
+    );
+  }
+
+  // Health check for circuit breaker monitoring
+  async performHealthCheck(): Promise<boolean> {
+    try {
+      // Simple ping to worker
+      const testResult = await this.sendMessage('FILTER_BY_DATE_RANGE', {
+        entries: [], // Empty test
+        startDate: '',
+        endDate: ''
+      }, {
+        timeout: 5000
+      });
+      
+      this.logger.debug('HealthCheck', 'Worker health check passed', {
+        circuitBreakerState: this.circuitBreaker.getState()
+      });
+      
+      return true;
+    } catch (error) {
+      this.logger.warn('HealthCheck', 'Worker health check failed', {
+        error: (error as Error).message,
+        circuitBreakerState: this.circuitBreaker.getState()
+      });
+      return false;
+    }
+  }
+}
+```
+
+#### Main Thread Fallback Processor
+
+```typescript
+// Fallback processor for when workers are unavailable
+class MainThreadFallbackProcessor {
+  private logger = getLogger('FallbackProcessor');
+
+  constructor(private app: App, private plugin: DreamMetricsPlugin) {}
+
+  async filterByDateRange(
+    entries: DreamEntryData[],
+    startDate: string,
+    endDate: string,
+    options?: {
+      onProgress?: (progress: WorkerMessageTypes['FILTER_PROGRESS']['response']) => void;
+      includeStatistics?: boolean;
+    }
+  ): Promise<WorkerMessageTypes['FILTER_BY_DATE_RANGE']['response']> {
+    
+    const endTimer = this.logger.time('fallback.filterByDateRange');
+    
+    try {
+      const visibilityMap: VisibilityResult[] = [];
+      const batchSize = 100; // Smaller batches for main thread
+      let processedCount = 0;
+
+      // Convert dates for comparison
+      const start = new Date(startDate).getTime();
+      const end = new Date(endDate).getTime();
+
+      // Process in batches with yielding to prevent UI blocking
+      for (let i = 0; i < entries.length; i += batchSize) {
+        const batch = entries.slice(i, i + batchSize);
+        
+        // Process batch
+        for (const entry of batch) {
+          const entryDate = new Date(entry.date).getTime();
+          const visible = entryDate >= start && entryDate <= end;
+          
+          visibilityMap.push({
+            id: entry.id || `entry-${i}`,
+            visible,
+            matchReason: visible ? 'date-range-match' : 'date-range-exclude'
+          });
+        }
+
+        processedCount += batch.length;
+
+        // Report progress
+        if (options?.onProgress) {
+          const progress = Math.floor((processedCount / entries.length) * 100);
+          options.onProgress({
+            progress,
+            entriesProcessed: processedCount,
+            currentPhase: 'filtering'
+          });
+        }
+
+        // Yield to UI thread
+        if (i + batchSize < entries.length) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
+
+      // Generate statistics if requested
+      const statistics: FilterStatistics = {
+        totalEntries: entries.length,
+        visibleEntries: visibilityMap.filter(r => r.visible).length,
+        hiddenEntries: visibilityMap.filter(r => !r.visible).length,
+        processingTime: Date.now() - performance.now()
+      };
+
+      this.logger.info('Fallback', 'Main thread date range filtering completed', {
+        entriesProcessed: entries.length,
+        visibleResults: statistics.visibleEntries,
+        processingTime: statistics.processingTime
+      });
+
+      return {
+        visibilityMap,
+        statistics: options?.includeStatistics ? statistics : undefined as any
+      };
+
+    } catch (error) {
+      this.logger.error('Fallback', 'Main thread filtering failed',
+        this.logger.enrichError(error as Error, {
+          component: 'MainThreadFallbackProcessor',
+          operation: 'filterByDateRange',
+          metadata: { entriesCount: entries.length, startDate, endDate }
+        })
+      );
+      throw error;
+    } finally {
+      endTimer();
+    }
+  }
+
+  async filterByMultipleDates(
+    entries: DreamEntryData[],
+    selectedDates: string[],
+    mode: 'include' | 'exclude'
+  ): Promise<WorkerMessageTypes['FILTER_BY_MULTIPLE_DATES']['response']> {
+    
+    // Similar implementation for multi-date filtering on main thread
+    // ... implementation details
+    
+    return {
+      visibilityMap: [],
+      affectedDates: selectedDates
+    };
+  }
+}
+```
+
+#### Monitoring and Recovery
+
+```typescript
+// Worker monitoring and automatic recovery
+class WorkerMonitor {
+  private logger = getLogger('WorkerMonitor');
+  private monitoringInterval?: NodeJS.Timeout;
+  private readonly monitoringFrequency = 30000; // 30 seconds
+
+  constructor(private workerManager: DateNavigatorWorkerManager) {}
+
+  startMonitoring(): void {
+    this.logger.info('Monitor', 'Starting worker monitoring', {
+      frequency: this.monitoringFrequency
+    });
+
+    this.monitoringInterval = setInterval(async () => {
+      try {
+        const isHealthy = await this.workerManager.performHealthCheck();
+        const circuitBreakerState = (this.workerManager as any).circuitBreaker.getState();
+        
+        this.logger.debug('Monitor', 'Worker health check completed', {
+          isHealthy,
+          circuitBreakerState
+        });
+
+        // Log warnings for degraded states
+        if (!isHealthy || circuitBreakerState.state !== 'closed') {
+          this.logger.warn('Monitor', 'Worker in degraded state', {
+            isHealthy,
+            circuitBreakerState
+          });
+        }
+
+      } catch (error) {
+        this.logger.error('Monitor', 'Health check failed',
+          this.logger.enrichError(error as Error, {
+            component: 'WorkerMonitor',
+            operation: 'healthCheck'
+          })
+        );
+      }
+    }, this.monitoringFrequency);
+  }
+
+  stopMonitoring(): void {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = undefined;
+      this.logger.info('Monitor', 'Worker monitoring stopped');
+    }
+  }
+}
+```
+
+This enhanced error recovery system provides:
+
+- **Circuit Breaker Protection**: Prevents cascading failures by opening the circuit after threshold failures
+- **Automatic Fallback**: Seamless transition to main thread processing when workers fail
+- **Health Monitoring**: Continuous monitoring of worker health with automatic recovery attempts
+- **Graceful Degradation**: Maintains functionality even when web workers are completely unavailable
+- **Comprehensive Logging**: Full visibility into failure patterns and recovery operations
+- **User Transparency**: Users continue to get filtered results regardless of underlying failures
+
+### 5. Comprehensive Worker Debugging Tools
+
+#### Advanced Debug Information Panel
+
+Enhanced debugging tools for development and troubleshooting:
+
+```typescript
+// Comprehensive debugging tools for worker operations
+export class WorkerDebugTools {
+  private logger = getLogger('WorkerDebug');
+  private performanceMetrics: WorkerPerformanceMetrics[] = [];
+  private messageLog: WorkerMessageLog[] = [];
+  private debugPanel: HTMLElement | null = null;
+  private isDebugMode: boolean;
+
+  constructor(
+    private settings: DreamMetricsSettings,
+    private workerManager: DateNavigatorWorkerManager
+  ) {
+    this.isDebugMode = settings.logging?.level === 'debug' || settings.logging?.level === 'trace';
+  }
+
+  // Show comprehensive debug panel
+  showDebugPanel(): void {
+    if (!this.isDebugMode) {
+      this.logger.info('Debug', 'Debug mode not enabled, skipping debug panel');
+      return;
+    }
+
+    this.createDebugPanel();
+    this.updateDebugInformation();
+    
+    // Auto-refresh debug information
+    const refreshInterval = setInterval(() => {
+      if (this.debugPanel?.isConnected) {
+        this.updateDebugInformation();
+      } else {
+        clearInterval(refreshInterval);
+      }
+    }, 2000);
+
+    this.logger.info('Debug', 'Worker debug panel shown', {
+      metricsCount: this.performanceMetrics.length,
+      messageLogCount: this.messageLog.length
+    });
+  }
+
+  private createDebugPanel(): void {
+    this.debugPanel = document.createElement('div');
+    this.debugPanel.className = 'oom-worker-debug-panel';
+    this.debugPanel.innerHTML = `
+      <div class="debug-panel-header">
+        <h3>🔧 Web Worker Debug Information</h3>
+        <button class="debug-close-btn" onclick="this.parentElement.parentElement.remove()">×</button>
+      </div>
+      
+      <div class="debug-tabs">
+        <button class="debug-tab active" data-tab="overview">Overview</button>
+        <button class="debug-tab" data-tab="performance">Performance</button>
+        <button class="debug-tab" data-tab="messages">Messages</button>
+        <button class="debug-tab" data-tab="errors">Errors</button>
+        <button class="debug-tab" data-tab="settings">Settings</button>
+      </div>
+
+      <div class="debug-content">
+        <div id="debug-overview" class="debug-tab-content active">
+          <div id="worker-status"></div>
+          <div id="circuit-breaker-status"></div>
+          <div id="performance-summary"></div>
+        </div>
+        
+        <div id="debug-performance" class="debug-tab-content">
+          <div id="performance-charts"></div>
+          <div id="performance-table"></div>
+        </div>
+        
+        <div id="debug-messages" class="debug-tab-content">
+          <div id="message-filters"></div>
+          <div id="message-log"></div>
+        </div>
+        
+        <div id="debug-errors" class="debug-tab-content">
+          <div id="error-summary"></div>
+          <div id="error-details"></div>
+        </div>
+        
+        <div id="debug-settings" class="debug-tab-content">
+          <div id="debug-controls"></div>
+          <div id="export-controls"></div>
+        </div>
+      </div>
+    `;
+
+    // Add CSS for debug panel
+    this.addDebugPanelStyles();
+    
+    // Setup tab switching
+    this.setupTabSwitching();
+    
+    // Add to DOM
+    document.body.appendChild(this.debugPanel);
+  }
+
+  private updateDebugInformation(): void {
+    if (!this.debugPanel) return;
+
+    // Update overview tab
+    this.updateOverviewTab();
+    
+    // Update performance tab
+    this.updatePerformanceTab();
+    
+    // Update messages tab
+    this.updateMessagesTab();
+    
+    // Update errors tab
+    this.updateErrorsTab();
+  }
+
+  private updateOverviewTab(): void {
+    const workerStatus = this.debugPanel?.querySelector('#worker-status');
+    const circuitBreakerStatus = this.debugPanel?.querySelector('#circuit-breaker-status');
+    const performanceSummary = this.debugPanel?.querySelector('#performance-summary');
+
+    if (workerStatus) {
+      const isWorkerAvailable = (this.workerManager as any).worker !== null;
+      const circuitState = (this.workerManager as any).circuitBreaker?.getState();
+      
+      workerStatus.innerHTML = `
+        <div class="status-card">
+          <h4>Worker Status</h4>
+          <div class="status-indicator ${isWorkerAvailable ? 'online' : 'offline'}">
+            ${isWorkerAvailable ? '🟢 Online' : '🔴 Offline'}
+          </div>
+          <div class="status-details">
+            <div>Supported: ${typeof Worker !== 'undefined' ? 'Yes' : 'No'}</div>
+            <div>Active: ${isWorkerAvailable ? 'Yes' : 'No'}</div>
+            <div>Platform: ${this.getPlatformInfo()}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (circuitBreakerStatus && (this.workerManager as any).circuitBreaker) {
+      const state = (this.workerManager as any).circuitBreaker.getState();
+      circuitBreakerStatus.innerHTML = `
+        <div class="status-card">
+          <h4>Circuit Breaker</h4>
+          <div class="status-indicator ${state.state === 'closed' ? 'normal' : 'warning'}">
+            ${this.getCircuitBreakerIcon(state.state)} ${state.state.toUpperCase()}
+          </div>
+          <div class="status-details">
+            <div>Failures: ${state.failureCount}</div>
+            <div>Last Failure: ${state.timeSinceLastFailure > 0 ? 
+              `${Math.round(state.timeSinceLastFailure / 1000)}s ago` : 'None'}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (performanceSummary) {
+      const recentMetrics = this.performanceMetrics.slice(-10);
+      const avgTime = recentMetrics.length > 0 ? 
+        recentMetrics.reduce((sum, m) => sum + m.duration, 0) / recentMetrics.length : 0;
+      
+      performanceSummary.innerHTML = `
+        <div class="status-card">
+          <h4>Performance Summary</h4>
+          <div class="performance-stats">
+            <div>Operations: ${this.performanceMetrics.length}</div>
+            <div>Avg Duration: ${avgTime.toFixed(2)}ms</div>
+            <div>Success Rate: ${this.calculateSuccessRate()}%</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  private updatePerformanceTab(): void {
+    const performanceTable = this.debugPanel?.querySelector('#performance-table');
+    
+    if (performanceTable) {
+      const recentMetrics = this.performanceMetrics.slice(-20).reverse();
+      
+      performanceTable.innerHTML = `
+        <table class="debug-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Operation</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Entries</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentMetrics.map(metric => `
+              <tr class="${metric.success ? 'success' : 'error'}">
+                <td>${new Date(metric.timestamp).toLocaleTimeString()}</td>
+                <td>${metric.operation}</td>
+                <td>${metric.duration.toFixed(2)}ms</td>
+                <td>${metric.success ? '✅' : '❌'}</td>
+                <td>${metric.entriesProcessed || 'N/A'}</td>
+                <td>
+                  <button onclick="this.showMetricDetails('${metric.id}')">📋</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+  }
+
+  private updateMessagesTab(): void {
+    const messageLog = this.debugPanel?.querySelector('#message-log');
+    
+    if (messageLog) {
+      const recentMessages = this.messageLog.slice(-50).reverse();
+      
+      messageLog.innerHTML = `
+        <div class="message-log">
+          ${recentMessages.map(msg => `
+            <div class="message-entry ${msg.direction} ${msg.type.toLowerCase()}">
+              <div class="message-header">
+                <span class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                <span class="message-direction">${msg.direction === 'sent' ? '→' : '←'}</span>
+                <span class="message-type">${msg.type}</span>
+                <span class="message-id">${msg.id}</span>
+              </div>
+              <div class="message-data">
+                <pre>${JSON.stringify(msg.data, null, 2)}</pre>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
+
+  // Record performance metrics
+  recordPerformanceMetric(metric: WorkerPerformanceMetrics): void {
+    this.performanceMetrics.push(metric);
+    
+    // Keep only last 1000 metrics
+    if (this.performanceMetrics.length > 1000) {
+      this.performanceMetrics = this.performanceMetrics.slice(-1000);
+    }
+
+    this.logger.debug('Performance', 'Recorded performance metric', {
+      operation: metric.operation,
+      duration: metric.duration,
+      success: metric.success
+    });
+  }
+
+  // Record message log entry
+  recordMessage(direction: 'sent' | 'received', message: any): void {
+    const logEntry: WorkerMessageLog = {
+      id: message.id || this.generateId(),
+      direction,
+      type: message.type,
+      timestamp: Date.now(),
+      data: message.data
+    };
+
+    this.messageLog.push(logEntry);
+    
+    // Keep only last 500 messages
+    if (this.messageLog.length > 500) {
+      this.messageLog = this.messageLog.slice(-500);
+    }
+
+    this.logger.debug('Message', `${direction} message: ${message.type}`, {
+      messageId: logEntry.id,
+      direction,
+      type: message.type
+    });
+  }
+
+  // Export debug information
+  exportDebugData(): void {
+    const debugData = {
+      timestamp: Date.now(),
+      workerStatus: {
+        available: (this.workerManager as any).worker !== null,
+        supported: typeof Worker !== 'undefined',
+        platform: this.getPlatformInfo()
+      },
+      circuitBreakerState: (this.workerManager as any).circuitBreaker?.getState(),
+      performanceMetrics: this.performanceMetrics,
+      messageLog: this.messageLog.slice(-100), // Last 100 messages
+      settings: {
+        debugMode: this.isDebugMode,
+        logLevel: this.settings.logging?.level
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(debugData, null, 2)], { 
+      type: 'application/json' 
+    });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `worker-debug-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+
+    this.logger.info('Debug', 'Debug data exported', {
+      metricsCount: this.performanceMetrics.length,
+      messagesCount: this.messageLog.length,
+      exportSize: blob.size
+    });
+  }
+
+  private addDebugPanelStyles(): void {
+    const style = document.createElement('style');
+    style.textContent = `
+      .oom-worker-debug-panel {
+        position: fixed;
+        top: 10%;
+        right: 20px;
+        width: 600px;
+        max-height: 80vh;
+        background: var(--background-primary);
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 1000;
+        font-family: var(--font-monospace);
+        font-size: 12px;
+        overflow: hidden;
+      }
+      
+      .debug-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: var(--background-secondary);
+        border-bottom: 1px solid var(--background-modifier-border);
+      }
+      
+      .debug-tabs {
+        display: flex;
+        background: var(--background-secondary);
+        border-bottom: 1px solid var(--background-modifier-border);
+      }
+      
+      .debug-tab {
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+      }
+      
+      .debug-tab.active {
+        border-bottom-color: var(--interactive-accent);
+        background: var(--background-primary);
+      }
+      
+      .debug-content {
+        height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+      }
+      
+      .debug-tab-content {
+        display: none;
+      }
+      
+      .debug-tab-content.active {
+        display: block;
+      }
+      
+      .status-card {
+        background: var(--background-secondary);
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+      }
+      
+      .status-indicator {
+        font-weight: bold;
+        margin: 5px 0;
+      }
+      
+      .status-indicator.online { color: #4ade80; }
+      .status-indicator.offline { color: #f87171; }
+      .status-indicator.normal { color: #4ade80; }
+      .status-indicator.warning { color: #fbbf24; }
+      
+      .debug-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      
+      .debug-table th,
+      .debug-table td {
+        padding: 4px 8px;
+        border: 1px solid var(--background-modifier-border);
+        text-align: left;
+      }
+      
+      .debug-table tr.success { background: rgba(74, 222, 128, 0.1); }
+      .debug-table tr.error { background: rgba(248, 113, 113, 0.1); }
+      
+      .message-entry {
+        margin-bottom: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        border-left: 3px solid var(--background-modifier-border);
+      }
+      
+      .message-entry.sent { border-left-color: #3b82f6; }
+      .message-entry.received { border-left-color: #10b981; }
+      
+      .message-header {
+        display: flex;
+        gap: 10px;
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+      }
+      
+      .message-data pre {
+        background: var(--background-primary);
+        padding: 5px;
+        border-radius: 3px;
+        font-size: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  private setupTabSwitching(): void {
+    const tabs = this.debugPanel?.querySelectorAll('.debug-tab');
+    tabs?.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const tabName = target.getAttribute('data-tab');
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        target.classList.add('active');
+        
+        // Show corresponding content
+        const contents = this.debugPanel?.querySelectorAll('.debug-tab-content');
+        contents?.forEach(c => c.classList.remove('active'));
+        this.debugPanel?.querySelector(`#debug-${tabName}`)?.classList.add('active');
+      });
+    });
+  }
+
+  private getPlatformInfo(): string {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('Obsidian')) return 'Obsidian Desktop';
+    if (userAgent.includes('Mobile')) return 'Obsidian Mobile';
+    return 'Unknown';
+  }
+
+  private getCircuitBreakerIcon(state: string): string {
+    switch (state) {
+      case 'closed': return '🟢';
+      case 'open': return '🔴';
+      case 'half-open': return '🟡';
+      default: return '⚪';
+    }
+  }
+
+  private calculateSuccessRate(): number {
+    if (this.performanceMetrics.length === 0) return 100;
+    const successful = this.performanceMetrics.filter(m => m.success).length;
+    return Math.round((successful / this.performanceMetrics.length) * 100);
+  }
+
+  private generateId(): string {
+    return Math.random().toString(36).substr(2, 9);
+  }
+}
+
+// Type definitions for debug data
+interface WorkerPerformanceMetrics {
+  id: string;
+  operation: string;
+  timestamp: number;
+  duration: number;
+  success: boolean;
+  entriesProcessed?: number;
+  memoryUsage?: number;
+  cacheHits?: number;
+  error?: string;
+}
+
+interface WorkerMessageLog {
+  id: string;
+  direction: 'sent' | 'received';
+  type: string;
+  timestamp: number;
+  data: any;
+}
+```
+
+#### Integration with DateNavigatorWorkerManager
+
+```typescript
+// Enhanced worker manager with debug integration
+export class DateNavigatorWorkerManager extends TypedWorkerManager<WorkerMessageTypes> {
+  private logger = getLogger('DateNavigatorWorker');
+  private debugTools: WorkerDebugTools;
+  private circuitBreaker: WorkerCircuitBreaker;
+  private fallbackProcessor: MainThreadFallbackProcessor;
+
+  constructor(app: App, plugin: DreamMetricsPlugin) {
+    super();
+    this.app = app;
+    this.plugin = plugin;
+    this.debugTools = new WorkerDebugTools(plugin.settings, this);
+    this.circuitBreaker = new WorkerCircuitBreaker(this);
+    this.fallbackProcessor = new MainThreadFallbackProcessor(app, plugin);
+    this.initWorker();
+  }
+
+  // Override sendMessage to include debug recording
+  protected async sendMessage<K extends keyof WorkerMessageTypes>(
+    type: K,
+    data: WorkerMessageTypes[K]['request'],
+    options?: any
+  ): Promise<WorkerMessageTypes[K]['response']> {
+    
+    const startTime = performance.now();
+    const requestId = this.generateRequestId();
+    
+    // Record outgoing message
+    this.debugTools.recordMessage('sent', { id: requestId, type, data });
+    
+    try {
+      const result = await super.sendMessage(type, data, options);
+      
+      // Record successful performance metric
+      this.debugTools.recordPerformanceMetric({
+        id: requestId,
+        operation: type as string,
+        timestamp: Date.now(),
+        duration: performance.now() - startTime,
+        success: true,
+        entriesProcessed: Array.isArray(data?.entries) ? data.entries.length : undefined
+      });
+      
+      return result;
+      
+    } catch (error) {
+      // Record failed performance metric
+      this.debugTools.recordPerformanceMetric({
+        id: requestId,
+        operation: type as string,
+        timestamp: Date.now(),
+        duration: performance.now() - startTime,
+        success: false,
+        error: (error as Error).message
+      });
+      
+      throw error;
+    }
+  }
+
+  // Debug panel access method
+  showDebugPanel(): void {
+    this.debugTools.showDebugPanel();
+  }
+
+  // Export debug data
+  exportDebugData(): void {
+    this.debugTools.exportDebugData();
+  }
+}
+```
+
+This comprehensive debugging system provides:
+
+- **Real-time Monitoring**: Live updates of worker status, performance, and operations
+- **Performance Analytics**: Detailed metrics tracking with timing and success rates
+- **Message Logging**: Complete audit trail of worker communications
+- **Error Analysis**: Detailed error tracking and circuit breaker state monitoring
+- **Export Capabilities**: Full debug data export for offline analysis
+- **Visual Dashboard**: User-friendly debug panel with tabbed interface
+- **Development Integration**: Seamless integration with OneiroMetrics' debug mode
