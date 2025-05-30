@@ -245,6 +245,7 @@ import {
 import { TemplateManager } from './src/templates/TemplateManager';
 import { FilterPersistenceManager } from './src/dom/filters/FilterPersistenceManager';
 import { DateNavigatorManager } from './src/dom/date-navigator/DateNavigatorManager';
+import { LogFileManager } from './src/logging/LogFileManager';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -297,6 +298,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private templateManager: TemplateManager;
     private filterPersistenceManager: FilterPersistenceManager;
     private dateNavigatorManager: DateNavigatorManager;
+    private logFileManager: LogFileManager;
 
     async onload() {
         // Assign the plugin instance to window.oneiroMetricsPlugin first
@@ -404,6 +406,12 @@ export default class DreamMetricsPlugin extends Plugin {
             this.state,
             this.timeFilterManager,
             this.memoizedTableData,
+            this.logger
+        );
+
+        // Initialize LogFileManager
+        this.logFileManager = new LogFileManager(
+            this.app,
             this.logger
         );
     }
@@ -647,132 +655,23 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     private async clearDebugLog() {
-        try {
-            const logPath = 'logs/oom-debug-log.txt';
-            const logFile = this.app.vault.getAbstractFileByPath(logPath);
-            
-            if (logFile instanceof TFile) {
-                // Create backup before clearing
-                const backupPath = `logs/oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-                const content = await this.app.vault.read(logFile);
-                await this.app.vault.create(backupPath, content);
-                
-                // Clear the log file
-                await this.app.vault.modify(logFile, '');
-                this.logger.log('Log', 'Debug log cleared and backed up');
-                
-                // Clean up old backups (keep last 5)
-                const backupFiles = this.app.vault.getMarkdownFiles()
-                    .filter(f => f.path.startsWith('logs/oom-debug-log.backup-'))
-                    .sort((a, b) => b.stat.mtime - a.stat.mtime);
-                
-                for (let i = 5; i < backupFiles.length; i++) {
-                    await this.app.vault.delete(backupFiles[i]);
-                }
-            }
-        } catch (error) {
-            this.logger.error('Log', 'Failed to clear debug log', error as Error);
-            new Notice('Failed to clear debug log. See console for details.');
-        }
+        // Delegate to LogFileManager
+        await this.logFileManager.clearDebugLog();
     }
 
     private async backupDebugLog() {
-        try {
-            const logPath = 'logs/oom-debug-log.txt';
-            const logFile = this.app.vault.getAbstractFileByPath(logPath);
-            
-            if (logFile instanceof TFile) {
-                const backupPath = `logs/oom-debug-log.backup-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-                const content = await this.app.vault.read(logFile);
-                await this.app.vault.create(backupPath, content);
-                this.logger.log('Log', 'Debug log backed up');
-                new Notice('Debug log backed up successfully');
-            }
-        } catch (error) {
-            this.logger.error('Log', 'Failed to backup debug log', error as Error);
-            new Notice('Failed to backup debug log. See console for details.');
-        }
+        // Delegate to LogFileManager
+        await this.logFileManager.backupDebugLog();
     }
 
     private async checkLogFileSize() {
-        try {
-            const logPath = 'logs/oom-debug-log.txt';
-            const logFile = this.app.vault.getAbstractFileByPath(logPath);
-            
-            if (logFile instanceof TFile) {
-                const MAX_SIZE = 1024 * 1024; // 1MB
-                if (logFile.stat.size > MAX_SIZE) {
-                    await this.clearDebugLog();
-                    new Notice('Debug log exceeded size limit and was cleared');
-                }
-            }
-        } catch (error) {
-            this.logger.error('Log', 'Failed to check log file size', error as Error);
-        }
+        // Delegate to LogFileManager
+        await this.logFileManager.checkLogFileSize();
     }
 
     private async copyConsoleLogs() {
-        try {
-            // Get the console log content
-            const consoleLog = await this.getConsoleLog();
-            if (!consoleLog) {
-                new Notice('No console logs found');
-                return;
-            }
-
-            // Filter for OneiroMetrics entries
-            const filteredLogs = consoleLog
-                .split('\n')
-                .filter(line => line.includes('[OneiroMetrics]'))
-                .join('\n');
-
-            if (!filteredLogs) {
-                new Notice('No OneiroMetrics logs found in console');
-                return;
-            }
-
-            // Get or create the log file
-            const logPath = 'logs/oom-debug-log.txt';
-            let logFile = this.app.vault.getAbstractFileByPath(logPath);
-            
-            if (!logFile) {
-                logFile = await this.app.vault.create(logPath, '');
-            }
-
-            // Add timestamp and separator
-            const timestamp = new Date().toISOString();
-            const separator = '\n\n' + '-'.repeat(80) + '\n';
-            const newContent = `${separator}Console Log Capture - ${timestamp}\n${separator}\n${filteredLogs}\n`;
-
-            // Append to existing content
-            const existingContent = await this.app.vault.read(logFile as TFile);
-            await this.app.vault.modify(logFile as TFile, existingContent + newContent);
-
-            new Notice('Console logs copied to debug file');
-            this.logger.log('Log', 'Console logs copied to debug file');
-        } catch (error) {
-            this.logger.error('Log', 'Failed to copy console logs', error as Error);
-            new Notice('Failed to copy console logs. See console for details.');
-        }
-    }
-
-    private async getConsoleLog(): Promise<string | null> {
-        try {
-            // This is a workaround since we can't directly access the console log
-            // We'll use the developer tools API to get the log
-            const devTools = (window as any).devTools;
-            if (!devTools) {
-                new Notice('Developer Tools not available. Please open them first (Ctrl+Shift+I)');
-                return null;
-            }
-
-            // Get the console log from the developer tools
-            const consoleLog = await devTools.getConsoleLog();
-            return consoleLog;
-        } catch (error) {
-            this.logger.error('Log', 'Failed to get console log', error as Error);
-            return null;
-        }
+        // Delegate to LogFileManager
+        await this.logFileManager.copyConsoleLogs();
     }
 
     /**
