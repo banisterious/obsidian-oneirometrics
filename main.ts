@@ -303,7 +303,7 @@ import { ContentToggler } from './src/dom/content/ContentToggler';
 import { FilterUI } from './src/dom/filters/FilterUI';
 import { TableGenerator, TableManager } from './src/dom/tables';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
-import { MetricsCollector, TableStatisticsUpdater } from './src/metrics';
+// Removed duplicate import
 
 // Global instance for functions that need access to ContentToggler
 let globalContentToggler: ContentToggler;
@@ -375,10 +375,14 @@ export default class DreamMetricsPlugin extends Plugin {
     private eventHandler: EventHandler;
 
     // Add these properties to the DreamMetricsPlugin class with the other properties
-    private contentToggler: ContentToggler;
+    public contentToggler: ContentToggler;
     private filterUI: FilterUI;
 
     async onload() {
+        // Assign the plugin instance to window.oneiroMetricsPlugin first
+        // to ensure any components that depend on it can access it
+        (window as any).oneiroMetricsPlugin = this;
+
         // Create a new PluginLoader and delegate the initialization to it
         const pluginLoader = new PluginLoader(this, this.app);
         
@@ -700,6 +704,22 @@ export default class DreamMetricsPlugin extends Plugin {
 
         private updateProjectNoteView(currentLogLevel?: string) {
         // Only update if the current file is a project note
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!view || view.getMode() !== 'preview') {
+            this.logger?.debug('UI', 'Not in preview mode, skipping project note view update');
+            return;
+        }
+
+        const previewEl = view.previewMode?.containerEl;
+        if (!previewEl) {
+            this.logger?.debug('UI', 'No preview element found, skipping project note view update');
+            return;
+        }
+        
+        // Set container for event handlers and content toggler
+        this.container = previewEl;
+        this.eventHandler.setContainer(previewEl);
+        this.contentToggler.setContainer(previewEl);
         
         // Setup event listeners for project notes
         this.eventHandler.attachProjectNoteEventListeners();
@@ -2148,10 +2168,24 @@ function getMetricIcon(iconName: string): string | null {
 
 // These global functions now delegate to the ContentToggler instance
 function toggleContentVisibility(button: HTMLElement) {
-    globalContentToggler.toggleContentVisibility(button);
+    if (globalContentToggler) {
+        globalContentToggler.toggleContentVisibility(button);
+    } else if (window.oneiroMetricsPlugin && window.oneiroMetricsPlugin.contentToggler) {
+        // Fallback to plugin instance if global isn't set
+        window.oneiroMetricsPlugin.contentToggler.toggleContentVisibility(button);
+    } else {
+        console.error('[OneiroMetrics] ContentToggler not initialized for toggle operation');
+    }
 }
 
 function expandAllContentSections(previewEl: HTMLElement) {
-    globalContentToggler.expandAllContentSections(previewEl);
+    if (globalContentToggler) {
+        globalContentToggler.expandAllContentSections(previewEl);
+    } else if (window.oneiroMetricsPlugin && window.oneiroMetricsPlugin.contentToggler) {
+        // Fallback to plugin instance if global isn't set
+        window.oneiroMetricsPlugin.contentToggler.expandAllContentSections(previewEl);
+    } else {
+        console.error('[OneiroMetrics] ContentToggler not initialized for expand operation');
+    }
 }
 

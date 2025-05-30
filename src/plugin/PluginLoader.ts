@@ -77,8 +77,11 @@ export class PluginLoader {
         this.plugin.addSettingTab(new DreamMetricsSettingTab(this.app, this.plugin as any));
         
         // Set plugin instance for global access (used by filter persistence)
-        (window as any).oneiroMetricsPlugin = this.plugin;
-        globalLogger?.debug('State', 'Set global plugin instance for filter persistence');
+        // Only set if not already defined to avoid overriding the one set in onload
+        if (!(window as any).oneiroMetricsPlugin) {
+            (window as any).oneiroMetricsPlugin = this.plugin;
+            globalLogger?.debug('State', 'Set global plugin instance for filter persistence');
+        }
     }
 
     /**
@@ -433,8 +436,14 @@ export class PluginLoader {
                     if (view && view.getMode() === 'preview') {
                         const file = view.file;
                         if (file && file.path === getProjectNotePath(settings)) {
-                            safeLogger.debug('Events', 'Metrics note view detected, attaching event listeners');
-                            plugin.attachProjectNoteEventListeners();
+                            safeLogger.debug('Events', 'Metrics note view detected, updating project note view');
+                            // Call updateProjectNoteView which properly sets up event handlers
+                            if (typeof plugin.updateProjectNoteView === 'function') {
+                                plugin.updateProjectNoteView();
+                            } else {
+                                // Fallback to direct event listener attachment
+                                plugin.attachProjectNoteEventListeners();
+                            }
                         }
                     }
                 }, 500); // 500ms delay to ensure content is rendered
@@ -451,6 +460,20 @@ export class PluginLoader {
                 
                 // Apply initial filters if available
                 plugin.applyInitialFilters();
+                
+                // Also check if metrics note is already open and set up event handlers
+                setTimeout(() => {
+                    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                    if (activeView && activeView.getMode() === 'preview') {
+                        const file = activeView.file;
+                        if (file && file.path === getProjectNotePath(settings)) {
+                            safeLogger.debug('Events', 'Metrics note already open on startup, updating project note view');
+                            if (typeof plugin.updateProjectNoteView === 'function') {
+                                plugin.updateProjectNoteView();
+                            }
+                        }
+                    }
+                }, 1000);
             } catch (error) {
                 if (globalLogger) {
                     globalLogger.error('Filter', 'Failed to apply initial filters', error instanceof Error ? error : new Error(String(error)));
