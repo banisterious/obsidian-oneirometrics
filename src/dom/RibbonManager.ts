@@ -13,7 +13,6 @@ import { getProjectNotePath } from '../utils/settings-helpers';
 
 export class RibbonManager {
     private ribbonIcons: HTMLElement[] = [];
-    private journalManagerRibbonEl: HTMLElement | null = null;
     
     constructor(
         private app: App,
@@ -44,11 +43,6 @@ export class RibbonManager {
         this.ribbonIcons.forEach(icon => icon.remove());
         this.ribbonIcons = [];
         
-        if (this.journalManagerRibbonEl) {
-            this.journalManagerRibbonEl.remove();
-            this.journalManagerRibbonEl = null;
-        }
-        
         this.logger?.debug('UI', 'Removed ribbon icons');
     }
     
@@ -62,51 +56,39 @@ export class RibbonManager {
         // Ensure plugin compatibility - check if folders exist before adding buttons
         this.ensurePluginCompatibility();
         
-        // Add journal manager button
+        // Add main metrics ribbon icon
         // @ts-ignore - Obsidian typings aren't fully accurate
-        this.journalManagerRibbonEl = this.plugin.addRibbonIcon(
-            'lucide-moon',
-            'Dream Journal Manager',
+        const mainMetricsRibbonEl = this.plugin.addRibbonIcon(
+            'dice',
+            'OneiroMetrics',
             () => {
                 // Use type assertion to access properties not defined in Plugin
                 const pluginInstance = this.plugin as any;
-                
-                if (pluginInstance.dreamJournalManager?.open) {
-                    pluginInstance.dreamJournalManager.open();
+                if (pluginInstance.showMetrics) {
+                    pluginInstance.showMetrics();
                 } else {
-                    // Fallback to JournalStructureModal
-                    try {
-                        // Import dynamically to avoid circular dependencies
-                        import('../journal_check/ui/JournalStructureModal').then(module => {
-                            const JournalStructureModal = module.JournalStructureModal;
-                            new JournalStructureModal(this.app, pluginInstance).open();
-                        }).catch(() => {
-                            this.logger?.error('UI', 'Failed to open JournalStructureModal');
-                        });
-                    } catch (e) {
-                        this.logger?.error('UI', 'Error opening JournalStructureModal', e instanceof Error ? e : new Error(String(e)));
-                    }
+                    this.logger?.error('UI', 'showMetrics method not found on plugin instance');
                 }
             }
         );
-        this.ribbonIcons.push(this.journalManagerRibbonEl);
+        this.ribbonIcons.push(mainMetricsRibbonEl);
         
-        // Add metrics guide button
+        // Add OneiroMetrics Hub button with lucide-moon icon
         // @ts-ignore - Obsidian typings aren't fully accurate
-        const metricsGuideRibbonEl = this.plugin.addRibbonIcon(
-            'lucide-scroll-text',
-            'Dream Metrics Reference',
+        const metricsHubRibbonEl = this.plugin.addRibbonIcon(
+            'lucide-moon',
+            'OneiroMetrics Hub',
             () => {
-                // Use ModalsManager instead of the removed showMetricsTabsModal method
+                // Use ModalsManager to open the consolidated hub
                 try {
                     const modalsManager = new ModalsManager(this.app, this.plugin as any, this.logger);
                     modalsManager.openMetricsTabsModal();
                 } catch (e) {
-                    this.logger?.error('UI', 'Error opening Metrics Tabs Modal', e instanceof Error ? e : new Error(String(e)));
+                    this.logger?.error('UI', 'Error opening OneiroMetrics Hub', e instanceof Error ? e : new Error(String(e)));
                 }
             }
         );
-        this.ribbonIcons.push(metricsGuideRibbonEl);
+        this.ribbonIcons.push(metricsHubRibbonEl);
         
         this.logger?.debug('UI', 'Added ribbon icons');
     }
