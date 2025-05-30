@@ -370,7 +370,7 @@ In addition to large methods, there are many standalone utility functions that s
 
 | Function Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |---------------|-------|------------------|--------------|----------|--------|-------|
-| getDreamEntryDate | ~50 | main.ts (1721) | src/utils/date-utils.ts | High | ⏳ Planned | Extract date parsing from journal content |
+| getDreamEntryDate | ~50 | main.ts (1721) | src/utils/date-utils.ts | High | ✅ Completed | Moved to date utilities |
 | saveLastCustomRange | ~5 | main.ts (1771) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Custom date range persistence |
 | loadLastCustomRange | ~16 | main.ts (1776) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Custom date range loading |
 | saveFavoriteRange | ~7 | main.ts (1792) | src/utils/storage-helpers.ts | Medium | ⏳ Planned | Favorite range persistence |
@@ -598,7 +598,7 @@ Based on detailed analysis of the current main.ts file (2063 lines), the followi
 
 1. **applyCustomDateRangeFilter function** ✅ **COMPLETED** - Moved to `src/dom/filters/CustomDateRangeFilter.ts` (~250 lines extracted)
 2. **DEFAULT_LINTING_SETTINGS object** ✅ **COMPLETED** - Moved to `src/types/journal-check.ts` as `DEFAULT_JOURNAL_STRUCTURE_SETTINGS` (~95 lines extracted)
-3. **getDreamEntryDate function** (~50 lines) - Complex utility function
+3. **getDreamEntryDate function** ✅ **COMPLETED** - Moved to `src/utils/date-utils.ts` (~50 lines extracted)
 4. **Storage helper functions** (~50 lines combined) - Date range persistence
 
 #### 4.1.2 Implementation Roadmap
