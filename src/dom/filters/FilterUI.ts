@@ -10,6 +10,7 @@ import { DreamMetricsSettings } from '../../types/core';
 import { ILogger } from '../../logging/LoggerTypes';
 import { parseDate } from '../../utils/date-utils';
 import { FilterDisplayManager } from './FilterDisplayManager';
+import { MetricsCollector, TableStatisticsUpdater } from '../../metrics';
 
 // Constants
 const CUSTOM_RANGE_KEY = 'oom-custom-range';
@@ -20,6 +21,8 @@ let customDateRange: { start: string, end: string } | null = null;
 export class FilterUI {
     private container: HTMLElement | null = null;
     private filterDisplayManager: FilterDisplayManager;
+    private metricsCollector: MetricsCollector;
+    private tableStatisticsUpdater: TableStatisticsUpdater;
     
     constructor(
         private app: App,
@@ -27,8 +30,9 @@ export class FilterUI {
         private saveSettings: () => Promise<void>,
         private logger?: ILogger
     ) {
-        // Initialize FilterDisplayManager
-        this.filterDisplayManager = new FilterDisplayManager(app, logger);
+        this.filterDisplayManager = new FilterDisplayManager(logger);
+        this.metricsCollector = new MetricsCollector(app, null, logger);
+        this.tableStatisticsUpdater = new TableStatisticsUpdater(logger);
     }
     
     /**
@@ -329,16 +333,10 @@ export class FilterUI {
                 
                 // Recalculate metrics based on visible rows
                 try {
-                    // Import functions for metrics calculation
-                    const collectVisibleRowMetrics = (window as any).collectVisibleRowMetrics;
-                    const updateSummaryTable = (window as any).updateSummaryTable;
-                    
-                    if (typeof collectVisibleRowMetrics === 'function' && 
-                        typeof updateSummaryTable === 'function') {
-                        const filteredMetrics = collectVisibleRowMetrics(previewEl);
-                        updateSummaryTable(previewEl, filteredMetrics);
-                        this.logger?.debug('Filter', 'Updated summary table after filtering');
-                    }
+                    // Use our MetricsCollector and TableStatisticsUpdater classes
+                    const filteredMetrics = this.metricsCollector.collectVisibleRowMetrics(previewEl);
+                    this.tableStatisticsUpdater.updateSummaryTable(previewEl, filteredMetrics);
+                    this.logger?.debug('Filter', 'Updated summary table after filtering');
                 } catch (e) {
                     this.logger?.error('Filter', 'Error updating summary table after filtering', e as Error);
                 }
@@ -434,15 +432,10 @@ export class FilterUI {
                 // Update summary table after filter application
                 setTimeout(() => {
                     try {
-                        const collectVisibleRowMetrics = (window as any).collectVisibleRowMetrics;
-                        const updateSummaryTable = (window as any).updateSummaryTable;
-                        
-                        if (typeof collectVisibleRowMetrics === 'function' && 
-                            typeof updateSummaryTable === 'function') {
-                            const filteredMetrics = collectVisibleRowMetrics(previewEl);
-                            updateSummaryTable(previewEl, filteredMetrics);
-                            this.logger?.info('Filter', 'Updated summary table after filter application');
-                        }
+                        // Use our MetricsCollector and TableStatisticsUpdater classes
+                        const filteredMetrics = this.metricsCollector.collectVisibleRowMetrics(previewEl);
+                        this.tableStatisticsUpdater.updateSummaryTable(previewEl, filteredMetrics);
+                        this.logger?.info('Filter', 'Updated summary table after filter application');
                     } catch (e) {
                         this.logger?.error('Filter', 'Error updating summary table', e as Error);
                     }
@@ -577,16 +570,10 @@ export class FilterUI {
             
             // Update summary table with filtered metrics
             try {
-                // Import functions for metrics calculation
-                const collectVisibleRowMetrics = (window as any).collectVisibleRowMetrics;
-                const updateSummaryTable = (window as any).updateSummaryTable;
-                
-                if (typeof collectVisibleRowMetrics === 'function' && 
-                    typeof updateSummaryTable === 'function') {
-                    const filteredMetrics = collectVisibleRowMetrics(previewEl);
-                    updateSummaryTable(previewEl, filteredMetrics);
-                    this.logger?.debug('Filter', 'Updated summary table after date filtering');
-                }
+                // Use our MetricsCollector and TableStatisticsUpdater classes
+                const filteredMetrics = this.metricsCollector.collectVisibleRowMetrics(previewEl);
+                this.tableStatisticsUpdater.updateSummaryTable(previewEl, filteredMetrics);
+                this.logger?.debug('Filter', 'Updated summary table after date filtering');
             } catch (e) {
                 this.logger?.error('Filter', 'Error updating summary table after date filtering', 
                     e instanceof Error ? e : new Error(String(e)));
