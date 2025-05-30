@@ -21,7 +21,7 @@
   - [Phase 4: Unused Code Elimination](#phase-4-unused-code-elimination)
     - [Main.ts Dead Code Summary](#41-maints-dead-code-summary-2025-05-30)
       - [Critical Priority Items](#411-critical-priority-items-largest-impact)
-      - [Additional Large Extraction Opportunities (Model 4.0 Analysis - 2025-05-30)](#412-additional-large-extraction-opportunities-model-40-analysis-2025-05-30)
+      - [Additional Large Extraction Opportunities (new Analysis - 2025-05-30)](#412-additional-large-extraction-opportunities-new-analysis-2025-05-30)
       - [Implementation Roadmap](#414-implementation-roadmap)
       - [Success Metrics](#415-success-metrics)
   - [Phase 5: TypeScript Adapter Cleanup](#phase-5-typescript-adapter-cleanup)
@@ -630,7 +630,7 @@ With the newly identified opportunities, main.ts could be reduced to a minimal p
 3. **getDreamEntryDate function** ✅ **COMPLETED** - Moved to `src/utils/date-utils.ts` (~50 lines extracted)
 4. **Storage helper functions** ✅ **COMPLETED** - Moved to `src/utils/storage-helpers.ts` (~50 lines extracted)
 
-#### 4.1.2 Additional Large Extraction Opportunities (Model 4.0 Analysis - 2025-05-30)
+#### 4.1.2 Additional Large Extraction Opportunities (New Analysis - 2025-05-30)
 
 **Fresh Analysis Reveals Major Missed Opportunities:**
 
