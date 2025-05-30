@@ -391,14 +391,18 @@ In addition to large methods, there are many standalone utility functions that s
 
 **Estimated Line Savings from Function Extraction: ~370 lines**
 
-**Progress Update (2025-05-30):** Successfully completed all Critical Priority extractions:
+**Progress Update (2025-05-30):** Successfully completed all Critical Priority extractions plus first major opportunity:
 - ✅ **applyCustomDateRangeFilter** (~250 lines) → src/dom/filters/CustomDateRangeFilter.ts 
 - ✅ **DEFAULT_LINTING_SETTINGS** (~95 lines) → src/types/journal-check.ts
 - ✅ **getDreamEntryDate** (~50 lines) → src/utils/date-utils.ts
 - ✅ **Storage helpers** (~50 lines) → src/utils/storage-helpers.ts
 - ✅ **forceApplyDateFilter** (~19 lines) → REMOVED (redundant wrapper, functionality in DateFilter class)
+- ✅ **insertTemplate** (~205 lines) → src/templates/TemplateManager.ts
+- ✅ **Dead code cleanup** (~7 lines) → Removed unused imports and orphaned comments
 
-**Total Critical Priority Lines Extracted: ~464 lines**
+**Total Lines Extracted: ~676 lines**
+**New main.ts size: 1,377 lines (reduced from 2,053 lines)**
+**Reduction percentage: ~33%**
 
 #### 3.2.2 Large Configuration Objects for Extraction
 
@@ -638,7 +642,7 @@ Upon re-analysis of the current main.ts (1,571 lines) with Model 4.0, several **
 
 | Method Name | Lines | Current Location | Target Module | Priority | Status | Notes |
 |-------------|-------|------------------|--------------|----------|--------|-------|
-| **insertTemplate** | ~205 | main.ts (859-1064) | src/templates/TemplateManager.ts | **Critical** | ⏳ Planned | **Largest remaining method** - Complex template insertion with modal creation, Templater integration, preview functionality |
+| **insertTemplate** | ~205 | main.ts (859-1064) | src/templates/TemplateManager.ts | Critical | ✅ Completed | Template modal creation, Templater integration, preview functionality |
 | **showDateNavigator** | ~179 | main.ts (1087-1266) | src/dom/date-navigator/DateNavigatorManager.ts | **Critical** | ⏳ Planned | **Second largest** - Complex date navigator logic with entry collection, test data generation, modal initialization |
 | **applyInitialFilters** | ~200 | main.ts (1290-1489) | src/dom/filters/FilterPersistenceManager.ts | **Critical** | ⏳ Planned | **Third largest** - Complex filter restoration logic with localStorage recovery, DOM waiting, retry mechanisms |
 | updateRibbonIcons | ~35 | main.ts (825-859) | Already delegated to RibbonManager | Medium | 🔄 Partial | Method exists but contains fallback logic |
@@ -864,214 +868,4 @@ The dead code elimination phase will be considered successful when:
 
 4. **Complete Settings Management Refactoring (Medium Priority)**
    - ✅ Implemented `SettingsManager` class in src/state/SettingsManager.ts:
-     - ✅ Moved `saveSettings()` method from main.ts
-     - ✅ Moved `loadSettings()` method from main.ts
-     - ✅ Integrated with SettingsAdapter for type safety
-     - ✅ Added proper error handling for settings operations
-     - ✅ Created updateSetting() and updateLogConfig() methods
-     - ✅ Added expandedStates management for UI state persistence
-
-5. **Update Documentation (Medium Priority)**
-   - ✅ Created detailed main.ts refactoring plan
-   - ✅ Updated progress tracking in code-cleanup-plan.md
-   - Planned: Update CHANGELOG.md with user-visible changes 
-
-### Progress Update (2025-05-29)
-
-Completed dead code cleanup after FilterDisplayManager extraction:
-- Removed redundant `updateFilterDisplayWithDetails` method from FilterManager class
-- Removed redundant `updateFilterDisplayWithDetails` method from FilterUI class
-- Updated FilterUI to use the new FilterDisplayManager for display updates
-- Integrated the FilterDisplayManager with existing filter components
-- Fixed all related references to ensure consistent usage of the new component
-
-This cleanup improves code organization by:
-1. Centralizing filter display logic in a single class
-2. Removing duplicate implementations of display update methods
-3. Making filter display behavior more consistent across the application
-4. Reducing complexity in both FilterManager and FilterUI classes
-
-### Progress Update (2025-05-29)
-
-Marked table-related global functions in main.ts for removal following their extraction to TableManager:
-- Added removal comments for `initializeTableRowClasses` function
-- Added removal comments for `collectVisibleRowMetrics` function 
-- Added removal comments for `updateSummaryTable` function
-
-These global functions are now redundant as their functionality has been properly encapsulated in the TableManager class.
-The next cleanup step should be to completely remove these functions once all references to them have been removed.
-
-The next steps in the cleanup are to:
-1. Establish clear boundaries between filter management and display logic
-2. Update the FilterEvents class to work with the new FilterDisplayManager
-3. Create a proper interface for the FilterDisplayManager
-4. Reduce remaining dependencies on global window objects
-
-### Progress Update (2025-05-29)
-
-Attempted to remove the marked table-related global functions from main.ts:
-- Attempted to remove `initializeTableRowClasses` function (lines 2063-2250)
-- Attempted to remove `collectVisibleRowMetrics` function (lines 2251-2363)
-- Attempted to remove `updateSummaryTable` function (lines 2364-2365)
-
-The removal was unsuccessful due to file size limitations when using the edit_file tool. Created a new document to track this refactoring task:
-- Created `docs/refactoring-2025/main-ts-function-removal.md` to document the functions that need to be removed
-- Documented the line numbers and replacement patterns for the three functions
-- Added a note that manual editing will be required due to file size limitations
-
-All calls to these functions have already been updated to use the TableManager class methods:
-```typescript
-this.tableManager.initializeTableRowClasses();
-this.tableManager.collectVisibleRowMetrics(element);
-this.tableManager.updateSummaryTable(element, metrics);
-```
-
-The next steps in the cleanup are to:
-1. Manually remove these redundant global functions from main.ts
-2. Verify that all functionality still works correctly after removal
-3. Continue with the remaining cleanup tasks:
-   - Establish clear boundaries between filter management and display logic
-   - Update the FilterEvents class to work with the new FilterDisplayManager
-   - Create a proper interface for the FilterDisplayManager
-   - Reduce remaining dependencies on global window objects
-
-### Progress Update (2025-05-29)
-
-Identified additional redundant code for removal:
-- The global `window.forceApplyDateFilter` function (lines 2067-2189) is now redundant as this functionality has been properly encapsulated in the DateFilter class
-- Created `docs/refactoring-2025/window-forceapplydatefilter-removal.md` to document the removal plan
-- Verified that the DateFilter class correctly implements this functionality and registers a global handler via its `registerGlobalHandler()` method
-
-This removal will:
-1. Further reduce the size of main.ts
-2. Consolidated date filtering logic in the DateFilter class
-3. Remove redundant code while maintaining backward compatibility through the wrapper function (lines 1833-1847)
-
-The new refactoring steps are to:
-1. Verify that DateFilter.registerGlobalHandler() is being called during plugin initialization
-2. Remove the redundant implementation of window.forceApplyDateFilter (lines 2067-2189)
-3. Keep the wrapper function at lines 1833-1847 that delegates to the DateFilter implementation
-4. Ensure the Window interface declaration is maintained for TypeScript compatibility
-
-### Progress Update (2025-05-29)
-
-Completed removal of redundant window functions:
-- Successfully removed the redundant `window.forceApplyDateFilter` implementation (lines 2067-2189)
-- Kept the TypeScript declaration for window interface to maintain type compatibility
-- Maintained the wrapper function that delegates to the DateFilter implementation
-- Verified that functionality still works correctly through the DateFilter class
-- Updated `WindowExtensions` status to complete in the code cleanup plan
-
-This achieves the following benefits:
-1. Reduced main.ts by approximately 120 lines
-2. Consolidated date filtering logic in the DateFilter class
-3. Removed duplication while maintaining backward compatibility
-4. Provided clearer code ownership and responsibility boundaries
-
-### Progress Update (2025-05-29)
-
-Implemented ModalsManager for centralized modal management:
-- Created `src/dom/modals/ModalsManager.ts` with comprehensive modal creation and management functionality
-- Implemented tracking of active modals to prevent duplicate modals of the same type
-- Added consistent APIs for common modal types (basic, progress, confirmation)
-- Provided specialized methods for application-specific modals (metrics, date range, etc.)
-- Added robust error handling with proper logger integration
-- Updated the modals index file to export the new ModalsManager
-- Updated the code cleanup plan to mark ModalsManager as complete
-
-Benefits of the ModalsManager implementation:
-1. Centralized modal creation and management
-2. Improved reusability of common modal patterns
-3. Ability to track and control active modals
-4. Consistent error handling and logging
-5. Better organization of modal-related code
-6. Reduced redundancy in modal creation throughout the application
-
-With these changes, we've eliminated more redundant code from main.ts and further improved the separation of concerns.
-
-### Progress Update (2025-05-29)
-
-Removed redundant modal methods from main.ts:
-- Removed `openMetricsDescriptionsModal()` method (lines 1242-1264) that is now handled by ModalsManager
-- Identified additional dead code that should be removed now that ModalsManager exists:
-  - `showMetricsTabsModal()` method (lines 1705-1707)
-  - `openCustomRangeModal(app: App)` function (lines 1756-1781)
-
-This cleanup continues to improve code organization by:
-1. Removing redundant code that has been properly encapsulated in ModalsManager
-2. Centralizing modal-related functionality in a dedicated class
-3. Ensuring consistent modal behavior across the application
-4. Reducing main.ts size and complexity
-
-The next cleanup steps should target the remaining modal-related methods identified above.
-
-### Progress Update (2025-05-29)
-
-Removed additional redundant modal methods from main.ts:
-- Removed `showMetricsTabsModal()` method (lines 1676-1679) that is now handled by ModalsManager
-- Removed `openCustomRangeModal(app: App)` function (lines 1729-1743) that is now handled by ModalsManager
-- Updated `RibbonManager` to use ModalsManager directly instead of the removed showMetricsTabsModal method
-- Updated `EventHandler` to use ModalsManager directly instead of the global openCustomRangeModal function
-
-These changes complete the migration of modal functionality to the ModalsManager class, which provides:
-1. Centralized modal management with consistent APIs
-2. Modal tracking to prevent duplicate modals
-3. Better error handling with proper logging
-4. Type-safe interfaces for each modal type
-5. Clear organization of related functionality
-
-With these changes, we've eliminated more redundant code from main.ts and further improved the separation of concerns.
-
-### Progress Update (2025-05-29)
-
-Implemented MetricsCollector improvements and added TableStatisticsUpdater:
-- Added `collectVisibleRowMetrics()` method to MetricsCollector class (adapting functionality from TableManager)
-- Added `calculateMetricStats()` method to MetricsCollector for centralized statistics calculation
-- Created new `TableStatisticsUpdater` class to replace updateSummaryTable functionality
-- Updated metrics/index.ts to export the new TableStatisticsUpdater class
-
-These changes improve the code organization by:
-1. Centralizing metrics-related functionality in dedicated classes
-2. Separating data collection (MetricsCollector) from UI updates (TableStatisticsUpdater)
-3. Improving reusability of metrics calculations across the application
-4. Providing more robust error handling and logging
-
-The implementation maintains the same functionality while providing better separation of concerns:
-- MetricsCollector now handles all aspects of collecting metrics data
-- TableStatisticsUpdater focuses exclusively on updating the UI with calculated statistics
-
-Next steps include updating references to use these new classes and removing the redundant functions from main.ts.
-
-### Progress Update (2025-05-29)
-
-Fixed import references and removed global function references:
-- Updated FilterUI class to use MetricsCollector and TableStatisticsUpdater instead of window global functions
-- Updated main.ts to use MetricsCollector and TableStatisticsUpdater instead of TableManager methods
-- Fixed import duplication issues and ensured proper object initialization
-- Removed redundant code and global function dependencies
-- Replaced (window as any).initializeTableRowClasses global function calls in FilterUI with TableManager methods
-- Verified that the functions mentioned in docs/refactoring-2025/main-ts-function-removal.md (initializeTableRowClasses, collectVisibleRowMetrics, updateSummaryTable) have already been removed from main.ts
-
-With these changes, we have:
-1. Further improved code organization by removing global function dependencies
-2. Made the code more maintainable by using proper class methods
-3. Improved type safety and reduced potential runtime errors
-4. Continued to modularize the codebase and reduce dependencies on main.ts
-
-Next steps should focus on completing the remaining extraction tasks and removing any other global function dependencies.
-
-**Progress Update (2025-05-30)**
-
-Successfully extracted the largest single function from main.ts:
-- **applyCustomDateRangeFilter** (~250 lines) extracted to `src/dom/filters/CustomDateRangeFilter.ts`
-- Created a comprehensive CustomDateRangeFilter class with proper separation of concerns:
-  - Date validation and creation
-  - Loading indicator management
-  - Row visibility computation
-  - Chunked processing for performance
-  - Cleanup and finalization
-- Reduced main.ts by approximately 200 lines (the largest single reduction achieved)
-- Updated main.ts to use a simple wrapper that delegates to the new class
-- Maintained all existing functionality while improving code organization
-
-This represents the **largest single opportunity** identified in the cleanup plan and significantly reduces the complexity of main.ts.
+     - ✅ Moved `
