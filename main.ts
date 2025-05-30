@@ -99,6 +99,7 @@ import { RibbonManager } from './src/dom/RibbonManager';
 
 // Import the PluginLoader
 import { PluginLoader } from './src/plugin/PluginLoader';
+import { PluginInitializer } from './src/plugin/PluginInitializer';
 
 // Import debugging tools
 import { DebugTools } from './src/utils/DebugTools';
@@ -144,7 +145,7 @@ export default class DreamMetricsPlugin extends Plugin {
     // Dream journal manager reference
     activeJournal: ActiveJournal | null = null;
     private dateNavigator: DateNavigatorIntegration;
-    private timeFilterManager: TimeFilterManager;
+    public timeFilterManager: TimeFilterManager;
     
     state: DreamMetricsState;
     
@@ -155,7 +156,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private ribbonIcons: HTMLElement[] = [];
     private container: HTMLElement | null = null;
     private journalManagerRibbonEl: HTMLElement | null = null;
-    private memoizedTableData = new Map<string, any>();
+    public memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
     private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
@@ -163,138 +164,28 @@ export default class DreamMetricsPlugin extends Plugin {
     public dateRangeService: DateRangeService;
     private projectNoteManager: ProjectNoteManager;
     private ribbonManager: RibbonManager;
-    private dateFilter: DateFilter;
-    private debugTools: DebugTools;
-    private filterManager: FilterManager;
-    private customDateRangeFilter: CustomDateRangeFilter;
-    private tableManager: TableManager;
-    private metricsCollector: MetricsCollector;
-    private tableStatisticsUpdater: TableStatisticsUpdater;
+    public dateFilter: DateFilter;
+    public debugTools: DebugTools;
+    public filterManager: FilterManager;
+    public customDateRangeFilter: CustomDateRangeFilter;
+    public tableManager: TableManager;
+    public metricsCollector: MetricsCollector;
+    public tableStatisticsUpdater: TableStatisticsUpdater;
     // In the class properties, add a property for the EventHandler
-    private eventHandler: EventHandler;
+    public eventHandler: EventHandler;
 
     // Add these properties to the DreamMetricsPlugin class with the other properties
     public contentToggler: ContentToggler;
-    private filterUI: FilterUI;
-    private templateManager: TemplateManager;
-    private filterPersistenceManager: FilterPersistenceManager;
-    private dateNavigatorManager: DateNavigatorManager;
-    private logFileManager: LogFileManager;
+    public filterUI: FilterUI;
+    public templateManager: TemplateManager;
+    public filterPersistenceManager: FilterPersistenceManager;
+    public dateNavigatorManager: DateNavigatorManager;
+    public logFileManager: LogFileManager;
 
     async onload() {
-        // Assign the plugin instance to window.oneiroMetricsPlugin first
-        // to ensure any components that depend on it can access it
-        (window as any).oneiroMetricsPlugin = this;
-
-        // Create a new PluginLoader and delegate the initialization to it
-        const pluginLoader = new PluginLoader(this, this.app);
-        
-        try {
-            // Initialize the plugin using the PluginLoader
-            await pluginLoader.initialize();
-            
-            // Log successful initialization
-            if (globalLogger) {
-                globalLogger.info('Plugin', 'OneiroMetrics plugin loaded successfully');
-            }
-        } catch (error) {
-            // Log any errors during initialization
-            console.error('Failed to initialize OneiroMetrics plugin:', error);
-            if (globalLogger) {
-                globalLogger.error('Plugin', 'Failed to initialize OneiroMetrics plugin', 
-                    error instanceof Error ? error : new Error(String(error)));
-            }
-            
-            // Show error notification to user
-            new Notice('Failed to initialize OneiroMetrics plugin: ' + (error instanceof Error ? error.message : String(error)));
-        }
-
-        // Initialize DateFilter
-        this.dateFilter = new DateFilter(this.app, this.settings, this.saveSettings.bind(this), this.logger);
-        this.dateFilter.registerGlobalHandler();
-
-        // Initialize FilterManager
-        this.filterManager = new FilterManager(this.app, this.settings, () => this.saveSettings(), this.saveData.bind(this), this.logger);
-        this.filterManager.initialize();
-
-        // Initialize DebugTools
-        this.debugTools = new DebugTools(this, this.app, this.logger);
-        this.debugTools.registerGlobalDebugFunctions();
-        
-        // Initialize TableManager
-        this.tableManager = new TableManager(this.app, this.settings, this.logger);
-        
-        // Initialize MetricsCollector and TableStatisticsUpdater
-        this.metricsCollector = new MetricsCollector(this.app, this, this.logger);
-        this.tableStatisticsUpdater = new TableStatisticsUpdater(this.logger);
-
-        // Initialize CustomDateRangeFilter
-        this.customDateRangeFilter = new CustomDateRangeFilter(
-            this.app,
-            this.metricsCollector,
-            this.tableStatisticsUpdater,
-            this.tableManager
-        );
-
-        // Initialize these properties in the onload method, before initializing the EventHandler
-        // Add these initializations before creating the EventHandler
-        this.contentToggler = new ContentToggler(this.logger);
-        this.filterUI = new FilterUI(this.app, this.settings, this.saveSettings.bind(this), this.logger);
-
-        // In the onload method, after other manager initializations, initialize the EventHandler
-        // Add this code where other managers are initialized
-        this.eventHandler = new EventHandler(
-            this.app,
-            this.settings,
-            this.contentToggler, // Assume this exists
-            this.filterManager,
-            this.filterUI, // Assume this exists or needs to be created
-            this.scrapeMetrics.bind(this),
-            this.showDateNavigator.bind(this),
-            this.saveSettings.bind(this),
-            this.logger
-        );
-
-        // Add these lines to the onload method to set the global variables
-        setGlobalLogger(this.logger);
-        setGlobalContentToggler(this.contentToggler);
-
-        // Initialize the linting engine with safe property access
-        const journalStructure = getJournalStructure(this.settings);
-        this.lintingEngine = new LintingEngine(this, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
-
-        // Initialize TemplateManager
-        this.templateManager = new TemplateManager(
-            this.app,
-            this.settings,
-            this.templaterIntegration,
-            this.logger
-        );
-
-        // Initialize FilterPersistenceManager
-        this.filterPersistenceManager = new FilterPersistenceManager(
-            this.app,
-            this.settings,
-            this.saveSettings.bind(this),
-            this.tableManager,
-            this.applyFilterToDropdown.bind(this),
-            this.logger
-        );
-
-        // Initialize DateNavigatorManager
-        this.dateNavigatorManager = new DateNavigatorManager(
-            this.app,
-            this.state,
-            this.timeFilterManager,
-            this.memoizedTableData,
-            this.logger
-        );
-
-        // Initialize LogFileManager
-        this.logFileManager = new LogFileManager(
-            this.app,
-            this.logger
-        );
+        // Delegate all initialization logic to PluginInitializer
+        const initializer = new PluginInitializer(this, this.app);
+        await initializer.initializePlugin();
     }
 
     onunload() {
@@ -462,7 +353,7 @@ export default class DreamMetricsPlugin extends Plugin {
      * @param previewEl The preview element containing the metrics table
      * @returns Whether the filter was successfully applied
      */
-    private applyFilterToDropdown(filterDropdown: HTMLSelectElement, previewEl: HTMLElement) {
+    public applyFilterToDropdown(filterDropdown: HTMLSelectElement, previewEl: HTMLElement) {
         // Delegate to the FilterManager implementation
         return this.filterManager.applyFilterToDropdown(filterDropdown, previewEl);
     }
