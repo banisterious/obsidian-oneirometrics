@@ -534,10 +534,14 @@ export class PluginLoader {
     private async setupRibbonIcons(): Promise<void> {
         const plugin = this.plugin as any;
         
-        // Initialize ribbon icons if the RibbonManager exists
-        if (plugin.ribbonManager) {
-            plugin.ribbonManager.updateRibbonIcons();
-        }
+        // Wait for Obsidian layout to be ready before adding ribbon icons
+        // This ensures our button appears after other plugins have loaded
+        this.app.workspace.onLayoutReady(() => {
+            // Initialize ribbon icons if the RibbonManager exists
+            if (plugin.ribbonManager) {
+                plugin.ribbonManager.updateRibbonIcons();
+            }
+        });
         
         // Remove debug ribbon - no longer needed in production
         // plugin.addCalendarDebugRibbon();
