@@ -2689,6 +2689,5350 @@ div[data-type="markdown"][data-type="oom-project-note"] {
     justify-content: center;
     align-items: center;
     background-color: var(--text-muted);
+}
+
+/* Hide inline title in oom-prefixed containers */
+[class^="oom-"] .inline-title,
+[class*=" oom-"] .inline-title {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Dream Entries Filters Styles
+   ========================================================================== */
+
+/* OneiroMetrics Dream Entries Filter Styles
+ * 
+ * Contains styles for filter components used to control which rows are shown
+ * in the Dream Entries table. Includes date range filters, metric filters,
+ * quick filters, and filter status indicators.
+ */
+
+/* Filter Controls Container */
+.markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+    display: flex;
+    gap: var(--oom-spacing-xl);
+    margin: var(--oom-spacing-xl) 0 var(--oom-spacing-md) 0;
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--oom-filter-controls-bg);
+    transition: background-color var(--oom-transition-normal);
+}
+
+/* Filter Groups */
+.markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+.markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-filter-gap);
+    flex: 1;
+}
+
+.oom-filter-group {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    align-items: center;
+}
+
+/* Filter Select Elements */
+.markdown-preview-view[data-type="oom-project-note"] .oom-select {
+    flex: 1;
+    min-width: var(--oom-filter-min-width);
+    padding: var(--oom-filter-input-padding);
+    border: var(--oom-filter-input-border);
+    border-radius: var(--oom-filter-input-radius);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--oom-filter-input-bg);
+    transition: all var(--oom-transition-normal);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-select:hover {
+    border-color: var(--interactive-accent);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-select:focus {
+    border-color: var(--oom-filter-input-focus-border);
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Filter Display */
+.oom-filter-display {
+    color: var(--text-normal); /* default */
+    display: flex;
+    align-items: center;
+}
+
+.oom-filter-display .oom-filter-icon {
+    margin-right: 0.25em;
+    /* The icon will inherit color from .oom-filter-text */
+    color: inherit;
+}
+
+.oom-filter-display .oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter-display .oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter-display .oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--all-visible) .oom-filter-icon {
+    color: var(--text-success);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--partially-visible) .oom-filter-icon {
+    color: var(--text-warning);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--none-visible) .oom-filter-icon {
+    color: var(--text-error);
+}
+
+/* Date Range Filter */
+.oom-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    margin-bottom: var(--oom-spacing-md);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-date-range-container {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+}
+
+.oom-date-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    flex: 1;
+    min-width: 200px;
+}
+
+.oom-date-input-container label {
+    font-size: var(--oom-filter-label-size);
+    color: var(--oom-filter-label-color);
+    font-weight: var(--font-medium);
+}
+
+.oom-date-input-container input[type="date"] {
+    padding: var(--oom-filter-input-padding);
+    border: var(--oom-filter-input-border);
+    border-radius: var(--oom-filter-input-radius);
+    font-size: var(--oom-filter-label-size);
+    color: var(--text-normal);
+    background-color: var(--oom-filter-input-bg);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-date-input-container input[type="date"]:hover {
+    border-color: var(--interactive-accent);
+}
+
+.oom-date-input-container input[type="date"]:focus {
+    border-color: var(--oom-filter-input-focus-border);
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Quick Filters */
+.oom-quick-filters {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.oom-quick-filters .setting-item {
+    border: none;
+    padding: var(--oom-filter-gap) 0;
+}
+
+.oom-quick-filters .setting-item:first-child {
+    padding-top: 0;
+}
+
+.oom-quick-filters .setting-item:last-child {
+    padding-bottom: 0;
+}
+
+.oom-quick-filters .setting-item-name {
+    min-width: 100px;
+    font-weight: var(--font-medium);
+}
+
+.oom-quick-filters .setting-item-description {
+    color: var(--oom-filter-label-color);
+    font-size: var(--oom-filter-label-size);
+}
+
+/* Time Filter Dialog */
+.oom-time-filter-dialog {
+    padding: var(--oom-modal-padding);
+    max-width: 500px;
+}
+
+.oom-time-filter-dialog h2 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-lg);
+    color: var(--text-normal);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+}
+
+.oom-time-filter-dialog h3 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+    font-weight: var(--h3-weight, var(--font-bold));
+    color: var(--oom-filter-label-color);
+}
+
+.oom-time-input-container {
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-time-input-container .setting-item {
+    border: none;
+    padding: var(--oom-filter-gap) 0;
+}
+
+.oom-time-input-container .setting-item:first-child {
+    padding-top: 0;
+}
+
+.oom-time-input-container .setting-item:last-child {
+    padding-bottom: 0;
+}
+
+.oom-time-input-container .setting-item-name {
+    min-width: 80px;
+    font-weight: var(--font-medium);
+}
+
+/* Filter Status Indicators */
+.oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter--mostly-visible {
+    color: var(--text-normal);
+}
+
+.oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-hidden {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+div#oom-time-filter-display {
+    margin-top: .5em;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-select,
+    .oom-date-input-container input[type="date"] {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-select:focus,
+    .oom-date-input-container input[type="date"]:focus {
+        border-color: var(--oom-high-contrast-accent);
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+    
+    .oom-filter--all-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--mostly-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--partially-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--none-visible {
+        color: CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-select,
+    .oom-date-input-container input[type="date"],
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        transition: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+}
+
+/* Responsive Styles */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        flex-direction: column;
+        gap: var(--oom-filter-mobile-gap);
+        margin: var(--oom-filter-mobile-margin);
+        padding: var(--oom-filter-mobile-padding);
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+    .markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+        width: 100%;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-select {
+        width: 100%;
+        max-width: none;
+    }
+    
+    .oom-date-range-container {
+        flex-direction: column;
+    }
+    
+    .oom-date-input-container {
+        min-width: 100%;
+    }
+    
+    .oom-quick-filters {
+        flex-direction: column;
+    }
+    
+    .oom-filter-controls {
+        flex-direction: column;
+    }
+    
+    .oom-filter-group {
+        width: 100%;
+    }
+    
+    .oom-select,
+    .oom-date-input-container input[type="date"] {
+        font-size: var(--oom-filter-mobile-font-size);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oneirometrics-time-filter-buttons {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oneirometrics-date-range-details {
+        font-size: var(--oom-filter-mobile-font-size);
+    }
+    
+    .oom-time-filter-dialog {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-time-filter-dialog h2 {
+        font-size: var(--h3-size);
+    }
+    
+    .oom-time-filter-dialog h3 {
+        font-size: var(--h4-size);
+    }
+}
+
+/* ==========================================================================
+   Buttons Styles
+   ========================================================================== */
+
+/* OneiroMetrics Button Styles
+ * 
+ * Contains general button styles used throughout the plugin.
+ * Includes base styles, variants, states, and accessibility features.
+ */
+
+/* Base Button Styles */
+.oom-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-button-gap);
+    padding: var(--oom-button-padding);
+    justify-content: center;
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--oom-button-font-size);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    border: 1px solid transparent;
+    color: var(--text-normal);
+    background: var(--interactive-normal);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-button:hover {
+    background: var(--interactive-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-button:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-button:active {
+    transform: scale(0.98);
+}
+
+/* Button Variants */
+.oom-button--primary {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+    border: none;
+}
+
+.oom-button--primary:hover {
+    background: var(--interactive-accent-hover);
+}
+
+.oom-button--secondary {
+    border-color: var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.oom-button--secondary:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-button--text {
+    background: none;
+    border: none;
+    padding: var(--oom-spacing-xs);
+    color: var(--text-muted);
+}
+
+.oom-button--text:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+/* Button Sizes */
+.oom-button--sm {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    font-size: var(--font-ui-smaller);
+}
+
+.oom-button--lg {
+    padding: var(--oom-spacing-md) var(--oom-spacing-lg);
+    font-size: var(--font-ui-medium);
+}
+
+/* Button States */
+.oom-button--loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.oom-button--loading::after {
+    content: "";
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    border: 2px solid var(--text-normal);
+    border-radius: 50%;
+    border-right-color: transparent;
+    animation: oom-button-spin 0.8s linear infinite;
+}
+
+@keyframes oom-button-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.oom-button--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.oom-button--hidden {
+    display: none;
+}
+
+.oom-button--error {
+    color: var(--text-error);
+    background: var(--background-error);
+}
+
+.oom-button--success {
+    color: var(--text-success);
+    background: var(--background-success);
+}
+
+.oom-button--clicked {
+    transform: scale(0.95);
+}
+
+/* Button Groups */
+.oom-button-group {
+    display: inline-flex;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-button-group .oom-button {
+    border-radius: 0;
+}
+
+.oom-button-group .oom-button:first-child {
+    border-top-left-radius: var(--oom-button-border-radius);
+    border-bottom-left-radius: var(--oom-button-border-radius);
+}
+
+.oom-button-group .oom-button:last-child {
+    border-top-right-radius: var(--oom-button-border-radius);
+    border-bottom-right-radius: var(--oom-button-border-radius);
+}
+
+/* Icon Buttons */
+.oom-button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: 0;
+    border-radius: var(--oom-radius-md);
+    color: var(--text-muted);
+    background: none;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-button-icon:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-button-icon svg {
+    width: var(--oom-icon-svg-size);
+    height: var(--oom-icon-svg-size);
+}
+
+/* Modal Buttons */
+.oom-modal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-modal-btn:hover,
+.oom-modal-btn:focus {
+    background: var(--background-modifier-hover);
+}
+
+.oom-modal-btn--apply {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+}
+
+.oom-modal-btn--apply:hover,
+.oom-modal-btn--apply:focus {
+    background: var(--interactive-accent-hover);
+}
+
+/* Dialog Buttons */
+.oom-dialog-buttons {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--oom-spacing-lg);
+}
+
+/* Metric Editor Buttons */
+.oom-metric-editor-buttons {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--oom-spacing-md);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-button {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-button--primary {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+    
+    .oom-button:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-button,
+    .oom-button-icon {
+        transition: none;
+    }
+    
+    .oom-button:hover,
+    .oom-button:active,
+    .oom-button-icon:hover {
+        transform: none;
+    }
+    
+    .oom-button--loading::after {
+        animation: none;
+    }
+    
+    .oom-button--clicked {
+        transform: none;
+    }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+    .oom-button,
+    .oom-button-icon {
+        min-height: var(--oom-touch-target-size);
+        min-width: var(--oom-touch-target-size);
+    }
+    
+    .oom-button--text {
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+/* ==========================================================================
+   OneiroMetrics Note
+   ========================================================================== */
+
+/* Hide inline title */
+.markdown-preview-view:has(.oom-metrics-container) .inline-title {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Tables Utilities Styles
+   ========================================================================== */
+
+/* OneiroMetrics Tables - Utilities
+ * 
+ * Contains shared table utilities used across different table components.
+ * Includes container styles, loading states, accessibility features, and responsive design.
+ */
+
+/* Table Container */
+.oom-table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Table Wrapper */
+.oom-table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Empty State */
+.oom-table-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-table-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-table-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-table-spin 0.8s linear infinite;
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Project Note Table Layout */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    padding: var(--oom-spacing-md);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+span.oom-metric-header svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table-container {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-table th {
+        background: var(--oom-high-contrast-bg);
+        color: var(--oom-high-contrast-text);
+    }
+    
+    .oom-table th:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-table th,
+    .oom-table tr {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table-container {
+        margin: var(--oom-spacing-sm) 0;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table-container {
+        margin: var(--oom-spacing-xs) 0;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+        padding: var(--oom-spacing-xs);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+    
+    .oom-table th {
+        background: #f0f0f0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .oom-table td {
+        border-bottom: 1px solid #000;
+    }
+    
+    .oom-table tr {
+        break-inside: avoid;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+    }
+}
+
+/* ==========================================================================
+   Tables Metrics Summary Styles
+   ========================================================================== */
+
+/* OneiroMetrics Tables - Metrics Summary Styles
+ * 
+ * Styles for the metrics summary table in project notes.
+ * Includes summary container, statistics table, and related styles.
+ */
+
+/* Metrics Summary Container */
+.oom-metrics-summary {
+    border: 2px dashed var(--text-accent);
+    background: var(--background-primary-alt);
+    padding: var(--oom-spacing-lg);
+    margin: var(--oom-spacing-lg) 0;
+    border-radius: var(--oom-radius-lg);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-metrics-summary:hover {
+    border-color: var(--interactive-accent);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Statistics Section */
+.oom-stats-section {
+    margin-bottom: var(--oom-spacing-xl);
+}
+
+.oom-stats-title {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+    letter-spacing: 0.01em;
+}
+
+/* Statistics Table */
+.oom-stats-table {
+    width: 100%;
+    margin-bottom: var(--oom-spacing-md);
+    border-collapse: collapse;
+    background: var(--background-primary);
+    border-radius: var(--oom-radius-md);
+    overflow: hidden;
+}
+
+.oom-stats-table th,
+.oom-stats-table td {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    text-align: left;
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-stats-table th {
+    font-weight: var(--font-bold);
+    background-color: var(--background-primary-alt);
+    color: var(--text-normal);
+    white-space: nowrap;
+}
+
+.oom-stats-table tr:hover td {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-stats-table td.metric-value {
+    text-align: right;
+    white-space: nowrap;
+    font-family: var(--font-monospace);
+    color: var(--text-accent);
+}
+
+/* Metric Categories */
+.oom-metric-category {
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+}
+
+.oom-metric-category td {
+    background-color: var(--background-primary-alt);
+}
+
+/* Ensure the statistics section is visible */
+.oom-table-section.oom-stats-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Loading State */
+.oom-metrics-summary.loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-metrics-summary.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-metrics-spin 0.8s linear infinite;
+}
+
+@keyframes oom-metrics-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-metrics-summary {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-stats-table th {
+        background-color: Canvas;
+    }
+    
+    .oom-metric-category td {
+        background-color: Canvas;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-metrics-summary,
+    .oom-stats-table th,
+    .oom-stats-table td {
+        transition: none;
+    }
+    
+    .oom-metrics-summary.loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-metrics-summary {
+        padding: var(--oom-spacing-md);
+        margin: var(--oom-spacing-md) 0;
+    }
+    
+    .oom-stats-table {
+        font-size: var(--oom-table-tablet-font-size);
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        padding: var(--oom-table-tablet-padding);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-metrics-summary {
+        padding: var(--oom-spacing-sm);
+        margin: var(--oom-spacing-sm) 0;
+    }
+    
+    .oom-stats-table {
+        font-size: var(--oom-table-mobile-font-size);
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        padding: var(--oom-table-mobile-padding);
+    }
+    
+    .oom-stats-title {
+        font-size: var(--h3-size);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-metrics-summary {
+        border: 2px dashed #000;
+        break-inside: avoid;
+    }
+    
+    .oom-stats-table {
+        break-inside: avoid;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        border: 1px solid #000;
+        padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    }
+    
+    .oom-stats-table th {
+        background-color: #f0f0f0;
+    }
+    
+    .oom-metric-category td {
+        background-color: #f0f0f0;
+    }
+}
+
+/* ==========================================================================
+   Tables Dream Entries Styles
+   ========================================================================== */
+
+/* OneiroMetrics Tables - Dream Entries Styles
+ * 
+ * Contains styles specific to the Dream Entries table in project notes.
+ * Includes base table styles, column layouts, and specific features.
+ */
+
+/* Base Table Styles */
+.oom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: var(--oom-spacing-md) 0;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--background-primary);
+    table-layout: auto;
+}
+
+/* Table Header */
+.oom-table th {
+    position: sticky;
+    top: 0;
+    z-index: var(--oom-z-table-header);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--background-primary);
+    border-bottom: 2px solid var(--background-modifier-border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-table th:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-table th:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Sort Indicators */
+.oom-table th[data-sort]::after {
+    content: "↕";
+    margin-left: var(--oom-spacing-xs);
+    opacity: 0.5;
+}
+
+.oom-table th[data-sort="asc"]::after {
+    content: "↑";
+    opacity: 1;
+}
+
+.oom-table th[data-sort="desc"]::after {
+    content: "↓";
+    opacity: 1;
+}
+
+/* Table Body */
+.oom-table td {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Table Row */
+.oom-table tr {
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-table tr:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Add optimized row visibility transitions */
+.oom-dream-row {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    will-change: opacity, visibility;
+    contain: layout style;
+    backface-visibility: hidden; /* Reduce composite layers */
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+.oom-row--hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important; 
+    border: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important; /* Remove from document flow */
+    transform: translateZ(0) !important; /* Force GPU acceleration */
+    display: none !important; /* Completely hide from layout */
+}
+
+.oom-row--visible {
+    visibility: visible;
+    opacity: 1;
+    height: auto;
+    display: table-row; /* Ensure proper display for table rows */
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+/* Add for filter display transition */
+.oom-filter-display {
+    contain: content;
+    will-change: contents;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.oom-filter-display--updated {
+    background-color: rgba(var(--interactive-accent-rgb), 0.1);
+}
+
+/* Column Widths */
+.oom-table .oom-date-column {
+    width: 8%;
+    min-width: 85px;
+    white-space: nowrap;
+}
+
+.oom-table .oom-title-column {
+    width: 15%;
+    min-width: 120px;
+}
+
+.oom-table .oom-words-column {
+    width: 7%;
+    min-width: 60px;
+}
+
+.oom-table .oom-content-column {
+    width: 30%;
+    min-width: 200px;
+}
+
+.oom-table .oom-metrics-column {
+    width: 8%;
+    min-width: 70px;
+    text-align: right;
+    white-space: nowrap;
+    font-family: var(--font-monospace);
+}
+
+/* Table Container */
+.oom-table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Table Wrapper */
+.oom-table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Project Note Specific Styles */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    padding: var(--oom-spacing-md);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+/* Table Title Styling */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-title {
+    margin-top: var(--oom-spacing-lg);
+    margin-bottom: var(--oom-spacing-sm);
+    padding: 0;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    letter-spacing: 0.01em;
+    color: var(--text-normal);
+}
+
+/* Dream Entries section header */
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-entries-title {
+    margin-top: var(--oom-spacing-lg);
+    margin-bottom: var(--oom-spacing-sm);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+/* Empty State */
+.oom-table-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-table-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-table-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-table-spin 0.8s linear infinite;
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table th,
+    .oom-table td {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-table th {
+        background: var(--oom-high-contrast-bg);
+        color: var(--oom-high-contrast-text);
+    }
+    
+    .oom-table th:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-table th,
+    .oom-table tr {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table {
+        font-size: var(--oom-table-tablet-font-size);
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: var(--oom-table-tablet-padding);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table {
+        font-size: var(--oom-table-mobile-font-size);
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: var(--oom-table-mobile-padding);
+    }
+    
+    .oom-table .oom-date-column {
+        min-width: 70px;
+    }
+    
+    .oom-table .oom-title-column {
+        min-width: 100px;
+    }
+    
+    .oom-table .oom-content-column {
+        min-width: 150px;
+    }
+    
+    .oom-table .oom-metrics-column {
+        min-width: 60px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .oom-table th {
+        background: #f0f0f0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .oom-table td {
+        border-bottom: 1px solid #000;
+    }
+    
+    .oom-table tr {
+        break-inside: avoid;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+    }
+}
+
+/* ==========================================================================
+   Tables Dream Content Styles
+   ========================================================================== */
+
+/* OneiroMetrics Dream Content Table Styles
+ * 
+ * Styles specific to dream content display in OneiroMetrics tables.
+ * Includes content preview, expansion, and related animations.
+ */
+
+/* Content Cell */
+.oom-content-cell {
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Content Preview */
+.oom-content-preview {
+    display: block;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+    font-family: var(--font-text);
+    color: var(--text-normal);
+    width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Full Content */
+.oom-content-full {
+    display: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+    font-family: var(--font-text);
+    color: var(--text-normal);
+    width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.markdown-rendered table.oom-table td {
+    /*line-height:.1em !important;*/
+}
+
+.markdown-rendered table.oom-table tbody > tr > td.column-content {
+    white-space:normal;
+}
+
+/* Expanded State */
+.oom-dream-content.expanded .oom-content-preview {
+    display: none !important;
+}
+
+.oom-dream-content.expanded .oom-content-full {
+    display: block !important;
+}
+
+/* Expand/Collapse Button */
+.oom-dream-content .oom-expand-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.25em 0.5em;
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-dream-content .oom-expand-button:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-dream-content .oom-expand-button:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* No Metrics Message */
+.oom-no-metrics {
+    padding: var(--oom-spacing-md);
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-dream-content .oom-expand-button {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-dream-content .oom-expand-button:focus {
+        outline: 2px solid CanvasText;
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-content-preview,
+    .oom-dream-content .oom-expand-button {
+        transition: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-content-preview,
+    .oom-content-full {
+        font-size: 0.95em;
+        line-height: 1.3;
+    }
+    
+    .oom-dream-content .oom-expand-button {
+        padding: 0.5em 0.75em;
+        font-size: 1em;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-content-full {
+        display: block !important;
+        max-height: none !important;
+    }
+    
+    .oom-content-preview {
+        display: none !important;
+    }
+    
+    .oom-dream-content .oom-expand-button {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Tables Dream Entries Buttons Styles
+   ========================================================================== */
+
+/* OneiroMetrics Dream Entries Table Button Styles
+ * 
+ * Contains button styles specific to the Dream Entries table.
+ * Includes expand/collapse buttons for the Dream Content column.
+ */
+
+/* Expand/Collapse Button */
+.oom-button--expand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-button-gap);
+    padding: var(--oom-button-padding);
+    border: 1px solid var(--interactive-accent);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: all var(--oom-transition-normal);
+    user-select: none;
+    -webkit-user-select: none;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    position: relative;
+    z-index: 1;
+}
+
+.oom-button--expand:hover {
+    background-color: var(--interactive-accent-hover) !important;
+    /* Remove transform: translateY(-1px) for a more subtle hover effect */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important; /* Add a subtle shadow instead */
+}
+
+.oom-button--expand:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+}
+
+.oom-button--expand:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Expand/Collapse Button States */
+.oom-button--state-expanded {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-button--state-collapsed {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-button--state-expanded .oom-button-icon {
+    transform: rotate(180deg);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-button--expand {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-button--expand:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+    
+    .oom-button--state-expanded {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-button--expand,
+    .oom-button--state-expanded .oom-button-icon {
+        transition: none;
+    }
+    
+    .oom-button--expand:hover {
+        transform: none;
+    }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+    .oom-button--expand {
+        min-height: var(--oom-touch-target-size);
+        min-width: var(--oom-touch-target-size);
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+/* Also fix the absolute positioned button hover effect */
+.oom-button--expand[style*="position: absolute"]:hover {
+    transform: translateX(-50%) !important; /* Keep only the horizontal centering transform */
+}
+
+/* ==========================================================================
+   Theme Overrides Styles
+   ========================================================================== */
+
+/* Theme Overrides and Base Variables
+ * 
+ * This file contains the base theme variables and overrides that ensure
+ * consistent behavior across different Obsidian themes.
+ */
+
+/* Base Theme Variables
+ * Define our custom variables that will be used throughout the styles
+ * These ensure consistent theming across different Obsidian themes
+ */
+:root {
+    --oom-line-width: var(--oom-theme-line-width);
+    --oom-max-width: var(--oom-theme-max-width);
+    --oom-padding: var(--oom-theme-padding);
+    --oom-margin: var(--oom-theme-margin);
+    --oom-progress-bar-height: 8px;
+    --oom-progress-bar-bg: var(--background-modifier-border, #eee);
+    --oom-progress-bar-radius: 4px;
+    --oom-progress-bar-margin: 1em 0;
+    --oom-progress-fill-bg: var(--interactive-accent, #2563eb);
+    --oom-modal-width: 850px;
+    --oom-modal-max-width: 95vw;
+}
+
+/* Theme-Specific Overrides
+ * Target specific theme variants to ensure consistent behavior
+ */
+.theme-light .markdown-preview-view[data-type="oom-project-note"],
+.theme-dark .markdown-preview-view[data-type="oom-project-note"],
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
+.minimal-default .markdown-preview-view[data-type="oom-project-note"],
+.minimal-light .markdown-preview-view[data-type="oom-project-note"],
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"],
+div[data-type="markdown"][data-type="oom-project-note"] {
+    --line-width-adaptive: var(--oom-line-width);
+    --line-width: var(--oom-line-width);
+    --max-width: var(--oom-max-width);
+    --file-line-width: var(--oom-line-width);
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin-left: var(--oom-margin);
+    margin-right: var(--oom-margin);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+    transition: var(--oom-theme-transition);
+}
+
+/* Light Theme Specific */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-light-bg);
+    color: var(--oom-theme-light-text);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-light-border);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-light-hover);
+}
+
+/* Dark Theme Specific */
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-dark-bg);
+    color: var(--oom-theme-dark-text);
+}
+
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-dark-border);
+}
+
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-dark-hover);
+}
+
+/* Minimal Theme Specific */
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
+.minimal-default .markdown-preview-view[data-type="oom-project-note"],
+.minimal-light .markdown-preview-view[data-type="oom-project-note"],
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-minimal-bg);
+    color: var(--oom-theme-minimal-text);
+}
+
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-default .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-minimal-border);
+}
+
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-default .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-minimal-hover);
+}
+
+/* Readable Line Width Overrides
+ * Ensure our styles work with Obsidian's readable line width setting
+ */
+.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
+.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
+    --line-width-adaptive: var(--oom-line-width);
+    --line-width: var(--oom-line-width);
+    --max-width: var(--oom-max-width);
+    --file-line-width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    width: var(--oom-line-width);
+    margin-left: var(--oom-margin);
+    margin-right: var(--oom-margin);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+}
+
+/* ==========================================================================
+   Modals Styles
+   ========================================================================== */
+
+/* OneiroMetrics Modal Styles
+ * 
+ * Contains all modal-related styles for the OneiroMetrics plugin.
+ * Includes base modal styles, dialog variants, and accessibility features.
+ */
+
+/* ==========================================================================
+   Base Modal Structure
+   ========================================================================== */
+
+/* Modal Container */
+.oom-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: var(--oom-z-modal);
+    background: var(--background-primary);
+    border-radius: var(--oom-modal-border-radius);
+    box-shadow: var(--oom-modal-shadow);
+    padding: var(--oom-modal-padding);
+    /*max-width: var(--oom-modal-max-width);
+    width: var(--oom-modal-width);*/
+    transition: transform var(--oom-transition-normal),
+                opacity var(--oom-transition-normal);
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Modal States */
+.oom-modal.is-opening {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+}
+
+.oom-modal.is-open {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+.oom-modal.is-closing {
+    opacity: 0;
+    transform: translate(-50%, -52%);
+}
+
+/* ==========================================================================
+   Modal Content Structure
+   ========================================================================== */
+
+/* Title */
+.oom-modal-title {
+    margin: 0 0 var(--oom-spacing-md) 0;
+}
+
+/* Content Area */
+.oom-modal-content {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+/* ==========================================================================
+   Modal Actions
+   ========================================================================== */
+
+/* Button Container */
+.oom-modal-button-container {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-md);
+}
+
+/* Button Styles */
+.oom-modal-button {
+    flex: 1;
+    transition: all 0.2s ease;
+}
+
+.oom-modal-button:hover {
+}
+
+.oom-modal-button.mod-cta {
+}
+
+.oom-modal-button.mod-cta:hover {
+}
+
+.oom-modal-button.mod-warning {
+    border-color: var(--text-error);
+    color: var(--text-on-accent);
+    background: var(--text-error);
+}
+
+.oom-modal-button.mod-warning:hover {
+    background: var(--text-error-hover);
+}
+
+/* Open Note Button */
+.oom-open-note-button {
+    margin-left: var(--oom-spacing-sm);
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-modal-button-container {
+        flex-direction: column;
+    }
+    
+    .oom-modal-button {
+        width: 100%;
+    }
+    
+    .oom-open-note-button {
+        margin-left: 0;
+        margin-top: var(--oom-spacing-sm);
+    }
+}
+
+/* ==========================================================================
+   Modal Variants
+   ========================================================================== */
+
+/* Custom Date Modal */
+.oneirometrics-custom-date-modal {
+    max-width: var(--oom-modal-width-sm);
+}
+
+/* Metrics Modal */
+.modal:has(.oom-metrics-modal) {
+    width:800px;
+}
+
+.oom-metrics-modal {
+    width: 750px;;
+}
+
+/* Callout Modal */
+.oom-callout-modal {
+    max-width: var(--oom-modal-width-md);
+}
+
+/* Icon Picker Modal */
+.oom-icon-picker-modal {
+    max-width: var(--oom-modal-width-lg);
+}
+
+/* Progress Modal */
+.oom-progress-modal {
+    max-width: var(--oom-modal-width-sm);
+}
+
+/* Progress Modal Content */
+.oom-progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+}
+
+.oom-status-text {
+    font-weight: var(--oom-modal-status-weight);
+    color: var(--text-normal);
+}
+
+.oom-progress-bar {
+    height: var(--oom-progress-bar-height);
+    background: var(--oom-progress-bar-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    margin: var(--oom-progress-bar-margin);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.oom-progress-fill {
+    height: 100%;
+    background: var(--oom-progress-fill-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    width: 0%;
+    transition: width 0.2s;
+}
+
+.oom-details-text {
+    font-size: var(--oom-modal-details-size);
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Utility Features
+   ========================================================================== */
+
+/* Keyboard Shortcuts */
+.oom-keyboard-shortcuts {
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    font-size: var(--oom-modal-details-size);
+    color: var(--text-muted);
+}
+
+.oom-keyboard-shortcuts div {
+    margin: var(--oom-spacing-xs) 0;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-modal {
+        width: var(--oom-modal-mobile-width);
+        max-width: none;
+        padding: var(--oom-modal-mobile-padding);
+    }
+    
+    .oom-modal-button-container {
+        flex-direction: column;
+    }
+    
+    .oom-modal-button {
+        width: 100%;
+    }
+}
+
+/* Large Screen Adjustments */
+@media screen and (min-width: var(--oom-breakpoint-large)) {
+    .oom-metrics-modal,
+    .oom-callout-modal {
+        max-width: var(--oom-modal-width-lg);
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+    .oom-modal {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-modal-button {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-modal-button.mod-cta {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-modal,
+    .oom-modal-button,
+    .oom-progress-bar-fill {
+        transition: none;
+    }
+}
+
+/* ==========================================================================
+   Multiselect Styles
+   ========================================================================== */
+
+/* OneiroMetrics Multiselect Styles
+ * 
+ * Contains all multiselect related styles for the OneiroMetrics plugin.
+ * Includes container, dropdown, selected items, and accessibility features.
+ */
+
+/* Multiselect Container */
+.oom-multiselect-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Dropdown */
+.oom-multiselect-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: var(--oom-z-dropdown);
+    margin-top: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-md);
+    transition: opacity var(--oom-transition-normal),
+                transform var(--oom-transition-normal);
+}
+
+.oom-multiselect-dropdown.is-opening {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+.oom-multiselect-dropdown.is-open {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.oom-multiselect-dropdown.is-closing {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+/* Selected Items */
+.oom-multiselect-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    min-height: var(--oom-multiselect-min-height);
+    transition: border-color var(--oom-transition-normal);
+}
+
+.oom-multiselect-selected:focus-within {
+    border-color: var(--interactive-accent);
+}
+
+/* Selected Item */
+.oom-multiselect-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary-alt);
+    font-size: var(--font-ui-smaller);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-multiselect-item:hover {
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+/* Remove Button */
+.oom-multiselect-item-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-multiselect-remove-size);
+    height: var(--oom-multiselect-remove-size);
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--oom-transition-normal);
+}
+
+.oom-multiselect-item-remove:hover {
+    color: var(--text-normal);
+}
+
+/* Options List */
+.oom-multiselect-options {
+    max-height: var(--oom-multiselect-options-max-height);
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-bg);
+}
+
+.oom-multiselect-options::-webkit-scrollbar {
+    width: 8px;
+}
+
+.oom-multiselect-options::-webkit-scrollbar-track {
+    background: var(--scrollbar-bg);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-multiselect-options::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: var(--oom-radius-md);
+}
+
+/* Option Item */
+.oom-multiselect-option {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    cursor: pointer;
+    border-radius: var(--oom-radius-md);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-multiselect-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-multiselect-option.selected {
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+/* Search Input */
+.oom-multiselect-search {
+    position: sticky;
+    top: 0;
+    padding: var(--oom-spacing-xs);
+    background: var(--background-primary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    z-index: 1;
+}
+
+.oom-multiselect-search-input {
+    width: 100%;
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--background-primary);
+    transition: border-color var(--oom-transition-normal);
+}
+
+.oom-multiselect-search-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+}
+
+/* Empty State */
+.oom-multiselect-empty {
+    padding: var(--oom-spacing-md);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-multiselect-selected,
+    .oom-multiselect-dropdown,
+    .oom-multiselect-item,
+    .oom-multiselect-search-input {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-multiselect-option.selected {
+        border: var(--oom-high-contrast-border);
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-multiselect-dropdown,
+    .oom-multiselect-item,
+    .oom-multiselect-search-input {
+        transition: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-multiselect-dropdown {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: var(--oom-radius-lg) var(--oom-radius-lg) 0 0;
+        max-height: var(--oom-dropdown-mobile-max-height);
+    }
+
+    .oom-multiselect-options {
+        max-height: calc(var(--oom-dropdown-mobile-max-height) - 60px);
+    }
+
+    .oom-multiselect-item {
+        min-height: var(--oom-touch-target-size);
+    }
+
+    .oom-multiselect-item-remove {
+        width: var(--oom-touch-target-size);
+        height: var(--oom-touch-target-size);
+    }
+}
+
+/* ==========================================================================
+   Settings Metrics Drag Drop Styles
+   ========================================================================== */
+
+/* OneiroMetrics Settings - Metrics Drag and Drop Styles
+ * 
+ * Contains styles for drag and drop functionality in the metrics settings page.
+ * Used for reordering metrics in the settings interface.
+ */
+
+/* Drag Handle */
+.oom-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-drag-handle-size);
+    height: var(--oom-drag-handle-size);
+    padding: var(--oom-spacing-xs);
+    cursor: grab;
+    color: var(--text-muted);
+    transition: color var(--oom-transition-normal),
+                background-color var(--oom-transition-normal);
+    border-radius: var(--oom-radius-sm);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-drag-handle:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-drag-handle:active {
+    cursor: grabbing;
+    background: var(--background-modifier-active);
+}
+
+.oom-drag-handle:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Draggable Item */
+.oom-draggable {
+    position: relative;
+    cursor: grab;
+    transition: transform var(--oom-transition-normal),
+                box-shadow var(--oom-transition-normal),
+                background-color var(--oom-transition-normal);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-draggable:hover {
+    transform: translateY(var(--oom-drag-hover-translate));
+    box-shadow: var(--oom-shadow-sm);
+    background: var(--background-modifier-hover);
+}
+
+.oom-draggable.dragging {
+    cursor: grabbing;
+    opacity: var(--oom-drag-opacity);
+    transform: scale(var(--oom-drag-scale));
+    box-shadow: var(--oom-shadow-md);
+    z-index: var(--oom-z-base);
+    background: var(--background-modifier-hover);
+}
+
+.oom-draggable:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Zone */
+.oom-drop-zone {
+    position: relative;
+    min-height: var(--oom-drop-zone-min-height);
+    padding: var(--oom-spacing-md);
+    border: var(--oom-drop-zone-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-drop-zone.drag-over {
+    border-color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+.oom-drop-zone:focus-within {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Zone Placeholder */
+.oom-drop-zone::before {
+    content: 'Drop here';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+    transition: opacity var(--oom-transition-normal);
+}
+
+.oom-drop-zone:not(:empty)::before {
+    opacity: 0;
+}
+
+/* Sortable List */
+.oom-sortable-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs);
+}
+
+.oom-sortable-item {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    transition: all var(--oom-transition-normal);
+    position: relative;
+}
+
+.oom-sortable-item:hover {
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-sortable-item.dragging {
+    background: var(--background-modifier-hover);
+    box-shadow: var(--oom-shadow-md);
+    opacity: var(--oom-drag-opacity);
+    z-index: var(--oom-z-base);
+}
+
+.oom-sortable-item:focus-within {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Preview */
+.oom-drop-preview {
+    position: absolute;
+    pointer-events: none;
+    background: var(--background-modifier-hover);
+    border: var(--oom-drop-preview-border);
+    border-radius: var(--oom-radius-md);
+    opacity: var(--oom-drag-opacity);
+    z-index: var(--oom-z-base);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Drop Indicator */
+.oom-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--interactive-accent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--oom-transition-normal);
+}
+
+.oom-drop-indicator.visible {
+    opacity: 1;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-drag-handle {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-drop-zone {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-drop-zone.drag-over {
+        border: 2px solid CanvasText;
+    }
+    
+    .oom-sortable-item {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-drop-preview {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-drop-indicator {
+        background: CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-draggable,
+    .oom-drop-zone,
+    .oom-sortable-item,
+    .oom-drop-zone::before,
+    .oom-drop-indicator {
+        transition: none;
+    }
+    
+    .oom-draggable:hover,
+    .oom-sortable-item:hover {
+        transform: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-drag-drop-breakpoint)) {
+    .oom-drag-handle {
+        width: var(--oom-drag-handle-mobile-size);
+        height: var(--oom-drag-handle-mobile-size);
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-sortable-item {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-drop-zone {
+        padding: var(--oom-spacing-lg);
+    }
+    
+    .oom-drop-zone::before {
+        font-size: var(--font-ui-medium);
+    }
+}
+
+/* ==========================================================================
+   Settings Metrics Icon Picker Styles
+   ========================================================================== */
+
+/* OneiroMetrics Settings - Metrics Icon Picker Styles
+ * 
+ * Contains styles for the icon picker used in the Custom Metrics modal.
+ * Includes grid layout, search functionality, icon selection, and accessibility features.
+ */
+
+/* Icon Picker Container */
+.oom-icon-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+    position: relative;
+}
+
+/* Search Input */
+.oom-icon-picker-search {
+    position: relative;
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-icon-picker-search input {
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    padding-left: calc(var(--oom-spacing-md) * 2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+}
+
+.oom-icon-picker-search input:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-icon-picker-search::before {
+    content: "🔍";
+    position: absolute;
+    left: var(--oom-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Icon Grid */
+.oom-icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-grid-item-size), 1fr));
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    max-height: var(--oom-icon-grid-max-height);
+    overflow-y: auto;
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    scrollbar-width: thin;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-track {
+    background: var(--background-primary);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+/* Icon Button */
+.oom-icon-picker-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    position: relative;
+}
+
+.oom-icon-picker-btn:hover {
+    border-color: var(--text-accent);
+    transform: translateY(var(--oom-icon-hover-translate));
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+    z-index: 1;
+}
+
+.oom-icon-picker-btn:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-focus-ring);
+    z-index: 1;
+}
+
+.oom-icon-picker-btn.selected {
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-shadow-sm);
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-btn svg {
+    height: var(--oom-icon-svg-size);
+    width: var(--oom-icon-svg-size);
+    pointer-events: none;
+}
+
+/* Clear Button */
+.oom-icon-picker-clear {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: none;
+    cursor: pointer;
+    border-radius: var(--oom-radius-md);
+    font-size: var(--font-ui-smaller);
+    text-decoration: underline;
+    transition: all var(--oom-transition-normal);
+    color: var(--text-muted);
+    background: none;
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-icon-picker-clear:hover {
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-clear:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Metric Icons */
+.oom-metric-icon,
+.oom-metric-icon-svg {
+    display: inline-flex;
+    height: var(--oom-icon-size);
+    width: var(--oom-icon-size);
+    margin-left: var(--oom-spacing-sm);
+    margin-right: 0;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 1em;
+    opacity: var(--oom-icon-opacity);
+    color: var(--text-muted);
+    fill: var(--text-muted);
+    transition: color var(--oom-transition-normal),
+                opacity var(--oom-transition-normal),
+                fill var(--oom-transition-normal);
+    pointer-events: none;
+}
+
+/* Fallback icon style for when Obsidian icon system fails */
+.oom-icon-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--text-muted);
+}
+
+/* Hide inline title in oom-prefixed containers */
+[class^="oom-"] .inline-title,
+[class*=" oom-"] .inline-title {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Dream Entries Filters Styles
+   ========================================================================== */
+
+/* OneiroMetrics Dream Entries Filter Styles
+ * 
+ * Contains styles for filter components used to control which rows are shown
+ * in the Dream Entries table. Includes date range filters, metric filters,
+ * quick filters, and filter status indicators.
+ */
+
+/* Filter Controls Container */
+.markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+    display: flex;
+    gap: var(--oom-spacing-xl);
+    margin: var(--oom-spacing-xl) 0 var(--oom-spacing-md) 0;
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--oom-filter-controls-bg);
+    transition: background-color var(--oom-transition-normal);
+}
+
+/* Filter Groups */
+.markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+.markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-filter-gap);
+    flex: 1;
+}
+
+.oom-filter-group {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    align-items: center;
+}
+
+/* Filter Select Elements */
+.markdown-preview-view[data-type="oom-project-note"] .oom-select {
+    flex: 1;
+    min-width: var(--oom-filter-min-width);
+    padding: var(--oom-filter-input-padding);
+    border: var(--oom-filter-input-border);
+    border-radius: var(--oom-filter-input-radius);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--oom-filter-input-bg);
+    transition: all var(--oom-transition-normal);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-select:hover {
+    border-color: var(--interactive-accent);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-select:focus {
+    border-color: var(--oom-filter-input-focus-border);
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Filter Display */
+.oom-filter-display {
+    color: var(--text-normal); /* default */
+    display: flex;
+    align-items: center;
+}
+
+.oom-filter-display .oom-filter-icon {
+    margin-right: 0.25em;
+    /* The icon will inherit color from .oom-filter-text */
+    color: inherit;
+}
+
+.oom-filter-display .oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter-display .oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter-display .oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--all-visible) .oom-filter-icon {
+    color: var(--text-success);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--partially-visible) .oom-filter-icon {
+    color: var(--text-warning);
+}
+
+.oom-filter-display:has(.oom-filter-text.oom-filter--none-visible) .oom-filter-icon {
+    color: var(--text-error);
+}
+
+/* Date Range Filter */
+.oom-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    margin-bottom: var(--oom-spacing-md);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-date-range-container {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+}
+
+.oom-date-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    flex: 1;
+    min-width: 200px;
+}
+
+.oom-date-input-container label {
+    font-size: var(--oom-filter-label-size);
+    color: var(--oom-filter-label-color);
+    font-weight: var(--font-medium);
+}
+
+.oom-date-input-container input[type="date"] {
+    padding: var(--oom-filter-input-padding);
+    border: var(--oom-filter-input-border);
+    border-radius: var(--oom-filter-input-radius);
+    font-size: var(--oom-filter-label-size);
+    color: var(--text-normal);
+    background-color: var(--oom-filter-input-bg);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-date-input-container input[type="date"]:hover {
+    border-color: var(--interactive-accent);
+}
+
+.oom-date-input-container input[type="date"]:focus {
+    border-color: var(--oom-filter-input-focus-border);
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Quick Filters */
+.oom-quick-filters {
+    display: flex;
+    gap: var(--oom-filter-gap);
+    flex-wrap: wrap;
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.oom-quick-filters .setting-item {
+    border: none;
+    padding: var(--oom-filter-gap) 0;
+}
+
+.oom-quick-filters .setting-item:first-child {
+    padding-top: 0;
+}
+
+.oom-quick-filters .setting-item:last-child {
+    padding-bottom: 0;
+}
+
+.oom-quick-filters .setting-item-name {
+    min-width: 100px;
+    font-weight: var(--font-medium);
+}
+
+.oom-quick-filters .setting-item-description {
+    color: var(--oom-filter-label-color);
+    font-size: var(--oom-filter-label-size);
+}
+
+/* Time Filter Dialog */
+.oom-time-filter-dialog {
+    padding: var(--oom-modal-padding);
+    max-width: 500px;
+}
+
+.oom-time-filter-dialog h2 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-lg);
+    color: var(--text-normal);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+}
+
+.oom-time-filter-dialog h3 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+    font-weight: var(--h3-weight, var(--font-bold));
+    color: var(--oom-filter-label-color);
+}
+
+.oom-time-input-container {
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    background-color: var(--oom-filter-container-bg);
+}
+
+.oom-time-input-container .setting-item {
+    border: none;
+    padding: var(--oom-filter-gap) 0;
+}
+
+.oom-time-input-container .setting-item:first-child {
+    padding-top: 0;
+}
+
+.oom-time-input-container .setting-item:last-child {
+    padding-bottom: 0;
+}
+
+.oom-time-input-container .setting-item-name {
+    min-width: 80px;
+    font-weight: var(--font-medium);
+}
+
+/* Filter Status Indicators */
+.oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter--mostly-visible {
+    color: var(--text-normal);
+}
+
+.oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-hidden {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+div#oom-time-filter-display {
+    margin-top: .5em;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-select,
+    .oom-date-input-container input[type="date"] {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-select:focus,
+    .oom-date-input-container input[type="date"]:focus {
+        border-color: var(--oom-high-contrast-accent);
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+    
+    .oom-filter--all-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--mostly-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--partially-visible {
+        color: CanvasText;
+    }
+    
+    .oom-filter--none-visible {
+        color: CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-select,
+    .oom-date-input-container input[type="date"],
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        transition: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+}
+
+/* Responsive Styles */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        flex-direction: column;
+        gap: var(--oom-filter-mobile-gap);
+        margin: var(--oom-filter-mobile-margin);
+        padding: var(--oom-filter-mobile-padding);
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-date-filter,
+    .markdown-preview-view[data-type="oom-project-note"] .oom-metric-filter {
+        width: 100%;
+    }
+
+    .markdown-preview-view[data-type="oom-project-note"] .oom-select {
+        width: 100%;
+        max-width: none;
+    }
+    
+    .oom-date-range-container {
+        flex-direction: column;
+    }
+    
+    .oom-date-input-container {
+        min-width: 100%;
+    }
+    
+    .oom-quick-filters {
+        flex-direction: column;
+    }
+    
+    .oom-filter-controls {
+        flex-direction: column;
+    }
+    
+    .oom-filter-group {
+        width: 100%;
+    }
+    
+    .oom-select,
+    .oom-date-input-container input[type="date"] {
+        font-size: var(--oom-filter-mobile-font-size);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oneirometrics-time-filter-buttons {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oneirometrics-date-range-details {
+        font-size: var(--oom-filter-mobile-font-size);
+    }
+    
+    .oom-time-filter-dialog {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-time-filter-dialog h2 {
+        font-size: var(--h3-size);
+    }
+    
+    .oom-time-filter-dialog h3 {
+        font-size: var(--h4-size);
+    }
+}
+
+/* ==========================================================================
+   Buttons Styles
+   ========================================================================== */
+
+/* OneiroMetrics Button Styles
+ * 
+ * Contains general button styles used throughout the plugin.
+ * Includes base styles, variants, states, and accessibility features.
+ */
+
+/* Base Button Styles */
+.oom-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-button-gap);
+    padding: var(--oom-button-padding);
+    justify-content: center;
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--oom-button-font-size);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    border: 1px solid transparent;
+    color: var(--text-normal);
+    background: var(--interactive-normal);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-button:hover {
+    background: var(--interactive-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-button:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-button:active {
+    transform: scale(0.98);
+}
+
+/* Button Variants */
+.oom-button--primary {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+    border: none;
+}
+
+.oom-button--primary:hover {
+    background: var(--interactive-accent-hover);
+}
+
+.oom-button--secondary {
+    border-color: var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.oom-button--secondary:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-button--text {
+    background: none;
+    border: none;
+    padding: var(--oom-spacing-xs);
+    color: var(--text-muted);
+}
+
+.oom-button--text:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+/* Button Sizes */
+.oom-button--sm {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    font-size: var(--font-ui-smaller);
+}
+
+.oom-button--lg {
+    padding: var(--oom-spacing-md) var(--oom-spacing-lg);
+    font-size: var(--font-ui-medium);
+}
+
+/* Button States */
+.oom-button--loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.oom-button--loading::after {
+    content: "";
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    border: 2px solid var(--text-normal);
+    border-radius: 50%;
+    border-right-color: transparent;
+    animation: oom-button-spin 0.8s linear infinite;
+}
+
+@keyframes oom-button-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.oom-button--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.oom-button--hidden {
+    display: none;
+}
+
+.oom-button--error {
+    color: var(--text-error);
+    background: var(--background-error);
+}
+
+.oom-button--success {
+    color: var(--text-success);
+    background: var(--background-success);
+}
+
+.oom-button--clicked {
+    transform: scale(0.95);
+}
+
+/* Button Groups */
+.oom-button-group {
+    display: inline-flex;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-button-group .oom-button {
+    border-radius: 0;
+}
+
+.oom-button-group .oom-button:first-child {
+    border-top-left-radius: var(--oom-button-border-radius);
+    border-bottom-left-radius: var(--oom-button-border-radius);
+}
+
+.oom-button-group .oom-button:last-child {
+    border-top-right-radius: var(--oom-button-border-radius);
+    border-bottom-right-radius: var(--oom-button-border-radius);
+}
+
+/* Icon Buttons */
+.oom-button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: 0;
+    border-radius: var(--oom-radius-md);
+    color: var(--text-muted);
+    background: none;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-button-icon:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-button-icon svg {
+    width: var(--oom-icon-svg-size);
+    height: var(--oom-icon-svg-size);
+}
+
+/* Modal Buttons */
+.oom-modal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-modal-btn:hover,
+.oom-modal-btn:focus {
+    background: var(--background-modifier-hover);
+}
+
+.oom-modal-btn--apply {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+}
+
+.oom-modal-btn--apply:hover,
+.oom-modal-btn--apply:focus {
+    background: var(--interactive-accent-hover);
+}
+
+/* Dialog Buttons */
+.oom-dialog-buttons {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--oom-spacing-lg);
+}
+
+/* Metric Editor Buttons */
+.oom-metric-editor-buttons {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--oom-spacing-md);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-button {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-button--primary {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+    
+    .oom-button:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-button,
+    .oom-button-icon {
+        transition: none;
+    }
+    
+    .oom-button:hover,
+    .oom-button:active,
+    .oom-button-icon:hover {
+        transform: none;
+    }
+    
+    .oom-button--loading::after {
+        animation: none;
+    }
+    
+    .oom-button--clicked {
+        transform: none;
+    }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+    .oom-button,
+    .oom-button-icon {
+        min-height: var(--oom-touch-target-size);
+        min-width: var(--oom-touch-target-size);
+    }
+    
+    .oom-button--text {
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+/* ==========================================================================
+   OneiroMetrics Note
+   ========================================================================== */
+
+/* Hide inline title */
+.markdown-preview-view:has(.oom-metrics-container) .inline-title {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Tables Utilities Styles
+   ========================================================================== */
+
+/* OneiroMetrics Tables - Utilities
+ * 
+ * Contains shared table utilities used across different table components.
+ * Includes container styles, loading states, accessibility features, and responsive design.
+ */
+
+/* Table Container */
+.oom-table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Table Wrapper */
+.oom-table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Empty State */
+.oom-table-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-table-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-table-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-table-spin 0.8s linear infinite;
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Project Note Table Layout */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    padding: var(--oom-spacing-md);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+span.oom-metric-header svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table-container {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-table th {
+        background: var(--oom-high-contrast-bg);
+        color: var(--oom-high-contrast-text);
+    }
+    
+    .oom-table th:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-table th,
+    .oom-table tr {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table-container {
+        margin: var(--oom-spacing-sm) 0;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table-container {
+        margin: var(--oom-spacing-xs) 0;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+        padding: var(--oom-spacing-xs);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+    
+    .oom-table th {
+        background: #f0f0f0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .oom-table td {
+        border-bottom: 1px solid #000;
+    }
+    
+    .oom-table tr {
+        break-inside: avoid;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+    }
+}
+
+/* ==========================================================================
+   Tables Metrics Summary Styles
+   ========================================================================== */
+
+/* OneiroMetrics Tables - Metrics Summary Styles
+ * 
+ * Styles for the metrics summary table in project notes.
+ * Includes summary container, statistics table, and related styles.
+ */
+
+/* Metrics Summary Container */
+.oom-metrics-summary {
+    border: 2px dashed var(--text-accent);
+    background: var(--background-primary-alt);
+    padding: var(--oom-spacing-lg);
+    margin: var(--oom-spacing-lg) 0;
+    border-radius: var(--oom-radius-lg);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-metrics-summary:hover {
+    border-color: var(--interactive-accent);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Statistics Section */
+.oom-stats-section {
+    margin-bottom: var(--oom-spacing-xl);
+}
+
+.oom-stats-title {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+    letter-spacing: 0.01em;
+}
+
+/* Statistics Table */
+.oom-stats-table {
+    width: 100%;
+    margin-bottom: var(--oom-spacing-md);
+    border-collapse: collapse;
+    background: var(--background-primary);
+    border-radius: var(--oom-radius-md);
+    overflow: hidden;
+}
+
+.oom-stats-table th,
+.oom-stats-table td {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    text-align: left;
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-stats-table th {
+    font-weight: var(--font-bold);
+    background-color: var(--background-primary-alt);
+    color: var(--text-normal);
+    white-space: nowrap;
+}
+
+.oom-stats-table tr:hover td {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-stats-table td.metric-value {
+    text-align: right;
+    white-space: nowrap;
+    font-family: var(--font-monospace);
+    color: var(--text-accent);
+}
+
+/* Metric Categories */
+.oom-metric-category {
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+}
+
+.oom-metric-category td {
+    background-color: var(--background-primary-alt);
+}
+
+/* Ensure the statistics section is visible */
+.oom-table-section.oom-stats-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Loading State */
+.oom-metrics-summary.loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-metrics-summary.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-metrics-spin 0.8s linear infinite;
+}
+
+@keyframes oom-metrics-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-metrics-summary {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-stats-table th {
+        background-color: Canvas;
+    }
+    
+    .oom-metric-category td {
+        background-color: Canvas;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-metrics-summary,
+    .oom-stats-table th,
+    .oom-stats-table td {
+        transition: none;
+    }
+    
+    .oom-metrics-summary.loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-metrics-summary {
+        padding: var(--oom-spacing-md);
+        margin: var(--oom-spacing-md) 0;
+    }
+    
+    .oom-stats-table {
+        font-size: var(--oom-table-tablet-font-size);
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        padding: var(--oom-table-tablet-padding);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-metrics-summary {
+        padding: var(--oom-spacing-sm);
+        margin: var(--oom-spacing-sm) 0;
+    }
+    
+    .oom-stats-table {
+        font-size: var(--oom-table-mobile-font-size);
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        padding: var(--oom-table-mobile-padding);
+    }
+    
+    .oom-stats-title {
+        font-size: var(--h3-size);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-metrics-summary {
+        border: 2px dashed #000;
+        break-inside: avoid;
+    }
+    
+    .oom-stats-table {
+        break-inside: avoid;
+    }
+    
+    .oom-stats-table th,
+    .oom-stats-table td {
+        border: 1px solid #000;
+        padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    }
+    
+    .oom-stats-table th {
+        background-color: #f0f0f0;
+    }
+    
+    .oom-metric-category td {
+        background-color: #f0f0f0;
+    }
+}
+
+/* ==========================================================================
+   Tables Dream Entries Styles
+   ========================================================================== */
+
+/* OneiroMetrics Tables - Dream Entries Styles
+ * 
+ * Contains styles specific to the Dream Entries table in project notes.
+ * Includes base table styles, column layouts, and specific features.
+ */
+
+/* Base Table Styles */
+.oom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: var(--oom-spacing-md) 0;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--background-primary);
+    table-layout: auto;
+}
+
+/* Table Header */
+.oom-table th {
+    position: sticky;
+    top: 0;
+    z-index: var(--oom-z-table-header);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--background-primary);
+    border-bottom: 2px solid var(--background-modifier-border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-table th:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-table th:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Sort Indicators */
+.oom-table th[data-sort]::after {
+    content: "↕";
+    margin-left: var(--oom-spacing-xs);
+    opacity: 0.5;
+}
+
+.oom-table th[data-sort="asc"]::after {
+    content: "↑";
+    opacity: 1;
+}
+
+.oom-table th[data-sort="desc"]::after {
+    content: "↓";
+    opacity: 1;
+}
+
+/* Table Body */
+.oom-table td {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Table Row */
+.oom-table tr {
+    transition: background-color var(--oom-transition-normal);
+}
+
+.oom-table tr:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Add optimized row visibility transitions */
+.oom-dream-row {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    will-change: opacity, visibility;
+    contain: layout style;
+    backface-visibility: hidden; /* Reduce composite layers */
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+.oom-row--hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important; 
+    border: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important; /* Remove from document flow */
+    transform: translateZ(0) !important; /* Force GPU acceleration */
+    display: none !important; /* Completely hide from layout */
+}
+
+.oom-row--visible {
+    visibility: visible;
+    opacity: 1;
+    height: auto;
+    display: table-row; /* Ensure proper display for table rows */
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+/* Add for filter display transition */
+.oom-filter-display {
+    contain: content;
+    will-change: contents;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.oom-filter-display--updated {
+    background-color: rgba(var(--interactive-accent-rgb), 0.1);
+}
+
+/* Column Widths */
+.oom-table .oom-date-column {
+    width: 8%;
+    min-width: 85px;
+    white-space: nowrap;
+}
+
+.oom-table .oom-title-column {
+    width: 15%;
+    min-width: 120px;
+}
+
+.oom-table .oom-words-column {
+    width: 7%;
+    min-width: 60px;
+}
+
+.oom-table .oom-content-column {
+    width: 30%;
+    min-width: 200px;
+}
+
+.oom-table .oom-metrics-column {
+    width: 8%;
+    min-width: 70px;
+    text-align: right;
+    white-space: nowrap;
+    font-family: var(--font-monospace);
+}
+
+/* Table Container */
+.oom-table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Table Wrapper */
+.oom-table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Project Note Specific Styles */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-section {
+    position: relative;
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    padding: var(--oom-spacing-md);
+}
+
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-container {
+    width: calc(100vw - 4em);
+    max-width: none;
+    margin: 0 -2em;
+    padding: 0 2em;
+    display: block;
+    overflow-x: visible;
+}
+
+/* Table Title Styling */
+.markdown-preview-view[data-type="oom-project-note"] .oom-table-title {
+    margin-top: var(--oom-spacing-lg);
+    margin-bottom: var(--oom-spacing-sm);
+    padding: 0;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    letter-spacing: 0.01em;
+    color: var(--text-normal);
+}
+
+/* Dream Entries section header */
+.markdown-preview-view[data-type="oom-project-note"] .oom-dream-entries-title {
+    margin-top: var(--oom-spacing-lg);
+    margin-bottom: var(--oom-spacing-sm);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight, var(--font-bold));
+    color: var(--text-normal);
+}
+
+/* Empty State */
+.oom-table-empty {
+    padding: var(--oom-spacing-lg);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading State */
+.oom-table-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.oom-table-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 2px solid var(--text-muted);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oom-table-spin 0.8s linear infinite;
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-table th,
+    .oom-table td {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-table th {
+        background: var(--oom-high-contrast-bg);
+        color: var(--oom-high-contrast-text);
+    }
+    
+    .oom-table th:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-table th,
+    .oom-table tr {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table {
+        font-size: var(--oom-table-tablet-font-size);
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: var(--oom-table-tablet-padding);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table {
+        font-size: var(--oom-table-mobile-font-size);
+    }
+    
+    .oom-table th,
+    .oom-table td {
+        padding: var(--oom-table-mobile-padding);
+    }
+    
+    .oom-table .oom-date-column {
+        min-width: 70px;
+    }
+    
+    .oom-table .oom-title-column {
+        min-width: 100px;
+    }
+    
+    .oom-table .oom-content-column {
+        min-width: 150px;
+    }
+    
+    .oom-table .oom-metrics-column {
+        min-width: 60px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .oom-table th {
+        background: #f0f0f0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .oom-table td {
+        border-bottom: 1px solid #000;
+    }
+    
+    .oom-table tr {
+        break-inside: avoid;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-filter-controls {
+        display: none;
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] .oom-content-full {
+        display: block;
+    }
+}
+
+/* ==========================================================================
+   Tables Dream Content Styles
+   ========================================================================== */
+
+/* OneiroMetrics Dream Content Table Styles
+ * 
+ * Styles specific to dream content display in OneiroMetrics tables.
+ * Includes content preview, expansion, and related animations.
+ */
+
+/* Content Cell */
+.oom-content-cell {
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Content Preview */
+.oom-content-preview {
+    display: block;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+    font-family: var(--font-text);
+    color: var(--text-normal);
+    width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Full Content */
+.oom-content-full {
+    display: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+    font-family: var(--font-text);
+    color: var(--text-normal);
+    width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.markdown-rendered table.oom-table td {
+    /*line-height:.1em !important;*/
+}
+
+.markdown-rendered table.oom-table tbody > tr > td.column-content {
+    white-space:normal;
+}
+
+/* Expanded State */
+.oom-dream-content.expanded .oom-content-preview {
+    display: none !important;
+}
+
+.oom-dream-content.expanded .oom-content-full {
+    display: block !important;
+}
+
+/* Expand/Collapse Button */
+.oom-dream-content .oom-expand-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.25em 0.5em;
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-dream-content .oom-expand-button:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-dream-content .oom-expand-button:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* No Metrics Message */
+.oom-no-metrics {
+    padding: var(--oom-spacing-md);
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-dream-content .oom-expand-button {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-dream-content .oom-expand-button:focus {
+        outline: 2px solid CanvasText;
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-content-preview,
+    .oom-dream-content .oom-expand-button {
+        transition: none;
+    }
+}
+
+/* Mobile & Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-content-preview,
+    .oom-content-full {
+        font-size: 0.95em;
+        line-height: 1.3;
+    }
+    
+    .oom-dream-content .oom-expand-button {
+        padding: 0.5em 0.75em;
+        font-size: 1em;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-content-full {
+        display: block !important;
+        max-height: none !important;
+    }
+    
+    .oom-content-preview {
+        display: none !important;
+    }
+    
+    .oom-dream-content .oom-expand-button {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Tables Dream Entries Buttons Styles
+   ========================================================================== */
+
+/* OneiroMetrics Dream Entries Table Button Styles
+ * 
+ * Contains button styles specific to the Dream Entries table.
+ * Includes expand/collapse buttons for the Dream Content column.
+ */
+
+/* Expand/Collapse Button */
+.oom-button--expand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-button-gap);
+    padding: var(--oom-button-padding);
+    border: 1px solid var(--interactive-accent);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: all var(--oom-transition-normal);
+    user-select: none;
+    -webkit-user-select: none;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    position: relative;
+    z-index: 1;
+}
+
+.oom-button--expand:hover {
+    background-color: var(--interactive-accent-hover) !important;
+    /* Remove transform: translateY(-1px) for a more subtle hover effect */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important; /* Add a subtle shadow instead */
+}
+
+.oom-button--expand:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+}
+
+.oom-button--expand:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Expand/Collapse Button States */
+.oom-button--state-expanded {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-button--state-collapsed {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+}
+
+.oom-button--state-expanded .oom-button-icon {
+    transform: rotate(180deg);
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-button--expand {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-button--expand:focus {
+        outline: var(--oom-high-contrast-border-thick);
+        outline-offset: 2px;
+    }
+    
+    .oom-button--state-expanded {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-button--expand,
+    .oom-button--state-expanded .oom-button-icon {
+        transition: none;
+    }
+    
+    .oom-button--expand:hover {
+        transform: none;
+    }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+    .oom-button--expand {
+        min-height: var(--oom-touch-target-size);
+        min-width: var(--oom-touch-target-size);
+        padding: var(--oom-spacing-sm);
+    }
+}
+
+/* Also fix the absolute positioned button hover effect */
+.oom-button--expand[style*="position: absolute"]:hover {
+    transform: translateX(-50%) !important; /* Keep only the horizontal centering transform */
+}
+
+/* ==========================================================================
+   Theme Overrides Styles
+   ========================================================================== */
+
+/* Theme Overrides and Base Variables
+ * 
+ * This file contains the base theme variables and overrides that ensure
+ * consistent behavior across different Obsidian themes.
+ */
+
+/* Base Theme Variables
+ * Define our custom variables that will be used throughout the styles
+ * These ensure consistent theming across different Obsidian themes
+ */
+:root {
+    --oom-line-width: var(--oom-theme-line-width);
+    --oom-max-width: var(--oom-theme-max-width);
+    --oom-padding: var(--oom-theme-padding);
+    --oom-margin: var(--oom-theme-margin);
+    --oom-progress-bar-height: 8px;
+    --oom-progress-bar-bg: var(--background-modifier-border, #eee);
+    --oom-progress-bar-radius: 4px;
+    --oom-progress-bar-margin: 1em 0;
+    --oom-progress-fill-bg: var(--interactive-accent, #2563eb);
+    --oom-modal-width: 850px;
+    --oom-modal-max-width: 95vw;
+}
+
+/* Theme-Specific Overrides
+ * Target specific theme variants to ensure consistent behavior
+ */
+.theme-light .markdown-preview-view[data-type="oom-project-note"],
+.theme-dark .markdown-preview-view[data-type="oom-project-note"],
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
+.minimal-default .markdown-preview-view[data-type="oom-project-note"],
+.minimal-light .markdown-preview-view[data-type="oom-project-note"],
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"],
+div[data-type="markdown"][data-type="oom-project-note"] {
+    --line-width-adaptive: var(--oom-line-width);
+    --line-width: var(--oom-line-width);
+    --max-width: var(--oom-max-width);
+    --file-line-width: var(--oom-line-width);
+    width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    margin-left: var(--oom-margin);
+    margin-right: var(--oom-margin);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+    transition: var(--oom-theme-transition);
+}
+
+/* Light Theme Specific */
+.theme-light .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-light-bg);
+    color: var(--oom-theme-light-text);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-light-border);
+}
+
+.theme-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-light-hover);
+}
+
+/* Dark Theme Specific */
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-dark-bg);
+    color: var(--oom-theme-dark-text);
+}
+
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-dark-border);
+}
+
+.theme-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-dark-hover);
+}
+
+/* Minimal Theme Specific */
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"],
+.minimal-default .markdown-preview-view[data-type="oom-project-note"],
+.minimal-light .markdown-preview-view[data-type="oom-project-note"],
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] {
+    background: var(--oom-theme-minimal-bg);
+    color: var(--oom-theme-minimal-text);
+}
+
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-default .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-light .markdown-preview-view[data-type="oom-project-note"] .oom-table,
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table {
+    border-color: var(--oom-theme-minimal-border);
+}
+
+.minimal-theme .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-default .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-light .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover,
+.minimal-dark .markdown-preview-view[data-type="oom-project-note"] .oom-table tr:hover {
+    background: var(--oom-theme-minimal-hover);
+}
+
+/* Readable Line Width Overrides
+ * Ensure our styles work with Obsidian's readable line width setting
+ */
+.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"],
+.markdown-preview-view.is-readable-line-width[data-type="oom-project-note"] .markdown-preview-sizer {
+    --line-width-adaptive: var(--oom-line-width);
+    --line-width: var(--oom-line-width);
+    --max-width: var(--oom-max-width);
+    --file-line-width: var(--oom-line-width);
+    max-width: var(--oom-max-width);
+    width: var(--oom-line-width);
+    margin-left: var(--oom-margin);
+    margin-right: var(--oom-margin);
+    padding-left: var(--oom-padding);
+    padding-right: var(--oom-padding);
+}
+
+/* ==========================================================================
+   Modals Styles
+   ========================================================================== */
+
+/* OneiroMetrics Modal Styles
+ * 
+ * Contains all modal-related styles for the OneiroMetrics plugin.
+ * Includes base modal styles, dialog variants, and accessibility features.
+ */
+
+/* ==========================================================================
+   Base Modal Structure
+   ========================================================================== */
+
+/* Modal Container */
+.oom-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: var(--oom-z-modal);
+    background: var(--background-primary);
+    border-radius: var(--oom-modal-border-radius);
+    box-shadow: var(--oom-modal-shadow);
+    padding: var(--oom-modal-padding);
+    /*max-width: var(--oom-modal-max-width);
+    width: var(--oom-modal-width);*/
+    transition: transform var(--oom-transition-normal),
+                opacity var(--oom-transition-normal);
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Modal States */
+.oom-modal.is-opening {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+}
+
+.oom-modal.is-open {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+.oom-modal.is-closing {
+    opacity: 0;
+    transform: translate(-50%, -52%);
+}
+
+/* ==========================================================================
+   Modal Content Structure
+   ========================================================================== */
+
+/* Title */
+.oom-modal-title {
+    margin: 0 0 var(--oom-spacing-md) 0;
+}
+
+/* Content Area */
+.oom-modal-content {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+/* ==========================================================================
+   Modal Actions
+   ========================================================================== */
+
+/* Button Container */
+.oom-modal-button-container {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-md);
+}
+
+/* Button Styles */
+.oom-modal-button {
+    flex: 1;
+    transition: all 0.2s ease;
+}
+
+.oom-modal-button:hover {
+}
+
+.oom-modal-button.mod-cta {
+}
+
+.oom-modal-button.mod-cta:hover {
+}
+
+.oom-modal-button.mod-warning {
+    border-color: var(--text-error);
+    color: var(--text-on-accent);
+    background: var(--text-error);
+}
+
+.oom-modal-button.mod-warning:hover {
+    background: var(--text-error-hover);
+}
+
+/* Open Note Button */
+.oom-open-note-button {
+    margin-left: var(--oom-spacing-sm);
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-modal-button-container {
+        flex-direction: column;
+    }
+    
+    .oom-modal-button {
+        width: 100%;
+    }
+    
+    .oom-open-note-button {
+        margin-left: 0;
+        margin-top: var(--oom-spacing-sm);
+    }
+}
+
+/* ==========================================================================
+   Modal Variants
+   ========================================================================== */
+
+/* Custom Date Modal */
+.oneirometrics-custom-date-modal {
+    max-width: var(--oom-modal-width-sm);
+}
+
+/* Metrics Modal */
+.modal:has(.oom-metrics-modal) {
+    width:800px;
+}
+
+.oom-metrics-modal {
+    width: 750px;;
+}
+
+/* Callout Modal */
+.oom-callout-modal {
+    max-width: var(--oom-modal-width-md);
+}
+
+/* Icon Picker Modal */
+.oom-icon-picker-modal {
+    max-width: var(--oom-modal-width-lg);
+}
+
+/* Progress Modal */
+.oom-progress-modal {
+    max-width: var(--oom-modal-width-sm);
+}
+
+/* Progress Modal Content */
+.oom-progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+}
+
+.oom-status-text {
+    font-weight: var(--oom-modal-status-weight);
+    color: var(--text-normal);
+}
+
+.oom-progress-bar {
+    height: var(--oom-progress-bar-height);
+    background: var(--oom-progress-bar-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    margin: var(--oom-progress-bar-margin);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.oom-progress-fill {
+    height: 100%;
+    background: var(--oom-progress-fill-bg);
+    border-radius: var(--oom-progress-bar-radius);
+    width: 0%;
+    transition: width 0.2s;
+}
+
+.oom-details-text {
+    font-size: var(--oom-modal-details-size);
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Utility Features
+   ========================================================================== */
+
+/* Keyboard Shortcuts */
+.oom-keyboard-shortcuts {
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    font-size: var(--oom-modal-details-size);
+    color: var(--text-muted);
+}
+
+.oom-keyboard-shortcuts div {
+    margin: var(--oom-spacing-xs) 0;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-modal {
+        width: var(--oom-modal-mobile-width);
+        max-width: none;
+        padding: var(--oom-modal-mobile-padding);
+    }
+    
+    .oom-modal-button-container {
+        flex-direction: column;
+    }
+    
+    .oom-modal-button {
+        width: 100%;
+    }
+}
+
+/* Large Screen Adjustments */
+@media screen and (min-width: var(--oom-breakpoint-large)) {
+    .oom-metrics-modal,
+    .oom-callout-modal {
+        max-width: var(--oom-modal-width-lg);
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+    .oom-modal {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-modal-button {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-modal-button.mod-cta {
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-modal,
+    .oom-modal-button,
+    .oom-progress-bar-fill {
+        transition: none;
+    }
+}
+
+/* ==========================================================================
+   Multiselect Styles
+   ========================================================================== */
+
+/* OneiroMetrics Multiselect Styles
+ * 
+ * Contains all multiselect related styles for the OneiroMetrics plugin.
+ * Includes container, dropdown, selected items, and accessibility features.
+ */
+
+/* Multiselect Container */
+.oom-multiselect-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Dropdown */
+.oom-multiselect-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: var(--oom-z-dropdown);
+    margin-top: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    box-shadow: var(--oom-shadow-md);
+    transition: opacity var(--oom-transition-normal),
+                transform var(--oom-transition-normal);
+}
+
+.oom-multiselect-dropdown.is-opening {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+.oom-multiselect-dropdown.is-open {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.oom-multiselect-dropdown.is-closing {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+/* Selected Items */
+.oom-multiselect-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    min-height: var(--oom-multiselect-min-height);
+    transition: border-color var(--oom-transition-normal);
+}
+
+.oom-multiselect-selected:focus-within {
+    border-color: var(--interactive-accent);
+}
+
+/* Selected Item */
+.oom-multiselect-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary-alt);
+    font-size: var(--font-ui-smaller);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-multiselect-item:hover {
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+/* Remove Button */
+.oom-multiselect-item-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-multiselect-remove-size);
+    height: var(--oom-multiselect-remove-size);
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--oom-transition-normal);
+}
+
+.oom-multiselect-item-remove:hover {
+    color: var(--text-normal);
+}
+
+/* Options List */
+.oom-multiselect-options {
+    max-height: var(--oom-multiselect-options-max-height);
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-bg);
+}
+
+.oom-multiselect-options::-webkit-scrollbar {
+    width: 8px;
+}
+
+.oom-multiselect-options::-webkit-scrollbar-track {
+    background: var(--scrollbar-bg);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-multiselect-options::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-bg);
+    border-radius: var(--oom-radius-md);
+}
+
+/* Option Item */
+.oom-multiselect-option {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    cursor: pointer;
+    border-radius: var(--oom-radius-md);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-multiselect-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-multiselect-option.selected {
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+/* Search Input */
+.oom-multiselect-search {
+    position: sticky;
+    top: 0;
+    padding: var(--oom-spacing-xs);
+    background: var(--background-primary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    z-index: 1;
+}
+
+.oom-multiselect-search-input {
+    width: 100%;
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    background: var(--background-primary);
+    transition: border-color var(--oom-transition-normal);
+}
+
+.oom-multiselect-search-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+}
+
+/* Empty State */
+.oom-multiselect-empty {
+    padding: var(--oom-spacing-md);
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-multiselect-selected,
+    .oom-multiselect-dropdown,
+    .oom-multiselect-item,
+    .oom-multiselect-search-input {
+        border: var(--oom-high-contrast-border);
+    }
+    
+    .oom-multiselect-option.selected {
+        border: var(--oom-high-contrast-border);
+        background: var(--oom-high-contrast-accent);
+        color: var(--oom-high-contrast-bg);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-multiselect-dropdown,
+    .oom-multiselect-item,
+    .oom-multiselect-search-input {
+        transition: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-multiselect-dropdown {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: var(--oom-radius-lg) var(--oom-radius-lg) 0 0;
+        max-height: var(--oom-dropdown-mobile-max-height);
+    }
+
+    .oom-multiselect-options {
+        max-height: calc(var(--oom-dropdown-mobile-max-height) - 60px);
+    }
+
+    .oom-multiselect-item {
+        min-height: var(--oom-touch-target-size);
+    }
+
+    .oom-multiselect-item-remove {
+        width: var(--oom-touch-target-size);
+        height: var(--oom-touch-target-size);
+    }
+}
+
+/* ==========================================================================
+   Settings Metrics Drag Drop Styles
+   ========================================================================== */
+
+/* OneiroMetrics Settings - Metrics Drag and Drop Styles
+ * 
+ * Contains styles for drag and drop functionality in the metrics settings page.
+ * Used for reordering metrics in the settings interface.
+ */
+
+/* Drag Handle */
+.oom-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-drag-handle-size);
+    height: var(--oom-drag-handle-size);
+    padding: var(--oom-spacing-xs);
+    cursor: grab;
+    color: var(--text-muted);
+    transition: color var(--oom-transition-normal),
+                background-color var(--oom-transition-normal);
+    border-radius: var(--oom-radius-sm);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-drag-handle:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.oom-drag-handle:active {
+    cursor: grabbing;
+    background: var(--background-modifier-active);
+}
+
+.oom-drag-handle:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Draggable Item */
+.oom-draggable {
+    position: relative;
+    cursor: grab;
+    transition: transform var(--oom-transition-normal),
+                box-shadow var(--oom-transition-normal),
+                background-color var(--oom-transition-normal);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oom-draggable:hover {
+    transform: translateY(var(--oom-drag-hover-translate));
+    box-shadow: var(--oom-shadow-sm);
+    background: var(--background-modifier-hover);
+}
+
+.oom-draggable.dragging {
+    cursor: grabbing;
+    opacity: var(--oom-drag-opacity);
+    transform: scale(var(--oom-drag-scale));
+    box-shadow: var(--oom-shadow-md);
+    z-index: var(--oom-z-base);
+    background: var(--background-modifier-hover);
+}
+
+.oom-draggable:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Zone */
+.oom-drop-zone {
+    position: relative;
+    min-height: var(--oom-drop-zone-min-height);
+    padding: var(--oom-spacing-md);
+    border: var(--oom-drop-zone-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-drop-zone.drag-over {
+    border-color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+.oom-drop-zone:focus-within {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Zone Placeholder */
+.oom-drop-zone::before {
+    content: 'Drop here';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+    transition: opacity var(--oom-transition-normal);
+}
+
+.oom-drop-zone:not(:empty)::before {
+    opacity: 0;
+}
+
+/* Sortable List */
+.oom-sortable-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs);
+}
+
+.oom-sortable-item {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    transition: all var(--oom-transition-normal);
+    position: relative;
+}
+
+.oom-sortable-item:hover {
+    background: var(--background-modifier-hover);
+    transform: translateY(var(--oom-drag-hover-translate));
+}
+
+.oom-sortable-item.dragging {
+    background: var(--background-modifier-hover);
+    box-shadow: var(--oom-shadow-md);
+    opacity: var(--oom-drag-opacity);
+    z-index: var(--oom-z-base);
+}
+
+.oom-sortable-item:focus-within {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Drop Preview */
+.oom-drop-preview {
+    position: absolute;
+    pointer-events: none;
+    background: var(--background-modifier-hover);
+    border: var(--oom-drop-preview-border);
+    border-radius: var(--oom-radius-md);
+    opacity: var(--oom-drag-opacity);
+    z-index: var(--oom-z-base);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+/* Drop Indicator */
+.oom-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--interactive-accent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--oom-transition-normal);
+}
+
+.oom-drop-indicator.visible {
+    opacity: 1;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .oom-drag-handle {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-drop-zone {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-drop-zone.drag-over {
+        border: 2px solid CanvasText;
+    }
+    
+    .oom-sortable-item {
+        border: 1px solid CanvasText;
+    }
+    
+    .oom-drop-preview {
+        border: 2px dashed CanvasText;
+    }
+    
+    .oom-drop-indicator {
+        background: CanvasText;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .oom-draggable,
+    .oom-drop-zone,
+    .oom-sortable-item,
+    .oom-drop-zone::before,
+    .oom-drop-indicator {
+        transition: none;
+    }
+    
+    .oom-draggable:hover,
+    .oom-sortable-item:hover {
+        transform: none;
+    }
+}
+
+/* Mobile Optimization */
+@media screen and (max-width: var(--oom-drag-drop-breakpoint)) {
+    .oom-drag-handle {
+        width: var(--oom-drag-handle-mobile-size);
+        height: var(--oom-drag-handle-mobile-size);
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-sortable-item {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-drop-zone {
+        padding: var(--oom-spacing-lg);
+    }
+    
+    .oom-drop-zone::before {
+        font-size: var(--font-ui-medium);
+    }
+}
+
+/* ==========================================================================
+   Settings Metrics Icon Picker Styles
+   ========================================================================== */
+
+/* OneiroMetrics Settings - Metrics Icon Picker Styles
+ * 
+ * Contains styles for the icon picker used in the Custom Metrics modal.
+ * Includes grid layout, search functionality, icon selection, and accessibility features.
+ */
+
+/* Icon Picker Container */
+.oom-icon-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+    position: relative;
+}
+
+/* Search Input */
+.oom-icon-picker-search {
+    position: relative;
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-icon-picker-search input {
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    padding-left: calc(var(--oom-spacing-md) * 2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+}
+
+.oom-icon-picker-search input:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-icon-picker-search::before {
+    content: "🔍";
+    position: absolute;
+    left: var(--oom-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Icon Grid */
+.oom-icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-grid-item-size), 1fr));
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    max-height: var(--oom-icon-grid-max-height);
+    overflow-y: auto;
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    scrollbar-width: thin;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-track {
+    background: var(--background-primary);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+/* Icon Button */
+.oom-icon-picker-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    position: relative;
+}
+
+.oom-icon-picker-btn:hover {
+    border-color: var(--text-accent);
+    transform: translateY(var(--oom-icon-hover-translate));
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+    z-index: 1;
+}
+
+.oom-icon-picker-btn:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-focus-ring);
+    z-index: 1;
+}
+
+.oom-icon-picker-btn.selected {
+    border-color: var(--text-accent);
+    box-shadow: var(--oom-shadow-sm);
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-btn svg {
+    height: var(--oom-icon-svg-size);
+    width: var(--oom-icon-svg-size);
+    pointer-events: none;
+}
+
+/* Clear Button */
+.oom-icon-picker-clear {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: none;
+    cursor: pointer;
+    border-radius: var(--oom-radius-md);
+    font-size: var(--font-ui-smaller);
+    text-decoration: underline;
+    transition: all var(--oom-transition-normal);
+    color: var(--text-muted);
+    background: none;
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-icon-picker-clear:hover {
+    color: var(--text-accent);
+    background: var(--background-modifier-hover);
+}
+
+.oom-icon-picker-clear:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Metric Icons */
+.oom-metric-icon,
+.oom-metric-icon-svg {
+    display: inline-flex;
+    height: var(--oom-icon-size);
+    width: var(--oom-icon-size);
+    margin-left: var(--oom-spacing-sm);
+    margin-right: 0;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 1em;
+    opacity: var(--oom-icon-opacity);
+    color: var(--text-muted);
+    fill: var(--text-muted);
+    transition: color var(--oom-transition-normal),
+                opacity var(--oom-transition-normal),
+                fill var(--oom-transition-normal);
+    pointer-events: none;
+}
+
+/* Fallback icon style for when Obsidian icon system fails */
+.oom-icon-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--text-muted);
     color: var(--background-primary);
     border-radius: 50%;
     font-size: 0.7em;
@@ -5520,57 +10864,57 @@ input.oom-folder-autocomplete-input {
 
 .oom-day-header {
     text-align: center;
-    padding: 6px 0;
+    padding: 2px 1px; /* reduced from 4px 3px */
+    border-bottom: 1px solid var(--month-border);
     font-weight: var(--font-bold);
-    font-size: 0.8em;
+    font-size: 0.7em; /* reduced from 4px 3px */
     color: var(--text-muted);
     background-color: var(--background-secondary-alt);
-    border-bottom: 1px solid var(--month-border);
 }
 
 /* Day cell styles */
 .oom-day-cell {
-    min-height: 80px;
-    padding: 4px;
-    background-color: var(--day-bg);
     position: relative;
-    cursor: pointer;
     display: flex;
     flex-direction: column;
+    min-height: 80px;
+    padding: 4px;
+    cursor: pointer;
     transition: all 0.15s ease;
     border: 1px solid transparent;
+    background-color: var(--day-bg);
 }
 
 .oom-day-cell:hover {
-    background-color: var(--day-hover);
     transform: translateY(-1px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 1;
+    background-color: var(--day-hover);
 }
 
 .oom-day-cell:focus {
+    z-index: 2;
     outline: none;
     box-shadow: 0 0 0 2px var(--interactive-accent);
-    z-index: 2;
 }
 
 /* Day number */
 .oom-day-number {
-    font-weight: var(--font-bold);
     margin-bottom: 4px;
+    font-weight: var(--font-bold);
 }
 
 /* Dream indicators */
 .oom-dream-indicators {
     display: flex;
+    flex-wrap: wrap;
     gap: 2px;
     margin-bottom: 4px;
-    flex-wrap: wrap;
 }
 
 .oom-dream-dot {
-    width: 8px;
     height: 8px;
+    width: 8px;
     border-radius: 50%;
     background-color: var(--day-dream);
 }
@@ -5581,13 +10925,13 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-day-cell.is-selected {
-    background-color: var(--day-selected);
     color: var(--text-on-accent);
+    background-color: var(--day-selected);
 }
 
 .oom-day-cell.other-month {
-    background-color: var(--day-other-month);
     color: var(--day-no-dream);
+    background-color: var(--day-other-month);
 }
 
 .oom-day-cell.has-entries {
@@ -5618,20 +10962,20 @@ input.oom-folder-autocomplete-input {
 .oom-day-preview {
     position: absolute;
     display: none;
-    background: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
     padding: 8px;
-    width: 220px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 10;
     top: 100%;
     left: 50%;
-    transform: translateX(-50%);
     max-height: 150px;
+    width: 220px;
+    transform: translateX(-50%);
     overflow-y: auto;
-    color: var(--text-normal);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
     font-size: 0.85em;
+    color: var(--text-normal);
+    background: var(--background-primary);
 }
 
 .oom-day-cell:hover .oom-day-preview {
@@ -5645,44 +10989,44 @@ input.oom-folder-autocomplete-input {
 /* Metric visualization */
 .oom-day-metrics {
     display: flex;
+    margin-top: auto;
+    padding-top: 4px;
     align-items: center;
     justify-content: center;
-    margin-top: auto;
     font-size: 0.8em;
     color: var(--day-dream);
-    padding-top: 4px;
 }
 
 /* Filter indicator */
 .oom-filter-indicator {
     display: inline-flex;
-    align-items: center;
-    font-size: 0.8em;
+    margin-left: 8px;
     padding: 2px 6px;
     border-radius: 4px;
-    background-color: var(--interactive-accent);
+    align-items: center;
+    font-size: 0.8em;
     color: var(--text-on-accent);
-    margin-left: 8px;
+    background-color: var(--interactive-accent);
 }
 
 /* Filter integration section */
 .oom-filter-section {
-    padding: 8px;
-    background-color: var(--background-secondary-alt);
-    border-top: 1px solid var(--month-border);
     display: flex;
+    padding: 8px;
+    border-top: 1px solid var(--month-border);
     justify-content: space-between;
     align-items: center;
+    background-color: var(--background-secondary-alt);
 }
 
 .oom-filter-button {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
+    padding: 4px 8px;
     border: none;
     border-radius: 4px;
-    padding: 4px 8px;
     cursor: pointer;
     font-size: 0.9em;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .oom-filter-button:hover {
@@ -5695,33 +11039,33 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-filter-info.active {
-    color: var(--text-accent);
     font-weight: var(--font-bold);
+    color: var(--text-accent);
 }
 
 /* Year context navigation strip */
 .oom-year-context {
     display: flex;
-    align-items: center;
-    justify-content: center;
     margin-top: 8px;
     padding: 4px;
-    font-size: 0.8em;
+    align-items: center;
+    justify-content: center;
     border-top: 1px solid var(--background-modifier-border);
+    font-size: 0.8em;
 }
 
 .oom-month-dot {
-    width: 6px;
     height: 6px;
-    border-radius: 50%;
+    width: 6px;
     margin: 0 2px;
+    border-radius: 50%;
     background-color: var(--text-muted);
 }
 
 .oom-month-dot.active {
-    background-color: var(--text-accent);
-    width: 8px;
     height: 8px;
+    width: 8px;
+    background-color: var(--text-accent);
 }
 
 .oom-month-dot.has-entries {
@@ -5731,18 +11075,18 @@ input.oom-folder-autocomplete-input {
 /* Date Navigator outer Modal dimensions
    Keep this here for now and expand later */
 .modal:has(.oom-date-navigator-modal) {
+    max-height: 80vh;
     max-width: 600px;
     width: 90vw;
-    max-height: 80vh;
 }
 
 /* Date Navigator inner content dimensions and grid */
 .oom-date-navigator-modal {
-    overflow: hidden;
     display: flex;
+    overflow: hidden;
     flex-direction: column;
-    max-width: 100%;
     max-height: 80vh;
+    max-width: 100%;
 }
 
 .oom-date-navigator-modal .oom-date-navigator {
@@ -5775,29 +11119,29 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-modal-button {
+    min-width: 100px;
     padding: 6px 12px;
+    border: none;
     border-radius: 4px;
-    background: var(--interactive-normal);
-    color: var(--text-normal);
     cursor: pointer;
     font-size: 14px;
-    border: none;
-    min-width: 100px;
+    color: var(--text-normal);
+    background: var(--interactive-normal);
 }
 
 .oom-apply-button {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    font-weight: 500;
     padding: 8px 16px; /* Slightly larger padding */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
     transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .oom-apply-button:hover {
-    background-color: var(--interactive-accent-hover);
     transform: translateY(-1px); /* Slight elevation on hover */
     box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+    background-color: var(--interactive-accent-hover);
 }
 
 .oom-today-button:hover,
@@ -5808,18 +11152,18 @@ input.oom-folder-autocomplete-input {
 
 /* Day selection styles to fix appearance */
 .oom-date-navigator-modal .oom-day-cell.is-selected {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
     position: relative;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .oom-date-navigator-modal .oom-day-cell.is-selected::after {
-    content: "";
     position: absolute;
     top: 2px;
     right: 2px;
-    width: 6px;
     height: 6px;
+    width: 6px;
+    content: "";
     border-radius: 50%;
     background-color: var(--text-on-accent);
 }
@@ -5836,13 +11180,13 @@ input.oom-folder-autocomplete-input {
     }
     
     .oom-dream-dot {
-        width: 4px;
         height: 4px;
+        width: 4px;
     }
     
     .oom-day-preview {
-        width: 180px;
         left: 0;
+        width: 180px;
         transform: none;
     }
     
@@ -5858,11 +11202,11 @@ input.oom-folder-autocomplete-input {
 
 /* Day selection styles to fix appearance */
 .oom-date-navigator-modal .oom-day-cell.is-selected {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
     position: relative;
     box-shadow: 0 0 0 2px var(--interactive-accent);
     z-index: 2;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .oom-date-navigator-modal .oom-day-cell.is-today {
@@ -5871,9 +11215,9 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-date-navigator-modal .oom-day-cell.is-today.is-selected {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
     border-color: var(--text-on-accent);
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 /* Add optimized row visibility transitions */
@@ -5884,18 +11228,18 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-row--hidden {
+  height: 0 !important;
   visibility: hidden;
   opacity: 0;
-  height: 0 !important;
   overflow: hidden;
   pointer-events: none;
   transform: translateZ(0);
 }
 
 .oom-row--visible {
+  height: auto !important;
   visibility: visible;
   opacity: 1;
-  height: auto !important;
   transform: translateZ(0);
 }
 
@@ -5941,12 +11285,12 @@ input.oom-folder-autocomplete-input {
 
 /* Fix for the show more button */
 .oom-button--expand {
-    margin-top: 8px;
     display: flex;
-    align-items: center;
-    justify-content: center;
     position: relative;
     z-index: 2;
+    margin-top: 8px;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Enhanced Content Expansion Styles */
@@ -5959,16 +11303,16 @@ input.oom-folder-autocomplete-input {
 .oom-content-wrapper .oom-content-preview {
     display: block !important;
     max-height: 120px !important;
+    margin-bottom: 10px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: normal !important;
-    margin-bottom: 10px !important;
 }
 
 .oom-content-wrapper .oom-content-full {
     display: none !important;
-    white-space: normal !important;
     margin-bottom: 10px !important;
+    white-space: normal !important;
 }
 
 /* These are the most critical selectors - they control visibility */
@@ -5984,12 +11328,12 @@ input.oom-folder-autocomplete-input {
 
 /* Fix for the show more button */
 .oom-button--expand {
+    position: relative !important;
+    z-index: 2 !important;
     margin-top: 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    position: relative !important;
-    z-index: 2 !important;
     cursor: pointer !important;
 }
 
@@ -6003,16 +11347,16 @@ input.oom-folder-autocomplete-input {
 /* Button appearance styling */
 .oom-button--expand {
     color: var(--text-on-accent) !important;
-    background-color: var(--interactive-accent) !important;
-    border-radius: 4px !important;
     padding: 4px 8px !important;
+    border-radius: 4px !important;
     transition: background-color 0.2s ease, transform 0.2s ease !important;
+    background-color: var(--interactive-accent) !important;
 }
 
 .oom-button--expand:hover {
-    background-color: var(--interactive-accent-hover) !important;
     /* Remove transform: translateY(-1px) for a more subtle hover effect */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important; /* Add a subtle shadow instead */
+    background-color: var(--interactive-accent-hover) !important;
 }
 
 /* Also fix the absolute positioned button hover effect */
@@ -6037,27 +11381,27 @@ input.oom-folder-autocomplete-input {
 .oom-content-preview {
     display: block; 
     max-height: 120px;
+    margin-bottom: 10px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: normal;
-    margin-bottom: 10px;
 }
 
 .oom-content-full {
     display: none; /* Initially hidden */
-    white-space: normal;
     margin-bottom: 10px;
+    white-space: normal;
 }
 
 /* Button styling for consistency */
 .oom-button--expand {
-    color: var(--text-on-accent);
-    background-color: var(--interactive-accent);
-    border-radius: 4px;
+    margin-top: 5px;
     padding: 4px 8px;
     transition: background-color 0.2s ease;
+    border-radius: 4px;
     cursor: pointer;
-    margin-top: 5px;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .oom-button--expand:hover {
@@ -6072,17 +11416,17 @@ input.oom-folder-autocomplete-input {
 }
 
 .oom-dream-content {
-    height: auto !important;
     max-height: none !important;
+    height: auto !important;
 }
 
 /* Fix for expanding content to show full height */
 .oom-content-full {
     display: none; /* Initially hidden */
-    white-space: normal;
     margin-bottom: 10px;
-    height: auto !important;
     max-height: none !important;
+    height: auto !important;
+    white-space: normal;
     overflow: visible !important;
 }
 
@@ -6103,13 +11447,13 @@ input.oom-folder-autocomplete-input {
 .oom-dream-content,
 td.column-content,
 .column-content {
+    position: relative !important;
     height: auto !important;
     max-height: none !important;
     min-height: fit-content !important;
     overflow: visible !important;
     word-break: normal !important;
     white-space: normal !important;
-    position: relative !important;
     line-height: normal !important;
 }
 
@@ -6117,59 +11461,59 @@ td.column-content,
 .oom-table tr,
 .oom-dream-row,
 tr.oom-dream-row {
-    height: auto !important;
     max-height: none !important;
     min-height: fit-content !important;
+    height: auto !important;
     display: table-row !important;
 }
 
 /* Ensure the content wrapper has no restrictions */
 .oom-content-wrapper,
 .oom-content-wrapper.expanded {
-    height: auto !important;
-    max-height: none !important;
-    min-height: fit-content !important;
-    overflow: visible !important;
     position: static !important;
     display: block !important;
+    max-height: none !important;
+    min-height: fit-content !important;
+    height: auto !important;
+    overflow: visible !important;
 }
 
 /* Fix for full content display */
 .oom-content-full {
     display: none;
-    height: auto !important;
     max-height: none !important;
     min-height: fit-content !important;
+    height: auto !important;
+    width: 100% !important;
     overflow: visible !important;
     white-space: normal !important;
     word-break: normal !important;
     line-height: 1.5 !important;
-    width: 100% !important;
 }
 
 /* Content wrapper expanded state */
 .oom-content-wrapper.expanded .oom-content-full,
 .oom-content-wrapper[data-expanded="true"] .oom-content-full {
     display: block !important;
-    height: auto !important;
-    max-height: none !important;
     position: static !important;
+    max-height: none !important;
+    height: auto !important;
 }
 
 /* Button styling with subtle hover effect */
 .oom-button--expand {
     margin-top: 5px;
     padding: 4px 8px;
-    color: var(--text-on-accent);
-    background-color: var(--interactive-accent);
     border-radius: 4px;
     transition: background-color 0.2s ease;
     cursor: pointer;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
 }
 
 .oom-button--expand:hover {
-    background-color: var(--interactive-accent-hover);
     /* Remove the transform for a more subtle effect */
+    background-color: var(--interactive-accent-hover);
 }
 
 /* ==========================================================================
@@ -7043,8 +12387,8 @@ h2.oom-metrics-tabs-label {
     }
     
     .oom-metrics-tabs-sidebar {
-        width: 100%;
         height: auto;
+        width: 100%;
         max-height: 200px;
         border-right: none;
         border-bottom: var(--border-width) solid var(--background-modifier-border);
@@ -7179,36 +12523,36 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-date-navigation {
-    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 2px; /* reduced from 4px */
+    margin-bottom: 4px; /* reduced from 8px */
 }
 
 .oom-calendar-container {
-    margin-bottom: 15px;
+    margin-bottom: 4px; /* reduced from 8px */
 }
 
 .oom-action-buttons {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    padding-top: 12px;
+    padding-top: 4px; /* reduced from 12px */
     border-top: 1px solid var(--background-modifier-border);
 }
 
 .oom-help-text { 
-    color: var(--text-muted); 
     font-style: italic; 
+    color: var(--text-muted);
 }
 
 .oom-info-text { 
-    color: var(--text-accent); 
+    color: var(--text-accent);
 }
 
 .oom-selected-text { 
-    color: var(--text-success); 
-    font-weight: 500; 
+    font-weight: 500;
+    color: var(--text-success);
 }
 
 .oom-year-nav, 
@@ -7216,66 +12560,67 @@ h2.oom-metrics-tabs-label {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 8px; /* reduced from 12px */
 }
 
 .oom-year-display, 
 .oom-month-display {
-    font-weight: 600;
-    min-width: 100px;
+    min-width: 60px; /* reduced from 80px */
     text-align: center;
-    font-size: 0.95em;
+    font-weight: 600;
+    font-size: 0.8em; /* reduced from 0.9em */
 }
 
 .oom-quick-navigation {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    margin-top: 8px;
+    gap: 6px; /* reduced from 10px */
+    margin-top: 1px; /* reduced from 4px */
+    justify-content: space-between;
 }
 
 .oom-quick-nav-buttons {
     display: flex;
-    gap: 8px;
+    gap: 3px; /* reduced from 6px */
 }
 
 .oom-days-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    margin-bottom: 3px;
+    margin-bottom: 1px; /* reduced from 2px */
 }
 
 .oom-day-header {
+    padding: 4px 3px; /* reduced from 6px 4px */
     text-align: center;
     font-weight: 600;
-    padding: 6px 4px;
+    font-size: 0.8em; /* reduced from 0.85em */
     color: var(--text-muted);
-    font-size: 0.85em;
 }
 
 .oom-calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
+    overflow: hidden;
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
-    overflow: hidden;
 }
 
 .oom-calendar-day {
-    aspect-ratio: 1;
+    position: relative;
+    aspect-ratio: auto;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--background-primary);
+    height: 32px;
+    min-width: 28px;
     cursor: pointer;
     transition: all 0.2s ease;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
     font-weight: 500;
-    position: relative;
-    font-size: 0.9em;
-    min-height: 32px;
+    background: var(--background-primary);
 }
 
 .oom-calendar-day:hover {
@@ -7288,15 +12633,15 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-calendar-day.oom-today {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
     font-weight: 600;
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
 }
 
 .oom-calendar-day.oom-selected {
-    background: var(--interactive-accent-hover);
-    color: var(--text-on-accent);
     font-weight: 600;
+    color: var(--text-on-accent);
+    background: var(--interactive-accent-hover);
 }
 
 .oom-calendar-day.oom-range-preview {
@@ -7305,43 +12650,43 @@ h2.oom-metrics-tabs-label {
 
 .oom-calendar-day.oom-range-start,
 .oom-calendar-day.oom-range-end {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
     font-weight: 600;
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
 }
 
 .oom-calendar-day.oom-range-start::after {
+    display: flex;
     content: 'S';
     position: absolute;
     top: 1px;
     right: 1px;
-    font-size: 7px;
-    font-weight: bold;
-    background: var(--text-on-accent);
-    color: var(--interactive-accent);
-    border-radius: 50%;
     width: 10px;
     height: 10px;
-    display: flex;
+    font-size: 7px;
+    font-weight: bold;
+    border-radius: 50%;
     align-items: center;
     justify-content: center;
+    color: var(--interactive-accent);
+    background: var(--text-on-accent);
 }
 
 .oom-calendar-day.oom-range-end::after {
-    content: 'E';
+    display: flex;
     position: absolute;
     top: 1px;
     right: 1px;
+    height: 10px;
+    width: 10px;
+    content: 'E';
     font-size: 7px;
     font-weight: bold;
-    background: var(--text-on-accent);
-    color: var(--interactive-accent);
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-    display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    color: var(--interactive-accent);
+    background: var(--text-on-accent);
 }
 
 .oom-toggle-container {
@@ -7359,36 +12704,36 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-toggle-text {
-    color: var(--text-normal);
     font-size: 0.9em;
+    color: var(--text-normal);
 }
 
 .oom-toggle-input {
     position: absolute;
-    opacity: 0;
-    width: 0;
     height: 0;
+    width: 0;
+    opacity: 0;
 }
 
 .oom-toggle-switch {
     position: relative;
-    width: 38px;
     height: 20px;
-    background: var(--background-modifier-border);
-    border-radius: 10px;
+    width: 38px;
     transition: background-color 0.2s ease;
+    border-radius: 10px;
+    background: var(--background-modifier-border);
 }
 
 .oom-toggle-slider {
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 16px;
     height: 16px;
-    background: var(--background-primary);
-    border-radius: 50%;
+    width: 16px;
     transition: transform 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    background: var(--background-primary);
 }
 
 .oom-toggle-input:checked + .oom-toggle-switch {
@@ -7404,9 +12749,101 @@ h2.oom-metrics-tabs-label {
 }
 
 .oom-selection-info {
+    min-height: 14px; /* reduced from 16px */
+    margin: 6px 0 6px 0; /* reduced from 8px 0 6px 0 */
+    padding: 4px 8px; /* reduced from 6px 10px */
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
     text-align: center;
-    min-height: 18px;
-    margin: 12px 0 8px 0;
+    font-size: 0.8em; /* reduced from 0.85em */
+    background: var(--background-secondary);
+}
+
+/* Text Input Section for Date Selection Modal */
+.oom-text-input-section {
+    margin-bottom: 6px; /* reduced from 10px */
+    padding: 6px; /* reduced from 8px */
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.oom-text-input-header {
+    display: flex;
+    margin-bottom: 4px; /* reduced from 6px */
+    align-items: center;
+    justify-content: space-between;
+}
+
+.oom-text-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px; /* reduced from 8px */
+    align-items: end;
+}
+
+.oom-text-input-title {
+    font-weight: 600;
     font-size: 0.9em;
+    color: var(--text-normal);
+}
+
+.oom-text-input-toggle {
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.8em;
+    color: var(--text-muted);
+}
+
+.oom-text-input-toggle:hover {
+    color: var(--text-accent);
+}
+
+.oom-text-input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.oom-text-input-label {
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.oom-text-input {
+    padding: 6px 8px;
+    transition: border-color 0.2s ease;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: var(--font-monospace);
+    color: var(--text-normal);
+    background: var(--background-primary);
+}
+
+.oom-text-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.25);
+}
+
+.oom-text-input:invalid {
+    border-color: var(--text-error);
+}
+
+.oom-text-input.invalid {
+    border-color: var(--text-error);
+    background-color: rgba(var(--color-red-rgb), 0.1);
+}
+
+.oom-text-input-error {
+    margin-top: 2px;
+    font-size: 0.75em;
+    color: var(--text-error);
+}
+
+.oom-text-input-section.collapsed .oom-text-input-row {
+    display: none;
 }
 
