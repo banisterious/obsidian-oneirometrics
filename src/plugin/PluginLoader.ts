@@ -38,6 +38,9 @@ import { ContentToggler } from '../dom/content';
 // Import DreamMetricsSettingTab
 import { DreamMetricsSettingTab } from '../../settings';
 
+// Import worker test command helpers
+import { addWorkerTestCommand, addWorkerTestRibbon } from '../workers/ui/WorkerTestCommand';
+
 // Import safeLogger directly from the module
 import safeLogger from '../logging/safe-logger';
 
@@ -532,6 +535,15 @@ export class PluginLoader {
                 modalsManager.openMetricsTabsModal();
             }
         });
+
+        // Add Web Worker test command for Phase 1 testing
+        try {
+            addWorkerTestCommand(plugin);
+            safeLogger.info('Commands', 'Web Worker test command registered successfully');
+        } catch (error) {
+            safeLogger.error('Commands', 'Failed to register Web Worker test command', 
+                error instanceof Error ? error : new Error(String(error)));
+        }
         
         // Add more commands as needed
     }
@@ -548,6 +560,15 @@ export class PluginLoader {
             // Initialize ribbon icons if the RibbonManager exists
             if (plugin.ribbonManager) {
                 plugin.ribbonManager.updateRibbonIcons();
+            }
+
+            // Add Web Worker test ribbon button for Phase 1 testing
+            try {
+                addWorkerTestRibbon(plugin);
+                safeLogger.info('Ribbon', 'Web Worker test ribbon button added successfully');
+            } catch (error) {
+                safeLogger.error('Ribbon', 'Failed to add Web Worker test ribbon button', 
+                    error instanceof Error ? error : new Error(String(error)));
             }
         });
         
