@@ -7178,53 +7178,28 @@ h2.oom-metrics-tabs-label {
     width: 90vw;
 }
 
-.oom-selection-mode-title {
-    font-size: 1.25em;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.oom-mode-selection {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--background-modifier-border);
-}
-
 .oom-date-navigation {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .oom-calendar-container {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .oom-action-buttons {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    padding-top: 15px;
+    padding-top: 12px;
     border-top: 1px solid var(--background-modifier-border);
 }
 
-.oom-mode-buttons {
-    display: flex;
-    gap: 10px;
-    margin: 10px 0;
-    justify-content: flex-end;
-}
-
-.oom-selection-info {
-    margin-top: 10px;
-    min-height: 20px;
-}
-
-.oom-selection-info .oom-help-text { 
+.oom-help-text { 
     color: var(--text-muted); 
-    font-style: italic;
-    font-size:var(--font-ui-smaller);
+    font-style: italic; 
 }
 
 .oom-info-text { 
@@ -7241,35 +7216,43 @@ h2.oom-metrics-tabs-label {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .oom-year-display, 
 .oom-month-display {
     font-weight: 600;
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
+    font-size: 0.95em;
 }
 
-.oom-quick-nav {
+.oom-quick-navigation {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-top: 8px;
+}
+
+.oom-quick-nav-buttons {
+    display: flex;
+    gap: 8px;
 }
 
 .oom-days-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .oom-day-header {
     text-align: center;
     font-weight: 600;
-    padding: 8px 4px;
+    padding: 6px 4px;
     color: var(--text-muted);
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 
 .oom-calendar-grid {
@@ -7291,6 +7274,8 @@ h2.oom-metrics-tabs-label {
     transition: all 0.2s ease;
     font-weight: 500;
     position: relative;
+    font-size: 0.9em;
+    min-height: 32px;
 }
 
 .oom-calendar-day:hover {
@@ -7328,15 +7313,15 @@ h2.oom-metrics-tabs-label {
 .oom-calendar-day.oom-range-start::after {
     content: 'S';
     position: absolute;
-    top: 2px;
-    right: 2px;
-    font-size: 8px;
+    top: 1px;
+    right: 1px;
+    font-size: 7px;
     font-weight: bold;
     background: var(--text-on-accent);
     color: var(--interactive-accent);
     border-radius: 50%;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -7345,59 +7330,83 @@ h2.oom-metrics-tabs-label {
 .oom-calendar-day.oom-range-end::after {
     content: 'E';
     position: absolute;
-    top: 2px;
-    right: 2px;
-    font-size: 8px;
+    top: 1px;
+    right: 1px;
+    font-size: 7px;
     font-weight: bold;
     background: var(--text-on-accent);
     color: var(--interactive-accent);
     border-radius: 50%;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.oom-mode-selection {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--background-modifier-border);
+.oom-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
-.oom-mode-flex-container {
+.oom-toggle-label {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
 }
 
-.oom-mode-left-column {
-    flex: 0 0 auto;
+.oom-toggle-text {
+    color: var(--text-normal);
+    font-size: 0.9em;
 }
 
-.oom-mode-right-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
+.oom-toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
-.oom-selection-mode-title {
-    font-size: 1.25em;
-    font-weight: 600;
-    margin-bottom: 0;
+.oom-toggle-switch {
+    position: relative;
+    width: 38px;
+    height: 20px;
+    background: var(--background-modifier-border);
+    border-radius: 10px;
+    transition: background-color 0.2s ease;
 }
 
-.oom-mode-right-column .oom-mode-buttons {
-    display: flex;
-    gap: 10px;
-    margin:24px 0 0 0;
+.oom-toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--background-primary);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.oom-toggle-input:checked + .oom-toggle-switch {
+    background: var(--interactive-accent);
+}
+
+.oom-toggle-input:checked + .oom-toggle-switch .oom-toggle-slider {
+    transform: translateX(18px);
+}
+
+.oom-toggle-input:focus + .oom-toggle-switch {
+    box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 }
 
 .oom-selection-info {
-    text-align: right;
-    min-height: 20px;
+    text-align: center;
+    min-height: 18px;
+    margin: 12px 0 8px 0;
+    font-size: 0.9em;
 }
 
