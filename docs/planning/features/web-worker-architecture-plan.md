@@ -1885,15 +1885,366 @@ private applyPatternFilter(pattern: DatePattern) {
 - Real-time progress indicators with comprehensive results
 
 ### Phase 2: UI Integration and Optimization
-**Status**: 📋 **Ready to Begin**
+**Status**: 📋 **Ready to Begin** (Started January 2025)
 **Prerequisites**: ✅ All Phase 1 components completed and tested
-**Planned Components**:
-- Integrate with DateNavigator and TimeFilterManager
-- Implement progress indicators for long-running operations
-- Add CSS-based visibility optimizations for better performance
-- Enhance error handling and recovery mechanisms
-- Improve caching strategy with persistent storage
-- Add worker bundling with esbuild-plugin-inline-worker
+**Branch**: `feature/web-worker-ui`
+
+#### 🎯 **Phase 2 Goals**
+1. **Seamless Integration**: Connect web workers to existing DateNavigator UI components
+2. **Performance Enhancement**: Replace blocking main thread operations with worker processing
+3. **User Experience**: Add progress indicators and smooth transitions
+4. **Production Readiness**: Robust error handling and edge case management
+5. **Developer Experience**: Clean APIs and comprehensive documentation
+
+#### 📋 **Detailed Implementation Plan**
+
+##### **2.1 DateNavigator Integration** ⏳ **Priority 1**
+**Target Components**: 
+- `src/dom/DateNavigatorIntegration.ts`
+- `src/dom/date-navigator/DateNavigatorIntegration.ts`
+- `src/dom/DateNavigator.ts`
+- `src/dom/DateNavigatorModal.ts`
+
+**Integration Points**:
+```typescript
+// Current filter application (main thread)
+this.timeFilterManager.setCustomRange(startDate, endDate);
+
+// Phase 2: Worker-enhanced filter application
+class DateNavigatorIntegration {
+  private workerManager = new DateNavigatorWorkerManager(this.app);
+  
+  private async applyDateFilter(startDate: Date, endDate: Date) {
+    // Show progress indicator
+    this.showProgressIndicator();
+    
+    try {
+      // Get current entries from state
+      const entries = this.state.getAllDreamEntries();
+      
+      // Process with worker (fallback to main thread if worker fails)
+      const result = await this.workerManager.filterByDateRange(
+        entries, 
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0],
+        {
+          includeStatistics: true,
+          onProgress: (progress) => this.updateProgress(progress)
+        }
+      );
+      
+      // Apply visibility results to UI
+      this.applyVisibilityResults(result.visibilityMap);
+      
+      // Update time filter manager with processed results
+      this.timeFilterManager.setCustomRange(startDate, endDate);
+      
+      // Show completion notice with statistics
+      this.showFilterResults(result.statistics);
+      
+    } catch (error) {
+      this.handleFilterError(error);
+    } finally {
+      this.hideProgressIndicator();
+    }
+  }
+}
+```
+
+**Specific Changes**:
+1. **DateNavigatorIntegration.ts**: 
+   - Add `DateNavigatorWorkerManager` import and initialization
+   - Replace direct `timeFilterManager.setCustomRange()` calls with worker-enhanced filtering
+   - Add progress indicator integration
+   - Implement `applyVisibilityResults()` method for DOM manipulation
+
+2. **DateNavigator.ts**:
+   - Add progress indicator UI elements
+   - Implement `updateProgress()` callback handling
+   - Add error state visualization
+   - Enhance `applyFilter()` method with worker integration
+
+3. **DateNavigatorModal.ts**:
+   - Integrate worker processing for modal-based date selection
+   - Add performance metrics display
+   - Implement cancellation support for long-running operations
+
+##### **2.2 TimeFilterManager Enhancement** ⏳ **Priority 2**
+**Target Components**:
+- `src/timeFilters/TimeFilterManager.ts`
+- `src/dom/filters/DateFilter.ts`
+
+**Enhanced Integration**:
+```typescript
+class TimeFilterManager {
+  private workerManager = new DateNavigatorWorkerManager();
+  
+  async setCustomRange(startDate: Date, endDate: Date, options?: FilterOptions) {
+    // Delegate heavy processing to worker
+    const entries = this.getCurrentEntries();
+    
+    const result = await this.workerManager.filterByDateRange(
+      entries,
+      startDate.toISOString().split('T')[0],
+      endDate.toISOString().split('T')[0],
+      {
+        includeStatistics: true,
+        useCache: true,
+        ...options
+      }
+    );
+    
+    // Apply results and trigger UI updates
+    this.applyFilterResults(result);
+    this.notifyFilterChange(result);
+  }
+}
+```
+
+##### **2.3 Progress Indicators & UX** ⏳ **Priority 2**
+**New Components**:
+- `src/workers/ui/ProgressIndicator.ts`
+- `src/workers/ui/FilterResultsDisplay.ts`
+
+**Progress Indicator Implementation**:
+```typescript
+export class ProgressIndicator {
+  private container: HTMLElement;
+  private progressBar: HTMLElement;
+  private statusText: HTMLElement;
+  
+  constructor(container: HTMLElement) {
+    this.container = container;
+    this.createProgressUI();
+  }
+  
+  show(message: string = 'Processing...') {
+    this.container.style.display = 'block';
+    this.statusText.textContent = message;
+    this.updateProgress(0);
+  }
+  
+  updateProgress(progress: WorkerProgress) {
+    const percentage = Math.round((progress.processed / progress.total) * 100);
+    this.progressBar.style.width = `${percentage}%`;
+    this.statusText.textContent = `${progress.message} (${percentage}%)`;
+  }
+  
+  hide() {
+    this.container.style.display = 'none';
+  }
+}
+```
+
+**Integration Points**:
+1. **DateNavigator**: Add progress overlay during filtering operations
+2. **DateNavigatorModal**: Show processing status for large datasets
+3. **TimeFilterManager**: Display filter application progress
+
+##### **2.4 Performance Optimization** ⏳ **Priority 3**
+**Optimization Areas**:
+
+1. **CSS-Based Visibility**:
+```typescript
+// Enhanced visibility application with DOM batching
+applyVisibilityResults(visibilityMap: VisibilityResult[]) {
+  // Batch DOM updates for better performance
+  const fragment = document.createDocumentFragment();
+  
+  visibilityMap.forEach(result => {
+    const element = document.querySelector(`[data-entry-id="${result.id}"]`);
+    if (element) {
+      element.style.display = result.visible ? 'block' : 'none';
+      element.classList.toggle('filtered-out', !result.visible);
+    }
+  });
+  
+  // Apply all changes at once
+  requestAnimationFrame(() => {
+    // Trigger any necessary recalculations
+    this.updateLayoutMetrics();
+  });
+}
+```
+
+2. **Smart Caching Integration**:
+```typescript
+// Cache-aware filter application
+async applySmartFilter(startDate: Date, endDate: Date) {
+  const cacheKey = `${startDate.toISOString()}-${endDate.toISOString()}`;
+  
+  // Check if we have cached results
+  const cached = this.workerManager.getCachedResult(cacheKey);
+  if (cached && !this.hasEntriesChanged(cached.timestamp)) {
+    this.applyVisibilityResults(cached.visibilityMap);
+    return cached;
+  }
+  
+  // Process with worker if no cache hit
+  return await this.workerManager.filterByDateRange(/*...*/);
+}
+```
+
+##### **2.5 Error Handling & Recovery** ⏳ **Priority 2**
+**Enhanced Error Handling**:
+```typescript
+class WorkerErrorHandler {
+  static async handleFilterError(error: Error, fallbackData: any) {
+    // Log error with context
+    safeLogger.error('WorkerIntegration', 'Filter operation failed', {
+      error: error.message,
+      stack: error.stack,
+      fallbackAvailable: !!fallbackData
+    });
+    
+    // Show user-friendly error message
+    new Notice('Filter processing encountered an issue. Using fallback method...', 4000);
+    
+    // Attempt fallback processing
+    try {
+      return await this.processFallback(fallbackData);
+    } catch (fallbackError) {
+      new Notice('Filter operation failed. Please try again.', 6000);
+      throw fallbackError;
+    }
+  }
+}
+```
+
+##### **2.6 Settings Integration** ⏳ **Priority 3**
+**Settings Enhancement**:
+```typescript
+interface DreamMetricsSettings {
+  // ... existing settings
+  webWorkerSettings: {
+    enabled: boolean;
+    showProgressIndicators: boolean;
+    cacheTTL: number; // milliseconds
+    fallbackTimeout: number; // milliseconds
+    enablePerformanceMetrics: boolean;
+    debugMode: boolean;
+  };
+}
+
+const DEFAULT_WORKER_SETTINGS = {
+  enabled: true, // Enable by default for Phase 2
+  showProgressIndicators: true,
+  cacheTTL: 5 * 60 * 1000, // 5 minutes
+  fallbackTimeout: 10000, // 10 seconds
+  enablePerformanceMetrics: false,
+  debugMode: false
+};
+```
+
+##### **2.7 Build System Integration** ⏳ **Priority 4**
+**esbuild Configuration Update**:
+```javascript
+// esbuild.config.mjs - Add worker bundling
+import { build } from 'esbuild';
+import { inlineWorkerPlugin } from 'esbuild-plugin-inline-worker';
+
+export default {
+  // ... existing config
+  plugins: [
+    inlineWorkerPlugin({
+      workersDir: './src/workers',
+      inline: true // Inline workers for Obsidian compatibility
+    })
+  ],
+  external: ['obsidian'], // Keep Obsidian external
+};
+```
+
+#### 🧪 **Phase 2 Testing Strategy**
+
+##### **Integration Testing**:
+1. **Real Data Testing**: Test with actual dream entries and various dataset sizes
+2. **Performance Benchmarking**: Compare worker vs main thread processing times
+3. **UI Responsiveness**: Ensure smooth user experience during processing
+4. **Error Scenarios**: Test worker failures, timeouts, and recovery mechanisms
+
+##### **Test Scenarios**:
+```typescript
+// Phase 2 Integration Tests
+const integrationTests = [
+  {
+    name: 'DateNavigator Worker Integration',
+    test: () => testDateNavigatorWithWorkers(),
+    expectedPerformance: '< 100ms for 100 entries'
+  },
+  {
+    name: 'Progress Indicator Functionality',
+    test: () => testProgressIndicators(),
+    expectedBehavior: 'Smooth progress updates'
+  },
+  {
+    name: 'Fallback Recovery',
+    test: () => testWorkerFailureRecovery(),
+    expectedBehavior: 'Seamless fallback to main thread'
+  },
+  {
+    name: 'Cache Integration',
+    test: () => testCachePerformance(),
+    expectedPerformance: '< 10ms for cached results'
+  }
+];
+```
+
+#### 📊 **Success Metrics**
+
+1. **Performance Metrics**:
+   - **Filter Application Time**: < 100ms for datasets up to 500 entries
+   - **UI Responsiveness**: Main thread blocking < 16ms (60fps target)
+   - **Cache Hit Rate**: > 70% for repeated filter operations
+   - **Memory Usage**: < 10MB additional overhead
+
+2. **User Experience Metrics**:
+   - **Progress Feedback**: Visible within 100ms of operation start
+   - **Error Recovery**: < 2 seconds fallback time
+   - **Visual Feedback**: Smooth transitions without flickering
+
+3. **Reliability Metrics**:
+   - **Worker Success Rate**: > 95% under normal conditions
+   - **Fallback Success Rate**: 100% when worker fails
+   - **Error Recovery Time**: < 5 seconds for most scenarios
+
+#### 🔄 **Phase 2 Implementation Timeline**
+
+**Week 1**: Core Integration
+- ✅ DateNavigatorIntegration worker connection
+- ✅ Basic progress indicator implementation
+- ✅ TimeFilterManager enhancement
+
+**Week 2**: UX Enhancement  
+- ✅ Progress indicator UI polish
+- ✅ Error handling implementation
+- ✅ Cache integration optimization
+
+**Week 3**: Performance & Testing
+- ✅ Performance optimization
+- ✅ Comprehensive integration testing
+- ✅ Error scenario validation
+
+**Week 4**: Polish & Documentation
+- ✅ Settings integration
+- ✅ Build system optimization
+- ✅ Documentation and examples
+
+#### 🔗 **Integration Dependencies**
+
+**Completed (Phase 1)**:
+- ✅ `DateNavigatorWorkerManager` - Ready for integration
+- ✅ Worker message protocol - Fully type-safe
+- ✅ Fallback mechanisms - Tested and reliable
+- ✅ Error handling - Circuit breaker pattern implemented
+
+**Phase 2 Requirements**:
+- 📋 DOM manipulation utilities for visibility application
+- 📋 Progress indicator UI components
+- 📋 Enhanced error messaging system
+- 📋 Performance monitoring integration
+
+**Integration Ready**: Phase 1 provides a completely non-invasive foundation. Phase 2 can begin immediately with zero risk to existing functionality.
 
 ### Phase 3: Multi-Date Selection Support
 **Status**: ⏳ **Planned**
