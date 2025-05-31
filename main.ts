@@ -125,6 +125,11 @@ import {
   getProjectNotePath,
   getJournalStructure
 } from './src/utils/settings-helpers';
+
+// Import test modals
+import { WebWorkerTestModal } from './src/workers/ui/WebWorkerTestModal';
+import { DateNavigatorTestModal } from './src/workers/ui/DateNavigatorTestModal';
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -182,6 +187,15 @@ export default class DreamMetricsPlugin extends Plugin {
         // Delegate all initialization logic to PluginInitializer
         const initializer = new PluginInitializer(this, this.app);
         await initializer.initializePlugin();
+        
+        // Add test command for DateNavigator integration
+        this.addCommand({
+            id: 'test-date-navigator-integration',
+            name: 'Test DateNavigator Integration',
+            callback: () => {
+                new DateNavigatorTestModal(this.app).open();
+            }
+        });
     }
 
     onunload() {
