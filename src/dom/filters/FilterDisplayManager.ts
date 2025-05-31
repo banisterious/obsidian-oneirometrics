@@ -237,11 +237,25 @@ export class FilterDisplayManager {
             case 'currentYear':
                 return 'Current Year';
             case 'custom':
-                if (customDateRange) {
-                    return `Custom range: ${customDateRange.start} to ${customDateRange.end}`;
-                } else {
-                    return 'Custom date range (no dates selected)';
+                // Get custom date range from FilterUI instead of global variable
+                try {
+                    const plugin = (window as any).oneiroMetricsPlugin;
+                    if (plugin && plugin.filterUI && typeof plugin.filterUI.getCustomDateRange === 'function') {
+                        const range = plugin.filterUI.getCustomDateRange();
+                        if (range && range.start && range.end) {
+                            return `Custom range: ${range.start} to ${range.end}`;
+                        }
+                    }
+                    
+                    // Fallback to global variable if FilterUI is not available
+                    if (typeof customDateRange !== 'undefined' && customDateRange) {
+                        return `Custom range: ${customDateRange.start} to ${customDateRange.end}`;
+                    }
+                } catch (error) {
+                    // Silent fallback if there's any error accessing FilterUI
                 }
+                
+                return 'Custom date range (no dates selected)';
             default:
                 return `Filter: ${filterType}`;
         }

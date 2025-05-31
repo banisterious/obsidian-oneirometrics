@@ -16,6 +16,7 @@ export class DateSelectionModal extends Modal {
     private isRangeMode: boolean = false;
     private rangeStart: Date | null = null;
     private previewRange: DateSelection | null = null;
+    private isUpdatingCalendar: boolean = false;
     
     constructor(app: App, timeFilterManager: TimeFilterManager) {
         super(app);
@@ -43,20 +44,20 @@ export class DateSelectionModal extends Modal {
         contentEl.empty();
         
         try {
-            safeLogger.info('DateSelectionModal', 'Building interface - step 1: mode selection');
-            // Mode selection section
-            this.createModeSelection(contentEl);
-            safeLogger.info('DateSelectionModal', 'Mode selection created successfully');
-            
-            safeLogger.info('DateSelectionModal', 'Building interface - step 2: navigation');
+            safeLogger.info('DateSelectionModal', 'Building interface - step 1: navigation');
             // Navigation section
             this.createNavigation(contentEl);
             safeLogger.info('DateSelectionModal', 'Navigation created successfully');
             
-            safeLogger.info('DateSelectionModal', 'Building interface - step 3: calendar grid');
+            safeLogger.info('DateSelectionModal', 'Building interface - step 2: calendar grid');
             // Calendar grid
             this.createCalendarGrid(contentEl);
             safeLogger.info('DateSelectionModal', 'Calendar grid created successfully');
+            
+            safeLogger.info('DateSelectionModal', 'Building interface - step 3: selection info');
+            // Selection info below calendar
+            this.createSelectionInfo(contentEl);
+            safeLogger.info('DateSelectionModal', 'Selection info created successfully');
             
             safeLogger.info('DateSelectionModal', 'Building interface - step 4: action buttons');
             // Action buttons
@@ -73,44 +74,6 @@ export class DateSelectionModal extends Modal {
                 cls: 'oom-error-message'
             });
         }
-    }
-
-    private createModeSelection(container: HTMLElement): void {
-        const modeSection = container.createDiv('oom-mode-selection');
-        
-        // Create flex container for two-column layout
-        const modeFlexContainer = modeSection.createDiv('oom-mode-flex-container');
-        
-        // Left column: Selection Mode title
-        const leftColumn = modeFlexContainer.createDiv('oom-mode-left-column');
-        const selectionModeTitle = leftColumn.createEl('div', { text: 'Selection Mode', cls: 'oom-selection-mode-title' });
-        
-        // Right column: Buttons and selection info
-        const rightColumn = modeFlexContainer.createDiv('oom-mode-right-column');
-        
-        const modeButtons = rightColumn.createDiv('oom-mode-buttons');
-        
-        // Single date mode - only set class if it should be active
-        const singleButton = new ButtonComponent(modeButtons)
-            .setButtonText('Single Date')
-            .onClick(() => this.setMode(false));
-        
-        if (!this.isRangeMode) {
-            singleButton.setClass('mod-cta');
-        }
-        
-        // Range mode - only set class if it should be active  
-        const rangeButton = new ButtonComponent(modeButtons)
-            .setButtonText('Date Range')
-            .onClick(() => this.setMode(true));
-            
-        if (this.isRangeMode) {
-            rangeButton.setClass('mod-cta');
-        }
-        
-        // Selection info (moved under the buttons)
-        const selectionInfo = rightColumn.createDiv('oom-selection-info');
-        this.updateSelectionInfo(selectionInfo);
     }
 
     private createNavigation(container: HTMLElement): void {
@@ -152,16 +115,35 @@ export class DateSelectionModal extends Modal {
             .setTooltip('Next Month')
             .onClick(() => this.navigateMonth(1));
         
-        // Quick navigation for common ranges
-        const quickNav = navSection.createDiv('oom-quick-nav');
+        // Quick navigation buttons
+        const quickNav = navSection.createDiv('oom-quick-navigation');
         
-        new ButtonComponent(quickNav)
+        // Quick nav buttons container
+        const quickNavButtons = quickNav.createDiv('oom-quick-nav-buttons');
+        
+        new ButtonComponent(quickNavButtons)
             .setButtonText('Today')
             .onClick(() => this.navigateToToday());
-        
-        new ButtonComponent(quickNav)
+            
+        new ButtonComponent(quickNavButtons)
             .setButtonText('This Month')
             .onClick(() => this.selectCurrentMonth());
+        
+        // Range Mode toggle positioned to the right
+        const toggleContainer = quickNav.createDiv('oom-toggle-container');
+        
+        const toggleLabel = toggleContainer.createEl('label', { cls: 'oom-toggle-label' });
+        toggleLabel.createEl('span', { text: 'Range Mode', cls: 'oom-toggle-text' });
+        
+        const toggleInput = toggleLabel.createEl('input', { 
+            type: 'checkbox',
+            cls: 'oom-toggle-input'
+        }) as HTMLInputElement;
+        toggleInput.checked = this.isRangeMode;
+        toggleInput.addEventListener('change', () => this.toggleRangeMode());
+        
+        const toggleSwitch = toggleLabel.createEl('div', { cls: 'oom-toggle-switch' });
+        toggleSwitch.createEl('div', { cls: 'oom-toggle-slider' });
     }
 
     private createCalendarGrid(container: HTMLElement): void {
@@ -225,6 +207,14 @@ export class DateSelectionModal extends Modal {
         dayEl.addEventListener('click', () => this.handleDayClick(date));
         dayEl.addEventListener('mouseenter', () => this.handleDayHover(date));
         
+        // Debug logging for event listener attachment
+        if (date.getDate() <= 3) { // Only log for first few days to avoid spam
+            safeLogger.debug('DateSelectionModal', 'Event listeners attached for day', {
+                date: this.formatDateKey(date),
+                isCurrentMonth
+            });
+        }
+        
         return dayEl;
     }
 
@@ -248,12 +238,49 @@ export class DateSelectionModal extends Modal {
             .onClick(() => this.close());
     }
 
+    private createSelectionInfo(container: HTMLElement): void {
+        // Selection info section below calendar
+        const selectionInfo = container.createDiv('oom-selection-info');
+        this.updateSelectionInfo(selectionInfo);
+    }
+
     private setMode(isRange: boolean): void {
+        const wasRangeMode = this.isRangeMode;
         this.isRangeMode = isRange;
-        this.clearSelection();
-        this.buildInterface(); // Rebuild to update button states
         
-        safeLogger.info('DateSelectionModal', 'Mode changed', { isRangeMode: this.isRangeMode });
+        // Only clear selection in specific cases to avoid losing range selection progress
+        if (wasRangeMode && !isRange) {
+            // Switching from range mode to single mode - only clear if we have an incomplete range
+            if (this.rangeStart && !this.previewRange?.isRange) {
+                safeLogger.info('DateSelectionModal', 'Clearing incomplete range selection when switching to single mode');
+                this.clearSelection();
+            }
+        } else if (!wasRangeMode && isRange) {
+            // Switching from single mode to range mode - clear single date selection
+            if (this.previewRange && !this.previewRange.isRange) {
+                safeLogger.info('DateSelectionModal', 'Clearing single date selection when switching to range mode');
+                this.clearSelection();
+            }
+        }
+        
+        // Only update the toggle state without rebuilding the entire interface
+        const toggleInput = this.contentEl.querySelector('.oom-toggle-input') as HTMLInputElement;
+        if (toggleInput) {
+            toggleInput.checked = this.isRangeMode;
+        }
+        
+        this.updateSelectionInfo();
+        
+        safeLogger.info('DateSelectionModal', 'Mode changed', { 
+            wasRangeMode, 
+            isRangeMode: this.isRangeMode,
+            hasRangeStart: !!this.rangeStart,
+            hasPreviewRange: !!this.previewRange
+        });
+    }
+
+    private toggleRangeMode(): void {
+        this.setMode(!this.isRangeMode);
     }
 
     private navigateYear(delta: number): void {
@@ -304,16 +331,33 @@ export class DateSelectionModal extends Modal {
     private handleDayClick(date: Date): void {
         const dateKey = this.formatDateKey(date);
         
+        safeLogger.info('DateSelectionModal', 'Day clicked', {
+            date: dateKey,
+            isRangeMode: this.isRangeMode,
+            hasRangeStart: !!this.rangeStart,
+            rangeStartDate: this.rangeStart ? this.formatDateKey(this.rangeStart) : null
+        });
+        
         if (this.isRangeMode) {
             this.handleRangeSelection(date);
+            
+            // For range mode: only do full calendar update when completing the range
+            // For range start selection, just update visual state
+            if (this.previewRange?.isRange) {
+                // Range completed
+                this.updateCalendar();
+            } else {
+                // Range start selected, just update visual state
+                this.updateCalendarVisualState();
+            }
         } else {
             // Single date mode
             this.selectedDates.clear();
             this.selectedDates.add(dateKey);
             this.previewRange = { start: date, end: date, isRange: false };
+            this.updateCalendar();
         }
         
-        this.updateCalendar();
         this.updateSelectionInfo();
     }
 
@@ -353,11 +397,12 @@ export class DateSelectionModal extends Modal {
 
     private handleDayHover(date: Date): void {
         if (this.isRangeMode && this.rangeStart) {
-            // Show preview of range
+            // Show preview of range using visual state update only
             const start = this.rangeStart < date ? this.rangeStart : date;
             const end = this.rangeStart < date ? date : this.rangeStart;
             this.previewRange = { start, end, isRange: true };
-            this.updateCalendar();
+            // Use visual state update instead of full calendar regeneration
+            this.updateCalendarVisualState();
         }
     }
 
@@ -395,8 +440,102 @@ export class DateSelectionModal extends Modal {
         }
 
         try {
-            // Apply filter through TimeFilterManager
+            // Format dates as YYYY-MM-DD strings for consistent filtering
+            const startDateStr = this.previewRange.start.toISOString().split('T')[0];
+            const endDateStr = this.previewRange.end.toISOString().split('T')[0];
+            
+            // Apply filter through TimeFilterManager first
             this.timeFilterManager.setCustomRange(this.previewRange.start, this.previewRange.end);
+            
+            // CRITICAL FIX: Get the metrics container and apply filters directly through FilterUI
+            const metricsContainer = document.querySelector('.oom-metrics-container') as HTMLElement;
+            if (metricsContainer) {
+                // Get the FilterUI instance from the global plugin
+                const plugin = (window as any).oneiroMetricsPlugin;
+                safeLogger.info('DateSelectionModal', 'Checking plugin and FilterUI availability', { 
+                    hasPlugin: !!plugin, 
+                    hasFilterUI: !!(plugin && plugin.filterUI)
+                });
+                
+                if (plugin && plugin.filterUI) {
+                    // Set the custom date range in FilterUI
+                    safeLogger.info('DateSelectionModal', 'Setting custom date range in FilterUI', { 
+                        start: startDateStr, 
+                        end: endDateStr 
+                    });
+                    plugin.filterUI.setCustomDateRange({ start: startDateStr, end: endDateStr });
+                    
+                    // Set the dropdown to custom and apply filters
+                    const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+                    if (filterDropdown) {
+                        safeLogger.info('DateSelectionModal', 'Found filter dropdown, setting to custom', { 
+                            currentValue: filterDropdown.value 
+                        });
+                        
+                        // Ensure 'custom' option exists in the dropdown
+                        let customOption = Array.from(filterDropdown.options).find(opt => opt.value === 'custom');
+                        if (!customOption) {
+                            safeLogger.info('DateSelectionModal', 'Custom option not found, adding it');
+                            customOption = document.createElement('option');
+                            customOption.value = 'custom';
+                            customOption.textContent = 'Custom Range';
+                            filterDropdown.appendChild(customOption);
+                        }
+                        
+                        filterDropdown.value = 'custom';
+                        safeLogger.info('DateSelectionModal', 'Dropdown value set', { 
+                            newValue: filterDropdown.value 
+                        });
+                        
+                        // Apply filters through FilterUI
+                        safeLogger.info('DateSelectionModal', 'Calling FilterUI.applyFilters');
+                        plugin.filterUI.applyFilters(metricsContainer);
+                        
+                        // CRITICAL FIX: Update the filter display after the automatic update completes
+                        setTimeout(() => {
+                            safeLogger.info('DateSelectionModal', 'Updating filter display with correct date range');
+                            const filterDisplayManager = plugin.filterDisplayManager;
+                            if (filterDisplayManager) {
+                                // Get the visible count from the table for complete display
+                                const visibleRows = metricsContainer.querySelectorAll('.oom-metrics-row:not([style*="display: none"])').length;
+                                filterDisplayManager.updateCustomRangeDisplay(
+                                    metricsContainer, 
+                                    startDateStr, 
+                                    endDateStr,
+                                    visibleRows
+                                );
+                            } else {
+                                // Fallback: Update the filter display directly
+                                const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display');
+                                if (filterDisplay) {
+                                    filterDisplay.innerHTML = `
+                                        <span class="oom-filter-icon">🗓️</span>
+                                        <span class="oom-filter-text oom-filter--custom">Custom Range: ${startDateStr} to ${endDateStr}</span>
+                                    `;
+                                    filterDisplay.classList.add('oom-filter-active');
+                                }
+                            }
+                        }, 100); // Small delay to ensure it happens after automatic update
+                    } else {
+                        safeLogger.error('DateSelectionModal', 'Filter dropdown not found in metrics container');
+                    }
+                } else {
+                    // Fallback method if FilterUI is not accessible
+                    safeLogger.warn('DateSelectionModal', 'FilterUI not found, using fallback method');
+                    
+                    // Set global custom date range for filtering
+                    (window as any).customDateRange = { start: startDateStr, end: endDateStr };
+                    
+                    // Trigger filter change through dropdown
+                    const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+                    if (filterDropdown) {
+                        filterDropdown.value = 'custom';
+                        filterDropdown.dispatchEvent(new Event('change'));
+                    }
+                }
+            } else {
+                safeLogger.error('DateSelectionModal', 'Metrics container not found');
+            }
             
             const dayCount = this.selectedDates.size;
             const message = this.previewRange.isRange 
@@ -406,8 +545,8 @@ export class DateSelectionModal extends Modal {
             new Notice(message);
             
             safeLogger.info('DateSelectionModal', 'Filter applied', {
-                start: this.previewRange.start.toISOString().split('T')[0],
-                end: this.previewRange.end.toISOString().split('T')[0],
+                start: startDateStr,
+                end: endDateStr,
                 dayCount,
                 isRange: this.previewRange.isRange
             });
@@ -421,32 +560,55 @@ export class DateSelectionModal extends Modal {
     }
 
     private updateCalendar(): void {
-        const calendarGrid = this.contentEl.querySelector('.oom-calendar-grid');
-        if (calendarGrid) {
-            this.generateCalendarDays(calendarGrid as HTMLElement);
+        if (this.isUpdatingCalendar) {
+            safeLogger.warn('DateSelectionModal', 'updateCalendar called while already updating, skipping');
+            return;
         }
         
-        // Update navigation displays
-        const yearDisplay = this.contentEl.querySelector('.oom-year-display');
-        if (yearDisplay) {
-            yearDisplay.textContent = this.currentMonth.getFullYear().toString();
-        }
+        this.isUpdatingCalendar = true;
         
-        const monthDisplay = this.contentEl.querySelector('.oom-month-display');
-        if (monthDisplay) {
-            monthDisplay.textContent = format(this.currentMonth, 'MMMM yyyy');
+        safeLogger.debug('DateSelectionModal', 'updateCalendar called', {
+            stackTrace: new Error().stack?.split('\n').slice(1, 4).join(' | ')
+        });
+        
+        try {
+            const calendarGrid = this.contentEl.querySelector('.oom-calendar-grid');
+            if (calendarGrid) {
+                this.generateCalendarDays(calendarGrid as HTMLElement);
+            }
+            
+            // Update navigation displays
+            const yearDisplay = this.contentEl.querySelector('.oom-year-display');
+            if (yearDisplay) {
+                yearDisplay.textContent = this.currentMonth.getFullYear().toString();
+            }
+            
+            const monthDisplay = this.contentEl.querySelector('.oom-month-display');
+            if (monthDisplay) {
+                monthDisplay.textContent = format(this.currentMonth, 'MMMM yyyy');
+            }
+        } finally {
+            this.isUpdatingCalendar = false;
         }
     }
 
     private updateSelectionInfo(container?: HTMLElement): void {
+        safeLogger.debug('DateSelectionModal', 'updateSelectionInfo called', {
+            hasContainer: !!container,
+            stackTrace: new Error().stack?.split('\n').slice(1, 3).join(' | ')
+        });
+        
         const infoEl = container || this.contentEl.querySelector('.oom-selection-info');
         if (!infoEl) return;
         
         infoEl.empty();
         
         if (this.selectedDates.size === 0) {
+            const helpText = this.isRangeMode 
+                ? 'Click start date, then end date for range'
+                : 'Click a date to select';
             infoEl.createEl('p', { 
-                text: this.isRangeMode ? 'Select start and end dates for range' : 'Click a date to select',
+                text: helpText,
                 cls: 'oom-help-text'
             });
         } else if (this.isRangeMode && this.rangeStart && this.selectedDates.size === 1) {
@@ -462,6 +624,42 @@ export class DateSelectionModal extends Modal {
             
             infoEl.createEl('p', { text, cls: 'oom-selected-text' });
         }
+    }
+
+    private updateCalendarVisualState(): void {
+        safeLogger.debug('DateSelectionModal', 'updateCalendarVisualState called - using efficient visual update only');
+        
+        // Update only the visual state of existing day elements without regenerating
+        const dayElements = this.contentEl.querySelectorAll('.oom-calendar-day');
+        dayElements.forEach((dayEl) => {
+            const dayNumber = parseInt(dayEl.textContent || '0');
+            if (dayNumber > 0) {
+                // Calculate the date for this day element
+                const firstDay = startOfMonth(this.currentMonth);
+                const startDate = new Date(firstDay);
+                startDate.setDate(firstDay.getDate() - firstDay.getDay());
+                
+                // Find which day this element represents
+                const dayIndex = Array.from(dayElements).indexOf(dayEl);
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + dayIndex);
+                
+                const dateKey = this.formatDateKey(currentDate);
+                const isSelected = this.selectedDates.has(dateKey);
+                
+                // Update classes
+                dayEl.classList.toggle('oom-selected', isSelected);
+                
+                // Range preview highlighting
+                if (this.previewRange && this.isDateInRange(currentDate, this.previewRange)) {
+                    dayEl.classList.add('oom-range-preview');
+                    if (isSameDay(currentDate, this.previewRange.start)) dayEl.classList.add('oom-range-start');
+                    if (isSameDay(currentDate, this.previewRange.end)) dayEl.classList.add('oom-range-end');
+                } else {
+                    dayEl.classList.remove('oom-range-preview', 'oom-range-start', 'oom-range-end');
+                }
+            }
+        });
     }
 
     private formatDateKey(date: Date): string {

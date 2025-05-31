@@ -265,6 +265,22 @@ export class FilterUI {
                             // Ensure endDate includes the full day by setting it to end of day
                             endDate.setHours(23, 59, 59, 999);
                             isVisible = dreamDate >= startDate && dreamDate <= endDate;
+                            
+                            // Debug logging for custom date range filtering
+                            if (i < 5) { // Only log first 5 rows to avoid spam
+                                this.logger?.debug('Filter', `Custom date range comparison for row ${i}`, {
+                                    rowDate: date,
+                                    dreamDate: dreamDate.toISOString(),
+                                    customRangeStart: customDateRange.start,
+                                    customRangeEnd: customDateRange.end,
+                                    parsedStartDate: startDate.toISOString(),
+                                    parsedEndDate: endDate.toISOString(),
+                                    dreamDateTime: dreamDate.getTime(),
+                                    startDateTime: startDate.getTime(),
+                                    endDateTime: endDate.getTime(),
+                                    isVisible
+                                });
+                            }
                         } else {
                             this.logger?.error('Filter', 'Invalid custom date range', { customDateRange });
                             isVisible = true; // Show all if custom date range is invalid
