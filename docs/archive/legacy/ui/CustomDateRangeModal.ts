@@ -196,131 +196,97 @@ export class CustomDateRangeModal extends Modal {
                         'title': `Delete favorite ${name}`
                     }
                 });
-                deleteBtn.innerHTML = `<span class="oom-lucide-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>`;
+                deleteBtn.innerHTML = `<span class="oom-lucide-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h2a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>`;
                 
-                // Click event for the entire favorite
-                favoriteItem.addEventListener('click', (e) => {
-                    const target = e.target as HTMLElement;
-                    // Avoid applying when clicking the delete button
-                    if (target.closest('.oom-favorite-delete')) return;
-                    
-                    // Update both the inputs and visual displays
+                // Combine click and delete functionality
+                const handleItemClick = () => {
+                    // Set the dates in the inputs
                     startInputElements.setValue(range.start);
                     endInputElements.setValue(range.end);
                     
-                    // Update internal state with correct dates
+                    // Update the internal date objects
                     this.startDate = new Date(range.start + "T12:00:00");
                     this.endDate = new Date(range.end + "T12:00:00");
-                    
-                    // Visual feedback
-                    favoritesList.querySelectorAll('.oom-favorite-item').forEach(item => 
-                        item.removeClass('oom-favorite-active'));
-                    favoriteItem.addClass('oom-favorite-active');
-                });
-                
-                // Keyboard support
-                favoriteItem.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        // Simulate click but avoid delete button
-                        const clickEvent = new MouseEvent('click', {
-                            bubbles: true,
-                            cancelable: true,
-                            view: window
-                        });
-                        favoriteItem.dispatchEvent(clickEvent);
-                    }
-                });
-                
-                // Delete button event
-                deleteBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
+                };
+
+                const handleDeleteClick = (e: Event) => {
                     e.stopPropagation();
                     if (this.onDeleteFavorite) {
                         this.onDeleteFavorite(name);
+                        // Remove the item from the UI
                         favoriteItem.remove();
-                        if (Object.keys(this.favorites).length === 0) {
+                        // If no more favorites, hide the section
+                        if (favoritesList.children.length === 0) {
                             favSection.remove();
                         }
                     }
+                };
+
+                // Add click handlers
+                favoriteItem.addEventListener('click', handleItemClick);
+                favoriteItem.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleItemClick();
+                    }
                 });
+                
+                deleteBtn.addEventListener('click', handleDeleteClick);
             }
-            
-            // Add hr after favorites section
-            contentEl.createEl('hr');
         }
 
-        // Add hr after range section
-        contentEl.createEl('hr');
-
         // Save as favorite section
-        const favSaveSection = contentEl.createDiv('oom-modal-section');
-        // Favorite name row with custom class (side-by-side layout)
-        const favNameRow = document.createElement('div');
-        favNameRow.className = 'oom-fav-name-row';
-        favNameRow.style.display = 'flex';
-        favNameRow.style.alignItems = 'center';
-        favNameRow.style.gap = '0.5em';
-        favNameRow.style.marginBottom = '0.5em';
-        favNameRow.style.width = '100%';
-        const favInputLabel = document.createElement('label');
-        favInputLabel.textContent = 'Name';
-        favNameRow.appendChild(favInputLabel);
-        const favInput = document.createElement('input');
-        favInput.type = 'text';
-        favInput.placeholder = 'Favorite name';
-        favInput.style.flex = '1 1 0';
-        favNameRow.appendChild(favInput);
-        const favSaveBtn = document.createElement('button');
-        favSaveBtn.textContent = 'Save as Favorite';
-        favSaveBtn.className = 'mod-cta';
-        favNameRow.appendChild(favSaveBtn);
-        favSaveSection.appendChild(favNameRow);
-        favSaveBtn.addEventListener('click', () => {
-            const name = favInput.value.trim();
-            if (name) {
-                // Use input values directly
-                this.onSelect(startInputElements.input.value, endInputElements.input.value, name);
-                this.close();
-            }
+        const saveSection = contentEl.createDiv('oom-modal-section');
+        const saveContainer = saveSection.createDiv('oom-save-container');
+        
+        saveContainer.createEl('label', { text: 'Save as favorite (optional)', cls: 'oom-save-label' });
+        const saveInput = saveContainer.createEl('input', {
+            type: 'text',
+            placeholder: 'Enter favorite name...',
+            cls: 'oom-save-input'
         });
 
-        // Modal buttons
-        const buttonContainer = contentEl.createDiv('oneirometrics-modal-buttons');
-        buttonContainer.style.justifyContent = 'center';
-        const applyButton = buttonContainer.createEl('button', {
-            text: 'Apply',
-            cls: 'mod-cta'
-        });
-        applyButton.addEventListener('click', () => {
-            // Use input values directly to avoid timezone issues
-            this.onSelect(startInputElements.input.value, endInputElements.input.value);
-            this.close();
-        });
-        const clearButton = buttonContainer.createEl('button', {
-            text: 'Clear',
-            cls: 'oom-modal-btn-muted'
-        });
-        clearButton.addEventListener('click', () => {
-            this.onSelect('', '');
-            this.close();
-        });
-        const cancelButton = buttonContainer.createEl('button', {
+        // Action buttons
+        const buttonContainer = contentEl.createDiv('oom-modal-buttons');
+        
+        const cancelBtn = buttonContainer.createEl('button', {
             text: 'Cancel',
-            cls: 'oom-modal-btn-muted'
+            cls: 'oom-modal-button oom-modal-button--secondary'
         });
-        cancelButton.addEventListener('click', () => this.close());
+        
+        const selectBtn = buttonContainer.createEl('button', {
+            text: 'Select',
+            cls: 'oom-modal-button oom-modal-button--primary'
+        });
 
-        // Add keyboard support
-        contentEl.addEventListener('keydown', (e: KeyboardEvent) => {
+        // Event handlers
+        cancelBtn.addEventListener('click', () => {
+            this.close();
+        });
+
+        selectBtn.addEventListener('click', () => {
+            // Validate dates
+            if (this.startDate > this.endDate) {
+                // Swap dates if end is before start
+                const temp = this.startDate;
+                this.startDate = this.endDate;
+                this.endDate = temp;
+            }
+
+            const saveName = saveInput.value.trim() || undefined;
+            this.onSelect(this.startDate, this.endDate, saveName);
+            this.close();
+        });
+
+        // Handle Enter key in save input
+        saveInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault();
-                applyButton.click();
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                this.close();
+                selectBtn.click();
             }
         });
+
+        // Focus the first input
+        startInputElements.input.focus();
     }
 
     onClose(): void {

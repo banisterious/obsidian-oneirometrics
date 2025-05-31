@@ -162,41 +162,26 @@ export class FilterControls {
         filterDropdownContainer.appendChild(filterDropdown);
         filterControls.appendChild(filterDropdownContainer);
         
-        // Create custom range button
-        const customRangeBtn = document.createElement('button');
-        customRangeBtn.id = CUSTOM_RANGE_BUTTON_ID;
-        customRangeBtn.className = 'oom-button';
-        customRangeBtn.innerHTML = `
-            <span class="oom-button-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-calendar-days">
-                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                    <line x1="16" x2="16" y1="2" y2="6"></line>
-                    <line x1="8" x2="8" y1="2" y2="6"></line>
-                    <line x1="3" x2="21" y1="10" y2="10"></line>
-                    <path d="M8 14h.01"></path>
-                    <path d="M12 14h.01"></path>
-                    <path d="M16 14h.01"></path>
-                    <path d="M8 18h.01"></path>
-                    <path d="M12 18h.01"></path>
-                    <path d="M16 18h.01"></path>
-                </svg>
-            </span>
-            <span class="oom-button-text">Custom Range</span>
-        `;
-        customRangeBtn.setAttribute('title', 'Select a custom date range');
+        // Add Date Navigator button
+        const dateNavigatorBtn = document.createElement('button');
+        dateNavigatorBtn.id = 'oom-date-navigator-button';
+        dateNavigatorBtn.className = 'oom-button mod-cta oom-date-navigator-button';
+        dateNavigatorBtn.textContent = 'Date Navigator';
+        dateNavigatorBtn.setAttribute('title', 'Open date navigation and selection interface');
         
-        // Check if this button should be active
-        if (this.settings.lastAppliedFilter === 'custom') {
-            customRangeBtn.classList.add('active');
-        }
-        
-        // Add click event listener
-        customRangeBtn.addEventListener('click', () => {
-            this.logger?.debug('UI', 'Custom range button clicked');
-            this.openCustomRangeModal(containerEl);
+        // Add event listener for date navigator button
+        dateNavigatorBtn.addEventListener('click', () => {
+            this.logger?.debug('UI', 'Date Navigator button clicked from FilterControls');
+            new Notice('Opening date navigator...');
+            if (this.showDateNavigator) {
+                this.showDateNavigator();
+            } else {
+                this.logger?.warn('FilterControls', 'Date navigator function not provided');
+                new Notice('Date navigator function not available');
+            }
         });
         
-        filterControls.appendChild(customRangeBtn);
+        filterControls.appendChild(dateNavigatorBtn);
         
         // Add Rescrape Metrics button
         const rescrapeBtn = document.createElement('button');
@@ -218,27 +203,6 @@ export class FilterControls {
         });
         
         filterControls.appendChild(rescrapeBtn);
-        
-        // Add Date Navigator button
-        const dateNavigatorBtn = document.createElement('button');
-        dateNavigatorBtn.id = 'oom-date-navigator-button';
-        dateNavigatorBtn.className = 'oom-button mod-cta oom-date-navigator-button';
-        dateNavigatorBtn.textContent = 'Date Navigator';
-        dateNavigatorBtn.setAttribute('title', 'Open date navigation and selection interface');
-        
-        // Add event listener for date navigator button
-        dateNavigatorBtn.addEventListener('click', () => {
-            this.logger?.debug('UI', 'Date Navigator button clicked from FilterControls');
-            new Notice('Opening date navigator...');
-            if (this.showDateNavigator) {
-                this.showDateNavigator();
-            } else {
-                this.logger?.warn('FilterControls', 'Date navigator function not provided');
-                new Notice('Date navigator function not available');
-            }
-        });
-        
-        filterControls.appendChild(dateNavigatorBtn);
         
         // Add any additional controls for debugging if enabled
         if (this.settings.logging?.level === 'debug' || this.settings.logging?.level === 'trace') {
@@ -274,47 +238,6 @@ export class FilterControls {
                 this.filterUI.applyFilterToDropdown(filterDropdown, containerEl);
             }
         }
-    }
-    
-    /**
-     * Open the custom date range modal
-     * 
-     * @param containerEl - The container element
-     */
-    private openCustomRangeModal(containerEl: HTMLElement): void {
-        this.dateRangeService.openCustomRangeModal((range) => {
-            if (range) {
-                // Set the custom date range
-                this.filterUI.setCustomDateRange(range);
-                
-                // Update the dropdown to show custom
-                const filterDropdown = containerEl.querySelector(`#${FILTER_DROPDOWN_ID}`) as HTMLSelectElement;
-                if (filterDropdown) {
-                    // Check if the custom option exists
-                    let customOption = Array.from(filterDropdown.options).find(opt => opt.value === 'custom');
-                    
-                    // Add the custom option if it doesn't exist
-                    if (!customOption) {
-                        customOption = document.createElement('option');
-                        customOption.value = 'custom';
-                        customOption.textContent = 'Custom Date';
-                        filterDropdown.appendChild(customOption);
-                    }
-                    
-                    // Set the dropdown value to custom
-                    filterDropdown.value = 'custom';
-                }
-                
-                // Update the custom range button
-                const customRangeBtn = containerEl.querySelector(`#${CUSTOM_RANGE_BUTTON_ID}`) as HTMLElement;
-                if (customRangeBtn) {
-                    customRangeBtn.classList.add('active');
-                }
-                
-                // Apply the filter
-                this.filterUI.applyCustomDateRangeFilter();
-            }
-        });
     }
     
     /**

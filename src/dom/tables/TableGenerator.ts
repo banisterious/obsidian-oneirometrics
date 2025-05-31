@@ -65,9 +65,8 @@ export class TableGenerator {
         content += '<option value="thisYear">This Year</option>\n';
         content += '<option value="last12months">Last 12 Months</option>\n';
         content += '</select>\n';
-        content += '<button id="oom-custom-range-btn" class="oom-button" type="button">Custom Range</button>\n';
-        content += '<button id="oom-rescrape-button" class="oom-button mod-cta oom-rescrape-button" type="button" title="Rescan dream journal entries and update metrics">Rescrape Metrics</button>\n';
         content += '<button id="oom-date-navigator-button" class="oom-button mod-cta oom-date-navigator-button" type="button" title="Open date navigation and selection interface">Date Navigator</button>\n';
+        content += '<button id="oom-rescrape-button" class="oom-button mod-cta oom-rescrape-button" type="button" title="Rescan dream journal entries and update metrics">Rescrape Metrics</button>\n';
         content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
         content += '</div>\n';
         

@@ -6,113 +6,38 @@
  */
 
 import { App, Notice } from 'obsidian';
-import { CustomDateRangeModal } from '../../modals';
 import safeLogger from '../../../logging/safe-logger';
 
 // Storage keys for localStorage
 const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
 const SAVED_RANGES_KEY = 'oneirometrics-saved-custom-ranges';
 
+export interface DateRange {
+    start: string;
+    end: string;
+}
+
 export class DateRangeService {
-    private app: App;
-    private customDateRange: { start: string, end: string } | null = null;
-    
-    constructor(app: App) {
-        this.app = app;
-        this.loadLastCustomRange();
-    }
-    
+    private customDateRange: DateRange | null = null;
+
+    constructor(private app: App) {}
+
     /**
-     * Open the custom date range modal
-     * @param callback Callback to run after range selection
+     * Open a custom date range modal
+     * @param onSelect Callback function when a date range is selected
      */
-    public openCustomRangeModal(callback?: (range: { start: string, end: string } | null) => void): void {
-        const favorites = this.loadFavoriteRanges();
-        safeLogger.debug('Filter', 'Opening custom range modal', { favorites });
+    openCustomRangeModal(onSelect: (range: DateRange | null) => void): void {
+        // For now, show a notice that this functionality has been moved to Date Navigator
+        new Notice('Custom date range selection has been moved to the Date Navigator. Please use the "Date Navigator" button instead.');
         
-        new CustomDateRangeModal(this.app, (start: string, end: string, saveName?: string) => {
-            if (start && end) {
-                // First, update button state before making any layout changes
-                requestAnimationFrame(() => {
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) btn.classList.add('active');
-                });
-                
-                // Set the customDateRange
-                const newRange = { start, end };
-                this.customDateRange = newRange;
-                
-                // Persist the selection to localStorage
-                this.saveLastCustomRange(newRange);
-                
-                // Save to plugin settings for persistence between reloads
-                if (window['oneiroMetricsPlugin']) {
-                    try {
-                        window['oneiroMetricsPlugin'].settings.lastAppliedFilter = 'custom';
-                        window['oneiroMetricsPlugin'].settings.customDateRange = newRange;
-                        window['oneiroMetricsPlugin'].saveSettings().catch(err => {
-                            safeLogger.error('Filter', 'Failed to save custom date range setting', err);
-                        });
-                    } catch (e) {
-                        safeLogger.error('Filter', 'Failed to save custom date range', e);
-                    }
-                }
-                
-                // Save favorite if needed
-                if (saveName) {
-                    this.saveFavoriteRange(saveName, newRange);
-                    // Show notification
-                    new Notice(`Saved favorite: ${saveName}`);
-                }
-                
-                // Call the callback with the new range
-                if (callback) {
-                    callback(newRange);
-                }
-            } else {
-                // Handle clearing the filter
-                this.customDateRange = null;
-                
-                // Clear the saved filter in plugin settings
-                if (window['oneiroMetricsPlugin']) {
-                    try {
-                        window['oneiroMetricsPlugin'].settings.lastAppliedFilter = 'all';
-                        window['oneiroMetricsPlugin'].settings.customDateRange = undefined;
-                        window['oneiroMetricsPlugin'].saveSettings().catch(err => {
-                            safeLogger.error('State', 'Failed to clear filter setting', err);
-                        });
-                    } catch (e) {
-                        safeLogger.error('State', 'Failed to clear filter setting', e);
-                    }
-                }
-                
-                // Batch UI updates
-                requestAnimationFrame(() => {
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) btn.classList.remove('active');
-                    
-                    // Trigger date range dropdown to apply the default filter
-                    setTimeout(() => {
-                        const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                        if (dropdown) {
-                            dropdown.value = 'all'; // Reset to show all
-                            dropdown.dispatchEvent(new Event('change'));
-                        }
-                    }, 10);
-                });
-                
-                // Call the callback with null
-                if (callback) {
-                    callback(null);
-                }
-            }
-        }, favorites, this.deleteFavoriteRange.bind(this)).open();
+        // Call the callback with null to indicate no selection
+        onSelect(null);
     }
     
     /**
      * Get the current custom date range
      */
-    public getCustomDateRange(): { start: string, end: string } | null {
+    public getCustomDateRange(): DateRange | null {
         return this.customDateRange;
     }
     
@@ -120,7 +45,7 @@ export class DateRangeService {
      * Set a custom date range
      * @param range The date range to set
      */
-    public setCustomDateRange(range: { start: string, end: string } | null): void {
+    public setCustomDateRange(range: DateRange | null): void {
         this.customDateRange = range;
         if (range) {
             this.saveLastCustomRange(range);
@@ -131,7 +56,7 @@ export class DateRangeService {
      * Save the last custom range to localStorage
      * @param range The range to save
      */
-    private saveLastCustomRange(range: { start: string, end: string }): void {
+    private saveLastCustomRange(range: DateRange): void {
         localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(range));
         safeLogger.debug('Filter', 'Saved custom range to localStorage', { range });
     }
@@ -139,7 +64,7 @@ export class DateRangeService {
     /**
      * Load the last custom range from localStorage
      */
-    private loadLastCustomRange(): { start: string, end: string } | null {
+    private loadLastCustomRange(): DateRange | null {
         const data = localStorage.getItem(CUSTOM_RANGE_KEY);
         if (!data) {
             safeLogger.debug('Filter', 'No custom range found in localStorage');
@@ -161,7 +86,7 @@ export class DateRangeService {
      * @param name The name of the favorite
      * @param range The range to save
      */
-    public saveFavoriteRange(name: string, range: { start: string, end: string }): void {
+    public saveFavoriteRange(name: string, range: DateRange): void {
         const saved = this.loadFavoriteRanges();
         saved[name] = range;
         localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
@@ -171,7 +96,7 @@ export class DateRangeService {
     /**
      * Load all favorite ranges
      */
-    public loadFavoriteRanges(): Record<string, { start: string, end: string }> {
+    public loadFavoriteRanges(): Record<string, DateRange> {
         const data = localStorage.getItem(SAVED_RANGES_KEY);
         if (!data) return {};
         try {

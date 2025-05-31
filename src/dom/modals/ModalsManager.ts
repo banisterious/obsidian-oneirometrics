@@ -9,11 +9,12 @@
 import { App, Modal, Notice } from 'obsidian';
 import { ILogger } from '../../logging/LoggerTypes';
 import DreamMetricsPlugin from '../../../main';
-import { CustomDateRangeModal } from './CustomDateRangeModal';
 import { MetricsTabsModal } from './MetricsTabsModal';
 import { MetricsDescriptionsModal } from './MetricsDescriptionsModal';
 import { MetricsCalloutCustomizationsModal } from './MetricsCalloutCustomizationsModal';
 import { createModal, createProgressModal, createConfirmationModal, ModalConfig } from './ModalFactory';
+import { DateSelectionModal } from './DateSelectionModal';
+import { TimeFilterManager } from '../../timeFilters';
 
 /**
  * ModalsManager class for centralized modal creation and management
@@ -152,23 +153,6 @@ export class ModalsManager {
     }
     
     /**
-     * Open the custom date range modal
-     * 
-     * @param callback Optional callback function that receives start date, end date, and optional save name
-     * @param favorites Optional record of favorite date ranges
-     * @param deleteFavorite Optional function to delete a favorite
-     * @returns The opened modal
-     */
-    public openCustomDateRangeModal(
-        callback?: (start: string, end: string, saveName?: string) => void,
-        favorites: Record<string, { start: string, end: string }> = {},
-        deleteFavorite: (name: string) => void = () => {}
-    ): Modal {
-        const modal = new CustomDateRangeModal(this.app, callback || (() => {}), favorites, deleteFavorite);
-        return this.openModal(modal, 'custom-date-range');
-    }
-    
-    /**
      * Open the metrics callout customizations modal
      * 
      * @returns The opened modal
@@ -217,5 +201,18 @@ export class ModalsManager {
      */
     public getActiveModalCount(): number {
         return this.activeModals.size;
+    }
+
+    /**
+     * Open the date selection modal
+     */
+    public openDateSelectionModal(): void {
+        if (!this.plugin.timeFilterManager) {
+            new Notice('Time filter manager not available');
+            return;
+        }
+        
+        const modal = new DateSelectionModal(this.app, this.plugin.timeFilterManager);
+        modal.open();
     }
 } 
