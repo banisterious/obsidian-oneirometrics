@@ -11,7 +11,7 @@ import { DreamMetricsSettings } from '../types/core';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { TimeFilterManager } from '../timeFilters';
 import { TemplaterIntegration } from '../journal_check/TemplaterIntegration';
-import { DateNavigatorIntegration } from '../dom/date-navigator/DateNavigatorIntegration';
+// import { DateNavigatorIntegration } from '../dom/date-navigator/DateNavigatorIntegration'; // Archived - using DateSelectionModal now
 import { LintingEngine } from '../journal_check/LintingEngine';
 import { SettingsManager } from '../state/SettingsManager';
 import { DateRangeService } from '../dom/filters/date-range/DateRangeService';
@@ -418,17 +418,17 @@ export class PluginLoader {
         );
         
         // Use proper constructor parameters for DateNavigatorIntegration
-        plugin.dateNavigator = new DateNavigatorIntegration(
-            this.app,
-            this.plugin
-        );
+        // plugin.dateNavigator = new DateNavigatorIntegration(
+        //     this.app,
+        //     this.plugin
+        // );
         
         // Initialize the linting engine with safe property access
         const journalStructure = getJournalStructure(settings);
         plugin.lintingEngine = new LintingEngine(this.plugin as any, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
         
         // Initialize date navigator for reuse
-        plugin.dateNavigatorIntegration = new DateNavigatorIntegration(this.app, this.plugin as any);
+        // plugin.dateNavigatorIntegration = new DateNavigatorIntegration(this.app, this.plugin as any);
         
         // Initialize the DateRangeService
         plugin.dateRangeService = new DateRangeService(this.app);

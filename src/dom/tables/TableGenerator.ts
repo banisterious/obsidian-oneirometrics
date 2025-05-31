@@ -44,13 +44,6 @@ export class TableGenerator {
         content += "<div data-render-html=\"true\">\n";
         content += '<h1 class="oneirometrics-title">OneiroMetrics (Dream Metrics)</h1>\n';
         
-        // IMPORTANT: Use simpler HTML structure with fewer nesting levels but add distinct classes
-        content += '<div class="oom-buttons-container">\n';
-        content += '<button class="mod-cta oom-button oom-rescrape-button" id="oom-rescrape-button" type="button">Rescrape Metrics</button>\n';
-        content += '<button class="mod-cta oom-button oom-settings-button" id="oom-settings-button" type="button">Settings</button>\n';
-        content += '<button class="mod-cta oom-button oom-date-navigator-button" id="oom-date-navigator-button" type="button">Date Navigator</button>\n';
-        content += '</div>\n';
-        
         content += '<div class="oom-metrics-container">\n';
         
         // Add metrics summary table
@@ -73,6 +66,8 @@ export class TableGenerator {
         content += '<option value="last12months">Last 12 Months</option>\n';
         content += '</select>\n';
         content += '<button id="oom-custom-range-btn" class="oom-button" type="button">Custom Range</button>\n';
+        content += '<button id="oom-rescrape-button" class="oom-button mod-cta oom-rescrape-button" type="button" title="Rescan dream journal entries and update metrics">Rescrape Metrics</button>\n';
+        content += '<button id="oom-date-navigator-button" class="oom-button mod-cta oom-date-navigator-button" type="button" title="Open date navigation and selection interface">Date Navigator</button>\n';
         content += '<div id="oom-time-filter-display" class="oom-filter-display"></div>\n';
         content += '</div>\n';
         

@@ -38,7 +38,9 @@ export class FilterControls {
         private app: App,
         private settings: DreamMetricsSettings,
         private saveSettings: () => Promise<void>,
-        private logger?: ILogger
+        private logger?: ILogger,
+        private scrapeMetrics?: () => Promise<void>,
+        private showDateNavigator?: () => void
     ) {
         this.filterUI = new FilterUI(app, settings, saveSettings, logger);
         this.dateRangeService = new DateRangeService(app);
@@ -195,6 +197,48 @@ export class FilterControls {
         });
         
         filterControls.appendChild(customRangeBtn);
+        
+        // Add Rescrape Metrics button
+        const rescrapeBtn = document.createElement('button');
+        rescrapeBtn.id = 'oom-rescrape-button';
+        rescrapeBtn.className = 'oom-button mod-cta oom-rescrape-button';
+        rescrapeBtn.textContent = 'Rescrape Metrics';
+        rescrapeBtn.setAttribute('title', 'Rescan dream journal entries and update metrics');
+        
+        // Add event listener for rescrape button
+        rescrapeBtn.addEventListener('click', () => {
+            this.logger?.debug('UI', 'Rescrape button clicked from FilterControls');
+            new Notice('Rescraping metrics...');
+            if (this.scrapeMetrics) {
+                this.scrapeMetrics();
+            } else {
+                this.logger?.warn('FilterControls', 'Rescrape function not provided');
+                new Notice('Rescrape function not available');
+            }
+        });
+        
+        filterControls.appendChild(rescrapeBtn);
+        
+        // Add Date Navigator button
+        const dateNavigatorBtn = document.createElement('button');
+        dateNavigatorBtn.id = 'oom-date-navigator-button';
+        dateNavigatorBtn.className = 'oom-button mod-cta oom-date-navigator-button';
+        dateNavigatorBtn.textContent = 'Date Navigator';
+        dateNavigatorBtn.setAttribute('title', 'Open date navigation and selection interface');
+        
+        // Add event listener for date navigator button
+        dateNavigatorBtn.addEventListener('click', () => {
+            this.logger?.debug('UI', 'Date Navigator button clicked from FilterControls');
+            new Notice('Opening date navigator...');
+            if (this.showDateNavigator) {
+                this.showDateNavigator();
+            } else {
+                this.logger?.warn('FilterControls', 'Date navigator function not provided');
+                new Notice('Date navigator function not available');
+            }
+        });
+        
+        filterControls.appendChild(dateNavigatorBtn);
         
         // Add any additional controls for debugging if enabled
         if (this.settings.logging?.level === 'debug' || this.settings.logging?.level === 'trace') {

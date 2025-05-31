@@ -1,7 +1,7 @@
 import { App, Notice } from 'obsidian';
 import { DreamMetricsState } from '../../state/DreamMetricsState';
 import { TimeFilterManager } from '../../timeFilters';
-import { DateNavigatorModal } from './DateNavigatorModal';
+import { DateSelectionModal } from '../modals/DateSelectionModal';
 import { ILogger } from '../../logging/LoggerTypes';
 
 declare const globalLogger: ILogger | undefined;
@@ -272,22 +272,46 @@ export class DateNavigatorManager {
     }
 
     /**
-     * Create and open the DateNavigatorModal
+     * Create and open the DateSelectionModal
      */
     private createAndOpenModal(): void {
-        // Create a new DateNavigatorModal instance
-        const modal = new DateNavigatorModal(this.app, this.state, this.timeFilterManager);
-        
         // Log the modal initialization for debugging
         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-            window['globalLogger'].debug('Plugin', 'Opening DateNavigatorModal with state and filter manager');
+            window['globalLogger'].info('DateNavigatorManager', 'Creating clean DateSelectionModal');
+            window['globalLogger'].debug('DateNavigatorManager', 'Modal dependencies check', {
+                hasApp: !!this.app,
+                hasTimeFilterManager: !!this.timeFilterManager,
+                timeFilterManagerType: typeof this.timeFilterManager
+            });
+        }
+        
+        // Create a new DateSelectionModal instance (clean and simple)
+        const modal = new DateSelectionModal(this.app, this.timeFilterManager);
+        
+        // Verify that the modal was created successfully
+        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+            window['globalLogger'].info('DateNavigatorManager', 'DateSelectionModal created - clean range selection interface');
+            window['globalLogger'].debug('DateNavigatorManager', 'Modal created successfully', {
+                modalType: modal.constructor.name,
+                hasModal: !!modal
+            });
         }
         
         // Open the modal
-        modal.open();
-        
-        // Add a notice to help users understand how to use the navigator
-        new Notice('Select a date to filter your dream entries');
+        try {
+            modal.open();
+            
+            // Log successful opening
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].info('DateNavigatorManager', 'Clean DateSelectionModal opened successfully');
+            }
+            
+            // Add a notice to help users understand the new interface
+            new Notice('📅 Date Selection opened! Choose Single Date or Date Range mode, then click Apply Filter.', 4000);
+            
+        } catch (error) {
+            this.handleError('Failed to open DateSelectionModal', error);
+        }
     }
 
     /**

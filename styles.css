@@ -7169,3 +7169,235 @@ h2.oom-metrics-tabs-label {
     }
 }
 
+/* ==========================================================================
+   DateSelectionModal Styles
+   ========================================================================== */
+
+.oom-date-selection-modal {
+    max-width: 500px;
+    width: 90vw;
+}
+
+.oom-selection-mode-title {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.oom-mode-selection {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-date-navigation {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.oom-calendar-container {
+    margin-bottom: 20px;
+}
+
+.oom-action-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oom-mode-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    justify-content: flex-end;
+}
+
+.oom-selection-info {
+    margin-top: 10px;
+    min-height: 20px;
+}
+
+.oom-selection-info .oom-help-text { 
+    color: var(--text-muted); 
+    font-style: italic;
+    font-size:var(--font-ui-smaller);
+}
+
+.oom-info-text { 
+    color: var(--text-accent); 
+}
+
+.oom-selected-text { 
+    color: var(--text-success); 
+    font-weight: 500; 
+}
+
+.oom-year-nav, 
+.oom-month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.oom-year-display, 
+.oom-month-display {
+    font-weight: 600;
+    min-width: 120px;
+    text-align: center;
+}
+
+.oom-quick-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.oom-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    margin-bottom: 5px;
+}
+
+.oom-day-header {
+    text-align: center;
+    font-weight: 600;
+    padding: 8px 4px;
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.oom-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.oom-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    position: relative;
+}
+
+.oom-calendar-day:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-calendar-day.oom-other-month {
+    color: var(--text-muted);
+    background: var(--background-secondary);
+}
+
+.oom-calendar-day.oom-today {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.oom-calendar-day.oom-selected {
+    background: var(--interactive-accent-hover);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.oom-calendar-day.oom-range-preview {
+    background: rgba(var(--interactive-accent-rgb), 0.3);
+}
+
+.oom-calendar-day.oom-range-start,
+.oom-calendar-day.oom-range-end {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.oom-calendar-day.oom-range-start::after {
+    content: 'S';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 8px;
+    font-weight: bold;
+    background: var(--text-on-accent);
+    color: var(--interactive-accent);
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-calendar-day.oom-range-end::after {
+    content: 'E';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 8px;
+    font-weight: bold;
+    background: var(--text-on-accent);
+    color: var(--interactive-accent);
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-mode-selection {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-mode-flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.oom-mode-left-column {
+    flex: 0 0 auto;
+}
+
+.oom-mode-right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.oom-selection-mode-title {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.oom-mode-right-column .oom-mode-buttons {
+    display: flex;
+    gap: 10px;
+    margin:24px 0 0 0;
+}
+
+.oom-selection-info {
+    text-align: right;
+    min-height: 20px;
+}
+
