@@ -1,11 +1,12 @@
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DreamMetricsDOM } from '../dom/DreamMetricsDOM';
 import { DreamMetricData } from '../types/core';
-import { App } from 'obsidian';
-import { CustomDateRangeModal } from '../CustomDateRangeModal';
+import { App, Notice } from 'obsidian';
 import { withErrorHandling, isNonEmptyString } from '../utils/defensive-utils';
 import safeLogger from '../logging/safe-logger';
 import { EventManager } from './EventManager';
+import { DreamMetricsSettings } from '../types/core';
+import { ILogger } from '../logging/LoggerTypes';
 
 // Import the global logger from main.ts - will be initialized when plugin loads
 declare const globalLogger: any;
@@ -420,71 +421,10 @@ export class DreamMetricsEvents {
             };
 
             try {
-                // Open the custom date range modal with the app instance
-                const favorites = loadFavoriteRanges();
-                new CustomDateRangeModal(
-                    app, 
-                    (start: string, end: string, saveName?: string) => {
-                        try {
-                            if (start && end) {
-                                // First, update button state before making any layout changes
-                                requestAnimationFrame(() => {
-                                    try {
-                                        const btn = document.getElementById('oom-custom-range-btn');
-                                        if (btn) btn.classList.add('active');
-                                    } catch (error) {
-                                        safeLogger.error('Events', 'Error updating button state', error);
-                                    }
-                                });
-                                
-                                // Try to set custom date range in localStorage
-                                try {
-                                    const newRange = { start, end };
-                                    const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
-                                    localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(newRange));
-                                    
-                                    // Save favorite if provided
-                                    if (saveName) {
-                                        saveFavoriteRange(saveName, newRange);
-                                    }
-                                    
-                                    // Apply the filter and update dropdown in sequence
-                                    try {
-                                        const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                                        if (dropdown) {
-                                            // Add custom option if it doesn't exist
-                                            let customOption = dropdown.querySelector('option[value="custom"]') as HTMLOptionElement;
-                                            if (!customOption) {
-                                                customOption = document.createElement('option');
-                                                customOption.value = 'custom';
-                                                customOption.text = 'Custom Date';
-                                                dropdown.appendChild(customOption);
-                                            }
-                                            dropdown.value = 'custom';
-                                        }
-                                        
-                                        const previewEl = document.querySelector('.oom-metrics-container') as HTMLElement;
-                                        if (previewEl) {
-                                            this.dom.applyCustomDateRangeFilter(previewEl, newRange);
-                                        }
-                                        
-                                        safeLogger.debug('Events', 'Applied custom date range filter', newRange);
-                                    } catch (error) {
-                                        safeLogger.error('Events', 'Error applying custom date filter', error);
-                                    }
-                                } catch (error) {
-                                    safeLogger.error('Events', 'Error saving custom range', error);
-                                }
-                            }
-                        } catch (error) {
-                            safeLogger.error('Events', 'Error in custom date range callback', error);
-                        }
-                    }, 
-                    favorites, 
-                    deleteFavoriteRange
-                ).open();
+                // Show notice that custom date range has been moved to Date Navigator
+                new Notice('Custom date range selection has been moved to the Date Navigator. Please use the "Date Navigator" button instead.');
             } catch (error) {
-                safeLogger.error('Events', 'Error opening custom date range modal', error);
+                safeLogger.error('Events', 'Error showing notice', error);
                 throw error;
             }
         },

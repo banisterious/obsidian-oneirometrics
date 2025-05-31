@@ -8,7 +8,10 @@ import { debug, info, warn, error } from '../logging';
 import { ILogger } from '../logging/LoggerTypes';
 import { DreamMetricsSettings } from '../types/core';
 import { FilterUI } from '../dom/filters';
-import { CustomDateRangeModal } from '../dom/modals/CustomDateRangeModal';
+import safeLogger from '../logging/safe-logger';
+import { withErrorHandling } from '../utils/defensive-utils';
+import { DateRangeService } from '../dom/filters/date-range/DateRangeService';
+import { TimeFilterManager } from '../timeFilters';
 
 // Constants
 const CUSTOM_RANGE_KEY = 'oneirometrics-last-custom-range';
@@ -140,82 +143,7 @@ export class FilterEvents {
         const favorites = this.loadFavoriteRanges();
         this.logger?.debug('Filter', 'Opening custom range modal', { favorites });
         
-        new CustomDateRangeModal(this.app, (start: string, end: string, saveName?: string) => {
-            if (start && end) {
-                // First, update button state before making any layout changes
-                requestAnimationFrame(() => {
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) btn.classList.add('active');
-                });
-                
-                // Batch remaining operations with slight delays to avoid layout thrashing
-                setTimeout(() => {
-                    // Set the customDateRange
-                    const newRange = { start, end };
-                    this.filterUI.setCustomDateRange(newRange);
-                    
-                    // Persist the selection to localStorage but without forcing layout
-                    setTimeout(() => {
-                        this.saveLastCustomRange(newRange);
-                        
-                        // Save to plugin settings for persistence between reloads
-                        try {
-                            this.settings.lastAppliedFilter = 'custom';
-                            this.settings.customDateRange = newRange;
-                            this.saveSettings().catch(err => {
-                                this.logger?.error('Filter', 'Failed to save custom date range setting', { error: err });
-                            });
-                        } catch (e) {
-                            this.logger?.error('Filter', 'Failed to save custom date range', { error: e });
-                        }
-                        
-                        // Save favorite if needed without disrupting the filter application
-                        if (saveName) {
-                            this.saveFavoriteRange(saveName, newRange);
-                            // Show notification after filtering is complete
-                            setTimeout(() => {
-                                new Notice(`Saved favorite: ${saveName}`);
-                            }, 100);
-                        }
-                        
-                        // Apply the filter with delay for UI responsiveness
-                        setTimeout(() => {
-                            this.logger?.debug('Filter', 'Applying custom date range filter', { range: this.filterUI.getCustomDateRange() });
-                            this.filterUI.applyCustomDateRangeFilter();
-                        }, 50);
-                    }, 0);
-                }, 10);
-            } else {
-                // Handle clearing the filter
-                this.filterUI.setCustomDateRange(null);
-                
-                // Clear the saved filter in plugin settings
-                try {
-                    this.settings.lastAppliedFilter = 'all';
-                    this.settings.customDateRange = undefined;
-                    this.saveSettings().catch(err => {
-                        this.logger?.error('State', 'Failed to clear filter setting', err as Error);
-                    });
-                } catch (e) {
-                    this.logger?.error('State', 'Failed to clear filter setting', e as Error);
-                }
-                
-                // Batch UI updates
-                requestAnimationFrame(() => {
-                    const btn = document.getElementById('oom-custom-range-btn');
-                    if (btn) btn.classList.remove('active');
-                    
-                    // Trigger date range dropdown to apply the default filter
-                    setTimeout(() => {
-                        const dropdown = document.getElementById('oom-date-range-filter') as HTMLSelectElement;
-                        if (dropdown) {
-                            dropdown.value = 'all'; // Reset to show all
-                            dropdown.dispatchEvent(new Event('change'));
-                        }
-                    }, 10);
-                });
-            }
-        }, favorites, (name: string) => this.deleteFavoriteRange(name)).open();
+        new Notice(`Custom range modal not implemented. Please use the notice system instead.`);
     }
     
     /**

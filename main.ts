@@ -1,4 +1,4 @@
-// Copyright (c) 2025 John Banister
+﻿// Copyright (c) 2025 John Banister
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -55,7 +55,6 @@ import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types'
 import { LoggingAdapter } from './src/logging';
 
 // Internal imports - UI Components
-import { CustomDateRangeModal } from './src/dom/modals';
 import {
     DateNavigator,
     DateNavigatorManager,
@@ -126,7 +125,6 @@ import {
   getProjectNotePath,
   getJournalStructure
 } from './src/utils/settings-helpers';
-
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -258,7 +256,7 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // If no issues, show a success notice
         if (results.length === 0) {
-            new Notice('No structure issues found! 🎉');
+            new Notice('No structure issues found! ðŸŽ‰');
             return;
         }
         

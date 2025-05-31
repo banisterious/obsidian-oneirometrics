@@ -67,12 +67,15 @@ export class EventHandler {
             this.logger?.info('Filter', 'Filters already applied, skipping filter application in event listeners');
         }
         
-        // Attach all event listeners
+        // Attach button event listeners (rescrape, settings, date navigator)
         this.attachButtonEventListeners(previewEl);
+        
+        // Attach debug functionality and content toggles
         this.attachDebugFunctionality(previewEl);
         this.attachContentToggleEventListeners(previewEl);
+        
+        // Attach filter controls event listeners
         this.attachFilterEventListeners(previewEl);
-        this.attachCustomRangeButtonListeners(previewEl);
     }
     
     /**
@@ -234,60 +237,6 @@ export class EventHandler {
             this.logger?.debug('UI', 'Attached event listener to date range filter');
         } else {
             this.logger?.warn('UI', 'Date range filter not found');
-        }
-    }
-    
-    /**
-     * Attach custom range button listeners
-     * 
-     * @param previewEl - The preview element containing the custom range button
-     */
-    private attachCustomRangeButtonListeners(previewEl: HTMLElement): void {
-        // Find custom range button with fallbacks
-        const customRangeBtn = this.findButton(
-            previewEl,
-            'oom-custom-range-btn',
-            'oom-custom-range-btn',
-            'button.oom-button:not(.oom-debug-expand-all)'
-        );
-        
-        if (customRangeBtn) {
-            // Remove existing listeners
-            const newCustomRangeBtn = customRangeBtn.cloneNode(true) as HTMLElement;
-            newCustomRangeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                this.logger?.debug('UI', 'Custom range button clicked');
-                
-                // Open the custom range modal
-                this.openCustomRangeModal();
-            });
-            customRangeBtn.parentNode?.replaceChild(newCustomRangeBtn, customRangeBtn);
-            this.logger?.debug('UI', 'Attached event listener to custom range button');
-        } else {
-            this.logger?.warn('UI', 'Custom range button not found');
-        }
-    }
-    
-    /**
-     * Open the custom date range modal
-     */
-    private openCustomRangeModal(): void {
-        try {
-            // Use ModalsManager to handle the custom range modal
-            const modalsManager = new ModalsManager(this.app, null, this.logger);
-            modalsManager.openCustomDateRangeModal();
-            this.logger?.debug('UI', 'Opened custom date range modal via ModalsManager');
-        } catch (error) {
-            this.logger?.error('UI', 'Failed to open custom date range modal', error instanceof Error ? error : new Error(String(error)));
-            new Notice('Custom date range not available. Please try again later.');
-            
-            // Fallback to old method if ModalsManager fails
-            if (typeof (window as any).openCustomRangeModal === 'function') {
-                this.logger?.debug('UI', 'Falling back to window.openCustomRangeModal');
-                (window as any).openCustomRangeModal(this.app);
-            }
         }
     }
     
