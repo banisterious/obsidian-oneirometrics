@@ -221,10 +221,13 @@ export class WebWorkerTestModal extends Modal {
 
     // Test edge cases
     await this.runTest('Edge Case - Empty Data', async () => {
+      // Clear cache first to ensure no interference from previous tests
+      this.workerManager.clearCache();
+      
       const result = await this.workerManager.filterByDateRange([], '2024-01-01', '2024-01-31');
       
       if (!result.visibilityMap || result.visibilityMap.length !== 0) {
-        throw new Error('Expected empty visibilityMap for empty input');
+        throw new Error(`Expected empty visibilityMap for empty input, got: ${JSON.stringify(result)}`);
       }
       
       return 'Correctly handled empty data set';
