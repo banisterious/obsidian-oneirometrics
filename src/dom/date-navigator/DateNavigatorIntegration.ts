@@ -6,6 +6,10 @@ import { format } from 'date-fns';
 import { getService, registerService, SERVICE_NAMES } from '../../state/ServiceRegistry';
 import { error, info, debug, warn } from '../../logging';
 
+// Import web worker manager for Phase 2 integration
+import { DateNavigatorWorkerManager } from '../../workers/DateNavigatorWorkerManager';
+import safeLogger from '../../logging/safe-logger';
+
 // Safely reference global logger without causing errors if it's not defined
 declare global {
     interface Window {
@@ -24,6 +28,11 @@ export class DateNavigatorIntegration {
     private rangeStartDate: Date | null = null;
     private rangeEndDate: Date | null = null;
     
+    // Phase 2: Web Worker Integration
+    private workerManager: DateNavigatorWorkerManager;
+    private progressIndicator: HTMLElement | null = null;
+    private isProcessing: boolean = false;
+    
     constructor(app: App, state: DreamMetricsState | any, filterManager?: TimeFilterManager) {
         this.app = app;
         
@@ -38,6 +47,16 @@ export class DateNavigatorIntegration {
             this.state = state;
             // Use the provided filter manager or try to get from service registry
             this.timeFilterManager = filterManager || getService<TimeFilterManager>(SERVICE_NAMES.TIME_FILTER);
+        }
+        
+        // Phase 2: Initialize Web Worker Manager
+        try {
+            this.workerManager = new DateNavigatorWorkerManager(this.app);
+            safeLogger.info('DateNavigatorIntegration', 'Web worker manager initialized successfully');
+        } catch (error) {
+            safeLogger.error('DateNavigatorIntegration', 'Failed to initialize web worker manager, will use fallback processing', 
+                error instanceof Error ? error : new Error(String(error)));
+            // Continue without worker - fallback will be used automatically
         }
         
         // If still no TimeFilterManager, create and register a new one
@@ -443,7 +462,7 @@ export class DateNavigatorIntegration {
         
         // Override the applyFilter method of the DateNavigator
         const originalApplyFilter = this.dateNavigator.applyFilter;
-        this.dateNavigator.applyFilter = (startDate: Date | null, endDate: Date | null) => {
+        this.dateNavigator.applyFilter = async (startDate: Date | null, endDate: Date | null) => {
             // Handle range selection mode first
             if (this.rangeSelectionMode) {
                 this.handleRangeSelection(startDate);
@@ -453,66 +472,125 @@ export class DateNavigatorIntegration {
             // For standard mode, call the original method first
             originalApplyFilter.call(this.dateNavigator, startDate, endDate);
             
-            // Then handle the filter change
+            // Then handle the filter change with worker enhancement
             if (startDate && endDate) {
-                // Prevent recursive updates
-                if (this.isUpdatingSelection) return;
-                
-                this.isUpdatingSelection = true;
-                
-                // Make sure timeFilterManager exists and has the required method
-                if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
-                    // Set custom filter in TimeFilterManager
-                    this.timeFilterManager.setCustomRange(startDate, endDate);
-                    
-                    // Show a notice
-                    const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
-                    if (this.isSameDay(startDate, endDate)) {
-                        new Notice(`Filtered to ${formatDate(startDate)}`);
-                    } else {
-                        new Notice(`Filtered from ${formatDate(startDate)} to ${formatDate(endDate)}`);
-                    }
-                } else {
-                    try {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].error('DateNavigatorIntegration: Cannot set custom range - timeFilterManager is invalid');
-                        }
-                    } catch (e) {
-                        // Silent failure
-                    }
-                }
-                
-                this.isUpdatingSelection = false;
+                await this.applyDateFilter(startDate, endDate);
             } else {
-                // Prevent recursive updates
-                if (this.isUpdatingSelection) return;
-                
-                this.isUpdatingSelection = true;
-                
-                // Make sure timeFilterManager exists and has the required method
-                if (this.timeFilterManager && typeof this.timeFilterManager.clearCurrentFilter === 'function') {
-                    // Clear filter
-                    this.timeFilterManager.clearCurrentFilter();
-                    new Notice('Date filter cleared');
-                } else {
-                    try {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].error('DateNavigatorIntegration: Cannot clear filter - timeFilterManager is invalid');
-                        }
-                    } catch (e) {
-                        // Silent failure
-                    }
-                }
-                
-                this.isUpdatingSelection = false;
+                await this.clearDateFilter();
             }
         };
     }
     
     /**
+     * Phase 2: Worker-enhanced date filter application
+     */
+    private async applyDateFilter(startDate: Date, endDate: Date): Promise<void> {
+        // Prevent recursive updates
+        if (this.isUpdatingSelection || this.isProcessing) return;
+        
+        this.isUpdatingSelection = true;
+        this.isProcessing = true;
+        
+        try {
+            // Show progress indicator
+            this.showProgressIndicator('Applying date filter...');
+            
+            // Get entries from state for processing
+            const stateEntries = this.state?.getDreamEntries?.() || [];
+            
+            // Convert state entries to worker-compatible format 
+            // Note: Using type assertion due to minor differences in type definitions
+            // The worker handles these variations internally
+            const entries = stateEntries as any[];
+            
+            safeLogger.debug('DateNavigatorIntegration', 'Starting worker-enhanced date filtering', {
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                entriesCount: entries.length
+            });
+            
+            // Process with worker (if available) or fallback to main thread
+            if (this.workerManager && entries.length > 0) {
+                const result = await this.workerManager.filterByDateRange(
+                    entries,
+                    startDate.toISOString().split('T')[0],
+                    endDate.toISOString().split('T')[0],
+                    {
+                        includeStatistics: true,
+                        onProgress: (progress) => this.updateProgress(progress)
+                    }
+                );
+                
+                // Apply visibility results to UI
+                this.applyVisibilityResults(result.visibilityMap);
+                
+                safeLogger.info('DateNavigatorIntegration', 'Worker filtering completed successfully', {
+                    visibleResults: result.visibilityMap ? result.visibilityMap.filter(r => r.visible).length : 0,
+                    totalResults: result.visibilityMap ? result.visibilityMap.length : 0,
+                    statistics: result.statistics
+                });
+            }
+            
+            // Update time filter manager with processed results
+            if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
+                this.timeFilterManager.setCustomRange(startDate, endDate);
+                
+                // Show completion notice with performance info
+                const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
+                const noticeMessage = this.isSameDay(startDate, endDate) 
+                    ? `Filtered to ${formatDate(startDate)}`
+                    : `Filtered from ${formatDate(startDate)} to ${formatDate(endDate)}`;
+                
+                new Notice(noticeMessage);
+                
+            } else {
+                safeLogger.error('DateNavigatorIntegration', 'Cannot set custom range - timeFilterManager is invalid');
+                new Notice('Filter could not be applied. Please try again.');
+            }
+            
+        } catch (error) {
+            this.handleFilterError(error);
+        } finally {
+            this.hideProgressIndicator();
+            this.isUpdatingSelection = false;
+            this.isProcessing = false;
+        }
+    }
+    
+    /**
+     * Phase 2: Worker-enhanced filter clearing
+     */
+    private async clearDateFilter(): Promise<void> {
+        // Prevent recursive updates
+        if (this.isUpdatingSelection || this.isProcessing) return;
+        
+        this.isUpdatingSelection = true;
+        this.isProcessing = true;
+        
+        try {
+            // Clear filter in TimeFilterManager
+            if (this.timeFilterManager && typeof this.timeFilterManager.clearCurrentFilter === 'function') {
+                this.timeFilterManager.clearCurrentFilter();
+                new Notice('Date filter cleared');
+                
+                safeLogger.debug('DateNavigatorIntegration', 'Date filter cleared successfully');
+            } else {
+                safeLogger.error('DateNavigatorIntegration', 'Cannot clear filter - timeFilterManager is invalid');
+                new Notice('Filter could not be cleared. Please try again.');
+            }
+            
+        } catch (error) {
+            this.handleFilterError(error);
+        } finally {
+            this.isUpdatingSelection = false;
+            this.isProcessing = false;
+        }
+    }
+    
+    /**
      * Handle date selection during range selection mode
      */
-    private handleRangeSelection(selectedDate: Date | null): void {
+    private async handleRangeSelection(selectedDate: Date | null): Promise<void> {
         if (!selectedDate) return;
         
         // If no start date is selected yet, set it
@@ -568,27 +646,8 @@ export class DateNavigatorIntegration {
             // Set visualization in the UI
             // In a real implementation, we would update the UI to highlight the range
             
-            // Prevent recursive updates
-            if (this.isUpdatingSelection) return;
-            
-            this.isUpdatingSelection = true;
-            
-            // Make sure timeFilterManager exists and has the required method
-            if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
-                // Set custom filter in TimeFilterManager
-                this.timeFilterManager.setCustomRange(start, end);
-                
-                // Show a notice
-                new Notice(`Filtered from ${format(start, 'MMM d, yyyy')} to ${format(end, 'MMM d, yyyy')}`);
-            } else {
-                try {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].error('DateNavigatorIntegration: Cannot set custom range - timeFilterManager is invalid');
-                    }
-                } catch (e) {
-                    // Silent failure
-                }
-            }
+            // Apply filter using worker-enhanced method
+            await this.applyDateFilter(start, end);
             
             // Reset range selection
             this.rangeStartDate = null;
@@ -604,8 +663,6 @@ export class DateNavigatorIntegration {
                 rangeToggleBtn.setAttribute('aria-pressed', 'false');
                 (rangeToggleBtn as HTMLElement).classList.remove('oom-range-active');
             }
-            
-            this.isUpdatingSelection = false;
         }
     }
     
@@ -643,28 +700,9 @@ export class DateNavigatorIntegration {
                     rangeToggleBtn.setAttribute('aria-pressed', 'false');
                     (rangeToggleBtn as HTMLElement).classList.remove('oom-range-active');
                 }
-                
-                // For now, highlight the start date as a visual cue
-                const dateNavigator = this.dateNavigator as any; // Type cast to access private field
-                if (dateNavigator) {
-                    dateNavigator.selectedDay = new Date(range.start); // Direct assignment
-                    this.dateNavigator.selectDay(range.start); // Then call selectDay
-                    
-                    // Log the range for debugging - safely
-                    try {
-                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                            window['globalLogger'].debug('DateNavigator', 'Applied filter with range', {
-                                start: format(range.start, 'yyyy-MM-dd'),
-                                end: format(range.end, 'yyyy-MM-dd')
-                            });
-                        }
-                    } catch (e) {
-                        // Silent failure
-                    }
-                }
             }
         } else {
-            // Clear selection
+            // Clear selection in DateNavigator
             this.dateNavigator.clearSelection();
         }
         
@@ -717,12 +755,40 @@ export class DateNavigatorIntegration {
      * Clean up resources
      */
     public destroy(): void {
-        // Remove any event listeners or references
-        if (this.timeFilterManager) {
-            this.timeFilterManager.onFilterChange = null;
+        // Phase 2: Dispose of worker manager
+        if (this.workerManager) {
+            try {
+                this.workerManager.dispose();
+                safeLogger.debug('DateNavigatorIntegration', 'Worker manager disposed successfully');
+            } catch (error) {
+                safeLogger.error('DateNavigatorIntegration', 'Error disposing worker manager', 
+                    error instanceof Error ? error : new Error(String(error)));
+            }
         }
-        this.dateNavigator = null;
+        
+        // Hide any active progress indicators
+        this.hideProgressIndicator();
+        
+        // Clean up date navigator
+        if (this.dateNavigator) {
+            // Check if DateNavigator has a destroy method
+            if (typeof (this.dateNavigator as any).destroy === 'function') {
+                (this.dateNavigator as any).destroy();
+            }
+            this.dateNavigator = null;
+        }
+        
+        // Clean up container reference
         this.container = null;
+        
+        // Clean up global debug function
+        try {
+            delete window['debugDateNavigator'];
+        } catch (e) {
+            // Silent failure
+        }
+        
+        safeLogger.debug('DateNavigatorIntegration', 'DateNavigatorIntegration destroyed');
     }
 
     // Add debug method for direct access
@@ -736,5 +802,165 @@ export class DateNavigatorIntegration {
         } catch (e) {
             error('DateNavigatorIntegration', 'Error in debug function', e);
         }
+    }
+
+    // Phase 2: Progress Indicator Methods
+    
+    /**
+     * Show progress indicator for filter processing
+     */
+    private showProgressIndicator(message: string = 'Processing filters...'): void {
+        if (!this.container) return;
+        
+        this.hideProgressIndicator(); // Remove any existing indicator
+        
+        this.progressIndicator = document.createElement('div');
+        this.progressIndicator.className = 'oom-progress-indicator';
+        this.progressIndicator.innerHTML = `
+            <div class="progress-content">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-text">${message}</div>
+                <div class="progress-details"></div>
+            </div>
+        `;
+        
+        // Add styles if not already added
+        this.addProgressIndicatorStyles();
+        
+        // Insert at the top of the container
+        this.container.insertBefore(this.progressIndicator, this.container.firstChild);
+        
+        safeLogger.debug('DateNavigatorIntegration', 'Progress indicator shown', { message });
+    }
+    
+    /**
+     * Update progress indicator with current progress
+     */
+    private updateProgress(progress: { progress: number; entriesProcessed: number; currentPhase?: string }): void {
+        if (!this.progressIndicator) return;
+        
+        const progressFill = this.progressIndicator.querySelector('.progress-fill') as HTMLElement;
+        const progressText = this.progressIndicator.querySelector('.progress-text') as HTMLElement;
+        const progressDetails = this.progressIndicator.querySelector('.progress-details') as HTMLElement;
+        
+        if (progressFill) {
+            progressFill.style.width = `${Math.min(progress.progress, 100)}%`;
+        }
+        
+        if (progressText) {
+            const phase = progress.currentPhase ? ` (${progress.currentPhase})` : '';
+            progressText.textContent = `Processing filters... ${progress.progress}%${phase}`;
+        }
+        
+        if (progressDetails && progress.entriesProcessed) {
+            progressDetails.textContent = `Processed ${progress.entriesProcessed} entries`;
+        }
+        
+        safeLogger.debug('DateNavigatorIntegration', 'Progress updated', progress);
+    }
+    
+    /**
+     * Hide progress indicator
+     */
+    private hideProgressIndicator(): void {
+        if (this.progressIndicator && this.progressIndicator.parentNode) {
+            this.progressIndicator.parentNode.removeChild(this.progressIndicator);
+            this.progressIndicator = null;
+            safeLogger.debug('DateNavigatorIntegration', 'Progress indicator hidden');
+        }
+        this.isProcessing = false;
+    }
+    
+    /**
+     * Apply visibility results from worker to the UI
+     */
+    private applyVisibilityResults(visibilityMap: any[]): void {
+        // For DateNavigator, we'll apply filter highlighting/state
+        // The actual DOM manipulation will be handled by the DateNavigator component
+        if (!this.dateNavigator || !visibilityMap) return;
+        
+        try {
+            // Apply visibility state to DateNavigator
+            // This would be component-specific implementation
+            safeLogger.debug('DateNavigatorIntegration', 'Applying visibility results', {
+                resultsCount: visibilityMap.length,
+                visibleCount: visibilityMap.filter(r => r.visible).length
+            });
+            
+            // For now, we'll let the TimeFilterManager handle the actual DOM updates
+            // The DateNavigator primarily provides the selection interface
+            
+        } catch (error) {
+            safeLogger.error('DateNavigatorIntegration', 'Failed to apply visibility results', 
+                error instanceof Error ? error : new Error(String(error)));
+        }
+    }
+    
+    /**
+     * Handle filter processing errors
+     */
+    private handleFilterError(error: any): void {
+        safeLogger.error('DateNavigatorIntegration', 'Filter processing failed', 
+            error instanceof Error ? error : new Error(String(error)));
+        
+        this.hideProgressIndicator();
+        
+        new Notice('Filter processing encountered an issue. Please try again.', 6000);
+    }
+    
+    /**
+     * Add CSS styles for progress indicator
+     */
+    private addProgressIndicatorStyles(): void {
+        if (document.querySelector('#oom-progress-styles')) return; // Already added
+        
+        const style = document.createElement('style');
+        style.id = 'oom-progress-styles';
+        style.textContent = `
+            .oom-progress-indicator {
+                background: var(--background-secondary);
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 6px;
+                padding: 12px;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .progress-content {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .progress-bar {
+                width: 100%;
+                height: 8px;
+                background: var(--background-modifier-border);
+                border-radius: 4px;
+                overflow: hidden;
+            }
+            
+            .progress-fill {
+                height: 100%;
+                background: var(--interactive-accent);
+                border-radius: 4px;
+                transition: width 0.3s ease;
+                width: 0%;
+            }
+            
+            .progress-text {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text-normal);
+            }
+            
+            .progress-details {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
