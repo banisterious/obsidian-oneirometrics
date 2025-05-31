@@ -12644,15 +12644,16 @@ h2.oom-metrics-tabs-label {
     background: var(--interactive-accent-hover);
 }
 
+/* Subtle background for dates in selected range */
 .oom-calendar-day.oom-range-preview {
-    background: rgba(var(--interactive-accent-rgb), 0.3);
+    background-color: var(--interactive-hover);
 }
 
 .oom-calendar-day.oom-range-start,
 .oom-calendar-day.oom-range-end {
     font-weight: 600;
     color: var(--text-on-accent);
-    background: var(--interactive-accent);
+    background-color: var(--interactive-hover);
 }
 
 .oom-calendar-day.oom-range-start::after {
