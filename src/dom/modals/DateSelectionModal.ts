@@ -17,6 +17,9 @@ export class DateSelectionModal extends Modal {
     private rangeStart: Date | null = null;
     private previewRange: DateSelection | null = null;
     private isUpdatingCalendar: boolean = false;
+    private textInputsCollapsed: boolean = false;
+    private startDateInput: HTMLInputElement | null = null;
+    private endDateInput: HTMLInputElement | null = null;
     
     constructor(app: App, timeFilterManager: TimeFilterManager) {
         super(app);
@@ -59,7 +62,12 @@ export class DateSelectionModal extends Modal {
             this.createSelectionInfo(contentEl);
             safeLogger.info('DateSelectionModal', 'Selection info created successfully');
             
-            safeLogger.info('DateSelectionModal', 'Building interface - step 4: action buttons');
+            safeLogger.info('DateSelectionModal', 'Building interface - step 4: text input section');
+            // Text input section
+            this.createTextInputSection(contentEl);
+            safeLogger.info('DateSelectionModal', 'Text input section created successfully');
+            
+            safeLogger.info('DateSelectionModal', 'Building interface - step 5: action buttons');
             // Action buttons
             this.createActionButtons(contentEl);
             safeLogger.info('DateSelectionModal', 'Action buttons created successfully');
@@ -244,6 +252,69 @@ export class DateSelectionModal extends Modal {
         this.updateSelectionInfo(selectionInfo);
     }
 
+    private createTextInputSection(container: HTMLElement): void {
+        const textInputSection = container.createDiv('oom-text-input-section');
+        
+        // Header with collapse toggle
+        const header = textInputSection.createDiv('oom-text-input-header');
+        
+        const title = header.createEl('span', {
+            text: 'Quick Input',
+            cls: 'oom-text-input-title'
+        });
+        
+        const toggle = header.createEl('span', {
+            text: this.textInputsCollapsed ? 'Show ▼' : 'Hide ▲',
+            cls: 'oom-text-input-toggle'
+        });
+        
+        toggle.addEventListener('click', () => {
+            this.textInputsCollapsed = !this.textInputsCollapsed;
+            toggle.textContent = this.textInputsCollapsed ? 'Show ▼' : 'Hide ▲';
+            textInputSection.classList.toggle('collapsed', this.textInputsCollapsed);
+        });
+        
+        // Text input row
+        const inputRow = textInputSection.createDiv('oom-text-input-row');
+        
+        // Start date field
+        const startField = inputRow.createDiv('oom-text-input-field');
+        startField.createEl('label', {
+            text: 'Start Date',
+            cls: 'oom-text-input-label'
+        });
+        
+        this.startDateInput = startField.createEl('input', {
+            type: 'text',
+            placeholder: 'YYYY-MM-DD',
+            cls: 'oom-text-input'
+        }) as HTMLInputElement;
+        
+        // End date field
+        const endField = inputRow.createDiv('oom-text-input-field');
+        endField.createEl('label', {
+            text: 'End Date',
+            cls: 'oom-text-input-label'
+        });
+        
+        this.endDateInput = endField.createEl('input', {
+            type: 'text',
+            placeholder: 'YYYY-MM-DD',
+            cls: 'oom-text-input'
+        }) as HTMLInputElement;
+        
+        // Add event listeners for text input changes
+        this.startDateInput.addEventListener('input', () => this.handleTextInputChange());
+        this.endDateInput.addEventListener('input', () => this.handleTextInputChange());
+        this.startDateInput.addEventListener('blur', () => this.validateAndSyncFromText());
+        this.endDateInput.addEventListener('blur', () => this.validateAndSyncFromText());
+        
+        // Set initial collapsed state
+        if (this.textInputsCollapsed) {
+            textInputSection.classList.add('collapsed');
+        }
+    }
+
     private setMode(isRange: boolean): void {
         const wasRangeMode = this.isRangeMode;
         this.isRangeMode = isRange;
@@ -359,6 +430,7 @@ export class DateSelectionModal extends Modal {
         }
         
         this.updateSelectionInfo();
+        this.syncTextInputsFromSelection();
     }
 
     private handleRangeSelection(date: Date): void {
@@ -424,6 +496,7 @@ export class DateSelectionModal extends Modal {
         this.previewRange = null;
         this.updateCalendar();
         this.updateSelectionInfo();
+        this.syncTextInputsFromSelection();
         
         new Notice('Selection cleared');
     }
@@ -664,5 +737,119 @@ export class DateSelectionModal extends Modal {
 
     private formatDateKey(date: Date): string {
         return format(date, 'yyyy-MM-dd');
+    }
+
+    private handleTextInputChange(): void {
+        // Real-time validation and visual feedback
+        if (this.startDateInput) {
+            const startValue = this.startDateInput.value;
+            const isValidStart = this.isValidDateFormat(startValue);
+            this.startDateInput.classList.toggle('invalid', startValue.length > 0 && !isValidStart);
+        }
+        
+        if (this.endDateInput) {
+            const endValue = this.endDateInput.value;
+            const isValidEnd = this.isValidDateFormat(endValue);
+            this.endDateInput.classList.toggle('invalid', endValue.length > 0 && !isValidEnd);
+        }
+    }
+
+    private validateAndSyncFromText(): void {
+        if (!this.startDateInput || !this.endDateInput) return;
+        
+        const startValue = this.startDateInput.value.trim();
+        const endValue = this.endDateInput.value.trim();
+        
+        // Parse dates
+        const startDate = startValue ? this.parseInputDate(startValue) : null;
+        const endDate = endValue ? this.parseInputDate(endValue) : null;
+        
+        if (startDate && endDate) {
+            // Both dates provided - set as range
+            this.setDatesFromText(startDate, endDate, true);
+        } else if (startDate && !endValue) {
+            // Only start date - single date selection
+            this.setDatesFromText(startDate, startDate, false);
+        } else if (!startValue && endDate) {
+            // Only end date - treat as single date selection
+            this.setDatesFromText(endDate, endDate, false);
+        }
+        // If both are empty or invalid, don't update selection
+    }
+
+    private isValidDateFormat(dateStr: string): boolean {
+        if (!dateStr) return false;
+        
+        // Check format: YYYY-MM-DD
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(dateStr)) return false;
+        
+        // Check if it's a valid date
+        const date = new Date(dateStr + 'T00:00:00');
+        return date instanceof Date && !isNaN(date.getTime());
+    }
+
+    private parseInputDate(dateStr: string): Date | null {
+        if (!this.isValidDateFormat(dateStr)) return null;
+        
+        const date = new Date(dateStr + 'T00:00:00');
+        return date instanceof Date && !isNaN(date.getTime()) ? date : null;
+    }
+
+    private setDatesFromText(startDate: Date, endDate: Date, isRange: boolean): void {
+        // Update internal state
+        this.selectedDates.clear();
+        
+        if (isRange && startDate.getTime() !== endDate.getTime()) {
+            // Range selection
+            this.isRangeMode = true;
+            this.rangeStart = null; // Clear range start since we're setting completed range
+            this.addRangeToSelection(startDate, endDate);
+            this.previewRange = { start: startDate, end: endDate, isRange: true };
+        } else {
+            // Single date selection
+            this.isRangeMode = false;
+            this.rangeStart = null;
+            this.selectedDates.add(this.formatDateKey(startDate));
+            this.previewRange = { start: startDate, end: startDate, isRange: false };
+        }
+        
+        // Navigate calendar to show the selected date(s)
+        this.currentMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        
+        // Update UI
+        this.updateCalendar();
+        this.updateSelectionInfo();
+        this.updateToggleFromMode();
+        
+        safeLogger.info('DateSelectionModal', 'Dates set from text input', {
+            startDate: this.formatDateKey(startDate),
+            endDate: this.formatDateKey(endDate),
+            isRange
+        });
+    }
+
+    private updateToggleFromMode(): void {
+        const toggleInput = this.contentEl.querySelector('.oom-toggle-input') as HTMLInputElement;
+        if (toggleInput) {
+            toggleInput.checked = this.isRangeMode;
+        }
+    }
+
+    private syncTextInputsFromSelection(): void {
+        if (!this.startDateInput || !this.endDateInput) return;
+        
+        if (this.previewRange) {
+            this.startDateInput.value = this.formatDateKey(this.previewRange.start);
+            
+            if (this.previewRange.isRange) {
+                this.endDateInput.value = this.formatDateKey(this.previewRange.end);
+            } else {
+                this.endDateInput.value = '';
+            }
+        } else {
+            this.startDateInput.value = '';
+            this.endDateInput.value = '';
+        }
     }
 } 
