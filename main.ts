@@ -57,11 +57,10 @@ import { LoggingAdapter } from './src/logging';
 // Internal imports - UI Components
 import { CustomDateRangeModal } from './src/dom/modals';
 import {
-    DateNavigatorModal,
-    NavigatorViewMode,
+    DateNavigator,
+    DateNavigatorManager,
     DateNavigatorView,
-    DATE_NAVIGATOR_VIEW_TYPE,
-    DateNavigatorIntegration
+    DATE_NAVIGATOR_VIEW_TYPE
 } from './src/dom/date-navigator';
 import { DateRangeService, DateFilter } from './src/dom/filters';
 
@@ -120,7 +119,6 @@ import {
 // Import TemplateManager
 import { TemplateManager } from './src/templates/TemplateManager';
 import { FilterPersistenceManager } from './src/dom/filters/FilterPersistenceManager';
-import { DateNavigatorManager } from './src/dom/date-navigator/DateNavigatorManager';
 import { LogFileManager } from './src/logging/LogFileManager';
 
 // Essential helper functions that are actually used
@@ -144,7 +142,7 @@ export default class DreamMetricsPlugin extends Plugin {
     
     // Dream journal manager reference
     activeJournal: ActiveJournal | null = null;
-    private dateNavigator: DateNavigatorIntegration;
+    // private dateNavigator: DateNavigatorIntegration; // Archived - using DateSelectionModal now
     public timeFilterManager: TimeFilterManager;
     
     state: DreamMetricsState;
@@ -158,7 +156,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private journalManagerRibbonEl: HTMLElement | null = null;
     public memoizedTableData = new Map<string, any>();
     private cleanupFunctions: (() => void)[] = [];
-    private dateNavigatorIntegration: DateNavigatorIntegration | null = null;
+    // private dateNavigatorIntegration: DateNavigatorIntegration | null = null; // Archived - using DateSelectionModal now
     private currentSortDirection: { [key: string]: 'asc' | 'desc' } = {};
     private settingsManager: SettingsManager;
     public dateRangeService: DateRangeService;

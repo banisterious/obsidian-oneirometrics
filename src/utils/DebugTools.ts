@@ -10,7 +10,10 @@ import { ContentParser } from '../parsing/services/ContentParser';
 import { format } from 'date-fns';
 import { getLogger } from '../logging';
 import { ILogger } from '../logging/LoggerTypes';
-import { DateNavigatorIntegration } from '../dom/date-navigator/DateNavigatorIntegration';
+import { DreamMetricsState } from '../state/DreamMetricsState';
+import { TimeFilterManager } from '../timeFilters';
+// import { DateNavigatorIntegration } from '../dom/date-navigator/DateNavigatorIntegration'; // Archived - using DateSelectionModal now
+import { DateNavigatorManager } from '../dom/date-navigator/DateNavigatorManager';
 
 export class DebugTools {
     private plugin: any; // Use any type to avoid circular reference

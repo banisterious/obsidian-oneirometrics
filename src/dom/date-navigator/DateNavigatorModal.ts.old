@@ -1,7 +1,7 @@
 import { App, Modal, Notice } from 'obsidian';
 import { DateNavigator } from './DateNavigator';
 import { DreamMetricsState } from '../../state/DreamMetricsState';
-import { DateNavigatorIntegration } from './DateNavigatorIntegration';
+// import { DateNavigatorIntegration } from './DateNavigatorIntegration'; // Archived - using DateSelectionModal now
 import { TimeFilterManager } from '../../timeFilters';
 import { startOfDay, endOfDay } from 'date-fns';
 
@@ -129,7 +129,7 @@ export class DateNavigatorModal extends Modal {
                 
                 // Try to access entries via plugin state
                 if (plugin.state) {
-                    if (typeof plugin.state.getDreamEntries === 'function') {
+                    if (plugin.state.getDreamEntries === 'function') {
                         const pluginEntries = plugin.state.getDreamEntries();
                         if (pluginEntries && Array.isArray(pluginEntries)) {
                             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
@@ -373,7 +373,73 @@ export class DateNavigatorModal extends Modal {
                 return;
             }
             
-            // Get the selected date, or the current day if none is selected
+            // Debug the integration state
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].info('DateNavigatorModal', 'Apply Filter clicked - debugging integration state', {
+                        hasIntegration: !!this.integration,
+                        integrationKeys: this.integration ? Object.keys(this.integration) : [],
+                        completedRange: this.integration ? (this.integration as any).completedRange : null,
+                        rangeSelectionMode: this.integration ? (this.integration as any).rangeSelectionMode : null
+                    });
+                }
+            } catch (e) {
+                // Silent failure
+            }
+            
+            // Priority 1: Check if DateNavigatorIntegration has a completed range
+            if (this.integration && (this.integration as any).completedRange) {
+                const completedRange = (this.integration as any).completedRange;
+                
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].info('DateNavigatorModal', 'Applying completed range from DateNavigatorIntegration', {
+                            startDate: completedRange.start.toISOString().split('T')[0],
+                            endDate: completedRange.end.toISOString().split('T')[0]
+                        });
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
+                
+                // Use the enhanced DateNavigatorIntegration logic
+                if (this.dateNavigator && typeof this.dateNavigator.applyFilter === 'function') {
+                    // This will trigger our enhanced setupSelectionHandler logic
+                    this.dateNavigator.applyFilter(completedRange.start, completedRange.end);
+                    
+                    // Show success notice
+                    const startStr = completedRange.start.toLocaleDateString();
+                    const endStr = completedRange.end.toLocaleDateString();
+                    new Notice(`Range filter applied: ${startStr} to ${endStr}`);
+                    
+                    // Close the modal
+                    this.close();
+                    return;
+                }
+            }
+            
+            // Priority 2: Check if DateNavigatorIntegration is in range selection mode
+            if (this.integration && (this.integration as any).rangeSelectionMode) {
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].info('DateNavigatorModal', 'Range selection in progress, showing notice');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
+                new Notice('Range selection in progress. Please select both start and end dates, then try again.');
+                return;
+            }
+            
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].info('DateNavigatorModal', 'Falling back to single date selection (Priority 3)');
+                }
+            } catch (e) {
+                // Silent failure
+            }
+            
+            // Priority 3: Fallback to single date selection (original logic)
             const selectedDate = this.dateNavigator.getSelectedDay();
             
             if (!selectedDate) {

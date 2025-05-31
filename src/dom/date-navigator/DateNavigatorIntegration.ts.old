@@ -27,6 +27,7 @@ export class DateNavigatorIntegration {
     private rangeSelectionMode: boolean = false;
     private rangeStartDate: Date | null = null;
     private rangeEndDate: Date | null = null;
+    private completedRange: { start: Date; end: Date } | null = null;
     
     // Phase 2: Web Worker Integration
     private workerManager: DateNavigatorWorkerManager;
@@ -387,10 +388,20 @@ export class DateNavigatorIntegration {
      * Add a toggle button for range selection mode
      */
     private addRangeSelectionToggle(): void {
-        if (!this.container) return;
+        if (!this.container) {
+            safeLogger.warn('DateNavigatorIntegration', 'Cannot add range selection toggle - no container');
+            return;
+        }
+        
+        safeLogger.debug('DateNavigatorIntegration', 'Adding range selection toggle to container');
         
         // Create button container
         const buttonContainer = this.container.createDiv('oom-date-navigator-controls');
+        buttonContainer.style.cssText = `
+            padding: 10px 0;
+            border-top: 1px solid var(--background-modifier-border);
+            margin-top: 10px;
+        `;
         
         // Create range selection toggle button
         const rangeToggleBtn = buttonContainer.createEl('button', {
@@ -402,9 +413,27 @@ export class DateNavigatorIntegration {
             }
         });
         
+        // Add explicit styling to make it visible
+        rangeToggleBtn.style.cssText = `
+            background: var(--interactive-normal);
+            color: var(--text-normal);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 0;
+        `;
+        
+        safeLogger.info('DateNavigatorIntegration', 'Range selection toggle button created and styled');
+        
         // Add click event listener
         rangeToggleBtn.addEventListener('click', () => {
             this.rangeSelectionMode = !this.rangeSelectionMode;
+            
+            safeLogger.info('DateNavigatorIntegration', 'Range selection mode toggled', { 
+                rangeSelectionMode: this.rangeSelectionMode 
+            });
             
             // Update button text and aria state
             rangeToggleBtn.textContent = `Range Selection: ${this.rangeSelectionMode ? 'On' : 'Off'}`;
@@ -413,24 +442,28 @@ export class DateNavigatorIntegration {
             // Toggle active class for styling
             if (this.rangeSelectionMode) {
                 rangeToggleBtn.classList.add('oom-range-active');
+                rangeToggleBtn.style.background = 'var(--interactive-accent)';
+                rangeToggleBtn.style.color = 'var(--text-on-accent)';
                 
-                // Show instruction message when enabling range mode
-                new Notice('Select start date then end date to filter a range');
-                
-                // Reset any existing range selection
-                this.rangeStartDate = null;
-                this.rangeEndDate = null;
-                
-                // Safely log - range mode enabled
-                try {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('DateNavigator', 'Range selection mode enabled');
-                    }
-                } catch (e) {
-                    // Silent failure
+                // IMPROVED UX: If there's already a selected date, use it as range start
+                if (this.dateNavigator && this.dateNavigator.getSelectedDay()) {
+                    this.rangeStartDate = new Date(this.dateNavigator.getSelectedDay());
+                    safeLogger.info('DateNavigatorIntegration', 'Using currently selected date as range start', {
+                        rangeStartDate: this.rangeStartDate.toISOString().split('T')[0]
+                    });
+                    new Notice(`🎯 Range Mode ON: Start date set to ${this.rangeStartDate.toLocaleDateString()}. Now select end date.`, 4000);
+                } else {
+                    // Reset range selection for fresh start
+                    this.rangeStartDate = null;
+                    this.rangeEndDate = null;
+                    new Notice('🎯 Range Selection Mode ON: Select start date then end date to filter a range', 4000);
                 }
+                
+                safeLogger.info('DateNavigatorIntegration', 'Range selection mode enabled - button styled active');
             } else {
                 rangeToggleBtn.classList.remove('oom-range-active');
+                rangeToggleBtn.style.background = 'var(--interactive-normal)';
+                rangeToggleBtn.style.color = 'var(--text-normal)';
                 
                 // Clear any in-progress range selection
                 if (this.rangeStartDate && !this.rangeEndDate) {
@@ -442,14 +475,16 @@ export class DateNavigatorIntegration {
                     }
                 }
                 
-                // Safely log - range mode disabled
-                try {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('DateNavigator', 'Range selection mode disabled');
-                    }
-                } catch (e) {
-                    // Silent failure
-                }
+                // Reset both range dates when turning off
+                this.rangeStartDate = null;
+                this.rangeEndDate = null;
+                this.completedRange = null;
+                
+                // Clear visual range highlights
+                this.clearRangeHighlights();
+                
+                new Notice('Range Selection Mode OFF', 2000);
+                safeLogger.info('DateNavigatorIntegration', 'Range selection mode disabled - button styled normal');
             }
         });
     }
@@ -463,13 +498,67 @@ export class DateNavigatorIntegration {
         // Override the applyFilter method of the DateNavigator
         const originalApplyFilter = this.dateNavigator.applyFilter;
         this.dateNavigator.applyFilter = async (startDate: Date | null, endDate: Date | null) => {
-            // Handle range selection mode first
-            if (this.rangeSelectionMode) {
+            // Priority 1: Handle range selection mode for individual date clicks
+            if (this.rangeSelectionMode && !this.completedRange) {
+                // We're in range selection mode but don't have a completed range yet
+                // This means we're selecting individual dates for the range
                 this.handleRangeSelection(startDate);
                 return;
             }
             
-            // For standard mode, call the original method first
+            // Priority 2: Check if we have a completed range that should be applied
+            // This happens when Apply Filter is clicked after completing a range selection
+            if (this.completedRange) {
+                safeLogger.info('DateNavigatorIntegration', 'Applying completed range selection', {
+                    startDate: this.completedRange.start.toISOString().split('T')[0],
+                    endDate: this.completedRange.end.toISOString().split('T')[0],
+                    rangeSelectionMode: this.rangeSelectionMode,
+                    startDateFull: this.completedRange.start.toISOString(),
+                    endDateFull: this.completedRange.end.toISOString(),
+                    startTime: this.completedRange.start.getTime(),
+                    endTime: this.completedRange.end.getTime(),
+                    receivedStartDate: startDate?.toISOString?.() || startDate,
+                    receivedEndDate: endDate?.toISOString?.() || endDate
+                });
+                
+                // CRITICAL FIX: Temporarily disable the global forceApplyDateFilter to prevent conflicts
+                const originalForceApplyDateFilter = (window as any).forceApplyDateFilter;
+                (window as any).forceApplyDateFilter = () => {
+                    safeLogger.info('DateNavigatorIntegration', 'Blocked conflicting forceApplyDateFilter call during range processing');
+                };
+                
+                // Apply the range filter
+                await this.applyDateFilter(this.completedRange.start, this.completedRange.end);
+                
+                // Restore the original function after a delay to ensure our processing completes
+                setTimeout(() => {
+                    (window as any).forceApplyDateFilter = originalForceApplyDateFilter;
+                    safeLogger.info('DateNavigatorIntegration', 'Restored original forceApplyDateFilter function');
+                }, 1000);
+                
+                // Reset range selection state
+                this.rangeStartDate = null;
+                this.rangeEndDate = null;
+                this.completedRange = null;
+                this.rangeSelectionMode = false;
+                
+                // Update toggle button
+                const rangeToggleBtn = this.container?.querySelector('.oom-range-selection-toggle');
+                if (rangeToggleBtn) {
+                    rangeToggleBtn.textContent = 'Range Selection: Off';
+                    rangeToggleBtn.setAttribute('aria-pressed', 'false');
+                    (rangeToggleBtn as HTMLElement).classList.remove('oom-range-active');
+                    (rangeToggleBtn as HTMLElement).style.background = 'var(--interactive-normal)';
+                    (rangeToggleBtn as HTMLElement).style.color = 'var(--text-normal)';
+                }
+                
+                // Clear range highlights after successful application
+                this.clearRangeHighlights();
+                
+                return;
+            }
+            
+            // Priority 3: For standard mode (not range selection), call the original method first
             originalApplyFilter.call(this.dateNavigator, startDate, endDate);
             
             // Then handle the filter change with worker enhancement
@@ -488,64 +577,106 @@ export class DateNavigatorIntegration {
         // Prevent recursive updates
         if (this.isUpdatingSelection || this.isProcessing) return;
         
+        safeLogger.info('DateNavigatorIntegration', 'applyDateFilter called with', {
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
+            startDateFull: startDate.toISOString(),
+            endDateFull: endDate.toISOString(),
+            startTime: startDate.getTime(),
+            endTime: endDate.getTime(),
+            isSameDay: this.isSameDay(startDate, endDate),
+            daysDifference: Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+        });
+        
         this.isUpdatingSelection = true;
         this.isProcessing = true;
         
         try {
-            // Show progress indicator
-            this.showProgressIndicator('Applying date filter...');
+            // Show progress indicator during processing
+            // this.showProgressIndicator('Applying date filter...');
+            new Notice('🚀 Applying date filter...', 3000);
             
-            // Get entries from state for processing
-            const stateEntries = this.state?.getDreamEntries?.() || [];
-            
-            // Convert state entries to worker-compatible format 
-            // Note: Using type assertion due to minor differences in type definitions
-            // The worker handles these variations internally
-            const entries = stateEntries as any[];
-            
-            safeLogger.debug('DateNavigatorIntegration', 'Starting worker-enhanced date filtering', {
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: endDate.toISOString().split('T')[0],
-                entriesCount: entries.length
-            });
-            
-            // Process with worker (if available) or fallback to main thread
-            if (this.workerManager && entries.length > 0) {
+            try {
+                safeLogger.info('DateNavigatorIntegration', 'Using web worker for date filtering', {
+                    rangeStart: startDate.toISOString().split('T')[0],
+                    rangeEnd: endDate.toISOString().split('T')[0]
+                });
+                
+                // Get entries from state for processing
+                const stateEntries = this.state?.getDreamEntries?.() || [];
+                
                 const result = await this.workerManager.filterByDateRange(
-                    entries,
+                    stateEntries as any[],
                     startDate.toISOString().split('T')[0],
                     endDate.toISOString().split('T')[0],
                     {
                         includeStatistics: true,
-                        onProgress: (progress) => this.updateProgress(progress)
+                        onProgress: (progress) => {
+                            safeLogger.debug('DateNavigatorIntegration', 'Progress update', progress);
+                        }
                     }
                 );
                 
-                // Apply visibility results to UI
-                this.applyVisibilityResults(result.visibilityMap);
-                
-                safeLogger.info('DateNavigatorIntegration', 'Worker filtering completed successfully', {
+                safeLogger.debug('DateNavigatorIntegration', 'Worker filtering completed', {
                     visibleResults: result.visibilityMap ? result.visibilityMap.filter(r => r.visible).length : 0,
-                    totalResults: result.visibilityMap ? result.visibilityMap.length : 0,
-                    statistics: result.statistics
+                    totalResults: result.visibilityMap ? result.visibilityMap.length : 0
                 });
-            }
-            
-            // Update time filter manager with processed results
-            if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
-                this.timeFilterManager.setCustomRange(startDate, endDate);
                 
-                // Show completion notice with performance info
-                const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
-                const noticeMessage = this.isSameDay(startDate, endDate) 
-                    ? `Filtered to ${formatDate(startDate)}`
-                    : `Filtered from ${formatDate(startDate)} to ${formatDate(endDate)}`;
+                // Update time filter manager with processed results
+                if (this.timeFilterManager && typeof this.timeFilterManager.setCustomRange === 'function') {
+                    safeLogger.info('DateNavigatorIntegration', 'Setting custom range in TimeFilterManager', {
+                        startDate: startDate.toISOString().split('T')[0],
+                        endDate: endDate.toISOString().split('T')[0],
+                        startDateObj: startDate,
+                        endDateObj: endDate,
+                        timeFilterManagerType: typeof this.timeFilterManager,
+                        setCustomRangeExists: typeof this.timeFilterManager.setCustomRange === 'function'
+                    });
+                    
+                    try {
+                        // Call setCustomRange and log the result
+                        const result = this.timeFilterManager.setCustomRange(startDate, endDate);
+                        safeLogger.info('DateNavigatorIntegration', 'TimeFilterManager.setCustomRange result', { result });
+                        
+                        // Check what the current range is after setting it
+                        if (typeof this.timeFilterManager.getCurrentRange === 'function') {
+                            const currentRange = this.timeFilterManager.getCurrentRange();
+                            safeLogger.info('DateNavigatorIntegration', 'TimeFilterManager current range after setting', {
+                                currentRange: currentRange ? {
+                                    start: currentRange.start?.toISOString?.()?.split('T')[0] || currentRange.start,
+                                    end: currentRange.end?.toISOString?.()?.split('T')[0] || currentRange.end
+                                } : null
+                            });
+                        }
+                        
+                        // CRITICAL: Manually trigger table updates since we blocked the global function
+                        this.triggerTableUpdates(startDate, endDate);
+                        
+                    } catch (setRangeError) {
+                        safeLogger.error('DateNavigatorIntegration', 'Error calling setCustomRange', setRangeError);
+                        new Notice('Error setting date range. Please try again.');
+                        return;
+                    }
+                    
+                    // Show completion notice with performance info
+                    const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
+                    const noticeMessage = this.isSameDay(startDate, endDate) 
+                        ? `Filtered to ${formatDate(startDate)}`
+                        : `Filtered from ${formatDate(startDate)} to ${formatDate(endDate)}`;
+                    
+                    new Notice(noticeMessage);
+                    
+                } else {
+                    safeLogger.error('DateNavigatorIntegration', 'Cannot set custom range - timeFilterManager is invalid', {
+                        hasTimeFilterManager: !!this.timeFilterManager,
+                        timeFilterManagerType: typeof this.timeFilterManager,
+                        hasSetCustomRange: this.timeFilterManager ? typeof this.timeFilterManager.setCustomRange === 'function' : false
+                    });
+                    new Notice('Filter could not be applied. Please try again.');
+                }
                 
-                new Notice(noticeMessage);
-                
-            } else {
-                safeLogger.error('DateNavigatorIntegration', 'Cannot set custom range - timeFilterManager is invalid');
-                new Notice('Filter could not be applied. Please try again.');
+            } catch (error) {
+                this.handleFilterError(error);
             }
             
         } catch (error) {
@@ -597,22 +728,15 @@ export class DateNavigatorIntegration {
         if (!this.rangeStartDate) {
             this.rangeStartDate = new Date(selectedDate);
             
-            // Safely log - range start date selected
-            try {
-                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('DateNavigator', 'Range start date selected', { date: this.rangeStartDate });
-                }
-            } catch (e) {
-                // Silent failure
-            }
+            safeLogger.info('DateNavigatorIntegration', 'Range start date selected', { 
+                date: this.rangeStartDate.toISOString().split('T')[0] 
+            });
             
             // Show notice
             new Notice(`Range start: ${format(this.rangeStartDate, 'MMM d, yyyy')} - Now select end date`);
             
-            // Highlight the selected day
-            if (this.dateNavigator) {
-                this.dateNavigator.selectDay(this.rangeStartDate);
-            }
+            // Visual indication: Highlight the start date with special styling
+            this.highlightRangeStart(this.rangeStartDate);
             
             return;
         }
@@ -620,17 +744,10 @@ export class DateNavigatorIntegration {
         // If we already have a start date, use the selected date as the end date
         this.rangeEndDate = new Date(selectedDate);
         
-        // Safely log - range end date selected
-        try {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', 'Range end date selected', { 
-                    start: this.rangeStartDate, 
-                    end: this.rangeEndDate 
-                });
-            }
-        } catch (e) {
-            // Silent failure
-        }
+        safeLogger.info('DateNavigatorIntegration', 'Range end date selected', { 
+            start: this.rangeStartDate.toISOString().split('T')[0], 
+            end: this.rangeEndDate.toISOString().split('T')[0]
+        });
         
         // Ensure start date is before end date
         let start = this.rangeStartDate;
@@ -641,326 +758,178 @@ export class DateNavigatorIntegration {
             [start, end] = [end, start];
         }
         
-        // Apply the filter
-        if (this.dateNavigator) {
-            // Set visualization in the UI
-            // In a real implementation, we would update the UI to highlight the range
-            
-            // Apply filter using worker-enhanced method
-            await this.applyDateFilter(start, end);
-            
-            // Reset range selection
-            this.rangeStartDate = null;
-            this.rangeEndDate = null;
-            
-            // Turn off range selection mode
-            this.rangeSelectionMode = false;
-            
-            // Update toggle button
-            const rangeToggleBtn = this.container?.querySelector('.oom-range-selection-toggle');
-            if (rangeToggleBtn) {
-                rangeToggleBtn.textContent = 'Range Selection: Off';
-                rangeToggleBtn.setAttribute('aria-pressed', 'false');
-                (rangeToggleBtn as HTMLElement).classList.remove('oom-range-active');
+        // Visual indication: Highlight the entire range
+        this.highlightDateRange(start, end);
+        
+        // Show notice about the range selection
+        const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
+        new Notice(`📅 Range selected: ${formatDate(start)} to ${formatDate(end)}. Click Apply Filter to apply.`, 4000);
+        
+        // Store the completed range for Apply Filter button
+        this.completedRange = { start, end };
+        
+        safeLogger.info('DateNavigatorIntegration', 'Range selection completed', {
+            startDate: start.toISOString().split('T')[0],
+            endDate: end.toISOString().split('T')[0],
+            startDateFull: start.toISOString(),
+            endDateFull: end.toISOString(),
+            startTime: start.getTime(),
+            endTime: end.getTime(),
+            completedRangeStored: {
+                start: this.completedRange.start.toISOString(),
+                end: this.completedRange.end.toISOString()
             }
-        }
+        });
     }
     
     /**
-     * Handle changes to the filter system and update the DateNavigator
+     * Highlight the range start date with special styling
      */
-    private handleFilterChange(range: DateRange | null): void {
-        if (!this.dateNavigator) return;
+    private highlightRangeStart(startDate: Date): void {
+        if (!this.dateNavigator || !this.container) return;
         
-        // Prevent recursive updates
-        if (this.isUpdatingSelection) return;
-        
-        this.isUpdatingSelection = true;
-        
-        if (range) {
-            // Navigate to the month containing the start date
-            this.dateNavigator.navigateToMonth(range.start);
+        try {
+            // Clear any existing range highlights
+            this.clearRangeHighlights();
             
-            // If it's a single-day filter, select that day
-            if (this.isSameDay(range.start, range.end)) {
-                // Directly set the selectedDay in the DateNavigator
-                const dateNavigator = this.dateNavigator as any; // Type cast to access private field
-                if (dateNavigator) {
-                    dateNavigator.selectedDay = new Date(range.start); // Direct assignment
-                    this.dateNavigator.selectDay(range.start); // Then call selectDay
-                }
-            } else {
-                // For date ranges, ensure we're not in range selection mode
-                this.rangeSelectionMode = false;
+            // Get the day element for the start date
+            const dayElement = this.findDayElement(startDate);
+            if (dayElement) {
+                dayElement.classList.add('oom-range-start');
+                dayElement.style.cssText += `
+                    background: linear-gradient(135deg, var(--interactive-accent), var(--interactive-accent-hover)) !important;
+                    color: var(--text-on-accent) !important;
+                    border: 2px solid var(--interactive-accent) !important;
+                    border-radius: 6px !important;
+                    position: relative !important;
+                `;
                 
-                // Update toggle button if exists
-                const rangeToggleBtn = this.container?.querySelector('.oom-range-selection-toggle');
-                if (rangeToggleBtn) {
-                    rangeToggleBtn.textContent = 'Range Selection: Off';
-                    rangeToggleBtn.setAttribute('aria-pressed', 'false');
-                    (rangeToggleBtn as HTMLElement).classList.remove('oom-range-active');
-                }
+                // Add a visual indicator
+                const indicator = document.createElement('div');
+                indicator.className = 'oom-range-indicator';
+                indicator.textContent = 'START';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: -8px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    font-size: 8px;
+                    padding: 1px 4px;
+                    border-radius: 3px;
+                    font-weight: bold;
+                    z-index: 10;
+                `;
+                dayElement.appendChild(indicator);
+                
+                safeLogger.debug('DateNavigatorIntegration', 'Range start highlighted', {
+                    date: startDate.toISOString().split('T')[0]
+                });
             }
-        } else {
-            // Clear selection in DateNavigator
-            this.dateNavigator.clearSelection();
-        }
-        
-        this.isUpdatingSelection = false;
-    }
-    
-    /**
-     * Check if two dates represent the same day
-     */
-    private isSameDay(date1: Date, date2: Date): boolean {
-        return (
-            date1.getFullYear() === date2.getFullYear() &&
-            date1.getMonth() === date2.getMonth() &&
-            date1.getDate() === date2.getDate()
-        );
-    }
-    
-    /**
-     * Show the Date Navigator in UI
-     */
-    public show(): void {
-        if (this.container) {
-            this.container.style.display = 'flex';
+        } catch (error) {
+            safeLogger.error('DateNavigatorIntegration', 'Failed to highlight range start', error);
         }
     }
     
     /**
-     * Hide the Date Navigator from UI
+     * Highlight the entire date range with visual indication
      */
-    public hide(): void {
-        if (this.container) {
-            this.container.style.display = 'none';
-        }
-    }
-    
-    /**
-     * Toggle visibility of the Date Navigator
-     */
-    public toggle(): void {
-        if (this.container) {
-            if (this.container.style.display === 'none') {
-                this.show();
-            } else {
-                this.hide();
-            }
-        }
-    }
-    
-    /**
-     * Clean up resources
-     */
-    public destroy(): void {
-        // Phase 2: Dispose of worker manager
-        if (this.workerManager) {
-            try {
-                this.workerManager.dispose();
-                safeLogger.debug('DateNavigatorIntegration', 'Worker manager disposed successfully');
-            } catch (error) {
-                safeLogger.error('DateNavigatorIntegration', 'Error disposing worker manager', 
-                    error instanceof Error ? error : new Error(String(error)));
-            }
-        }
-        
-        // Hide any active progress indicators
-        this.hideProgressIndicator();
-        
-        // Clean up date navigator
-        if (this.dateNavigator) {
-            // Check if DateNavigator has a destroy method
-            if (typeof (this.dateNavigator as any).destroy === 'function') {
-                (this.dateNavigator as any).destroy();
-            }
-            this.dateNavigator = null;
-        }
-        
-        // Clean up container reference
-        this.container = null;
-        
-        // Clean up global debug function
-        try {
-            delete window['debugDateNavigator'];
-        } catch (e) {
-            // Silent failure
-        }
-        
-        safeLogger.debug('DateNavigatorIntegration', 'DateNavigatorIntegration destroyed');
-    }
-
-    // Add debug method for direct access
-    debug(): void {
-        try {
-            if (this.dateNavigator && typeof this.dateNavigator.debugDisplay === 'function') {
-                this.dateNavigator.debugDisplay();
-            } else {
-                error('DateNavigatorIntegration', 'DateNavigator debugDisplay function not available');
-            }
-        } catch (e) {
-            error('DateNavigatorIntegration', 'Error in debug function', e);
-        }
-    }
-
-    // Phase 2: Progress Indicator Methods
-    
-    /**
-     * Show progress indicator for filter processing
-     */
-    private showProgressIndicator(message: string = 'Processing filters...'): void {
-        if (!this.container) return;
-        
-        this.hideProgressIndicator(); // Remove any existing indicator
-        
-        this.progressIndicator = document.createElement('div');
-        this.progressIndicator.className = 'oom-progress-indicator';
-        this.progressIndicator.innerHTML = `
-            <div class="progress-content">
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <div class="progress-text">${message}</div>
-                <div class="progress-details"></div>
-            </div>
-        `;
-        
-        // Add styles if not already added
-        this.addProgressIndicatorStyles();
-        
-        // Insert at the top of the container
-        this.container.insertBefore(this.progressIndicator, this.container.firstChild);
-        
-        safeLogger.debug('DateNavigatorIntegration', 'Progress indicator shown', { message });
-    }
-    
-    /**
-     * Update progress indicator with current progress
-     */
-    private updateProgress(progress: { progress: number; entriesProcessed: number; currentPhase?: string }): void {
-        if (!this.progressIndicator) return;
-        
-        const progressFill = this.progressIndicator.querySelector('.progress-fill') as HTMLElement;
-        const progressText = this.progressIndicator.querySelector('.progress-text') as HTMLElement;
-        const progressDetails = this.progressIndicator.querySelector('.progress-details') as HTMLElement;
-        
-        if (progressFill) {
-            progressFill.style.width = `${Math.min(progress.progress, 100)}%`;
-        }
-        
-        if (progressText) {
-            const phase = progress.currentPhase ? ` (${progress.currentPhase})` : '';
-            progressText.textContent = `Processing filters... ${progress.progress}%${phase}`;
-        }
-        
-        if (progressDetails && progress.entriesProcessed) {
-            progressDetails.textContent = `Processed ${progress.entriesProcessed} entries`;
-        }
-        
-        safeLogger.debug('DateNavigatorIntegration', 'Progress updated', progress);
-    }
-    
-    /**
-     * Hide progress indicator
-     */
-    private hideProgressIndicator(): void {
-        if (this.progressIndicator && this.progressIndicator.parentNode) {
-            this.progressIndicator.parentNode.removeChild(this.progressIndicator);
-            this.progressIndicator = null;
-            safeLogger.debug('DateNavigatorIntegration', 'Progress indicator hidden');
-        }
-        this.isProcessing = false;
-    }
-    
-    /**
-     * Apply visibility results from worker to the UI
-     */
-    private applyVisibilityResults(visibilityMap: any[]): void {
-        // For DateNavigator, we'll apply filter highlighting/state
-        // The actual DOM manipulation will be handled by the DateNavigator component
-        if (!this.dateNavigator || !visibilityMap) return;
+    private highlightDateRange(startDate: Date, endDate: Date): void {
+        if (!this.dateNavigator || !this.container) return;
         
         try {
-            // Apply visibility state to DateNavigator
-            // This would be component-specific implementation
-            safeLogger.debug('DateNavigatorIntegration', 'Applying visibility results', {
-                resultsCount: visibilityMap.length,
-                visibleCount: visibilityMap.filter(r => r.visible).length
+            // Clear any existing range highlights
+            this.clearRangeHighlights();
+            
+            // Get all dates in the range
+            const dates = this.getDateRange(startDate, endDate);
+            
+            dates.forEach((date, index) => {
+                const dayElement = this.findDayElement(date);
+                if (dayElement) {
+                    const isStart = index === 0;
+                    const isEnd = index === dates.length - 1;
+                    const isMiddle = !isStart && !isEnd;
+                    
+                    // Apply appropriate styling based on position in range
+                    if (isStart) {
+                        dayElement.classList.add('oom-range-start');
+                        dayElement.style.cssText += `
+                            background: linear-gradient(135deg, var(--interactive-accent), var(--interactive-accent-hover)) !important;
+                            color: var(--text-on-accent) !important;
+                            border: 2px solid var(--interactive-accent) !important;
+                            border-radius: 6px 0 0 6px !important;
+                            position: relative !important;
+                        `;
+                        
+                        // Add START indicator
+                        const indicator = document.createElement('div');
+                        indicator.className = 'oom-range-indicator';
+                        indicator.textContent = 'START';
+                        indicator.style.cssText = `
+                            position: absolute;
+                            top: -8px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: var(--interactive-accent);
+                            color: var(--text-on-accent);
+                            font-size: 8px;
+                            padding: 1px 4px;
+                            border-radius: 3px;
+                            font-weight: bold;
+                            z-index: 10;
+                        `;
+                        dayElement.appendChild(indicator);
+                    } else if (isEnd) {
+                        dayElement.classList.add('oom-range-end');
+                        dayElement.style.cssText += `
+                            background: linear-gradient(135deg, var(--interactive-accent), var(--interactive-accent-hover)) !important;
+                            color: var(--text-on-accent) !important;
+                            border: 2px solid var(--interactive-accent) !important;
+                            border-radius: 0 6px 6px 0 !important;
+                            position: relative !important;
+                        `;
+                        
+                        // Add END indicator
+                        const indicator = document.createElement('div');
+                        indicator.className = 'oom-range-indicator';
+                        indicator.textContent = 'END';
+                        indicator.style.cssText = `
+                            position: absolute;
+                            top: -8px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: var(--interactive-accent);
+                            color: var(--text-on-accent);
+                            font-size: 8px;
+                            padding: 1px 4px;
+                            border-radius: 3px;
+                            font-weight: bold;
+                            z-index: 10;
+                        `;
+                        dayElement.appendChild(indicator);
+                    } else if (isMiddle) {
+                        dayElement.classList.add('oom-range-middle');
+                        dayElement.style.cssText += `
+                            background: linear-gradient(90deg, rgba(var(--interactive-accent-rgb), 0.3), rgba(var(--interactive-accent-rgb), 0.5)) !important;
+                            color: var(--text-normal) !important;
+                            border-top: 2px solid var(--interactive-accent) !important;
+                            border-bottom: 2px solid var(--interactive-accent) !important;
+                            position: relative !important;
+                        `;
+                    }
+                });
             });
             
-            // For now, we'll let the TimeFilterManager handle the actual DOM updates
-            // The DateNavigator primarily provides the selection interface
+            safeLogger.info('DateNavigatorIntegration', 'Date range highlighted', {
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                daysInRange: dates.length
+            });
             
         } catch (error) {
-            safeLogger.error('DateNavigatorIntegration', 'Failed to apply visibility results', 
-                error instanceof Error ? error : new Error(String(error)));
+            safeLogger.error('DateNavigatorIntegration', 'Failed to highlight date range', error);
         }
-    }
-    
-    /**
-     * Handle filter processing errors
-     */
-    private handleFilterError(error: any): void {
-        safeLogger.error('DateNavigatorIntegration', 'Filter processing failed', 
-            error instanceof Error ? error : new Error(String(error)));
-        
-        this.hideProgressIndicator();
-        
-        new Notice('Filter processing encountered an issue. Please try again.', 6000);
-    }
-    
-    /**
-     * Add CSS styles for progress indicator
-     */
-    private addProgressIndicatorStyles(): void {
-        if (document.querySelector('#oom-progress-styles')) return; // Already added
-        
-        const style = document.createElement('style');
-        style.id = 'oom-progress-styles';
-        style.textContent = `
-            .oom-progress-indicator {
-                background: var(--background-secondary);
-                border: 1px solid var(--background-modifier-border);
-                border-radius: 6px;
-                padding: 12px;
-                margin-bottom: 10px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-            
-            .progress-content {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .progress-bar {
-                width: 100%;
-                height: 8px;
-                background: var(--background-modifier-border);
-                border-radius: 4px;
-                overflow: hidden;
-            }
-            
-            .progress-fill {
-                height: 100%;
-                background: var(--interactive-accent);
-                border-radius: 4px;
-                transition: width 0.3s ease;
-                width: 0%;
-            }
-            
-            .progress-text {
-                font-size: 14px;
-                font-weight: 500;
-                color: var(--text-normal);
-            }
-            
-            .progress-details {
-                font-size: 12px;
-                color: var(--text-muted);
-            }
-        `;
-        document.head.appendChild(style);
     }
 }
