@@ -39,7 +39,7 @@ import { ContentToggler } from '../dom/content';
 import { DreamMetricsSettingTab } from '../../settings';
 
 // Import worker test command helpers
-import { addWorkerTestCommand, addWorkerTestRibbon } from '../workers/ui/WorkerTestCommand';
+import { addWorkerTestCommand } from '../workers/ui/WorkerTestCommand';
 
 // Import safeLogger directly from the module
 import safeLogger from '../logging/safe-logger';
@@ -562,14 +562,7 @@ export class PluginLoader {
                 plugin.ribbonManager.updateRibbonIcons();
             }
 
-            // Add Web Worker test ribbon button for Phase 1 testing
-            try {
-                addWorkerTestRibbon(plugin);
-                safeLogger.info('Ribbon', 'Web Worker test ribbon button added successfully');
-            } catch (error) {
-                safeLogger.error('Ribbon', 'Failed to add Web Worker test ribbon button', 
-                    error instanceof Error ? error : new Error(String(error)));
-            }
+            // Note: Web Worker test ribbon button removed - available via command palette only
         });
         
         // Remove debug ribbon - no longer needed in production

@@ -1,16 +1,16 @@
-// Web Workers Module Exports
-// Phase 1: Core Worker Architecture
+// Web Worker Architecture - Phase 1 Core Components
+// Exports for main thread integration
 
-// Type definitions
-export * from './types';
-
-// Core worker management
+// Core Architecture
 export { TypedWorkerManager } from './WorkerManager';
 export { DateNavigatorWorkerManager } from './DateNavigatorWorkerManager';
 
-// Testing utilities
+// Message Protocol & Types
+export * from './types';
+
+// Testing Infrastructure (Development)
 export { WebWorkerTestModal } from './ui/WebWorkerTestModal';
-export { addWorkerTestCommand, addWorkerTestRibbon } from './ui/WorkerTestCommand';
+export { addWorkerTestCommand } from './ui/WorkerTestCommand';
 
 // Worker implementations
 // Note: The actual worker script will be bundled separately in later phases
