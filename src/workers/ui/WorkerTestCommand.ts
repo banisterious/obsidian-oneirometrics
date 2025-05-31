@@ -3,26 +3,26 @@
 
 import { App, Plugin } from 'obsidian';
 import { WebWorkerTestModal } from './WebWorkerTestModal';
+import { DateNavigatorWorkerManager } from '../DateNavigatorWorkerManager';
+import safeLogger from '../../logging/safe-logger';
 
 /**
- * Adds the web worker test command to a plugin
- * Usage: addWorkerTestCommand(this) in the plugin's onload method
+ * Add Web Worker test command to plugin
+ * Available via Command Palette: "Test Web Workers (Phase 1)"
  */
-export function addWorkerTestCommand(plugin: Plugin): void {
-  plugin.addCommand({
-    id: 'test-web-workers',
-    name: 'Test Web Workers (Phase 1)',
-    callback: () => {
-      new WebWorkerTestModal(plugin.app).open();
-    }
-  });
-}
-
-/**
- * Alternative: Add as a ribbon button for easy access during development
- */
-export function addWorkerTestRibbon(plugin: Plugin): HTMLElement {
-  return plugin.addRibbonIcon('test-tube', 'Test Web Workers', () => {
-    new WebWorkerTestModal(plugin.app).open();
-  });
+export function addWorkerTestCommand(plugin: any): void {
+    plugin.addCommand({
+        id: 'test-web-workers-phase1',
+        name: 'Test Web Workers (Phase 1)',
+        callback: () => {
+            try {
+                const modal = new WebWorkerTestModal(plugin.app);
+                modal.open();
+                safeLogger.info('WorkerTest', 'Web Worker test modal opened');
+            } catch (error) {
+                safeLogger.error('WorkerTest', 'Failed to open Web Worker test modal', 
+                    error instanceof Error ? error : new Error(String(error)));
+            }
+        }
+    });
 } 
