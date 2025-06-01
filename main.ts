@@ -201,6 +201,31 @@ export default class DreamMetricsPlugin extends Plugin {
                 return true;
             }
         });
+
+        // Add test command for Universal Worker Pool (Phase 2.2)
+        this.addCommand({
+            id: 'test-universal-worker-pool',
+            name: 'Test Universal Worker Pool (Phase 2.2)',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    const { UniversalWorkerPoolTestModal } = require('./src/workers/ui/UniversalWorkerPoolTestModal');
+                    new UniversalWorkerPoolTestModal(this.app).open();
+                }
+                return true;
+            }
+        });
+
+        // Add OneiroMetrics Hub command (always available)
+        this.addCommand({
+            id: 'open-oneirometrics-hub',
+            name: 'OneiroMetrics: Open Hub',
+            callback: () => {
+                const modalsManager = new ModalsManager(this.app, this, this.logger);
+                modalsManager.openMetricsTabsModal();
+            }
+        });
     }
 
     onunload() {

@@ -12848,3 +12848,111 @@ h2.oom-metrics-tabs-label {
     display: none;
 }
 
+/* Universal Worker Pool Test Suite Modal */
+
+.modal:has(.oom-universal-worker-pool-test-suite) {
+    width: var(--modal-width);
+    height: var(--modal-height);
+    max-width: var(--modal-max-width);
+    max-height: var(--modal-max-height);
+}
+
+.oom-universal-worker-pool-test-suite .setting-item-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.oom-universal-worker-pool-test-suite h2 {
+    font-size: var(--h4-size);
+}
+
+.oom-universal-worker-pool-test-suite .setting-item-info h2 {
+    grid-column: 1 / -1; /* Span all columns for the "Test Categories" heading */
+    margin-bottom: 0.5rem;
+}
+
+.oom-universal-worker-pool-test-suite .test-category {
+    min-height: 140px; /* Ensure consistent height */
+    padding: 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.oom-universal-worker-pool-test-suite .test-category h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.oom-universal-worker-pool-test-suite .test-category ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    list-style-type: disc;
+}
+
+.oom-universal-worker-pool-test-suite .test-category li {
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .oom-universal-worker-pool-test-suite .setting-item-info {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .oom-universal-worker-pool-test-suite .setting-item-info {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, auto);
+  }
+}
+
+/* Universal Worker Pool Test Modal - Single Column Configuration Layout */
+.oom-universal-worker-pool-test-suite .setting-item {
+  display: block; /* Override grid for configuration section */
+  margin-bottom: 1.5rem;
+}
+
+/* Ensure Setting components have adequate spacing */
+.oom-universal-worker-pool-test-suite .setting-item .setting-item {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+/* Improve Setting label and description layout */
+.oom-universal-worker-pool-test-suite .setting-item .setting-item-info {
+  margin-bottom: 0.5rem;
+  min-width: 200px; /* Ensure minimum width for readability */
+}
+
+.oom-universal-worker-pool-test-suite .setting-item .setting-item-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  word-wrap: break-word;
+}
+
+.oom-universal-worker-pool-test-suite .setting-item .setting-item-description {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Ensure controls (sliders, dropdowns) have adequate space */
+.oom-universal-worker-pool-test-suite .setting-item .setting-item-control {
+  margin-top: 0.5rem;
+  min-width: 200px;
+}

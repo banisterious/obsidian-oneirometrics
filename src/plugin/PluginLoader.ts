@@ -516,15 +516,6 @@ export class PluginLoader {
         // This is just a stub - would need to implement all the commands from main.ts
         const plugin = this.plugin as any;
         
-        // Example of registering a command
-        plugin.addCommand({
-            id: 'show-metrics',
-            name: 'Show Metrics',
-            callback: () => {
-                plugin.showMetrics();
-            }
-        });
-        
         // Add Web Worker test command for Phase 1 testing
         try {
             addWorkerTestCommand(plugin);
