@@ -231,26 +231,18 @@ export class UniversalWorkerPoolTestModal extends Modal {
   private async initializeWorkerPool(): Promise<void> {
     const config: UniversalPoolConfiguration = {
       maxWorkers: 2,
-      batchSize: 50,
-      memoryLimit: 50 * 1024 * 1024, // 50MB
+      batchSize: 100,
+      memoryLimit: 256 * 1024 * 1024,
       priorityMode: 'balanced',
       workerTypes: {
-        DATE_FILTER: {
+        [UniversalTaskType.DATE_FILTER]: {
           dedicatedWorkers: 1,
           fallbackEnabled: true,
           cacheEnabled: true
-        },
-        METRICS_CALCULATION: {
-          fallbackEnabled: true,
-          cacheEnabled: true
-        },
-        TAG_ANALYSIS: {
-          fallbackEnabled: true,
-          cacheEnabled: false
         }
       },
       loadBalancing: 'task-affinity',
-      healthCheckInterval: 10000
+      healthCheckInterval: 30000
     };
 
     this.workerPool = new UniversalWorkerPool(this.app, config);
@@ -326,7 +318,7 @@ export class UniversalWorkerPoolTestModal extends Modal {
     
     try {
       const task: UniversalTask = {
-        taskType: 'DATE_FILTER',
+        taskType: UniversalTaskType.DATE_FILTER,
         taskId: 'test-date-filter-' + Date.now(),
         priority: 'normal',
         data: {
@@ -357,14 +349,14 @@ export class UniversalWorkerPoolTestModal extends Modal {
     
     try {
       const highPriorityTask: UniversalTask = {
-        taskType: 'METRICS_CALCULATION',
+        taskType: UniversalTaskType.METRICS_CALCULATION,
         taskId: 'test-high-priority-' + Date.now(),
         priority: 'high',
         data: { metrics: [] }
       };
 
       const lowPriorityTask: UniversalTask = {
-        taskType: 'TAG_ANALYSIS',
+        taskType: UniversalTaskType.TAG_ANALYSIS,
         taskId: 'test-low-priority-' + Date.now(),
         priority: 'low',
         data: { tags: [] }
@@ -485,7 +477,7 @@ export class UniversalWorkerPoolTestModal extends Modal {
     
     try {
       const invalidTask: UniversalTask = {
-        taskType: 'DATE_FILTER',
+        taskType: UniversalTaskType.DATE_FILTER,
         taskId: 'test-invalid-' + Date.now(),
         priority: 'normal',
         data: {
@@ -518,7 +510,7 @@ export class UniversalWorkerPoolTestModal extends Modal {
     
     try {
       const timeoutTask: UniversalTask = {
-        taskType: 'METRICS_CALCULATION',
+        taskType: UniversalTaskType.METRICS_CALCULATION,
         taskId: 'test-timeout-' + Date.now(),
         priority: 'normal',
         data: { largeDataset: new Array(10000).fill({}) },
@@ -552,7 +544,7 @@ export class UniversalWorkerPoolTestModal extends Modal {
       const concurrentTasks: UniversalTask[] = [];
       for (let i = 0; i < 5; i++) {
         concurrentTasks.push({
-          taskType: 'DATE_FILTER',
+          taskType: UniversalTaskType.DATE_FILTER,
           taskId: `concurrent-test-${i}-${Date.now()}`,
           priority: 'normal',
           data: {
@@ -589,7 +581,7 @@ export class UniversalWorkerPoolTestModal extends Modal {
     try {
       const largeDataset = this.generateTestData(500);
       const speedTask: UniversalTask = {
-        taskType: 'DATE_FILTER',
+        taskType: UniversalTaskType.DATE_FILTER,
         taskId: 'speed-test-' + Date.now(),
         priority: 'high',
         data: {
