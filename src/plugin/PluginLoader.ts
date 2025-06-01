@@ -525,17 +525,6 @@ export class PluginLoader {
             }
         });
         
-        // Add Journal Structure modal command
-        plugin.addCommand({
-            id: 'open-journal-structure',
-            name: 'Open Journal Structure Settings',
-            callback: () => {
-                // Open OneiroMetrics Hub instead (Journal Structure functionality has been migrated)
-                const modalsManager = new ModalsManager(plugin.app, plugin, plugin.logger);
-                modalsManager.openMetricsTabsModal();
-            }
-        });
-
         // Add Web Worker test command for Phase 1 testing
         try {
             addWorkerTestCommand(plugin);
