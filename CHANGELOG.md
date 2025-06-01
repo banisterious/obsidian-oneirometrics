@@ -31,7 +31,7 @@
   - Documented complete architecture plan for future phases
 
 - **Filter UI Consolidation:** Streamlined date filtering interface
-  - Unified all date selection through single DateSelectionModal interface
+  - Unified all date selection through single DateSelectionModal interface (Date Navigator button)
   - Removed legacy Custom Range button and archived CustomDateRangeModal
   - Reorganized button layout: Date Navigator → Rescrape Metrics for logical flow
   - Fixed event handler conflicts between old and new date selection systems
