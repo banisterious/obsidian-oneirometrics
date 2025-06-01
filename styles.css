@@ -12956,3 +12956,10 @@ h2.oom-metrics-tabs-label {
   margin-top: 0.5rem;
   min-width: 200px;
 }
+
+.modal:has(.oom-universal-filter-test-suite) {
+    height: var(--modal-height);
+    max-height: var(--modal-height);
+    width: var(--modal-width);
+    max-width: var(--modal-width);
+}

@@ -129,6 +129,7 @@ import {
 // Import test modals
 import { WebWorkerTestModal } from './src/workers/ui/WebWorkerTestModal';
 import { DateNavigatorTestModal } from './src/workers/ui/DateNavigatorTestModal';
+import { MetricsCalculatorTestModal } from './src/workers/ui/MetricsCalculatorTestModal';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -237,6 +238,20 @@ export default class DreamMetricsPlugin extends Plugin {
                 if (!checking) {
                     const { UniversalFilterManagerTestModal } = require('./src/workers/ui/UniversalFilterManagerTestModal');
                     new UniversalFilterManagerTestModal(this.app, this.logger).open();
+                }
+                return true;
+            }
+        });
+
+        // Add test command for Universal Metrics Calculator (Phase 2.4)
+        this.addCommand({
+            id: 'test-universal-metrics-calculator',
+            name: 'Test Universal Metrics Calculator (Phase 2.4)',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    new MetricsCalculatorTestModal(this.app, this).open();
                 }
                 return true;
             }
