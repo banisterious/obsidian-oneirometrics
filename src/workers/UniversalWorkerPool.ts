@@ -640,7 +640,7 @@ export class UniversalWorkerPool {
 
   // Get preferred task types for a worker (simple round-robin assignment)
   private getPreferredTaskTypes(workerId: string): UniversalTaskType[] {
-    const allTypes: UniversalTaskType[] = ['DATE_FILTER', 'METRICS_CALCULATION', 'TAG_ANALYSIS', 'SEARCH_FILTER'];
+    const allTypes: UniversalTaskType[] = [UniversalTaskType.DATE_FILTER, UniversalTaskType.METRICS_CALCULATION, UniversalTaskType.TAG_ANALYSIS, UniversalTaskType.SEARCH_FILTER];
     const workerIndex = parseInt(workerId.split('-')[1]) - 1;
     
     // Give each worker a preferred task type for affinity

@@ -193,11 +193,17 @@ function handleDateRangeFilter(message: WorkerMessage) {
         // Generate statistics if requested
         let statistics: FilterStatistics | undefined;
         if (options?.includeStatistics) {
+          const visibleCount = results.filter(r => r.visible).length;
           statistics = {
             totalEntries: entries.length,
-            visibleEntries: results.filter(r => r.visible).length,
-            hiddenEntries: results.filter(r => !r.visible).length,
-            processingTime: Date.now() - message.timestamp
+            visibleEntries: visibleCount,
+            hiddenEntries: entries.length - visibleCount,
+            processingTime: Date.now() - message.timestamp,
+            totalProcessed: entries.length,
+            matched: visibleCount,
+            filtered: entries.length - visibleCount,
+            invalidEntries: 0,
+            executionTimeMs: Date.now() - message.timestamp
           };
         }
         

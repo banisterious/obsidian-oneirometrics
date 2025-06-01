@@ -129,7 +129,12 @@ export class DateNavigatorWorkerManager extends TypedWorkerManager<WorkerMessage
         totalEntries: entries.length,
         visibleEntries: results.filter(r => r.visible).length,
         hiddenEntries: results.filter(r => !r.visible).length,
-        processingTime: 0 // Immediate processing
+        processingTime: 0,
+        totalProcessed: entries.length,
+        matched: results.filter(r => r.visible).length,
+        filtered: results.filter(r => !r.visible).length,
+        invalidEntries: 0,
+        executionTimeMs: 0
       };
     }
     

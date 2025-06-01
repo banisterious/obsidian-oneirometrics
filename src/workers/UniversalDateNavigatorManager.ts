@@ -16,7 +16,8 @@ import {
   DatePattern,
   PatternAnalysis,
   TaskError,
-  UniversalPoolConfiguration
+  UniversalPoolConfiguration,
+  UniversalTaskType
 } from './types';
 
 export class UniversalDateNavigatorManager {
@@ -32,23 +33,19 @@ export class UniversalDateNavigatorManager {
   constructor(app: App, poolConfig?: UniversalPoolConfiguration) {
     // Create default pool configuration if not provided
     const defaultConfig: UniversalPoolConfiguration = {
-      maxWorkers: 2,
-      batchSize: 100,
-      memoryLimit: 100 * 1024 * 1024, // 100MB
-      priorityMode: 'balanced',
       workerTypes: {
-        DATE_FILTER: {
-          dedicatedWorkers: 1,
-          fallbackEnabled: true,
-          cacheEnabled: true
-        },
-        METRICS_CALCULATION: {
+        [UniversalTaskType.DATE_FILTER]: {
+          dedicatedWorkers: 2,
           fallbackEnabled: true,
           cacheEnabled: true
         }
       },
       loadBalancing: 'task-affinity',
-      healthCheckInterval: 30000 // 30 seconds
+      healthCheckInterval: 30000,
+      maxWorkers: Math.max(2, Math.min(navigator.hardwareConcurrency || 4, 6)),
+      batchSize: 100,
+      memoryLimit: 256 * 1024 * 1024, // 256MB
+      priorityMode: 'performance'
     };
 
     this.workerPool = new UniversalWorkerPool(app, poolConfig || defaultConfig);
@@ -177,7 +174,12 @@ export class UniversalDateNavigatorManager {
         totalEntries: entries.length,
         visibleEntries: results.filter(r => r.visible).length,
         hiddenEntries: results.filter(r => !r.visible).length,
-        processingTime: 0 // Immediate processing
+        processingTime: 0, // Immediate processing
+        totalProcessed: entries.length,
+        matched: results.filter(r => r.visible).length,
+        filtered: results.filter(r => !r.visible).length,
+        invalidEntries: 0,
+        executionTimeMs: 0
       };
     }
     
@@ -202,7 +204,7 @@ export class UniversalDateNavigatorManager {
 
     // Create task for the universal pool
     const task: UniversalTask = {
-      taskType: 'DATE_FILTER',
+      taskType: UniversalTaskType.DATE_FILTER,
       taskId: this.generateTaskId(),
       priority: 'normal',
       data: {
@@ -279,7 +281,7 @@ export class UniversalDateNavigatorManager {
     }
 
     const task: UniversalTask = {
-      taskType: 'DATE_FILTER',
+      taskType: UniversalTaskType.DATE_FILTER,
       taskId: this.generateTaskId(),
       priority: 'normal',
       data: {
@@ -361,7 +363,7 @@ export class UniversalDateNavigatorManager {
     }
 
     const task: UniversalTask = {
-      taskType: 'DATE_FILTER',
+      taskType: UniversalTaskType.DATE_FILTER,
       taskId: this.generateTaskId(),
       priority: 'normal',
       data: {
