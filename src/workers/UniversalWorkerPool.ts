@@ -717,6 +717,25 @@ class UniversalWorker {
       case 'filter_validation':
         this.processFilterValidation(task);
         break;
+      // New MetricsCalculator task types - Phase 2.4
+      case 'dream_metrics_processing':
+        this.processDreamMetrics(task);
+        break;
+      case 'sentiment_analysis':
+        this.processSentimentAnalysis(task);
+        break;
+      case 'advanced_metrics_calculation':
+        this.processAdvancedMetrics(task);
+        break;
+      case 'time_based_metrics':
+        this.processTimeBasedMetrics(task);
+        break;
+      case 'metrics_aggregation':
+        this.processMetricsAggregation(task);
+        break;
+      case 'content_analysis':
+        this.processContentAnalysis(task);
+        break;
       default:
         this.sendTaskError(task.taskId, \`Unsupported task type: \${task.taskType}\`);
         return;
@@ -993,6 +1012,441 @@ class UniversalWorker {
     });
   }
 
+  // =============================================================================
+  // METRICS PROCESSING METHODS - Phase 2.4
+  // =============================================================================
+
+  processDreamMetrics(task) {
+    const startTime = performance.now();
+    const { data: entries, options } = task.data;
+    
+    if (!entries || !Array.isArray(entries)) {
+      this.sendTaskError(task.taskId, 'Invalid entries data for dream metrics processing');
+      return;
+    }
+
+    const processedEntries = [];
+    const aggregatedMetrics = {};
+    let statistics = {
+      totalEntries: entries.length,
+      processedEntries: 0,
+      failedEntries: 0,
+      processingTime: 0,
+      calculationsPerformed: {
+        sentiment: 0,
+        advanced: 0,
+        timeBased: 0,
+        aggregations: 0
+      }
+    };
+
+    // Process each entry
+    for (const entry of entries) {
+      try {
+        const calculatedMetrics = { ...entry.metrics || {} };
+        
+        // Basic word count
+        const wordCount = entry.content ? entry.content.trim().split(/\\s+/).length : 0;
+        calculatedMetrics['Words'] = wordCount;
+        
+        // Sentiment analysis if enabled
+        let sentimentScore = 0;
+        if (options?.enableSentimentAnalysis) {
+          sentimentScore = this.calculateSentiment(entry.content || '');
+          calculatedMetrics['Sentiment'] = sentimentScore;
+          statistics.calculationsPerformed.sentiment++;
+        }
+        
+        // Advanced metrics if enabled
+        if (options?.enableAdvancedMetrics) {
+          const advanced = this.calculateAdvancedMetricsWorker(entry.content || '');
+          Object.assign(calculatedMetrics, advanced);
+          statistics.calculationsPerformed.advanced++;
+        }
+
+        processedEntries.push({
+          ...entry,
+          calculatedMetrics,
+          sentimentScore,
+          advancedMetrics: options?.enableAdvancedMetrics ? this.calculateAdvancedMetricsWorker(entry.content || '') : undefined
+        });
+        
+        statistics.processedEntries++;
+      } catch (error) {
+        statistics.failedEntries++;
+        // Still add entry with basic metrics
+        processedEntries.push({
+          ...entry,
+          calculatedMetrics: { Words: 0 },
+          sentimentScore: 0
+        });
+      }
+    }
+
+    // Calculate aggregations
+    this.calculateMetricsAggregations(processedEntries, aggregatedMetrics);
+    statistics.calculationsPerformed.aggregations = Object.keys(aggregatedMetrics).length;
+    
+    statistics.processingTime = performance.now() - startTime;
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        entries: processedEntries,
+        aggregatedMetrics,
+        statistics,
+        metadata: {
+          taskType: 'dream_processing',
+          executionTime: statistics.processingTime,
+          cacheHit: false
+        }
+      },
+      metadata: {
+        processingTime: statistics.processingTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processSentimentAnalysis(task) {
+    const startTime = performance.now();
+    const { data: entries } = task.data;
+    
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      this.sendTaskError(task.taskId, 'Invalid entries data for sentiment analysis');
+      return;
+    }
+
+    const entry = entries[0]; // Process first entry for individual analysis
+    const content = entry.content || '';
+    
+    const sentimentResult = this.calculateSentimentDetailed(content);
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        sentimentResult,
+        metadata: {
+          taskType: 'sentiment',
+          executionTime: performance.now() - startTime,
+          cacheHit: false
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processAdvancedMetrics(task) {
+    const startTime = performance.now();
+    const { data: entries } = task.data;
+    
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      this.sendTaskError(task.taskId, 'Invalid entries data for advanced metrics');
+      return;
+    }
+
+    const entry = entries[0]; // Process first entry
+    const content = entry.content || '';
+    
+    const advancedMetrics = this.calculateAdvancedMetricsWorker(content);
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        entries: [{
+          ...entry,
+          advancedMetrics
+        }],
+        metadata: {
+          taskType: 'advanced',
+          executionTime: performance.now() - startTime,
+          cacheHit: false
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processTimeBasedMetrics(task) {
+    const startTime = performance.now();
+    const { data: entries } = task.data;
+    
+    if (!entries || !Array.isArray(entries)) {
+      this.sendTaskError(task.taskId, 'Invalid entries data for time-based metrics');
+      return;
+    }
+
+    const timeBasedMetrics = this.calculateTimeBasedMetricsWorker(entries);
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        timeBasedMetrics,
+        metadata: {
+          taskType: 'time_based',
+          executionTime: performance.now() - startTime,
+          cacheHit: false
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processMetricsAggregation(task) {
+    const startTime = performance.now();
+    const { data: entries } = task.data;
+    
+    if (!entries || !Array.isArray(entries)) {
+      this.sendTaskError(task.taskId, 'Invalid entries data for metrics aggregation');
+      return;
+    }
+
+    const aggregatedMetrics = {};
+    this.calculateMetricsAggregations(entries, aggregatedMetrics);
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        aggregatedMetrics,
+        metadata: {
+          taskType: 'aggregation',
+          executionTime: performance.now() - startTime,
+          cacheHit: false
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processContentAnalysis(task) {
+    const startTime = performance.now();
+    const { data: entries } = task.data;
+    
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      this.sendTaskError(task.taskId, 'Invalid entries data for content analysis');
+      return;
+    }
+
+    const entry = entries[0]; // Process first entry
+    const content = entry.content || '';
+    
+    const contentAnalysis = this.analyzeContent(content);
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        contentAnalysis,
+        metadata: {
+          taskType: 'content_analysis',
+          executionTime: performance.now() - startTime,
+          cacheHit: false
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  // =============================================================================
+  // METRICS CALCULATION HELPERS
+  // =============================================================================
+
+  calculateSentiment(content) {
+    // Basic sentiment analysis
+    const positiveWords = ['happy', 'joy', 'love', 'peaceful', 'beautiful', 'wonderful', 'amazing', 'good', 'great', 'excellent', 'pleasant', 'delight', 'calm', 'safe', 'clarity', 'flying', 'float', 'success', 'achieve', 'accomplish'];
+    const negativeWords = ['sad', 'fear', 'anxious', 'angry', 'terrified', 'nightmare', 'falling', 'chase', 'dark', 'scary', 'bad', 'awful', 'terrible', 'horror', 'trapped', 'confused', 'lost', 'danger', 'threat', 'panic', 'death'];
+    
+    const lowerContent = content.toLowerCase();
+    let positiveCount = 0;
+    let negativeCount = 0;
+    
+    positiveWords.forEach(word => {
+      const regex = new RegExp(\`\\\\b\${word}\\\\b\`, 'g');
+      const matches = lowerContent.match(regex);
+      if (matches) positiveCount += matches.length;
+    });
+    
+    negativeWords.forEach(word => {
+      const regex = new RegExp(\`\\\\b\${word}\\\\b\`, 'g');
+      const matches = lowerContent.match(regex);
+      if (matches) negativeCount += matches.length;
+    });
+    
+    if (positiveCount === 0 && negativeCount === 0) return 0;
+    
+    const total = positiveCount + negativeCount;
+    return Math.round(((positiveCount - negativeCount) / total) * 100) / 100;
+  }
+
+  calculateSentimentDetailed(content) {
+    const score = this.calculateSentiment(content);
+    return {
+      score,
+      magnitude: Math.abs(score),
+      positiveWords: [], // Simplified - could extract actual words found
+      negativeWords: [],
+      neutralWords: [],
+      confidence: 0.5
+    };
+  }
+
+  calculateAdvancedMetricsWorker(content) {
+    const metrics = {};
+    
+    const wordCount = content.trim().split(/\\s+/).length;
+    metrics['Words'] = wordCount;
+    
+    const sentenceCount = (content.match(/[.!?]+\\s/g) || []).length + 1;
+    metrics['Sentences'] = sentenceCount;
+    
+    if (sentenceCount > 0) {
+      metrics['Words per Sentence'] = Math.round((wordCount / sentenceCount) * 10) / 10;
+    }
+    
+    metrics['Characters'] = content.replace(/\\s/g, '').length;
+    
+    // Additional metrics
+    const paragraphCount = content.split(/\\n\\s*\\n/).length;
+    metrics['Paragraphs'] = paragraphCount;
+    
+    return metrics;
+  }
+
+  calculateTimeBasedMetricsWorker(entries) {
+    const byMonth = {};
+    const byDayOfWeek = {};
+    const byHour = {};
+    
+    entries.forEach(entry => {
+      if (!entry.date) return;
+      
+      const date = new Date(entry.date);
+      const monthKey = \`\${date.getFullYear()}-\${date.getMonth() + 1}\`;
+      const dayKey = date.getDay();
+      const hourKey = date.getHours();
+      
+      // Monthly metrics
+      if (!byMonth[monthKey]) {
+        byMonth[monthKey] = {
+          count: 0,
+          totalWords: 0,
+          averageWords: 0,
+          metricAverages: {}
+        };
+      }
+      byMonth[monthKey].count++;
+      byMonth[monthKey].totalWords += entry.wordCount || 0;
+      byMonth[monthKey].averageWords = byMonth[monthKey].totalWords / byMonth[monthKey].count;
+      
+      // Day of week metrics
+      if (!byDayOfWeek[dayKey]) {
+        byDayOfWeek[dayKey] = {
+          count: 0,
+          totalWords: 0,
+          averageWords: 0,
+          metricAverages: {}
+        };
+      }
+      byDayOfWeek[dayKey].count++;
+      byDayOfWeek[dayKey].totalWords += entry.wordCount || 0;
+      byDayOfWeek[dayKey].averageWords = byDayOfWeek[dayKey].totalWords / byDayOfWeek[dayKey].count;
+      
+      // Hour metrics
+      if (!byHour[hourKey]) {
+        byHour[hourKey] = {
+          count: 0,
+          totalWords: 0,
+          averageWords: 0,
+          metricAverages: {}
+        };
+      }
+      byHour[hourKey].count++;
+      byHour[hourKey].totalWords += entry.wordCount || 0;
+      byHour[hourKey].averageWords = byHour[hourKey].totalWords / byHour[hourKey].count;
+    });
+    
+    return { byMonth, byDayOfWeek, byHour };
+  }
+
+  calculateMetricsAggregations(entries, aggregatedMetrics) {
+    const metricNames = new Set();
+    entries.forEach(entry => {
+      if (entry.calculatedMetrics) {
+        Object.keys(entry.calculatedMetrics).forEach(name => metricNames.add(name));
+      }
+    });
+    
+    metricNames.forEach(metricName => {
+      const values = entries
+        .map(entry => entry.calculatedMetrics && entry.calculatedMetrics[metricName])
+        .filter(value => typeof value === 'number');
+      
+      if (values.length > 0) {
+        const total = values.reduce((sum, val) => sum + val, 0);
+        const average = total / values.length;
+        const sortedValues = [...values].sort((a, b) => a - b);
+        const median = sortedValues[Math.floor(sortedValues.length / 2)];
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        
+        const variance = values.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / values.length;
+        const standardDeviation = Math.sqrt(variance);
+        
+        aggregatedMetrics[metricName] = {
+          total,
+          average: Math.round(average * 100) / 100,
+          median,
+          min,
+          max,
+          standardDeviation: Math.round(standardDeviation * 100) / 100,
+          count: values.length
+        };
+      }
+    });
+  }
+
+  analyzeContent(content) {
+    const wordCount = content.trim().split(/\\s+/).length;
+    const sentenceCount = (content.match(/[.!?]+\\s/g) || []).length + 1;
+    const paragraphCount = content.split(/\\n\\s*\\n/).length;
+    const characterCount = content.replace(/\\s/g, '').length;
+    
+    return {
+      wordCount,
+      sentenceCount,
+      paragraphCount,
+      averageWordsPerSentence: sentenceCount > 0 ? Math.round((wordCount / sentenceCount) * 10) / 10 : 0,
+      characterCount,
+      complexity: wordCount < 50 ? 'simple' : wordCount < 200 ? 'moderate' : 'complex'
+    };
+  }
+
   handleHealthCheck(message) {
     self.postMessage({
       id: message.id,
@@ -1009,10 +1463,15 @@ class UniversalWorker {
       timestamp: Date.now(),
       data: {
         workerId: this.workerId,
-        supportedTasks: ['date_filter', 'metrics_calculation', 'tag_analysis', 'search_filter', 'date_range_filter', 'content_filter', 'metadata_filter', 'complex_filter', 'filter_validation'],
+        supportedTasks: [
+          'date_filter', 'metrics_calculation', 'tag_analysis', 'search_filter', 
+          'date_range_filter', 'content_filter', 'metadata_filter', 'complex_filter', 'filter_validation',
+          'dream_metrics_processing', 'sentiment_analysis', 'advanced_metrics_calculation', 
+          'time_based_metrics', 'metrics_aggregation', 'content_analysis'
+        ],
         maxConcurrentTasks: 3,
         memoryLimit: 50 * 1024 * 1024, // 50MB
-        preferredTaskTypes: ['date_filter', 'date_range_filter']
+        preferredTaskTypes: ['date_filter', 'date_range_filter', 'dream_metrics_processing']
       }
     });
   }
