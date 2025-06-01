@@ -2,9 +2,28 @@
 
 ## 🚀 **Implementation Status**
 
-**Current Status**: 🚧 **Phase 2.2 In Progress - Universal Worker Pool Development**  
+**Current Status**: 🔄 **Phase 2.4 Data Regression Debug - Universal Metrics Calculator**  
 **Active Branch**: `feature/universal-worker-pool`  
 **Next Phase**: Phase 3 - Full Application Integration
+
+### 🔄 **Phase 2.4 Status Update - Universal Metrics Calculator Integration**
+- **🚧 Data Regression Issue Identified**: Critical data corruption discovered in UniversalMetricsCalculator
+  - **Root Cause**: Simplified parsing logic in `parseJournalEntries()` method failing to correctly extract dream entries
+  - **Symptom**: Input entries getting mapped to completely different output entries (wrong dates, content, IDs)
+  - **Immediate Fix**: Temporary reversion to original MetricsCollector which works correctly
+  - **Worker Pool Status**: Temporarily disabled - issue was in data extraction, not worker pool itself
+
+- **✅ Command Integration Complete**: All diagnostic commands implemented and working
+  - Added "Show Universal Calculator Statistics", "Clear Universal Calculator Cache", "Show Worker Pool Information"
+  - Commands only visible when logging is enabled (not "Off")
+  - Full command integration ready for when data parsing is fixed
+
+- **📋 Next Steps for UniversalMetricsCalculator**:
+  1. **Replace simplified parsing** with full parsing logic from MetricsProcessor
+  2. **Fix entry extraction** to properly detect journal entries and callouts  
+  3. **Validate data integrity** against MetricsCollector results
+  4. **Re-enable worker pool** once parsing is correct
+  5. **Complete Phase 2.4** with full UniversalMetricsCalculator integration
 
 ### 📊 **Recently Completed: Phase 2.1 - DateNavigator Integration**
 - **🚀 Enhanced DateNavigatorIntegration**: ✅ **MERGED TO MAIN** - Upgraded with full web worker support
@@ -4627,3 +4646,108 @@ This comprehensive debugging system provides:
 - **Export Capabilities**: Full debug data export for offline analysis
 - **Visual Dashboard**: User-friendly debug panel with tabbed interface
 - **Development Integration**: Seamless integration with OneiroMetrics' debug mode
+
+**Why Option B Was Selected**:
+- ✅ **Better Learning Experience**: More comprehensive architecture for understanding web worker patterns
+- ✅ **Resource Efficiency**: Single worker pool serves multiple components vs dedicated workers
+- ✅ **Scalable Design**: Foundation ready for Phase 3 integrations (FilterManager, MetricsCalculator, etc.)
+- ✅ **Advanced Features**: Load balancing, health monitoring, task prioritization built-in
+- ✅ **User Context**: Low-profile plugin with single user allows for more experimental architecture
+
+##### **2.4 Universal Metrics Calculator Integration** 🔄 **ACTIVE - Data Regression Debug**
+**Status**: 🚧 **Partially Complete - Data Parsing Issues Identified**  
+**Branch**: `feature/universal-worker-pool`  
+**Implementation**: UniversalMetricsCalculator as drop-in replacement for MetricsCollector
+
+**🎯 Completed Components**:
+1. ✅ **Command Integration**: All diagnostic commands implemented and working
+   - "Show Universal Calculator Statistics" - displays cache metrics, processing stats
+   - "Clear Universal Calculator Cache" - clears calculator cache for debugging
+   - "Show Worker Pool Information" - shows worker pool health and task statistics
+   - Commands only visible when logging enabled (not "Off")
+
+2. ✅ **Architecture Foundation**: Full worker pool integration structure
+   - UniversalMetricsCalculator class with same API as MetricsCollector
+   - Worker pool processing with intelligent fallback
+   - Advanced caching system with TTL and memory management
+   - Performance monitoring and statistics tracking
+
+3. ✅ **Build System**: Zero compilation errors, clean integration
+
+**🚨 Critical Issue Identified - Data Regression**:
+```typescript
+// INPUT ENTRY (Original):
+{
+  "id": "entry_476_1748755043874",
+  "date": "2024-04-20",
+  "content": "^20240420 Chat and Check-in with Aaron Marks..."
+}
+
+// OUTPUT ENTRY (Corrupted):
+{
+  "id": "entry_4424_1748755043935",  // Different ID!
+  "date": "2025-05-28",              // Different date!
+  "content": "^20250528 Great Movie..." // Different content!
+}
+```
+
+**Root Cause Analysis**:
+- **Data Extraction Bug**: Simplified `parseJournalEntries()` method in UniversalMetricsCalculator
+- **Missing Logic**: Does not use the complex journal entry detection from original MetricsProcessor
+- **Entry Mapping**: Incorrect association between extracted entries and metadata
+- **Not Worker Pool**: Issue confirmed to be in data extraction, not worker pool processing
+
+**Immediate Fix Applied**:
+```typescript
+// main.ts - Temporary reversion to working MetricsCollector
+async scrapeMetrics() {
+    // TEMPORARY REVERSION: Use original MetricsCollector due to data parsing issues
+    const metricsCollector = new MetricsCollector(this.app, this, this.logger);
+    await metricsCollector.scrapeMetrics();
+    
+    /* COMMENTED OUT UNTIL DATA EXTRACTION/PARSING IS FIXED
+    const universalCalculator = new UniversalMetricsCalculator(...);
+    await universalCalculator.scrapeMetrics();
+    */
+}
+```
+
+**📋 Required Fixes for UniversalMetricsCalculator**:
+1. **Replace Simplified Parsing**: Use full parsing logic from MetricsProcessor.ts
+   - Import `extractDreamEntries()`, `getDreamEntryDate()`, etc.
+   - Replicate complex journal entry detection patterns
+   - Handle all callout types and block reference formats
+
+2. **Fix Entry Extraction Pipeline**:
+   ```typescript
+   // Current (BROKEN):
+   private parseJournalEntries(content: string, filePath: string): MetricsEntry[]
+   
+   // Required (WORKING):
+   private async extractDreamEntries(files: string[]): Promise<MetricsEntry[]> {
+     // Use MetricsProcessor's proven extraction logic
+   }
+   ```
+
+3. **Validate Data Integrity**:
+   - Add cross-validation against MetricsCollector results
+   - Implement data integrity checks before updating project note
+   - Add comprehensive debug logging for data extraction phase
+
+4. **Re-enable Worker Pool**: Once parsing fixed, remove temporary worker pool bypass
+
+**🧪 Testing Status**:
+- ✅ Command integration fully tested and working
+- ✅ Worker pool architecture tested (temporarily disabled)
+- ❌ Data extraction failing validation
+- ❌ End-to-end metrics processing blocked
+
+**📈 Progress: ~75% Complete**:
+- ✅ Infrastructure & commands (25%)
+- ✅ Worker pool integration (25%) 
+- ✅ Caching & performance (25%)
+- ❌ Data extraction & parsing (25%) ← **BLOCKING ISSUE**
+
+**Next Sprint Priority**: Fix data extraction to complete Phase 2.4 and restore UniversalMetricsCalculator
+
+##### **2.5 TimeFilterManager Enhancement** ⏳ **Priority 2**

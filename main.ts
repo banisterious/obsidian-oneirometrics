@@ -256,6 +256,46 @@ export default class DreamMetricsPlugin extends Plugin {
                 return true;
             }
         });
+
+        // Add diagnostic commands that only show when logging is enabled
+        this.addCommand({
+            id: 'show-universal-calculator-stats',
+            name: 'Show Universal Calculator Statistics',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    this.showCalculatorStatistics();
+                }
+                return true;
+            }
+        });
+
+        this.addCommand({
+            id: 'clear-universal-calculator-cache',
+            name: 'Clear Universal Calculator Cache',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    this.clearCalculatorCache();
+                }
+                return true;
+            }
+        });
+
+        this.addCommand({
+            id: 'show-worker-pool-info',
+            name: 'Show Worker Pool Information',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    this.showWorkerPoolInfo();
+                }
+                return true;
+            }
+        });
     }
 
     onunload() {
@@ -348,16 +388,45 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async scrapeMetrics() {
+        // TEMPORARY REVERSION: Use original MetricsCollector due to data parsing issues in UniversalMetricsCalculator
+        // The UniversalMetricsCalculator has data extraction/parsing bugs that need to be fixed separately
         try {
-            // Create a metrics collector instance
-            const metricsCollector = new MetricsCollector(this.app, this, this.logger);
+            const metricsCollector = new MetricsCollector(
+                this.app,
+                this,
+                this.logger
+            );
             
-            // Call the collector's scrapeMetrics method
             await metricsCollector.scrapeMetrics();
+            this.logger?.info('Scrape', 'MetricsCollector scraping completed');
+            
         } catch (error) {
-            this.logger?.error('Scrape', 'Error in scrapeMetrics', error as Error);
+            this.logger?.error('Scrape', 'Error in scrapeMetrics with MetricsCollector', error as Error);
             new Notice(`Error scraping metrics: ${error.message}`);
         }
+        
+        /* COMMENTED OUT UNTIL DATA EXTRACTION/PARSING IS FIXED IN UNIVERSALMETRICSCALCULATOR
+        try {
+            // Import the UniversalMetricsCalculator
+            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
+            
+            // Use UniversalMetricsCalculator (worker pool temporarily disabled due to data corruption)
+            // Once worker pool data corruption is fixed, this will use full worker pool processing
+            const universalCalculator = new UniversalMetricsCalculator(
+                this.app,
+                this,
+                undefined, // Use default worker pool config (temporarily disabled anyway)
+                this.logger
+            );
+            
+            await universalCalculator.scrapeMetrics();
+            this.logger?.info('Scrape', 'UniversalMetricsCalculator scraping completed');
+            
+        } catch (error) {
+            this.logger?.error('Scrape', 'Error in scrapeMetrics with Universal Calculator', error as Error);
+            new Notice(`Error scraping metrics: ${error.message}`);
+        }
+        */
     }
 
     /**
@@ -640,7 +709,71 @@ export default class DreamMetricsPlugin extends Plugin {
         this.debugTools.debugDateNavigator();
     }
 
-    // Method removed: showMetricsTabsModal() is now handled by ModalsManager
+    /**
+     * Show Universal Calculator statistics
+     */
+    private async showCalculatorStatistics(): Promise<void> {
+        try {
+            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
+            const calculator = new UniversalMetricsCalculator(this.app, this, undefined, this.logger);
+            const stats = calculator.getStatistics();
+            
+            const message = `Universal Calculator Statistics:
+Cache Size: ${stats.cacheSize || 0} items
+Cache Hit Rate: ${((stats.cacheHitRate || 0) * 100).toFixed(1)}%
+Total Calculations: ${stats.totalCalculations || 0}
+Worker Pool Usage: ${stats.workerPoolUsage || 0}
+Fallback Usage: ${stats.fallbackUsage || 0}
+Average Processing Time: ${stats.averageProcessingTime?.toFixed(0) || 0}ms`;
+
+            new Notice(message, 8000);
+            this.logger?.info('Diagnostics', 'Calculator statistics displayed', stats);
+        } catch (error) {
+            this.logger?.error('Diagnostics', 'Error showing calculator statistics', error as Error);
+            new Notice(`Error retrieving calculator statistics: ${error.message}`);
+        }
+    }
+
+    /**
+     * Clear Universal Calculator cache
+     */
+    private async clearCalculatorCache(): Promise<void> {
+        try {
+            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
+            const calculator = new UniversalMetricsCalculator(this.app, this, undefined, this.logger);
+            calculator.clearCache();
+            
+            new Notice('Universal Calculator cache cleared successfully');
+            this.logger?.info('Diagnostics', 'Calculator cache cleared');
+        } catch (error) {
+            this.logger?.error('Diagnostics', 'Error clearing calculator cache', error as Error);
+            new Notice(`Error clearing calculator cache: ${error.message}`);
+        }
+    }
+
+    /**
+     * Show Worker Pool information
+     */
+    private async showWorkerPoolInfo(): Promise<void> {
+        try {
+            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
+            const calculator = new UniversalMetricsCalculator(this.app, this, undefined, this.logger);
+            const poolInfo = calculator.getWorkerPoolInfo();
+            
+            const message = `Worker Pool Information:
+Active Workers: ${poolInfo.activeWorkers || 0}
+Total Tasks: ${poolInfo.totalTasks || 0}
+Queue Length: ${poolInfo.queueLength || 0}
+Health Status: ${poolInfo.healthStatus || 'Unknown'}
+Load Balancing: ${poolInfo.loadBalancing || 'Unknown'}`;
+
+            new Notice(message, 8000);
+            this.logger?.info('Diagnostics', 'Worker pool info displayed', poolInfo);
+        } catch (error) {
+            this.logger?.error('Diagnostics', 'Error showing worker pool info', error as Error);
+            new Notice(`Error retrieving worker pool info: ${error.message}`);
+        }
+    }
 }
 
 // Helper to extract date for a dream entry

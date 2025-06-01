@@ -139,6 +139,15 @@ export class UniversalMetricsCalculator {
 
             // Extract dream entries from files
             const dreamEntries = await this.extractDreamEntries(files);
+            this.logger?.debug('Scrape', `Extracted ${dreamEntries.length} dream entries`, { 
+                first3Entries: dreamEntries.slice(0, 3).map(e => ({
+                    date: e.date,
+                    title: e.title,
+                    contentLength: e.content?.length || 0,
+                    metadata: e.metadata
+                }))
+            });
+            
             if (dreamEntries.length === 0) {
                 new Notice('No dream journal entries found in the selected notes.');
                 this.logger?.warn('Scrape', 'No dream journal entries found');
@@ -150,26 +159,65 @@ export class UniversalMetricsCalculator {
 
             // Process metrics using worker pool
             const metricsResult = await this.processMetricsWithWorkerPool(dreamEntries);
+            this.logger?.debug('Scrape', `Worker pool returned ${metricsResult.entries.length} processed entries`, {
+                first3Processed: metricsResult.entries.slice(0, 3).map(e => ({
+                    id: e.id,
+                    date: e.date,
+                    title: e.title,
+                    calculatedMetrics: e.calculatedMetrics,
+                    metadata: e.metadata
+                }))
+            });
+            
             foundAnyMetrics = metricsResult.entries.length > 0;
 
-            // Convert to original format for compatibility
+            // Convert to original format for compatibility - THIS IS WHERE THE BUG LIKELY IS
             const metrics: Record<string, number[]> = {};
             const processedEntries: DreamMetricData[] = [];
 
             for (const entry of metricsResult.entries) {
+                this.logger?.debug('Scrape', `Converting entry ${entry.id}`, {
+                    originalEntry: {
+                        id: entry.id,
+                        date: entry.date,
+                        title: entry.title,
+                        content: entry.content?.substring(0, 50) + '...',
+                        calculatedMetrics: entry.calculatedMetrics,
+                        metadata: entry.metadata
+                    }
+                });
+
                 // Convert ProcessedMetricsEntry to DreamMetricData
                 const dreamEntry: DreamMetricData = {
                     date: entry.date,
                     title: entry.title || 'Untitled Dream',
                     content: entry.content,
-                    wordCount: entry.calculatedMetrics['Words'] || 0,
+                    wordCount: entry.calculatedMetrics['Words'] || entry.calculatedMetrics['Word Count'] || 0,
                     metrics: entry.calculatedMetrics,
-                    source: entry.metadata?.source || 'unknown',
+                    source: typeof entry.metadata?.source === 'string' ? entry.metadata.source : 
+                           (entry.metadata?.source as any)?.file || 
+                           (entry.metadata?.source as any)?.id || 
+                           'unknown',
                     calloutMetadata: {
                         type: 'dream',
                         id: entry.id
                     }
                 };
+
+                // Reduced debug logging - only log first few entries or on errors
+                if (processedEntries.length < 3) {
+                    this.logger?.debug('Scrape', `Converted to DreamMetricData`, {
+                        convertedEntry: {
+                            date: dreamEntry.date,
+                            title: dreamEntry.title,
+                            content: dreamEntry.content?.substring(0, 50) + '...',
+                            wordCount: dreamEntry.wordCount,
+                            source: dreamEntry.source,
+                            calloutMetadata: dreamEntry.calloutMetadata
+                        }
+                    });
+                }
+
                 processedEntries.push(dreamEntry);
 
                 // Aggregate metrics
@@ -182,6 +230,13 @@ export class UniversalMetricsCalculator {
 
                 totalWords += dreamEntry.wordCount || 0;
             }
+
+            this.logger?.debug('Scrape', `Final aggregated metrics`, {
+                metricsKeys: Object.keys(metrics),
+                metricsLengths: Object.fromEntries(Object.entries(metrics).map(([k, v]) => [k, v.length])),
+                totalEntries: processedEntries.length,
+                totalWords
+            });
 
             // Update project note
             await this.updateProjectNote(metrics, processedEntries);
@@ -575,6 +630,15 @@ export class UniversalMetricsCalculator {
     }
 
     private async processMetricsWithWorkerPool(entries: MetricsEntry[]): Promise<MetricsResult> {
+        this.logger?.debug('WorkerPool', `Processing ${entries.length} entries with worker pool`);
+        
+        // TEMPORARY FIX: Disable worker pool to fix data corruption issue
+        // Force immediate fallback to sync processing which works correctly
+        this.logger?.warn('WorkerPool', 'Worker pool temporarily disabled due to data corruption - falling back to sync processing');
+        this.stats.fallbackUsage++;
+        return this.processMetricsSync(entries);
+        
+        /* COMMENTED OUT UNTIL WORKER POOL DATA CORRUPTION IS FIXED
         try {
             const task: UniversalTask = {
                 taskType: UniversalTaskType.DREAM_METRICS_PROCESSING,
@@ -592,49 +656,117 @@ export class UniversalMetricsCalculator {
                 }
             };
 
+            this.logger?.debug('WorkerPool', `Created task`, {
+                taskId: task.taskId,
+                taskType: task.taskType,
+                entriesCount: entries.length,
+                firstEntry: entries[0] ? {
+                    id: entries[0].id,
+                    date: entries[0].date
+                } : null
+            });
+
             const result = await this.workerPool.processTask(task);
+            this.logger?.debug('WorkerPool', `Worker pool returned result`, {
+                success: result.success,
+                dataExists: !!result.data,
+                entriesCount: result.data?.entries?.length || 0
+            });
+            
             if (result.success && result.data) {
                 this.stats.workerPoolUsage++;
                 return result.data;
+            } else {
+                this.logger?.warn('WorkerPool', 'Worker pool task failed, falling back to sync', {
+                    error: result.error
+                });
             }
         } catch (error) {
-            this.logger?.warn('Metrics', 'Worker pool failed, falling back to main thread processing', error as Error);
+            this.logger?.error('WorkerPool', 'Worker pool failed, falling back to sync processing', error as Error);
         }
 
-        // Fallback to main thread processing
+        // Fallback to sync processing
         this.stats.fallbackUsage++;
         return this.processMetricsSync(entries);
+        */
     }
 
     private processMetricsSync(entries: MetricsEntry[]): MetricsResult {
+        this.logger?.debug('SyncProcessing', `Processing ${entries.length} entries synchronously`);
+        
         const processedEntries: ProcessedMetricsEntry[] = [];
         const aggregatedMetrics: Record<string, MetricsAggregation> = {};
-        
+
         for (const entry of entries) {
-            const calculatedMetrics: Record<string, number> = {
-                ...entry.metrics,
-                Words: entry.content.split(/\s+/).length
-            };
-            
-            // Add basic sentiment
-            const sentiment = this.calculateBasicSentiment(entry.content);
-            calculatedMetrics.Sentiment = sentiment;
-            
-            processedEntries.push({
-                ...entry,
-                calculatedMetrics,
-                sentimentScore: sentiment
+            this.logger?.debug('SyncProcessing', `Processing entry ${entry.id}`, {
+                date: entry.date,
+                title: entry.title,
+                contentLength: entry.content?.length || 0
             });
+
+            // Calculate basic metrics (word count, etc.)
+            const content = entry.content || '';
+            const words = content.split(/\s+/).filter(word => word.length > 0);
+            const wordCount = words.length;
+            
+            // Initialize with basic metrics
+            const calculatedMetrics: Record<string, number> = {
+                'Words': wordCount,
+                'Word Count': wordCount // Both versions for compatibility
+            };
+
+            // Process custom metrics from settings
+            if (this.settings.metrics) {
+                Object.values(this.settings.metrics).forEach(metric => {
+                    if (metric.enabled) {
+                        const value = this.extractMetricValue(content, metric);
+                        calculatedMetrics[metric.name] = value;
+                        this.logger?.debug('SyncProcessing', `Calculated ${metric.name} = ${value} for entry ${entry.id}`);
+                    }
+                });
+            }
+
+            // Calculate advanced metrics
+            const advancedMetrics = this.calculateAdvancedMetricsSync(content);
+            Object.assign(calculatedMetrics, advancedMetrics);
+
+            // Calculate sentiment analysis
+            const sentimentResult = this.calculateSentimentAnalysisSync(content);
+            calculatedMetrics['Sentiment'] = sentimentResult.score;
+            calculatedMetrics['Sentiment Confidence'] = sentimentResult.confidence;
+
+            this.logger?.debug('SyncProcessing', `Final metrics for entry ${entry.id}`, {
+                metricsKeys: Object.keys(calculatedMetrics),
+                wordCount: calculatedMetrics['Words'],
+                sentiment: calculatedMetrics['Sentiment']
+            });
+
+            const processedEntry: ProcessedMetricsEntry = {
+                id: entry.id,
+                date: entry.date,
+                title: entry.title,
+                content: entry.content,
+                calculatedMetrics,
+                metadata: entry.metadata
+            };
+
+            processedEntries.push(processedEntry);
         }
-        
-        // Calculate aggregations
-        this.calculateAggregations(processedEntries, aggregatedMetrics);
-        
+
+        this.logger?.debug('SyncProcessing', `Sync processing completed`, {
+            totalEntries: processedEntries.length,
+            first3Entries: processedEntries.slice(0, 3).map(e => ({
+                id: e.id,
+                date: e.date,
+                metricsCount: Object.keys(e.calculatedMetrics).length
+            }))
+        });
+
         return {
             entries: processedEntries,
             aggregatedMetrics,
             statistics: {
-                totalEntries: entries.length,
+                totalEntries: processedEntries.length,
                 processedEntries: processedEntries.length,
                 failedEntries: 0,
                 processingTime: 0,
@@ -642,7 +774,7 @@ export class UniversalMetricsCalculator {
                 cacheMisses: 0,
                 calculationsPerformed: {
                     sentiment: processedEntries.length,
-                    advanced: 0,
+                    advanced: processedEntries.length,
                     timeBased: 0,
                     aggregations: Object.keys(aggregatedMetrics).length
                 },
@@ -652,6 +784,42 @@ export class UniversalMetricsCalculator {
                 }
             }
         };
+    }
+
+    /**
+     * Extract metric value from content using metric configuration
+     */
+    private extractMetricValue(content: string, metric: any): number {
+        try {
+            // Handle different metric types
+            if (metric.type === 'range' || metric.type === 'numeric') {
+                // Look for the metric in the content using various patterns
+                const patterns = [
+                    new RegExp(`${metric.name}\\s*[:=]\\s*(\\d+(?:\\.\\d+)?)`, 'i'),
+                    new RegExp(`${metric.name}\\s+(\\d+(?:\\.\\d+)?)`, 'i'),
+                    new RegExp(`(\\d+(?:\\.\\d+)?)\\s*${metric.name}`, 'i')
+                ];
+
+                for (const pattern of patterns) {
+                    const match = content.match(pattern);
+                    if (match && match[1]) {
+                        const value = parseFloat(match[1]);
+                        // Clamp to metric range if specified
+                        if (metric.range) {
+                            const [min, max] = metric.range;
+                            return Math.max(min, Math.min(max, value));
+                        }
+                        return value;
+                    }
+                }
+            }
+
+            // Default value if not found
+            return metric.defaultValue || 0;
+        } catch (error) {
+            this.logger?.warn('Metrics', `Error extracting metric ${metric.name}`, error as Error);
+            return metric.defaultValue || 0;
+        }
     }
 
     private calculateAdvancedMetricsSync(content: string): Record<string, number> {
