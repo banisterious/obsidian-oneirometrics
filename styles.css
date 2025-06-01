@@ -12963,3 +12963,202 @@ h2.oom-metrics-tabs-label {
     width: var(--modal-width);
     max-width: var(--modal-width);
 }
+
+/* ==========================================================================
+   Universal Metrics Calculator Test Suite Modal
+   ========================================================================== */
+
+.modal:has(.oom-universal-metrics-calculator-test-suite) {
+    height: var(--modal-height);
+    max-height: var(--modal-height);
+    width: 65vw;
+    max-width: var(--modal-width);
+}
+
+.oom-universal-metrics-calculator-test-suite {
+    min-width: 600px;
+    max-height: 80vh;
+    overflow: auto;
+}
+
+/* Test Status Styles */
+.oom-universal-metrics-calculator-test-suite .test-status {
+    margin-bottom: var(--oom-spacing-md);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-controls {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+/* Test Progress Styles */
+.oom-universal-metrics-calculator-test-suite .test-progress {
+    margin-bottom: var(--oom-spacing-md);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+}
+
+/* Test Results Styles */
+.oom-universal-metrics-calculator-test-suite .test-results {
+    margin-top: var(--oom-spacing-md);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-suite-result {
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-suite-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--oom-spacing-sm);
+    padding-bottom: var(--oom-spacing-sm);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-suite-header h3 {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-timing {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    font-family: var(--font-monospace);
+}
+
+/* Individual Test Result Styles */
+.oom-universal-metrics-calculator-test-suite .test-results-list {
+    margin-top: var(--oom-spacing-sm);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-result {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xs);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-smaller);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-result.test-success {
+    background: var(--color-green-faint);
+    border-left: 3px solid var(--color-green);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-result.test-failure {
+    background: var(--color-red-faint);
+    border-left: 3px solid var(--color-red);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-icon {
+    flex-shrink: 0;
+    font-size: var(--font-ui-medium);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-name {
+    flex-grow: 1;
+    font-weight: var(--font-medium);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-duration {
+    flex-shrink: 0;
+    font-family: var(--font-monospace);
+    color: var(--text-muted);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-details {
+    margin-top: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-error-details {
+    margin-top: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    background: var(--color-red-faint);
+    border: 1px solid var(--color-red);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-smaller);
+    color: var(--color-red);
+    font-family: var(--font-monospace);
+}
+
+/* Test Summary Styles */
+.oom-universal-metrics-calculator-test-suite .test-summary {
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+    border: 2px solid var(--background-modifier-border);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-summary h2 {
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-sm);
+    color: var(--text-normal);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-success {
+    color: var(--color-green);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-partial {
+    color: var(--color-orange);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-warning {
+    color: var(--color-orange);
+}
+
+.oom-universal-metrics-calculator-test-suite .test-error {
+    color: var(--color-red);
+}
+
+/* Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-universal-metrics-calculator-test-suite {
+        min-width: auto;
+        max-width: 95vw;
+    }
+    
+    .oom-universal-metrics-calculator-test-suite .test-suite-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-universal-metrics-calculator-test-suite .test-result {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-universal-metrics-calculator-test-suite .test-name,
+    .oom-universal-metrics-calculator-test-suite .test-duration {
+        align-self: flex-start;
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-universal-metrics-calculator-test-suite {
+        min-width: auto;
+        max-width: 100vw;
+        max-height: 90vh;
+    }
+    
+    .oom-universal-metrics-calculator-test-suite .test-suite-result {
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-universal-metrics-calculator-test-suite .test-summary {
+        padding: var(--oom-spacing-sm);
+    }
+}
