@@ -192,8 +192,13 @@ export default class DreamMetricsPlugin extends Plugin {
         this.addCommand({
             id: 'test-date-navigator-integration',
             name: 'Test DateNavigator Integration',
-            callback: () => {
-                new DateNavigatorTestModal(this.app).open();
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    new DateNavigatorTestModal(this.app).open();
+                }
+                return true;
             }
         });
     }

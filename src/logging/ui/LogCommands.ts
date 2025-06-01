@@ -26,6 +26,15 @@ export class LogCommands {
   }
   
   /**
+   * Check if logging is enabled (not set to "Off")
+   */
+  private isLoggingEnabled(): boolean {
+    const settings = (this.plugin as any).settings;
+    const logLevel = settings?.logging?.level || 'off';
+    return logLevel !== 'off';
+  }
+  
+  /**
    * Register all log-related commands
    */
   registerCommands(): void {
@@ -33,8 +42,12 @@ export class LogCommands {
     this.plugin.addCommand({
       id: 'open-log-viewer',
       name: 'Open Log Viewer',
-      callback: () => {
-        new LogViewerModal(this.plugin.app, this.memoryAdapter).open();
+      checkCallback: (checking: boolean) => {
+        if (!this.isLoggingEnabled()) return false;
+        if (!checking) {
+          new LogViewerModal(this.plugin.app, this.memoryAdapter).open();
+        }
+        return true;
       }
     });
     
@@ -42,9 +55,13 @@ export class LogCommands {
     this.plugin.addCommand({
       id: 'clear-logs',
       name: 'Clear Logs',
-      callback: () => {
-        this.memoryAdapter.clear();
-        new Notice('Logs cleared');
+      checkCallback: (checking: boolean) => {
+        if (!this.isLoggingEnabled()) return false;
+        if (!checking) {
+          this.memoryAdapter.clear();
+          new Notice('Logs cleared');
+        }
+        return true;
       }
     });
     
@@ -52,17 +69,21 @@ export class LogCommands {
     this.plugin.addCommand({
       id: 'copy-logs-to-clipboard',
       name: 'Copy Recent Logs to Clipboard',
-      callback: () => {
-        const logs = this.memoryAdapter.getEntries().slice(0, 50); // Get most recent 50 logs
-        const logsText = logs.map(entry => 
-          `[${entry.timestamp.toISOString()}] ${entry.level.toUpperCase()} [${entry.category}] ${entry.message}`
-        ).join('\n');
-        
-        navigator.clipboard.writeText(logsText).then(() => {
-          new Notice('Recent logs copied to clipboard');
-        }).catch(err => {
-          new Notice('Failed to copy logs: ' + err.message);
-        });
+      checkCallback: (checking: boolean) => {
+        if (!this.isLoggingEnabled()) return false;
+        if (!checking) {
+          const logs = this.memoryAdapter.getEntries().slice(0, 50); // Get most recent 50 logs
+          const logsText = logs.map(entry => 
+            `[${entry.timestamp.toISOString()}] ${entry.level.toUpperCase()} [${entry.category}] ${entry.message}`
+          ).join('\n');
+          
+          navigator.clipboard.writeText(logsText).then(() => {
+            new Notice('Recent logs copied to clipboard');
+          }).catch(err => {
+            new Notice('Failed to copy logs: ' + err.message);
+          });
+        }
+        return true;
       }
     });
     
@@ -70,20 +91,24 @@ export class LogCommands {
     this.plugin.addCommand({
       id: 'export-logs',
       name: 'Export Logs to File',
-      callback: () => {
-        const logs = this.memoryAdapter.getEntries();
-        const logsJson = JSON.stringify(logs, null, 2);
-        
-        const element = document.createElement('a');
-        element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(logsJson));
-        element.setAttribute('download', `logs-${new Date().toISOString()}.json`);
-        
-        element.style.display = 'none';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-        
-        new Notice('Logs exported');
+      checkCallback: (checking: boolean) => {
+        if (!this.isLoggingEnabled()) return false;
+        if (!checking) {
+          const logs = this.memoryAdapter.getEntries();
+          const logsJson = JSON.stringify(logs, null, 2);
+          
+          const element = document.createElement('a');
+          element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(logsJson));
+          element.setAttribute('download', `logs-${new Date().toISOString()}.json`);
+          
+          element.style.display = 'none';
+          document.body.appendChild(element);
+          element.click();
+          document.body.removeChild(element);
+          
+          new Notice('Logs exported');
+        }
+        return true;
       }
     });
   }
@@ -92,6 +117,9 @@ export class LogCommands {
    * Add a ribbon icon for quick access to the log viewer
    */
   addRibbonIcon(): void {
+    // Only add ribbon if logging is enabled
+    if (!this.isLoggingEnabled()) return;
+    
     this.plugin.addRibbonIcon(
       'file-text-2', 
       'Open Log Viewer', 
