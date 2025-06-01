@@ -50,4 +50,9 @@ oom-ribbon-test/
 docs/developer/implementation/refactoring-cleanup.ps1
 docs/developer/implementation/refactoring-cleanup.sh
 docs/developer/implementation/archive-refactoring-docs.sh
-archive-additional-refactoring-docs.ps1 
+archive-additional-refactoring-docs.ps1
+
+# CSS Refactoring v2 - Development Files (Phase 2 complete)
+css-components/
+styles-original-backup.css
+merge-components.js 
