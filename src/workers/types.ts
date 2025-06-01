@@ -3,7 +3,7 @@
 
 import { DreamMetricData } from '../types';
 
-// Core message types for worker communication
+// Expanded core message types for Universal Worker Pool
 export type WorkerMessageType = 
   | 'FILTER_BY_DATE_RANGE'
   | 'FILTER_BY_MULTIPLE_DATES'
@@ -13,7 +13,23 @@ export type WorkerMessageType =
   | 'FILTER_ERROR'
   | 'CANCEL_FILTER'
   | 'WORKER_LOG'
-  | 'VERSION_CHECK';
+  | 'VERSION_CHECK'
+  // Universal Pool task types
+  | 'PROCESS_TASK'
+  | 'TASK_RESULTS'
+  | 'TASK_PROGRESS'
+  | 'TASK_ERROR'
+  | 'WORKER_HEALTH_CHECK'
+  | 'WORKER_CAPABILITIES';
+
+// Task types for Universal Worker Pool
+export type UniversalTaskType = 
+  | 'DATE_FILTER'
+  | 'METRICS_CALCULATION'
+  | 'TAG_ANALYSIS'
+  | 'SEARCH_FILTER'
+  | 'SORT_OPERATION'
+  | 'DATA_AGGREGATION';
 
 // Base message interface
 export interface WorkerMessage {
@@ -24,7 +40,48 @@ export interface WorkerMessage {
   data?: any;
 }
 
-// Typed message definitions for type-safe communication
+// Universal task definition
+export interface UniversalTask {
+  taskType: UniversalTaskType;
+  taskId: string;
+  priority: 'low' | 'normal' | 'high';
+  data: any;
+  options?: TaskOptions;
+}
+
+// Task options for flexible configuration
+export interface TaskOptions {
+  enableProgressReporting?: boolean;
+  batchSize?: number;
+  timeout?: number;
+  cacheKey?: string;
+  retryCount?: number;
+}
+
+// Task result wrapper
+export interface TaskResult {
+  taskId: string;
+  taskType: UniversalTaskType;
+  success: boolean;
+  data?: any;
+  error?: string;
+  metadata?: {
+    processingTime: number;
+    memoryUsage?: number;
+    workerPool?: string;
+  };
+}
+
+// Worker capability definition
+export interface WorkerCapabilities {
+  workerId: string;
+  supportedTasks: UniversalTaskType[];
+  maxConcurrentTasks: number;
+  memoryLimit: number;
+  preferredTaskTypes?: UniversalTaskType[];
+}
+
+// Extended typed message definitions for Universal Pool
 export interface WorkerMessageTypes {
   'FILTER_BY_DATE_RANGE': {
     request: { 
@@ -61,6 +118,22 @@ export interface WorkerMessageTypes {
       patternInfo: PatternAnalysis;
     };
   };
+  'PROCESS_TASK': {
+    request: {
+      task: UniversalTask;
+    };
+    response: TaskResult;
+  };
+  'TASK_PROGRESS': {
+    request: never;
+    response: { 
+      taskId: string;
+      progress: number;
+      entriesProcessed: number;
+      currentPhase: string;
+      estimatedTimeRemaining?: number;
+    };
+  };
   'FILTER_PROGRESS': {
     request: never;
     response: { 
@@ -79,6 +152,10 @@ export interface WorkerMessageTypes {
       context: Record<string, any>;
       workerId: string;
     };
+  };
+  'WORKER_CAPABILITIES': {
+    request: never;
+    response: WorkerCapabilities;
   };
 }
 
@@ -132,12 +209,32 @@ export interface FilterCallbacks {
   onError?: (error: string) => void;
 }
 
+// Task callbacks for Universal Pool
+export interface TaskCallbacks {
+  onProgress?: (progress: WorkerMessageTypes['TASK_PROGRESS']['response']) => void;
+  onComplete?: (result: TaskResult) => void;
+  onError?: (error: string) => void;
+}
+
 // Worker configuration options
 export interface WorkerConfiguration {
   maxWorkers: number;
   batchSize: number;
   memoryLimit: number; // in bytes
   priorityMode: 'balanced' | 'performance' | 'efficiency';
+}
+
+// Universal Pool configuration
+export interface UniversalPoolConfiguration extends WorkerConfiguration {
+  workerTypes: {
+    [taskType in UniversalTaskType]?: {
+      dedicatedWorkers?: number;
+      fallbackEnabled?: boolean;
+      cacheEnabled?: boolean;
+    };
+  };
+  loadBalancing: 'round-robin' | 'least-loaded' | 'task-affinity';
+  healthCheckInterval: number;
 }
 
 // Error types for worker operations
@@ -152,11 +249,36 @@ export class WorkerError extends Error {
   }
 }
 
+// Task-specific error
+export class TaskError extends WorkerError {
+  constructor(
+    message: string,
+    public taskType: UniversalTaskType,
+    public taskId: string,
+    context?: Record<string, any>
+  ) {
+    super(message, 'TASK_ERROR', { taskType, taskId, ...context });
+    this.name = 'TaskError';
+  }
+}
+
 // Circuit breaker state
 export interface CircuitBreakerState {
   state: 'closed' | 'open' | 'half-open';
   failureCount: number;
   timeSinceLastFailure: number;
+}
+
+// Worker pool statistics
+export interface PoolStatistics {
+  totalWorkers: number;
+  activeWorkers: number;
+  idleWorkers: number;
+  totalTasks: number;
+  completedTasks: number;
+  failedTasks: number;
+  averageTaskTime: number;
+  queueDepth: number;
 }
 
 // Protocol version for compatibility
