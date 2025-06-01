@@ -19,6 +19,7 @@ import DreamMetricsPlugin from '../../main';
 import { DreamMetricData, DreamMetricsSettings } from '../../types';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
+import { getDreamEntryDate } from '../utils/date-utils';
 import { UniversalWorkerPool } from './UniversalWorkerPool';
 import { 
     UniversalPoolConfiguration,
@@ -175,6 +176,10 @@ export class UniversalMetricsCalculator {
             const metrics: Record<string, number[]> = {};
             const processedEntries: DreamMetricData[] = [];
 
+            this.logger?.debug('Scrape', 'Starting metrics aggregation', {
+                totalEntriesToProcess: metricsResult.entries.length
+            });
+
             for (const entry of metricsResult.entries) {
                 this.logger?.debug('Scrape', `Converting entry ${entry.id}`, {
                     originalEntry: {
@@ -220,20 +225,38 @@ export class UniversalMetricsCalculator {
 
                 processedEntries.push(dreamEntry);
 
-                // Aggregate metrics
+                // Aggregate metrics with detailed logging
                 Object.entries(entry.calculatedMetrics).forEach(([metricName, value]) => {
                     if (!metrics[metricName]) {
                         metrics[metricName] = [];
+                        this.logger?.debug('Scrape', `Created new metric array: ${metricName}`);
                     }
                     metrics[metricName].push(value);
+                    
+                    // Log first few values for each metric to verify
+                    if (metrics[metricName].length <= 3) {
+                        this.logger?.debug('Scrape', `Added to ${metricName}: ${value} (total values: ${metrics[metricName].length})`);
+                    }
                 });
 
                 totalWords += dreamEntry.wordCount || 0;
             }
 
-            this.logger?.debug('Scrape', `Final aggregated metrics`, {
-                metricsKeys: Object.keys(metrics),
-                metricsLengths: Object.fromEntries(Object.entries(metrics).map(([k, v]) => [k, v.length])),
+            // Log final aggregation summary
+            this.logger?.debug('Scrape', `Final aggregated metrics summary`, {
+                totalMetricTypes: Object.keys(metrics).length,
+                metricBreakdown: Object.fromEntries(
+                    Object.entries(metrics).map(([metricName, values]) => [
+                        metricName, 
+                        {
+                            count: values.length,
+                            min: Math.min(...values),
+                            max: Math.max(...values),
+                            average: (values.reduce((sum, val) => sum + val, 0) / values.length).toFixed(2),
+                            first3Values: values.slice(0, 3)
+                        }
+                    ])
+                ),
                 totalEntries: processedEntries.length,
                 totalWords
             });
@@ -271,13 +294,29 @@ export class UniversalMetricsCalculator {
     public processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number> {
         const dreamMetrics: Record<string, number> = {};
         
+        this.logger?.debug('ProcessMetrics', `Processing metrics text: "${metricsText}"`);
+        
         try {
             const metricPairs = metricsText.split(',').map(pair => pair.trim());
+            this.logger?.debug('ProcessMetrics', `Split into metric pairs:`, metricPairs);
             
             for (const pair of metricPairs) {
                 const [name, value] = pair.split(':').map(s => s.trim());
-                if (name && value !== '—' && !isNaN(Number(value))) {
-                    const numValue = Number(value);
+                this.logger?.debug('ProcessMetrics', `Processing pair: name="${name}", value="${value}"`);
+                
+                if (name) {
+                    let numValue = 0;
+                    
+                    // Handle placeholder values and convert to numbers
+                    if (value === '—' || value === '-' || value === '' || value === 'undefined') {
+                        numValue = 0; // Convert placeholders to 0
+                        this.logger?.debug('ProcessMetrics', `Converted placeholder "${value}" to 0 for metric "${name}"`);
+                    } else if (!isNaN(Number(value))) {
+                        numValue = Number(value);
+                    } else {
+                        this.logger?.debug('ProcessMetrics', `Skipped invalid value: name="${name}", value="${value}"`);
+                        continue; // Skip invalid non-numeric values
+                    }
                     
                     const metricName = Object.values(this.settings.metrics).find(
                         m => m.name.toLowerCase() === name.toLowerCase()
@@ -289,10 +328,16 @@ export class UniversalMetricsCalculator {
                         metrics[metricName] = [];
                     }
                     metrics[metricName].push(numValue);
+                    
+                    this.logger?.debug('ProcessMetrics', `Successfully parsed: ${metricName} = ${numValue}`);
+                } else {
+                    this.logger?.debug('ProcessMetrics', `Skipped pair with empty name: value="${value}"`);
                 }
             }
+            
+            this.logger?.debug('ProcessMetrics', `Final dream metrics:`, dreamMetrics);
         } catch (error) {
-            this.logger?.error('Metrics', 'Error processing metrics text', error as Error);
+            this.logger?.error('ProcessMetrics', 'Error processing metrics text', error as Error);
         }
         
         return dreamMetrics;
@@ -535,98 +580,346 @@ export class UniversalMetricsCalculator {
     }
 
     private async extractDreamEntries(files: string[]): Promise<MetricsEntry[]> {
+        this.logger?.debug('Extract', `Starting extraction from ${files.length} files`);
         const dreamEntries: MetricsEntry[] = [];
         
         for (const path of files) {
             const file = this.app.vault.getAbstractFileByPath(path);
-            if (!(file instanceof TFile)) continue;
+            if (!(file instanceof TFile)) {
+                this.logger?.debug('Extract', `Skipping non-file: ${path}`);
+                continue;
+            }
             
             try {
                 const content = await this.app.vault.read(file);
+                this.logger?.debug('Extract', `Processing file: ${path}`, {
+                    contentLength: content.length,
+                    lineCount: content.split('\n').length
+                });
+                
                 // Use simplified extraction logic for now
                 // In a full implementation, this would use the complex parsing from MetricsProcessor
                 const entries = this.parseJournalEntries(content, path);
+                
+                this.logger?.debug('Extract', `Extracted ${entries.length} entries from ${path}`, {
+                    entries: entries.map(e => ({
+                        id: e.id,
+                        date: e.date,
+                        title: e.title,
+                        contentLength: e.content?.length || 0,
+                        source: e.source
+                    }))
+                });
+                
                 dreamEntries.push(...entries);
             } catch (error) {
                 this.logger?.error('Extract', `Error processing file ${path}`, error as Error);
             }
         }
         
+        this.logger?.info('Extract', `Total extraction complete: ${dreamEntries.length} entries from ${files.length} files`);
         return dreamEntries;
     }
 
     private parseJournalEntries(content: string, filePath: string): MetricsEntry[] {
-        // Simplified parser - in full implementation would use the complex logic from MetricsProcessor
+        // Use the same sophisticated parsing logic as MetricsProcessor
+        this.logger?.debug('Parse', `Starting journal parsing for ${filePath}`);
         const entries: MetricsEntry[] = [];
         const lines = content.split('\n');
         
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.includes('[!journal-entry]') || line.includes('[!dream-diary]')) {
-                // Extract dream content and metrics
-                let dreamContent = '';
-                let metricsText = '';
-                let title = '';
-                let blockId = `entry_${i}_${Date.now()}`;
-                
-                // Simple extraction logic
-                for (let j = i + 1; j < lines.length && j < i + 50; j++) {
-                    const nextLine = lines[j];
-                    if (nextLine.startsWith('>')) {
-                        if (nextLine.includes('**Metrics:**')) {
-                            metricsText = nextLine.replace(/.*\*\*Metrics:\*\*\s*/, '').trim();
-                        } else if (nextLine.includes('**Title:**')) {
-                            title = nextLine.replace(/.*\*\*Title:\*\*\s*/, '').trim();
-                        } else {
-                            dreamContent += nextLine.replace(/^>\s*/, '') + ' ';
-                        }
-                    } else if (nextLine.trim() === '') {
-                        continue;
-                    } else {
+        // Stack-based parser to handle nested callouts properly
+        const blockStack: any[] = [];
+        const journals: any[] = [];
+        let currentJournal: any = null;
+        let currentDiary: any = null;
+        let currentMetrics: any = null;
+        let calloutsFound = 0;
+        
+        const getCalloutType = (line: string) => {
+            // Updated regex to handle metadata parameters like |hide and edge cases like |]
+            const match = line.match(/\[!([\w-]+)(?:\|[^\]]*)??\]/);
+            return match ? match[1] : null;
+        };
+        
+        const getBlockLevel = (line: string) => {
+            const match = line.match(/^(>+)/);
+            return match ? match[1].length : 0;
+        };
+        
+        // Parse the content into a structured format
+        for (let idx = 0; idx < lines.length; idx++) {
+            const line = lines[idx];
+            const calloutType = getCalloutType(line);
+            const level = getBlockLevel(line);
+            
+            // Clean up stack based on level changes, but be more conservative
+            // Only clean up if we're at a lower or equal level AND it's a structural callout type
+            if (calloutType && ['journal-entry', 'dream-diary', 'dream-metrics'].includes(calloutType)) {
+                while (blockStack.length > 0 && blockStack[blockStack.length - 1].level >= level) {
+                    blockStack.pop();
+                }
+            }
+            
+            if (calloutType === 'journal-entry') {
+                currentJournal = {
+                    lines: [line],
+                    diaries: [],
+                    level,
+                    idx
+                };
+                journals.push(currentJournal);
+                blockStack.push({ type: 'journal-entry', obj: currentJournal, level });
+                calloutsFound++;
+            } else if (calloutType === 'dream-diary') {
+                currentDiary = {
+                    lines: [line],
+                    metrics: [],
+                    level,
+                    idx
+                };
+                // Find the closest journal-entry parent in the stack (more flexible search)
+                let foundParent = false;
+                for (let i = blockStack.length - 1; i >= 0; i--) {
+                    if (blockStack[i].type === 'journal-entry') {
+                        blockStack[i].obj.diaries.push(currentDiary);
+                        foundParent = true;
+                        this.logger?.debug('Parse', `Attached dream-diary "${line.substring(0, 50)}..." to journal-entry at stack level ${i}`);
                         break;
                     }
                 }
-                
-                if (dreamContent.trim()) {
-                    const processedContent = this.processDreamContent(dreamContent);
-                    const basicMetrics = this.processMetrics(metricsText, {});
+                if (!foundParent) {
+                    // If no journal-entry found in stack, try to find the most recent journal
+                    if (journals.length > 0) {
+                        const lastJournal = journals[journals.length - 1];
+                        lastJournal.diaries.push(currentDiary);
+                        this.logger?.debug('Parse', `Attached orphaned dream-diary "${line.substring(0, 50)}..." to most recent journal-entry`);
+                        foundParent = true;
+                    }
+                }
+                if (!foundParent) {
+                    this.logger?.warn('Parse', `No journal-entry parent found for dream-diary at line ${idx}: ${line.substring(0, 100)}`);
+                }
+                blockStack.push({ type: 'dream-diary', obj: currentDiary, level });
+                calloutsFound++;
+            } else if (calloutType === 'dream-metrics') {
+                currentMetrics = {
+                    lines: [line],
+                    level,
+                    idx
+                };
+                // Find the closest dream-diary parent in the stack
+                let foundParent = false;
+                for (let i = blockStack.length - 1; i >= 0; i--) {
+                    if (blockStack[i].type === 'dream-diary') {
+                        blockStack[i].obj.metrics.push(currentMetrics);
+                        foundParent = true;
+                        break;
+                    }
+                }
+                if (!foundParent) {
+                    this.logger?.warn('Parse', `No dream-diary parent found for dream-metrics at line ${idx}`);
+                }
+                blockStack.push({ type: 'dream-metrics', obj: currentMetrics, level });
+                calloutsFound++;
+            } else if (calloutType && ['journal-page', 'image', 'note', 'info', 'warning', 'tip', 'blank-container'].includes(calloutType)) {
+                // Ignore non-essential callout types that shouldn't disrupt dream structure
+                // But still add their content to the current block
+                this.logger?.debug('Parse', `Ignoring non-essential callout type: ${calloutType}, but preserving content`);
+                if (blockStack.length > 0) {
+                    blockStack[blockStack.length - 1].obj.lines.push(line);
+                }
+            } else if (blockStack.length > 0 && level >= blockStack[blockStack.length - 1].level) {
+                // Add line to current block
+                blockStack[blockStack.length - 1].obj.lines.push(line);
+            }
+        }
+        
+        this.logger?.debug('Parse', `Parsed callout structure for ${filePath}`, {
+            journalsFound: journals.length,
+            calloutsFound,
+            totalLines: lines.length,
+            dreamDiaryCallouts: journals.reduce((sum: number, j: any) => sum + j.diaries.length, 0),
+            journalBreakdown: journals.map(j => ({
+                diariesCount: j.diaries.length,
+                totalMetricsBlocks: j.diaries.reduce((sum: number, d: any) => sum + d.metrics.length, 0),
+                diaryTitles: j.diaries.map((d: any) => {
+                    const diaryLine = d.lines[0] || '';
+                    const titleMatch = diaryLine.match(/\[!dream-diary[^\]]*\](?:\s*\[\[.*?\]\])?\s*(.*?)(?:\s*\[\[|$)/);
+                    return titleMatch ? titleMatch[1].trim() : 'No title extracted';
+                })
+            }))
+        });
+        
+        // Extract dream entries from the parsed structure
+        for (const journal of journals) {
+            if (journal.diaries.length > 0) {
+                for (const diary of journal.diaries) {
+                    // Get explicit metrics if they exist
+                    let metricsText = '';
+                    if (diary.metrics.length > 0) {
+                        // Extract metrics text from explicit [!dream-metrics] callouts only
+                        // Be more precise - only extract lines that are actually within the metrics block
+                        metricsText = diary.metrics
+                            .map((metricsBlock: any) => {
+                                // Filter lines to only include actual metrics content
+                                const metricsLines = metricsBlock.lines
+                                    .filter((l: string) => {
+                                        // Exclude the callout header
+                                        if (/^\s*>+\s*\[!dream-metrics(?:\|[^\]]+)?\]/i.test(l)) return false;
+                                        // Exclude lines that start other callouts
+                                        if (/^\s*>+\s*\[!/.test(l)) return false;
+                                        // Only include lines that look like metrics (contain colons or metric-like content)
+                                        const cleaned = l.replace(/^>+\s*/, '').trim();
+                                        return cleaned.length > 0 && (cleaned.includes(':') || /\b(words|sensory|emotional|lost|descriptiveness|confidence)\b/i.test(cleaned));
+                                    })
+                                    .map((l: string) => l.replace(/^>+\s*/, '').trim())
+                                    .filter(l => l.length > 0);
+                                
+                                return metricsLines.join(', ');
+                            })
+                            .join(', ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                        
+                        // Additional cleanup to remove any remaining callout references that got mixed in
+                        metricsText = metricsText
+                            .replace(/\[![\w-]+(?:\|[^\]]+)?\]/g, '') // Remove any callout references
+                            .replace(/!\[\[.*?\]\]/g, '') // Remove image references
+                            .replace(/\[\[.*?\]\]/g, '') // Remove wiki links
+                            .replace(/<[^>]*>/g, '') // Remove HTML tags like <span>
+                            .replace(/\s+/g, ' ') // Normalize whitespace
+                            .trim();
+                    }
                     
-                    entries.push({
-                        id: blockId,
-                        date: this.extractDateFromContent(lines.slice(i, i + 5), filePath, content),
-                        title: title || 'Untitled Dream',
-                        content: processedContent,
-                        wordCount: processedContent.split(/\s+/).length,
-                        metrics: basicMetrics,
-                        source: filePath,
-                        metadata: {
-                            source: filePath,
-                            lineNumber: i
+                    // Extract dream content (exclude all callout lines)
+                    const diaryContentLines = diary.lines.filter((l: string) => 
+                        !/^>+\s*\[!dream-diary(?:\|[^\]]+)?\]/i.test(l) && !/^>+\s*\[!dream-metrics(?:\|[^\]]+)?\]/i.test(l)
+                    );
+                    const dreamContent = diaryContentLines
+                        .map((l: string) => l.replace(/^>+\s*/, '').trim())
+                        .filter((l: string) => l.length > 0) // Remove empty lines
+                        .join(' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    
+                    // Extract date using the same logic as MetricsProcessor
+                    const journalLine = journal.lines[0];
+                    const date = this.extractDateFromContent([journalLine, lines[journal.idx + 1] || ''], filePath, content);
+                    
+                    // Extract title from dream-diary callout line
+                    const diaryLine = diary.lines[0];
+                    let title = '';
+                    let blockId = '';
+                    
+                    // Try dream-diary callout format
+                    const titleMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*?)(?:\s*\[\[|$)/);
+                    if (titleMatch) {
+                        title = titleMatch[1].trim();
+                    }
+                    // Try block reference format
+                    if (!title) {
+                        const blockRefMatch = diaryLine.match(/\[\[.*?\|(.*?)\]\]/);
+                        if (blockRefMatch) {
+                            title = blockRefMatch[1].trim();
                         }
-                    });
+                    }
+                    // Try plain text after callout
+                    if (!title) {
+                        const plainTextMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*)/);
+                        if (plainTextMatch) {
+                            title = plainTextMatch[1].trim();
+                        }
+                    }
+                    // Default if no title found
+                    if (!title) {
+                        title = 'Untitled Dream';
+                    }
+                    
+                    // Extract block ID if present
+                    const blockIdMatch = diaryLine.match(/\^(\d{8})/);
+                    if (blockIdMatch) {
+                        blockId = blockIdMatch[1];
+                    }
+                    
+                    // Only create entry if we have actual dream content
+                    if (dreamContent.trim()) {
+                        const processedContent = this.processDreamContent(dreamContent);
+                        
+                        // Only process metrics if we have explicit metrics text
+                        const basicMetrics = metricsText.trim() ? this.processMetrics(metricsText, {}) : {};
+                        
+                        // Enhanced debug logging for metrics parsing issues
+                        if (metricsText.includes('[!') || Object.keys(basicMetrics).some(key => String(basicMetrics[key]).includes('[!'))) {
+                            this.logger?.warn('Parse', `Metrics text contains callout references - cleaning needed`, {
+                                title: title,
+                                date: date,
+                                rawMetricsLines: diary.metrics.map((m: any) => m.lines.slice(0, 3)),
+                                cleanedMetricsText: metricsText,
+                                extractedMetrics: basicMetrics,
+                                diaryLineNumber: diary.idx
+                            });
+                        }
+                        
+                        const entry = {
+                            id: blockId || `entry_${diary.idx}_${Date.now()}`,
+                            date: date,
+                            title: title,
+                            content: processedContent,
+                            wordCount: processedContent.split(/\s+/).filter(w => w.length > 0).length,
+                            metrics: basicMetrics,
+                            source: filePath,
+                            metadata: {
+                                source: filePath,
+                                lineNumber: diary.idx
+                            }
+                        };
+                        
+                        this.logger?.debug('Parse', `Created dream entry`, {
+                            id: entry.id,
+                            date: entry.date,
+                            title: entry.title,
+                            wordCount: entry.wordCount,
+                            contentPreview: entry.content.substring(0, 100) + '...',
+                            metricsKeys: Object.keys(entry.metrics),
+                            metricsText: metricsText.substring(0, 50),
+                            blockId
+                        });
+                        
+                        entries.push(entry);
+                    } else {
+                        this.logger?.warn('Parse', `Skipping diary entry - no content extracted`, {
+                            diaryLine: diaryLine.substring(0, 100),
+                            title: title,
+                            metricsText: metricsText.substring(0, 50),
+                            contentLines: diaryContentLines.length,
+                            rawDiaryLines: diary.lines.length,
+                            filteredContentLength: dreamContent.length,
+                            firstFewContentLines: diaryContentLines.slice(0, 3)
+                        });
+                    }
                 }
             }
         }
+        
+        this.logger?.info('Parse', `Journal parsing complete for ${filePath}`, {
+            totalLines: lines.length,
+            journalsFound: journals.length,
+            totalDreamDiaryCallouts: journals.reduce((sum: number, j: any) => sum + j.diaries.length, 0),
+            entriesCreated: entries.length,
+            calloutsFound,
+            firstEntry: entries[0] ? {
+                id: entries[0].id,
+                date: entries[0].date,
+                title: entries[0].title
+            } : null
+        });
         
         return entries;
     }
 
     private extractDateFromContent(journalLines: string[], filePath: string, fileContent: string): string {
         // Use the same date extraction logic as the original MetricsProcessor
-        // This is a simplified version - full implementation would use getDreamEntryDate
-        
-        // Try block reference first
-        const blockRefRegex = /\^(\d{8})/;
-        for (let i = 0; i < Math.min(2, journalLines.length); i++) {
-            const blockRefMatch = journalLines[i].match(blockRefRegex);
-            if (blockRefMatch) {
-                const dateStr = blockRefMatch[1];
-                return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-            }
-        }
-        
-        // Fallback to current date
-        return new Date().toISOString().split('T')[0];
+        return getDreamEntryDate(journalLines, filePath, fileContent);
     }
 
     private async processMetricsWithWorkerPool(entries: MetricsEntry[]): Promise<MetricsResult> {
@@ -701,44 +994,28 @@ export class UniversalMetricsCalculator {
             this.logger?.debug('SyncProcessing', `Processing entry ${entry.id}`, {
                 date: entry.date,
                 title: entry.title,
-                contentLength: entry.content?.length || 0
+                contentLength: entry.content?.length || 0,
+                existingMetrics: Object.keys(entry.metrics || {})
             });
 
-            // Calculate basic metrics (word count, etc.)
             const content = entry.content || '';
             const words = content.split(/\s+/).filter(word => word.length > 0);
             const wordCount = words.length;
             
-            // Initialize with basic metrics
-            const calculatedMetrics: Record<string, number> = {
-                'Words': wordCount,
-                'Word Count': wordCount // Both versions for compatibility
-            };
-
-            // Process custom metrics from settings
-            if (this.settings.metrics) {
-                Object.values(this.settings.metrics).forEach(metric => {
-                    if (metric.enabled) {
-                        const value = this.extractMetricValue(content, metric);
-                        calculatedMetrics[metric.name] = value;
-                        this.logger?.debug('SyncProcessing', `Calculated ${metric.name} = ${value} for entry ${entry.id}`);
-                    }
-                });
+            // ONLY preserve metrics from the [!dream-metrics] callout (these are the REAL metrics)
+            // DO NOT add any calculated metrics that would contaminate the results
+            const calculatedMetrics: Record<string, number> = { ...entry.metrics || {} };
+            
+            // Only add basic word count if it was explicitly in the callout
+            if (!calculatedMetrics['Words'] && !calculatedMetrics['Word Count'] && entry.metrics && Object.keys(entry.metrics).some(key => key.toLowerCase().includes('words'))) {
+                calculatedMetrics['Words'] = wordCount;
             }
 
-            // Calculate advanced metrics
-            const advancedMetrics = this.calculateAdvancedMetricsSync(content);
-            Object.assign(calculatedMetrics, advancedMetrics);
-
-            // Calculate sentiment analysis
-            const sentimentResult = this.calculateSentimentAnalysisSync(content);
-            calculatedMetrics['Sentiment'] = sentimentResult.score;
-            calculatedMetrics['Sentiment Confidence'] = sentimentResult.confidence;
-
             this.logger?.debug('SyncProcessing', `Final metrics for entry ${entry.id}`, {
-                metricsKeys: Object.keys(calculatedMetrics),
-                wordCount: calculatedMetrics['Words'],
-                sentiment: calculatedMetrics['Sentiment']
+                originalMetricsKeys: Object.keys(entry.metrics || {}),
+                finalMetricsKeys: Object.keys(calculatedMetrics),
+                wordCount: wordCount,
+                preservedRealMetrics: Object.keys(entry.metrics || {}).length > 0
             });
 
             const processedEntry: ProcessedMetricsEntry = {
@@ -758,7 +1035,10 @@ export class UniversalMetricsCalculator {
             first3Entries: processedEntries.slice(0, 3).map(e => ({
                 id: e.id,
                 date: e.date,
-                metricsCount: Object.keys(e.calculatedMetrics).length
+                metricsCount: Object.keys(e.calculatedMetrics).length,
+                hasRealMetrics: Object.keys(e.calculatedMetrics).some(key => 
+                    !['Words', 'Word Count', 'Sentences', 'Words per Sentence', 'Characters', 'Sentiment', 'Sentiment Confidence'].includes(key)
+                )
             }))
         });
 

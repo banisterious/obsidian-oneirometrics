@@ -33,9 +33,10 @@ export class ProjectNoteManager {
     public async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
             const notePath = getProjectNotePath(this.settings);
+            
             if (!notePath) {
-                this.logger?.error('ProjectNote', 'No project note path set in settings');
-                new Notice('Error: No project note path set in settings.');
+                this.logger?.error('ProjectNote', 'No project note path configured');
+                new Notice('Error: No project note path configured. Please set up your OneiroMetrics Note path in settings.');
                 return;
             }
             
@@ -43,18 +44,9 @@ export class ProjectNoteManager {
             let file = this.app.vault.getAbstractFileByPath(notePath);
             
             if (!file) {
-                this.logger?.info('ProjectNote', `Project note not found at ${notePath}, creating new file`);
-                
-                // Create parent folders if they don't exist
-                const pathParts = notePath.split('/');
-                if (pathParts.length > 1) {
-                    const dirPath = pathParts.slice(0, -1).join('/');
-                    await this.createFolderRecursive(dirPath);
-                }
-                
-                // Create the file
-                file = await this.app.vault.create(notePath, '');
-                this.logger?.info('ProjectNote', `Created new project note at ${notePath}`);
+                this.logger?.error('ProjectNote', `Project note not found at ${notePath}`);
+                new Notice(`Error: OneiroMetrics note not found at ${notePath}. Please create the file and folder structure manually.`);
+                return;
             }
             
             if (!(file instanceof TFile)) {
