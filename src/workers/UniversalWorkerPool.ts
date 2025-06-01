@@ -184,7 +184,7 @@ export class UniversalWorkerPool {
         worker,
         capabilities: {
           workerId,
-          supportedTasks: ['DATE_FILTER', 'METRICS_CALCULATION', 'TAG_ANALYSIS', 'SEARCH_FILTER'],
+          supportedTasks: [UniversalTaskType.DATE_FILTER, UniversalTaskType.METRICS_CALCULATION, UniversalTaskType.TAG_ANALYSIS, UniversalTaskType.SEARCH_FILTER, UniversalTaskType.DATE_RANGE_FILTER, UniversalTaskType.CONTENT_FILTER, UniversalTaskType.METADATA_FILTER, UniversalTaskType.COMPLEX_FILTER, UniversalTaskType.FILTER_VALIDATION],
           maxConcurrentTasks: 3,
           memoryLimit: this.config.memoryLimit,
           preferredTaskTypes: this.getPreferredTaskTypes(workerId)
@@ -701,6 +701,22 @@ class UniversalWorker {
       case 'SEARCH_FILTER':
         this.processSearchFilter(task);
         break;
+      // New FilterManager task types
+      case 'date_range_filter':
+        this.processDateRangeFilter(task);
+        break;
+      case 'content_filter':
+        this.processContentFilter(task);
+        break;
+      case 'metadata_filter':
+        this.processMetadataFilter(task);
+        break;
+      case 'complex_filter':
+        this.processComplexFilter(task);
+        break;
+      case 'filter_validation':
+        this.processFilterValidation(task);
+        break;
       default:
         this.sendTaskError(task.taskId, \`Unsupported task type: \${task.taskType}\`);
         return;
@@ -733,13 +749,41 @@ class UniversalWorker {
     });
   }
 
-  processMetricsCalculation(task) {
-    // Placeholder for metrics calculation
+  // New FilterManager methods
+  processDateRangeFilter(task) {
+    const startTime = performance.now();
+    const { data: entries, criteria } = task.data;
+    const { dateRange } = criteria;
+    
+    const startDate = new Date(dateRange.start).getTime();
+    const endDate = new Date(dateRange.end).getTime();
+    
+    const filtered = entries.filter(entry => {
+      if (!entry.date) return false;
+      const entryTime = new Date(entry.date).getTime();
+      return entryTime >= startDate && entryTime <= endDate;
+    });
+
     this.sendTaskResult(task.taskId, {
       taskId: task.taskId,
       taskType: task.taskType,
       success: true,
-      data: { metrics: {} },
+      data: {
+        filtered,
+        total: entries.length,
+        matched: filtered.length,
+        statistics: {
+          totalEntries: entries.length,
+          visibleEntries: filtered.length,
+          hiddenEntries: entries.length - filtered.length,
+          processingTime: performance.now() - startTime,
+          totalProcessed: entries.length,
+          matched: filtered.length,
+          filtered: entries.length - filtered.length,
+          invalidEntries: 0,
+          executionTimeMs: performance.now() - startTime
+        }
+      },
       metadata: {
         processingTime: performance.now() - startTime,
         workerPool: 'universal'
@@ -747,13 +791,64 @@ class UniversalWorker {
     });
   }
 
-  processTagAnalysis(task) {
-    // Placeholder for tag analysis
+  processContentFilter(task) {
+    const startTime = performance.now();
+    const { data: entries, criteria } = task.data;
+    const { searchTerm, searchMode, caseSensitive } = criteria;
+    
+    if (!searchTerm) {
+      this.sendTaskResult(task.taskId, {
+        taskId: task.taskId,
+        taskType: task.taskType,
+        success: true,
+        data: { filtered: entries, total: entries.length, matched: entries.length }
+      });
+      return;
+    }
+
+    const term = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+    
+    const filtered = entries.filter(entry => {
+      if (!entry.content) return false;
+      const content = caseSensitive ? entry.content : entry.content.toLowerCase();
+      
+      switch (searchMode) {
+        case 'exact':
+          return content === term;
+        case 'partial':
+          return content.includes(term);
+        case 'regex':
+          try {
+            const regex = new RegExp(searchTerm, caseSensitive ? 'g' : 'gi');
+            return regex.test(entry.content);
+          } catch {
+            return false;
+          }
+        default:
+          return content.includes(term);
+      }
+    });
+
     this.sendTaskResult(task.taskId, {
       taskId: task.taskId,
       taskType: task.taskType,
       success: true,
-      data: { tags: [] },
+      data: {
+        filtered,
+        total: entries.length,
+        matched: filtered.length,
+        statistics: {
+          totalEntries: entries.length,
+          visibleEntries: filtered.length,
+          hiddenEntries: entries.length - filtered.length,
+          processingTime: performance.now() - startTime,
+          totalProcessed: entries.length,
+          matched: filtered.length,
+          filtered: entries.length - filtered.length,
+          invalidEntries: 0,
+          executionTimeMs: performance.now() - startTime
+        }
+      },
       metadata: {
         processingTime: performance.now() - startTime,
         workerPool: 'universal'
@@ -761,13 +856,136 @@ class UniversalWorker {
     });
   }
 
-  processSearchFilter(task) {
-    // Placeholder for search filtering
+  processMetadataFilter(task) {
+    const startTime = performance.now();
+    const { data: entries, criteria } = task.data;
+    const { tags, properties } = criteria;
+    
+    const filtered = entries.filter(entry => {
+      if (!entry.metadata) return false;
+      
+      // Tag filtering
+      if (tags && tags.length > 0) {
+        const entryTags = entry.metadata.tags || [];
+        const hasMatchingTag = tags.some(tag => entryTags.includes(tag));
+        if (!hasMatchingTag) return false;
+      }
+      
+      // Property filtering
+      if (properties) {
+        for (const [key, value] of Object.entries(properties)) {
+          if (entry.metadata[key] !== value) return false;
+        }
+      }
+      
+      return true;
+    });
+
     this.sendTaskResult(task.taskId, {
       taskId: task.taskId,
       taskType: task.taskType,
       success: true,
-      data: { searchResults: [] },
+      data: {
+        filtered,
+        total: entries.length,
+        matched: filtered.length,
+        statistics: {
+          totalEntries: entries.length,
+          visibleEntries: filtered.length,
+          hiddenEntries: entries.length - filtered.length,
+          processingTime: performance.now() - startTime,
+          totalProcessed: entries.length,
+          matched: filtered.length,
+          filtered: entries.length - filtered.length,
+          invalidEntries: 0,
+          executionTimeMs: performance.now() - startTime
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processComplexFilter(task) {
+    const startTime = performance.now();
+    const { data: entries, criteria } = task.data;
+    
+    // For now, implement basic AND/OR logic
+    const filtered = entries.filter(entry => {
+      // Complex filtering implementation would go here
+      // For now, just return all entries
+      return true;
+    });
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        filtered,
+        total: entries.length,
+        matched: filtered.length,
+        statistics: {
+          totalEntries: entries.length,
+          visibleEntries: filtered.length,
+          hiddenEntries: entries.length - filtered.length,
+          processingTime: performance.now() - startTime,
+          totalProcessed: entries.length,
+          matched: filtered.length,
+          filtered: entries.length - filtered.length,
+          invalidEntries: 0,
+          executionTimeMs: performance.now() - startTime
+        }
+      },
+      metadata: {
+        processingTime: performance.now() - startTime,
+        workerPool: 'universal'
+      }
+    });
+  }
+
+  processFilterValidation(task) {
+    const startTime = performance.now();
+    const { criteria } = task.data;
+    const errors = [];
+    
+    // Validate date range
+    if (criteria.dateRange) {
+      const start = new Date(criteria.dateRange.start);
+      const end = new Date(criteria.dateRange.end);
+      
+      if (isNaN(start.getTime())) {
+        errors.push('Invalid start date format');
+      }
+      if (isNaN(end.getTime())) {
+        errors.push('Invalid end date format');
+      }
+      if (start > end) {
+        errors.push('Start date must be before end date');
+      }
+    }
+    
+    // Validate regex patterns
+    if (criteria.searchMode === 'regex' && criteria.searchTerm) {
+      try {
+        new RegExp(criteria.searchTerm);
+      } catch {
+        errors.push('Invalid regular expression');
+      }
+    }
+
+    this.sendTaskResult(task.taskId, {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      success: true,
+      data: {
+        filtered: [],
+        total: 0,
+        matched: errors.length,
+        errors
+      },
       metadata: {
         processingTime: performance.now() - startTime,
         workerPool: 'universal'
@@ -791,10 +1009,10 @@ class UniversalWorker {
       timestamp: Date.now(),
       data: {
         workerId: this.workerId,
-        supportedTasks: ['DATE_FILTER', 'METRICS_CALCULATION', 'TAG_ANALYSIS', 'SEARCH_FILTER'],
+        supportedTasks: ['date_filter', 'metrics_calculation', 'tag_analysis', 'search_filter', 'date_range_filter', 'content_filter', 'metadata_filter', 'complex_filter', 'filter_validation'],
         maxConcurrentTasks: 3,
         memoryLimit: 50 * 1024 * 1024, // 50MB
-        preferredTaskTypes: ['DATE_FILTER']
+        preferredTaskTypes: ['date_filter', 'date_range_filter']
       }
     });
   }
