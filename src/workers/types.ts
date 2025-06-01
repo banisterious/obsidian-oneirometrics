@@ -30,12 +30,19 @@ export enum UniversalTaskType {
     SEARCH_FILTER = 'search_filter',
     SORT_OPERATION = 'sort_operation',
     DATA_AGGREGATION = 'data_aggregation',
-    // New FilterManager task types
+    // FilterManager task types
     DATE_RANGE_FILTER = 'date_range_filter',
     CONTENT_FILTER = 'content_filter',
     METADATA_FILTER = 'metadata_filter',
     COMPLEX_FILTER = 'complex_filter',
-    FILTER_VALIDATION = 'filter_validation'
+    FILTER_VALIDATION = 'filter_validation',
+    // MetricsCalculator task types - Phase 2.4
+    DREAM_METRICS_PROCESSING = 'dream_metrics_processing',
+    SENTIMENT_ANALYSIS = 'sentiment_analysis',
+    ADVANCED_METRICS_CALCULATION = 'advanced_metrics_calculation',
+    TIME_BASED_METRICS = 'time_based_metrics',
+    METRICS_AGGREGATION = 'metrics_aggregation',
+    CONTENT_ANALYSIS = 'content_analysis'
 }
 
 // Base message interface
@@ -365,4 +372,231 @@ export interface FilterResult {
         cacheHit?: boolean;
         criteria: FilterCriteria;
     };
+}
+
+// =============================================================================
+// METRICS CALCULATION TYPES - Phase 2.4
+// =============================================================================
+
+/**
+ * Input for dream metrics processing tasks
+ */
+export interface MetricsTaskInput {
+    taskType: 'dream_processing' | 'sentiment' | 'advanced' | 'time_based' | 'aggregation' | 'content_analysis';
+    data: MetricsEntry[] | string[] | Record<string, any>[];
+    options?: MetricsOptions;
+    settings?: MetricsSettings;
+}
+
+/**
+ * Individual entry for metrics processing
+ */
+export interface MetricsEntry {
+    id: string;
+    date: string;
+    title?: string;
+    content: string;
+    wordCount?: number;
+    metrics?: Record<string, number>;
+    source?: string;
+    metadata?: Record<string, any>;
+}
+
+/**
+ * Configuration options for metrics calculations
+ */
+export interface MetricsOptions {
+    enableSentimentAnalysis?: boolean;
+    enableAdvancedMetrics?: boolean;
+    enableTimeBasedMetrics?: boolean;
+    batchSize?: number;
+    timeout?: number;
+    enableProgressReporting?: boolean;
+    enableCache?: boolean;
+    cacheKey?: string;
+    precision?: number; // Decimal places for calculations
+    includeStatistics?: boolean;
+}
+
+/**
+ * Settings for metrics calculations
+ */
+export interface MetricsSettings {
+    metrics: Record<string, MetricDefinition>;
+    enabledCalculations: string[];
+    sentimentWords?: {
+        positive: string[];
+        negative: string[];
+    };
+    lengthCategories?: {
+        short: number;
+        medium: number;
+        long: number;
+    };
+}
+
+/**
+ * Definition of a metric
+ */
+export interface MetricDefinition {
+    name: string;
+    description: string;
+    type: 'number' | 'range' | 'category' | 'sentiment';
+    range?: { min: number; max: number };
+    categories?: string[];
+    icon?: string;
+}
+
+/**
+ * Result of metrics calculations
+ */
+export interface MetricsResult {
+    entries: ProcessedMetricsEntry[];
+    aggregatedMetrics: Record<string, MetricsAggregation>;
+    timeBasedMetrics?: TimeBasedMetrics;
+    statistics?: MetricsStatistics;
+    metadata?: {
+        taskType: string;
+        executionTime: number;
+        cacheHit?: boolean;
+        settings: MetricsSettings;
+    };
+}
+
+/**
+ * Individual processed entry with calculated metrics
+ */
+export interface ProcessedMetricsEntry {
+    id: string;
+    date: string;
+    title?: string;
+    content: string;
+    originalWordCount?: number;
+    calculatedMetrics: Record<string, number>;
+    sentimentScore?: number;
+    advancedMetrics?: Record<string, number>;
+    metadata?: Record<string, any>;
+}
+
+/**
+ * Aggregated metrics across all entries
+ */
+export interface MetricsAggregation {
+    total: number;
+    average: number;
+    median: number;
+    min: number;
+    max: number;
+    standardDeviation: number;
+    count: number;
+    distribution?: Record<string, number>; // For categorical metrics
+}
+
+/**
+ * Time-based metrics analysis
+ */
+export interface TimeBasedMetrics {
+    byMonth: Record<string, TimeMetric>;
+    byDayOfWeek: Record<number, TimeMetric>;
+    byHour: Record<number, TimeMetric>;
+    trends?: {
+        wordCountTrend: number; // Positive = increasing, negative = decreasing
+        sentimentTrend: number;
+        frequencyTrend: number; // Entries per time period
+    };
+}
+
+/**
+ * Time-based metric data point
+ */
+export interface TimeMetric {
+    count: number;
+    totalWords: number;
+    averageWords: number;
+    averageSentiment?: number;
+    metricAverages: Record<string, number>;
+}
+
+/**
+ * Statistics for metrics processing
+ */
+export interface MetricsStatistics {
+    totalEntries: number;
+    processedEntries: number;
+    failedEntries: number;
+    processingTime: number;
+    cacheHits: number;
+    cacheMisses: number;
+    calculationsPerformed: {
+        sentiment: number;
+        advanced: number;
+        timeBased: number;
+        aggregations: number;
+    };
+    performance: {
+        entriesPerSecond: number;
+        averageTimePerEntry: number;
+        memoryUsage?: number;
+    };
+}
+
+/**
+ * Sentiment analysis result
+ */
+export interface SentimentResult {
+    score: number; // -1 to 1
+    magnitude: number; // 0 to 1, strength of sentiment
+    positiveWords: string[];
+    negativeWords: string[];
+    neutralWords: string[];
+    confidence: number; // 0 to 1
+}
+
+/**
+ * Content analysis result
+ */
+export interface ContentAnalysisResult {
+    wordCount: number;
+    sentenceCount: number;
+    paragraphCount: number;
+    averageWordsPerSentence: number;
+    characterCount: number;
+    readabilityScore?: number;
+    keyPhrases?: string[];
+    themes?: string[];
+    complexity: 'simple' | 'moderate' | 'complex';
+}
+
+/**
+ * Advanced metrics calculation result
+ */
+export interface AdvancedMetricsResult {
+    wordDensity: number;
+    sentenceComplexity: number;
+    vocabularyDiversity: number; // Unique words / total words
+    temporalMarkers: number; // Words indicating time
+    emotionalMarkers: number; // Words indicating emotions
+    actionWords: number; // Verbs and action-oriented words
+    descriptiveWords: number; // Adjectives and descriptive terms
+}
+
+/**
+ * Batch processing configuration
+ */
+export interface MetricsBatchConfig {
+    batchSize: number;
+    maxConcurrentBatches: number;
+    progressCallback?: (progress: number, batchIndex: number) => void;
+    errorCallback?: (error: Error, batchIndex: number) => void;
+}
+
+/**
+ * Metrics validation result
+ */
+export interface MetricsValidationResult {
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+    suggestions: string[];
+    correctedEntries?: ProcessedMetricsEntry[];
 } 
