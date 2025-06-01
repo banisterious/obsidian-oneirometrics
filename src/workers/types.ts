@@ -22,14 +22,21 @@ export type WorkerMessageType =
   | 'WORKER_HEALTH_CHECK'
   | 'WORKER_CAPABILITIES';
 
-// Task types for Universal Worker Pool
-export type UniversalTaskType = 
-  | 'DATE_FILTER'
-  | 'METRICS_CALCULATION'
-  | 'TAG_ANALYSIS'
-  | 'SEARCH_FILTER'
-  | 'SORT_OPERATION'
-  | 'DATA_AGGREGATION';
+// Universal Task Types
+export enum UniversalTaskType {
+    DATE_FILTER = 'date_filter',
+    METRICS_CALCULATION = 'metrics_calculation',
+    TAG_ANALYSIS = 'tag_analysis',
+    SEARCH_FILTER = 'search_filter',
+    SORT_OPERATION = 'sort_operation',
+    DATA_AGGREGATION = 'data_aggregation',
+    // New FilterManager task types
+    DATE_RANGE_FILTER = 'date_range_filter',
+    CONTENT_FILTER = 'content_filter',
+    METADATA_FILTER = 'metadata_filter',
+    COMPLEX_FILTER = 'complex_filter',
+    FILTER_VALIDATION = 'filter_validation'
+}
 
 // Base message interface
 export interface WorkerMessage {
@@ -165,6 +172,13 @@ export interface FilterOptions {
   optimizeForLargeDatasets?: boolean;
   enableProgressReporting?: boolean;
   batchSize?: number;
+  maxResults?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  includeStats?: boolean;
+  enableCache?: boolean;
+  cacheKey?: string;
+  timeout?: number;
 }
 
 // Performance and statistics tracking
@@ -176,6 +190,16 @@ export interface FilterStatistics {
   memoryUsage?: number;
   cacheHits?: number;
   cacheMisses?: number;
+  totalProcessed: number;
+  matched: number;
+  filtered: number;
+  invalidEntries: number;
+  executionTimeMs: number;
+  cachePerformance?: {
+    hits: number;
+    misses: number;
+    hitRate: number;
+  };
 }
 
 // Visibility result for each entry
@@ -282,4 +306,63 @@ export interface PoolStatistics {
 }
 
 // Protocol version for compatibility
-export const CURRENT_PROTOCOL_VERSION = '1.0.0'; 
+export const CURRENT_PROTOCOL_VERSION = '1.0.0';
+
+export interface FilterTaskInput {
+    filterType: 'date' | 'content' | 'metadata' | 'complex' | 'validation';
+    data: FilterEntry[] | string[] | Record<string, any>[];
+    criteria: FilterCriteria;
+    options?: FilterOptions;
+}
+
+export interface FilterEntry {
+    id: string;
+    date?: string;
+    content?: string;
+    metadata?: Record<string, any>;
+    [key: string]: any;
+}
+
+export interface FilterCriteria {
+    // Date filtering
+    dateRange?: {
+        start: string;
+        end: string;
+        inclusive?: boolean;
+    };
+    
+    // Content filtering  
+    searchTerm?: string;
+    searchMode?: 'exact' | 'partial' | 'regex' | 'fuzzy';
+    caseSensitive?: boolean;
+    
+    // Metadata filtering
+    tags?: string[];
+    tagMode?: 'any' | 'all' | 'none';
+    properties?: Record<string, any>;
+    propertyMode?: 'exact' | 'contains' | 'range';
+    
+    // Complex filtering
+    conditions?: FilterCondition[];
+    operator?: 'AND' | 'OR' | 'NOT';
+}
+
+export interface FilterCondition {
+    field: string;
+    operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'notIn';
+    value: any;
+    caseSensitive?: boolean;
+}
+
+export interface FilterResult {
+    filtered: FilterEntry[];
+    total: number;
+    matched: number;
+    statistics?: FilterStatistics;
+    metadata?: {
+        filterType: string;
+        executionTime: number;
+        cacheHit?: boolean;
+        criteria: FilterCriteria;
+    };
+} 

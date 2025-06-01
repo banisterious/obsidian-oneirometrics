@@ -226,6 +226,21 @@ export default class DreamMetricsPlugin extends Plugin {
                 modalsManager.openMetricsTabsModal();
             }
         });
+
+        // Add test command for Universal Filter Manager (Phase 2.3)
+        this.addCommand({
+            id: 'test-universal-filter-manager',
+            name: 'Test Universal Filter Manager (Phase 2.3)',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    const { UniversalFilterManagerTestModal } = require('./src/workers/ui/UniversalFilterManagerTestModal');
+                    new UniversalFilterManagerTestModal(this.app, this.logger).open();
+                }
+                return true;
+            }
+        });
     }
 
     onunload() {
