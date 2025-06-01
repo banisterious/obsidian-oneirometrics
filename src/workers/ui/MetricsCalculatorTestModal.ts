@@ -36,6 +36,7 @@ export class MetricsCalculatorTestModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
+    contentEl.addClass('oom-universal-metrics-calculator-test-suite');
 
     contentEl.createEl('h2', { text: 'Universal Metrics Calculator Test Suite' });
     
@@ -82,11 +83,6 @@ export class MetricsCalculatorTestModal extends Modal {
             button.setDisabled(false);
           }
         }));
-
-    // Add styles
-    contentEl.style.minWidth = '600px';
-    contentEl.style.maxHeight = '80vh';
-    contentEl.style.overflow = 'auto';
   }
 
   private async runAllTests(statusEl: HTMLElement): Promise<void> {
