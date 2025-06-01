@@ -41,7 +41,7 @@
 <p align="center"><em>OneiroMetrics metrics view showing dream journal analysis</em></p>
 
 ### Ribbon Button
-- The plugin now uses a single ribbon button (Dream Journal Manager) to access journal management features. This streamlined interface replaces the previous multiple-button approach for a cleaner user experience.
+- The plugin now uses a single ribbon button to access journal management features. This streamlined interface replaces the previous multiple-button approach for a cleaner user experience.
 
 ## Journal Structure Check
 
