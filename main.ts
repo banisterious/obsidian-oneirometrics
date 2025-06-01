@@ -388,8 +388,31 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async scrapeMetrics() {
-        // TEMPORARY REVERSION: Use original MetricsCollector due to data parsing issues in UniversalMetricsCalculator
-        // The UniversalMetricsCalculator has data extraction/parsing bugs that need to be fixed separately
+        // DEBUGGING: Temporarily switch back to UniversalMetricsCalculator to reproduce data corruption issue
+        // This will likely produce incorrect results - for debugging purposes only
+        try {
+            // Import the UniversalMetricsCalculator
+            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
+            
+            // Use UniversalMetricsCalculator with extensive debug logging
+            const universalCalculator = new UniversalMetricsCalculator(
+                this.app,
+                this,
+                undefined, // Use default worker pool config (temporarily disabled anyway)
+                this.logger
+            );
+            
+            this.logger?.warn('DEBUG', 'Using UniversalMetricsCalculator for issue reproduction - EXPECT INCORRECT DATA');
+            await universalCalculator.scrapeMetrics();
+            this.logger?.info('Scrape', 'UniversalMetricsCalculator scraping completed');
+            
+        } catch (error) {
+            this.logger?.error('Scrape', 'Error in scrapeMetrics with UniversalMetricsCalculator', error as Error);
+            new Notice(`Error scraping metrics: ${error.message}`);
+        }
+        
+        /* WORKING VERSION - temporarily commented out
+        // TEMPORARY REVERSION: Use original MetricsCollector due to data parsing issues
         try {
             const metricsCollector = new MetricsCollector(
                 this.app,
@@ -402,28 +425,6 @@ export default class DreamMetricsPlugin extends Plugin {
             
         } catch (error) {
             this.logger?.error('Scrape', 'Error in scrapeMetrics with MetricsCollector', error as Error);
-            new Notice(`Error scraping metrics: ${error.message}`);
-        }
-        
-        /* COMMENTED OUT UNTIL DATA EXTRACTION/PARSING IS FIXED IN UNIVERSALMETRICSCALCULATOR
-        try {
-            // Import the UniversalMetricsCalculator
-            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
-            
-            // Use UniversalMetricsCalculator (worker pool temporarily disabled due to data corruption)
-            // Once worker pool data corruption is fixed, this will use full worker pool processing
-            const universalCalculator = new UniversalMetricsCalculator(
-                this.app,
-                this,
-                undefined, // Use default worker pool config (temporarily disabled anyway)
-                this.logger
-            );
-            
-            await universalCalculator.scrapeMetrics();
-            this.logger?.info('Scrape', 'UniversalMetricsCalculator scraping completed');
-            
-        } catch (error) {
-            this.logger?.error('Scrape', 'Error in scrapeMetrics with Universal Calculator', error as Error);
             new Notice(`Error scraping metrics: ${error.message}`);
         }
         */
