@@ -57,6 +57,7 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | Dream Entry Detection | 3 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
 | Architecture Design | 4 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
 | Implementation Approach | 4 | Medium | 0% | [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) |
+| CSS Architecture | 1 | Medium | 0% | [CSS Refactoring v2 Plan](../planning/css-refactoring-v2-plan.md) |
 | Test Framework | 2 | Low | 0% | [Post-Refactoring Cleanup](../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) |
 | Type System | 1 | Medium | 0% | [Post-Refactoring Cleanup](../archive/refactoring-2025/post-refactoring-cleanup-checklist.md) |
 
@@ -110,6 +111,12 @@ This is a compound issue affecting multiple components. The refactoring effort t
 - UI rendering problems
 
 For complete details on this issue, including analysis, implementation plans, and resolution approach, see the [Scraping and Metrics Note Issues](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) section in the Refactoring Lessons Learned document.
+
+### CSS Architecture Issues
+
+| ID | Component | Description | Impact | Discovered | Target Resolution |
+|----|-----------|-------------|--------|------------|-------------------|
+| ISSUE-25-012 | styles.css | Chaotic stylesheet organization with duplications, inconsistent naming, and maintenance difficulties | Medium - Slows development, increases risk of style conflicts, makes responsive design maintenance difficult | 2025-06-15 | 2025-07-01 |
 
 ## Implementation Notes
 
@@ -175,6 +182,37 @@ The DateNavigator.ts file had several type errors related to incompatibilities b
    - Consider consolidating the two DreamMetricData interfaces into a single definition
    - Update all imports to use the consolidated type
    - Remove duplicate type definitions to prevent future incompatibilities
+
+### ISSUE-25-012 (CSS Architecture Cleanup)
+The styles.css file has grown chaotic during recent development phases, accumulating several maintenance issues:
+
+1. **File Complexity**: Significantly grown during Phase 2 development with scattered organization
+2. **Inadvertent Duplications**: Repeated CSS rules from iterative development cycles
+3. **Maintenance Difficulty**: Hard to locate and modify specific component styles
+4. **Potential Conflicts**: Overlapping selectors and specificity issues
+
+**Impact on Development:**
+- Slowed feature development due to CSS complexity
+- Risk of style conflicts in new features 
+- Difficulty in responsive design maintenance
+- Reduced code readability and developer experience
+
+**Resolution Plan:**
+A comprehensive 5-phase CSS Refactoring v2 plan has been developed with:
+1. **Analysis & Documentation** - Identify all current issues and patterns
+2. **Temporary Component Breakdown** - Split into logical component files
+3. **Individual Component Cleanup** - Systematic refactoring of each component
+4. **Systematic Reassembly** - Merge back to single styles.css with clear organization
+5. **Validation & Testing** - Ensure no functionality breaks
+
+**Key Goals:**
+- 15-25% file size reduction through duplication elimination
+- CSS variable system implementation for design consistency
+- Component-based organization with clear documentation
+- Zero visual or functional regressions
+- Foundation ready for Phase 3 web worker development
+
+For complete details, see the [CSS Refactoring v2 Plan](../planning/css-refactoring-v2-plan.md).
 
 ## Resolved Issues
 
