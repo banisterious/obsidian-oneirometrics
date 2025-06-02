@@ -37,6 +37,10 @@ logs/
 # User data
 Journals/
 
+# Year files (personal/development notes)
+2024.md
+2025.md
+
 # Testing
 css-analysis.md
 test-read-more.html
