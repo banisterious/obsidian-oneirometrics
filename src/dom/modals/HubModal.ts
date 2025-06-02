@@ -9,6 +9,7 @@
 import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
 import { DreamMetric } from '../../types/core';
+import { CalloutStructure } from '../../types/journal-check';
 import safeLogger from '../../logging/safe-logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
 
@@ -16,6 +17,14 @@ import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../..
 interface MetricGroup {
     name: string;
     metrics: DreamMetric[];
+}
+
+// Extended structure interface for HubModal usage with additional runtime properties
+interface ExtendedCalloutStructure extends CalloutStructure {
+    enabled?: boolean;
+    isDefault?: boolean;
+    createdAt?: string;
+    lastModified?: string;
 }
 
 export class HubModal extends Modal {
@@ -1423,7 +1432,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const listContainer = containerEl.createDiv({ cls: 'oom-structures-list' });
             
             for (const structure of structures) {
-                this.createEnhancedStructureListItem(listContainer, structure);
+                this.createStructureListItem(listContainer, structure);
             }
         }
     }
@@ -2050,19 +2059,259 @@ This metric assesses **how well your memory of the dream holds up and remains co
     // ========== STRUCTURE MANAGEMENT METHODS - Phase 2.4 ==========
     
     /**
-     * Create a new structure (placeholder for now)
+     * Create a new structure
      */
     private createNewStructure() {
-        new Notice('Structure creation will be implemented in the next step');
-        // TODO: Implement inline structure creation
+        // Create a new empty structure with defaults
+        const newStructure = {
+            id: 'structure-' + Date.now(),
+            name: '',
+            description: '',
+            type: 'nested' as const,
+            rootCallout: '',
+            childCallouts: [],
+            metricsCallout: '',
+            enabled: true,
+            isDefault: false,
+            dateFormat: ['YYYY-MM-DD'],
+            requiredFields: [],
+            optionalFields: [],
+            createdAt: new Date().toISOString(),
+            lastModified: new Date().toISOString()
+        };
+        
+        // Find the structures list container
+        const structuresSection = this.contentContainer.querySelector('.oom-journal-section:nth-child(2)');
+        if (!structuresSection) {
+            new Notice('Could not find structures section');
+            return;
+        }
+        
+        const listContainer = structuresSection.querySelector('.oom-structures-list');
+        if (!listContainer) {
+            new Notice('Could not find structures list container');
+            return;
+        }
+        
+        // Create the new structure item with inline editor open by default
+        const itemEl = (listContainer as HTMLElement).createDiv({ cls: 'oom-structure-item editing' });
+        
+        // Header (minimal since we're going straight to editing)
+        const headerEl = itemEl.createDiv({ cls: 'oom-structure-header' });
+        
+        // Simple header for new structure
+        const infoEl = headerEl.createDiv({ cls: 'oom-structure-info' });
+        infoEl.createDiv({ 
+            cls: 'oom-structure-name',
+            text: '✏️ New Structure (unsaved)'
+        });
+        
+        // Cancel button for new structure creation
+        const actionsEl = headerEl.createDiv({ cls: 'oom-structure-actions' });
+        const cancelBtn = actionsEl.createEl('button', {
+            text: 'Cancel',
+            cls: 'oom-button-small oom-button-danger'
+        });
+        cancelBtn.addEventListener('click', () => {
+            itemEl.remove();
+        });
+        
+        // Inline editor (visible by default for new structures)
+        const editorEl = itemEl.createDiv({ 
+            cls: 'oom-structure-editor',
+            attr: { style: 'display: block;' }
+        });
+        
+        // TODO: Re-implement buildInlineStructureEditor method
+        editorEl.createEl('p', { text: 'Structure editor will be implemented' });
+        
+        // Scroll to the new structure
+        itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Focus the name field
+        setTimeout(() => {
+            const nameInput = editorEl.querySelector('input[type="text"]') as HTMLInputElement;
+            if (nameInput) {
+                nameInput.focus();
+            }
+        }, 100);
+        
+        new Notice('Fill in the structure details and click Save to create');
     }
     
     /**
      * Import structures from JSON file
      */
     private importStructures() {
-        new Notice('Structure import will be implemented soon');
-        // TODO: Implement JSON file import with conflict resolution
+        // Create file input element
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.style.display = 'none';
+        
+        input.addEventListener('change', async (event) => {
+            const file = (event.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const importData = JSON.parse(text);
+                
+                // Validate import data structure
+                if (!importData.structures || !Array.isArray(importData.structures)) {
+                    new Notice('Invalid import file: missing or invalid structures array');
+                    return;
+                }
+                
+                const importedStructures = importData.structures as ExtendedCalloutStructure[];
+                const existingStructures = this.plugin.settings.linting?.structures || [];
+                
+                let importedCount = 0;
+                let skippedCount = 0;
+                let conflictStructures: ExtendedCalloutStructure[] = [];
+                
+                // Check for conflicts
+                for (const importedStructure of importedStructures) {
+                    const existing = existingStructures.find(s => 
+                        s.id === importedStructure.id || s.name === importedStructure.name
+                    );
+                    
+                    if (existing) {
+                        conflictStructures.push(importedStructure);
+                    }
+                }
+                
+                // Handle conflicts if any
+                if (conflictStructures.length > 0) {
+                    const action = await this.showConflictResolutionDialog(conflictStructures.length);
+                    
+                    if (action === 'cancel') {
+                        new Notice('Import cancelled');
+                        return;
+                    }
+                    
+                    // Process structures based on conflict resolution choice
+                    for (const importedStructure of importedStructures) {
+                        const existing = existingStructures.find(s => 
+                            s.id === importedStructure.id || s.name === importedStructure.name
+                        );
+                        
+                        if (existing && action === 'skip') {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        if (existing && action === 'rename') {
+                            // Generate unique name and ID
+                            let uniqueName = importedStructure.name;
+                            let counter = 1;
+                            
+                            while (existingStructures.some(s => s.name === uniqueName)) {
+                                uniqueName = `${importedStructure.name} (Imported ${counter})`;
+                                counter++;
+                            }
+                            
+                            importedStructure.name = uniqueName;
+                            importedStructure.id = 'structure-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                            importedStructure.isDefault = false; // Imported structures should not be default
+                        }
+                        
+                        if (existing && action === 'overwrite') {
+                            // Remove existing structure
+                            const index = existingStructures.findIndex(s => s.id === existing.id);
+                            if (index !== -1) {
+                                existingStructures.splice(index, 1);
+                            }
+                        }
+                        
+                        // Add the imported structure
+                        if (!this.plugin.settings.linting) {
+                            this.plugin.settings.linting = this.getDefaultLintingSettings();
+                        }
+                        
+                        this.plugin.settings.linting.structures.push({
+                            ...importedStructure,
+                            lastModified: new Date().toISOString(),
+                            isDefault: false // Imported structures should not be default
+                        } as ExtendedCalloutStructure);
+                        
+                        importedCount++;
+                    }
+                } else {
+                    // No conflicts, import all structures
+                    for (const importedStructure of importedStructures) {
+                        if (!this.plugin.settings.linting) {
+                            this.plugin.settings.linting = this.getDefaultLintingSettings();
+                        }
+                        
+                        this.plugin.settings.linting.structures.push({
+                            ...importedStructure,
+                            lastModified: new Date().toISOString(),
+                            isDefault: false // Imported structures should not be default
+                        } as ExtendedCalloutStructure);
+                        
+                        importedCount++;
+                    }
+                }
+                
+                // Save settings
+                await this.plugin.saveSettings();
+                
+                // Show summary
+                let message = `Import completed: ${importedCount} structures imported`;
+                if (skippedCount > 0) {
+                    message += `, ${skippedCount} skipped due to conflicts`;
+                }
+                
+                new Notice(message);
+                
+                // Refresh the structures section
+                this.loadJournalStructureContent();
+                
+            } catch (error) {
+                console.error('Error importing structures:', error);
+                new Notice('Failed to import structures: Invalid JSON file');
+            }
+        });
+        
+        // Trigger file picker
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+    }
+    
+    /**
+     * Show conflict resolution dialog
+     */
+    private async showConflictResolutionDialog(conflictCount: number): Promise<'overwrite' | 'rename' | 'skip' | 'cancel'> {
+        return new Promise((resolve) => {
+            const message = `Found ${conflictCount} structure(s) with conflicting names or IDs. How would you like to handle conflicts?`;
+            
+            // For now, use a simple confirm dialog. In the future, this could be a proper modal
+            const choice = prompt(
+                `${message}\n\nEnter your choice:\n1. overwrite - Replace existing structures\n2. rename - Import with new names\n3. skip - Skip conflicting structures\n4. cancel - Cancel import\n\nChoice (1-4):`,
+                '2'
+            );
+            
+            switch (choice) {
+                case '1':
+                    resolve('overwrite');
+                    break;
+                case '2':
+                    resolve('rename');
+                    break;
+                case '3':
+                    resolve('skip');
+                    break;
+                case '4':
+                case null:
+                    resolve('cancel');
+                    break;
+                default:
+                    resolve('rename'); // Default to rename
+                    break;
+            }
+        });
     }
     
     /**
@@ -2088,539 +2337,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
         }).catch(() => {
             new Notice('Failed to copy structures to clipboard');
         });
-    }
-    
-    /**
-     * Create enhanced structure list item with native Obsidian toggles
-     */
-    private createEnhancedStructureListItem(containerEl: HTMLElement, structure: any) {
-        const itemEl = containerEl.createDiv({ cls: 'oom-structure-item' });
-        
-        // Header with toggle, info, and actions
-        const headerEl = itemEl.createDiv({ cls: 'oom-structure-header' });
-        
-        // Enable/disable toggle using Obsidian's native checkbox
-        const toggleEl = headerEl.createDiv({ cls: 'oom-structure-toggle' });
-        const toggleContainer = toggleEl.createDiv({ cls: 'checkbox-container' });
-        
-        const checkbox = toggleContainer.createEl('input', {
-            type: 'checkbox'
-        });
-        checkbox.checked = structure.enabled !== false; // Default to enabled if not specified
-        
-        // Handle toggle clicks
-        const handleToggle = () => {
-            structure.enabled = checkbox.checked;
-            this.plugin.saveSettings();
-            
-            // Update visual state
-            itemEl.classList.toggle('disabled', !checkbox.checked);
-        };
-        
-        // Event listeners
-        checkbox.addEventListener('change', handleToggle);
-        
-        // Structure info
-        const infoEl = headerEl.createDiv({ cls: 'oom-structure-info' });
-        
-        const nameEl = infoEl.createDiv({ 
-            cls: 'oom-structure-name',
-            text: structure.name || 'Unnamed Structure'
-        });
-        
-        const hierarchyEl = infoEl.createDiv({ cls: 'oom-structure-hierarchy' });
-        const hierarchy = this.buildStructureHierarchyText(structure);
-        hierarchyEl.textContent = hierarchy;
-        
-        const statsEl = infoEl.createDiv({ cls: 'oom-structure-stats' });
-        // TODO: Get actual usage stats from settings
-        const usageStats = this.getStructureUsageStats(structure.id);
-        statsEl.innerHTML = `📊 Used: ${usageStats.timesUsed} times  📅 Last: ${usageStats.lastUsedText}  ${this.getValidationStatusIcon(structure)}`;
-        
-        // Action buttons
-        const actionsEl = headerEl.createDiv({ cls: 'oom-structure-actions' });
-        
-        const editBtn = actionsEl.createEl('button', {
-            text: 'Edit',
-            cls: 'oom-button-small'
-        });
-        editBtn.addEventListener('click', () => {
-            this.toggleStructureEditor(itemEl, structure);
-        });
-        
-        const cloneBtn = actionsEl.createEl('button', {
-            text: 'Clone',
-            cls: 'oom-button-small'
-        });
-        cloneBtn.addEventListener('click', () => {
-            this.cloneStructure(structure);
-        });
-        
-        const deleteBtn = actionsEl.createEl('button', {
-            text: 'Delete',
-            cls: 'oom-button-small oom-button-danger'
-        });
-        deleteBtn.addEventListener('click', () => {
-            this.deleteStructure(structure);
-        });
-        
-        // Inline editor (hidden by default)
-        const editorEl = itemEl.createDiv({ 
-            cls: 'oom-structure-editor',
-            attr: { style: 'display: none;' }
-        });
-        
-        this.buildInlineStructureEditor(editorEl, structure);
-        
-        // Set initial visual state
-        itemEl.classList.toggle('disabled', structure.enabled === false);
-    }
-    
-    /**
-     * Build hierarchy text for display (e.g., "av-journal → dream-diary → dream-metrics")
-     */
-    private buildStructureHierarchyText(structure: any): string {
-        const parts = [structure.rootCallout || 'root'];
-        
-        if (structure.childCallouts && structure.childCallouts.length > 0) {
-            parts.push(...structure.childCallouts);
-        }
-        
-        if (structure.metricsCallout) {
-            parts.push(structure.metricsCallout);
-        }
-        
-        return parts.join(' → ');
-    }
-    
-    /**
-     * Get structure usage statistics (placeholder for now)
-     */
-    private getStructureUsageStats(structureId: string) {
-        // TODO: Get from actual settings
-        return {
-            timesUsed: 0,
-            lastUsedText: 'Never'
-        };
-    }
-    
-    /**
-     * Get validation status icon
-     */
-    private getValidationStatusIcon(structure: any): string {
-        // TODO: Implement actual validation
-        return '✅ Valid';
-    }
-    
-    /**
-     * Toggle inline structure editor
-     */
-    private toggleStructureEditor(itemEl: HTMLElement, structure: any) {
-        const editorEl = itemEl.querySelector('.oom-structure-editor') as HTMLElement;
-        const editBtn = itemEl.querySelector('.oom-structure-actions button') as HTMLElement;
-        
-        const isEditing = itemEl.classList.contains('editing');
-        
-        if (isEditing) {
-            // Cancel editing
-            itemEl.classList.remove('editing');
-            editorEl.style.display = 'none';
-            editBtn.textContent = 'Edit';
-        } else {
-            // Start editing
-            itemEl.classList.add('editing');
-            editorEl.style.display = 'block';
-            editBtn.textContent = 'Cancel';
-        }
-    }
-    
-    /**
-     * Build inline structure editor with complete form fields
-     */
-    private buildInlineStructureEditor(editorEl: HTMLElement, structure: any) {
-        editorEl.empty(); // Clear any existing content
-        
-        // Create form container
-        const formEl = editorEl.createDiv({ cls: 'oom-structure-form' });
-        
-        // ========== BASIC INFORMATION SECTION ==========
-        const basicSection = formEl.createDiv({ cls: 'oom-form-section' });
-        basicSection.createEl('h4', { text: 'Basic Information', cls: 'oom-form-section-title' });
-        
-        // Name field
-        const nameField = basicSection.createDiv({ cls: 'oom-form-field' });
-        nameField.createEl('label', { text: 'Name:', cls: 'oom-form-label' });
-        const nameInput = nameField.createEl('input', {
-            type: 'text',
-            cls: 'oom-form-input',
-            value: structure.name || ''
-        });
-        nameInput.placeholder = 'Enter structure name';
-        
-        // Description field
-        const descField = basicSection.createDiv({ cls: 'oom-form-field' });
-        descField.createEl('label', { text: 'Description:', cls: 'oom-form-label' });
-        const descInput = descField.createEl('input', {
-            type: 'text',
-            cls: 'oom-form-input',
-            value: structure.description || ''
-        });
-        descInput.placeholder = 'Brief description of this structure';
-        
-        // Type field
-        const typeField = basicSection.createDiv({ cls: 'oom-form-field' });
-        typeField.createEl('label', { text: 'Type:', cls: 'oom-form-label' });
-        const typeSelect = typeField.createEl('select', { cls: 'oom-form-select' });
-        
-        const nestedOption = typeSelect.createEl('option', { value: 'nested', text: 'Nested' });
-        const flatOption = typeSelect.createEl('option', { value: 'flat', text: 'Flat' });
-        
-        typeSelect.value = structure.type || 'nested';
-        
-        // ========== CALLOUT CONFIGURATION SECTION ==========
-        const calloutSection = formEl.createDiv({ cls: 'oom-form-section' });
-        calloutSection.createEl('h4', { text: 'Callout Configuration', cls: 'oom-form-section-title' });
-        
-        // Root callout field
-        const rootField = calloutSection.createDiv({ cls: 'oom-form-field' });
-        rootField.createEl('label', { text: 'Root Callout:', cls: 'oom-form-label' });
-        const rootInput = rootField.createEl('input', {
-            type: 'text',
-            cls: 'oom-form-input',
-            value: structure.rootCallout || ''
-        });
-        rootInput.placeholder = 'e.g., journal-entry, av-journal, dream';
-        
-        // Child callouts section
-        const childSection = calloutSection.createDiv({ cls: 'oom-form-field' });
-        childSection.createEl('label', { text: 'Child Callouts:', cls: 'oom-form-label' });
-        
-        const childContainer = childSection.createDiv({ cls: 'oom-child-callouts-container' });
-        const childCallouts = structure.childCallouts || [];
-        
-        // Function to create child callout item
-        const createChildCalloutItem = (callout: string, index: number) => {
-            const itemEl = childContainer.createDiv({ cls: 'oom-child-callout-item' });
-            
-            const input = itemEl.createEl('input', {
-                type: 'text',
-                cls: 'oom-form-input',
-                value: callout
-            });
-            input.placeholder = 'e.g., dream-diary, interpretation';
-            
-            const removeBtn = itemEl.createEl('button', {
-                text: 'Remove',
-                cls: 'oom-button-small oom-button-danger'
-            });
-            removeBtn.addEventListener('click', () => {
-                childCallouts.splice(index, 1);
-                rebuildChildCallouts();
-                updatePreview();
-            });
-            
-            // Update callout value on input change
-            input.addEventListener('input', () => {
-                childCallouts[index] = input.value;
-                updatePreview();
-            });
-            
-            return itemEl;
-        };
-        
-        // Function to rebuild child callouts list
-        const rebuildChildCallouts = () => {
-            childContainer.empty();
-            childCallouts.forEach((callout, index) => {
-                createChildCalloutItem(callout, index);
-            });
-        };
-        
-        // Initial build of child callouts
-        rebuildChildCallouts();
-        
-        // Add child callout button
-        const addChildBtn = childSection.createEl('button', {
-            text: '+ Add Child Callout',
-            cls: 'oom-button-secondary'
-        });
-        addChildBtn.addEventListener('click', () => {
-            childCallouts.push('');
-            rebuildChildCallouts();
-        });
-        
-        // Metrics callout field
-        const metricsField = calloutSection.createDiv({ cls: 'oom-form-field' });
-        metricsField.createEl('label', { text: 'Metrics Callout:', cls: 'oom-form-label' });
-        const metricsInput = metricsField.createEl('input', {
-            type: 'text',
-            cls: 'oom-form-input',
-            value: structure.metricsCallout || ''
-        });
-        metricsInput.placeholder = 'e.g., dream-metrics, metrics, data';
-        
-        // ========== OPTIONS SECTION ==========
-        const optionsSection = formEl.createDiv({ cls: 'oom-form-section' });
-        optionsSection.createEl('h4', { text: 'Options', cls: 'oom-form-section-title' });
-        
-        // Enabled toggle
-        const enabledField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-toggle' });
-        enabledField.createEl('label', { text: 'Enabled', cls: 'oom-form-label' });
-        
-        const enabledToggleContainer = enabledField.createDiv({ cls: 'checkbox-container' });
-        const enabledCheckbox = enabledToggleContainer.createEl('input', {
-            type: 'checkbox'
-        });
-        enabledCheckbox.checked = structure.enabled !== false;
-        
-        // Default for new entries toggle  
-        const defaultField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-toggle' });
-        defaultField.createEl('label', { text: 'Default for new entries', cls: 'oom-form-label' });
-        
-        const defaultToggleContainer = defaultField.createDiv({ cls: 'checkbox-container' });
-        const defaultCheckbox = defaultToggleContainer.createEl('input', {
-            type: 'checkbox'
-        });
-        defaultCheckbox.checked = structure.isDefault || false;
-        
-        // ========== LIVE PREVIEW SECTION ==========
-        const previewSection = formEl.createDiv({ cls: 'oom-form-section' });
-        previewSection.createEl('h4', { text: 'Preview', cls: 'oom-form-section-title' });
-        
-        const previewContainer = previewSection.createDiv({ cls: 'oom-structure-preview' });
-        
-        // Function to update live preview
-        const updatePreview = () => {
-            const rootCallout = rootInput.value || 'root';
-            const childCalls = childCallouts.filter(c => c.trim());
-            const metricsCallout = metricsInput.value || 'metrics';
-            const structureType = typeSelect.value as 'nested' | 'flat';
-            
-            let preview = '';
-            
-            if (structureType === 'nested') {
-                // Nested structure preview
-                preview = `> [!${rootCallout}] ${new Date().toISOString().split('T')[0]}\n`;
-                
-                if (childCalls.length > 0) {
-                    for (const child of childCalls) {
-                        preview += `> > [!${child}] Dream Title\n`;
-                        preview += `> > Dream content goes here...\n`;
-                    }
-                    preview += `> > > [!${metricsCallout}]\n`;
-                } else {
-                    preview += `> > [!${metricsCallout}]\n`;
-                }
-                
-                preview += `> > > Sensory Detail: 4, Emotional Recall: 3`;
-            } else {
-                // Flat structure preview
-                preview = `> [!${rootCallout}] Dream Entry\n`;
-                preview += `> Dream content goes here...\n`;
-                preview += `> \n`;
-                preview += `> [!${metricsCallout}]\n`;
-                preview += `> Sensory Detail: 4, Emotional Recall: 3`;
-            }
-            
-            previewContainer.textContent = preview;
-        };
-        
-        // Set up preview update listeners
-        const updatePreviewInputs = [nameInput, descInput, rootInput, metricsInput];
-        updatePreviewInputs.forEach(input => {
-            input.addEventListener('input', updatePreview);
-        });
-        typeSelect.addEventListener('change', updatePreview);
-        
-        // Initial preview
-        updatePreview();
-        
-        // ========== VALIDATION SECTION ==========
-        const validationEl = formEl.createDiv({ cls: 'oom-validation-messages' });
-        
-        // Function to validate form
-        const validateForm = () => {
-            const errors: string[] = [];
-            const warnings: string[] = [];
-            
-            // Name validation
-            if (!nameInput.value.trim()) {
-                errors.push('Structure name is required');
-            }
-            
-            // Root callout validation
-            if (!rootInput.value.trim()) {
-                errors.push('Root callout is required');
-            } else if (!/^[a-z0-9-]+$/.test(rootInput.value.trim())) {
-                errors.push('Root callout should contain only lowercase letters, numbers, and hyphens');
-            }
-            
-            // Metrics callout validation
-            if (!metricsInput.value.trim()) {
-                warnings.push('Metrics callout is recommended for proper metric extraction');
-            } else if (!/^[a-z0-9-]+$/.test(metricsInput.value.trim())) {
-                errors.push('Metrics callout should contain only lowercase letters, numbers, and hyphens');
-            }
-            
-            // Child callouts validation
-            const invalidChildCallouts = childCallouts.filter(c => 
-                c.trim() && !/^[a-z0-9-]+$/.test(c.trim())
-            );
-            if (invalidChildCallouts.length > 0) {
-                errors.push('Child callouts should contain only lowercase letters, numbers, and hyphens');
-            }
-            
-            // Duplicate callout validation
-            const allCallouts = [rootInput.value, ...childCallouts, metricsInput.value]
-                .filter(c => c && c.trim())
-                .map(c => c.trim());
-            const uniqueCallouts = new Set(allCallouts);
-            if (allCallouts.length !== uniqueCallouts.size) {
-                errors.push('Callout names must be unique within the structure');
-            }
-            
-            // Display validation messages
-            validationEl.empty();
-            
-            if (errors.length > 0) {
-                const errorList = validationEl.createDiv({ cls: 'oom-validation-errors' });
-                errorList.createEl('strong', { text: 'Errors:' });
-                const errorUl = errorList.createEl('ul');
-                errors.forEach(error => {
-                    errorUl.createEl('li', { text: error });
-                });
-            }
-            
-            if (warnings.length > 0) {
-                const warningList = validationEl.createDiv({ cls: 'oom-validation-warnings' });
-                warningList.createEl('strong', { text: 'Warnings:' });
-                const warningUl = warningList.createEl('ul');
-                warnings.forEach(warning => {
-                    warningUl.createEl('li', { text: warning });
-                });
-            }
-            
-            return errors.length === 0;
-        };
-        
-        // Set up validation on input changes
-        updatePreviewInputs.forEach(input => {
-            input.addEventListener('input', validateForm);
-        });
-        typeSelect.addEventListener('change', validateForm);
-        
-        // Initial validation
-        validateForm();
-        
-        // Function to build structure data from form
-        const buildStructureDataFromForm = () => {
-            return {
-                ...structure,
-                name: nameInput.value.trim(),
-                description: descInput.value.trim(),
-                type: typeSelect.value,
-                rootCallout: rootInput.value.trim(),
-                childCallouts: childCallouts.filter(c => c.trim()),
-                metricsCallout: metricsInput.value.trim(),
-                enabled: enabledCheckbox.checked,
-                isDefault: defaultCheckbox.checked,
-                lastModified: new Date().toISOString()
-            };
-        };
-        
-        // Function to save structure
-        const saveStructureFromForm = async () => {
-            try {
-                const updatedStructure = buildStructureDataFromForm();
-                
-                // Update in settings
-                const structures = this.plugin.settings.linting?.structures || [];
-                const index = structures.findIndex(s => s.id === structure.id);
-                
-                if (index !== -1) {
-                    structures[index] = updatedStructure;
-                } else {
-                    // New structure - generate ID if needed
-                    if (!updatedStructure.id) {
-                        updatedStructure.id = 'structure-' + Date.now();
-                    }
-                    structures.push(updatedStructure);
-                }
-                
-                if (!this.plugin.settings.linting) {
-                    this.plugin.settings.linting = this.getDefaultLintingSettings();
-                }
-                this.plugin.settings.linting.structures = structures;
-                
-                await this.plugin.saveSettings();
-                
-                new Notice('Structure saved successfully');
-                
-                // Close the editor and refresh the structure list
-                const itemEl = editorEl.closest('.oom-structure-item') as HTMLElement;
-                if (itemEl) {
-                    this.toggleStructureEditor(itemEl, updatedStructure);
-                }
-                
-                // Refresh the entire structures section
-                this.loadJournalStructureContent();
-                
-            } catch (error) {
-                console.error('Error saving structure:', error);
-                new Notice('Failed to save structure');
-            }
-        };
-        
-        // ========== ACTION BUTTONS ==========
-        const buttonBar = formEl.createDiv({ cls: 'oom-editor-buttons' });
-        
-        const cancelBtn = buttonBar.createEl('button', {
-            text: 'Cancel',
-            cls: 'oom-button-secondary'
-        });
-        cancelBtn.addEventListener('click', () => {
-            // Close the editor without saving
-            const itemEl = editorEl.closest('.oom-structure-item') as HTMLElement;
-            if (itemEl) {
-                this.toggleStructureEditor(itemEl, structure);
-            }
-        });
-        
-        const copyBtn = buttonBar.createEl('button', {
-            text: 'Copy to Clipboard',
-            cls: 'oom-button-secondary'
-        });
-        copyBtn.addEventListener('click', () => {
-            this.copyStructureToClipboard(buildStructureDataFromForm());
-        });
-        
-        const saveBtn = buttonBar.createEl('button', {
-            text: 'Save Structure',
-            cls: 'oom-button-primary'
-        });
-        saveBtn.addEventListener('click', async () => {
-            if (validateForm()) {
-                await saveStructureFromForm();
-            } else {
-                new Notice('Please fix validation errors before saving');
-            }
-        });
-    }
-    
-    /**
-     * Clone structure
-     */
-    private cloneStructure(structure: any) {
-        new Notice('Structure cloning will be implemented soon');
-        // TODO: Create copy with modified name and ID
-    }
-    
-    /**
-     * Delete structure
-     */
-    private deleteStructure(structure: any) {
-        new Notice('Structure deletion will be implemented soon');
-        // TODO: Confirm deletion and remove from settings
     }
     
     /**
