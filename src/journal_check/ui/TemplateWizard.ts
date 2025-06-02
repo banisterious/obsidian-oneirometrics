@@ -564,11 +564,18 @@ export class TemplateWizard extends Modal {
         // Show sample content
         const previewContent = this.previewEl.createDiv({ cls: 'oom-preview-content' });
         
-        if (this.content) {
+        // If we have content, show it; otherwise generate preview content based on structure
+        let contentToShow = this.content;
+        if (!contentToShow && this.structureId) {
+            // Generate preview content based on structure
+            contentToShow = this.getDefaultContent();
+        }
+        
+        if (contentToShow) {
             // Create a "read-only" version for preview with proper line breaks
             const contentEl = previewContent.createEl('pre', { 
                 cls: 'oom-markdown-preview',
-                text: this.content
+                text: contentToShow
             });
         } else {
             previewContent.createEl('p', { 
@@ -666,34 +673,34 @@ export class TemplateWizard extends Modal {
             
             // Add child callouts as nested - use proper nesting syntax with double >
             for (const callout of structure.childCallouts) {
-                // Skip metrics callout to add it last
-                if (callout === structure.metricsCallout) continue; 
-                
                 // Proper nesting format with double >
                 content += `> > [!${callout}]\n`;
-                content += `> > ${this.getPlaceholderForCallout(callout)}\n>\n`;
-            }
-            
-            // Add metrics callout last if defined
-            if (structure.metricsCallout) {
-                content += `> > [!${structure.metricsCallout}]\n`;
+                content += `> > ${this.getPlaceholderForCallout(callout)}\n`;
                 
-                // Add enabled metrics from settings
-                const enabledMetrics = this.getEnabledMetrics();
-                if (enabledMetrics.length > 0) {
-                    for (const metric of enabledMetrics) {
-                        // Use type assertion to access range property
-                        const metricAny = metric as any;
-                        content += `> > ${metric.name}: ${metricAny.range ? metricAny.range : `${metricAny.min || 1}-${metricAny.max || 10}`}\n`;
+                // Check if this child callout should contain the metrics callout
+                if (structure.metricsCallout) {
+                    // Add metrics callout nested inside this child callout (3 levels deep)
+                    content += `> >\n> > > [!${structure.metricsCallout}]\n`;
+                    
+                    // Add enabled metrics from settings
+                    const enabledMetrics = this.getEnabledMetrics();
+                    if (enabledMetrics.length > 0) {
+                        for (const metric of enabledMetrics) {
+                            // Use type assertion to access range property
+                            const metricAny = metric as any;
+                            content += `> > > ${metric.name}: ${metricAny.range ? metricAny.range : `${metricAny.min || 1}-${metricAny.max || 10}`}\n`;
+                        }
+                    } else {
+                        // Fallback to default metrics if none are enabled
+                        content += `> > > Words: 1-1000\n`;
+                        content += `> > > Sensory Detail: 1-5\n`;
+                        content += `> > > Emotional Recall: 1-5\n`;
+                        content += `> > > Lost Segments: 1-5\n`;
+                        content += `> > > Descriptiveness: 1-5\n`;
+                        content += `> > > Confidence Score: 1-5\n`;
                     }
-                } else {
-                    // Fallback to default metrics if none are enabled
-                    content += `> > Clarity: 1-10\n`;
-                    content += `> > Vividness: 1-10\n`;
-                    content += `> > Coherence: 1-10\n`;
-                    content += `> > Emotional Intensity: 1-10\n`;
-                    content += `> > Lucidity: 1-10\n`;
                 }
+                content += `>\n`;
             }
         } else {
             // For flat structures
@@ -719,11 +726,12 @@ export class TemplateWizard extends Modal {
                     }
                 } else {
                     // Fallback to default metrics if none are enabled
-                    content += `> Clarity: 1-10\n`;
-                    content += `> Vividness: 1-10\n`;
-                    content += `> Coherence: 1-10\n`;
-                    content += `> Emotional Intensity: 1-10\n`;
-                    content += `> Lucidity: 1-10\n`;
+                    content += `> Words: 1-1000\n`;
+                    content += `> Sensory Detail: 1-5\n`;
+                    content += `> Emotional Recall: 1-5\n`;
+                    content += `> Lost Segments: 1-5\n`;
+                    content += `> Descriptiveness: 1-5\n`;
+                    content += `> Confidence Score: 1-5\n`;
                 }
             }
         }

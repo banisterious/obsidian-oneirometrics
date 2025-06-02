@@ -7847,6 +7847,13 @@ div#oom-time-filter-display {
     margin-left: auto;
 }
 
+.oom-structure-item.editing {
+    margin-top: 1em;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
 /* Section styling */
 .oom-journal-section {
     padding: var(--oom-spacing-md);
