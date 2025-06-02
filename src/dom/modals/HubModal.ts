@@ -140,9 +140,9 @@ export class HubModal extends Modal {
     private createTabs() {
         // Create new management tabs first
         this.createDashboardTab();
+        this.createCalloutSettingsTab(); // Moved up and renamed
         this.createDreamScrapeTab();
         this.createJournalStructureTab();
-        this.createCalloutQuickCopyTab();
         
         // Create Overview tab (renamed to Reference Overview)
         this.createOverviewTab();
@@ -205,20 +205,20 @@ export class HubModal extends Modal {
         });
     }
     
-    // Create Callout Quick Copy tab
-    private createCalloutQuickCopyTab() {
-        const calloutQuickCopyTab = this.tabsContainer.createDiv({
+    // Create Callout Settings tab (renamed from Callout Quick Copy)
+    private createCalloutSettingsTab() {
+        const calloutSettingsTab = this.tabsContainer.createDiv({
             cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
-            attr: { 'data-tab-id': 'callout-quick-copy' }
+            attr: { 'data-tab-id': 'callout-settings' }
         });
-        
-        calloutQuickCopyTab.createDiv({ 
-            text: 'Callout Quick Copy', 
+
+        calloutSettingsTab.createDiv({ 
+            text: 'Callout Settings', 
             cls: 'oom-hub-tab-label' 
         });
-        
-        calloutQuickCopyTab.addEventListener('click', () => {
-            this.selectTab('callout-quick-copy');
+
+        calloutSettingsTab.addEventListener('click', () => {
+            this.selectTab('callout-settings');
         });
     }
     
@@ -300,8 +300,8 @@ export class HubModal extends Modal {
             this.loadDreamScrapeContent();
         } else if (tabId === 'journal-structure') {
             this.loadJournalStructureContent();
-        } else if (tabId === 'callout-quick-copy') {
-            this.loadCalloutQuickCopyContent();
+        } else if (tabId === 'callout-settings') {
+            this.loadCalloutSettingsContent();
         } else if (tabId === 'overview') {
             this.loadOverviewContent();
         } else {
@@ -1462,18 +1462,18 @@ This metric assesses **how well your memory of the dream holds up and remains co
     }
 
     // Load Callout Quick Copy content with migrated functionality
-    private loadCalloutQuickCopyContent() {
+    private loadCalloutSettingsContent() {
         this.contentContainer.empty();
         
         // Add welcome text
         const welcomeText = this.contentContainer.createDiv({ 
-            cls: 'oom-metrics-tabs-callout-quick-copy-text' 
+            cls: 'oom-metrics-tabs-callout-settings-text' 
         });
         
-        welcomeText.createEl('h2', { text: 'Callout Quick Copy' });
+        welcomeText.createEl('h2', { text: 'Callout Settings' });
         
         welcomeText.createEl('p', { 
-            text: 'Generate and customize dream metrics callouts for quick copying into your journal entries.'
+            text: 'Configure the callout names used throughout OneiroMetrics. These settings control how callouts are generated in Quick Copy and recognized during scraping.'
         });
 
         // Global state for all sections
@@ -1486,7 +1486,98 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const getDreamDiaryCalloutName = () => this.plugin.settings.dreamDiaryCalloutName || 'dream-diary';
         const getCalloutName = () => this.plugin.settings.calloutName || 'dream-metrics';
 
-        // Helper to build the callout structure
+        // Callout Settings Section (moved to top)
+        const settingsContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-callout-settings' 
+        });
+
+        // Journal Callout Name Setting
+        new Setting(settingsContainer)
+            .setName('Journal Callout Name')
+            .setDesc('Name of the callout block used for journal entries (e.g., "journal")')
+            .addText(text => text
+                .setPlaceholder('journal')
+                .setValue(this.plugin.settings.journalCalloutName || 'journal')
+                .onChange(async (value) => {
+                    this.plugin.settings.journalCalloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                    updateAllCallouts();
+                }));
+
+        // Dream Diary Callout Name Setting
+        new Setting(settingsContainer)
+            .setName('Dream Diary Callout Name')
+            .setDesc('Name of the callout block used for dream diary entries (e.g., "dream-diary")')
+            .addText(text => text
+                .setPlaceholder('dream-diary')
+                .setValue(this.plugin.settings.dreamDiaryCalloutName || 'dream-diary')
+                .onChange(async (value) => {
+                    this.plugin.settings.dreamDiaryCalloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                    updateAllCallouts();
+                }));
+
+        // Metrics Callout Name Setting (moved from settings page)
+        new Setting(settingsContainer)
+            .setName('Metrics Callout Name')
+            .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
+            .addText(text => text
+                .setPlaceholder('dream-metrics')
+                .setValue(this.plugin.settings.calloutName)
+                .onChange(async (value) => {
+                    this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                    updateAllCallouts();
+                }));
+
+        // Single-Line Toggle (renamed)
+        new Setting(settingsContainer)
+            .setName('Single-Line Metrics Callout Structure')
+            .setDesc('Show all fields on a single line in all callout structures')
+            .addToggle(toggle => {
+                toggle.setValue(singleLine)
+                    .onChange(async (value) => {
+                        singleLine = value;
+                        updateAllCallouts();
+                    });
+            });
+
+        // Flatten Nested Toggle
+        new Setting(settingsContainer)
+            .setName('Flatten Nested Structure')
+            .setDesc('Convert nested 3-level structure to flat format with all fields at the same level')
+            .addToggle(toggle => {
+                toggle.setValue(flattenNested)
+                    .onChange(async (value) => {
+                        flattenNested = value;
+                        updateAllCallouts();
+                    });
+            });
+
+        // Callout Metadata Field
+        new Setting(settingsContainer)
+            .setName('Callout Metadata')
+            .setDesc('Default metadata to include in all callouts (applies to all sections below)')
+            .addText(text => text
+                .setPlaceholder('Enter metadata')
+                .setValue(calloutMetadata)
+                .onChange(async (value) => {
+                    calloutMetadata = value;
+                    updateAllCallouts();
+                    await this.plugin.saveSettings();
+                }));
+
+        // Add section separator
+        this.contentContainer.createEl('div', { cls: 'oom-section-border' });
+
+        // Quick Copy Section Header
+        this.contentContainer.createEl('h2', { text: 'Quick Copy' });
+        
+        this.contentContainer.createEl('p', { 
+            text: 'Generate and customize callouts for quick copying into your journal entries using the settings above.'
+        });
+
+        // Helper functions for callout generation
         const buildDreamMetricsCallout = () => {
             const meta = calloutMetadata.trim();
             const metaStr = meta ? `|${meta}` : '';
@@ -1592,167 +1683,113 @@ This metric assesses **how well your memory of the dream holds up and remains co
             }
         };
 
-        // Function to update all callout boxes
+        // Function to update all callout previews
         const updateAllCallouts = () => {
-            journalBox.textContent = buildJournalCallout();
-            dreamDiaryBox.textContent = buildDreamDiaryCallout();
-            dreamMetricsBox.textContent = buildDreamMetricsCallout();
-            nestedBox.textContent = buildNestedCallout();
+            // Update Journal section
+            if (journalStructureEl) {
+                journalStructureEl.textContent = buildJournalCallout();
+                this.applyCalloutBoxStyles(journalStructureEl);
+            }
+            
+            // Update Dream Diary section
+            if (dreamDiaryStructureEl) {
+                dreamDiaryStructureEl.textContent = buildDreamDiaryCallout();
+                this.applyCalloutBoxStyles(dreamDiaryStructureEl);
+            }
+            
+            // Update Dream Metrics section
+            if (dreamMetricsStructureEl) {
+                dreamMetricsStructureEl.textContent = buildDreamMetricsCallout();
+                this.applyCalloutBoxStyles(dreamMetricsStructureEl);
+            }
+            
+            // Update Nested section
+            if (nestedStructureEl) {
+                nestedStructureEl.textContent = buildNestedCallout();
+                this.applyCalloutBoxStyles(nestedStructureEl);
+            }
         };
 
-        // Journal Section
+        // Create variables to hold the callout structure elements
+        let journalStructureEl: HTMLElement;
+        let dreamDiaryStructureEl: HTMLElement;
+        let dreamMetricsStructureEl: HTMLElement;
+        let nestedStructureEl: HTMLElement;
+
+        // 1. Journal Section
         const journalSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
         journalSection.createEl('h3', { text: 'Journal' });
         
-        const journalBox = journalSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        this.applyCalloutBoxStyles(journalBox);
-        journalBox.textContent = buildJournalCallout();
+        journalStructureEl = journalSection.createEl('div', { cls: 'oom-callout-structure-box' });
+        journalStructureEl.textContent = buildJournalCallout();
+        this.applyCalloutBoxStyles(journalStructureEl);
         
         const journalCopyBtn = journalSection.createEl('button', { 
-            text: 'Copy Journal', 
-            cls: 'oom-copy-btn mod-cta' 
+            text: 'Copy Journal Callout',
+            cls: 'oom-copy-button'
         });
         this.applyCopyButtonStyles(journalCopyBtn);
-        journalCopyBtn.onclick = () => {
-            navigator.clipboard.writeText(journalBox.textContent || '');
+        journalCopyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(buildJournalCallout());
             new Notice('Journal callout copied to clipboard!');
-        };
+        });
 
-        // Dream Diary Section
+        // 2. Dream Diary Section
         const dreamDiarySection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
         dreamDiarySection.createEl('h3', { text: 'Dream Diary' });
         
-        const dreamDiaryBox = dreamDiarySection.createEl('div', { cls: 'oom-callout-structure-box' });
-        this.applyCalloutBoxStyles(dreamDiaryBox);
-        dreamDiaryBox.textContent = buildDreamDiaryCallout();
+        dreamDiaryStructureEl = dreamDiarySection.createEl('div', { cls: 'oom-callout-structure-box' });
+        dreamDiaryStructureEl.textContent = buildDreamDiaryCallout();
+        this.applyCalloutBoxStyles(dreamDiaryStructureEl);
         
         const dreamDiaryCopyBtn = dreamDiarySection.createEl('button', { 
-            text: 'Copy Dream Diary', 
-            cls: 'oom-copy-btn mod-cta' 
+            text: 'Copy Dream Diary Callout',
+            cls: 'oom-copy-button'
         });
         this.applyCopyButtonStyles(dreamDiaryCopyBtn);
-        dreamDiaryCopyBtn.onclick = () => {
-            navigator.clipboard.writeText(dreamDiaryBox.textContent || '');
-            new Notice('Dream diary callout copied to clipboard!');
-        };
+        dreamDiaryCopyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(buildDreamDiaryCallout());
+            new Notice('Dream Diary callout copied to clipboard!');
+        });
 
-        // Dream Metrics Section (moved below Dream Diary)
+        // 3. Dream Metrics Section
         const dreamMetricsSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
         dreamMetricsSection.createEl('h3', { text: 'Dream Metrics' });
         
-        const dreamMetricsBox = dreamMetricsSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        this.applyCalloutBoxStyles(dreamMetricsBox);
-        dreamMetricsBox.textContent = buildDreamMetricsCallout();
+        dreamMetricsStructureEl = dreamMetricsSection.createEl('div', { cls: 'oom-callout-structure-box' });
+        dreamMetricsStructureEl.textContent = buildDreamMetricsCallout();
+        this.applyCalloutBoxStyles(dreamMetricsStructureEl);
         
         const dreamMetricsCopyBtn = dreamMetricsSection.createEl('button', { 
-            text: 'Copy Dream Metrics', 
-            cls: 'oom-copy-btn mod-cta' 
+            text: 'Copy Dream Metrics Callout',
+            cls: 'oom-copy-button'
         });
         this.applyCopyButtonStyles(dreamMetricsCopyBtn);
-        dreamMetricsCopyBtn.onclick = () => {
-            navigator.clipboard.writeText(dreamMetricsBox.textContent || '');
-            new Notice('Dream metrics callout copied to clipboard!');
-        };
+        dreamMetricsCopyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(buildDreamMetricsCallout());
+            new Notice('Dream Metrics callout copied to clipboard!');
+        });
 
-        // Nested (3-level) Section
+        // 4. Nested (3-level) Section
         const nestedSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
         nestedSection.createEl('h3', { text: 'Nested (3-level)' });
         
-        const nestedBox = nestedSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        this.applyCalloutBoxStyles(nestedBox);
-        nestedBox.textContent = buildNestedCallout();
+        nestedStructureEl = nestedSection.createEl('div', { cls: 'oom-callout-structure-box' });
+        nestedStructureEl.textContent = buildNestedCallout();
+        this.applyCalloutBoxStyles(nestedStructureEl);
         
         const nestedCopyBtn = nestedSection.createEl('button', { 
-            text: 'Copy Nested Structure', 
-            cls: 'oom-copy-btn mod-cta' 
+            text: 'Copy Nested Callout',
+            cls: 'oom-copy-button'
         });
         this.applyCopyButtonStyles(nestedCopyBtn);
-        nestedCopyBtn.onclick = () => {
-            navigator.clipboard.writeText(nestedBox.textContent || '');
-            new Notice('Nested structure callout copied to clipboard!');
-        };
-
-        // Global Settings Section
-        const settingsContainer = this.contentContainer.createDiv({ 
-            cls: 'oom-callout-settings' 
+        nestedCopyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(buildNestedCallout());
+            new Notice('Nested callout copied to clipboard!');
         });
-        settingsContainer.createEl('h3', { text: 'Global Settings' });
 
-        // Journal Callout Name Setting
-        new Setting(settingsContainer)
-            .setName('Journal Callout Name')
-            .setDesc('Name of the callout block used for journal entries (e.g., "journal")')
-            .addText(text => text
-                .setPlaceholder('journal')
-                .setValue(this.plugin.settings.journalCalloutName || 'journal')
-                .onChange(async (value) => {
-                    this.plugin.settings.journalCalloutName = value.toLowerCase().replace(/\s+/g, '-');
-                    await this.plugin.saveSettings();
-                    updateAllCallouts();
-                }));
-
-        // Dream Diary Callout Name Setting
-        new Setting(settingsContainer)
-            .setName('Dream Diary Callout Name')
-            .setDesc('Name of the callout block used for dream diary entries (e.g., "dream-diary")')
-            .addText(text => text
-                .setPlaceholder('dream-diary')
-                .setValue(this.plugin.settings.dreamDiaryCalloutName || 'dream-diary')
-                .onChange(async (value) => {
-                    this.plugin.settings.dreamDiaryCalloutName = value.toLowerCase().replace(/\s+/g, '-');
-                    await this.plugin.saveSettings();
-                    updateAllCallouts();
-                }));
-
-        // Metrics Callout Name Setting (moved from settings page)
-        new Setting(settingsContainer)
-            .setName('Metrics Callout Name')
-            .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
-            .addText(text => text
-                .setPlaceholder('dream-metrics')
-                .setValue(this.plugin.settings.calloutName)
-                .onChange(async (value) => {
-                    this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
-                    await this.plugin.saveSettings();
-                    updateAllCallouts();
-                }));
-
-        // Single-Line Toggle (renamed)
-        new Setting(settingsContainer)
-            .setName('Single-Line Metrics Callout Structure')
-            .setDesc('Show all fields on a single line in all callout structures')
-            .addToggle(toggle => {
-                toggle.setValue(singleLine)
-                    .onChange(async (value) => {
-                        singleLine = value;
-                        updateAllCallouts();
-                    });
-            });
-
-        // Flatten Nested Toggle
-        new Setting(settingsContainer)
-            .setName('Flatten Nested Structure')
-            .setDesc('Convert nested 3-level structure to flat format with all fields at the same level')
-            .addToggle(toggle => {
-                toggle.setValue(flattenNested)
-                    .onChange(async (value) => {
-                        flattenNested = value;
-                        updateAllCallouts();
-                    });
-            });
-
-        // Callout Metadata Field
-        new Setting(settingsContainer)
-            .setName('Callout Metadata')
-            .setDesc('Default metadata to include in all callouts (applies to all sections above)')
-            .addText(text => text
-                .setPlaceholder('Enter metadata')
-                .setValue(calloutMetadata)
-                .onChange(async (value) => {
-                    calloutMetadata = value;
-                    updateAllCallouts();
-                    await this.plugin.saveSettings();
-                }));
+        // Initial update of all callouts
+        updateAllCallouts();
     }
     
     /**
