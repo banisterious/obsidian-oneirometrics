@@ -38,6 +38,8 @@ import {
     TimeBasedMetrics,
     MetricsAggregation
 } from './types';
+import { getJournalStructure } from '../utils/settings-helpers';
+import { CalloutStructure, DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../types/journal-check';
 
 // Cache configuration
 interface CacheEntry {
@@ -111,6 +113,179 @@ export class UniversalMetricsCalculator {
             cacheEnabled: true,
             poolConfig: defaultConfig
         });
+    }
+
+    /**
+     * Gets the active journal structures from settings, with fallback to defaults
+     */
+    private getActiveStructures(): CalloutStructure[] {
+        const journalStructure = getJournalStructure(this.settings);
+        if (journalStructure?.enabled && journalStructure.structures?.length > 0) {
+            return journalStructure.structures;
+        }
+        
+        // Fallback to default structures if none configured
+        return DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures;
+    }
+
+    /**
+     * Checks if a callout type is recognized by any of the configured journal structures
+     */
+    private isRecognizedCallout(calloutType: string): boolean {
+        if (!calloutType) return false;
+        
+        const structures = this.getActiveStructures();
+        return structures.some(structure => 
+            structure.rootCallout === calloutType ||
+            structure.childCallouts.includes(calloutType) ||
+            structure.metricsCallout === calloutType
+        );
+    }
+
+    /**
+     * Gets all recognized callout types from active structures
+     */
+    private getAllRecognizedCallouts(): string[] {
+        const structures = this.getActiveStructures();
+        const allCallouts = new Set<string>();
+        
+        structures.forEach(structure => {
+            allCallouts.add(structure.rootCallout);
+            structure.childCallouts.forEach(callout => allCallouts.add(callout));
+            if (structure.metricsCallout) {
+                allCallouts.add(structure.metricsCallout);
+            }
+        });
+        
+        return Array.from(allCallouts);
+    }
+
+    /**
+     * Determines the role of a callout type within the structure
+     */
+    private getCalloutRole(calloutType: string): 'root' | 'child' | 'metrics' | 'unknown' {
+        if (!calloutType) return 'unknown';
+        
+        const structures = this.getActiveStructures();
+        
+        for (const structure of structures) {
+            if (structure.rootCallout === calloutType) {
+                return 'root';
+            }
+            if (structure.childCallouts.includes(calloutType)) {
+                return 'child';
+            }
+            if (structure.metricsCallout === calloutType) {
+                return 'metrics';
+            }
+        }
+        
+        return 'unknown';
+    }
+
+    /**
+     * Gets the parent callout type for a given child or metrics callout
+     */
+    private getParentCalloutType(calloutType: string): string[] {
+        const structures = this.getActiveStructures();
+        const parents: string[] = [];
+        
+        for (const structure of structures) {
+            if (structure.childCallouts.includes(calloutType)) {
+                parents.push(structure.rootCallout);
+            }
+            if (structure.metricsCallout === calloutType) {
+                // Metrics can be children of root or child callouts
+                parents.push(structure.rootCallout);
+                parents.push(...structure.childCallouts);
+            }
+        }
+        
+        return parents;
+    }
+
+    /**
+     * Gets all metrics callout types from active structures
+     */
+    private getMetricsCalloutTypes(): string[] {
+        const structures = this.getActiveStructures();
+        const metricsCallouts = new Set<string>();
+        
+        structures.forEach(structure => {
+            if (structure.metricsCallout) {
+                metricsCallouts.add(structure.metricsCallout);
+            }
+        });
+        
+        return Array.from(metricsCallouts);
+    }
+
+    /**
+     * Gets all child callout types from active structures  
+     */
+    private getChildCalloutTypes(): string[] {
+        const structures = this.getActiveStructures();
+        const childCallouts = new Set<string>();
+        
+        structures.forEach(structure => {
+            structure.childCallouts.forEach(callout => childCallouts.add(callout));
+        });
+        
+        return Array.from(childCallouts);
+    }
+
+    /**
+     * Creates a regex pattern to match any metrics callout
+     */
+    private createMetricsCalloutPattern(): RegExp {
+        const metricsTypes = this.getMetricsCalloutTypes();
+        if (metricsTypes.length === 0) {
+            return /^\s*>+\s*\[!(?:dream-)?metrics(?:\|[^\]]+)?\]/i; // Fallback pattern
+        }
+        
+        const pattern = `^\\s*>+\\s*\\[!(${metricsTypes.join('|')})(?:\\|[^\\]]+)?\\]`;
+        return new RegExp(pattern, 'i');
+    }
+
+    /**
+     * Creates a regex pattern to match any child callout
+     */
+    private createChildCalloutPattern(): RegExp {
+        const childTypes = this.getChildCalloutTypes();
+        if (childTypes.length === 0) {
+            return /^\s*>+\s*\[!(?:dream-)?diary(?:\|[^\]]+)?\]/i; // Fallback pattern
+        }
+        
+        const pattern = `^\\s*>+\\s*\\[!(${childTypes.join('|')})(?:\\|[^\\]]+)?\\]`;
+        return new RegExp(pattern, 'i');
+    }
+
+    /**
+     * Extracts title from any child callout line using structure-aware patterns
+     */
+    private extractTitleFromChildCallout(diaryLine: string, calloutType: string): string {
+        // Create a flexible pattern for the specific callout type
+        const pattern = new RegExp(`\\[!${calloutType.replace(/-/g, '\\-')}[^\\]]*\\](?:\\s*\\[\\[.*?\\]\\])?\\s*(.*?)(?:\\s*\\[\\[|$)`);
+        const titleMatch = diaryLine.match(pattern);
+        
+        if (titleMatch) {
+            return titleMatch[1].trim();
+        }
+        
+        // Try block reference format
+        const blockRefMatch = diaryLine.match(/\[\[.*?\|(.*?)\]\]/);
+        if (blockRefMatch) {
+            return blockRefMatch[1].trim();
+        }
+        
+        // Try plain text after callout
+        const plainTextPattern = new RegExp(`\\[!${calloutType.replace(/-/g, '\\-')}[^\\]]*\\](?:\\s*\\[\\[.*?\\]\\])?\\s*(.*)`);
+        const plainTextMatch = diaryLine.match(plainTextPattern);
+        if (plainTextMatch) {
+            return plainTextMatch[1].trim();
+        }
+        
+        return 'Untitled Dream';
     }
 
     /**
@@ -654,72 +829,91 @@ export class UniversalMetricsCalculator {
             
             // Clean up stack based on level changes, but be more conservative
             // Only clean up if we're at a lower or equal level AND it's a structural callout type
-            if (calloutType && ['journal-entry', 'dream-diary', 'dream-metrics'].includes(calloutType)) {
+            if (calloutType && this.isRecognizedCallout(calloutType)) {
                 while (blockStack.length > 0 && blockStack[blockStack.length - 1].level >= level) {
                     blockStack.pop();
                 }
             }
             
-            if (calloutType === 'journal-entry') {
+            const calloutRole = this.getCalloutRole(calloutType);
+            
+            if (calloutRole === 'root') {
+                // Handle root callout (journal-entry, av-journal, etc.)
                 currentJournal = {
                     lines: [line],
                     diaries: [],
                     level,
-                    idx
+                    idx,
+                    calloutType
                 };
                 journals.push(currentJournal);
-                blockStack.push({ type: 'journal-entry', obj: currentJournal, level });
+                blockStack.push({ type: calloutType, obj: currentJournal, level });
                 calloutsFound++;
-            } else if (calloutType === 'dream-diary') {
+            } else if (calloutRole === 'child') {
+                // Handle child callout (dream-diary, etc.)
                 currentDiary = {
                     lines: [line],
                     metrics: [],
                     level,
-                    idx
+                    idx,
+                    calloutType
                 };
-                // Find the closest journal-entry parent in the stack (more flexible search)
+                
+                // Find the appropriate parent in the stack
+                const possibleParents = this.getParentCalloutType(calloutType);
                 let foundParent = false;
+                
                 for (let i = blockStack.length - 1; i >= 0; i--) {
-                    if (blockStack[i].type === 'journal-entry') {
+                    if (possibleParents.includes(blockStack[i].type)) {
                         blockStack[i].obj.diaries.push(currentDiary);
                         foundParent = true;
-                        this.logger?.debug('Parse', `Attached dream-diary "${line.substring(0, 50)}..." to journal-entry at stack level ${i}`);
+                        this.logger?.debug('Parse', `Attached ${calloutType} "${line.substring(0, 50)}..." to ${blockStack[i].type} at stack level ${i}`);
                         break;
                     }
                 }
+                
                 if (!foundParent) {
-                    // If no journal-entry found in stack, try to find the most recent journal
+                    // If no appropriate parent found in stack, try to find the most recent journal
                     if (journals.length > 0) {
                         const lastJournal = journals[journals.length - 1];
                         lastJournal.diaries.push(currentDiary);
-                        this.logger?.debug('Parse', `Attached orphaned dream-diary "${line.substring(0, 50)}..." to most recent journal-entry`);
+                        this.logger?.debug('Parse', `Attached orphaned ${calloutType} "${line.substring(0, 50)}..." to most recent journal`);
                         foundParent = true;
                     }
                 }
+                
                 if (!foundParent) {
-                    this.logger?.warn('Parse', `No journal-entry parent found for dream-diary at line ${idx}: ${line.substring(0, 100)}`);
+                    this.logger?.warn('Parse', `No appropriate parent found for ${calloutType} at line ${idx}: ${line.substring(0, 100)}`);
                 }
-                blockStack.push({ type: 'dream-diary', obj: currentDiary, level });
+                
+                blockStack.push({ type: calloutType, obj: currentDiary, level });
                 calloutsFound++;
-            } else if (calloutType === 'dream-metrics') {
+            } else if (calloutRole === 'metrics') {
+                // Handle metrics callout (dream-metrics, metrics, etc.)
                 currentMetrics = {
                     lines: [line],
                     level,
-                    idx
+                    idx,
+                    calloutType
                 };
-                // Find the closest dream-diary parent in the stack
+                
+                // Find the appropriate parent in the stack
+                const possibleParents = this.getParentCalloutType(calloutType);
                 let foundParent = false;
+                
                 for (let i = blockStack.length - 1; i >= 0; i--) {
-                    if (blockStack[i].type === 'dream-diary') {
+                    if (possibleParents.includes(blockStack[i].type)) {
                         blockStack[i].obj.metrics.push(currentMetrics);
                         foundParent = true;
                         break;
                     }
                 }
+                
                 if (!foundParent) {
-                    this.logger?.warn('Parse', `No dream-diary parent found for dream-metrics at line ${idx}`);
+                    this.logger?.warn('Parse', `No appropriate parent found for ${calloutType} at line ${idx}`);
                 }
-                blockStack.push({ type: 'dream-metrics', obj: currentMetrics, level });
+                
+                blockStack.push({ type: calloutType, obj: currentMetrics, level });
                 calloutsFound++;
             } else if (calloutType && ['journal-page', 'image', 'note', 'info', 'warning', 'tip', 'blank-container'].includes(calloutType)) {
                 // Ignore non-essential callout types that shouldn't disrupt dream structure
@@ -738,14 +932,17 @@ export class UniversalMetricsCalculator {
             journalsFound: journals.length,
             calloutsFound,
             totalLines: lines.length,
-            dreamDiaryCallouts: journals.reduce((sum: number, j: any) => sum + j.diaries.length, 0),
+            childCallouts: journals.reduce((sum: number, j: any) => sum + j.diaries.length, 0),
+            activeStructures: this.getActiveStructures().map(s => s.name),
+            recognizedCallouts: this.getAllRecognizedCallouts(),
             journalBreakdown: journals.map(j => ({
                 diariesCount: j.diaries.length,
                 totalMetricsBlocks: j.diaries.reduce((sum: number, d: any) => sum + d.metrics.length, 0),
                 diaryTitles: j.diaries.map((d: any) => {
                     const diaryLine = d.lines[0] || '';
-                    const titleMatch = diaryLine.match(/\[!dream-diary[^\]]*\](?:\s*\[\[.*?\]\])?\s*(.*?)(?:\s*\[\[|$)/);
-                    return titleMatch ? titleMatch[1].trim() : 'No title extracted';
+                    const calloutType = d.calloutType || 'unknown';
+                    const title = this.extractTitleFromChildCallout(diaryLine, calloutType);
+                    return title || 'No title extracted';
                 })
             }))
         });
@@ -757,15 +954,17 @@ export class UniversalMetricsCalculator {
                     // Get explicit metrics if they exist
                     let metricsText = '';
                     if (diary.metrics.length > 0) {
-                        // Extract metrics text from explicit [!dream-metrics] callouts only
-                        // Be more precise - only extract lines that are actually within the metrics block
+                        // Create structure-aware metrics pattern
+                        const metricsPattern = this.createMetricsCalloutPattern();
+                        
+                        // Extract metrics text from explicit metrics callouts
                         metricsText = diary.metrics
                             .map((metricsBlock: any) => {
                                 // Filter lines to only include actual metrics content
                                 const metricsLines = metricsBlock.lines
                                     .filter((l: string) => {
-                                        // Exclude the callout header
-                                        if (/^\s*>+\s*\[!dream-metrics(?:\|[^\]]+)?\]/i.test(l)) return false;
+                                        // Exclude the callout header using structure-aware pattern
+                                        if (metricsPattern.test(l)) return false;
                                         // Exclude lines that start other callouts
                                         if (/^\s*>+\s*\[!/.test(l)) return false;
                                         // Only include lines that look like metrics (contain colons or metric-like content)
@@ -791,9 +990,12 @@ export class UniversalMetricsCalculator {
                             .trim();
                     }
                     
-                    // Extract dream content (exclude all callout lines)
+                    // Extract dream content (exclude all callout lines using structure-aware patterns)
+                    const childPattern = this.createChildCalloutPattern();
+                    const metricsPattern = this.createMetricsCalloutPattern();
+                    
                     const diaryContentLines = diary.lines.filter((l: string) => 
-                        !/^>+\s*\[!dream-diary(?:\|[^\]]+)?\]/i.test(l) && !/^>+\s*\[!dream-metrics(?:\|[^\]]+)?\]/i.test(l)
+                        !childPattern.test(l) && !metricsPattern.test(l)
                     );
                     const dreamContent = diaryContentLines
                         .map((l: string) => l.replace(/^>+\s*/, '').trim())
@@ -806,40 +1008,13 @@ export class UniversalMetricsCalculator {
                     const journalLine = journal.lines[0];
                     const date = this.extractDateFromContent([journalLine, lines[journal.idx + 1] || ''], filePath, content);
                     
-                    // Extract title from dream-diary callout line
+                    // Extract title using structure-aware method
                     const diaryLine = diary.lines[0];
-                    let title = '';
-                    let blockId = '';
-                    
-                    // Try dream-diary callout format
-                    const titleMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*?)(?:\s*\[\[|$)/);
-                    if (titleMatch) {
-                        title = titleMatch[1].trim();
-                    }
-                    // Try block reference format
-                    if (!title) {
-                        const blockRefMatch = diaryLine.match(/\[\[.*?\|(.*?)\]\]/);
-                        if (blockRefMatch) {
-                            title = blockRefMatch[1].trim();
-                        }
-                    }
-                    // Try plain text after callout
-                    if (!title) {
-                        const plainTextMatch = diaryLine.match(/\[!dream-diary\](?:\s*\[\[.*?\]\])?\s*(.*)/);
-                        if (plainTextMatch) {
-                            title = plainTextMatch[1].trim();
-                        }
-                    }
-                    // Default if no title found
-                    if (!title) {
-                        title = 'Untitled Dream';
-                    }
+                    const title = this.extractTitleFromChildCallout(diaryLine, diary.calloutType || 'dream-diary');
                     
                     // Extract block ID if present
                     const blockIdMatch = diaryLine.match(/\^(\d{8})/);
-                    if (blockIdMatch) {
-                        blockId = blockIdMatch[1];
-                    }
+                    const blockId = blockIdMatch ? blockIdMatch[1] : '';
                     
                     // Only create entry if we have actual dream content
                     if (dreamContent.trim()) {
@@ -1261,7 +1436,7 @@ export class UniversalMetricsCalculator {
         });
         
         // Remove oldest entries if over size limit
-        if (totalSize > this.maxCacheSize) {
+        if (totalSize > this.maxCacheSize * 0.8) {
             const sortedEntries = entries
                 .filter(([_, entry]) => Date.now() - entry.timestamp <= entry.ttl)
                 .sort(([_, a], [__, b]) => a.timestamp - b.timestamp);

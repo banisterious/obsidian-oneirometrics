@@ -338,6 +338,42 @@ export const DEFAULT_JOURNAL_STRUCTURE_SETTINGS: JournalStructureSettings = {
     ],
     structures: [
         {
+            id: 'legacy-dream-structure',
+            name: 'Legacy Dream Structure',
+            description: 'Default OneiroMetrics dream journal structure (journal-entry/dream-diary/dream-metrics)',
+            type: 'nested',
+            rootCallout: 'journal-entry',
+            childCallouts: ['dream-diary'],
+            metricsCallout: 'dream-metrics',
+            dateFormat: ['YYYY-MM-DD'],
+            requiredFields: ['journal-entry', 'dream-diary'],
+            optionalFields: ['dream-metrics']
+        },
+        {
+            id: 'av-journal-structure',
+            name: 'AV Journal Structure',
+            description: 'Audio-Visual journal format with av-journal root callout',
+            type: 'nested',
+            rootCallout: 'av-journal',
+            childCallouts: ['dream-diary'],
+            metricsCallout: 'dream-metrics',
+            dateFormat: ['YYYY-MM-DD'],
+            requiredFields: ['av-journal', 'dream-diary'],
+            optionalFields: ['dream-metrics']
+        },
+        {
+            id: 'simple-dream-structure',
+            name: 'Simple Dream Structure',
+            description: 'Simplified flat structure for basic dream journaling',
+            type: 'flat',
+            rootCallout: 'dream',
+            childCallouts: [],
+            metricsCallout: 'metrics',
+            dateFormat: ['YYYY-MM-DD'],
+            requiredFields: ['dream'],
+            optionalFields: ['metrics']
+        },
+        {
             id: 'default-dream-structure',
             name: 'Default Dream Structure',
             description: 'Standard dream journal structure with required callouts',
