@@ -29,20 +29,20 @@
 
 ## 🗓️ **Key Milestones**
 
-| Milestone | Target Date | Status | Deliverables |
-|-----------|-------------|--------|--------------|
-| **Project Initiation** | 2025-06-01 | ✅ Complete | Project document, planning complete |
-| **Phase 1 Start** | 2025-06-02 | 🔄 In Progress | Core integration begins |
-| **AV-Journal Fix** | 2025-06-03 | ⏳ Pending | `[!av-journal]` callouts recognized |
-| **Structure Integration** | 2025-06-05 | ⏳ Pending | Hardcoded callouts replaced |
-| **Phase 1 Complete** | 2025-06-08 | ⏳ Pending | Core integration functional |
-| **Phase 2 Start** | 2025-06-09 | ⏳ Pending | UI development begins |
-| **Structure Manager UI** | 2025-06-16 | ⏳ Pending | Basic structure management |
-| **Phase 2 Complete** | 2025-06-29 | ⏳ Pending | Full configurability available |
-| **Phase 3 Start** | 2025-06-30 | ⏳ Pending | Advanced features begin |
-| **Auto-Detection** | 2025-07-14 | ⏳ Pending | Structure detection implemented |
-| **Migration Tools** | 2025-07-21 | ⏳ Pending | Content migration capabilities |
-| **Project Complete** | 2025-07-28 | ⏳ Pending | All phases delivered |
+| Milestone | Status | Deliverables |
+|-----------|--------|--------------|
+| **Project Initiation** | ✅ Complete | Project document, planning complete |
+| **Phase 1 Start** | 🔄 In Progress | Core integration begins |
+| **AV-Journal Fix** | ⏳ Pending | `[!av-journal]` callouts recognized |
+| **Structure Integration** | ⏳ Pending | Hardcoded callouts replaced |
+| **Phase 1 Complete** | ⏳ Pending | Core integration functional |
+| **Phase 2 Start** | ⏳ Pending | UI development begins |
+| **Structure Manager UI** | ⏳ Pending | Basic structure management |
+| **Phase 2 Complete** | ⏳ Pending | Full configurability available |
+| **Phase 3 Start** | ⏳ Pending | Advanced features begin |
+| **Auto-Detection** | ⏳ Pending | Structure detection implemented |
+| **Migration Tools** | ⏳ Pending | Content migration capabilities |
+| **Project Complete** | ⏳ Pending | All phases delivered |
 
 ---
 
@@ -109,22 +109,22 @@
 
 ### **Decision Log**
 
-| Date | Decision | Rationale | Impact | Status |
-|------|----------|-----------|--------|--------|
-| 2025-01-06 | Use existing CalloutStructure system | Leverage existing foundation | Low risk, faster implementation | ✅ Approved |
-| 2025-01-06 | Prioritize backward compatibility | Protect existing users | Slower initial development | ✅ Approved |
-| 2025-01-06 | Phase-based implementation | Incremental value delivery | Manageable complexity | ✅ Approved |
-| TBD | UI framework choice | TBD | TBD | ⏳ Pending |
-| TBD | Testing strategy details | TBD | TBD | ⏳ Pending |
+| Decision | Rationale | Impact | Status |
+|----------|-----------|--------|--------|
+| Use existing CalloutStructure system | Leverage existing foundation | Low risk, faster implementation | ✅ Approved |
+| Prioritize backward compatibility | Protect existing users | Slower initial development | ✅ Approved |
+| Phase-based implementation | Incremental value delivery | Manageable complexity | ✅ Approved |
+| UI framework choice | TBD | TBD | ⏳ Pending |
+| Testing strategy details | TBD | TBD | ⏳ Pending |
 
 ### **Resource Allocation**
 
-| Phase | Estimated Effort | Skills Required | Timeline | Notes |
-|-------|------------------|-----------------|----------|--------|
-| **Phase 1** | 1 week | TypeScript, Obsidian API | 2025-01-07 → 2025-01-13 | Critical path |
-| **Phase 2** | 2-3 weeks | UI/UX, Modal development | 2025-01-14 → 2025-02-03 | Parallel development possible |
-| **Phase 3** | 2-4 weeks | Algorithm design, Migration tools | 2025-02-04 → 2025-03-03 | Enhancement phase |
-| **Testing** | Ongoing | Test automation, QA | Throughout project | Continuous |
+| Phase | Estimated Effort | Skills Required | Notes |
+|-------|------------------|-----------------|-------|
+| **Phase 1** | 1 week | TypeScript, Obsidian API | Critical path |
+| **Phase 2** | 2-3 weeks | UI/UX, Modal development | Parallel development possible |
+| **Phase 3** | 2-4 weeks | Algorithm design, Migration tools | Enhancement phase |
+| **Testing** | Ongoing | Test automation, QA | Continuous |
 
 ---
 
