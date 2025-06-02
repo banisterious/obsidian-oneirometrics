@@ -193,6 +193,8 @@
     --oom-toggle-height: 20px;
     --oom-toggle-slider-size: 16px;
     --oom-toggle-border-radius: 10px;
+    --oom-toggle-border-width: 2px;
+    --oom-toggle-travel: 20px;  /* Should be toggle-width minus slider-size minus 2*border-width */
     
     /* =============================================================================
        ICON COMPONENT VARIABLES
@@ -1081,13 +1083,58 @@
 .oom-calendar-container {
     /* NO VISUAL STYLING - Let theme handle container appearance */
     /* Structural layout only */
-    padding: var(--oom-spacing-md);
+    /*padding: var(--oom-spacing-md);*/
+}
+
+/* Fixed calendar dimensions - prevent horizontal growth */
+.oom-date-selection-modal .oom-calendar-container {
+    width: 100%;
+    max-width: 420px; /* Fixed maximum width */
+    margin: 0 auto;
+}
+
+.oom-date-selection-modal .oom-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* Always 7 equal columns */
+    width: 100%;
+    max-width: 420px;
+    gap: 4px;
+    margin: 0 auto;
+}
+
+.oom-date-selection-modal .oom-calendar-day {
+    width: 100%;
+    max-width: 50px;
+    height: 40px;
+    min-width: 40px; /* Prevent shrinking too small */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.oom-date-selection-modal .oom-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* Match calendar grid */
+    width: 100%;
+    max-width: 420px;
+    gap: 4px;
+    margin: 0 auto 8px auto;
+}
+
+.oom-date-selection-modal .oom-day-header {
+    width: 100%;
+    max-width: 50px;
+    min-width: 40px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .oom-date-navigation {
     /* NO VISUAL STYLING - Let theme handle navigation appearance */
     /* Structural layout only */
-    margin-bottom: var(--oom-spacing-lg);
+    /*margin-bottom: var(--oom-spacing-lg);*/
 }
 
 /* Date Navigator Layouts */
@@ -1126,7 +1173,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: var(--oom-spacing-lg);
+    /*margin-top: var(--oom-spacing-lg);*/
 }
 
 /* Quick Navigation Layout */
@@ -1136,7 +1183,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: var(--oom-spacing-md);
+    /*margin-bottom: var(--oom-spacing-md);*/
 }
 
 .oom-quick-nav-buttons {
@@ -1193,7 +1240,7 @@
 .oom-text-input-section {
     /* NO VISUAL STYLING - Let theme handle section appearance */
     /* Structural layout only */
-    margin-bottom: var(--oom-spacing-lg);
+    /*margin-bottom: var(--oom-spacing-lg);*/
     
     &.collapsed .oom-text-input-row {
         display: none;
@@ -1621,7 +1668,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: var(--oom-spacing-md) 0;
+    /*margin: var(--oom-spacing-md) 0;*/
 }
 
 .oom-selected-text {
@@ -1717,8 +1764,8 @@
             /* Enhanced indicator for selected multi-select dates */
             top: 1px;
             right: 1px;
-            height: 10px;
             width: 10px;
+            height: 10px;
         }
     }
     
@@ -3600,7 +3647,7 @@ input.oom-folder-autocomplete-input,
     /* === STRUCTURAL PROPERTIES === */
     font-size: var(--oom-input-label-size);
     font-weight: var(--font-medium);
-    margin-bottom: var(--oom-spacing-xs);
+    /*margin-bottom: var(--oom-spacing-xs);*/
     
     /* NO VISUAL STYLING - Let theme handle label styling */
 }
@@ -3763,7 +3810,7 @@ input.oom-folder-autocomplete-input,
 
 .oom-text-input-section {
     /* === STRUCTURAL PROPERTIES === */
-    margin-bottom: var(--oom-spacing-sm);
+    /*margin-bottom: var(--oom-spacing-sm);*/
     padding: var(--oom-spacing-sm);
     border-radius: var(--oom-radius-md);
     
@@ -6711,7 +6758,7 @@ div#oom-time-filter-display {
     /* === STRUCTURAL PROPERTIES === */
     width: var(--oom-date-selection-width);
     max-width: var(--oom-date-selection-max-width);
-    padding: var(--oom-spacing-lg);
+    padding: 0 1em;
     
     /* NO VISUAL STYLING - Let theme handle modal styling */
 }
@@ -6740,7 +6787,7 @@ div#oom-time-filter-display {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--oom-spacing-md);
+    /*margin-bottom: var(--oom-spacing-md);*/
     padding: var(--oom-spacing-sm) 0;
     
     /* NO VISUAL STYLING - Let theme handle navigation styling */
@@ -6839,7 +6886,7 @@ div#oom-time-filter-display {
     /* === STRUCTURAL PROPERTIES === */
     display: flex;
     justify-content: center;
-    margin-bottom: var(--oom-spacing-md);
+    /*margin-bottom: var(--oom-spacing-md);*/
     gap: var(--oom-spacing-sm);
     
     /* NO VISUAL STYLING - Let theme handle quick nav styling */
@@ -6860,7 +6907,7 @@ div#oom-time-filter-display {
 .oom-calendar-container {
     /* === STRUCTURAL PROPERTIES === */
     width: 100%;
-    margin-bottom: var(--oom-spacing-md);
+    /*margin-bottom: var(--oom-spacing-md);*/
     
     /* NO VISUAL STYLING - Let theme handle container styling */
 }
@@ -7154,8 +7201,8 @@ div#oom-time-filter-display {
     display: flex;
     justify-content: space-between;
     gap: var(--oom-spacing-sm);
-    margin-top: var(--oom-spacing-lg);
-    padding-top: var(--oom-spacing-md);
+    /*margin-top: var(--oom-spacing-lg);
+    padding-top: var(--oom-spacing-md);*/
     
     /* NO VISUAL STYLING - Let theme handle action button container */
 }
@@ -7187,9 +7234,9 @@ div#oom-time-filter-display {
 
 .oom-selection-info {
     /* === STRUCTURAL PROPERTIES === */
-    padding: var(--oom-spacing-sm);
+    /*padding: var(--oom-spacing-sm);*/
     border-radius: var(--oom-radius-sm);
-    margin-bottom: var(--oom-spacing-md);
+    /*margin-bottom: var(--oom-spacing-md);*/
     text-align: center;
     font-size: var(--font-ui-small);
     
@@ -7814,10 +7861,71 @@ div#oom-time-filter-display {
 }
 
 /* === DATE SELECTION MODAL === */
+
+/* Fixed Modal and Calendar Dimensions */
+.oom-date-selection-modal .modal-content {
+    width: 500px !important;
+    max-width: 500px !important;
+    min-width: 500px !important;
+}
+
+.oom-date-selection-modal {
+    height: var(--modal-height);
+    width: 565px !important;
+    max-width: 565px !important;
+}
+
+.oom-date-selection-modal .oom-calendar-container {
+    width: 420px !important;
+    max-width: 420px !important;
+    min-width: 420px !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+}
+
+.oom-date-selection-modal .oom-calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 60px) !important;
+    width: 420px !important;
+    max-width: 420px !important;
+    gap: 0 !important;
+    margin: 0 auto !important;
+}
+
+.oom-date-selection-modal .oom-calendar-day {
+    width: 60px !important;
+    height: 40px !important;
+    max-width: 60px !important;
+    min-width: 60px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+}
+
+.oom-date-selection-modal .oom-days-header {
+    display: grid !important;
+    grid-template-columns: repeat(7, 60px) !important;
+    width: 420px !important;
+    max-width: 420px !important;
+    gap: 0 !important;
+    margin: 0 auto 8px auto !important;
+}
+
+.oom-date-selection-modal .oom-day-header {
+    width: 60px !important;
+    max-width: 60px !important;
+    min-width: 60px !important;
+    text-align: center !important;
+    flex-shrink: 0 !important;
+}
+
 .oom-date-selection-modal {
     /* Date selection interface - structural only */
     .oom-text-input-section {
-        margin-bottom: var(--oom-spacing-md);
+        /*margin-bottom: var(--oom-spacing-md);*/
         
         &.collapsed .oom-text-input-row {
             display: none;
@@ -7839,6 +7947,197 @@ div#oom-time-filter-display {
             }
         }
     }
+}
+
+/* Date Navigation Layout - Vertical year/month stacking */
+.oom-date-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /*margin-bottom: 16px;*/
+}
+
+/* Date controls section - vertical layout for year and month */
+.oom-date-navigation .oom-quick-navigation:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 16px;
+}
+
+/* Year navigation - centered horizontal layout */
+.oom-date-navigation .oom-quick-navigation:first-child .oom-year-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Month navigation - centered horizontal layout */
+.oom-date-navigation .oom-quick-navigation:first-child .oom-month-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Enhanced Toggle Visual Feedback - Date Selection Modal */
+.oom-date-selection-modal .oom-toggle-switch {
+    background-color: #4a4a4a;
+    border: 2px solid #666;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.oom-date-selection-modal .oom-toggle-switch:hover {
+    background-color: #555;
+    border-color: #777;
+}
+
+.oom-date-selection-modal .oom-toggle-slider {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* ACTIVE STATE - Using data-checked attribute */
+.oom-date-selection-modal .oom-toggle-switch[data-checked="true"] {
+    background-color: #007acc !important;
+    border-color: #005c99 !important;
+}
+
+.oom-date-selection-modal .oom-toggle-switch[data-checked="true"]:hover {
+    background-color: #0099ff !important;
+}
+
+.oom-date-selection-modal .oom-toggle-switch[data-checked="true"] .oom-toggle-slider {
+    background-color: #fff !important;
+    transform: translateX(20px) !important;
+}
+
+/* Backup: CSS for checked input (if data-checked doesn't work) */
+.oom-date-selection-modal .oom-toggle-input:checked + .oom-toggle-switch {
+    background-color: #007acc !important;
+    border-color: #005c99 !important;
+}
+
+.oom-date-selection-modal .oom-toggle-input:checked + .oom-toggle-switch .oom-toggle-slider {
+    transform: translateX(20px) !important;
+}
+
+/* Year and month display styling */
+.oom-year-display {
+    font-weight: 600;
+    /*min-width: 80px;*/
+    text-align: center;
+    padding: 2px 8px;
+    font-size: 1.1em;
+}
+
+.oom-month-display {
+    font-weight: 600;
+    /*min-width: 140px;*/
+    text-align: center;
+    padding: 2px 8px;
+    font-size: 1.05em;
+}
+
+/* Quick action buttons and toggles layout */
+.oom-date-navigation .oom-quick-navigation:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+}
+
+.oom-quick-nav-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.oom-toggle-container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+/* Toggle Switch Visual Styling for Date Selection Modal */
+.oom-date-selection-modal .oom-toggle-switch {
+    /* Background styling for toggle track */
+    background-color: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.oom-date-selection-modal .oom-toggle-switch:hover {
+    background-color: var(--interactive-hover);
+}
+
+.oom-date-selection-modal .oom-toggle-slider {
+    /* Slider appearance */
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Active/checked state styling */
+.oom-date-selection-modal .oom-toggle-switch:has(.oom-toggle-input:checked) {
+    background-color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+}
+
+.oom-date-selection-modal .oom-toggle-switch:has(.oom-toggle-input:checked):hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-date-selection-modal .oom-toggle-switch:has(.oom-toggle-input:checked) .oom-toggle-slider {
+    background-color: var(--text-on-accent);
+    border-color: var(--text-on-accent);
+}
+
+/* Toggle label styling */
+.oom-date-selection-modal .oom-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.oom-date-selection-modal .oom-toggle-text {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+/* Focus states for accessibility */
+.oom-date-selection-modal .oom-toggle-input:focus + .oom-toggle-switch {
+    outline: 2px solid var(--background-modifier-border-focus);
+    outline-offset: 2px;
+}
+
+/* Ensure toggle input checkboxes are completely hidden */
+.oom-date-selection-modal .oom-toggle-input {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+/* Alternative: Move the input outside the visual flow completely */
+.oom-date-selection-modal .oom-toggle-input {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
 }
 
 /* =============================================================================
@@ -7899,7 +8198,7 @@ div#oom-time-filter-display {
 .oom-selection-info {
     padding: var(--oom-spacing-sm);
     border-radius: var(--oom-radius-sm);
-    margin-bottom: var(--oom-spacing-md);
+    /*margin-bottom: var(--oom-spacing-md);*/
     
     /* NO VISUAL STYLING - Let theme handle info box styling */
 }

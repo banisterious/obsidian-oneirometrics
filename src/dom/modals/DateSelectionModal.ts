@@ -94,8 +94,11 @@ export class DateSelectionModal extends Modal {
     private createNavigation(container: HTMLElement): void {
         const navSection = container.createDiv('oom-date-navigation');
         
+        // Date Controls Section (Year and Month) - styled like quick-navigation
+        const dateControlsSection = navSection.createDiv('oom-quick-navigation');
+        
         // Year navigation for multi-year spans
-        const yearNav = navSection.createDiv('oom-year-nav');
+        const yearNav = dateControlsSection.createDiv('oom-year-nav');
         
         new ButtonComponent(yearNav)
             .setButtonText('◀◀')
@@ -113,7 +116,7 @@ export class DateSelectionModal extends Modal {
             .onClick(() => this.navigateYear(1));
         
         // Month navigation
-        const monthNav = navSection.createDiv('oom-month-nav');
+        const monthNav = dateControlsSection.createDiv('oom-month-nav');
         
         new ButtonComponent(monthNav)
             .setButtonText('◀')
@@ -130,7 +133,7 @@ export class DateSelectionModal extends Modal {
             .setTooltip('Next Month')
             .onClick(() => this.navigateMonth(1));
         
-        // Quick navigation buttons
+        // Quick action buttons section - styled like quick-navigation
         const quickNav = navSection.createDiv('oom-quick-navigation');
         
         // Quick nav buttons container
@@ -144,7 +147,7 @@ export class DateSelectionModal extends Modal {
             .setButtonText('This Month')
             .onClick(() => this.selectCurrentMonth());
         
-        // Range Mode toggle positioned to the right
+        // Mode toggles positioned to the right
         const toggleContainer = quickNav.createDiv('oom-toggle-container');
         
         // Range Mode Toggle
@@ -156,9 +159,17 @@ export class DateSelectionModal extends Modal {
             cls: 'oom-toggle-input oom-range-toggle'
         }) as HTMLInputElement;
         rangeToggleInput.checked = this.isRangeMode;
-        rangeToggleInput.addEventListener('change', () => this.toggleRangeMode());
+        rangeToggleInput.addEventListener('change', () => {
+            this.toggleRangeMode();
+            // Update visual state manually for reliability
+            const toggleSwitch = rangeToggleInput.nextElementSibling as HTMLElement;
+            if (toggleSwitch) {
+                toggleSwitch.setAttribute('data-checked', rangeToggleInput.checked.toString());
+            }
+        });
         
         const rangeToggleSwitch = rangeToggleLabel.createEl('div', { cls: 'oom-toggle-switch' });
+        rangeToggleSwitch.setAttribute('data-checked', this.isRangeMode.toString());
         rangeToggleSwitch.createEl('div', { cls: 'oom-toggle-slider' });
         
         // Multi-Select Mode Toggle
@@ -170,9 +181,17 @@ export class DateSelectionModal extends Modal {
             cls: 'oom-toggle-input oom-multi-toggle'
         }) as HTMLInputElement;
         multiToggleInput.checked = this.isMultiSelectMode;
-        multiToggleInput.addEventListener('change', () => this.toggleMultiSelectMode());
+        multiToggleInput.addEventListener('change', () => {
+            this.toggleMultiSelectMode();
+            // Update visual state manually for reliability
+            const toggleSwitch = multiToggleInput.nextElementSibling as HTMLElement;
+            if (toggleSwitch) {
+                toggleSwitch.setAttribute('data-checked', multiToggleInput.checked.toString());
+            }
+        });
         
         const multiToggleSwitch = multiToggleLabel.createEl('div', { cls: 'oom-toggle-switch' });
+        multiToggleSwitch.setAttribute('data-checked', this.isMultiSelectMode.toString());
         multiToggleSwitch.createEl('div', { cls: 'oom-toggle-slider' });
     }
 
