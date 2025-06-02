@@ -9595,3 +9595,78 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
         display: none !important;
     }
 }
+
+/* ==========================================================================
+   16. CALLOUT QUICK COPY - Enhanced sections and flattening toggle
+   ========================================================================== */
+
+.oom-callout-section {
+    margin-bottom: var(--oom-spacing-xl);
+    padding: var(--oom-spacing-lg);
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-lg);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-callout-section h3 {
+    margin: 0 0 var(--oom-spacing-lg) 0;
+    color: var(--text-normal);
+    font-size: var(--font-ui-large);
+    font-weight: 600;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: var(--oom-spacing-sm);
+}
+
+.oom-callout-section .oom-callout-structure-box {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.oom-callout-section .oom-copy-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.oom-callout-settings {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: var(--oom-spacing-lg);
+    margin-top: var(--oom-spacing-xl);
+}
+
+.oom-callout-settings h3 {
+    margin: 0 0 var(--oom-spacing-lg) 0;
+    color: var(--text-normal);
+    font-size: var(--font-ui-large);
+    font-weight: 600;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: var(--oom-spacing-sm);
+}
+
+/* Responsive design for callout sections */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-callout-section {
+        padding: var(--oom-spacing-md);
+        margin-bottom: var(--oom-spacing-lg);
+    }
+    
+    .oom-callout-section h3 {
+        font-size: var(--font-ui-medium);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-callout-section {
+        padding: var(--oom-spacing-sm);
+        margin-bottom: var(--oom-spacing-md);
+    }
+    
+    .oom-callout-section .oom-callout-structure-box {
+        margin-bottom: var(--oom-spacing-md);
+        font-size: 0.85em;
+        min-height: 70px;
+    }
+    
+    .oom-callout-section .oom-copy-btn {
+        font-size: var(--font-ui-smaller);
+        padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    }
+}
