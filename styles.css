@@ -4421,50 +4421,6 @@ input.oom-folder-autocomplete-input,
 }
 
 /* =============================================================================
-   JOURNAL STRUCTURE NAVIGATION
-   ============================================================================= */
-
-.oom-journal-structure-sidebar {
-    /* === STRUCTURAL PROPERTIES === */
-    width: var(--oom-structure-sidebar-width);
-    padding: var(--oom-spacing-md);
-    overflow-y: auto;
-    
-    /* NO VISUAL STYLING - Let theme handle structure sidebar styling */
-}
-
-.oom-journal-structure-sections {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    flex-direction: column;
-    gap: var(--oom-spacing-sm);
-}
-
-.oom-journal-section {
-    /* === STRUCTURAL PROPERTIES === */
-    padding: var(--oom-spacing-sm);
-    border-radius: var(--oom-radius-sm);
-    
-    /* NO VISUAL STYLING - Let theme handle section styling */
-    
-    &:last-child {
-        margin-bottom: 0;
-    }
-}
-
-.oom-section-header {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--oom-spacing-xs);
-    font-weight: 600;
-    font-size: var(--font-ui-medium);
-    
-    /* NO VISUAL STYLING - Let theme handle header styling */
-}
-
-/* =============================================================================
    RESPONSIVE DESIGN - Mobile First
    ============================================================================= */
 
@@ -7815,15 +7771,107 @@ div#oom-time-filter-display {
     }
 }
 
-/* === JOURNAL STRUCTURE & MANAGER MODALS === */
-.oom-journal-structure-modal,
-.oom-journal-manager-modal {
-    /* Complex interface modals - structural layout only */
+/* =============================================================================
+   JOURNAL STRUCTURE FORM STYLING
+   ============================================================================= */
+
+/* Base form field layout - emulates Obsidian settings */
+.oom-form-field,
+.oom-setting-toggle {
     display: flex;
-    flex-direction: column;
-    
-    /* NO VISUAL STYLING - Let theme handle */
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--oom-spacing-md);
+    padding: var(--oom-spacing-sm) 0;
+    min-height: 40px;
 }
+
+/* Labels and descriptions - left aligned */
+.oom-form-label,
+.oom-setting-info,
+.oom-form-field .oom-form-label {
+    margin: 0;
+    font-weight: 500;
+    flex: 1;
+    text-align: left;
+    line-height: 1.4;
+}
+
+/* Form controls - right aligned */
+.oom-form-control,
+.oom-form-field .oom-toggle-container,
+.oom-form-field-toggle .oom-toggle-container {
+    flex: 0 0 auto;
+    margin: 0;
+    margin-left: auto;
+}
+
+/* Simple toggle styling - back to basics */
+.oom-toggle-container {
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+}
+
+/* Structure list item layout */
+.oom-structure-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--radius-m);
+    margin-bottom: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-structure-list-item .oom-structure-toggle {
+    display: flex;
+    align-items: center;
+    margin-right: var(--oom-spacing-sm);
+    order: -1;
+}
+
+.oom-structure-list-item .oom-structure-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.oom-structure-list-item .oom-structure-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* Section styling */
+.oom-journal-section {
+    padding: var(--oom-spacing-md);
+    border-radius: var(--radius-m);
+    margin-bottom: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--oom-spacing-sm);
+    font-weight: 600;
+    font-size: var(--font-ui-medium);
+    padding-bottom: var(--oom-spacing-xs);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Form spacing */
+.oom-journal-structure-modal .oom-form-field + .oom-form-field {
+    border-top: 1px solid var(--background-modifier-border-hover);
+    margin-top: var(--oom-spacing-xs);
+    padding-top: var(--oom-spacing-sm);
+}
+
+
+
 
 /* === TEST SUITE MODALS === */
 .oom-dream-journal-test-modal,
@@ -7981,51 +8029,6 @@ div#oom-time-filter-display {
     align-items: center;
     gap: 12px;
     justify-content: center;
-}
-
-/* Enhanced Toggle Visual Feedback - Date Selection Modal */
-.oom-date-selection-modal .oom-toggle-switch {
-    background-color: #4a4a4a;
-    border: 2px solid #666;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-}
-
-.oom-date-selection-modal .oom-toggle-switch:hover {
-    background-color: #555;
-    border-color: #777;
-}
-
-.oom-date-selection-modal .oom-toggle-slider {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-}
-
-/* ACTIVE STATE - Using data-checked attribute */
-.oom-date-selection-modal .oom-toggle-switch[data-checked="true"] {
-    background-color: #007acc !important;
-    border-color: #005c99 !important;
-}
-
-.oom-date-selection-modal .oom-toggle-switch[data-checked="true"]:hover {
-    background-color: #0099ff !important;
-}
-
-.oom-date-selection-modal .oom-toggle-switch[data-checked="true"] .oom-toggle-slider {
-    background-color: #fff !important;
-    transform: translateX(20px) !important;
-}
-
-/* Backup: CSS for checked input (if data-checked doesn't work) */
-.oom-date-selection-modal .oom-toggle-input:checked + .oom-toggle-switch {
-    background-color: #007acc !important;
-    border-color: #005c99 !important;
-}
-
-.oom-date-selection-modal .oom-toggle-input:checked + .oom-toggle-switch .oom-toggle-slider {
-    transform: translateX(20px) !important;
 }
 
 /* Year and month display styling */

@@ -1308,51 +1308,22 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         const controlEl = settingEl.createDiv({ cls: 'oom-setting-control' });
         
-        // Create toggle container
-        const toggleContainer = controlEl.createDiv({ cls: 'oom-toggle-container' });
+        // Use Obsidian's native checkbox structure
+        const toggleContainer = controlEl.createDiv({ cls: 'checkbox-container' });
         
-        // Create hidden checkbox for functionality
         const toggleInput = toggleContainer.createEl('input', {
-            type: 'checkbox',
-            cls: 'oom-toggle-input'
+            type: 'checkbox'
         });
         toggleInput.checked = defaultValue;
         
-        // Create visual toggle switch
-        const toggleSwitch = toggleContainer.createDiv({ cls: 'oom-toggle-switch' });
-        const toggleSlider = toggleSwitch.createDiv({ cls: 'oom-toggle-slider' });
-        
-        // Update visual state based on input
-        const updateToggleVisual = () => {
-            if (toggleInput.checked) {
-                toggleSwitch.addClass('oom-toggle-on');
-                toggleSwitch.removeClass('oom-toggle-off');
-            } else {
-                toggleSwitch.addClass('oom-toggle-off');
-                toggleSwitch.removeClass('oom-toggle-on');
-            }
-        };
-        
-        // Set initial visual state
-        updateToggleVisual();
-        
         // Handle toggle interaction
         const handleToggle = () => {
-            toggleInput.checked = !toggleInput.checked;
-            updateToggleVisual();
             onChange(toggleInput.checked);
             this.plugin.saveSettings();
         };
         
-        // Add click handlers to both input and visual switch
-        toggleInput.addEventListener('change', () => {
-            updateToggleVisual();
-            onChange(toggleInput.checked);
-            this.plugin.saveSettings();
-        });
-        
-        toggleSwitch.addEventListener('click', handleToggle);
-        toggleContainer.addEventListener('click', handleToggle);
+        // Add change handler
+        toggleInput.addEventListener('change', handleToggle);
         
         return settingEl;
     }
@@ -2120,33 +2091,34 @@ This metric assesses **how well your memory of the dream holds up and remains co
     }
     
     /**
-     * Create enhanced structure list item with inline editing capabilities
+     * Create enhanced structure list item with native Obsidian toggles
      */
     private createEnhancedStructureListItem(containerEl: HTMLElement, structure: any) {
-        const itemEl = containerEl.createDiv({ 
-            cls: 'oom-structure-item',
-            attr: { 'data-structure-id': structure.id }
-        });
+        const itemEl = containerEl.createDiv({ cls: 'oom-structure-item' });
         
-        // Structure summary (always visible)
-        const summaryEl = itemEl.createDiv({ cls: 'oom-structure-summary' });
+        // Header with toggle, info, and actions
+        const headerEl = itemEl.createDiv({ cls: 'oom-structure-header' });
         
-        // Header with toggle and actions
-        const headerEl = summaryEl.createDiv({ cls: 'oom-structure-header' });
-        
-        // Enable/disable toggle
+        // Enable/disable toggle using Obsidian's native checkbox
         const toggleEl = headerEl.createDiv({ cls: 'oom-structure-toggle' });
-        const checkbox = toggleEl.createEl('input', {
+        const toggleContainer = toggleEl.createDiv({ cls: 'checkbox-container' });
+        
+        const checkbox = toggleContainer.createEl('input', {
             type: 'checkbox'
         });
         checkbox.checked = structure.enabled !== false; // Default to enabled if not specified
-        checkbox.addEventListener('change', async () => {
+        
+        // Handle toggle clicks
+        const handleToggle = () => {
             structure.enabled = checkbox.checked;
-            await this.plugin.saveSettings();
+            this.plugin.saveSettings();
             
             // Update visual state
             itemEl.classList.toggle('disabled', !checkbox.checked);
-        });
+        };
+        
+        // Event listeners
+        checkbox.addEventListener('change', handleToggle);
         
         // Structure info
         const infoEl = headerEl.createDiv({ cls: 'oom-structure-info' });
@@ -2392,22 +2364,24 @@ This metric assesses **how well your memory of the dream holds up and remains co
         optionsSection.createEl('h4', { text: 'Options', cls: 'oom-form-section-title' });
         
         // Enabled toggle
-        const enabledField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-checkbox' });
-        const enabledCheckbox = enabledField.createEl('input', {
-            type: 'checkbox',
-            cls: 'oom-form-checkbox'
+        const enabledField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-toggle' });
+        enabledField.createEl('label', { text: 'Enabled', cls: 'oom-form-label' });
+        
+        const enabledToggleContainer = enabledField.createDiv({ cls: 'checkbox-container' });
+        const enabledCheckbox = enabledToggleContainer.createEl('input', {
+            type: 'checkbox'
         });
         enabledCheckbox.checked = structure.enabled !== false;
-        enabledField.createEl('label', { text: 'Enabled', cls: 'oom-form-checkbox-label' });
         
         // Default for new entries toggle  
-        const defaultField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-checkbox' });
-        const defaultCheckbox = defaultField.createEl('input', {
-            type: 'checkbox',
-            cls: 'oom-form-checkbox'
+        const defaultField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-toggle' });
+        defaultField.createEl('label', { text: 'Default for new entries', cls: 'oom-form-label' });
+        
+        const defaultToggleContainer = defaultField.createDiv({ cls: 'checkbox-container' });
+        const defaultCheckbox = defaultToggleContainer.createEl('input', {
+            type: 'checkbox'
         });
         defaultCheckbox.checked = structure.isDefault || false;
-        defaultField.createEl('label', { text: 'Default for new entries', cls: 'oom-form-checkbox-label' });
         
         // ========== LIVE PREVIEW SECTION ==========
         const previewSection = formEl.createDiv({ cls: 'oom-form-section' });
