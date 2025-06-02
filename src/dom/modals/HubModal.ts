@@ -1178,55 +1178,90 @@ This metric assesses **how well your memory of the dream holds up and remains co
         });
     }
 
-    // Enhanced Journal Structure content with full functionality
+    // Enhanced Journal Structure content with full functionality - Phase 2.4 Redesign
     private loadJournalStructureContent() {
         this.contentContainer.empty();
         
-        // Add welcome text
-        const welcomeText = this.contentContainer.createDiv({ 
-            cls: 'oom-metrics-tabs-journal-structure-text' 
+        // Add header section
+        const headerSection = this.contentContainer.createDiv({ 
+            cls: 'oom-journal-structure-header' 
         });
         
-        welcomeText.createEl('h2', { text: 'Journal Structure' });
+        headerSection.createEl('h2', { text: 'Journal Structure' });
         
-        welcomeText.createEl('p', { 
-            text: 'Configure journal structure settings, templates, validation rules, and interface preferences.'
+        headerSection.createEl('p', { 
+            text: 'Configure journal structure settings, templates, validation rules, and interface preferences.',
+            cls: 'oom-journal-structure-description'
         });
         
-        // Create main content container for sections
-        const sectionsContainer = this.contentContainer.createDiv({ 
-            cls: 'oom-journal-structure-sections' 
+        // Create main content container - single page layout
+        const mainContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-journal-structure-main' 
         });
         
-        // Overview Section
-        const overviewSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
-        overviewSection.createEl('h3', { text: 'Overview', cls: 'oom-section-header' });
-        this.buildOverviewSection(overviewSection);
+        // ========== VALIDATION SECTION ==========
+        const validationSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
+        validationSection.createEl('h3', { text: 'Validation', cls: 'oom-section-header' });
+        this.buildValidationSection(validationSection);
         
-        // Structures Section
-        const structuresSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        // ========== STRUCTURES SECTION ==========
+        const structuresSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
         structuresSection.createEl('h3', { text: 'Structures', cls: 'oom-section-header' });
         this.buildStructuresSection(structuresSection);
         
-        // Templates Section
-        const templatesSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        // ========== TEMPLATES SECTION ==========
+        const templatesSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
         templatesSection.createEl('h3', { text: 'Templates', cls: 'oom-section-header' });
         this.buildTemplatesSection(templatesSection);
         
-        // Templater Integration Section
-        const templaterSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        // ========== TEMPLATER INTEGRATION SECTION ==========
+        const templaterSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
         templaterSection.createEl('h3', { text: 'Templater Integration', cls: 'oom-section-header' });
         this.buildTemplaterSection(templaterSection);
         
-        // Content Isolation Settings Section
-        const contentIsolationSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
+        // ========== CONTENT ISOLATION SECTION ==========
+        const contentIsolationSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
         contentIsolationSection.createEl('h3', { text: 'Content Isolation', cls: 'oom-section-header' });
         this.buildContentIsolationSection(contentIsolationSection);
         
-        // Interface Settings Section
-        const interfaceSection = sectionsContainer.createDiv({ cls: 'oom-journal-section' });
-        interfaceSection.createEl('h3', { text: 'Interface', cls: 'oom-section-header' });
+        // ========== INTERFACE SETTINGS SECTION ==========
+        const interfaceSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
+        interfaceSection.createEl('h3', { text: 'Interface Settings', cls: 'oom-section-header' });
         this.buildInterfaceSection(interfaceSection);
+    }
+
+    // Build the Validation section (replaces Overview)
+    private buildValidationSection(containerEl: HTMLElement) {
+        // Enable/disable structure validation
+        this.createJournalStructureSetting(
+            containerEl, 
+            'Enable Structure Validation', 
+            'Validate journal entries against defined structures', 
+            (value) => {
+                if (!this.plugin.settings.linting) {
+                    this.plugin.settings.linting = this.getDefaultLintingSettings();
+                }
+                this.plugin.settings.linting.enabled = value;
+            }, 
+            this.plugin.settings.linting?.enabled ?? true
+        );
+        
+        // Show validation indicators in editor
+        this.createJournalStructureSetting(
+            containerEl, 
+            'Show validation indicators in editor', 
+            'Display real-time validation feedback', 
+            (value) => {
+                if (!this.plugin.settings.linting) {
+                    this.plugin.settings.linting = this.getDefaultLintingSettings();
+                }
+                if (!this.plugin.settings.linting.userInterface) {
+                    this.plugin.settings.linting.userInterface = this.getDefaultLintingSettings().userInterface;
+                }
+                this.plugin.settings.linting.userInterface.showInlineValidation = value;
+            }, 
+            this.plugin.settings.linting?.userInterface?.showInlineValidation ?? true
+        );
     }
     
     // Helper method to create collapsible sections
@@ -1356,97 +1391,58 @@ This metric assesses **how well your memory of the dream holds up and remains co
         };
     }
 
-    // Build the Overview section with validation toggle and stats
-    private buildOverviewSection(containerEl: HTMLElement) {
-        containerEl.createEl('p', { 
-            text: 'Journal Structure Check helps you maintain consistent formatting in your dream journal entries.' 
-        });
-        
-        // Enable/disable structure validation
-        this.createJournalStructureSetting(containerEl, 'Enable Structure Validation', 'Validate journal entries against defined structures', (value) => {
-            if (!this.plugin.settings.linting) {
-                this.plugin.settings.linting = this.getDefaultLintingSettings();
-            }
-            this.plugin.settings.linting.enabled = value;
-        }, this.plugin.settings.linting?.enabled ?? true);
-        
-        // Quick stats about configured structures and templates
-        const statsEl = containerEl.createDiv({ cls: 'oom-structure-stats' });
-        
-        const structures = this.plugin.settings.linting?.structures || [];
-        const templates = this.plugin.settings.linting?.templates || [];
-        
-        statsEl.createEl('h4', { text: 'Configuration Summary' });
-        statsEl.createEl('div', { 
-            text: `Structures: ${structures.length}`,
-            cls: 'oom-stat-item' 
-        });
-        statsEl.createEl('div', { 
-            text: `Templates: ${templates.length}`,
-            cls: 'oom-stat-item' 
-        });
-        statsEl.createEl('div', { 
-            text: `Templater Integration: ${this.plugin.settings.linting?.templaterIntegration?.enabled ? 'Enabled' : 'Disabled'}`,
-            cls: 'oom-stat-item' 
-        });
-        
-        // Quick action buttons
-        const actionsEl = containerEl.createDiv({ cls: 'oom-quick-actions' });
-        actionsEl.createEl('h4', { text: 'Quick Actions' });
-        
-        const actionsGrid = actionsEl.createDiv({ cls: 'oom-actions-grid' });
-        
-        this.createQuickActionButton(actionsGrid, 'Create Structure', 'layout', () => {
-            // Future: Navigate to structures section
-            new Notice('Structure creation will be implemented soon');
-        });
-        
-        this.createQuickActionButton(actionsGrid, 'Create Template', 'file-text', () => {
-            // Open TemplateWizard
-            const { TemplateWizard } = require('../../journal_check/ui/TemplateWizard');
-            new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
-        });
-        
-        this.createQuickActionButton(actionsGrid, 'Validate Current Note', 'check-circle', () => {
-            new Notice('Validation will be implemented soon');
-        });
-        
-        this.createQuickActionButton(actionsGrid, 'Apply Template', 'file-plus', () => {
-            new Notice('Template application will be implemented soon');
-        });
-    }
-
-    // Build the Structures section
+    // Build the Structures section - Phase 2.4 Enhanced
     private buildStructuresSection(containerEl: HTMLElement) {
-        containerEl.createEl('p', { 
-            text: 'Define and manage structures that define the expected format of your journal entries.' 
+        // Action buttons bar
+        const actionBar = containerEl.createDiv({ cls: 'oom-structures-action-bar' });
+        
+        const addStructureBtn = actionBar.createEl('button', {
+            text: '+ Add Structure',
+            cls: 'oom-button-primary'
+        });
+        addStructureBtn.addEventListener('click', () => {
+            this.createNewStructure();
+        });
+        
+        const importBtn = actionBar.createEl('button', {
+            text: 'Import',
+            cls: 'oom-button-secondary'
+        });
+        importBtn.addEventListener('click', () => {
+            this.importStructures();
+        });
+        
+        const exportAllBtn = actionBar.createEl('button', {
+            text: 'Export All',
+            cls: 'oom-button-secondary'
+        });
+        exportAllBtn.addEventListener('click', () => {
+            this.exportAllStructures();
         });
         
         // Structures list
         const structures = this.plugin.settings.linting?.structures || [];
         
         if (structures.length === 0) {
-            containerEl.createEl('p', { 
-                text: 'No structures defined yet. Create your first structure to get started.',
-                cls: 'oom-empty-state'
+            const emptyState = containerEl.createDiv({ cls: 'oom-empty-state' });
+            emptyState.createEl('p', { 
+                text: 'No structures defined yet. Create your first structure to get started.'
+            });
+            
+            const createFirstBtn = emptyState.createEl('button', {
+                text: 'Create Your First Structure',
+                cls: 'oom-button-primary'
+            });
+            createFirstBtn.addEventListener('click', () => {
+                this.createNewStructure();
             });
         } else {
-            const listEl = containerEl.createDiv({ cls: 'oom-structures-list' });
+            const listContainer = containerEl.createDiv({ cls: 'oom-structures-list' });
             
             for (const structure of structures) {
-                this.createStructureListItem(listEl, structure);
+                this.createEnhancedStructureListItem(listContainer, structure);
             }
         }
-        
-        // Create new structure button
-        const createBtnContainer = containerEl.createDiv({ cls: 'oom-setting' });
-        const createBtn = createBtnContainer.createEl('button', { 
-            text: 'Create New Structure',
-            cls: 'oom-button-primary'
-        });
-        createBtn.addEventListener('click', () => {
-            new Notice('Structure creation will be implemented soon');
-        });
     }
 
     // Build the Templates section  
@@ -2016,5 +2012,254 @@ This metric assesses **how well your memory of the dream holds up and remains co
      */
     private applyCopyButtonStyles(button: HTMLElement): void {
         button.style.marginBottom = '1.5em';
+    }
+
+    // ========== STRUCTURE MANAGEMENT METHODS - Phase 2.4 ==========
+    
+    /**
+     * Create a new structure (placeholder for now)
+     */
+    private createNewStructure() {
+        new Notice('Structure creation will be implemented in the next step');
+        // TODO: Implement inline structure creation
+    }
+    
+    /**
+     * Import structures from JSON file
+     */
+    private importStructures() {
+        new Notice('Structure import will be implemented soon');
+        // TODO: Implement JSON file import with conflict resolution
+    }
+    
+    /**
+     * Export all structures to JSON
+     */
+    private exportAllStructures() {
+        const structures = this.plugin.settings.linting?.structures || [];
+        
+        if (structures.length === 0) {
+            new Notice('No structures to export');
+            return;
+        }
+        
+        const exportData = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            structures: structures
+        };
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
+            new Notice(`Exported ${structures.length} structures to clipboard`);
+        }).catch(() => {
+            new Notice('Failed to copy structures to clipboard');
+        });
+    }
+    
+    /**
+     * Create enhanced structure list item with inline editing capabilities
+     */
+    private createEnhancedStructureListItem(containerEl: HTMLElement, structure: any) {
+        const itemEl = containerEl.createDiv({ 
+            cls: 'oom-structure-item',
+            attr: { 'data-structure-id': structure.id }
+        });
+        
+        // Structure summary (always visible)
+        const summaryEl = itemEl.createDiv({ cls: 'oom-structure-summary' });
+        
+        // Header with toggle and actions
+        const headerEl = summaryEl.createDiv({ cls: 'oom-structure-header' });
+        
+        // Enable/disable toggle
+        const toggleEl = headerEl.createDiv({ cls: 'oom-structure-toggle' });
+        const checkbox = toggleEl.createEl('input', {
+            type: 'checkbox'
+        });
+        checkbox.checked = structure.enabled !== false; // Default to enabled if not specified
+        checkbox.addEventListener('change', async () => {
+            structure.enabled = checkbox.checked;
+            await this.plugin.saveSettings();
+            
+            // Update visual state
+            itemEl.classList.toggle('disabled', !checkbox.checked);
+        });
+        
+        // Structure info
+        const infoEl = headerEl.createDiv({ cls: 'oom-structure-info' });
+        
+        const nameEl = infoEl.createDiv({ 
+            cls: 'oom-structure-name',
+            text: structure.name || 'Unnamed Structure'
+        });
+        
+        const hierarchyEl = infoEl.createDiv({ cls: 'oom-structure-hierarchy' });
+        const hierarchy = this.buildStructureHierarchyText(structure);
+        hierarchyEl.textContent = hierarchy;
+        
+        const statsEl = infoEl.createDiv({ cls: 'oom-structure-stats' });
+        // TODO: Get actual usage stats from settings
+        const usageStats = this.getStructureUsageStats(structure.id);
+        statsEl.innerHTML = `📊 Used: ${usageStats.timesUsed} times  📅 Last: ${usageStats.lastUsedText}  ${this.getValidationStatusIcon(structure)}`;
+        
+        // Action buttons
+        const actionsEl = headerEl.createDiv({ cls: 'oom-structure-actions' });
+        
+        const editBtn = actionsEl.createEl('button', {
+            text: 'Edit',
+            cls: 'oom-button-small'
+        });
+        editBtn.addEventListener('click', () => {
+            this.toggleStructureEditor(itemEl, structure);
+        });
+        
+        const cloneBtn = actionsEl.createEl('button', {
+            text: 'Clone',
+            cls: 'oom-button-small'
+        });
+        cloneBtn.addEventListener('click', () => {
+            this.cloneStructure(structure);
+        });
+        
+        const deleteBtn = actionsEl.createEl('button', {
+            text: 'Delete',
+            cls: 'oom-button-small oom-button-danger'
+        });
+        deleteBtn.addEventListener('click', () => {
+            this.deleteStructure(structure);
+        });
+        
+        // Inline editor (hidden by default)
+        const editorEl = itemEl.createDiv({ 
+            cls: 'oom-structure-editor',
+            attr: { style: 'display: none;' }
+        });
+        
+        this.buildInlineStructureEditor(editorEl, structure);
+        
+        // Set initial visual state
+        itemEl.classList.toggle('disabled', structure.enabled === false);
+    }
+    
+    /**
+     * Build hierarchy text for display (e.g., "av-journal → dream-diary → dream-metrics")
+     */
+    private buildStructureHierarchyText(structure: any): string {
+        const parts = [structure.rootCallout || 'root'];
+        
+        if (structure.childCallouts && structure.childCallouts.length > 0) {
+            parts.push(...structure.childCallouts);
+        }
+        
+        if (structure.metricsCallout) {
+            parts.push(structure.metricsCallout);
+        }
+        
+        return parts.join(' → ');
+    }
+    
+    /**
+     * Get structure usage statistics (placeholder for now)
+     */
+    private getStructureUsageStats(structureId: string) {
+        // TODO: Get from actual settings
+        return {
+            timesUsed: 0,
+            lastUsedText: 'Never'
+        };
+    }
+    
+    /**
+     * Get validation status icon
+     */
+    private getValidationStatusIcon(structure: any): string {
+        // TODO: Implement actual validation
+        return '✅ Valid';
+    }
+    
+    /**
+     * Toggle inline structure editor
+     */
+    private toggleStructureEditor(itemEl: HTMLElement, structure: any) {
+        const editorEl = itemEl.querySelector('.oom-structure-editor') as HTMLElement;
+        const editBtn = itemEl.querySelector('.oom-structure-actions button') as HTMLElement;
+        
+        const isEditing = itemEl.classList.contains('editing');
+        
+        if (isEditing) {
+            // Cancel editing
+            itemEl.classList.remove('editing');
+            editorEl.style.display = 'none';
+            editBtn.textContent = 'Edit';
+        } else {
+            // Start editing
+            itemEl.classList.add('editing');
+            editorEl.style.display = 'block';
+            editBtn.textContent = 'Cancel';
+        }
+    }
+    
+    /**
+     * Build inline structure editor (placeholder for now)
+     */
+    private buildInlineStructureEditor(editorEl: HTMLElement, structure: any) {
+        editorEl.createEl('p', { 
+            text: 'Inline structure editor will be implemented next',
+            cls: 'oom-placeholder'
+        });
+        
+        // Action buttons
+        const buttonBar = editorEl.createDiv({ cls: 'oom-editor-buttons' });
+        
+        const cancelBtn = buttonBar.createEl('button', {
+            text: 'Cancel',
+            cls: 'oom-button-secondary'
+        });
+        
+        const copyBtn = buttonBar.createEl('button', {
+            text: 'Copy to Clipboard',
+            cls: 'oom-button-secondary'
+        });
+        copyBtn.addEventListener('click', () => {
+            this.copyStructureToClipboard(structure);
+        });
+        
+        const saveBtn = buttonBar.createEl('button', {
+            text: 'Save Structure',
+            cls: 'oom-button-primary'
+        });
+    }
+    
+    /**
+     * Clone structure
+     */
+    private cloneStructure(structure: any) {
+        new Notice('Structure cloning will be implemented soon');
+        // TODO: Create copy with modified name and ID
+    }
+    
+    /**
+     * Delete structure
+     */
+    private deleteStructure(structure: any) {
+        new Notice('Structure deletion will be implemented soon');
+        // TODO: Confirm deletion and remove from settings
+    }
+    
+    /**
+     * Copy structure definition to clipboard as JSON
+     */
+    private copyStructureToClipboard(structure: any) {
+        const structureData = {
+            ...structure,
+            exportedAt: new Date().toISOString()
+        };
+        
+        navigator.clipboard.writeText(JSON.stringify(structureData, null, 2)).then(() => {
+            new Notice('Structure definition copied to clipboard');
+        }).catch(() => {
+            new Notice('Failed to copy structure to clipboard');
+        });
     }
 } 

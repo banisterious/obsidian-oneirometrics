@@ -4668,9 +4668,9 @@ input.oom-folder-autocomplete-input,
 .modal:has(.oom-metrics-tabs-modal) {
     /* === STRUCTURAL PROPERTIES ONLY === */
     height: var(--modal-height);
-    max-height: var(--modal-height);
+    max-height: var(--modal-max-height);
     width: var(--modal-width);
-    max-width: var(--modal-width);
+    max-width: var(--modal-max-width);
     padding: 0;
     contain: layout style;
     

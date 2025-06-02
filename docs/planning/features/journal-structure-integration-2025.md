@@ -317,79 +317,175 @@
 - 🔄 **Step 4**: Test with sample content
 - 🔄 **Step 5**: Save and activate
 
-## 🎨 **Phase 2 UI Design Specifications**
+### **Phase 2.4: HubModal Journal Structure Tab Redesign**
 
-### **Structure Management Interface**
+**Target**: Redesign the Journal Structure tab with inline editing and Obsidian Settings-style interface
+
+#### **Implementation Tasks**:
+
+**Task 2.4.1: Inline Structure Editor**
+- 🔄 **Replace**: Modal-based editing with inline expansion
+- 🔄 **Implement**: CSS-based show/hide for structure editor forms
+- 🔄 **Add**: Smooth expand/collapse transitions
+- 🔄 **Design**: Single-page layout matching Obsidian Settings patterns
+
+**Task 2.4.2: Enhanced Structure List**
+- 🔄 **Add**: Usage statistics display (times used, last used date)
+- 🔄 **Add**: Validation status indicators (✅ Valid, ⚠️ Warning, ❌ Error)
+- 🔄 **Add**: Visual callout hierarchy display (root → child → metrics)
+- 🔄 **Add**: Inline enable/disable toggles
+- 🔄 **Add**: Contextual action buttons (Edit/Clone/Delete)
+
+**Task 2.4.3: Copy to Clipboard Functionality**
+- 🔄 **Add**: "Copy to Clipboard" button next to Save Structure
+- 🔄 **Export**: Structure definition as JSON for sharing
+- 🔄 **Include**: Metadata (name, description, creation date)
+- 🔄 **UI**: Success notification when copied
+
+**Task 2.4.4: Single-Page Layout Implementation**
+- 🔄 **Remove**: Collapsible sections (per user preference)
+- 🔄 **Implement**: Clear grouped sections with headers
+- 🔄 **Structure**: Validation → Structures → Templates → Integration → Settings
+- 🔄 **Remove**: Apply Template button (unclear purpose)
+
+**Task 2.4.5: Progressive Disclosure**
+- 🔄 **Default**: Collapsed structure items showing summary
+- 🔄 **Expand**: Inline editor when clicking "Edit"
+- 🔄 **Preview**: Live structure rendering in editor
+- 🔄 **Context**: Keep user in same tab, no modal management
+
+## 🎨 **Phase 2.4 UI Design Specifications - Obsidian Settings Style**
+
+### **Inline Editing Behavior**
 
 ```typescript
-// Enhanced structure section in MetricsTabsModal
-interface StructureListItem {
-    structure: CalloutStructure;
-    enabled: boolean;
-    usageCount: number;
-    lastUsed: Date;
+// Structure list item states
+interface StructureItemState {
+    collapsed: boolean;  // Default: true
+    editing: boolean;    // When Edit clicked: true
     validationStatus: 'valid' | 'warning' | 'error';
+    usageStats: {
+        timesUsed: number;
+        lastUsed: Date | null;
+    };
 }
 
-// Structure editor modal interface
-interface StructureEditorConfig {
-    mode: 'create' | 'edit' | 'clone';
-    sourceStructure?: CalloutStructure;
-    onSave: (structure: CalloutStructure) => void;
-    onCancel: () => void;
+// CSS implementation
+.oom-structure-editor { 
+    display: none; 
+    transition: all 0.3s ease;
+}
+
+.oom-structure-item.editing .oom-structure-editor { 
+    display: block; 
 }
 ```
 
-### **Modal Layout Design**
+### **Complete Single-Page Layout**
 
 ```
-┌─────────────────────────────────────────────┐
-│ Structure Management                         │
-├─────────────────────────────────────────────┤
-│ [+ Add New] [Import] [Export Selected]      │
-├─────────────────────────────────────────────┤
-│ ✅ Legacy Dream Structure    [Edit] [Clone]  │
-│    journal-entry → dream-diary → metrics    │
-│    Used: 45 times | Last: 2 days ago       │
-├─────────────────────────────────────────────┤
-│ ✅ AV Journal Structure      [Edit] [Delete] │
-│    av-journal → dream-diary → metrics       │
-│    Used: 12 times | Last: Today            │
-├─────────────────────────────────────────────┤
-│ ⚠️  Custom Structure         [Edit] [Delete] │
-│    my-journal → dreams → data               │
-│    Conflicts with: Legacy Dream Structure   │
-└─────────────────────────────────────────────┘
-```
-
-### **Structure Editor Modal Design**
-
-```
-┌─────────────────────────────────────────────┐
-│ Edit Structure: "AV Journal Structure"      │
-├─────────────────────────────────────────────┤
-│ Name: [AV Journal Structure            ]    │
-│ Description: [Audio-visual journal...  ]    │
-│ Type: [Nested ▼]                           │
-├─────────────────────────────────────────────┤
-│ Callout Hierarchy:                         │
-│ Root:     [av-journal              ]       │
-│ Children: [dream-diary            ] [+]    │
-│           [interpretation         ] [-]    │
-│ Metrics:  [dream-metrics          ]       │
-├─────────────────────────────────────────────┤
-│ ✅ Enable this structure                    │
-│ ✅ Set as default for new entries          │
-├─────────────────────────────────────────────┤
-│ Preview:                                   │
-│ > [!av-journal] 2025-06-01                 │
-│ > > [!dream-diary] Title                   │
-│ > > Content here...                        │
-│ > > > [!dream-metrics]                     │
-│ > > > Words: 123, Sensory: 4               │
-├─────────────────────────────────────────────┤
-│              [Cancel] [Save]               │
-└─────────────────────────────────────────────┘
+╔══════════════════════════════════════════════════════════════╗
+║                    Journal Structure                          ║
+╠══════════════════════════════════════════════════════════════╣
+║ Configure journal structure settings, templates, validation  ║
+║ rules, and interface preferences.                            ║
+║                                                              ║
+║ ┌─ VALIDATION ──────────────────────────────────────────────┐ ║
+║ │ ☑ Enable Structure Validation                             │ ║
+║ │   Validate journal entries against defined structures     │ ║
+║ │                                                           │ ║
+║ │ ☑ Show validation indicators in editor                    │ ║
+║ │   Display real-time validation feedback                   │ ║
+║ └───────────────────────────────────────────────────────────┘ ║
+║                                                              ║
+║ ┌─ STRUCTURES ──────────────────────────────────────────────┐ ║
+║ │ [+ Add Structure] [Import] [Export All]                   │ ║
+║ │                                                           │ ║
+║ │ ☑ Default Dream Journal        [Edit] [Clone] [Delete]    │ ║
+║ │   journal-entry → dream-diary → dream-metrics             │ ║
+║ │   📊 Used: 45 times  📅 Last: 2 days ago  ✅ Valid        │ ║
+║ │                                                           │ ║
+║ │ ☑ AV Journal Format           [Edit] [Clone] [Delete]     │ ║
+║ │   av-journal → dream-diary → dream-metrics                │ ║
+║ │   📊 Used: 12 times  📅 Last: Today  ✅ Valid             │ ║
+║ │                                                           │ ║
+║ │ ☐ Custom Format               [Edit] [Clone] [Delete]     │ ║
+║ │   my-journal → dreams → data                              │ ║
+║ │   📊 Used: 0 times  📅 Never  ⚠️ Conflicts detected       │ ║
+║ │                                                           │ ║
+║ │ ── INLINE STRUCTURE EDITOR (hidden via CSS until Edit) ── │ ║
+║ │ Name:         [AV Journal Format                    ]     │ ║
+║ │ Description:  [Audio-visual journal entries        ]     │ ║
+║ │ Type:         [Nested ▼]                                 │ ║
+║ │                                                           │ ║
+║ │ Root Callout:    [av-journal                       ]     │ ║
+║ │ Child Callouts:  [dream-diary              ] [+ Add]     │ ║
+║ │                  [interpretation           ] [Remove]    │ ║
+║ │ Metrics Callout: [dream-metrics                    ]     │ ║
+║ │                                                           │ ║
+║ │ ☑ Enabled  ☑ Default for new entries                     │ ║
+║ │                                                           │ ║
+║ │ Preview:                                                  │ ║
+║ │ ┌─────────────────────────────────────────────────────┐   │ ║
+║ │ │ > [!av-journal] 2025-06-01                          │   │ ║
+║ │ │ > > [!dream-diary] Dream Title                      │   │ ║
+║ │ │ > > Dream content goes here...                      │   │ ║
+║ │ │ > > > [!dream-metrics]                              │   │ ║
+║ │ │ > > > Sensory Detail: 4, Emotional Recall: 3       │   │ ║
+║ │ └─────────────────────────────────────────────────────┘   │ ║
+║ │                                                           │ ║
+║ │ [Cancel] [Copy to Clipboard] [Save Structure]            │ ║
+║ └───────────────────────────────────────────────────────────┘ ║
+║                                                              ║
+║ ┌─ TEMPLATES ───────────────────────────────────────────────┐ ║
+║ │ [+ Create Template] [Import] [Export Selected]            │ ║
+║ │                                                           │ ║
+║ │ ☑ Basic Dream Template        [Edit] [Clone] [Delete]     │ ║
+║ │   Structure: Default Dream Journal                        │ ║
+║ │   📊 Used: 23 times  📅 Last: Yesterday  ✅ Valid         │ ║
+║ │                                                           │ ║
+║ │ ☑ AV Dream Template          [Edit] [Clone] [Delete]      │ ║
+║ │   Structure: AV Journal Format                            │ ║
+║ │   📊 Used: 8 times  📅 Last: Today  ✅ Valid              │ ║
+║ └───────────────────────────────────────────────────────────┘ ║
+║                                                              ║
+║ ┌─ TEMPLATER INTEGRATION ───────────────────────────────────┐ ║
+║ │ ☑ Enable Templater Integration                            │ ║
+║ │   Use Templater templates for journal structures          │ ║
+║ │                                                           │ ║
+║ │ Templates Folder: [templates/dreams                 ]     │ ║
+║ │ Default Template: [templates/dreams/default.md      ]     │ ║
+║ │                                                           │ ║
+║ │ Status: ✅ Templater plugin detected                       │ ║
+║ └───────────────────────────────────────────────────────────┘ ║
+║                                                              ║
+║ ┌─ CONTENT ISOLATION ───────────────────────────────────────┐ ║
+║ │ Configure which elements should be ignored during         │ ║
+║ │ validation.                                               │ ║
+║ │                                                           │ ║
+║ │ ☑ Ignore Images         ☑ Ignore Links                   │ ║
+║ │ ☑ Ignore Formatting     ☑ Ignore Headings               │ ║
+║ │ ☑ Ignore Code Blocks    ☑ Ignore Frontmatter            │ ║
+║ │ ☑ Ignore Comments                                         │ ║
+║ │                                                           │ ║
+║ │ Custom Ignore Patterns:                                   │ ║
+║ │ [%%.*%%                                  ] [+ Add]       │ ║
+║ │ ^\s*\[\[.*\]\]\s*$                        [Remove]       │ ║
+║ └───────────────────────────────────────────────────────────┘ ║
+║                                                              ║
+║ ┌─ INTERFACE SETTINGS ──────────────────────────────────────┐ ║
+║ │ ☑ Show inline validation in editor                        │ ║
+║ │   Display real-time validation feedback                   │ ║
+║ │                                                           │ ║
+║ │ ☑ Enable quick fixes                                      │ ║
+║ │   Show suggested fixes for validation issues              │ ║
+║ │                                                           │ ║
+║ │ Severity Indicators:                                      │ ║
+║ │ Error:   [🔴] [❌] [⛔] [Custom: ▼]                        │ ║
+║ │ Warning: [🟡] [⚠️ ] [🚧] [Custom: ▼]                        │ ║
+║ │ Info:    [🔵] [ℹ️ ] [💡] [Custom: ▼]                        │ ║
+║ └───────────────────────────────────────────────────────────┘ ║
+╚══════════════════════════════════════════════════════════════╝
 ```
 
 ### **Phase 3: Advanced Features (Week 4+)**
