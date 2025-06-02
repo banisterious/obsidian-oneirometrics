@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.9.0](#090---2025-01-06)
   - [Version 0.7.x](#070---2025-05-30)
   - [Version 0.6.x](#060---2025-05-25)
   - [Version 0.5.x](#050---2025-05-20)
@@ -87,6 +88,55 @@
 - **Performance Optimized**: Cache speedup 2x, large dataset handling (1.4M entries/sec throughput)
 
 ## Released Versions
+
+## [0.9.0] - 2025-06-02
+### Added
+- **Unified Template Wizard Redesign**: Complete overhaul with three-path creation approach
+  - Path A: Templater Integration with automatic content loading and detection
+  - Path B: Structure-Based Generation with inline structure management  
+  - Path C: Direct Input with smart content detection and sample insertion
+  - Streamlined 2-3 step workflow replacing complex 4-step process
+  - Auto-generation of template names and descriptions
+  - Enhanced Templater support with advanced feature integration
+
+- **Journal Structure Management Overhaul**: Complete redesign of structure management UI
+  - Inline Structure Editor with live preview and real-time validation
+  - Complete CRUD operations: Create, read, update, delete, clone, import/export structures
+  - Native Obsidian UI integration with native checkbox and form styling
+  - Default structures auto-creation (Legacy Dream, AV Journal, Simple Dream)
+  - Smart conflict resolution for duplicate structures during import
+  - Robust settings persistence with automatic saving
+
+- **OneiroMetrics Hub Consolidation**: Unified interface improvements
+  - Consolidated Dream Scrape, Journal Structure, and Metrics into single hub
+  - Enhanced Dashboard with improved quick actions and button organization
+  - New "View Metrics Descriptions" button for easy access to metric documentation
+  - Improved navigation with logical button ordering and clear visual hierarchy
+
+- **Template Preview System**: Enhanced preview capabilities
+  - Live preview with real-time updates for all template types
+  - Dual preview mode showing both Templater dynamic and static fallback versions
+  - Visual structure examples showing nested vs flat callout structures
+  - Comprehensive error handling with clear error messages and recovery suggestions
+
+### Changed
+- **Native Obsidian Styling**: Full integration with Obsidian's design system for consistent theming
+- **Enhanced UI/UX**: Improved responsive layout, visual feedback, hover states, and typography
+- **Component Architecture**: Modular architecture with dedicated components for better maintainability
+- **Settings Integration**: More robust settings persistence and validation systems
+- **Performance Optimization**: Faster modal loading, better memory management, and optimized rendering
+
+### Fixed
+- **Templater Detection**: Fixed Templater plugin detection and folder path handling
+- **Template Loading**: Resolved issues with template content loading and preview accuracy
+- **Structure Validation**: Enhanced validation for callout structures with better error reporting
+- **Modal Management**: Fixed modal stacking and focus management issues
+- **Button Interactions**: Improved button responsiveness and state management
+- **Settings Persistence**: More reliable settings saving and loading mechanisms
+
+### Technical Improvements
+- **Documentation**: Complete project tracking with milestones, dependencies, and implementation guides
+- **Architecture Planning**: Detailed plans for future TypeScript improvements and refactoring
 
 ## [0.7.0] - 2025-05-30
 ### Added
