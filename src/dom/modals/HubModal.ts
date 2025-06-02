@@ -1203,6 +1203,11 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-journal-structure-description'
         });
         
+        headerSection.createEl('p', { 
+            text: 'Structures define the organizational framework (what callout types are allowed, how they nest, validation rules), while Templates provide the actual content implementations that reference and conform to those structures. Each template must reference exactly one structure, but multiple templates can use the same structure for different content styles.',
+            cls: 'oom-journal-structure-description'
+        });
+        
         // Create main content container - single page layout
         const mainContainer = this.contentContainer.createDiv({ 
             cls: 'oom-journal-structure-main' 
