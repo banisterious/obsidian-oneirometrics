@@ -579,17 +579,13 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 button.setButtonText('Customize Callout')
                     .onClick(() => {
                         try {
-                            // Import the modal from our refactored module
-                            const { MetricsCalloutCustomizationsModal } = require('./src/dom/modals');
-                            
-                            // Create and open the modal
-                            new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
+                            // Open OneiroMetrics Hub with Callout Quick Copy tab
+                            const modalsManager = new ModalsManager(this.app, this.plugin, this.plugin.logger);
+                            modalsManager.openMetricsTabsModal('callout-quick-copy');
                         } catch (error) {
-                            // Fallback to the old method if there's an error
-                            error('Settings', 'Error opening metrics callout customizations modal', error instanceof Error ? error : new Error(String(error)));
-                            
-                            // Use the class from settings.ts as fallback
-                            new MetricsCalloutCustomizationsModal(this.app, this.plugin).open();
+                            // Fallback error handling
+                            error('Settings', 'Error opening callout customizations', error instanceof Error ? error : new Error(String(error)));
+                            new Notice('Error opening callout customizations. See console for details.');
                         }
                     });
             });

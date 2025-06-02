@@ -10,6 +10,7 @@ import DreamMetricsPlugin from '../../../main';
 import { DreamMetric } from '../../types/core';
 import safeLogger from '../../logging/safe-logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
+import { Setting } from 'obsidian';
 
 // Interface for grouped metrics
 interface MetricGroup {
@@ -96,6 +97,7 @@ export class MetricsTabsModal extends Modal {
         this.createDashboardTab();
         this.createDreamScrapeTab();
         this.createJournalStructureTab();
+        this.createCalloutQuickCopyTab();
         
         // Create Overview tab (renamed to Reference Overview)
         this.createOverviewTab();
@@ -158,6 +160,23 @@ export class MetricsTabsModal extends Modal {
         });
     }
     
+    // Create Callout Quick Copy tab
+    private createCalloutQuickCopyTab() {
+        const calloutQuickCopyTab = this.tabsContainer.createDiv({
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
+            attr: { 'data-tab-id': 'callout-quick-copy' }
+        });
+        
+        calloutQuickCopyTab.createDiv({ 
+            text: 'Callout Quick Copy', 
+            cls: 'oom-hub-tab-label' 
+        });
+        
+        calloutQuickCopyTab.addEventListener('click', () => {
+            this.selectTab('callout-quick-copy');
+        });
+    }
+    
     // Create Overview tab
     private createOverviewTab() {
         const overviewTab = this.tabsContainer.createDiv({
@@ -217,7 +236,7 @@ export class MetricsTabsModal extends Modal {
     }
     
     // Handle tab selection
-    private selectTab(tabId: string) {
+    public selectTab(tabId: string) {
         // Clear previous selection
         this.tabsContainer.querySelectorAll('.vertical-tab-nav-item').forEach(el => {
             el.removeClass('is-active');
@@ -236,6 +255,8 @@ export class MetricsTabsModal extends Modal {
             this.loadDreamScrapeContent();
         } else if (tabId === 'journal-structure') {
             this.loadJournalStructureContent();
+        } else if (tabId === 'callout-quick-copy') {
+            this.loadCalloutQuickCopyContent();
         } else if (tabId === 'overview') {
             this.loadOverviewContent();
         } else {
@@ -1875,5 +1896,125 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // @ts-ignore - Dynamically set property
         this.plugin.settings.linting.contentIsolation[key] = value;
         await this.plugin.saveSettings();
+    }
+    
+    // Load Callout Quick Copy content with migrated functionality
+    private loadCalloutQuickCopyContent() {
+        this.contentContainer.empty();
+        
+        // Add welcome text
+        const welcomeText = this.contentContainer.createDiv({ 
+            cls: 'oom-metrics-tabs-callout-quick-copy-text' 
+        });
+        
+        welcomeText.createEl('h2', { text: 'Callout Quick Copy' });
+        
+        welcomeText.createEl('p', { 
+            text: 'Generate and customize dream metrics callouts for quick copying into your journal entries.'
+        });
+        
+        // State for the callout structure
+        let calloutMetadata = '';
+        let singleLine = false;
+        
+        // Helper to build the callout structure
+        const buildCallout = () => {
+            const meta = calloutMetadata.trim();
+            const metaStr = meta ? `|${meta}` : '';
+            const header = `> [!dream-metrics${metaStr}]`;
+            const metrics = [
+                'Sensory Detail:',
+                'Emotional Recall:',
+                'Lost Segments:',
+                'Descriptiveness:',
+                'Confidence Score:'
+            ];
+            if (singleLine) {
+                return `${header}\n> ${metrics.join(' , ')}`;
+            } else {
+                return `${header}\n> ${metrics.join(' \n> ')}`;
+            }
+        };
+        
+        // Callout Structure Preview (styled div)
+        const calloutBox = this.contentContainer.createEl('div', {
+            cls: 'oom-callout-structure-box',
+        });
+        
+        // Apply styles to callout box
+        this.applyCalloutBoxStyles(calloutBox);
+        
+        // Set initial content
+        calloutBox.textContent = buildCallout();
+        
+        // Copy button
+        const copyBtn = this.contentContainer.createEl('button', { 
+            text: 'Copy to Clipboard', 
+            cls: 'oom-copy-btn mod-cta' 
+        });
+        
+        // Apply styles to copy button
+        this.applyCopyButtonStyles(copyBtn);
+        
+        // Add click handler
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(calloutBox.textContent || '');
+            new Notice('Callout copied to clipboard!');
+        };
+        
+        // Settings container
+        const settingsContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-callout-settings' 
+        });
+        
+        // Single-Line Toggle
+        new Setting(settingsContainer)
+            .setName('Single-Line Callout Structure')
+            .setDesc('Show all metric fields on a single line in the callout structure')
+            .addToggle(toggle => {
+                toggle.setValue(singleLine)
+                    .onChange(async (value) => {
+                        singleLine = value;
+                        calloutBox.textContent = buildCallout();
+                    });
+            });
+        
+        // Callout Metadata Field
+        new Setting(settingsContainer)
+            .setName('Callout Metadata')
+            .setDesc('Default metadata to include in dream callouts')
+            .addText(text => text
+                .setPlaceholder('Enter metadata')
+                .setValue(calloutMetadata)
+                .onChange(async (value) => {
+                    calloutMetadata = value;
+                    calloutBox.textContent = buildCallout();
+                    await this.plugin.saveSettings();
+                }));
+    }
+    
+    /**
+     * Apply styles to the callout box
+     */
+    private applyCalloutBoxStyles(element: HTMLElement): void {
+        element.style.width = '100%';
+        element.style.minHeight = '90px';
+        element.style.fontFamily = 'var(--font-monospace, monospace)';
+        element.style.fontSize = '0.93em';
+        element.style.background = 'var(--background-secondary)';
+        element.style.border = '1px solid var(--border-color)';
+        element.style.borderRadius = '4px';
+        element.style.marginBottom = '1em';
+        element.style.padding = '12px';
+        element.style.whiteSpace = 'pre-wrap';
+        element.style.wordBreak = 'break-word';
+        element.style.userSelect = 'all';
+    }
+    
+    /**
+     * Apply styles to the copy button
+     */
+    private applyCopyButtonStyles(button: HTMLElement): void {
+        button.style.marginBottom = '1.5em';
     }
 } 

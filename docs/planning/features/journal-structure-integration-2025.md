@@ -32,11 +32,11 @@
 | Milestone | Status | Deliverables |
 |-----------|--------|--------------|
 | **Project Initiation** | ✅ Complete | Project document, planning complete |
-| **Phase 1 Start** | 🔄 In Progress | Core integration begins |
-| **AV-Journal Fix** | ⏳ Pending | `[!av-journal]` callouts recognized |
-| **Structure Integration** | ⏳ Pending | Hardcoded callouts replaced |
-| **Phase 1 Complete** | ⏳ Pending | Core integration functional |
-| **Phase 2 Start** | ⏳ Pending | UI development begins |
+| **Phase 1 Start** | ✅ Complete | Core integration begins |
+| **AV-Journal Fix** | ✅ Complete | `[!av-journal]` callouts recognized |
+| **Structure Integration** | ✅ Complete | Hardcoded callouts replaced |
+| **Phase 1 Complete** | ✅ Complete | Core integration functional |
+| **Phase 2 Start** | 🔄 Ready | UI development begins |
 | **Structure Manager UI** | ⏳ Pending | Basic structure management |
 | **Phase 2 Complete** | ⏳ Pending | Full configurability available |
 | **Phase 3 Start** | ⏳ Pending | Advanced features begin |
@@ -218,6 +218,179 @@
 - **Location**: Settings tab → Journal Structure section
 - **Controls**: Enable/disable structures, set defaults
 - **Testing**: Validation test interface
+
+## 🚀 **Phase 2 Detailed Implementation Plan**
+
+### **Phase 2.1: Enhance Structure Management in Settings** 
+
+**Target**: Extend existing journal structure settings UI with structure CRUD operations
+
+#### **Files to Modify**:
+1. **`src/dom/modals/MetricsTabsModal.ts`** - Enhance structures section
+2. **`src/utils/settings-helpers.ts`** - Add structure manipulation helpers  
+3. **`src/types/journal-check.ts`** - Add structure validation functions
+4. **`styles.css`** - Add structure management UI styles
+
+#### **Implementation Tasks**:
+
+**Task 2.1.1: Structure List Enhancement**
+- ✅ **Current**: Basic structures display in MetricsTabsModal
+- 🔄 **Add**: CRUD buttons for each structure (Edit, Delete, Clone)
+- 🔄 **Add**: Enabled/disabled toggle for each structure
+- 🔄 **Add**: Structure validation status indicators
+- 🔄 **Add**: "Add New Structure" button with wizard
+
+**Task 2.1.2: Structure Editor Modal**
+- 🔄 **Create**: `StructureEditorModal` class
+- 🔄 **Features**: 
+  - Name, description, and type editing
+  - Root callout selection/input
+  - Child callouts list management (add/remove)
+  - Metrics callout selection
+  - Date format configuration
+  - Required/optional fields management
+  - Live preview of structure
+  - Validation feedback
+
+**Task 2.1.3: Structure Validation System**
+- 🔄 **Add**: `validateStructure()` function
+- 🔄 **Check**: Unique IDs and names
+- 🔄 **Check**: No circular dependencies
+- 🔄 **Check**: Valid callout names (no special chars)
+- 🔄 **Check**: At least one root callout defined
+- 🔄 **Warn**: Conflicts with existing structures
+
+**Task 2.1.4: User Feedback System**
+- 🔄 **Add**: Active structure indicator in scrape modal
+- 🔄 **Add**: Structure usage statistics  
+- 🔄 **Add**: "Structure not recognized" warnings
+- 🔄 **Add**: Quick-fix suggestions for unrecognized callouts
+
+### **Phase 2.2: Structure Import/Export System**
+
+**Target**: Allow sharing and backup of structure configurations
+
+#### **Implementation Tasks**:
+
+**Task 2.2.1: Export Functionality**
+- 🔄 **Create**: `exportStructures()` function
+- 🔄 **Format**: JSON with metadata (version, created date, etc.)
+- 🔄 **UI**: Export button in structures section
+- 🔄 **Options**: Export all structures or selected structures
+
+**Task 2.2.2: Import Functionality**  
+- 🔄 **Create**: `importStructures()` function
+- 🔄 **Validation**: Verify format and content
+- 🔄 **Conflict Resolution**: Handle duplicate IDs/names
+- 🔄 **UI**: Import button with file picker
+- 🔄 **Preview**: Show what will be imported before confirming
+
+**Task 2.2.3: Preset Structure Library**
+- 🔄 **Create**: Common structure presets
+- 🔄 **Include**: Popular journal formats (bullet journal, GTD, etc.)
+- 🔄 **UI**: "Add from Preset" option in structure creation
+- 🔄 **Metadata**: Description, use cases, examples
+
+### **Phase 2.3: Enhanced User Experience**
+
+**Target**: Improve usability and provide better feedback
+
+#### **Implementation Tasks**:
+
+**Task 2.3.1: Structure Usage Analytics**
+- 🔄 **Track**: Which structures are used most frequently
+- 🔄 **Track**: Success rates of parsing for each structure
+- 🔄 **Display**: Usage statistics in structure management UI
+- 🔄 **Suggest**: Optimization recommendations
+
+**Task 2.3.2: Interactive Structure Testing**
+- 🔄 **Enhance**: Existing test modal with structure testing
+- 🔄 **Add**: "Test with Structure" option
+- 🔄 **Add**: Live preview of how content would be parsed
+- 🔄 **Add**: Suggestions for improving structure definitions
+
+**Task 2.3.3: Guided Structure Creation**
+- 🔄 **Create**: Structure creation wizard
+- 🔄 **Step 1**: Choose template or start from scratch  
+- 🔄 **Step 2**: Define callout hierarchy
+- 🔄 **Step 3**: Configure metadata and validation
+- 🔄 **Step 4**: Test with sample content
+- 🔄 **Step 5**: Save and activate
+
+## 🎨 **Phase 2 UI Design Specifications**
+
+### **Structure Management Interface**
+
+```typescript
+// Enhanced structure section in MetricsTabsModal
+interface StructureListItem {
+    structure: CalloutStructure;
+    enabled: boolean;
+    usageCount: number;
+    lastUsed: Date;
+    validationStatus: 'valid' | 'warning' | 'error';
+}
+
+// Structure editor modal interface
+interface StructureEditorConfig {
+    mode: 'create' | 'edit' | 'clone';
+    sourceStructure?: CalloutStructure;
+    onSave: (structure: CalloutStructure) => void;
+    onCancel: () => void;
+}
+```
+
+### **Modal Layout Design**
+
+```
+┌─────────────────────────────────────────────┐
+│ Structure Management                         │
+├─────────────────────────────────────────────┤
+│ [+ Add New] [Import] [Export Selected]      │
+├─────────────────────────────────────────────┤
+│ ✅ Legacy Dream Structure    [Edit] [Clone]  │
+│    journal-entry → dream-diary → metrics    │
+│    Used: 45 times | Last: 2 days ago       │
+├─────────────────────────────────────────────┤
+│ ✅ AV Journal Structure      [Edit] [Delete] │
+│    av-journal → dream-diary → metrics       │
+│    Used: 12 times | Last: Today            │
+├─────────────────────────────────────────────┤
+│ ⚠️  Custom Structure         [Edit] [Delete] │
+│    my-journal → dreams → data               │
+│    Conflicts with: Legacy Dream Structure   │
+└─────────────────────────────────────────────┘
+```
+
+### **Structure Editor Modal Design**
+
+```
+┌─────────────────────────────────────────────┐
+│ Edit Structure: "AV Journal Structure"      │
+├─────────────────────────────────────────────┤
+│ Name: [AV Journal Structure            ]    │
+│ Description: [Audio-visual journal...  ]    │
+│ Type: [Nested ▼]                           │
+├─────────────────────────────────────────────┤
+│ Callout Hierarchy:                         │
+│ Root:     [av-journal              ]       │
+│ Children: [dream-diary            ] [+]    │
+│           [interpretation         ] [-]    │
+│ Metrics:  [dream-metrics          ]       │
+├─────────────────────────────────────────────┤
+│ ✅ Enable this structure                    │
+│ ✅ Set as default for new entries          │
+├─────────────────────────────────────────────┤
+│ Preview:                                   │
+│ > [!av-journal] 2025-06-01                 │
+│ > > [!dream-diary] Title                   │
+│ > > Content here...                        │
+│ > > > [!dream-metrics]                     │
+│ > > > Words: 123, Sensory: 4               │
+├─────────────────────────────────────────────┤
+│              [Cancel] [Save]               │
+└─────────────────────────────────────────────┘
+```
 
 ### **Phase 3: Advanced Features (Week 4+)**
 **Objective**: Enhanced capabilities and user experience

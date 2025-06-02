@@ -11,9 +11,8 @@ import { ILogger } from '../../logging/LoggerTypes';
 import DreamMetricsPlugin from '../../../main';
 import { MetricsTabsModal } from './MetricsTabsModal';
 import { MetricsDescriptionsModal } from './MetricsDescriptionsModal';
-import { MetricsCalloutCustomizationsModal } from './MetricsCalloutCustomizationsModal';
-import { createModal, createProgressModal, createConfirmationModal, ModalConfig } from './ModalFactory';
 import { DateSelectionModal } from './DateSelectionModal';
+import { createModal, createProgressModal, createConfirmationModal, ModalConfig } from './ModalFactory';
 import { TimeFilterManager } from '../../timeFilters';
 
 /**
@@ -129,10 +128,20 @@ export class ModalsManager {
     /**
      * Open the metrics tabs modal
      * 
+     * @param tabId Optional tab to navigate to after opening
      * @returns The opened modal
      */
-    public openMetricsTabsModal(): Modal {
+    public openMetricsTabsModal(tabId?: string): Modal {
         const modal = new MetricsTabsModal(this.app, this.plugin);
+        
+        // If a specific tab is requested, select it after opening
+        if (tabId) {
+            // Use setTimeout to ensure the modal is fully rendered before selecting tab
+            setTimeout(() => {
+                (modal as any).selectTab?.(tabId);
+            }, 10);
+        }
+        
         return this.openModal(modal, 'metrics-tabs');
     }
     
@@ -150,16 +159,6 @@ export class ModalsManager {
             new Notice('Error opening metrics descriptions. See console for details.');
             throw error;
         }
-    }
-    
-    /**
-     * Open the metrics callout customizations modal
-     * 
-     * @returns The opened modal
-     */
-    public openMetricsCalloutCustomizationsModal(): Modal {
-        const modal = new MetricsCalloutCustomizationsModal(this.app, this.plugin);
-        return this.openModal(modal, 'metrics-callout-customizations');
     }
     
     /**

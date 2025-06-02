@@ -1,9 +1,30 @@
 /**
- * MetricsCalloutCustomizationsModal
+ * ARCHIVED FILE - NO LONGER IN USE
  * 
- * A modal for customizing metrics callout appearance.
- * Extracted from settings.ts during the refactoring process.
+ * This file has been archived as of 2025-06-01 during Phase 2 of the Journal Structure Integration Project
+ * 
+ * MIGRATION: MetricsCalloutCustomizationsModal → OneiroMetrics Hub "Callout Quick Copy" Tab
+ * - All functionality moved to: src/dom/modals/MetricsTabsModal.ts (loadCalloutQuickCopyContent method)
+ * - Access via: OneiroMetrics Hub → Callout Quick Copy tab
+ * - Settings integration updated to open hub with specific tab
+ * 
+ * DO NOT USE THIS FILE - It is preserved for reference only
+ * 
+ * Original functionality:
+ * - Callout structure preview with live updates
+ * - Copy to clipboard functionality
+ * - Single-line vs multi-line toggle
+ * - Metadata field customization
+ * - Custom styling for preview box and copy button
+ * 
+ * Migration benefits:
+ * - Consolidated UI - all OneiroMetrics features in one place
+ * - Consistent navigation and user experience
+ * - Reduced modal proliferation
+ * - Better integration with existing hub infrastructure
  */
+
+// Original implementation preserved for reference:
 
 import { App, Modal, Notice, Setting } from 'obsidian';
 import safeLogger from '../../logging/safe-logger';
