@@ -173,6 +173,12 @@ export interface DreamMetricsSettings {
     /** Callout name to identify dream entries */
     calloutName: string;
     
+    /** Callout name to identify journal entries */
+    journalCalloutName?: string;
+    
+    /** Callout name to identify dream diary entries */
+    dreamDiaryCalloutName?: string;
+    
     /** Whether to show ribbon buttons in the sidebar */
     showRibbonButtons: boolean;
     

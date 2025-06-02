@@ -1481,7 +1481,9 @@ This metric assesses **how well your memory of the dream holds up and remains co
         let singleLine = false;
         let flattenNested = false;
         
-        // Get dynamic callout name
+        // Get dynamic callout names with fallbacks
+        const getJournalCalloutName = () => this.plugin.settings.journalCalloutName || 'journal';
+        const getDreamDiaryCalloutName = () => this.plugin.settings.dreamDiaryCalloutName || 'dream-diary';
         const getCalloutName = () => this.plugin.settings.calloutName || 'dream-metrics';
 
         // Helper to build the callout structure
@@ -1509,7 +1511,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const buildJournalCallout = () => {
             const meta = calloutMetadata.trim();
             const metaStr = meta ? `|${meta}` : '';
-            const header = `> [!journal${metaStr}]`;
+            const calloutName = getJournalCalloutName();
+            const header = `> [!${calloutName}${metaStr}]`;
             const fields = [
                 '',
                 'Date:',
@@ -1529,7 +1532,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const buildDreamDiaryCallout = () => {
             const meta = calloutMetadata.trim();
             const metaStr = meta ? `|${meta}` : '';
-            const header = `> [!dream-diary${metaStr}]`;
+            const calloutName = getDreamDiaryCalloutName();
+            const header = `> [!${calloutName}${metaStr}]`;
             const fields = [
                 '',
                 'Date:',
@@ -1550,12 +1554,14 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const buildNestedCallout = () => {
             const meta = calloutMetadata.trim();
             const metaStr = meta ? `|${meta}` : '';
-            const calloutName = getCalloutName();
+            const journalCalloutName = getJournalCalloutName();
+            const dreamDiaryCalloutName = getDreamDiaryCalloutName();
+            const metricsCalloutName = getCalloutName();
             
             if (flattenNested) {
                 // Create separate callouts when flattened
-                const journalCallout = `> [!journal-entry${metaStr}]\n> \n> Journaling goes here.`;
-                const diaryCallout = `> [!dream-diary${metaStr}]\n> \n> Dream content goes here.`;
+                const journalCallout = `> [!${journalCalloutName}${metaStr}]\n> \n> Journaling goes here.`;
+                const diaryCallout = `> [!${dreamDiaryCalloutName}${metaStr}]\n> \n> Dream content goes here.`;
                 const metricsFields = [
                     '',
                     'Sensory Detail: 1-5',
@@ -1564,7 +1570,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     'Descriptiveness: 1-5',
                     'Confidence Score: 1-5'
                 ];
-                const metricsCallout = `> [!${calloutName}${metaStr}]\n> ${metricsFields.join(' \n> ')}`;
+                const metricsCallout = `> [!${metricsCalloutName}${metaStr}]\n> ${metricsFields.join(' \n> ')}`;
                 
                 return `${journalCallout}\n\n${diaryCallout}\n\n${metricsCallout}`;
             } else {
@@ -1582,7 +1588,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     ? metricsFields.join(' , ')
                     : metricsFields.join(' \n> > > ');
                 
-                return `> [!journal-entry${metaStr}]\n> Enter your dream here.\n>\n> > [!dream-diary${metaStr}]\n> > Dream content goes here.\n> >\n> > > [!${calloutName}${metaStr}]\n> > > ${metricsContent}`;
+                return `> [!${journalCalloutName}${metaStr}]\n> Enter your dream here.\n>\n> > [!${dreamDiaryCalloutName}${metaStr}]\n> > Dream content goes here.\n> >\n> > > [!${metricsCalloutName}${metaStr}]\n> > > ${metricsContent}`;
             }
         };
 
@@ -1671,6 +1677,32 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-callout-settings' 
         });
         settingsContainer.createEl('h3', { text: 'Global Settings' });
+
+        // Journal Callout Name Setting
+        new Setting(settingsContainer)
+            .setName('Journal Callout Name')
+            .setDesc('Name of the callout block used for journal entries (e.g., "journal")')
+            .addText(text => text
+                .setPlaceholder('journal')
+                .setValue(this.plugin.settings.journalCalloutName || 'journal')
+                .onChange(async (value) => {
+                    this.plugin.settings.journalCalloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                    updateAllCallouts();
+                }));
+
+        // Dream Diary Callout Name Setting
+        new Setting(settingsContainer)
+            .setName('Dream Diary Callout Name')
+            .setDesc('Name of the callout block used for dream diary entries (e.g., "dream-diary")')
+            .addText(text => text
+                .setPlaceholder('dream-diary')
+                .setValue(this.plugin.settings.dreamDiaryCalloutName || 'dream-diary')
+                .onChange(async (value) => {
+                    this.plugin.settings.dreamDiaryCalloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                    updateAllCallouts();
+                }));
 
         // Metrics Callout Name Setting (moved from settings page)
         new Setting(settingsContainer)
