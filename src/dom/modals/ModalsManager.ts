@@ -10,7 +10,6 @@ import { App, Modal, Notice } from 'obsidian';
 import { ILogger } from '../../logging/LoggerTypes';
 import DreamMetricsPlugin from '../../../main';
 import { HubModal } from './HubModal';
-import { MetricsDescriptionsModal } from './MetricsDescriptionsModal';
 import { DateSelectionModal } from './DateSelectionModal';
 import { createModal, createProgressModal, createConfirmationModal, ModalConfig } from './ModalFactory';
 import { TimeFilterManager } from '../../timeFilters';
@@ -143,22 +142,6 @@ export class ModalsManager {
         }
         
         return this.openModal(modal, 'metrics-tabs');
-    }
-    
-    /**
-     * Open the metrics descriptions modal
-     * 
-     * @returns The opened modal
-     */
-    public openMetricsDescriptionsModal(): Modal {
-        try {
-            const modal = new MetricsDescriptionsModal(this.app, this.plugin);
-            return this.openModal(modal, 'metrics-descriptions');
-        } catch (error) {
-            this.logger?.error('UI', 'Error opening metrics descriptions modal', error instanceof Error ? error : new Error(String(error)));
-            new Notice('Error opening metrics descriptions. See console for details.');
-            throw error;
-        }
     }
     
     /**

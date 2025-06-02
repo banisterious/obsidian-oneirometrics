@@ -5,7 +5,6 @@
  */
 
 export { HubModal } from './HubModal';
-export { MetricsDescriptionsModal } from './MetricsDescriptionsModal';
 export { ModalsManager } from './ModalsManager';
 export { createModal, createProgressModal, createConfirmationModal } from './ModalFactory';
 export type { ModalConfig } from './ModalFactory';

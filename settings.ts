@@ -1803,7 +1803,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     }
 }
 
-// --- Metrics Descriptions Modal has been moved to src/dom/modals/MetricsDescriptionsModal.ts ---
+// --- Metrics Descriptions Modal has been archived (moved to HubModal Reference Overview tab) ---
 
 // --- Metrics Callout Customizations Modal ---
 class MetricsCalloutCustomizationsModal extends Modal {

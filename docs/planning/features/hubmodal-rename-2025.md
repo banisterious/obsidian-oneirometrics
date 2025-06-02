@@ -59,12 +59,15 @@ Successfully renamed `MetricsTabsModal.ts` to `HubModal.ts` along with all assoc
 5. `settings.ts`
    - Updated all method calls from `openMetricsTabsModal()` to `openHubModal()`
 
-6. `src/dom/modals/MetricsDescriptionsModal.ts`
-   - Updated import to use `HubModal`
-   - Updated method call to `openHubModal()`
+6. `src/dom/modals/MetricsDescriptionsModal.ts` (archived - functionality moved to HubModal Reference Overview and metric tabs)
 
 7. `src/dom/RibbonManager.ts`
    - Updated method call to `openHubModal()`
+
+8. `src/dom/modals/MetricsDescriptionsModal.ts` (archived - functionality consolidated into HubModal)
+   - Modal archived and moved to docs/archive/legacy/ui/2025-phase2/
+   - All functionality integrated into HubModal Reference Overview and metric tabs
+   - Import and export references removed from codebase
 
 ## Benefits Achieved
 
@@ -81,11 +84,13 @@ Successfully renamed `MetricsTabsModal.ts` to `HubModal.ts` along with all assoc
 - More logical naming convention aligns with plugin architecture
 - Easier to locate and modify hub-related functionality
 - Consistent with "OneiroMetrics Hub" user-facing terminology
+- Reduced code duplication by consolidating modal functionality
 
 ### 🎨 **User Experience Alignment**
 - Technical naming now matches user interface terminology
 - Commands and ribbons reference "Hub" consistently
 - Better alignment between code and user documentation
+- Single unified interface for all metric-related functionality
 
 ## Files Modified
 
@@ -98,8 +103,10 @@ Successfully renamed `MetricsTabsModal.ts` to `HubModal.ts` along with all assoc
 ✅ Integration Updates  
 ├── main.ts
 ├── settings.ts
-├── src/dom/modals/MetricsDescriptionsModal.ts
 └── src/dom/RibbonManager.ts
+
+✅ Archived Files
+└── docs/archive/legacy/ui/2025-phase2/MetricsDescriptionsModal.archived.ts
 
 ✅ Documentation
 └── docs/planning/features/hubmodal-rename-2025.md (this file)
@@ -124,6 +131,7 @@ Successfully renamed `MetricsTabsModal.ts` to `HubModal.ts` along with all assoc
 - Tab navigation still works properly
 - Settings integration maintains functionality
 - Ribbon manager integration intact
+- All metrics descriptions accessible through HubModal
 
 ## Commit History
 
@@ -135,6 +143,13 @@ git commit -m "refactor: Rename MetricsTabsModal to HubModal for better semantic
 - Update all import statements and method calls across codebase
 - Update documentation and comments to reflect new naming
 - Build successfully tested with zero errors"
+
+git commit -m "feat: Archive MetricsDescriptionsModal and consolidate into HubModal
+- Archive MetricsDescriptionsModal.ts to docs/archive/legacy/ui/2025-phase2/
+- Remove openMetricsDescriptionsModal() method from ModalsManager
+- Remove MetricsDescriptionsModal export from modals index
+- All functionality now available through HubModal Reference Overview and metric tabs
+- Improved organization and reduced code duplication"
 ```
 
 ---
@@ -142,25 +157,28 @@ git commit -m "refactor: Rename MetricsTabsModal to HubModal for better semantic
 ## 📋 **Implementation Notes**
 
 ### **Risk Assessment**: ✅ **LOW RISK**
-- Single file rename with systematic reference updates
+- Systematic refactoring with proper archival
 - No functional changes to logic or behavior
 - TypeScript compilation ensures all references caught
 - Git history preservation maintains code lineage
+- Functionality preserved through HubModal integration
 
 ### **Rollback Plan**: 
 If needed, rollback is straightforward:
 ```bash
 git revert [commit-hash]
-# Then reverse the renames manually if needed
+# Then restore archived files if needed
 ```
 
 ### **Future Considerations**
-- This rename creates a foundation for potential future hub expansions
+- This consolidation creates a foundation for unified plugin interface
 - Consider adding more hub-specific functionality over time
 - Documentation should consistently use "Hub" terminology going forward
+- Single point of access improves user experience and maintenance
 
 ---
 
 **Implementation Completed Successfully** ✅  
 **Zero Breaking Changes** ✅  
-**Full Backward Compatibility Maintained** ✅ 
+**Full Backward Compatibility Maintained** ✅
+**Modal Functionality Consolidated** ✅
