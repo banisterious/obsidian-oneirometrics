@@ -1484,13 +1484,14 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Get dynamic callout name
         const getCalloutName = () => this.plugin.settings.calloutName || 'dream-metrics';
 
-        // Helper to build standard dream metrics callout
+        // Helper to build the callout structure
         const buildDreamMetricsCallout = () => {
             const meta = calloutMetadata.trim();
             const metaStr = meta ? `|${meta}` : '';
             const calloutName = getCalloutName();
             const header = `> [!${calloutName}${metaStr}]`;
             const metrics = [
+                '',
                 'Sensory Detail:',
                 'Emotional Recall:',
                 'Lost Segments:',
@@ -1498,7 +1499,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 'Confidence Score:'
             ];
             if (singleLine) {
-                return `${header}\n> ${metrics.join(' , ')}`;
+                return `${header}\n> ${metrics.slice(1).join(' , ')}`;
             } else {
                 return `${header}\n> ${metrics.join(' \n> ')}`;
             }
@@ -1510,6 +1511,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const metaStr = meta ? `|${meta}` : '';
             const header = `> [!journal${metaStr}]`;
             const fields = [
+                '',
                 'Date:',
                 'Location:',
                 'Mood:',
@@ -1517,7 +1519,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 'Reflections:'
             ];
             if (singleLine) {
-                return `${header}\n> ${fields.join(' , ')}`;
+                return `${header}\n> ${fields.slice(1).join(' , ')}`;
             } else {
                 return `${header}\n> ${fields.join(' \n> ')}`;
             }
@@ -1529,6 +1531,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const metaStr = meta ? `|${meta}` : '';
             const header = `> [!dream-diary${metaStr}]`;
             const fields = [
+                '',
                 'Date:',
                 'Dream Title:',
                 'Vividness:',
@@ -1537,7 +1540,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 'Personal Meaning:'
             ];
             if (singleLine) {
-                return `${header}\n> ${fields.join(' , ')}`;
+                return `${header}\n> ${fields.slice(1).join(' , ')}`;
             } else {
                 return `${header}\n> ${fields.join(' \n> ')}`;
             }
@@ -1550,52 +1553,45 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const calloutName = getCalloutName();
             
             if (flattenNested) {
-                // Flattened version
-                const header = `> [!${calloutName}${metaStr}]`;
-                const fields = [
-                    'Dream Content:', 'Characters:', 'Setting:', 'Actions:',
-                    'Analysis:', 'Emotions:', 'Symbols:', 'Themes:',
-                    'Personal Context:', 'Sleep Quality:', 'Life Events:', 'Stress Level:'
+                // Create separate callouts when flattened
+                const journalCallout = `> [!journal-entry${metaStr}]\n> \n> Journaling goes here.`;
+                const diaryCallout = `> [!dream-diary${metaStr}]\n> \n> Dream content goes here.`;
+                const metricsFields = [
+                    '',
+                    'Sensory Detail: 1-5',
+                    'Emotional Recall: 1-5',
+                    'Lost Segments: 0-10',
+                    'Descriptiveness: 1-5',
+                    'Confidence Score: 1-5'
                 ];
-                if (singleLine) {
-                    return `${header}\n> ${fields.join(' , ')}`;
-                } else {
-                    return `${header}\n> ${fields.join(' \n> ')}`;
-                }
+                const metricsCallout = `> [!${calloutName}${metaStr}]\n> ${metricsFields.join(' \n> ')}`;
+                
+                return `${journalCallout}\n\n${diaryCallout}\n\n${metricsCallout}`;
             } else {
-                // Nested version
-                if (singleLine) {
-                    return `> [!${calloutName}${metaStr}]\n> > [!dream-content] Dream Content: , Characters: , Setting: , Actions:\n> > [!analysis] Emotions: , Symbols: , Themes:\n> > [!context] Sleep Quality: , Life Events: , Stress Level:`;
-                } else {
-                    return `> [!${calloutName}${metaStr}]\n> > [!dream-content]\n> > Dream Content:\n> > Characters:\n> > Setting:\n> > Actions:\n> > [!analysis]\n> > Emotions:\n> > Symbols:\n> > Themes:\n> > [!context]\n> > Sleep Quality:\n> > Life Events:\n> > Stress Level:`;
-                }
+                // Create nested structure 
+                const metricsFields = [
+                    'Sensory Detail: 1-5',
+                    'Emotional Recall: 1-5', 
+                    'Lost Segments: 0-10',
+                    'Descriptiveness: 1-5',
+                    'Confidence Score: 1-5'
+                ];
+                
+                // Apply single-line only to the metrics part
+                const metricsContent = singleLine 
+                    ? metricsFields.join(' , ')
+                    : metricsFields.join(' \n> > > ');
+                
+                return `> [!journal-entry${metaStr}]\n> Enter your dream here.\n>\n> > [!dream-diary${metaStr}]\n> > Dream content goes here.\n> >\n> > > [!${calloutName}${metaStr}]\n> > > ${metricsContent}`;
             }
         };
 
         // Function to update all callout boxes
         const updateAllCallouts = () => {
-            dreamMetricsBox.textContent = buildDreamMetricsCallout();
             journalBox.textContent = buildJournalCallout();
             dreamDiaryBox.textContent = buildDreamDiaryCallout();
+            dreamMetricsBox.textContent = buildDreamMetricsCallout();
             nestedBox.textContent = buildNestedCallout();
-        };
-
-        // Dream Metrics Section
-        const dreamMetricsSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
-        dreamMetricsSection.createEl('h3', { text: 'Dream Metrics' });
-        
-        const dreamMetricsBox = dreamMetricsSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        this.applyCalloutBoxStyles(dreamMetricsBox);
-        dreamMetricsBox.textContent = buildDreamMetricsCallout();
-        
-        const dreamMetricsCopyBtn = dreamMetricsSection.createEl('button', { 
-            text: 'Copy Dream Metrics', 
-            cls: 'oom-copy-btn mod-cta' 
-        });
-        this.applyCopyButtonStyles(dreamMetricsCopyBtn);
-        dreamMetricsCopyBtn.onclick = () => {
-            navigator.clipboard.writeText(dreamMetricsBox.textContent || '');
-            new Notice('Dream metrics callout copied to clipboard!');
         };
 
         // Journal Section
@@ -1634,6 +1630,24 @@ This metric assesses **how well your memory of the dream holds up and remains co
             new Notice('Dream diary callout copied to clipboard!');
         };
 
+        // Dream Metrics Section (moved below Dream Diary)
+        const dreamMetricsSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
+        dreamMetricsSection.createEl('h3', { text: 'Dream Metrics' });
+        
+        const dreamMetricsBox = dreamMetricsSection.createEl('div', { cls: 'oom-callout-structure-box' });
+        this.applyCalloutBoxStyles(dreamMetricsBox);
+        dreamMetricsBox.textContent = buildDreamMetricsCallout();
+        
+        const dreamMetricsCopyBtn = dreamMetricsSection.createEl('button', { 
+            text: 'Copy Dream Metrics', 
+            cls: 'oom-copy-btn mod-cta' 
+        });
+        this.applyCopyButtonStyles(dreamMetricsCopyBtn);
+        dreamMetricsCopyBtn.onclick = () => {
+            navigator.clipboard.writeText(dreamMetricsBox.textContent || '');
+            new Notice('Dream metrics callout copied to clipboard!');
+        };
+
         // Nested (3-level) Section
         const nestedSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
         nestedSection.createEl('h3', { text: 'Nested (3-level)' });
@@ -1658,9 +1672,22 @@ This metric assesses **how well your memory of the dream holds up and remains co
         });
         settingsContainer.createEl('h3', { text: 'Global Settings' });
 
-        // Single-Line Toggle
+        // Metrics Callout Name Setting (moved from settings page)
         new Setting(settingsContainer)
-            .setName('Single-Line Callout Structure')
+            .setName('Metrics Callout Name')
+            .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
+            .addText(text => text
+                .setPlaceholder('dream-metrics')
+                .setValue(this.plugin.settings.calloutName)
+                .onChange(async (value) => {
+                    this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                    updateAllCallouts();
+                }));
+
+        // Single-Line Toggle (renamed)
+        new Setting(settingsContainer)
+            .setName('Single-Line Metrics Callout Structure')
             .setDesc('Show all fields on a single line in all callout structures')
             .addToggle(toggle => {
                 toggle.setValue(singleLine)

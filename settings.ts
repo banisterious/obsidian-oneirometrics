@@ -559,37 +559,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Metrics Callout Name Setting
-        new Setting(containerEl)
-            .setName('Metrics Callout Name')
-            .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
-            .addText(text => text
-                .setPlaceholder('dream-metrics')
-                .setValue(this.plugin.settings.calloutName)
-                .onChange(async (value) => {
-                    this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
-                    await this.plugin.saveSettings();
-                }));
-                
-        // Metrics Callout Customizations Button
-        new Setting(containerEl)
-            .setName('Metrics Callout Customizations')
-            .setDesc('Customize the appearance and structure of the metrics callout')
-            .addButton(button => {
-                button.setButtonText('Customize Callout')
-                    .onClick(() => {
-                        try {
-                            // Open OneiroMetrics Hub with Callout Quick Copy tab
-                            const modalsManager = new ModalsManager(this.app, this.plugin, this.plugin.logger);
-                            modalsManager.openHubModal('callout-quick-copy');
-                        } catch (error) {
-                            // Fallback error handling
-                            error('Settings', 'Error opening callout customizations', error instanceof Error ? error : new Error(String(error)));
-                            new Notice('Error opening callout customizations. See console for details.');
-                        }
-                    });
-            });
-
         // Add section border after basic settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
@@ -1764,94 +1733,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 }
 
 // --- Metrics Descriptions Modal has been archived (moved to HubModal Reference Overview tab) ---
-
-// --- Metrics Callout Customizations Modal ---
-class MetricsCalloutCustomizationsModal extends Modal {
-    plugin: DreamMetricsPlugin;
-    constructor(app: App, plugin: DreamMetricsPlugin) {
-        super(app);
-        this.plugin = plugin;
-    }
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        contentEl.addClass('oom-callout-modal');
-        contentEl.createEl('h2', { text: 'Metrics Callout Customizations' });
-        // State for the callout structure
-        let calloutMetadata = '';
-        let singleLine = false;
-        // Helper to build the callout structure
-        const buildCallout = () => {
-            const meta = calloutMetadata.trim();
-            const metaStr = meta ? `|${meta}` : '';
-            const header = `> [!dream-metrics${metaStr}]`;
-            const metrics = [
-                'Sensory Detail:',
-                'Emotional Recall:',
-                'Lost Segments:',
-                'Descriptiveness:',
-                'Confidence Score:'
-            ];
-            if (singleLine) {
-                return `${header}\n> ${metrics.join(' , ')}`;
-            } else {
-                return `${header}\n> ${metrics.join(' \n> ')}`;
-            }
-        };
-        // Callout Structure Preview (styled div)
-        const calloutBox = contentEl.createEl('div', {
-            cls: 'oom-callout-structure-box',
-        });
-        calloutBox.style.width = '100%';
-        calloutBox.style.minHeight = '90px';
-        calloutBox.style.fontFamily = 'var(--font-monospace, monospace)';
-        calloutBox.style.fontSize = '0.93em';
-        calloutBox.style.background = '#f5f5f5';
-        calloutBox.style.border = '1px solid #bbb';
-        calloutBox.style.borderRadius = '4px';
-        calloutBox.style.marginBottom = '0.7em';
-        calloutBox.style.padding = '8px 12px';
-        calloutBox.style.whiteSpace = 'pre-wrap';
-        calloutBox.style.wordBreak = 'break-word';
-        calloutBox.style.userSelect = 'all';
-        calloutBox.textContent = buildCallout();
-        // Copy button
-        const copyBtn = contentEl.createEl('button', { text: 'Copy', cls: 'oom-copy-btn' });
-        copyBtn.style.fontSize = '0.92em';
-        copyBtn.style.padding = '2px 10px';
-        copyBtn.style.borderRadius = '4px';
-        copyBtn.style.border = '1px solid #bbb';
-        copyBtn.style.background = '#f5f5f5';
-        copyBtn.style.cursor = 'pointer';
-        copyBtn.style.marginBottom = '1em';
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(calloutBox.textContent || '');
-            new Notice('Copied!');
-        };
-        // Single-Line Toggle
-        new Setting(contentEl)
-            .setName('Single-Line Callout Structure')
-            .setDesc('Show all metric fields on a single line in the callout structure')
-            .addToggle(toggle => {
-                toggle.setValue(singleLine)
-                    .onChange(async (value) => {
-                        singleLine = value;
-                        calloutBox.textContent = buildCallout();
-                    });
-            });
-        // Callout Metadata Field
-        new Setting(contentEl)
-            .setName('Callout Metadata')
-            .setDesc('Default metadata to include in dream callouts')
-            .addText(text => text
-                .setPlaceholder('Enter metadata')
-                .setValue(calloutMetadata)
-                .onChange(async (value) => {
-                    calloutMetadata = value;
-                    await this.plugin.saveSettings();
-                }));
-    }
-}
 
 // Import for file suggestion modal
 class FileSuggestModal extends Modal {
