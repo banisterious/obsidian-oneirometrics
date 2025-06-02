@@ -77,17 +77,9 @@ export class MetricsTabsModal extends Modal {
             // Select Dashboard tab by default
             this.selectTab('dashboard');
             
-            // Footer with buttons
-            const footerEl = contentEl.createDiv({ 
-                cls: 'oom-metrics-tabs-footer' 
-            });
+            // Remove footer with close button to emulate Obsidian's Settings modal behavior
+            // Users can close using the X button or Esc key like native Obsidian modals
             
-            const closeButton = footerEl.createEl('button', { 
-                text: 'Close', 
-                cls: 'oom-button' 
-            });
-            
-            closeButton.addEventListener('click', () => this.close());
         } catch (error) {
             safeLogger.error('UI', 'Error opening metrics tabs modal', error as Error);
         }
@@ -865,7 +857,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-metrics-tabs-dashboard-text' 
         });
         
-        welcomeText.createEl('h3', { text: 'Dashboard' });
+        welcomeText.createEl('h2', { text: 'Dashboard' });
         
         welcomeText.createEl('p', { 
             text: 'Welcome to Dream Metrics! Manage all aspects of your dream journal from this central hub.'
@@ -873,7 +865,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         // Quick Actions Section
         const quickActionsSection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
-        quickActionsSection.createEl('h4', { text: 'Quick Actions' });
+        quickActionsSection.createEl('h3', { text: 'Quick Actions' });
         
         const quickActionsGrid = quickActionsSection.createDiv({ cls: 'oom-quick-actions-grid' });
         
@@ -909,8 +901,11 @@ This metric assesses **how well your memory of the dream holds up and remains co
             window.open('https://github.com/banisterious/obsidian-oneirometrics/blob/main/docs/user/guides/usage.md', '_blank');
         });
         
+        // Create 2-column grid container for Recent Activity and Status Overview
+        const infoGridContainer = this.contentContainer.createDiv({ cls: 'oom-dashboard-info-grid' });
+        
         // Recent Activity Section
-        const recentActivitySection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
+        const recentActivitySection = infoGridContainer.createDiv({ cls: 'oom-dashboard-section' });
         recentActivitySection.createEl('h4', { text: 'Recent Activity' });
         
         const recentActivityList = recentActivitySection.createEl('ul', { cls: 'oom-recent-activity-list' });
@@ -929,8 +924,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         });
         
         // Status Overview Section
-        const statusSection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
-        statusSection.createEl('h4', { text: 'Status Overview' });
+        const statusSection = infoGridContainer.createDiv({ cls: 'oom-dashboard-section' });
+        statusSection.createEl('h3', { text: 'Status Overview' });
         
         const statusList = statusSection.createEl('ul', { cls: 'oom-status-list' });
         
@@ -981,7 +976,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-metrics-tabs-dream-scrape-text' 
         });
         
-        welcomeText.createEl('h3', { text: 'Dream Scrape' });
+        welcomeText.createEl('h2', { text: 'Dream Scrape' });
         
         welcomeText.createEl('p', { 
             text: 'Extract dream metrics from journal entries.'
