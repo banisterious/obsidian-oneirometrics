@@ -79,6 +79,10 @@ See [Metrics Enhancements Plan](./features/metrics-enhancements.md) for detailed
   - [ ] Better visual hierarchy
   - [ ] Improved navigation
   - [ ] Enhanced feedback
+- [ ] Structure import/export to Journal Structure wizard
+- [ ] Dream pattern detection to OneiroMetrics note
+- [ ] Metric trend visualizations to OneiroMetrics note
+- [ ] Mobile-friendly quick entry mode
 
 See [Dream Journal Manager Plan](./features/dream-journal-manager.md) for detailed implementation specifications of the unified modal system.
 
@@ -90,6 +94,10 @@ See [Dream Journal Manager Plan](./features/dream-journal-manager.md) for detail
 - [ ] Lazy loading for large datasets
 - [ ] Calendar preview optimization
 - [ ] Time filter state management
+- [ ] Large template collections optimization (50+ templates)
+- [ ] Complex Templater script performance analysis
+- [ ] Modal rendering optimization for multiple tabs
+- [ ] Memory usage analysis for wizard states
 
 ### Integration
 - [ ] Dataview compatibility
@@ -166,6 +174,57 @@ For details about the date tools implementation, see [Date Tools Plan](./feature
 - [Metrics Reference](../user/reference/metrics.md)
 - [Architecture Overview](../developer/architecture/overview.md)
 - [Implementation Details](../developer/implementation/)
+
+## TODOs and Technical Debt
+
+### Documentation Priorities
+- [ ] **Architectural Documentation**
+  - [ ] Component interaction diagrams
+  - [ ] Data flow documentation
+  - [ ] API reference for developers
+- [ ] **End User Documentation**
+  - [ ] Step-by-step wizard tutorials
+  - [ ] Template creation best practices
+  - [ ] Troubleshooting common issues
+
+### Build Process Improvements
+- [ ] **Bundle optimization** - Reduce plugin file size
+- [ ] **Development workflow** - Hot reload, faster builds
+- [ ] **Asset management** - Optimize CSS, compress images
+- [ ] **Deployment automation** - Automated releases, changelog generation
+
+### Performance Optimization Areas
+- [ ] **Large template collections** - Handle 50+ templates efficiently
+- [ ] **Complex Templater scripts** - Profile templates with heavy JavaScript
+- [ ] **Modal rendering** - Optimize initial load with many tabs
+- [ ] **Memory usage** - Analyze keeping multiple wizard states in memory
+
+### Error Handling Improvements
+- [ ] **Templater plugin disabled** - Graceful degradation
+- [ ] **Template file corruption** - Handle malformed template files
+- [ ] **Settings corruption** - Recover from broken plugin settings
+- [ ] **Network issues** - Handle templates referencing external resources
+- [ ] **Permission errors** - File system access issues
+
+### Testing & Quality Assurance
+- [ ] **Developer Tools Tab** in Hub Modal
+  - [ ] Component Tests - Test wizard navigation, template creation, validation
+  - [ ] Integration Tests - Test Templater integration, settings persistence
+  - [ ] UI Tests - Test responsive behavior, accessibility features
+  - [ ] Data Tests - Test template parsing, metric extraction
+  - [ ] Performance Tests - Measure modal load times, large template handling
+- [ ] **Accessibility Testing**
+  - [ ] Keyboard navigation audit
+  - [ ] Screen reader support verification
+  - [ ] Color contrast compliance check
+  - [ ] Focus management review
+  - [ ] Error messaging accessibility
+- [ ] **Mobile/Responsiveness Testing**
+  - [ ] Responsive breakpoint testing
+  - [ ] Touch target size verification
+  - [ ] Modal behavior on small screens
+  - [ ] Text readability assessment
+  - [ ] Navigation usability review
 
 ---
 

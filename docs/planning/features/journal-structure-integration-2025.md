@@ -765,4 +765,158 @@ function createDefaultStructures(): CalloutStructure[] {
 ---
 
 **Status**: Ready for Phase 1 implementation  
-**Next Action**: Begin core integration in `UniversalMetricsCalculator.ts` 
+**Next Action**: Begin core integration in `UniversalMetricsCalculator.ts`
+
+---
+
+## 🤔 **Open Questions and Feature Gaps**
+
+### **Template Management Gaps**
+- [ ] **Template validation** - Does the wizard validate that templates actually work?
+- [ ] **Template preview accuracy** - Are Templater previews showing realistic output?
+- [ ] **Template editing workflow** - Can users easily modify existing templates?
+- [ ] **Structure import/export** - Can users share template configurations?
+- [ ] **Bulk template operations** - Delete multiple, duplicate templates, etc.
+- [ ] **Template versioning** - Track changes to templates over time
+
+### **First-Time User Experience**
+- [ ] **Wizard suitability for beginners** - Is the existing wizard accessible to first-time users?
+- [ ] **Interactive tooltips** - Should we add contextual help throughout the wizard?
+- [ ] **Progressive disclosure** - Do we reveal complexity gradually?
+- [ ] **Default template suggestions** - Should we provide more starter templates?
+
+### **User Testing Strategy**
+- [ ] **Historical data import** - How to best import journal data going back to 1990?
+- [ ] **Structure migration** - Tools for converting between different journal structures?
+- [ ] **Validation accuracy** - How to ensure scraping works correctly across decades of data?
+- [ ] **Performance with large datasets** - How does the system handle thousands of entries?
+
+### **Testing & Quality Assurance Integration**
+- [ ] **Existing testing modals** - How to integrate new Developer Tools with current testing infrastructure?
+- [ ] **Test coverage gaps** - Which areas need automated testing most urgently?
+- [ ] **User acceptance criteria** - What constitutes "working correctly" for imported historical data?
+
+---
+
+## 📋 **Accessibility and Responsiveness Testing Scripts**
+
+### **Accessibility Testing Checklist**
+
+#### **Keyboard Navigation Test**
+- [ ] **Tab Navigation**: Can user navigate entire wizard using only Tab/Shift+Tab?
+- [ ] **Focus Indicators**: Are focus states clearly visible on all interactive elements?
+- [ ] **Skip Links**: Can users skip repetitive navigation elements?
+- [ ] **Logical Tab Order**: Does tab order follow visual layout and content flow?
+- [ ] **No Keyboard Traps**: Can users always escape focused elements?
+
+#### **Screen Reader Test**
+- [ ] **Semantic HTML**: Are headings, lists, and landmarks properly structured?
+- [ ] **ARIA Labels**: Do buttons and form controls have descriptive labels?
+- [ ] **Error Messages**: Are validation errors announced to screen readers?
+- [ ] **Live Regions**: Do dynamic content updates get announced?
+- [ ] **Image Alt Text**: Do meaningful images have appropriate descriptions?
+
+#### **Color and Contrast Test**
+- [ ] **WCAG AA Compliance**: Does text meet 4.5:1 contrast ratio requirement?
+- [ ] **WCAG AAA Compliance**: Does text meet 7:1 contrast ratio for enhanced accessibility?
+- [ ] **Color Dependence**: Is information conveyed without relying solely on color?
+- [ ] **High Contrast Mode**: Does interface work in Windows high contrast mode?
+- [ ] **Dark/Light Themes**: Are both themes accessible?
+
+#### **Focus Management Test**
+- [ ] **Modal Focus**: Is focus trapped within modal dialogs?
+- [ ] **Step Navigation**: Does focus move logically between wizard steps?
+- [ ] **Error Handling**: Is focus moved to error messages when validation fails?
+- [ ] **Success Actions**: Is focus managed appropriately after successful actions?
+- [ ] **Escape Handling**: Can users escape modal dialogs with Esc key?
+
+### **Mobile/Responsiveness Testing Checklist**
+
+#### **Responsive Breakpoints Test**
+- [ ] **320px (Small Phone)**: Does layout work on smallest common screen?
+- [ ] **375px (iPhone)**: Standard mobile phone experience acceptable?
+- [ ] **768px (Tablet Portrait)**: Tablet interface usable and intuitive?
+- [ ] **1024px (Tablet Landscape)**: Does layout utilize available space well?
+- [ ] **1200px+ (Desktop)**: Full desktop experience optimal?
+
+#### **Touch Interaction Test**
+- [ ] **44px Minimum**: Are all touch targets at least 44px in size?
+- [ ] **Thumb Reach**: Can users reach all controls with thumb navigation?
+- [ ] **Gesture Support**: Do swipe/pinch gestures work where appropriate?
+- [ ] **Tap Response**: Is touch feedback immediate and clear?
+- [ ] **No Hover Dependence**: Do interactions work without hover states?
+
+#### **Modal Behavior Test**
+- [ ] **Small Screen Layout**: Does wizard modal fit comfortably on phone screens?
+- [ ] **Scrolling Behavior**: Can users scroll through long content easily?
+- [ ] **Sticky Elements**: Do navigation buttons remain accessible while scrolling?
+- [ ] **Orientation Changes**: Does layout adapt to portrait/landscape rotation?
+- [ ] **Virtual Keyboard**: Does interface adjust when on-screen keyboard appears?
+
+#### **Text and Content Test**
+- [ ] **Font Size**: Is text readable without zooming on mobile devices?
+- [ ] **Line Height**: Is text comfortable to read on small screens?
+- [ ] **Content Hierarchy**: Is information priority clear on mobile?
+- [ ] **Truncation**: Does text truncate gracefully when space is limited?
+- [ ] **White Space**: Is there adequate spacing between elements?
+
+#### **Navigation Usability Test**
+- [ ] **One-Handed Use**: Can interface be navigated with one hand/thumb?
+- [ ] **Back Button**: Does device back button work predictably?
+- [ ] **Step Indicators**: Are current step and progress clear on small screens?
+- [ ] **Error Recovery**: Can users easily correct mistakes on mobile?
+- [ ] **Save/Resume**: Can users save progress and return later?
+
+### **Testing Script Template**
+
+```markdown
+## Accessibility Test Session - [Date]
+
+**Tester**: [Name]
+**Environment**: [OS, Browser, Assistive Technology]
+**Test Duration**: [Start Time] - [End Time]
+
+### Results Summary
+- **Passed**: [Number] tests
+- **Failed**: [Number] tests  
+- **Critical Issues**: [Number]
+- **Minor Issues**: [Number]
+
+### Critical Issues Found
+1. [Issue description, steps to reproduce, expected vs actual behavior]
+2. [Additional issues...]
+
+### Minor Issues Found
+1. [Issue description and suggested improvement]
+2. [Additional issues...]
+
+### Recommendations
+- [Priority fixes needed]
+- [Suggested improvements]
+- [Follow-up testing needed]
+```
+
+### **Mobile Test Session Template**
+
+```markdown
+## Mobile Responsiveness Test - [Date]
+
+**Tester**: [Name]
+**Device**: [Device model/Browser dev tools]
+**Screen Sizes Tested**: [List of breakpoints]
+**Orientations**: [Portrait/Landscape]
+
+### Breakpoint Results
+- **320px**: [Pass/Fail with notes]
+- **375px**: [Pass/Fail with notes]
+- **768px**: [Pass/Fail with notes]
+- **1024px**: [Pass/Fail with notes]
+
+### Critical Issues
+[Layout breaks, unusable features, accessibility problems]
+
+### Minor Issues  
+[Polish improvements, spacing adjustments, etc.]
+
+### Device-Specific Notes
+[Any unique behavior on specific devices/browsers]
