@@ -565,9 +565,11 @@ export class TemplateWizard extends Modal {
         const previewContent = this.previewEl.createDiv({ cls: 'oom-preview-content' });
         
         if (this.content) {
-            // Create a "read-only" version for preview
-            const contentEl = previewContent.createDiv({ cls: 'oom-markdown-preview' });
-            contentEl.setText(this.content);
+            // Create a "read-only" version for preview with proper line breaks
+            const contentEl = previewContent.createEl('pre', { 
+                cls: 'oom-markdown-preview',
+                text: this.content
+            });
         } else {
             previewContent.createEl('p', { 
                 text: 'No content yet. Complete the wizard to generate content.',
