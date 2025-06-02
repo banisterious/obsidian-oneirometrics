@@ -1521,8 +1521,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-button-primary'
         });
         createBtn.addEventListener('click', () => {
-            const { TemplateWizard } = require('../../journal_check/ui/TemplateWizard');
-            new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
+            const { UnifiedTemplateWizard } = require('../../journal_check/ui/UnifiedTemplateWizard');
+            new UnifiedTemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration).open();
         });
         
         // Import/export buttons
@@ -1940,8 +1940,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         setIcon(editBtn, 'edit');
         editBtn.setAttribute('aria-label', 'Edit');
         editBtn.addEventListener('click', () => {
-            const { TemplateWizard } = require('../../journal_check/ui/TemplateWizard');
-            new TemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration, template).open();
+            const { UnifiedTemplateWizard } = require('../../journal_check/ui/UnifiedTemplateWizard');
+            new UnifiedTemplateWizard(this.app, this.plugin, this.plugin.templaterIntegration, template).open();
         });
         
         const deleteBtn = actionsEl.createDiv({ cls: 'oom-action-btn' });

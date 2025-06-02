@@ -1474,7 +1474,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 cls: 'oom-template-edit-button'
             });
             editButton.addEventListener('click', () => {
-                new TemplateWizard(this.app, this.plugin).open();
+                const { UnifiedTemplateWizard } = require('./src/journal_check/ui/UnifiedTemplateWizard');
+                new UnifiedTemplateWizard(this.app, this.plugin).open();
                 
                 // Close the template manager (will be refreshed when reopened)
                 (templateListContainer as HTMLElement).style.display = 'none';
@@ -1928,18 +1929,8 @@ function getSelectionModeDescription(mode: string): string {
     return 'Choose how to select notes for metrics processing';
 } 
 
-// Stub implementation for TemplateWizard
-class TemplateWizard extends Modal {
-    constructor(app: App, plugin: DreamMetricsPlugin, templaterIntegration?: any) {
-        super(app);
-    }
-    
-    open() {
-        super.open();
-        this.contentEl.createEl('h2', { text: 'Template Wizard' });
-        // This is a stub implementation
-    }
-}
+// Note: TemplateWizard is now replaced by UnifiedTemplateWizard
+// The stub implementation has been removed
 
 // Add a helper function to sort metrics by a predefined order
 export function sortMetricsByOrder(metrics: string[], orderArray: string[]): string[] {

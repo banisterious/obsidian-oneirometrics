@@ -1,7 +1,9 @@
 /**
- * UI Components for Journal Check module
+ * UI Components for Journal Structure Check
+ * This file exports UI components used by the Journal Structure Check system.
  */
 
-export { TemplateWizard } from './TemplateWizard';
 export { TestModal } from './TestModal';
-export { EntryComponent } from './EntryComponent'; 
+export { EntryComponent } from './EntryComponent';
+// export { TemplateWizard } from './TemplateWizard'; // Deprecated - use UnifiedTemplateWizard
+export { UnifiedTemplateWizard } from './UnifiedTemplateWizard'; 
