@@ -198,6 +198,13 @@ export class TemplateWizard extends Modal {
                 
                 dropdown.onChange(value => {
                     this.structureId = value;
+                    
+                    // Clear existing content when structure changes so it can be regenerated
+                    this.content = '';
+                    if (this.contentArea) {
+                        this.contentArea.setValue('');
+                    }
+                    
                     this.updatePreview();
                     
                     // Update guidance based on selected structure
@@ -338,7 +345,7 @@ export class TemplateWizard extends Modal {
         
         this.contentArea = new TextAreaComponent(contentAreaContainer);
         this.contentArea.inputEl.addClass('oom-template-content');
-        this.contentArea.setValue(this.content || this.getDefaultContent());
+        this.contentArea.setValue(this.content || '');
         this.contentArea.onChange(value => {
             this.content = value;
             this.updatePreview();
@@ -493,6 +500,14 @@ export class TemplateWizard extends Modal {
         this.currentStep = step;
         if (this.stepContainers[this.currentStep - 1]) {
             this.stepContainers[this.currentStep - 1].style.display = 'block';
+        }
+        
+        // Special handling for Step 3: Update content based on selected structure
+        if (step === 3 && this.contentArea) {
+            const defaultContent = this.getDefaultContent();
+            this.content = defaultContent;
+            this.contentArea.setValue(defaultContent);
+            this.updatePreview();
         }
         
         // Update navigation
@@ -658,7 +673,7 @@ export class TemplateWizard extends Modal {
             }
             
             // Add metrics callout last if defined
-            if (structure.metricsCallout && structure.childCallouts.includes(structure.metricsCallout)) {
+            if (structure.metricsCallout) {
                 content += `> > [!${structure.metricsCallout}]\n`;
                 
                 // Add enabled metrics from settings
@@ -689,7 +704,7 @@ export class TemplateWizard extends Modal {
             }
             
             // Add metrics callout last if defined
-            if (structure.metricsCallout && structure.childCallouts.includes(structure.metricsCallout)) {
+            if (structure.metricsCallout) {
                 content += `> [!${structure.metricsCallout}]\n`;
                 
                 // Add enabled metrics from settings
