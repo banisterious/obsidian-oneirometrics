@@ -1484,7 +1484,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const buildCallout = () => {
             const meta = calloutMetadata.trim();
             const metaStr = meta ? `|${meta}` : '';
-            const header = `> [!dream-metrics${metaStr}]`;
+            const calloutName = this.plugin.settings.calloutName || 'dream-metrics';
+            const header = `> [!${calloutName}${metaStr}]`;
             const metrics = [
                 'Sensory Detail:',
                 'Emotional Recall:',
