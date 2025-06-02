@@ -9,7 +9,7 @@ import { App, Modal, MarkdownRenderer } from 'obsidian';
 import safeLogger from '../../logging/safe-logger';
 import { lucideIconMap } from '../../../settings';
 import DreamMetricsPlugin from '../../../main';
-import { MetricsTabsModal } from './MetricsTabsModal';
+import { HubModal } from './HubModal';
 import { ModalsManager } from './ModalsManager';
 
 export class MetricsDescriptionsModal extends Modal {
@@ -66,7 +66,7 @@ export class MetricsDescriptionsModal extends Modal {
             tabbedViewButton.addEventListener('click', () => {
                 this.close();
                 const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                modalsManager.openMetricsTabsModal();
+                modalsManager.openHubModal();
             });
         } catch (error) {
             safeLogger.error('UI', 'Error opening metrics descriptions modal', error as Error);

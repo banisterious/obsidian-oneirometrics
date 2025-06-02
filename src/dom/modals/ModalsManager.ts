@@ -9,7 +9,7 @@
 import { App, Modal, Notice } from 'obsidian';
 import { ILogger } from '../../logging/LoggerTypes';
 import DreamMetricsPlugin from '../../../main';
-import { MetricsTabsModal } from './MetricsTabsModal';
+import { HubModal } from './HubModal';
 import { MetricsDescriptionsModal } from './MetricsDescriptionsModal';
 import { DateSelectionModal } from './DateSelectionModal';
 import { createModal, createProgressModal, createConfirmationModal, ModalConfig } from './ModalFactory';
@@ -126,13 +126,13 @@ export class ModalsManager {
     }
     
     /**
-     * Open the metrics tabs modal
+     * Open the OneiroMetrics Hub modal
      * 
      * @param tabId Optional tab to navigate to after opening
      * @returns The opened modal
      */
-    public openMetricsTabsModal(tabId?: string): Modal {
-        const modal = new MetricsTabsModal(this.app, this.plugin);
+    public openHubModal(tabId?: string): Modal {
+        const modal = new HubModal(this.app, this.plugin);
         
         // If a specific tab is requested, select it after opening
         if (tabId) {

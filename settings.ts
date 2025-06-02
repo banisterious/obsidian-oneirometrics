@@ -581,7 +581,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         try {
                             // Open OneiroMetrics Hub with Callout Quick Copy tab
                             const modalsManager = new ModalsManager(this.app, this.plugin, this.plugin.logger);
-                            modalsManager.openMetricsTabsModal('callout-quick-copy');
+                            modalsManager.openHubModal('callout-quick-copy');
                         } catch (error) {
                             // Fallback error handling
                             error('Settings', 'Error opening callout customizations', error instanceof Error ? error : new Error(String(error)));
@@ -876,7 +876,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     .onClick(() => {
                         // Use ModalsManager instead of the removed showMetricsTabsModal method
                         const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                        modalsManager.openMetricsTabsModal();
+                        modalsManager.openHubModal();
                     });
             });
 
@@ -1377,7 +1377,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 .setButtonText('Open Settings')
                 .onClick(() => {
                     const modalsManager = new ModalsManager(this.app, this.plugin, this.plugin.logger);
-                    modalsManager.openMetricsTabsModal();
+                    modalsManager.openHubModal();
                 }));
 
         // Templater status indicator

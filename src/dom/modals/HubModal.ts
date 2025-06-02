@@ -1,16 +1,16 @@
 /**
- * MetricsTabsModal
+ * HubModal
  * 
- * A modal that displays detailed metric information in a tabbed interface.
- * Provides comprehensive descriptions of all metrics available in the plugin.
+ * The central OneiroMetrics Hub modal that provides access to all plugin functionality
+ * in a unified tabbed interface. Includes Dashboard, Dream Scrape, Journal Structure, 
+ * Callout Quick Copy, and detailed metric reference information.
  */
 
-import { App, Modal, MarkdownRenderer, setIcon, Notice, TFile } from 'obsidian';
+import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
 import { DreamMetric } from '../../types/core';
 import safeLogger from '../../logging/safe-logger';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
-import { Setting } from 'obsidian';
 
 // Interface for grouped metrics
 interface MetricGroup {
@@ -18,7 +18,7 @@ interface MetricGroup {
     metrics: DreamMetric[];
 }
 
-export class MetricsTabsModal extends Modal {
+export class HubModal extends Modal {
     private tabsContainer: HTMLElement;
     private contentContainer: HTMLElement;
     private selectedTab: string | null = null;

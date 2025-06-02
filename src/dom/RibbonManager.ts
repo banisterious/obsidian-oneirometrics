@@ -65,7 +65,7 @@ export class RibbonManager {
                 // Use ModalsManager to open the consolidated hub
                 try {
                     const modalsManager = new ModalsManager(this.app, this.plugin as any, this.logger);
-                    modalsManager.openMetricsTabsModal();
+                    modalsManager.openHubModal();
                 } catch (e) {
                     this.logger?.error('UI', 'Error opening OneiroMetrics Hub', e instanceof Error ? e : new Error(String(e)));
                 }

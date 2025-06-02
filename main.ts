@@ -75,7 +75,7 @@ import { DreamMetricsState } from './src/state/DreamMetricsState';
 // Import the DEFAULT_JOURNAL_STRUCTURE_SETTINGS constant directly from the source
 import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from './src/types/journal-check';
 
-import { MetricsTabsModal } from './src/dom/modals/MetricsTabsModal';
+import { HubModal } from './src/dom/modals/HubModal';
 
 // Move this to the top of the file, before any functions that use it
 let customDateRange: { start: string, end: string } | null = null;
@@ -224,7 +224,7 @@ export default class DreamMetricsPlugin extends Plugin {
             name: 'OneiroMetrics: Open Hub',
             callback: () => {
                 const modalsManager = new ModalsManager(this.app, this, this.logger);
-                modalsManager.openMetricsTabsModal();
+                modalsManager.openHubModal();
             }
         });
 
@@ -597,7 +597,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 const metricsHubRibbonEl = this.addRibbonIcon('lucide-shell', 'OneiroMetrics Hub', () => {
                     // Use ModalsManager to open the consolidated hub
                     const modalsManager = new ModalsManager(this.app, this, this.logger);
-                    modalsManager.openMetricsTabsModal();
+                    modalsManager.openHubModal();
                 });
                 this.ribbonIcons.push(metricsHubRibbonEl);
             }

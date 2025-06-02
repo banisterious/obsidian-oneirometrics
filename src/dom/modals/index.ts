@@ -4,7 +4,7 @@
  * Barrel file for exporting modal components
  */
 
-export { MetricsTabsModal } from './MetricsTabsModal';
+export { HubModal } from './HubModal';
 export { MetricsDescriptionsModal } from './MetricsDescriptionsModal';
 export { ModalsManager } from './ModalsManager';
 export { createModal, createProgressModal, createConfirmationModal } from './ModalFactory';
