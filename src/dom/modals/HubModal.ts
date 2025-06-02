@@ -1421,7 +1421,19 @@ This metric assesses **how well your memory of the dream holds up and remains co
         });
         
         // Structures list
-        const structures = this.plugin.settings.linting?.structures || [];
+        let structures = this.plugin.settings.linting?.structures || [];
+        
+        // If no structures exist, create default ones
+        if (structures.length === 0) {
+            structures = this.createDefaultStructures();
+            
+            // Save default structures to settings
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            this.plugin.settings.linting.structures = structures;
+            this.plugin.saveSettings();
+        }
         
         if (structures.length === 0) {
             const emptyState = containerEl.createDiv({ cls: 'oom-empty-state' });
@@ -1443,6 +1455,56 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 this.createEnhancedStructureListItem(listContainer, structure);
             }
         }
+    }
+    
+    /**
+     * Create default structures for testing and initial setup
+     */
+    private createDefaultStructures() {
+        return [
+            {
+                id: 'legacy-dream-structure',
+                name: 'Legacy Dream Structure',
+                description: 'Default OneiroMetrics dream journal structure (journal-entry/dream-diary/dream-metrics)',
+                type: 'nested' as const,
+                rootCallout: 'journal-entry',
+                childCallouts: ['dream-diary'],
+                metricsCallout: 'dream-metrics',
+                enabled: true,
+                isDefault: false,
+                dateFormat: ['YYYY-MM-DD'],
+                requiredFields: ['journal-entry', 'dream-diary'],
+                optionalFields: ['dream-metrics']
+            },
+            {
+                id: 'av-journal-structure',
+                name: 'AV Journal Structure',
+                description: 'Audio-Visual journal format with av-journal root callout',
+                type: 'nested' as const,
+                rootCallout: 'av-journal',
+                childCallouts: ['dream-diary'],
+                metricsCallout: 'dream-metrics',
+                enabled: true,
+                isDefault: true,
+                dateFormat: ['YYYY-MM-DD'],
+                requiredFields: ['av-journal', 'dream-diary'],
+                optionalFields: ['dream-metrics']
+            },
+            {
+                id: 'simple-dream-structure',
+                name: 'Simple Dream Structure',
+                description: 'Simplified flat structure for basic dream journaling',
+                type: 'flat' as const,
+                rootCallout: 'dream',
+                childCallouts: [],
+                metricsCallout: 'metrics',
+                enabled: true,
+                isDefault: false,
+                dateFormat: ['YYYY-MM-DD'],
+                requiredFields: ['dream'],
+                optionalFields: ['metrics']
+            }
+        ];
     }
 
     // Build the Templates section  
@@ -2201,20 +2263,353 @@ This metric assesses **how well your memory of the dream holds up and remains co
     }
     
     /**
-     * Build inline structure editor (placeholder for now)
+     * Build inline structure editor with complete form fields
      */
     private buildInlineStructureEditor(editorEl: HTMLElement, structure: any) {
-        editorEl.createEl('p', { 
-            text: 'Inline structure editor will be implemented next',
-            cls: 'oom-placeholder'
+        editorEl.empty(); // Clear any existing content
+        
+        // Create form container
+        const formEl = editorEl.createDiv({ cls: 'oom-structure-form' });
+        
+        // ========== BASIC INFORMATION SECTION ==========
+        const basicSection = formEl.createDiv({ cls: 'oom-form-section' });
+        basicSection.createEl('h4', { text: 'Basic Information', cls: 'oom-form-section-title' });
+        
+        // Name field
+        const nameField = basicSection.createDiv({ cls: 'oom-form-field' });
+        nameField.createEl('label', { text: 'Name:', cls: 'oom-form-label' });
+        const nameInput = nameField.createEl('input', {
+            type: 'text',
+            cls: 'oom-form-input',
+            value: structure.name || ''
+        });
+        nameInput.placeholder = 'Enter structure name';
+        
+        // Description field
+        const descField = basicSection.createDiv({ cls: 'oom-form-field' });
+        descField.createEl('label', { text: 'Description:', cls: 'oom-form-label' });
+        const descInput = descField.createEl('input', {
+            type: 'text',
+            cls: 'oom-form-input',
+            value: structure.description || ''
+        });
+        descInput.placeholder = 'Brief description of this structure';
+        
+        // Type field
+        const typeField = basicSection.createDiv({ cls: 'oom-form-field' });
+        typeField.createEl('label', { text: 'Type:', cls: 'oom-form-label' });
+        const typeSelect = typeField.createEl('select', { cls: 'oom-form-select' });
+        
+        const nestedOption = typeSelect.createEl('option', { value: 'nested', text: 'Nested' });
+        const flatOption = typeSelect.createEl('option', { value: 'flat', text: 'Flat' });
+        
+        typeSelect.value = structure.type || 'nested';
+        
+        // ========== CALLOUT CONFIGURATION SECTION ==========
+        const calloutSection = formEl.createDiv({ cls: 'oom-form-section' });
+        calloutSection.createEl('h4', { text: 'Callout Configuration', cls: 'oom-form-section-title' });
+        
+        // Root callout field
+        const rootField = calloutSection.createDiv({ cls: 'oom-form-field' });
+        rootField.createEl('label', { text: 'Root Callout:', cls: 'oom-form-label' });
+        const rootInput = rootField.createEl('input', {
+            type: 'text',
+            cls: 'oom-form-input',
+            value: structure.rootCallout || ''
+        });
+        rootInput.placeholder = 'e.g., journal-entry, av-journal, dream';
+        
+        // Child callouts section
+        const childSection = calloutSection.createDiv({ cls: 'oom-form-field' });
+        childSection.createEl('label', { text: 'Child Callouts:', cls: 'oom-form-label' });
+        
+        const childContainer = childSection.createDiv({ cls: 'oom-child-callouts-container' });
+        const childCallouts = structure.childCallouts || [];
+        
+        // Function to create child callout item
+        const createChildCalloutItem = (callout: string, index: number) => {
+            const itemEl = childContainer.createDiv({ cls: 'oom-child-callout-item' });
+            
+            const input = itemEl.createEl('input', {
+                type: 'text',
+                cls: 'oom-form-input',
+                value: callout
+            });
+            input.placeholder = 'e.g., dream-diary, interpretation';
+            
+            const removeBtn = itemEl.createEl('button', {
+                text: 'Remove',
+                cls: 'oom-button-small oom-button-danger'
+            });
+            removeBtn.addEventListener('click', () => {
+                childCallouts.splice(index, 1);
+                rebuildChildCallouts();
+                updatePreview();
+            });
+            
+            // Update callout value on input change
+            input.addEventListener('input', () => {
+                childCallouts[index] = input.value;
+                updatePreview();
+            });
+            
+            return itemEl;
+        };
+        
+        // Function to rebuild child callouts list
+        const rebuildChildCallouts = () => {
+            childContainer.empty();
+            childCallouts.forEach((callout, index) => {
+                createChildCalloutItem(callout, index);
+            });
+        };
+        
+        // Initial build of child callouts
+        rebuildChildCallouts();
+        
+        // Add child callout button
+        const addChildBtn = childSection.createEl('button', {
+            text: '+ Add Child Callout',
+            cls: 'oom-button-secondary'
+        });
+        addChildBtn.addEventListener('click', () => {
+            childCallouts.push('');
+            rebuildChildCallouts();
         });
         
-        // Action buttons
-        const buttonBar = editorEl.createDiv({ cls: 'oom-editor-buttons' });
+        // Metrics callout field
+        const metricsField = calloutSection.createDiv({ cls: 'oom-form-field' });
+        metricsField.createEl('label', { text: 'Metrics Callout:', cls: 'oom-form-label' });
+        const metricsInput = metricsField.createEl('input', {
+            type: 'text',
+            cls: 'oom-form-input',
+            value: structure.metricsCallout || ''
+        });
+        metricsInput.placeholder = 'e.g., dream-metrics, metrics, data';
+        
+        // ========== OPTIONS SECTION ==========
+        const optionsSection = formEl.createDiv({ cls: 'oom-form-section' });
+        optionsSection.createEl('h4', { text: 'Options', cls: 'oom-form-section-title' });
+        
+        // Enabled toggle
+        const enabledField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-checkbox' });
+        const enabledCheckbox = enabledField.createEl('input', {
+            type: 'checkbox',
+            cls: 'oom-form-checkbox'
+        });
+        enabledCheckbox.checked = structure.enabled !== false;
+        enabledField.createEl('label', { text: 'Enabled', cls: 'oom-form-checkbox-label' });
+        
+        // Default for new entries toggle  
+        const defaultField = optionsSection.createDiv({ cls: 'oom-form-field oom-form-field-checkbox' });
+        const defaultCheckbox = defaultField.createEl('input', {
+            type: 'checkbox',
+            cls: 'oom-form-checkbox'
+        });
+        defaultCheckbox.checked = structure.isDefault || false;
+        defaultField.createEl('label', { text: 'Default for new entries', cls: 'oom-form-checkbox-label' });
+        
+        // ========== LIVE PREVIEW SECTION ==========
+        const previewSection = formEl.createDiv({ cls: 'oom-form-section' });
+        previewSection.createEl('h4', { text: 'Preview', cls: 'oom-form-section-title' });
+        
+        const previewContainer = previewSection.createDiv({ cls: 'oom-structure-preview' });
+        
+        // Function to update live preview
+        const updatePreview = () => {
+            const rootCallout = rootInput.value || 'root';
+            const childCalls = childCallouts.filter(c => c.trim());
+            const metricsCallout = metricsInput.value || 'metrics';
+            const structureType = typeSelect.value as 'nested' | 'flat';
+            
+            let preview = '';
+            
+            if (structureType === 'nested') {
+                // Nested structure preview
+                preview = `> [!${rootCallout}] ${new Date().toISOString().split('T')[0]}\n`;
+                
+                if (childCalls.length > 0) {
+                    for (const child of childCalls) {
+                        preview += `> > [!${child}] Dream Title\n`;
+                        preview += `> > Dream content goes here...\n`;
+                    }
+                    preview += `> > > [!${metricsCallout}]\n`;
+                } else {
+                    preview += `> > [!${metricsCallout}]\n`;
+                }
+                
+                preview += `> > > Sensory Detail: 4, Emotional Recall: 3`;
+            } else {
+                // Flat structure preview
+                preview = `> [!${rootCallout}] Dream Entry\n`;
+                preview += `> Dream content goes here...\n`;
+                preview += `> \n`;
+                preview += `> [!${metricsCallout}]\n`;
+                preview += `> Sensory Detail: 4, Emotional Recall: 3`;
+            }
+            
+            previewContainer.textContent = preview;
+        };
+        
+        // Set up preview update listeners
+        const updatePreviewInputs = [nameInput, descInput, rootInput, metricsInput];
+        updatePreviewInputs.forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+        typeSelect.addEventListener('change', updatePreview);
+        
+        // Initial preview
+        updatePreview();
+        
+        // ========== VALIDATION SECTION ==========
+        const validationEl = formEl.createDiv({ cls: 'oom-validation-messages' });
+        
+        // Function to validate form
+        const validateForm = () => {
+            const errors: string[] = [];
+            const warnings: string[] = [];
+            
+            // Name validation
+            if (!nameInput.value.trim()) {
+                errors.push('Structure name is required');
+            }
+            
+            // Root callout validation
+            if (!rootInput.value.trim()) {
+                errors.push('Root callout is required');
+            } else if (!/^[a-z0-9-]+$/.test(rootInput.value.trim())) {
+                errors.push('Root callout should contain only lowercase letters, numbers, and hyphens');
+            }
+            
+            // Metrics callout validation
+            if (!metricsInput.value.trim()) {
+                warnings.push('Metrics callout is recommended for proper metric extraction');
+            } else if (!/^[a-z0-9-]+$/.test(metricsInput.value.trim())) {
+                errors.push('Metrics callout should contain only lowercase letters, numbers, and hyphens');
+            }
+            
+            // Child callouts validation
+            const invalidChildCallouts = childCallouts.filter(c => 
+                c.trim() && !/^[a-z0-9-]+$/.test(c.trim())
+            );
+            if (invalidChildCallouts.length > 0) {
+                errors.push('Child callouts should contain only lowercase letters, numbers, and hyphens');
+            }
+            
+            // Duplicate callout validation
+            const allCallouts = [rootInput.value, ...childCallouts, metricsInput.value]
+                .filter(c => c && c.trim())
+                .map(c => c.trim());
+            const uniqueCallouts = new Set(allCallouts);
+            if (allCallouts.length !== uniqueCallouts.size) {
+                errors.push('Callout names must be unique within the structure');
+            }
+            
+            // Display validation messages
+            validationEl.empty();
+            
+            if (errors.length > 0) {
+                const errorList = validationEl.createDiv({ cls: 'oom-validation-errors' });
+                errorList.createEl('strong', { text: 'Errors:' });
+                const errorUl = errorList.createEl('ul');
+                errors.forEach(error => {
+                    errorUl.createEl('li', { text: error });
+                });
+            }
+            
+            if (warnings.length > 0) {
+                const warningList = validationEl.createDiv({ cls: 'oom-validation-warnings' });
+                warningList.createEl('strong', { text: 'Warnings:' });
+                const warningUl = warningList.createEl('ul');
+                warnings.forEach(warning => {
+                    warningUl.createEl('li', { text: warning });
+                });
+            }
+            
+            return errors.length === 0;
+        };
+        
+        // Set up validation on input changes
+        updatePreviewInputs.forEach(input => {
+            input.addEventListener('input', validateForm);
+        });
+        typeSelect.addEventListener('change', validateForm);
+        
+        // Initial validation
+        validateForm();
+        
+        // Function to build structure data from form
+        const buildStructureDataFromForm = () => {
+            return {
+                ...structure,
+                name: nameInput.value.trim(),
+                description: descInput.value.trim(),
+                type: typeSelect.value,
+                rootCallout: rootInput.value.trim(),
+                childCallouts: childCallouts.filter(c => c.trim()),
+                metricsCallout: metricsInput.value.trim(),
+                enabled: enabledCheckbox.checked,
+                isDefault: defaultCheckbox.checked,
+                lastModified: new Date().toISOString()
+            };
+        };
+        
+        // Function to save structure
+        const saveStructureFromForm = async () => {
+            try {
+                const updatedStructure = buildStructureDataFromForm();
+                
+                // Update in settings
+                const structures = this.plugin.settings.linting?.structures || [];
+                const index = structures.findIndex(s => s.id === structure.id);
+                
+                if (index !== -1) {
+                    structures[index] = updatedStructure;
+                } else {
+                    // New structure - generate ID if needed
+                    if (!updatedStructure.id) {
+                        updatedStructure.id = 'structure-' + Date.now();
+                    }
+                    structures.push(updatedStructure);
+                }
+                
+                if (!this.plugin.settings.linting) {
+                    this.plugin.settings.linting = this.getDefaultLintingSettings();
+                }
+                this.plugin.settings.linting.structures = structures;
+                
+                await this.plugin.saveSettings();
+                
+                new Notice('Structure saved successfully');
+                
+                // Close the editor and refresh the structure list
+                const itemEl = editorEl.closest('.oom-structure-item') as HTMLElement;
+                if (itemEl) {
+                    this.toggleStructureEditor(itemEl, updatedStructure);
+                }
+                
+                // Refresh the entire structures section
+                this.loadJournalStructureContent();
+                
+            } catch (error) {
+                console.error('Error saving structure:', error);
+                new Notice('Failed to save structure');
+            }
+        };
+        
+        // ========== ACTION BUTTONS ==========
+        const buttonBar = formEl.createDiv({ cls: 'oom-editor-buttons' });
         
         const cancelBtn = buttonBar.createEl('button', {
             text: 'Cancel',
             cls: 'oom-button-secondary'
+        });
+        cancelBtn.addEventListener('click', () => {
+            // Close the editor without saving
+            const itemEl = editorEl.closest('.oom-structure-item') as HTMLElement;
+            if (itemEl) {
+                this.toggleStructureEditor(itemEl, structure);
+            }
         });
         
         const copyBtn = buttonBar.createEl('button', {
@@ -2222,12 +2617,19 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-button-secondary'
         });
         copyBtn.addEventListener('click', () => {
-            this.copyStructureToClipboard(structure);
+            this.copyStructureToClipboard(buildStructureDataFromForm());
         });
         
         const saveBtn = buttonBar.createEl('button', {
             text: 'Save Structure',
             cls: 'oom-button-primary'
+        });
+        saveBtn.addEventListener('click', async () => {
+            if (validateForm()) {
+                await saveStructureFromForm();
+            } else {
+                new Notice('Please fix validation errors before saving');
+            }
         });
     }
     
