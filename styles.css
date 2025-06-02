@@ -381,6 +381,21 @@
     --oom-test-failure-color: #ef4444;
     --oom-test-warning-color: #f59e0b;
     --oom-test-partial-color: #3b82f6;
+
+    /* =============================================================================
+       UTILITY VARIABLES - Screen Reader and Accessibility
+       ============================================================================= */
+    
+    /* Screen Reader Only (visually-hidden) Variables */
+    --oom-utility-sr-position: absolute;
+    --oom-utility-sr-width: 1px;
+    --oom-utility-sr-height: 1px;
+    --oom-utility-sr-padding: 0;
+    --oom-utility-sr-margin: -1px;
+    --oom-utility-sr-overflow: hidden;
+    --oom-utility-sr-clip: rect(0, 0, 0, 0);
+    --oom-utility-sr-whitespace: nowrap;
+    --oom-utility-sr-border: 0;
     
 }
 
@@ -688,7 +703,7 @@
 .minimal-theme .oom-log-level-error {
     /* Ensure warning visibility in Minimal theme */
     background-color: rgba(233, 185, 73, 0.8);
-} 
+}
 
 /* ==========================================================================
    2. LAYOUT SYSTEMS - Structure & Positioning
@@ -706,7 +721,6 @@
 .oom-table-container,
 .oom-table-wrapper,
 .oom-icon-picker-container,
-.oom-multiselect-container,
 .oom-modal-button-container,
 .oom-test-modal-container,
 .oom-journal-structure-container,
@@ -735,8 +749,7 @@
 /* Content Layout Containers */
 .oom-table-container,
 .oom-table-wrapper,
-.oom-icon-picker-container,
-.oom-multiselect-container {
+.oom-icon-picker-container {
     display: block;
     overflow: hidden;
 }
@@ -840,7 +853,8 @@
     }
     
     &.oom-metrics-tabs-sidebar {
-        width: 200px;
+        min-width: 180px;
+        max-width: 250px;
         padding: var(--oom-spacing-lg) var(--oom-spacing-sm);
         flex-shrink: 0;
     }
@@ -858,8 +872,8 @@
     
     /* Content-specific layouts */
     &.oom-metrics-tabs-content {
-        padding: var(--oom-spacing-xl);
-        max-height: 500px;
+        /*padding: var(--oom-spacing-xl);
+        max-height: 500px;*/
     }
 }
 
@@ -930,6 +944,41 @@
     h4 {
         margin-bottom: var(--oom-spacing-md);
         /* NO VISUAL STYLING - Let theme handle heading appearance */
+    }
+}
+
+.oom-metrics-tabs-content h2:first-of-type {
+    margin-block-start: 0;
+}
+
+/* =============================================================================
+   DASHBOARD INFO GRID - 2-Column Layout for Recent Activity & Status Overview
+   ============================================================================= */
+
+.oom-dashboard-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--oom-spacing-lg);
+    margin-top: var(--oom-spacing-lg);
+}
+
+/* Ensure dashboard sections within the grid have proper spacing */
+.oom-dashboard-info-grid .oom-dashboard-section {
+    margin-top: 0; /* Reset any existing top margin since grid handles spacing */
+}
+
+/* Responsive behavior - stack on smaller screens */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-dashboard-info-grid {
+        grid-template-columns: 1fr;
+        gap: var(--oom-spacing-md);
+    }
+}
+
+/* Mobile optimization */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-dashboard-info-grid {
+        gap: var(--oom-spacing-sm);
     }
 }
 
@@ -1661,7 +1710,6 @@
     white-space: normal;
 }
 
-.oom-multiselect-search-input,
 .oom-text-input {
     /* NO VISUAL STYLING - Let theme handle input appearance */
     /* Structural layout only */
@@ -1851,943 +1899,6 @@
 }
 
 /* ==========================================================================
-   LAYOUT UTILITIES
-   ========================================================================== */
-
-/* Flexbox Utilities */
-.oom-flex {
-    display: flex;
-}
-
-.oom-flex-col {
-    display: flex;
-    flex-direction: column;
-}
-
-.oom-flex-row {
-    display: flex;
-    flex-direction: row;
-}
-
-.oom-flex-wrap {
-    flex-wrap: wrap;
-}
-
-.oom-flex-nowrap {
-    flex-wrap: nowrap;
-}
-
-/* Flex Alignment */
-.oom-items-start {
-    align-items: flex-start;
-}
-
-.oom-items-center {
-    align-items: center;
-}
-
-.oom-items-end {
-    align-items: flex-end;
-}
-
-.oom-items-stretch {
-    align-items: stretch;
-}
-
-.oom-justify-start {
-    justify-content: flex-start;
-}
-
-.oom-justify-center {
-    justify-content: center;
-}
-
-.oom-justify-end {
-    justify-content: flex-end;
-}
-
-.oom-justify-between {
-    justify-content: space-between;
-}
-
-.oom-justify-around {
-    justify-content: space-around;
-}
-
-.oom-justify-evenly {
-    justify-content: space-evenly;
-}
-
-/* Flex Growth/Shrink */
-.oom-flex-1 {
-    flex: 1;
-}
-
-.oom-flex-auto {
-    flex: auto;
-}
-
-.oom-flex-none {
-    flex: none;
-}
-
-.oom-flex-grow {
-    flex-grow: 1;
-}
-
-.oom-flex-shrink {
-    flex-shrink: 1;
-}
-
-.oom-flex-no-shrink {
-    flex-shrink: 0;
-}
-
-/* Grid Utilities */
-.oom-grid {
-    display: grid;
-}
-
-.oom-grid-cols-1 {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-.oom-grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.oom-grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.oom-grid-cols-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.oom-grid-cols-auto {
-    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-}
-
-/* Gap Utilities */
-.oom-gap-0 {
-    gap: 0;
-}
-
-.oom-gap-xs {
-    gap: var(--oom-spacing-xs);
-}
-
-.oom-gap-sm {
-    gap: var(--oom-spacing-sm);
-}
-
-.oom-gap-md {
-    gap: var(--oom-spacing-md);
-}
-
-.oom-gap-lg {
-    gap: var(--oom-spacing-lg);
-}
-
-.oom-gap-xl {
-    gap: var(--oom-spacing-xl);
-}
-
-/* Position Utilities */
-.oom-relative {
-    position: relative;
-}
-
-.oom-absolute {
-    position: absolute;
-}
-
-.oom-fixed {
-    position: fixed;
-}
-
-.oom-static {
-    position: static;
-}
-
-.oom-sticky {
-    position: sticky;
-}
-
-/* ==========================================================================
-   SPACING UTILITIES
-   ========================================================================== */
-
-/* Margin Utilities */
-.oom-m-0 {
-    margin: 0;
-}
-
-.oom-m-auto {
-    margin: auto;
-}
-
-.oom-mt-0 {
-    margin-top: 0;
-}
-
-.oom-mt-xs {
-    margin-top: var(--oom-spacing-xs);
-}
-
-.oom-mt-sm {
-    margin-top: var(--oom-spacing-sm);
-}
-
-.oom-mt-md {
-    margin-top: var(--oom-spacing-md);
-}
-
-.oom-mt-lg {
-    margin-top: var(--oom-spacing-lg);
-}
-
-.oom-mt-xl {
-    margin-top: var(--oom-spacing-xl);
-}
-
-.oom-mb-0 {
-    margin-bottom: 0;
-}
-
-.oom-mb-xs {
-    margin-bottom: var(--oom-spacing-xs);
-}
-
-.oom-mb-sm {
-    margin-bottom: var(--oom-spacing-sm);
-}
-
-.oom-mb-md {
-    margin-bottom: var(--oom-spacing-md);
-}
-
-.oom-mb-lg {
-    margin-bottom: var(--oom-spacing-lg);
-}
-
-.oom-mb-xl {
-    margin-bottom: var(--oom-spacing-xl);
-}
-
-.oom-ml-0 {
-    margin-left: 0;
-}
-
-.oom-ml-auto {
-    margin-left: auto;
-}
-
-.oom-ml-sm {
-    margin-left: var(--oom-spacing-sm);
-}
-
-.oom-ml-md {
-    margin-left: var(--oom-spacing-md);
-}
-
-.oom-mr-0 {
-    margin-right: 0;
-}
-
-.oom-mr-auto {
-    margin-right: auto;
-}
-
-.oom-mr-sm {
-    margin-right: var(--oom-spacing-sm);
-}
-
-.oom-mr-md {
-    margin-right: var(--oom-spacing-md);
-}
-
-.oom-mx-auto {
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.oom-my-0 {
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-/* Padding Utilities */
-.oom-p-0 {
-    padding: 0;
-}
-
-.oom-p-xs {
-    padding: var(--oom-spacing-xs);
-}
-
-.oom-p-sm {
-    padding: var(--oom-spacing-sm);
-}
-
-.oom-p-md {
-    padding: var(--oom-spacing-md);
-}
-
-.oom-p-lg {
-    padding: var(--oom-spacing-lg);
-}
-
-.oom-p-xl {
-    padding: var(--oom-spacing-xl);
-}
-
-.oom-pt-0 {
-    padding-top: 0;
-}
-
-.oom-pt-sm {
-    padding-top: var(--oom-spacing-sm);
-}
-
-.oom-pt-md {
-    padding-top: var(--oom-spacing-md);
-}
-
-.oom-pb-0 {
-    padding-bottom: 0;
-}
-
-.oom-pb-sm {
-    padding-bottom: var(--oom-spacing-sm);
-}
-
-.oom-pb-md {
-    padding-bottom: var(--oom-spacing-md);
-}
-
-.oom-pl-sm {
-    padding-left: var(--oom-spacing-sm);
-}
-
-.oom-pl-md {
-    padding-left: var(--oom-spacing-md);
-}
-
-.oom-pr-sm {
-    padding-right: var(--oom-spacing-sm);
-}
-
-.oom-pr-md {
-    padding-right: var(--oom-spacing-md);
-}
-
-.oom-px-0 {
-    padding-left: 0;
-    padding-right: 0;
-}
-
-.oom-py-0 {
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-/* ==========================================================================
-   SIZE UTILITIES
-   ========================================================================== */
-
-/* Width Utilities */
-.oom-w-auto {
-    width: auto;
-}
-
-.oom-w-full {
-    width: 100%;
-}
-
-.oom-w-fit {
-    width: fit-content;
-}
-
-.oom-w-min {
-    width: min-content;
-}
-
-.oom-w-max {
-    width: max-content;
-}
-
-.oom-min-w-0 {
-    min-width: 0;
-}
-
-.oom-min-w-full {
-    min-width: 100%;
-}
-
-.oom-max-w-full {
-    max-width: 100%;
-}
-
-.oom-max-w-none {
-    max-width: none;
-}
-
-/* Height Utilities */
-.oom-h-auto {
-    height: auto;
-}
-
-.oom-h-full {
-    height: 100%;
-}
-
-.oom-h-fit {
-    height: fit-content;
-}
-
-.oom-min-h-0 {
-    min-height: 0;
-}
-
-.oom-max-h-full {
-    max-height: 100%;
-}
-
-/* ==========================================================================
-   TEXT UTILITIES
-   ========================================================================== */
-
-/* Text Alignment */
-.oom-text-left {
-    text-align: left;
-}
-
-.oom-text-center {
-    text-align: center;
-}
-
-.oom-text-right {
-    text-align: right;
-}
-
-.oom-text-justify {
-    text-align: justify;
-}
-
-/* Text Size */
-.oom-text-xs {
-    font-size: var(--font-ui-smaller);
-}
-
-.oom-text-sm {
-    font-size: var(--font-ui-smaller);
-}
-
-.oom-text-base {
-    font-size: var(--font-ui-medium);
-}
-
-.oom-text-lg {
-    font-size: var(--font-ui-larger);
-}
-
-/* Text Weight */
-.oom-text-normal {
-    font-weight: var(--font-normal);
-}
-
-.oom-text-medium {
-    font-weight: var(--font-medium);
-}
-
-.oom-text-bold {
-    font-weight: var(--font-bold);
-}
-
-/* Text Style */
-.oom-text-italic {
-    font-style: italic;
-}
-
-.oom-text-uppercase {
-    text-transform: uppercase;
-}
-
-.oom-text-lowercase {
-    text-transform: lowercase;
-}
-
-.oom-text-capitalize {
-    text-transform: capitalize;
-}
-
-/* Text Overflow */
-.oom-text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.oom-text-ellipsis {
-    text-overflow: ellipsis;
-}
-
-.oom-text-clip {
-    text-overflow: clip;
-}
-
-.oom-text-wrap {
-    white-space: normal;
-}
-
-.oom-text-nowrap {
-    white-space: nowrap;
-}
-
-/* Text Colors - Minimal semantic colors only */
-.oom-text-muted {
-    color: var(--text-muted);
-}
-
-.oom-text-accent {
-    color: var(--text-accent);
-}
-
-.oom-text-error {
-    color: var(--text-error);
-}
-
-.oom-text-success {
-    color: var(--text-success);
-}
-
-.oom-text-warning {
-    color: var(--text-warning);
-}
-
-/* ==========================================================================
-   STATE UTILITIES
-   ========================================================================== */
-
-/* Loading States */
-.oom-loading {
-    position: relative;
-    pointer-events: none;
-}
-
-.oom-loading::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    border: 2px solid transparent;
-    border-top-color: currentColor;
-    border-radius: 50%;
-    animation: oom-spin var(--oom-animation-slower) linear infinite;
-}
-
-/* Interactive States */
-.oom-disabled {
-    opacity: var(--oom-opacity-disabled);
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
-.oom-clickable {
-    cursor: pointer;
-}
-
-.oom-not-allowed {
-    cursor: not-allowed;
-}
-
-.oom-pointer-events-none {
-    pointer-events: none;
-}
-
-.oom-pointer-events-auto {
-    pointer-events: auto;
-}
-
-/* Selection States */
-.oom-selected {
-    /* Let theme handle selection styling */
-    position: relative;
-}
-
-.oom-active {
-    /* Let theme handle active styling */
-    position: relative;
-}
-
-.oom-focus {
-    /* Let theme handle focus styling */
-    position: relative;
-}
-
-/* Hover Effects */
-.oom-hover-lift:hover {
-    transform: translateY(var(--oom-translate-hover));
-}
-
-.oom-hover-scale:hover {
-    transform: scale(var(--oom-scale-hover));
-}
-
-.oom-hover-opacity:hover {
-    opacity: var(--oom-opacity-hover);
-}
-
-/* ==========================================================================
-   OVERFLOW UTILITIES
-   ========================================================================== */
-
-/* Overflow Control */
-.oom-overflow-auto {
-    overflow: auto;
-}
-
-.oom-overflow-hidden {
-    overflow: hidden;
-}
-
-.oom-overflow-visible {
-    overflow: visible;
-}
-
-.oom-overflow-scroll {
-    overflow: scroll;
-}
-
-.oom-overflow-x-auto {
-    overflow-x: auto;
-}
-
-.oom-overflow-x-hidden {
-    overflow-x: hidden;
-}
-
-.oom-overflow-y-auto {
-    overflow-y: auto;
-}
-
-.oom-overflow-y-hidden {
-    overflow-y: hidden;
-}
-
-/* Scrolling */
-.oom-scroll-smooth {
-    scroll-behavior: smooth;
-}
-
-.oom-scroll-touch {
-    -webkit-overflow-scrolling: touch;
-}
-
-/* ==========================================================================
-   PRINT UTILITIES
-   ========================================================================== */
-
-/* Print Display Control */
-.oom-print-only {
-    display: none;
-}
-
-.oom-no-print {
-    /* Will be hidden in print media query */
-}
-
-.oom-print-content {
-    /* Will be shown in print media query */
-}
-
-@media print {
-    .oom-print-only {
-        display: block;
-    }
-    
-    .oom-no-print {
-        display: none !important;
-    }
-    
-    .oom-print-content {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    /* Print-specific overrides */
-    .oom-break-before-page {
-        page-break-before: always;
-    }
-    
-    .oom-break-after-page {
-        page-break-after: always;
-    }
-    
-    .oom-break-inside-avoid {
-        page-break-inside: avoid;
-    }
-}
-
-/* ==========================================================================
-   BORDER UTILITIES
-   ========================================================================== */
-
-/* Border Radius */
-.oom-rounded-none {
-    border-radius: 0;
-}
-
-.oom-rounded-sm {
-    border-radius: var(--oom-radius-sm);
-}
-
-.oom-rounded {
-    border-radius: var(--oom-radius-md);
-}
-
-.oom-rounded-lg {
-    border-radius: var(--oom-radius-lg);
-}
-
-.oom-rounded-full {
-    border-radius: 50%;
-}
-
-/* Functional borders only - let theme handle colors */
-.oom-border-functional {
-    border: 1px solid var(--divider-color);
-}
-
-.oom-border-t-functional {
-    border-top: 1px solid var(--divider-color);
-}
-
-.oom-border-b-functional {
-    border-bottom: 1px solid var(--divider-color);
-}
-
-.oom-border-l-functional {
-    border-left: 1px solid var(--divider-color);
-}
-
-.oom-border-r-functional {
-    border-right: 1px solid var(--divider-color);
-}
-
-/* ==========================================================================
-   Z-INDEX UTILITIES
-   ========================================================================== */
-
-.oom-z-0 {
-    z-index: 0;
-}
-
-.oom-z-10 {
-    z-index: var(--oom-z-tooltip);
-}
-
-.oom-z-20 {
-    z-index: var(--oom-z-dropdown);
-}
-
-.oom-z-30 {
-    z-index: var(--oom-z-modal);
-}
-
-.oom-z-40 {
-    z-index: var(--oom-z-overlay);
-}
-
-.oom-z-50 {
-    z-index: var(--oom-z-max);
-}
-
-/* ==========================================================================
-   TRANSFORM UTILITIES
-   ========================================================================== */
-
-.oom-transform {
-    transform: translateZ(0);
-}
-
-.oom-transform-none {
-    transform: none;
-}
-
-.oom-rotate-90 {
-    transform: rotate(90deg);
-}
-
-.oom-rotate-180 {
-    transform: rotate(180deg);
-}
-
-.oom-rotate-270 {
-    transform: rotate(270deg);
-}
-
-.oom-scale-95 {
-    transform: scale(0.95);
-}
-
-.oom-scale-100 {
-    transform: scale(1);
-}
-
-.oom-scale-105 {
-    transform: scale(1.05);
-}
-
-/* ==========================================================================
-   ACCESSIBILITY SUPPORT
-   ========================================================================== */
-
-@media (forced-colors: active) {
-    .oom-sr-only,
-    .oom-live-region,
-    .visually-hidden {
-        border: 1px solid CanvasText;
-    }
-    
-    /* Ensure loading spinners are visible */
-    .oom-loading::after {
-        border-top-color: CanvasText;
-        border-right-color: transparent;
-    }
-    
-    /* Ensure functional borders are visible */
-    .oom-border-functional,
-    .oom-border-t-functional,
-    .oom-border-b-functional,
-    .oom-border-l-functional,
-    .oom-border-r-functional {
-        border-color: CanvasText;
-    }
-}
-
-/* ==========================================================================
-   REDUCED MOTION SUPPORT
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-    /* Disable animations */
-    .oom-loading::after {
-        animation: none;
-    }
-    
-    /* Disable transforms */
-    .oom-hover-lift:hover,
-    .oom-hover-scale:hover {
-        transform: none;
-    }
-    
-    /* Disable smooth scrolling */
-    .oom-scroll-smooth {
-        scroll-behavior: auto;
-    }
-    
-    /* Reduce transition duration */
-    .oom-metrics-compact {
-        transition: none;
-    }
-}
-
-/* ==========================================================================
-   RESPONSIVE UTILITIES
-   ========================================================================== */
-
-/* Tablet Responsive Utilities */
-@media screen and (max-width: var(--oom-breakpoint-tablet)) {
-    .oom-tablet-hide {
-        display: none !important;
-    }
-    
-    .oom-tablet-show {
-        display: block !important;
-    }
-    
-    .oom-tablet-flex {
-        display: flex !important;
-    }
-    
-    .oom-tablet-text-center {
-        text-align: center;
-    }
-    
-    .oom-tablet-w-full {
-        width: 100%;
-    }
-    
-    .oom-tablet-flex-col {
-        flex-direction: column;
-    }
-}
-
-/* Mobile Responsive Utilities */
-@media screen and (max-width: var(--oom-breakpoint-mobile)) {
-    .oom-mobile-hide {
-        display: none !important;
-    }
-    
-    .oom-mobile-show {
-        display: block !important;
-    }
-    
-    .oom-mobile-flex {
-        display: flex !important;
-    }
-    
-    .oom-mobile-text-center {
-        text-align: center;
-    }
-    
-    .oom-mobile-text-sm {
-        font-size: var(--font-ui-smaller);
-    }
-    
-    .oom-mobile-w-full {
-        width: 100%;
-    }
-    
-    .oom-mobile-flex-col {
-        flex-direction: column;
-    }
-    
-    .oom-mobile-gap-sm {
-        gap: var(--oom-spacing-sm);
-    }
-    
-    .oom-mobile-p-sm {
-        padding: var(--oom-spacing-sm);
-    }
-}
-
-/* Desktop Only Utilities */
-@media screen and (min-width: var(--oom-breakpoint-large)) {
-    .oom-desktop-only {
-        display: block !important;
-    }
-    
-    .oom-desktop-hide {
-        display: none !important;
-    }
-    
-    .oom-desktop-flex {
-        display: flex !important;
-    }
-    
-    .oom-desktop-grid {
-        display: grid !important;
-    }
-}
-
-/* ==========================================================================
    CLEARFIX UTILITY
    ========================================================================== */
 
@@ -2835,17 +1946,11 @@
     align-items: center;
     justify-content: center;
     gap: var(--oom-button-gap);
-    /*padding: var(--oom-button-padding);*/
-    
-    /* Typography (structural) */
-    /*font-size: var(--oom-button-font-size);
-    font-weight: 500;*/
     
     /* Layout & Behavior */
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
-    /*border-radius: var(--oom-button-border-radius);*/
     transition: all var(--oom-transition-normal);
     
     /* NO VISUAL STYLING - Let Obsidian theme handle:
@@ -2868,69 +1973,6 @@
     
     &:active {
         transform: scale(0.98);
-    }
-    
-    /* === SIZE VARIANTS === */
-    &.oom-button--sm {
-        padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
-        font-size: var(--font-ui-smaller);
-    }
-    
-    &.oom-button--lg {
-        padding: var(--oom-spacing-md) var(--oom-spacing-lg);
-        font-size: var(--font-ui-medium);
-    }
-    
-    /* === LAYOUT VARIANTS === */
-    &.oom-button--text {
-        /* Minimal text button - let theme handle styling */
-        padding: var(--oom-spacing-xs);
-    }
-    
-    /* === STATE VARIANTS === */
-    &.oom-button--loading {
-        position: relative;
-        color: transparent !important;
-        pointer-events: none;
-        
-        &::after {
-            content: "";
-            position: absolute;
-            width: 1em;
-            height: 1em;
-            border: 2px solid currentColor;
-            border-radius: 50%;
-            border-right-color: transparent;
-            animation: oom-button-spin 0.8s linear infinite;
-        }
-    }
-    
-    &.oom-button--disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-    
-    &.oom-button--hidden {
-        display: none;
-    }
-    
-    &.oom-button--clicked {
-        transform: scale(0.95);
-    }
-    
-    /* === PLUGIN-SPECIFIC FUNCTIONAL STYLING === */
-    /* Only preserve colors that have specific meaning */
-    &.oom-button--error {
-        /* Keep error state for functional clarity */
-        color: var(--text-error);
-        background: var(--background-error);
-    }
-    
-    &.oom-button--success {
-        /* Keep success state for functional clarity */
-        color: var(--text-success);
-        background: var(--background-success);
     }
     
     /* === CTA MODIFIER (from scattered modal rules) === */
@@ -3205,7 +2247,7 @@
     .oom-nav-label,
     .oom-hub-tab-label,
     .oom-metrics-tabs-label {
-        font-size: var(--font-ui-smaller);
+        font-size: calc(var(--font-ui-small) + 1px);
         
         /* NO VISUAL STYLING - Let theme handle text colors */
     }
@@ -4464,7 +3506,6 @@ input.oom-folder-autocomplete-input,
 .oom-date-input-container input[type="date"],
 .oom-time-input-container input,
 .oom-icon-picker-search input,
-.oom-multiselect-search-input,
 .oom-fav-save-container input,
 .oom-fav-name-row input[type='text'],
 .oneirometrics-custom-date-modal input[type='text'] {
@@ -4724,7 +3765,6 @@ input.oom-folder-autocomplete-input,
    SEARCH INPUT COMPONENTS - Search and Filter Inputs
    ============================================================================= */
 
-.oom-multiselect-search,
 .oom-icon-picker-search {
     /* === STRUCTURAL PROPERTIES === */
     position: relative;
@@ -4792,10 +3832,6 @@ input.oom-folder-autocomplete-input,
     
     /* NO VISUAL STYLING - Let theme handle modal section containers */
     
-    .oom-multiselect-container {
-        /* Inherits multiselect styling */
-    }
-    
     .oom-multiselect-search-container {
         margin-bottom: var(--oom-spacing-sm);
         
@@ -4803,10 +3839,6 @@ input.oom-folder-autocomplete-input,
             width: 100%;
             /* Inherits all styling from base input elements */
         }
-    }
-    
-    .oom-multiselect-selected {
-        /* Inherits multiselect selected styling */
     }
 }
 
@@ -4880,8 +3912,7 @@ input.oom-folder-autocomplete-input,
 
 @media screen and (max-width: var(--oom-breakpoint-mobile)) {
     .oom-text-input,
-    .oom-date-input-container input[type="date"],
-    .oom-multiselect-search-input {
+    .oom-date-input-container input[type="date"] {
         /* === MOBILE INPUT ADJUSTMENTS === */
         font-size: var(--oom-input-mobile-font-size);
     }
@@ -4899,10 +3930,6 @@ input.oom-folder-autocomplete-input,
     
     .oom-modal-section .oom-notes-selector-container {
         margin-top: var(--oom-spacing-sm);
-        
-        .oom-multiselect-container {
-            margin-top: var(--oom-spacing-sm);
-        }
     }
 }
 
@@ -4913,7 +3940,6 @@ input.oom-folder-autocomplete-input,
 @media (forced-colors: active) {
     .oom-text-input,
     .oom-date-input-container input[type="date"],
-    .oom-multiselect-search-input,
     .oom-severity-indicators .oom-setting-control input {
         /* === HIGH CONTRAST FORM CONTROLS === */
         border: 2px solid ButtonText;
@@ -4953,7 +3979,6 @@ input.oom-folder-autocomplete-input,
 @media (prefers-reduced-motion: reduce) {
     .oom-text-input,
     .oom-date-input-container input[type="date"],
-    .oom-multiselect-search-input,
     .oom-toggle-switch,
     .oom-toggle-slider {
         /* === REDUCED MOTION === */
@@ -5549,10 +4574,9 @@ input.oom-folder-autocomplete-input,
 /* Main modal container with tab interface */
 .modal:has(.oom-metrics-tabs-modal) {
     /* === STRUCTURAL PROPERTIES ONLY === */
-    width: var(--oom-tab-modal-width);
-    height: var(--oom-tab-modal-height);
-    max-width: var(--oom-tab-modal-max-width);
-    max-height: var(--oom-tab-modal-max-height);
+    height: var(--modal-height);
+    width: var(--modal-width);
+    padding: 0;
     contain: layout style;
     
     /* NO VISUAL STYLING - Let Obsidian modal handle all styling */
@@ -5575,9 +4599,9 @@ input.oom-folder-autocomplete-input,
 
 .oom-metrics-tabs-header {
     /* === STRUCTURAL PROPERTIES === */
-    margin-bottom: var(--oom-spacing-md);
-    margin-block-start: var(--oom-spacing-sm);
-    padding-bottom: var(--oom-spacing-sm);
+    margin-bottom: 0;
+    margin-block-start: 0;
+    padding-bottom: 0;
     text-align: center;
     font-size: var(--h1-size);
     font-weight: var(--h1-weight);
@@ -5770,6 +4794,15 @@ h2.oom-metrics-tabs-label {
     font-size: var(--h3-size);
 }
 
+/* Modal content area */
+
+.oom-metrics-tabs-modal {
+   display: flex;
+   flex-direction: column;
+   height: auto;
+   max-height: calc(100% - 30px);
+}
+
 /* Modal content label spacing */
 .modal-content:has(.oom-metrics-tabs-label) {
     .oom-metrics-tabs-label {
@@ -5851,8 +4884,8 @@ h2.oom-metrics-tabs-label {
     /* === NESTED FIRST PARAGRAPH === */
     p:first-child {
         margin-top: 0;
-        margin-bottom: var(--oom-spacing-md);
-        font-size: var(--font-ui-large);
+        /*margin-bottom: var(--oom-spacing-md);
+        font-size: var(--font-ui-large);*/
     }
 }
 
@@ -7559,8 +6592,8 @@ div#oom-time-filter-display {
 /* Legacy time filter buttons (maintain compatibility) */
 .oneirometrics-time-filter-buttons {
     /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    gap: var(--oom-spacing-sm);
+        display: flex;
+        gap: var(--oom-spacing-sm);
     flex-wrap: wrap;
     
     /* NO VISUAL STYLING - Let theme handle legacy time filter buttons */
@@ -8005,8 +7038,8 @@ div#oom-time-filter-display {
     
     .oom-preview-content {
         font-size: var(--font-ui-small);
-        line-height: 1.4;
-        
+    line-height: 1.4;
+    
         /* NO VISUAL STYLING - Let theme handle preview content colors */
     }
 }
@@ -8566,7 +7599,7 @@ div#oom-time-filter-display {
     .oom-modal-grid {
         display: grid;
         gap: var(--oom-spacing-md);
-        align-items: center;
+    align-items: center;
         
         /* NO VISUAL STYLING - Let theme handle */
         
@@ -9008,17 +8041,6 @@ div#oom-time-filter-display {
    ========================================================================== */
 
 /* ==========================================================================
-   CORE MULTISELECT COMPONENTS
-   ========================================================================== */
-
-.oom-multiselect-container {
-    position: relative;
-    width: 100%;
-    
-    /* Theme Integration: Use Obsidian containers */
-}
-
-/* ==========================================================================
    DROPDOWN SYSTEM
    ========================================================================== */
 
@@ -9057,178 +8079,18 @@ div#oom-time-filter-display {
 }
 
 /* ==========================================================================
-   SELECTED ITEMS DISPLAY
-   ========================================================================== */
-
-.oom-multiselect-selected {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--oom-spacing-xs);
-    min-height: var(--oom-multiselect-min-height);
-    padding: var(--oom-spacing-xs);
-    border-radius: var(--oom-radius-md);
-    transition: border-color var(--oom-transition-normal);
-    
-    /* NO VISUAL STYLING - Let theme handle selection container */
-    
-    &:focus-within {
-        /* NO VISUAL STYLING - Let theme handle focus states */
-    }
-}
-
-/* ==========================================================================
-   INDIVIDUAL SELECTED ITEMS
-   ========================================================================== */
-
-.oom-multiselect-item {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--oom-spacing-xs);
-    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
-    border-radius: var(--oom-radius-md);
-    font-size: var(--font-ui-smaller);
-    transition: all var(--oom-transition-normal);
-    
-    /* NO VISUAL STYLING - Let theme handle item appearance */
-    
-    &:hover {
-        transform: translateY(var(--oom-drag-hover-translate));
-        /* NO VISUAL STYLING - Let theme handle hover states */
-    }
-}
-
-/* Remove Button for Selected Items */
-.oom-multiselect-item-remove {
-    display: inline-flex;
-    width: var(--oom-multiselect-remove-size);
-    height: var(--oom-multiselect-remove-size);
-    padding: 0;
-    cursor: pointer;
-    transition: color var(--oom-transition-normal);
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: none;
-    
-    /* NO VISUAL STYLING - Let theme handle remove button */
-    
-    &:hover {
-        /* NO VISUAL STYLING - Let theme handle hover states */
-    }
-}
-
-/* ==========================================================================
-   OPTIONS LIST
-   ========================================================================== */
-
-.oom-multiselect-options {
-    max-height: var(--oom-multiselect-options-max-height);
-    overflow-y: auto;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    
-    /* Scrollbar Styling */
-    scrollbar-width: thin;
-    
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    &::-webkit-scrollbar-track {
-        border-radius: var(--oom-radius-md);
-        /* NO VISUAL STYLING - Let theme handle scrollbar track */
-    }
-    
-    &::-webkit-scrollbar-thumb {
-        border-radius: var(--oom-radius-md);
-        /* NO VISUAL STYLING - Let theme handle scrollbar thumb */
-    }
-}
-
-/* Individual Option Items */
-.oom-multiselect-option {
-    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
-    cursor: pointer;
-    border-radius: var(--oom-radius-md);
-    transition: all var(--oom-transition-normal);
-    
-    /* NO VISUAL STYLING - Let theme handle option appearance */
-    
-    &:hover {
-        /* NO VISUAL STYLING - Let theme handle hover states */
-    }
-    
-    &.selected {
-        /* NO VISUAL STYLING - Let theme handle selected state */
-    }
-}
-
-/* ==========================================================================
-   SEARCH FUNCTIONALITY
-   ========================================================================== */
-
-.oom-multiselect-search {
-    position: sticky;
-    top: 0;
-    padding: var(--oom-spacing-xs);
-    z-index: 1;
-    
-    /* NO VISUAL STYLING - Let theme handle search container */
-}
-
-.oom-multiselect-search-input {
-    width: 100%;
-    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
-    border-radius: var(--oom-radius-md);
-    transition: border-color var(--oom-transition-normal);
-    font-size: var(--font-ui-smaller);
-    
-    /* NO VISUAL STYLING - Let theme handle input appearance */
-    
-    &:focus {
-        outline: none;
-        /* NO VISUAL STYLING - Let theme handle focus states */
-    }
-}
-
-/* ==========================================================================
-   EMPTY STATE
-   ========================================================================== */
-
-.oom-multiselect-empty {
-    padding: var(--oom-spacing-md);
-    text-align: center;
-    font-style: italic;
-    
-    /* NO VISUAL STYLING - Let theme handle empty state text */
-}
-
-/* ==========================================================================
    SPECIALIZED COMPONENTS: NOTES SELECTOR
    ========================================================================== */
 
 .oom-notes-selector-container {
     
-    .oom-multiselect-container {
-        /* Additional structural properties for notes selector context */
-    }
-    
     .oom-multiselect-search-container {
         /* Notes selector specific search styling */
-    }
-    
-    .oom-multiselect-selected {
-        /* Notes selector specific selection styling */
     }
 }
 
 /* Modal-specific Notes Selector Overrides */
 .oom-modal-section .oom-notes-selector-container {
-    
-    .oom-multiselect-container {
-        /* Modal context structural adjustments */
-    }
     
     .oom-multiselect-search-container {
         /* Modal search container adjustments */
@@ -9237,137 +8099,18 @@ div#oom-time-filter-display {
             /* Modal input specific adjustments */
         }
     }
-    
-    .oom-multiselect-selected {
-        /* Modal selection display adjustments */
-    }
-}
-
-/* ==========================================================================
-   CHIP REMOVAL COMPONENTS (Related to Multiselect)
-   ========================================================================== */
-
-.oom-chip-remove {
-    cursor: pointer;
-    transition: all var(--oom-transition-normal);
-    
-    /* NO VISUAL STYLING - Let theme handle chip removal */
-    
-    &:hover {
-        /* NO VISUAL STYLING - Let theme handle hover states */
-    }
-}
-
-/* ==========================================================================
-   ACCESSIBILITY SUPPORT
-   ========================================================================== */
-
-@media (forced-colors: active) {
-    .oom-multiselect-selected,
-    .oom-multiselect-dropdown,
-    .oom-multiselect-item,
-    .oom-multiselect-search-input {
-        /* NO BORDERS - Let system handle high contrast */
-    }
-    
-    .oom-multiselect-option.selected {
-        /* NO VISUAL STYLING - Let system handle high contrast selection */
-    }
-}
-
-/* ==========================================================================
-   REDUCED MOTION SUPPORT
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-    .oom-multiselect-dropdown,
-    .oom-multiselect-item,
-    .oom-multiselect-search-input {
-        transition: none;
-    }
-    
-    .oom-multiselect-options {
-        /* Remove scroll animations if present */
-    }
-    
-    .oom-multiselect-item {
-        /* Remove item animations */
-    }
-    
-    .oom-multiselect-item-remove {
-        /* Remove button animations */
-    }
 }
 
 /* ==========================================================================
    RESPONSIVE DESIGN
    ========================================================================== */
 
-@media screen and (max-width: var(--oom-multiselect-breakpoint)) {
-    .oom-multiselect-dropdown {
-        position: fixed;
-        top: auto;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin-top: 0;
-        border-radius: var(--oom-radius-md) var(--oom-radius-md) 0 0;
-        max-height: 70vh;
-    }
-    
-    .oom-multiselect-options {
-        max-height: 50vh;
-    }
-    
-    .oom-multiselect-item {
-        padding: var(--oom-spacing-sm);
-    }
-    
-    .oom-multiselect-item-remove {
-        /* Mobile-optimized touch targets */
-    }
-}
-
-/* Tablet Adjustments */
-@media screen and (max-width: var(--oom-breakpoint-tablet)) {
-    .oom-multiselect-container {
-        /* Tablet-specific container adjustments */
-    }
-    
-    .oom-notes-selector-container .oom-multiselect-container {
-        /* Tablet notes selector adjustments */
-    }
-}
-
 /* Mobile Optimizations */
 @media screen and (max-width: var(--oom-breakpoint-mobile)) {
     .oom-modal-section .oom-notes-selector-container {
         /* Mobile modal adjustments */
     }
-    
-    .oom-modal-section .oom-notes-selector-container .oom-multiselect-container {
-        /* Mobile modal container adjustments */
-    }
 }
-
-/* ==========================================================================
-   TOUCH DEVICE OPTIMIZATIONS
-   ========================================================================== */
-
-@media (hover: none) and (pointer: coarse) {
-    .oom-multiselect-item,
-    .oom-multiselect-option {
-        /* Larger touch targets for mobile devices */
-        min-height: 44px; /* iOS/Android minimum touch target */
-        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
-    }
-    
-    .oom-multiselect-item-remove {
-        /* Optimized remove button for touch */
-        min-width: 44px;
-        min-height: 44px;
-    }
-} 
 
 /* ==========================================================================
    7. INTERACTIVE COMPONENTS - Drag & Drop
@@ -9412,41 +8155,6 @@ div#oom-time-filter-display {
         width: var(--oom-drag-handle-mobile-size, 24px);
         height: var(--oom-drag-handle-mobile-size, 24px);
         padding: var(--oom-spacing-sm);
-    }
-}
-
-/* =============================================================================
-   DRAGGABLE ITEM COMPONENTS - Items That Can Be Dragged
-   ============================================================================= */
-
-.oom-draggable {
-    /* NO VISUAL STYLING - Let theme handle all appearance */
-    /* Only structural and interaction properties */
-    position: relative;
-    cursor: grab;
-    transition: transform var(--oom-transition-normal),
-                box-shadow var(--oom-transition-normal);
-    user-select: none;
-    -webkit-user-select: none;
-
-    &:hover {
-        /* NO VISUAL STYLING - Let theme handle hover states */
-        transform: translateY(-2px);
-        box-shadow: var(--oom-shadow-sm);
-    }
-
-    &.dragging {
-        cursor: grabbing;
-        opacity: 0.7;
-        transform: scale(1.02);
-        box-shadow: var(--oom-shadow-lg);
-        z-index: var(--oom-z-dropdown);
-        pointer-events: none;
-    }
-
-    &:focus {
-        outline: none;
-        box-shadow: var(--oom-focus-ring);
     }
 }
 
@@ -10093,7 +8801,6 @@ div#oom-time-filter-display {
 .oom-modal-btn,
 .oom-icon-picker-btn,
 .oom-drag-handle,
-.oom-multiselect-option,
 .oom-nav-item,
 .oom-hub-tab-nav-item,
 .oom-metrics-tabs-button,
@@ -10106,7 +8813,6 @@ div#oom-time-filter-display {
 /* Form Elements */
 .oom-select,
 .oom-text-input,
-.oom-multiselect-search-input,
 .oom-toggle-switch,
 .oom-date-input-container input[type="date"] {
     transition: all var(--oom-transition-normal) var(--oom-ease-out);
@@ -10152,8 +8858,7 @@ div#oom-time-filter-display {
 
 /* Drag & Drop Hover Effects */
 .oom-draggable:hover,
-.oom-sortable-item:hover,
-.oom-multiselect-item:hover {
+.oom-sortable-item:hover {
     transform: translateY(var(--oom-drag-hover-translate, var(--oom-translate-hover)));
 }
 
@@ -10201,27 +8906,6 @@ div#oom-time-filter-display {
 .oom-modal.is-closing {
     opacity: 0;
     transform: translate(-50%, -52%);
-}
-
-/* Dropdown Animations */
-.oom-multiselect-dropdown {
-    transition: opacity var(--oom-transition-normal) var(--oom-ease-out),
-                transform var(--oom-transition-normal) var(--oom-ease-out);
-}
-
-.oom-multiselect-dropdown.is-opening {
-    opacity: 0;
-    transform: translateY(-4px);
-}
-
-.oom-multiselect-dropdown.is-open {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.oom-multiselect-dropdown.is-closing {
-    opacity: 0;
-    transform: translateY(4px);
 }
 
 /* ==========================================================================
@@ -10489,4 +9173,4 @@ div#oom-time-filter-display {
     .oom-metrics-summary.loading::after {
         display: none !important;
     }
-} 
+}
