@@ -1,5 +1,16 @@
 # Journal Structure Check - Implementation Plan
 
+> **📁 ARCHIVED DOCUMENT**  
+> **Date Archived**: June 1, 2025  
+> **Reason**: Superseded by [Journal Structure Integration Project 2025](../../planning/features/journal-structure-integration-2025.md)  
+> **Status**: Legacy planning document - maintained for historical reference  
+> 
+> This document represents the original comprehensive implementation plan for the Journal Structure Check feature. While the foundational work described here provided valuable insights, the project direction has evolved to focus on **integrating the existing Journal Structure system with the parsing/scraping logic** rather than building new validation features from scratch.
+> 
+> **Current Active Project**: [📋 Journal Structure Integration 2025](../../planning/features/journal-structure-integration-2025.md)
+
+---
+
 ## Table of Contents
 
 - [Overview](#overview)

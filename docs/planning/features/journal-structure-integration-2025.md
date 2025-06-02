@@ -31,18 +31,18 @@
 
 | Milestone | Target Date | Status | Deliverables |
 |-----------|-------------|--------|--------------|
-| **Project Initiation** | 2025-01-06 | ✅ Complete | Project document, planning complete |
-| **Phase 1 Start** | 2025-01-07 | 🔄 In Progress | Core integration begins |
-| **AV-Journal Fix** | 2025-01-08 | ⏳ Pending | `[!av-journal]` callouts recognized |
-| **Structure Integration** | 2025-01-10 | ⏳ Pending | Hardcoded callouts replaced |
-| **Phase 1 Complete** | 2025-01-13 | ⏳ Pending | Core integration functional |
-| **Phase 2 Start** | 2025-01-14 | ⏳ Pending | UI development begins |
-| **Structure Manager UI** | 2025-01-21 | ⏳ Pending | Basic structure management |
-| **Phase 2 Complete** | 2025-02-03 | ⏳ Pending | Full configurability available |
-| **Phase 3 Start** | 2025-02-04 | ⏳ Pending | Advanced features begin |
-| **Auto-Detection** | 2025-02-18 | ⏳ Pending | Structure detection implemented |
-| **Migration Tools** | 2025-02-25 | ⏳ Pending | Content migration capabilities |
-| **Project Complete** | 2025-03-03 | ⏳ Pending | All phases delivered |
+| **Project Initiation** | 2025-06-01 | ✅ Complete | Project document, planning complete |
+| **Phase 1 Start** | 2025-06-02 | 🔄 In Progress | Core integration begins |
+| **AV-Journal Fix** | 2025-06-03 | ⏳ Pending | `[!av-journal]` callouts recognized |
+| **Structure Integration** | 2025-06-05 | ⏳ Pending | Hardcoded callouts replaced |
+| **Phase 1 Complete** | 2025-06-08 | ⏳ Pending | Core integration functional |
+| **Phase 2 Start** | 2025-06-09 | ⏳ Pending | UI development begins |
+| **Structure Manager UI** | 2025-06-16 | ⏳ Pending | Basic structure management |
+| **Phase 2 Complete** | 2025-06-29 | ⏳ Pending | Full configurability available |
+| **Phase 3 Start** | 2025-06-30 | ⏳ Pending | Advanced features begin |
+| **Auto-Detection** | 2025-07-14 | ⏳ Pending | Structure detection implemented |
+| **Migration Tools** | 2025-07-21 | ⏳ Pending | Content migration capabilities |
+| **Project Complete** | 2025-07-28 | ⏳ Pending | All phases delivered |
 
 ---
 
