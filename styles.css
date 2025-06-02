@@ -4723,7 +4723,7 @@ input.oom-folder-autocomplete-input,
 .oom-hub-tab-group-title {
     /* === STRUCTURAL PROPERTIES === */
     margin: var(--oom-spacing-sm) 0 var(--oom-spacing-xs) 0;
-    padding: var(--oom-spacing-xs) var(--oom-spacing-md);
+    padding: 0 .32em;
     font-weight: 700;
     font-size: var(--font-ui-smaller);
     letter-spacing: 0.05rem;
@@ -4747,7 +4747,7 @@ input.oom-folder-autocomplete-input,
     /* === STRUCTURAL PROPERTIES === */
     display: flex;
     align-items: center;
-    padding: var(--oom-spacing-xs) var(--oom-spacing-md);
+    padding: .45em 0;
     cursor: pointer;
     transition: all var(--oom-transition-fast);
     border-left: 3px solid transparent;
@@ -4781,7 +4781,10 @@ input.oom-folder-autocomplete-input,
     
     /* === SPECIAL TAB VARIANTS === */
     &[data-tab-id="overview"] {
-        padding: 0 0 0 var(--oom-spacing-xs);
+        margin-top: .5em;
+        padding-top: 1em;
+        border-top: 1px solid #ccc;
+        border-radius: 0;
         
         h2 {
             font-size: var(--h3-size);

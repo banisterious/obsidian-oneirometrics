@@ -1826,17 +1826,77 @@ This metric assesses **how well your memory of the dream holds up and remains co
     private createStructureListItem(containerEl: HTMLElement, structure: any) {
         const itemEl = containerEl.createDiv({ cls: 'oom-structure-item' });
         
-        itemEl.createEl('h4', { text: structure.name });
+        // Header with name and status indicators
+        const headerEl = itemEl.createDiv({ cls: 'oom-structure-header' });
         
+        const infoEl = headerEl.createDiv({ cls: 'oom-structure-info' });
+        const nameEl = infoEl.createDiv({ cls: 'oom-structure-name' });
+        nameEl.textContent = structure.name;
+        
+        // Add status indicators
+        if (structure.isDefault) {
+            const defaultBadge = nameEl.createSpan({ cls: 'oom-structure-badge oom-default-badge' });
+            defaultBadge.textContent = 'DEFAULT';
+        }
+        
+        if (!structure.enabled) {
+            const disabledBadge = nameEl.createSpan({ cls: 'oom-structure-badge oom-disabled-badge' });
+            disabledBadge.textContent = 'DISABLED';
+        }
+        
+        // Description if available
+        if (structure.description) {
+            infoEl.createDiv({ 
+                text: structure.description, 
+                cls: 'oom-structure-description' 
+            });
+        }
+        
+        // Meta information
         const metaEl = itemEl.createDiv({ cls: 'oom-structure-meta' });
         metaEl.createSpan({ text: `Type: ${structure.type}`, cls: 'oom-meta-item' });
+        metaEl.createSpan({ text: `Root: ${structure.rootCallout}`, cls: 'oom-meta-item' });
         
-        if (structure.requiredFields?.length > 0) {
+        if (structure.childCallouts?.length > 0) {
             metaEl.createSpan({ 
-                text: `Required Fields: ${structure.requiredFields.length}`,
+                text: `Children: ${structure.childCallouts.join(', ')}`,
                 cls: 'oom-meta-item' 
             });
         }
+        
+        if (structure.metricsCallout) {
+            metaEl.createSpan({ 
+                text: `Metrics: ${structure.metricsCallout}`,
+                cls: 'oom-meta-item' 
+            });
+        }
+        
+        // Action buttons
+        const actionsEl = headerEl.createDiv({ cls: 'oom-structure-actions' });
+        
+        // Edit button
+        const editBtn = actionsEl.createDiv({ cls: 'oom-action-btn' });
+        setIcon(editBtn, 'edit');
+        editBtn.setAttribute('aria-label', 'Edit Structure');
+        editBtn.addEventListener('click', () => {
+            this.editStructure(structure);
+        });
+        
+        // Clone button
+        const cloneBtn = actionsEl.createDiv({ cls: 'oom-action-btn' });
+        setIcon(cloneBtn, 'copy');
+        cloneBtn.setAttribute('aria-label', 'Clone Structure');
+        cloneBtn.addEventListener('click', () => {
+            this.cloneStructure(structure as ExtendedCalloutStructure);
+        });
+        
+        // Delete button
+        const deleteBtn = actionsEl.createDiv({ cls: 'oom-action-btn' });
+        setIcon(deleteBtn, 'trash');
+        deleteBtn.setAttribute('aria-label', 'Delete Structure');
+        deleteBtn.addEventListener('click', () => {
+            this.deleteStructure(structure as ExtendedCalloutStructure);
+        });
         
         return itemEl;
     }
@@ -2122,19 +2182,11 @@ This metric assesses **how well your memory of the dream holds up and remains co
             attr: { style: 'display: block;' }
         });
         
-        // TODO: Re-implement buildInlineStructureEditor method
-        editorEl.createEl('p', { text: 'Structure editor will be implemented' });
+        // Build the inline structure editor
+        this.buildInlineStructureEditor(editorEl, newStructure as ExtendedCalloutStructure, true);
         
         // Scroll to the new structure
         itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Focus the name field
-        setTimeout(() => {
-            const nameInput = editorEl.querySelector('input[type="text"]') as HTMLInputElement;
-            if (nameInput) {
-                nameInput.focus();
-            }
-        }, 100);
         
         new Notice('Fill in the structure details and click Save to create');
     }
@@ -2353,5 +2405,356 @@ This metric assesses **how well your memory of the dream holds up and remains co
         }).catch(() => {
             new Notice('Failed to copy structure to clipboard');
         });
+    }
+
+    /**
+     * Build inline editor for structure creation/editing
+     */
+    private buildInlineStructureEditor(containerEl: HTMLElement, structure: ExtendedCalloutStructure, isNew: boolean = false): HTMLElement {
+        const editorForm = containerEl.createDiv({ cls: 'oom-structure-form' });
+        
+        // Basic Information Section
+        const basicSection = editorForm.createDiv({ cls: 'oom-form-section' });
+        basicSection.createEl('h4', { text: 'Basic Information' });
+        
+        // Name field
+        const nameContainer = basicSection.createDiv({ cls: 'oom-form-field' });
+        nameContainer.createEl('label', { text: 'Structure Name:' });
+        const nameInput = nameContainer.createEl('input', {
+            type: 'text',
+            value: structure.name || '',
+            placeholder: 'Enter structure name'
+        });
+        nameInput.classList.add('oom-input');
+        
+        // Description field
+        const descContainer = basicSection.createDiv({ cls: 'oom-form-field' });
+        descContainer.createEl('label', { text: 'Description:' });
+        const descTextarea = descContainer.createEl('textarea', {
+            value: structure.description || '',
+            placeholder: 'Enter structure description'
+        });
+        descTextarea.classList.add('oom-textarea');
+        
+        // Type selection
+        const typeContainer = basicSection.createDiv({ cls: 'oom-form-field' });
+        typeContainer.createEl('label', { text: 'Structure Type:' });
+        const typeSelect = typeContainer.createEl('select');
+        typeSelect.classList.add('oom-select');
+        
+        const nestedOption = typeSelect.createEl('option', { value: 'nested', text: 'Nested (Parent > Child > Metrics)' });
+        const flatOption = typeSelect.createEl('option', { value: 'flat', text: 'Flat (Single callout with metrics)' });
+        
+        if (structure.type === 'flat') {
+            flatOption.selected = true;
+        } else {
+            nestedOption.selected = true;
+        }
+        
+        // Callout Configuration Section
+        const calloutSection = editorForm.createDiv({ cls: 'oom-form-section' });
+        calloutSection.createEl('h4', { text: 'Callout Configuration' });
+        
+        // Root callout
+        const rootContainer = calloutSection.createDiv({ cls: 'oom-form-field' });
+        rootContainer.createEl('label', { text: 'Root Callout Type:' });
+        const rootInput = rootContainer.createEl('input', {
+            type: 'text',
+            value: structure.rootCallout || '',
+            placeholder: 'e.g. journal-entry, av-journal, dream'
+        });
+        rootInput.classList.add('oom-input');
+        
+        // Child callouts (for nested structures)
+        const childContainer = calloutSection.createDiv({ cls: 'oom-form-field oom-nested-field' });
+        childContainer.createEl('label', { text: 'Child Callout Types:' });
+        const childInput = childContainer.createEl('input', {
+            type: 'text',
+            value: (structure.childCallouts || []).join(', '),
+            placeholder: 'e.g. dream-diary, narrative (comma-separated)'
+        });
+        childInput.classList.add('oom-input');
+        
+        // Metrics callout
+        const metricsContainer = calloutSection.createDiv({ cls: 'oom-form-field' });
+        metricsContainer.createEl('label', { text: 'Metrics Callout Type:' });
+        const metricsInput = metricsContainer.createEl('input', {
+            type: 'text',
+            value: structure.metricsCallout || '',
+            placeholder: 'e.g. dream-metrics, metrics'
+        });
+        metricsInput.classList.add('oom-input');
+        
+        // Settings Section
+        const settingsSection = editorForm.createDiv({ cls: 'oom-form-section' });
+        settingsSection.createEl('h4', { text: 'Settings' });
+        
+        // Enabled toggle
+        const enabledContainer = settingsSection.createDiv({ cls: 'oom-form-field oom-checkbox-field' });
+        const enabledLabel = enabledContainer.createEl('label');
+        const enabledInput = enabledLabel.createEl('input', { type: 'checkbox' });
+        enabledInput.checked = structure.enabled !== false;
+        enabledLabel.appendText(' Structure Enabled');
+        
+        // Default toggle (only for editing existing structures)
+        let defaultInput: HTMLInputElement | null = null;
+        if (!isNew) {
+            const defaultContainer = settingsSection.createDiv({ cls: 'oom-form-field oom-checkbox-field' });
+            const defaultLabel = defaultContainer.createEl('label');
+            defaultInput = defaultLabel.createEl('input', { type: 'checkbox' });
+            defaultInput.checked = structure.isDefault === true;
+            defaultLabel.appendText(' Set as Default Structure');
+        }
+        
+        // Action buttons
+        const actionsContainer = editorForm.createDiv({ cls: 'oom-form-actions' });
+        
+        const saveBtn = actionsContainer.createEl('button', {
+            text: isNew ? 'Create Structure' : 'Save Changes',
+            cls: 'oom-button-primary'
+        });
+        
+        const cancelBtn = actionsContainer.createEl('button', {
+            text: 'Cancel',
+            cls: 'oom-button-secondary'
+        });
+        
+        // Handle type changes to show/hide child callouts
+        const updateChildVisibility = () => {
+            if (typeSelect.value === 'flat') {
+                childContainer.style.display = 'none';
+            } else {
+                childContainer.style.display = 'block';
+            }
+        };
+        updateChildVisibility();
+        typeSelect.addEventListener('change', updateChildVisibility);
+        
+        // Save button handler
+        saveBtn.addEventListener('click', async () => {
+            const name = nameInput.value.trim();
+            if (!name) {
+                new Notice('Structure name is required');
+                nameInput.focus();
+                return;
+            }
+            
+            const rootCallout = rootInput.value.trim();
+            if (!rootCallout) {
+                new Notice('Root callout type is required');
+                rootInput.focus();
+                return;
+            }
+            
+            // Parse child callouts
+            const childCallouts = typeSelect.value === 'nested' 
+                ? childInput.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                : [];
+            
+            // Update structure object
+            structure.name = name;
+            structure.description = descTextarea.value.trim();
+            structure.type = typeSelect.value as 'nested' | 'flat';
+            structure.rootCallout = rootCallout;
+            structure.childCallouts = childCallouts;
+            structure.metricsCallout = metricsInput.value.trim();
+            structure.enabled = enabledInput.checked;
+            structure.lastModified = new Date().toISOString();
+            
+            if (defaultInput) {
+                structure.isDefault = defaultInput.checked;
+            }
+            
+            // Initialize settings if needed
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = this.getDefaultLintingSettings();
+            }
+            
+            if (isNew) {
+                // Add new structure
+                this.plugin.settings.linting.structures.push(structure as ExtendedCalloutStructure);
+                new Notice(`Structure "${name}" created successfully`);
+            } else {
+                // Update existing structure
+                const index = this.plugin.settings.linting.structures.findIndex(s => s.id === structure.id);
+                if (index !== -1) {
+                    this.plugin.settings.linting.structures[index] = structure as ExtendedCalloutStructure;
+                }
+                new Notice(`Structure "${name}" updated successfully`);
+            }
+            
+            // Handle default structure logic
+            if (structure.isDefault) {
+                // Remove default from other structures
+                this.plugin.settings.linting.structures.forEach(s => {
+                    if (s.id !== structure.id) {
+                        (s as ExtendedCalloutStructure).isDefault = false;
+                    }
+                });
+            }
+            
+            // Save settings
+            await this.plugin.saveSettings();
+            
+            // Refresh the content
+            this.loadJournalStructureContent();
+        });
+        
+        // Cancel button handler
+        cancelBtn.addEventListener('click', () => {
+            if (isNew) {
+                // Remove the new structure element
+                containerEl.parentElement?.remove();
+            } else {
+                // Just refresh to cancel editing
+                this.loadJournalStructureContent();
+            }
+        });
+        
+        // Focus name input for new structures
+        if (isNew) {
+            setTimeout(() => nameInput.focus(), 100);
+        }
+        
+        return editorForm;
+    }
+    
+    /**
+     * Clone an existing structure
+     */
+    private cloneStructure(sourceStructure: ExtendedCalloutStructure) {
+        // Create cloned structure with modified name
+        let cloneName = `${sourceStructure.name} (Copy)`;
+        const existingStructures = this.plugin.settings.linting?.structures || [];
+        
+        // Handle name conflicts with incrementing counter
+        let counter = 1;
+        let finalName = cloneName;
+        while (existingStructures.some(s => s.name === finalName)) {
+            finalName = `${sourceStructure.name} (Copy ${counter})`;
+            counter++;
+        }
+        
+        const clonedStructure: ExtendedCalloutStructure = {
+            ...sourceStructure,
+            id: 'structure-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            name: finalName,
+            isDefault: false, // Cloned structures should not be default
+            createdAt: new Date().toISOString(),
+            lastModified: new Date().toISOString()
+        };
+        
+        // Add to settings
+        if (!this.plugin.settings.linting) {
+            this.plugin.settings.linting = this.getDefaultLintingSettings();
+        }
+        
+        this.plugin.settings.linting.structures.push(clonedStructure);
+        this.plugin.saveSettings();
+        
+        new Notice(`Structure cloned as "${finalName}"`);
+        
+        // Refresh the UI
+        this.loadJournalStructureContent();
+    }
+    
+    /**
+     * Delete a structure with confirmation
+     */
+    private async deleteStructure(structure: ExtendedCalloutStructure) {
+        const structures = this.plugin.settings.linting?.structures || [];
+        
+        // Prevent deletion of the last structure
+        if (structures.length <= 1) {
+            new Notice('Cannot delete the last structure. At least one structure is required.');
+            return;
+        }
+        
+        // Show confirmation dialog
+        const confirmed = confirm(
+            `Are you sure you want to delete the structure "${structure.name}"?\n\nThis action cannot be undone.`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+        
+        // Remove from settings
+        const index = structures.findIndex(s => s.id === structure.id);
+        if (index !== -1) {
+            structures.splice(index, 1);
+            
+            // If we deleted the default structure, assign default to the first remaining structure
+            if (structure.isDefault && structures.length > 0) {
+                (structures[0] as ExtendedCalloutStructure).isDefault = true;
+                new Notice(`"${structures[0].name}" is now the default structure`);
+            }
+            
+            await this.plugin.saveSettings();
+            new Notice(`Structure "${structure.name}" deleted successfully`);
+            
+            // Refresh the UI
+            this.loadJournalStructureContent();
+        }
+    }
+    
+    /**
+     * Edit an existing structure inline
+     */
+    private editStructure(structure: ExtendedCalloutStructure) {
+        // Find the structure item in the DOM
+        const structuresSection = this.contentContainer.querySelector('.oom-journal-section:nth-child(2)');
+        if (!structuresSection) {
+            new Notice('Could not find structures section');
+            return;
+        }
+        
+        const listContainer = structuresSection.querySelector('.oom-structures-list');
+        if (!listContainer) {
+            new Notice('Could not find structures list container');
+            return;
+        }
+        
+        // Find the specific structure item
+        const structureItems = Array.from(listContainer.querySelectorAll('.oom-structure-item'));
+        let targetItem: HTMLElement | null = null;
+        
+        for (const item of structureItems) {
+            const nameEl = item.querySelector('.oom-structure-name');
+            if (nameEl && nameEl.textContent?.includes(structure.name)) {
+                targetItem = item as HTMLElement;
+                break;
+            }
+        }
+        
+        if (!targetItem) {
+            new Notice('Could not find structure item to edit');
+            return;
+        }
+        
+        // Add editing class
+        targetItem.addClass('editing');
+        
+        // Check if editor already exists
+        let editorEl = targetItem.querySelector('.oom-structure-editor') as HTMLElement;
+        if (!editorEl) {
+            // Create editor element
+            editorEl = targetItem.createDiv({ 
+                cls: 'oom-structure-editor',
+                attr: { style: 'display: block;' }
+            });
+        } else {
+            // Show existing editor
+            editorEl.style.display = 'block';
+        }
+        
+        // Clear and rebuild editor
+        editorEl.empty();
+        this.buildInlineStructureEditor(editorEl, structure, false);
+        
+        // Scroll to the structure
+        targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        new Notice('Edit the structure details and click Save to update');
     }
 } 
