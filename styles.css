@@ -3054,7 +3054,7 @@ span.oom-metric-header svg {
 /* Quick action icons */
 .oom-quick-action-icon {
     /* === STRUCTURAL PROPERTIES === */
-    margin-bottom: var(--oom-spacing-sm);
+    /*margin-bottom: var(--oom-spacing-sm);*/
     font-size: var(--oom-quick-action-icon-size);
     display: flex;
     align-items: center;
@@ -4994,6 +4994,7 @@ h2.oom-metrics-tabs-label {
 .oom-metrics-tabs-score-table {
     /* === STRUCTURAL PROPERTIES === */
     margin-top: var(--oom-spacing-lg);
+    overflow-x: auto;
     
     /* NO VISUAL STYLING - Let theme handle table styling */
     
@@ -5011,12 +5012,6 @@ h2.oom-metrics-tabs-label {
         text-align: left;
         
         /* NO VISUAL STYLING - Let theme handle cell styling */
-    }
-    
-    th {
-        font-weight: 600;
-        
-        /* NO VISUAL STYLING - Let theme handle header styling */
     }
 }
 
@@ -5502,6 +5497,7 @@ h2.oom-metrics-tabs-label {
 .oom-metrics-tabs-score-table {
     /* === STRUCTURAL PROPERTIES === */
     margin: var(--oom-spacing-md) 0;
+    overflow-x: auto;
     
     /* NO VISUAL STYLING - Let theme handle */
     
@@ -5519,13 +5515,6 @@ h2.oom-metrics-tabs-label {
         text-align: left;
         
         /* NO VISUAL STYLING - Let theme handle */
-    }
-    
-    th {
-        font-weight: 600;
-        font-size: var(--font-ui-smaller);
-        
-        /* NO VISUAL STYLING - Let theme handle header styling */
     }
 }
 
@@ -7864,12 +7853,12 @@ div#oom-time-filter-display {
 
 .oom-section-header {
     display: flex;
+    margin-bottom: var(--oom-spacing-sm);
+    padding-bottom: var(--oom-spacing-xs);
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--oom-spacing-sm);
     font-weight: 600;
     font-size: var(--font-ui-medium);
-    padding-bottom: var(--oom-spacing-xs);
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
@@ -7880,8 +7869,80 @@ div#oom-time-filter-display {
     padding-top: var(--oom-spacing-sm);
 }
 
+p.oom-journal-structure-description {
+    font-size: var(--font-ui-smaller);
+}
 
+p.oom-journal-structure-description:nth-of-type(2) {
+    margin-bottom: 0;
+    margin-block-end: 0;
+}
 
+.oom-wizard-header {
+    position: sticky;
+    top: 0px;
+    z-index: 101;
+    padding: .5em;
+    border-bottom: 1px solid var(--background-modifier-border);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
+    background-color: var(--background-primary);
+}
+
+.oom-wizard-main-content {
+    padding-bottom: 80px;
+    padding-top: 1em;
+}
+
+.oom-wizard-step.step-1 h3,
+.oom-wizard-step.step-2 h3,
+.oom-wizard-step.step-3 h3 {
+    margin-block-start: 0;
+    font-size:var(--h4-size);
+}
+
+pre.oom-markdown-preview.oom-templater-preview {
+    border: 1px solid var(--color-accent);
+    font-size: 12px;
+    background-color: var(--background-secondary);
+}
+
+pre.oom-markdown-preview.oom-journal-structure-preview {
+    font-size: 12px;
+    background-color: var(--background-secondary);
+}
+
+.oom-wizard-footer {
+    position: sticky;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 100;
+    padding: .5em;
+    border-top: 1px solid var(--background-modifier-border);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px -2px 8px;
+    background-color: var(--background-primary);
+}
+
+.oom-nav-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.oom-button-container {
+   display: flex;
+   gap: 0.5em;
+}
+
+.oom-wizard-footer .oom-step-indicator {
+    min-width:auto;
+    flex-shrink:0;
+    font-size: var(--font-ui-small);
+    font-weight: 500;
+    white-space:nowrap;
+    /*color: var(--text-muted);*/
+}
 
 /* === TEST SUITE MODALS === */
 .oom-dream-journal-test-modal,

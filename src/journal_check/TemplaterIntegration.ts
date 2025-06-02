@@ -67,7 +67,7 @@ export class TemplaterIntegration {
             const templaterPlugin = this.getTemplaterPlugin();
             if (!templaterPlugin) return [];
             
-            const templateFolder = templaterPlugin.settings.template_folder;
+            const templateFolder = templaterPlugin.settings.templates_folder;
             
             if (!templateFolder) {
                 return [];

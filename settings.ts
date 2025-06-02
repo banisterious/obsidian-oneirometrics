@@ -1355,20 +1355,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     private addJournalStructureSettings(containerEl: HTMLElement) {
         containerEl.createEl('h2', { text: 'Journal Structure' });
         
-        // Enable/disable linting
-        new Setting(containerEl)
-            .setName('Enable Structure Validation')
-            .setDesc('Validate journal entries against defined structures')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.linting?.enabled ?? true)
-                .onChange(async (value) => {
-                    if (!this.plugin.settings.linting) {
-                        this.plugin.settings.linting = { ...defaultLintingSettings };
-                    }
-                    this.plugin.settings.linting.enabled = value;
-                    await this.plugin.saveSettings();
-                }));
-        
         // Journal Structure settings button
         new Setting(containerEl)
             .setName('Journal Structure Settings')
@@ -1376,40 +1362,13 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .addButton(button => button
                 .setButtonText('Open Settings')
                 .onClick(() => {
+                    // Close the current settings modal first
+                    (this.app as any).setting.close();
+                    
+                    // Then open the Hub modal with Journal Structure tab
                     const modalsManager = new ModalsManager(this.app, this.plugin, this.plugin.logger);
-                    modalsManager.openHubModal();
+                    modalsManager.openHubModal('journal-structure');
                 }));
-
-        // Templater status indicator
-        if (this.plugin.templaterIntegration) {
-            const isTemplaterInstalled = this.plugin.templaterIntegration.isTemplaterInstalled();
-            const isEnabled = this.plugin.settings.linting?.templaterIntegration?.enabled ?? false;
-            
-            let status = '';
-            let statusClass = '';
-            
-            if (!isTemplaterInstalled) {
-                status = 'Templater plugin not installed';
-                statusClass = 'oom-status-warning';
-            } else if (!isEnabled) {
-                status = 'Templater integration disabled';
-                statusClass = 'oom-status-neutral';
-            } else {
-                status = 'Templater integration active';
-                statusClass = 'oom-status-success';
-            }
-            
-            new Setting(containerEl)
-                .setName('Templater Status')
-                .setDesc('Status of Templater integration')
-                .addExtraButton(button => {
-                    button.setIcon(isTemplaterInstalled ? (isEnabled ? 'checkmark-circle' : 'alert-circle') : 'x-circle');
-                    button.setTooltip(status);
-                    button.extraSettingsEl.addClass(statusClass);
-                    return button;
-                })
-                .infoEl.setText(status);
-        }
     }
 
     /**
