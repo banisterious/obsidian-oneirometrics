@@ -9,11 +9,18 @@ interface DateSelection {
     isRange: boolean;
 }
 
+enum SelectionMode {
+    SINGLE = 'single',
+    RANGE = 'range',
+    MULTI_SELECT = 'multi-select'
+}
+
 export class DateSelectionModal extends Modal {
     private timeFilterManager: TimeFilterManager;
     private currentMonth: Date;
     private selectedDates: Set<string> = new Set();
     private isRangeMode: boolean = false;
+    private isMultiSelectMode: boolean = false;
     private rangeStart: Date | null = null;
     private previewRange: DateSelection | null = null;
     private isUpdatingCalendar: boolean = false;
@@ -140,18 +147,33 @@ export class DateSelectionModal extends Modal {
         // Range Mode toggle positioned to the right
         const toggleContainer = quickNav.createDiv('oom-toggle-container');
         
-        const toggleLabel = toggleContainer.createEl('label', { cls: 'oom-toggle-label' });
-        toggleLabel.createEl('span', { text: 'Range Mode', cls: 'oom-toggle-text' });
+        // Range Mode Toggle
+        const rangeToggleLabel = toggleContainer.createEl('label', { cls: 'oom-toggle-label' });
+        rangeToggleLabel.createEl('span', { text: 'Range Mode', cls: 'oom-toggle-text' });
         
-        const toggleInput = toggleLabel.createEl('input', { 
+        const rangeToggleInput = rangeToggleLabel.createEl('input', { 
             type: 'checkbox',
-            cls: 'oom-toggle-input'
+            cls: 'oom-toggle-input oom-range-toggle'
         }) as HTMLInputElement;
-        toggleInput.checked = this.isRangeMode;
-        toggleInput.addEventListener('change', () => this.toggleRangeMode());
+        rangeToggleInput.checked = this.isRangeMode;
+        rangeToggleInput.addEventListener('change', () => this.toggleRangeMode());
         
-        const toggleSwitch = toggleLabel.createEl('div', { cls: 'oom-toggle-switch' });
-        toggleSwitch.createEl('div', { cls: 'oom-toggle-slider' });
+        const rangeToggleSwitch = rangeToggleLabel.createEl('div', { cls: 'oom-toggle-switch' });
+        rangeToggleSwitch.createEl('div', { cls: 'oom-toggle-slider' });
+        
+        // Multi-Select Mode Toggle
+        const multiToggleLabel = toggleContainer.createEl('label', { cls: 'oom-toggle-label' });
+        multiToggleLabel.createEl('span', { text: 'Multi-Select', cls: 'oom-toggle-text' });
+        
+        const multiToggleInput = multiToggleLabel.createEl('input', { 
+            type: 'checkbox',
+            cls: 'oom-toggle-input oom-multi-toggle'
+        }) as HTMLInputElement;
+        multiToggleInput.checked = this.isMultiSelectMode;
+        multiToggleInput.addEventListener('change', () => this.toggleMultiSelectMode());
+        
+        const multiToggleSwitch = multiToggleLabel.createEl('div', { cls: 'oom-toggle-switch' });
+        multiToggleSwitch.createEl('div', { cls: 'oom-toggle-slider' });
     }
 
     private createCalendarGrid(container: HTMLElement): void {
@@ -201,7 +223,13 @@ export class DateSelectionModal extends Modal {
         
         // Apply classes based on state
         if (!isCurrentMonth) dayEl.classList.add('oom-other-month');
-        if (isSelected) dayEl.classList.add('oom-selected');
+        if (isSelected) {
+            dayEl.classList.add('oom-selected');
+            // Add specific styling for multi-select mode
+            if (this.isMultiSelectMode && !this.isRangeMode) {
+                dayEl.classList.add('oom-multi-selected');
+            }
+        }
         if (isTodayDate) dayEl.classList.add('oom-today');
         
         // Range preview highlighting
@@ -212,7 +240,7 @@ export class DateSelectionModal extends Modal {
         }
         
         // Event listeners
-        dayEl.addEventListener('click', () => this.handleDayClick(date));
+        dayEl.addEventListener('click', (event) => this.handleDayClick(date, event));
         dayEl.addEventListener('mouseenter', () => this.handleDayHover(date));
         
         // Debug logging for event listener attachment
@@ -399,17 +427,29 @@ export class DateSelectionModal extends Modal {
         new Notice(`Selected entire month: ${format(this.currentMonth, 'MMMM yyyy')}`);
     }
 
-    private handleDayClick(date: Date): void {
+    private handleDayClick(date: Date, event?: MouseEvent): void {
         const dateKey = this.formatDateKey(date);
         
         safeLogger.info('DateSelectionModal', 'Day clicked', {
             date: dateKey,
             isRangeMode: this.isRangeMode,
+            isMultiSelectMode: this.isMultiSelectMode,
             hasRangeStart: !!this.rangeStart,
-            rangeStartDate: this.rangeStart ? this.formatDateKey(this.rangeStart) : null
+            rangeStartDate: this.rangeStart ? this.formatDateKey(this.rangeStart) : null,
+            modifierKeys: {
+                ctrl: event?.ctrlKey || false,
+                cmd: event?.metaKey || false,
+                shift: event?.shiftKey || false
+            }
         });
         
-        if (this.isRangeMode) {
+        // Check for multi-select with Ctrl/Cmd key (or if multi-select mode is active)
+        const isMultiSelectClick = this.isMultiSelectMode || event?.ctrlKey || event?.metaKey;
+        
+        if (isMultiSelectClick && !this.isRangeMode) {
+            this.handleMultiSelectClick(date);
+            this.updateCalendarVisualState();
+        } else if (this.isRangeMode) {
             this.handleRangeSelection(date);
             
             // For range mode: only do full calendar update when completing the range
@@ -507,128 +547,304 @@ export class DateSelectionModal extends Modal {
             return;
         }
 
+        try {
+            if (this.isMultiSelectMode && this.selectedDates.size > 1) {
+                // Multi-date selection - use worker filtering
+                this.applyMultiDateFilter();
+            } else {
+                // Single date or range selection - use existing logic
+                this.applySingleOrRangeFilter();
+            }
+        } catch (error) {
+            safeLogger.error('DateSelectionModal', 'Error applying selection', error);
+            new Notice('Error applying filter. Please try again.');
+        }
+    }
+
+    private async applyMultiDateFilter(): Promise<void> {
+        const selectedDatesArray = Array.from(this.selectedDates);
+        
+        safeLogger.info('DateSelectionModal', 'Applying multi-date filter', {
+            selectedDatesCount: selectedDatesArray.length,
+            selectedDates: selectedDatesArray
+        });
+
+        try {
+            // Get the metrics container and FilterUI
+            const metricsContainer = document.querySelector('.oom-metrics-container') as HTMLElement;
+            if (!metricsContainer) {
+                new Notice('Metrics container not found. Please ensure you are viewing a metrics note.');
+                return;
+            }
+
+            const plugin = (window as any).oneiroMetricsPlugin;
+            if (!plugin || !plugin.filterUI) {
+                new Notice('Plugin FilterUI not available. Please try again.');
+                return;
+            }
+
+            // Show progress indicator
+            new Notice(`🚀 Filtering ${selectedDatesArray.length} selected dates...`, 3000);
+
+            // Get entries for filtering (from plugin state or DOM)
+            const entries = this.getAllDreamEntries();
+            
+            if (entries.length === 0) {
+                new Notice('No dream entries found to filter.');
+                return;
+            }
+
+            // Use worker-based multi-date filtering if available
+            let filterResult;
+            if (plugin.dateNavigatorIntegration?.workerManager) {
+                try {
+                    filterResult = await plugin.dateNavigatorIntegration.workerManager.filterByMultipleDates(
+                        entries,
+                        selectedDatesArray,
+                        'include'
+                    );
+                    
+                    safeLogger.info('DateSelectionModal', 'Worker-based multi-date filtering completed', {
+                        visibleCount: filterResult.visibilityMap.filter(r => r.visible).length,
+                        totalCount: filterResult.visibilityMap.length,
+                        affectedDatesCount: filterResult.affectedDates.length
+                    });
+                } catch (workerError) {
+                    safeLogger.warn('DateSelectionModal', 'Worker filtering failed, using fallback', workerError);
+                    // Fallback to manual filtering if worker fails
+                    filterResult = this.fallbackMultiDateFilter(entries, selectedDatesArray);
+                }
+            } else {
+                // Use fallback multi-date filtering
+                filterResult = this.fallbackMultiDateFilter(entries, selectedDatesArray);
+            }
+
+            // Apply visibility results to the DOM
+            this.applyMultiDateVisibilityResults(filterResult.visibilityMap, metricsContainer);
+
+            // Update time filter manager
+            if (this.timeFilterManager) {
+                // Set a custom filter type for multi-date selection
+                (this.timeFilterManager as any).setCustomMultipleDates?.(selectedDatesArray);
+            }
+
+            // Update filter display
+            this.updateMultiDateFilterDisplay(metricsContainer, selectedDatesArray, filterResult.visibilityMap);
+
+            // Show success message
+            const visibleCount = filterResult.visibilityMap.filter(r => r.visible).length;
+            new Notice(`✅ Multi-date filter applied: ${visibleCount} entries visible from ${selectedDatesArray.length} selected dates`);
+            
+            this.close();
+
+        } catch (error) {
+            safeLogger.error('DateSelectionModal', 'Multi-date filter application failed', error);
+            new Notice('Failed to apply multi-date filter. Please try again.');
+        }
+    }
+
+    private applySingleOrRangeFilter(): void {
         if (!this.previewRange) {
             new Notice('Invalid selection');
             return;
         }
 
-        try {
-            // Format dates as YYYY-MM-DD strings for consistent filtering
-            const startDateStr = this.previewRange.start.toISOString().split('T')[0];
-            const endDateStr = this.previewRange.end.toISOString().split('T')[0];
-            
-            // Apply filter through TimeFilterManager first
-            this.timeFilterManager.setCustomRange(this.previewRange.start, this.previewRange.end);
-            
-            // CRITICAL FIX: Get the metrics container and apply filters directly through FilterUI
-            const metricsContainer = document.querySelector('.oom-metrics-container') as HTMLElement;
-            if (metricsContainer) {
-                // Get the FilterUI instance from the global plugin
-                const plugin = (window as any).oneiroMetricsPlugin;
-                safeLogger.info('DateSelectionModal', 'Checking plugin and FilterUI availability', { 
-                    hasPlugin: !!plugin, 
-                    hasFilterUI: !!(plugin && plugin.filterUI)
-                });
-                
-                if (plugin && plugin.filterUI) {
-                    // Set the custom date range in FilterUI
-                    safeLogger.info('DateSelectionModal', 'Setting custom date range in FilterUI', { 
-                        start: startDateStr, 
-                        end: endDateStr 
-                    });
-                    plugin.filterUI.setCustomDateRange({ start: startDateStr, end: endDateStr });
-                    
-                    // Set the dropdown to custom and apply filters
-                    const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
-                    if (filterDropdown) {
-                        safeLogger.info('DateSelectionModal', 'Found filter dropdown, setting to custom', { 
-                            currentValue: filterDropdown.value 
-                        });
-                        
-                        // Ensure 'custom' option exists in the dropdown
-                        let customOption = Array.from(filterDropdown.options).find(opt => opt.value === 'custom');
-                        if (!customOption) {
-                            safeLogger.info('DateSelectionModal', 'Custom option not found, adding it');
-                            customOption = document.createElement('option');
-                            customOption.value = 'custom';
-                            customOption.textContent = 'Custom Range';
-                            filterDropdown.appendChild(customOption);
-                        }
-                        
-                        filterDropdown.value = 'custom';
-                        safeLogger.info('DateSelectionModal', 'Dropdown value set', { 
-                            newValue: filterDropdown.value 
-                        });
-                        
-                        // Apply filters through FilterUI
-                        safeLogger.info('DateSelectionModal', 'Calling FilterUI.applyFilters');
-                        plugin.filterUI.applyFilters(metricsContainer);
-                        
-                        // CRITICAL FIX: Update the filter display after the automatic update completes
-                        setTimeout(() => {
-                            safeLogger.info('DateSelectionModal', 'Updating filter display with correct date range');
-                            const filterDisplayManager = plugin.filterDisplayManager;
-                            if (filterDisplayManager) {
-                                // Get the visible count from the table for complete display
-                                const visibleRows = metricsContainer.querySelectorAll('.oom-metrics-row:not([style*="display: none"])').length;
-                                filterDisplayManager.updateCustomRangeDisplay(
-                                    metricsContainer, 
-                                    startDateStr, 
-                                    endDateStr,
-                                    visibleRows
-                                );
-                            } else {
-                                // Fallback: Update the filter display directly
-                                const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display');
-                                if (filterDisplay) {
-                                    filterDisplay.innerHTML = `
-                                        <span class="oom-filter-icon">🗓️</span>
-                                        <span class="oom-filter-text oom-filter--custom">Custom Range: ${startDateStr} to ${endDateStr}</span>
-                                    `;
-                                    filterDisplay.classList.add('oom-filter-active');
-                                }
-                            }
-                        }, 100); // Small delay to ensure it happens after automatic update
-                    } else {
-                        safeLogger.error('DateSelectionModal', 'Filter dropdown not found in metrics container');
-                    }
-                } else {
-                    // Fallback method if FilterUI is not accessible
-                    safeLogger.warn('DateSelectionModal', 'FilterUI not found, using fallback method');
-                    
-                    // Set global custom date range for filtering
-                    (window as any).customDateRange = { start: startDateStr, end: endDateStr };
-                    
-                    // Trigger filter change through dropdown
-                    const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
-                    if (filterDropdown) {
-                        filterDropdown.value = 'custom';
-                        filterDropdown.dispatchEvent(new Event('change'));
-                    }
-                }
-            } else {
-                safeLogger.error('DateSelectionModal', 'Metrics container not found');
-            }
-            
-            const dayCount = this.selectedDates.size;
-            const message = this.previewRange.isRange 
-                ? `Applied date range: ${format(this.previewRange.start, 'MMM d')} to ${format(this.previewRange.end, 'MMM d, yyyy')} (${dayCount} days)`
-                : `Applied date filter: ${format(this.previewRange.start, 'MMM d, yyyy')}`;
-            
-            new Notice(message);
-            
-            safeLogger.info('DateSelectionModal', 'Filter applied', {
-                start: startDateStr,
-                end: endDateStr,
-                dayCount,
-                isRange: this.previewRange.isRange
+        // Format dates as YYYY-MM-DD strings for consistent filtering
+        const startDateStr = this.previewRange.start.toISOString().split('T')[0];
+        const endDateStr = this.previewRange.end.toISOString().split('T')[0];
+        
+        // Apply filter through TimeFilterManager first
+        this.timeFilterManager.setCustomRange(this.previewRange.start, this.previewRange.end);
+        
+        // CRITICAL FIX: Get the metrics container and apply filters directly through FilterUI
+        const metricsContainer = document.querySelector('.oom-metrics-container') as HTMLElement;
+        if (metricsContainer) {
+            // Get the FilterUI instance from the global plugin
+            const plugin = (window as any).oneiroMetricsPlugin;
+            safeLogger.info('DateSelectionModal', 'Checking plugin and FilterUI availability', { 
+                hasPlugin: !!plugin, 
+                hasFilterUI: !!(plugin && plugin.filterUI)
             });
             
-            this.close();
+            if (plugin && plugin.filterUI) {
+                // Set the custom date range in FilterUI
+                safeLogger.info('DateSelectionModal', 'Setting custom date range in FilterUI', { 
+                    start: startDateStr, 
+                    end: endDateStr 
+                });
+                plugin.filterUI.setCustomDateRange({ start: startDateStr, end: endDateStr });
+                
+                // Set the dropdown to custom and apply filters
+                const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+                if (filterDropdown) {
+                    // Ensure 'custom' option exists
+                    if (!Array.from(filterDropdown.options).find(opt => opt.value === 'custom')) {
+                        const customOption = document.createElement('option');
+                        customOption.value = 'custom';
+                        customOption.textContent = 'Custom Range';
+                        filterDropdown.appendChild(customOption);
+                    }
+                    
+                    filterDropdown.value = 'custom';
+                    safeLogger.info('DateSelectionModal', 'Dropdown value set', { 
+                        newValue: filterDropdown.value 
+                    });
+                    
+                    // Apply filters through FilterUI
+                    safeLogger.info('DateSelectionModal', 'Calling FilterUI.applyFilters');
+                    plugin.filterUI.applyFilters(metricsContainer);
+                    
+                    // CRITICAL FIX: Update the filter display after the automatic update completes
+                    setTimeout(() => {
+                        safeLogger.info('DateSelectionModal', 'Updating filter display with correct date range');
+                        const filterDisplayManager = plugin.filterDisplayManager;
+                        if (filterDisplayManager) {
+                            // Get the visible count from the table for complete display
+                            const visibleRows = metricsContainer.querySelectorAll('.oom-metrics-row:not([style*="display: none"])').length;
+                            filterDisplayManager.updateCustomRangeDisplay(
+                                metricsContainer, 
+                                startDateStr, 
+                                endDateStr,
+                                visibleRows
+                            );
+                        } else {
+                            // Fallback: Update the filter display directly
+                            const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display');
+                            if (filterDisplay) {
+                                filterDisplay.innerHTML = `
+                                    <span class="oom-filter-icon">🗓️</span>
+                                    <span class="oom-filter-text oom-filter--custom">Custom Range: ${startDateStr} to ${endDateStr}</span>
+                                `;
+                                filterDisplay.classList.add('oom-filter-active');
+                            }
+                        }
+                    }, 100); // Small delay to ensure it happens after automatic update
+                } else {
+                    safeLogger.error('DateSelectionModal', 'Filter dropdown not found in metrics container');
+                }
+            } else {
+                // Fallback method if FilterUI is not accessible
+                safeLogger.warn('DateSelectionModal', 'FilterUI not found, using fallback method');
+                
+                // Set global custom date range for filtering
+                (window as any).customDateRange = { start: startDateStr, end: endDateStr };
+                
+                // Trigger filter change through dropdown
+                const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+                if (filterDropdown) {
+                    filterDropdown.value = 'custom';
+                    filterDropdown.dispatchEvent(new Event('change'));
+                }
+            }
+        } else {
+            safeLogger.error('DateSelectionModal', 'Metrics container not found');
+        }
+        
+        const dayCount = this.selectedDates.size;
+        const message = this.previewRange.isRange 
+            ? `Applied date range: ${format(this.previewRange.start, 'MMM d')} to ${format(this.previewRange.end, 'MMM d, yyyy')} (${dayCount} days)`
+            : `Applied date filter: ${format(this.previewRange.start, 'MMM d, yyyy')}`;
+        
+        new Notice(message);
+        
+        safeLogger.info('DateSelectionModal', 'Filter applied', {
+            start: startDateStr,
+            end: endDateStr,
+            dayCount,
+            isRange: this.previewRange.isRange
+        });
+        
+        this.close();
+    }
+
+    private getAllDreamEntries(): any[] {
+        // Try to get entries from the plugin state
+        const plugin = (window as any).oneiroMetricsPlugin;
+        if (plugin?.state?.getDreamEntries) {
+            return plugin.state.getDreamEntries();
+        }
+        
+        // Fallback: Extract entries from DOM
+        const metricsContainer = document.querySelector('.oom-metrics-container');
+        if (!metricsContainer) return [];
+        
+        const rows = metricsContainer.querySelectorAll('.oom-metrics-row');
+        const entries: any[] = [];
+        
+        rows.forEach((row, index) => {
+            const dateCell = row.querySelector('.oom-date-cell');
+            const date = dateCell?.textContent?.trim();
             
-        } catch (error) {
-            safeLogger.error('DateSelectionModal', 'Failed to apply filter', error);
-            new Notice('Failed to apply date filter. Please try again.');
+            if (date) {
+                entries.push({
+                    source: `row-${index}`,
+                    date: date,
+                    // Add other properties as needed
+                });
+            }
+        });
+        
+        return entries;
+    }
+
+    private fallbackMultiDateFilter(entries: any[], selectedDates: string[]): { visibilityMap: any[]; affectedDates: string[] } {
+        const selectedSet = new Set(selectedDates);
+        const results: any[] = [];
+        const affectedDates: string[] = [];
+        
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            
+            if (!entry.date) {
+                results.push({
+                    id: entry.source || `entry-${i}`,
+                    visible: false,
+                    matchReason: 'no-date'
+                });
+                continue;
+            }
+            
+            const isSelected = selectedSet.has(entry.date);
+            
+            results.push({
+                id: entry.source || `entry-${i}`,
+                visible: isSelected,
+                matchReason: isSelected ? 'multi-date-include' : 'multi-date-exclude'
+            });
+            
+            if (isSelected && !affectedDates.includes(entry.date)) {
+                affectedDates.push(entry.date);
+            }
+        }
+        
+        return { visibilityMap: results, affectedDates };
+    }
+
+    private applyMultiDateVisibilityResults(visibilityMap: any[], container: HTMLElement): void {
+        const rows = container.querySelectorAll('.oom-metrics-row');
+        
+        visibilityMap.forEach((result, index) => {
+            const row = rows[index];
+            if (row) {
+                (row as HTMLElement).style.display = result.visible ? '' : 'none';
+            }
+        });
+    }
+
+    private updateMultiDateFilterDisplay(container: HTMLElement, selectedDates: string[], visibilityMap: any[]): void {
+        const filterDisplay = container.querySelector('#oom-time-filter-display');
+        if (filterDisplay) {
+            const visibleCount = visibilityMap.filter(r => r.visible).length;
+            const sortedDates = selectedDates.sort();
+            const dateRange = selectedDates.length > 1 
+                ? `${sortedDates[0]} to ${sortedDates[sortedDates.length - 1]}`
+                : sortedDates[0];
+            
+            filterDisplay.innerHTML = `
+                <span class="oom-filter-icon">📅</span>
+                <span class="oom-filter-text oom-filter--multi-date">Multi-Date: ${selectedDates.length} dates (${visibleCount} entries)</span>
+            `;
+            filterDisplay.classList.add('oom-filter-active');
         }
     }
 
@@ -677,13 +893,39 @@ export class DateSelectionModal extends Modal {
         infoEl.empty();
         
         if (this.selectedDates.size === 0) {
-            const helpText = this.isRangeMode 
-                ? 'Click start date, then end date for range'
-                : 'Click a date to select';
+            let helpText: string;
+            if (this.isMultiSelectMode) {
+                helpText = 'Click dates to select multiple (Ctrl/Cmd+Click also works)';
+            } else if (this.isRangeMode) {
+                helpText = 'Click start date, then end date for range';
+            } else {
+                helpText = 'Click a date to select';
+            }
+            
             infoEl.createEl('p', { 
                 text: helpText,
                 cls: 'oom-help-text'
             });
+        } else if (this.isMultiSelectMode) {
+            // Multi-select mode information
+            const selectedCount = this.selectedDates.size;
+            const selectedDatesArray = Array.from(this.selectedDates).map(key => this.parseDateKey(key)).filter(Boolean) as Date[];
+            const sortedDates = selectedDatesArray.sort((a, b) => a.getTime() - b.getTime());
+            
+            const infoText = selectedCount === 1 
+                ? `Selected: ${format(sortedDates[0], 'MMM d, yyyy')}` 
+                : `Selected: ${selectedCount} dates (${format(sortedDates[0], 'MMM d')} to ${format(sortedDates[sortedDates.length - 1], 'MMM d, yyyy')})`;
+            
+            infoEl.createEl('p', { text: infoText, cls: 'oom-selected-text' });
+            
+            // Add list of selected dates if reasonable number
+            if (selectedCount <= 10) {
+                const datesList = sortedDates.map(date => format(date, 'MMM d')).join(', ');
+                infoEl.createEl('p', { 
+                    text: `Dates: ${datesList}`,
+                    cls: 'oom-dates-list'
+                });
+            }
         } else if (this.isRangeMode && this.rangeStart && this.selectedDates.size === 1) {
             infoEl.createEl('p', { 
                 text: `Start: ${format(this.rangeStart, 'MMM d, yyyy')} - Select end date`,
@@ -720,16 +962,29 @@ export class DateSelectionModal extends Modal {
                 const dateKey = this.formatDateKey(currentDate);
                 const isSelected = this.selectedDates.has(dateKey);
                 
-                // Update classes
-                dayEl.classList.toggle('oom-selected', isSelected);
+                // Clear existing selection classes
+                dayEl.classList.remove('oom-selected', 'oom-multi-selected', 'oom-range-preview', 'oom-range-start', 'oom-range-end');
+                
+                // Apply selection styling
+                if (isSelected) {
+                    dayEl.classList.add('oom-selected');
+                    // Add specific styling for multi-select mode
+                    if (this.isMultiSelectMode && !this.isRangeMode) {
+                        dayEl.classList.add('oom-multi-selected');
+                    }
+                }
                 
                 // Range preview highlighting
                 if (this.previewRange && this.isDateInRange(currentDate, this.previewRange)) {
-                    dayEl.classList.add('oom-range-preview');
-                    if (isSameDay(currentDate, this.previewRange.start)) dayEl.classList.add('oom-range-start');
-                    if (isSameDay(currentDate, this.previewRange.end)) dayEl.classList.add('oom-range-end');
-                } else {
-                    dayEl.classList.remove('oom-range-preview', 'oom-range-start', 'oom-range-end');
+                    if (this.previewRange.isRange) {
+                        // Traditional range selection
+                        dayEl.classList.add('oom-range-preview');
+                        if (isSameDay(currentDate, this.previewRange.start)) dayEl.classList.add('oom-range-start');
+                        if (isSameDay(currentDate, this.previewRange.end)) dayEl.classList.add('oom-range-end');
+                    } else if (this.isMultiSelectMode) {
+                        // Multi-select range preview (shows span of selected dates)
+                        dayEl.classList.add('oom-multi-range-preview');
+                    }
                 }
             }
         });
@@ -850,6 +1105,65 @@ export class DateSelectionModal extends Modal {
         } else {
             this.startDateInput.value = '';
             this.endDateInput.value = '';
+        }
+    }
+
+    private toggleMultiSelectMode(): void {
+        this.isMultiSelectMode = !this.isMultiSelectMode;
+        this.updateSelectionInfo();
+        safeLogger.info('DateSelectionModal', 'Multi-Select mode changed', { 
+            isMultiSelectMode: this.isMultiSelectMode
+        });
+    }
+
+    private handleMultiSelectClick(date: Date): void {
+        const dateKey = this.formatDateKey(date);
+        
+        if (this.selectedDates.has(dateKey)) {
+            // Deselect if already selected
+            this.selectedDates.delete(dateKey);
+            
+            // Update preview range for visual feedback
+            if (this.selectedDates.size === 0) {
+                this.previewRange = null;
+            } else {
+                // Update preview to show the range of all selected dates
+                const allDates = Array.from(this.selectedDates).map(key => this.parseDateKey(key)).filter(Boolean) as Date[];
+                const sortedDates = allDates.sort((a, b) => a.getTime() - b.getTime());
+                this.previewRange = {
+                    start: sortedDates[0],
+                    end: sortedDates[sortedDates.length - 1],
+                    isRange: false // Mark as non-range to indicate multi-select
+                };
+            }
+        } else {
+            // Add new selection
+            this.selectedDates.add(dateKey);
+            
+            // Update preview range to encompass all selected dates
+            const allDates = Array.from(this.selectedDates).map(key => this.parseDateKey(key)).filter(Boolean) as Date[];
+            const sortedDates = allDates.sort((a, b) => a.getTime() - b.getTime());
+            this.previewRange = {
+                start: sortedDates[0],
+                end: sortedDates[sortedDates.length - 1],
+                isRange: false // Mark as non-range to indicate multi-select
+            };
+        }
+        
+        safeLogger.info('DateSelectionModal', 'Multi-select click processed', {
+            dateKey,
+            selectedCount: this.selectedDates.size,
+            action: this.selectedDates.has(dateKey) ? 'selected' : 'deselected'
+        });
+    }
+
+    private parseDateKey(dateKey: string): Date | null {
+        try {
+            const [year, month, day] = dateKey.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        } catch (error) {
+            safeLogger.warn('DateSelectionModal', 'Failed to parse date key', { dateKey, error });
+            return null;
         }
     }
 } 

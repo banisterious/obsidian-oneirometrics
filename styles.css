@@ -1691,6 +1691,52 @@
     }
 }
 
+/* Multi-Select Calendar Day Styling */
+.oom-calendar-day {
+    
+    /* Multi-select mode styling */
+    &.oom-multi-select {
+        /* Structural layout for multi-select mode */
+        position: relative;
+        
+        /* Visual indicator for multi-selected state */
+        &::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            /* NO VISUAL STYLING - Let theme handle indicator appearance */
+            /* Structural positioning only */
+        }
+        
+        /* Combined multi-select and selected state */
+        &.oom-selected::before {
+            /* Enhanced indicator for selected multi-select dates */
+            top: 1px;
+            right: 1px;
+            height: 10px;
+            width: 10px;
+        }
+    }
+    
+    /* Multi-select hover states */
+    &.oom-multi-select:hover {
+        /* NO VISUAL STYLING - Let theme handle hover appearance */
+        /* Structural layout only */
+        cursor: pointer;
+    }
+    
+    /* Distinguish multi-select from range selection */
+    &.oom-multi-select:not(.oom-range-preview):not(.oom-range-start):not(.oom-range-end) {
+        /* Pure multi-select styling (not in range mode) */
+        /* NO VISUAL STYLING - Let theme handle pure multi-select appearance */
+        /* Structural positioning only */
+    }
+}
+
 /* ==========================================================================
    OVERFLOW AND TEXT LAYOUT
    ========================================================================== */
