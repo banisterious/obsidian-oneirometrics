@@ -2,7 +2,7 @@
 
 ## Overview
 
-The OOMP plugin includes a robust, modular logging system designed with the following principles:
+The OneiroMetrics plugin includes a robust, modular logging system designed with the following principles:
 
 - **Flexibility**: Support for multiple output targets (console, file, notices)
 - **Performance**: Minimal overhead, especially for disabled log levels
