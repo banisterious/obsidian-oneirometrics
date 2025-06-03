@@ -11,6 +11,7 @@ import { App } from 'obsidian';
 import safeLogger from '../../logging/safe-logger';
 import { registerService, SERVICE_NAMES } from '../ServiceRegistry';
 import { debug, error } from '../../logging';
+import { DateHandlingConfig } from '../../types/core';
 
 /**
  * Adapter for converting between different settings formats and ensuring
@@ -67,7 +68,7 @@ export class SettingsAdapter {
       calloutName: settings.calloutName || 'dream',
       journalCalloutName: settings.journalCalloutName || 'journal',
       dreamDiaryCalloutName: settings.dreamDiaryCalloutName || 'dream-diary',
-      includeDateFields: settings.includeDateFields !== undefined ? settings.includeDateFields : true,
+      dateHandling: this.getDateHandlingConfig(settings),
       showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || true),
       backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,
       backupFolderPath: settings.backup?.folderPath ?? settings.backupFolderPath ?? './backups',
@@ -115,6 +116,44 @@ export class SettingsAdapter {
    */
   private isValidLogLevel(level: string): level is LogLevel {
     return ['trace', 'debug', 'info', 'warn', 'error', 'silent'].includes(level);
+  }
+
+  /**
+   * Gets date handling configuration from settings, migrating from legacy boolean if needed
+   * @param settings The settings object
+   * @returns DateHandlingConfig object
+   */
+  private getDateHandlingConfig(settings: any): DateHandlingConfig {
+    // If new dateHandling config exists, use it
+    if (settings.dateHandling) {
+      return {
+        placement: settings.dateHandling.placement || 'field',
+        headerFormat: settings.dateHandling.headerFormat || 'MMMM d, yyyy',
+        fieldFormat: settings.dateHandling.fieldFormat || 'Date:',
+        includeBlockReferences: settings.dateHandling.includeBlockReferences ?? false,
+        blockReferenceFormat: settings.dateHandling.blockReferenceFormat || '^YYYYMMDD'
+      };
+    }
+    
+    // Migration from legacy includeDateFields boolean
+    if (settings.includeDateFields !== undefined) {
+      return {
+        placement: settings.includeDateFields ? 'field' : 'none',
+        headerFormat: 'MMMM d, yyyy',
+        fieldFormat: 'Date:',
+        includeBlockReferences: false,
+        blockReferenceFormat: '^YYYYMMDD'
+      };
+    }
+    
+    // Default configuration (maintains backward compatibility)
+    return {
+      placement: 'field',
+      headerFormat: 'MMMM d, yyyy',
+      fieldFormat: 'Date:',
+      includeBlockReferences: false,
+      blockReferenceFormat: '^YYYYMMDD'
+    };
   }
 
   /**

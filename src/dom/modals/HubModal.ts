@@ -8,7 +8,7 @@
 
 import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile, ButtonComponent, DropdownComponent, TextAreaComponent, TextComponent } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
-import { DreamMetric } from '../../types/core';
+import { DreamMetric, DateHandlingConfig, DatePlacement } from '../../types/core';
 import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../../types/journal-check';
 import safeLogger from '../../logging/safe-logger';
 import { getLogger } from '../../logging';
@@ -1486,6 +1486,73 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const getDreamDiaryCalloutName = () => this.plugin.settings.dreamDiaryCalloutName || 'dream-diary';
         const getCalloutName = () => this.plugin.settings.calloutName || 'dream-metrics';
 
+        // Date handling helpers
+        const getDateConfig = (): DateHandlingConfig => {
+            return this.plugin.settings.dateHandling || {
+                placement: 'field',
+                headerFormat: 'MMMM d, yyyy',
+                fieldFormat: 'Date:',
+                includeBlockReferences: false,
+                blockReferenceFormat: '^YYYYMMDD'
+            };
+        };
+
+        const formatDateForHeader = (date: Date = new Date()): string => {
+            const config = getDateConfig();
+            const format = config.headerFormat || 'MMMM d, yyyy';
+            
+            // Simple date formatting - expand as needed
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+            const month = months[date.getMonth()];
+            const day = date.getDate();
+            const year = date.getFullYear();
+            
+            return format
+                .replace('MMMM', month)
+                .replace('MMM', month.substring(0, 3))
+                .replace('d', day.toString())
+                .replace('yyyy', year.toString());
+        };
+
+        const formatBlockReference = (date: Date = new Date()): string => {
+            const config = getDateConfig();
+            const format = config.blockReferenceFormat || '^YYYYMMDD';
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            return format
+                .replace('YYYY', year.toString())
+                .replace('MM', month)
+                .replace('DD', day);
+        };
+
+        const buildCalloutHeader = (calloutName: string, metadata: string = '', includeDate: boolean = false): string => {
+            const config = getDateConfig();
+            const metaStr = metadata ? `|${metadata}` : '';
+            
+            if (includeDate && config.placement === 'header') {
+                const dateStr = formatDateForHeader();
+                const blockRef = config.includeBlockReferences ? ` ${formatBlockReference()}` : '';
+                return `> [!${calloutName}${metaStr}] ${dateStr}${blockRef}`;
+            }
+            
+            return `> [!${calloutName}${metaStr}]`;
+        };
+
+        const getDateFields = (): string[] => {
+            const config = getDateConfig();
+            
+            if (config.placement === 'field') {
+                const dateField = config.fieldFormat || 'Date:';
+                return [dateField];
+            }
+            
+            return [];
+        };
+
         // Callout Settings Section (moved to top)
         const settingsContainer = this.contentContainer.createDiv({ 
             cls: 'oom-callout-settings' 
@@ -1530,18 +1597,145 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     updateAllCallouts();
                 }));
 
-        // Include Date Fields Setting
-        new Setting(settingsContainer)
+        // Include Date Fields Setting (Master Toggle)
+        let dateFieldsEnabled = false;
+        let dateOptionsContainer: HTMLElement;
+        
+        const dateFieldsSetting = new Setting(settingsContainer)
             .setName('Include Date Fields')
-            .setDesc('Include "Date:" fields in Journal and Dream Diary callouts. Disable this if you use daily notes with dates in filenames or headers.')
+            .setDesc('Include date information in Journal and Dream Diary callouts. Disable this if you use daily notes with dates in filenames or headers.')
             .addToggle(toggle => {
-                toggle.setValue(this.plugin.settings.includeDateFields !== false)
+                const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
+                dateFieldsEnabled = dateConfig.placement !== 'none';
+                toggle.setValue(dateFieldsEnabled)
                     .onChange(async (value) => {
-                        this.plugin.settings.includeDateFields = value;
+                        dateFieldsEnabled = value;
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.placement = value ? 'field' : 'none';
+                        
+                        // Show/hide the date options
+                        dateOptionsContainer.style.display = value ? 'block' : 'none';
+                        
                         await this.plugin.saveSettings();
                         updateAllCallouts();
                     });
             });
+
+        // Date Options Container (only visible when master toggle is ON)
+        dateOptionsContainer = settingsContainer.createDiv({ cls: 'oom-date-options-container' });
+        dateOptionsContainer.style.marginLeft = '2em';
+        dateOptionsContainer.style.marginTop = '1em';
+        dateOptionsContainer.style.paddingLeft = '1em';
+        dateOptionsContainer.style.borderLeft = '2px solid var(--background-modifier-border)';
+        dateOptionsContainer.style.display = dateFieldsEnabled ? 'block' : 'none';
+
+        // Date Placement Dropdown
+        new Setting(dateOptionsContainer)
+            .setName('Date Placement')
+            .setDesc('Choose where to place date information in callouts')
+            .addDropdown(dropdown => {
+                dropdown.addOption('field', 'Field - "Date:" inside callout content');
+                dropdown.addOption('header', 'Header - In callout title "[!journal] June 2, 2025"');
+                
+                const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
+                dropdown.setValue(dateConfig.placement === 'none' ? 'field' : dateConfig.placement)
+                    .onChange(async (value: 'field' | 'header') => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.placement = value;
+                        await this.plugin.saveSettings();
+                        updateAllCallouts();
+                    });
+            });
+
+        // Block References Toggle
+        new Setting(dateOptionsContainer)
+            .setName('Include Block References')
+            .setDesc('Add block references like "^20250602" to date entries for easy linking')
+            .addToggle(toggle => {
+                const dateConfig = this.plugin.settings.dateHandling || { includeBlockReferences: false };
+                toggle.setValue(dateConfig.includeBlockReferences || false)
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.includeBlockReferences = value;
+                        await this.plugin.saveSettings();
+                        updateAllCallouts();
+                    });
+            });
+
+        // Date Format Setting
+        const dateFormatSetting = new Setting(dateOptionsContainer)
+            .setName('Date Format')
+            .setDesc('Format for dates using Moment.js syntax.')
+            .addText(text => {
+                const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
+                text.setPlaceholder('MMMM d, yyyy')
+                    .setValue(dateConfig.headerFormat || 'MMMM d, yyyy')
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.headerFormat = value || 'MMMM d, yyyy';
+                        
+                        // Update the preview
+                        updateDateFormatPreview();
+                        
+                        await this.plugin.saveSettings();
+                        updateAllCallouts();
+                    });
+            });
+
+        // Add custom description with working link
+        const descEl = dateFormatSetting.descEl;
+        descEl.empty();
+        descEl.appendText('Format for dates using ');
+        const linkEl = descEl.createEl('a', {
+            text: 'Moment.js syntax',
+            href: 'https://momentjs.com/docs/#/displaying/format/'
+        });
+        descEl.appendText('. Your current syntax looks like this: ');
+        
+        const previewSpan = descEl.createEl('span', { cls: 'oom-date-format-preview-inline' });
+        previewSpan.style.fontWeight = 'bold';
+
+        const updateDateFormatPreview = () => {
+            const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
+            const format = dateConfig.headerFormat || 'MMMM d, yyyy';
+            const previewDate = formatDateForHeader(new Date());
+            previewSpan.textContent = previewDate;
+        };
+
+        // Initialize preview
+        updateDateFormatPreview();
 
         // Single-Line Toggle (renamed)
         new Setting(settingsContainer)
@@ -1614,12 +1808,11 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Helper to build journal callout
         const buildJournalCallout = () => {
             const meta = calloutMetadata.trim();
-            const metaStr = meta ? `|${meta}` : '';
             const calloutName = getJournalCalloutName();
-            const header = `> [!${calloutName}${metaStr}]`;
+            const header = buildCalloutHeader(calloutName, meta, true);
             const fields = [
                 '',
-                ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
+                ...getDateFields(),
                 'Location:',
                 'Mood:',
                 'Key Events:',
@@ -1635,12 +1828,11 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Helper to build dream diary callout
         const buildDreamDiaryCallout = () => {
             const meta = calloutMetadata.trim();
-            const metaStr = meta ? `|${meta}` : '';
             const calloutName = getDreamDiaryCalloutName();
-            const header = `> [!${calloutName}${metaStr}]`;
+            const header = buildCalloutHeader(calloutName, meta, true);
             const fields = [
                 '',
-                ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
+                ...getDateFields(),
                 'Dream Title:',
                 'Vividness:',
                 'Emotions:',
@@ -1657,7 +1849,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Helper to build nested callout
         const buildNestedCallout = () => {
             const meta = calloutMetadata.trim();
-            const metaStr = meta ? `|${meta}` : '';
             const journalCalloutName = getJournalCalloutName();
             const dreamDiaryCalloutName = getDreamDiaryCalloutName();
             const metricsCalloutName = getCalloutName();
@@ -1666,18 +1857,19 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 // Create separate callouts when flattened
                 const journalFields = [
                     '',
-                    ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
+                    ...getDateFields(),
                     'Location:',
                     'Mood:',
                     'Key Events:',
                     'Reflections:'
                 ];
                 const journalContent = journalFields.join(' \n> ');
-                const journalCallout = `> [!${journalCalloutName}${metaStr}]${journalContent}`;
+                const journalHeader = buildCalloutHeader(journalCalloutName, meta, true);
+                const journalCallout = `${journalHeader}${journalContent}`;
                 
                 const dreamDiaryFields = [
                     '',
-                    ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
+                    ...getDateFields(),
                     'Dream Title:',
                     'Vividness:',
                     'Emotions:',
@@ -1685,7 +1877,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     'Personal Meaning:'
                 ];
                 const dreamDiaryContent = dreamDiaryFields.join(' \n> ');
-                const diaryCallout = `> [!${dreamDiaryCalloutName}${metaStr}]${dreamDiaryContent}`;
+                const dreamDiaryHeader = buildCalloutHeader(dreamDiaryCalloutName, meta, true);
+                const diaryCallout = `${dreamDiaryHeader}${dreamDiaryContent}`;
                 
                 const metricsFields = [
                     '',
@@ -1695,11 +1888,12 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     'Descriptiveness: 1-5',
                     'Confidence Score: 1-5'
                 ];
-                const metricsCallout = `> [!${metricsCalloutName}${metaStr}]\n> ${metricsFields.join(' \n> ')}`;
+                const metricsHeader = buildCalloutHeader(metricsCalloutName, meta, false);
+                const metricsCallout = `${metricsHeader}\n> ${metricsFields.join(' \n> ')}`;
                 
                 return `${journalCallout}\n\n${diaryCallout}\n\n${metricsCallout}`;
             } else {
-                // Create nested structure with conditional date fields
+                // Create nested structure with new date handling
                 const metricsFields = [
                     'Sensory Detail: 1-5',
                     'Emotional Recall: 1-5', 
@@ -1713,18 +1907,27 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     ? metricsFields.join(' , ')
                     : metricsFields.join(' \n> > > ');
                 
-                // Build the nested structure with conditional date fields
-                let nestedContent = `> [!${journalCalloutName}${metaStr}]\n> Enter your dream here.\n>\n`;
+                // Build the nested structure with new date handling
+                const journalHeader = buildCalloutHeader(journalCalloutName, meta, true);
+                let nestedContent = `${journalHeader}\n> Enter your dream here.\n>\n`;
                 
-                // Add dream diary section with conditional date field
-                nestedContent += `> > [!${dreamDiaryCalloutName}${metaStr}]\n`;
-                if (this.plugin.settings.includeDateFields !== false) {
-                    nestedContent += `> > Date:\n`;
+                // Add dream diary section with new date handling
+                const dreamDiaryHeader = buildCalloutHeader(dreamDiaryCalloutName, meta, true);
+                nestedContent += `> ${dreamDiaryHeader.substring(2)}\n`; // Remove first "> " since it's nested
+                
+                // Add date fields if configured for field placement
+                const dateFields = getDateFields();
+                if (dateFields.length > 0) {
+                    dateFields.forEach(field => {
+                        nestedContent += `> > ${field}\n`;
+                    });
                 }
+                
                 nestedContent += `> > Dream Title:\n> > Vividness:\n> > Emotions:\n> > Symbols:\n> > Personal Meaning:\n> >\n`;
                 
-                // Add metrics section
-                nestedContent += `> > > [!${metricsCalloutName}${metaStr}]\n> > > ${metricsContent}`;
+                // Add metrics section (no date handling needed)
+                const metricsHeader = buildCalloutHeader(metricsCalloutName, meta, false);
+                nestedContent += `> > ${metricsHeader.substring(2)}\n> > > ${metricsContent}`; // Remove "> " for nesting
                 
                 return nestedContent;
             }

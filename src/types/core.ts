@@ -131,6 +131,31 @@ export interface DreamMetricData {
 }
 
 /**
+ * Date placement options for callouts
+ */
+export type DatePlacement = 'none' | 'header' | 'field';
+
+/**
+ * Date handling configuration
+ */
+export interface DateHandlingConfig {
+    /** Where to place dates in callouts */
+    placement: DatePlacement;
+    
+    /** Date format for headers (when placement is 'header') */
+    headerFormat?: string;
+    
+    /** Date format for fields (when placement is 'field') */
+    fieldFormat?: string;
+    
+    /** Whether to include block references with dates */
+    includeBlockReferences?: boolean;
+    
+    /** Block reference format (e.g., '^YYYYMMDD') */
+    blockReferenceFormat?: string;
+}
+
+/**
  * Interface representing the plugin settings
  */
 export interface DreamMetricsSettings {
@@ -179,8 +204,8 @@ export interface DreamMetricsSettings {
     /** Callout name to identify dream diary entries */
     dreamDiaryCalloutName?: string;
     
-    /** Whether to include date fields in callouts */
-    includeDateFields?: boolean;
+    /** Date handling configuration */
+    dateHandling?: DateHandlingConfig;
     
     /** Whether to show ribbon buttons in the sidebar */
     showRibbonButtons: boolean;
