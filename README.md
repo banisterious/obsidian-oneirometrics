@@ -61,12 +61,11 @@ OneiroMetrics now includes a powerful journal structure validation system to hel
 ### Using Journal Structure Check
 1. Enable the feature in settings
 2. Create or use the default journal structures
-3. Validate your entries with the `Validate Dream Journal Structure` command
 4. Create templates with the template wizard
 5. Apply templates to new journal entries
 
 ### Templater Integration
-OneiroMetrics now standardizes on Templater as the recommended template engine for dream journals, offering:
+OneiroMetrics now provides Templater integration as an alternative template engine for dream journals, offering:
 
 - **Dynamic Content:** Automatic dates, user prompts, and conditional content
 - **Fallback System:** Templates still work even without Templater installed
