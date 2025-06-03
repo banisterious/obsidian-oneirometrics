@@ -191,35 +191,6 @@ export default class DreamMetricsPlugin extends Plugin {
         const initializer = new PluginInitializer(this, this.app);
         await initializer.initializePlugin();
         
-        // Add test command for DateNavigator integration
-        this.addCommand({
-            id: 'test-date-navigator-integration',
-            name: 'Test DateNavigator Integration',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    new DateNavigatorTestModal(this.app).open();
-                }
-                return true;
-            }
-        });
-
-        // Add test command for Universal Worker Pool (Phase 2.2)
-        this.addCommand({
-            id: 'test-universal-worker-pool',
-            name: 'Test Universal Worker Pool (Phase 2.2)',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    const { UniversalWorkerPoolTestModal } = require('./src/workers/ui/UniversalWorkerPoolTestModal');
-                    new UniversalWorkerPoolTestModal(this.app).open();
-                }
-                return true;
-            }
-        });
-
         // Add OneiroMetrics Hub command (always available)
         this.addCommand({
             id: 'open-oneirometrics-hub',
@@ -230,115 +201,57 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         });
 
-        // Add test command for Universal Filter Manager (Phase 2.3)
-        this.addCommand({
-            id: 'test-universal-filter-manager',
-            name: 'Test Universal Filter Manager (Phase 2.3)',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    const { UniversalFilterManagerTestModal } = require('./src/workers/ui/UniversalFilterManagerTestModal');
-                    new UniversalFilterManagerTestModal(this.app, this.logger).open();
-                }
-                return true;
-            }
-        });
-
-        // Add test command for Universal Metrics Calculator (Phase 2.4)
-        this.addCommand({
-            id: 'test-universal-metrics-calculator',
-            name: 'Test Universal Metrics Calculator (Phase 2.4)',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    new MetricsCalculatorTestModal(this.app, this).open();
-                }
-                return true;
-            }
-        });
-
-        // Add test command for Date Utils Testing (hidden when logging is off)
-        this.addCommand({
-            id: 'test-date-utils',
-            name: 'Test Date Utilities',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    const { openDateUtilsTestModal } = require('./src/testing/index');
-                    openDateUtilsTestModal(this.app, this);
-                }
-                return true;
-            }
-        });
-
-        // Add Template Tabs Modal command (hidden when logging is off)
-        this.addCommand({
-            id: 'open-template-tabs-modal',
-            name: 'Template: Open Tabs Modal Template',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    new TemplateTabsModal(this.app).open();
-                }
-                return true;
-            }
-        });
-
-        // Add Unified Test Suite Modal command (hidden when logging is off)
+        // Add Unified Test Suite Modal command (always available)
         this.addCommand({
             id: 'open-unified-test-suite',
             name: 'OneiroMetrics: Open Unified Test Suite',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    new UnifiedTestSuiteModal(this.app, this).open();
-                }
-                return true;
+            callback: () => {
+                new UnifiedTestSuiteModal(this.app, this).open();
             }
         });
 
-        // Add diagnostic commands that only show when logging is enabled
+        // Add Log Viewer command (always available)
         this.addCommand({
-            id: 'show-universal-calculator-stats',
-            name: 'Show Universal Calculator Statistics',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    this.showCalculatorStatistics();
+            id: 'open-log-viewer',
+            name: 'OneiroMetrics: Open Log Viewer',
+            callback: () => {
+                const { LogViewerModal } = require('./src/logging/ui/LogViewerModal');
+                const { getService, SERVICE_NAMES } = require('./src/state/ServiceRegistry');
+                const logger = getService(SERVICE_NAMES.LOGGER);
+                const memoryAdapter = logger?.memoryAdapter;
+                if (memoryAdapter) {
+                    new LogViewerModal(this.app, memoryAdapter).open();
+                } else {
+                    new Notice('Log viewer not available - no memory adapter found');
                 }
-                return true;
             }
         });
 
+        // Add Export Logs command (always available)
         this.addCommand({
-            id: 'clear-universal-calculator-cache',
-            name: 'Clear Universal Calculator Cache',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    this.clearCalculatorCache();
+            id: 'export-logs',
+            name: 'OneiroMetrics: Export Logs to File',
+            callback: () => {
+                const { getService, SERVICE_NAMES } = require('./src/state/ServiceRegistry');
+                const logger = getService(SERVICE_NAMES.LOGGER);
+                const memoryAdapter = logger?.memoryAdapter;
+                if (memoryAdapter) {
+                    const logs = memoryAdapter.getEntries();
+                    const logsJson = JSON.stringify(logs, null, 2);
+                    
+                    const element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(logsJson));
+                    element.setAttribute('download', `oneirometrics-logs-${new Date().toISOString()}.json`);
+                    
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                    
+                    new Notice('OneiroMetrics logs exported');
+                } else {
+                    new Notice('Export failed - no logs available');
                 }
-                return true;
-            }
-        });
-
-        this.addCommand({
-            id: 'show-worker-pool-info',
-            name: 'Show Worker Pool Information',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    this.showWorkerPoolInfo();
-                }
-                return true;
             }
         });
     }
@@ -743,82 +656,6 @@ export default class DreamMetricsPlugin extends Plugin {
             this.debugTools.debugDateNavigator();
         });
         this.ribbonIcons.push(ribbonEl);
-    }
-
-    /**
-     * Debug the date navigator
-     * This function is accessible from the console via:
-     * window.oneiroMetricsPlugin.debugDateNavigator()
-     */
-    debugDateNavigator() {
-        // Delegate to the DebugTools implementation
-        this.debugTools.debugDateNavigator();
-    }
-
-    /**
-     * Show Universal Calculator statistics
-     */
-    private async showCalculatorStatistics(): Promise<void> {
-        try {
-            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
-            const calculator = new UniversalMetricsCalculator(this.app, this, undefined, this.logger);
-            const stats = calculator.getStatistics();
-            
-            const message = `Universal Calculator Statistics:
-Cache Size: ${stats.cacheSize || 0} items
-Cache Hit Rate: ${((stats.cacheHitRate || 0) * 100).toFixed(1)}%
-Total Calculations: ${stats.totalCalculations || 0}
-Worker Pool Usage: ${stats.workerPoolUsage || 0}
-Fallback Usage: ${stats.fallbackUsage || 0}
-Average Processing Time: ${stats.averageProcessingTime?.toFixed(0) || 0}ms`;
-
-            new Notice(message, 8000);
-            this.logger?.info('Diagnostics', 'Calculator statistics displayed', stats);
-        } catch (error) {
-            this.logger?.error('Diagnostics', 'Error showing calculator statistics', error as Error);
-            new Notice(`Error retrieving calculator statistics: ${error.message}`);
-        }
-    }
-
-    /**
-     * Clear Universal Calculator cache
-     */
-    private async clearCalculatorCache(): Promise<void> {
-        try {
-            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
-            const calculator = new UniversalMetricsCalculator(this.app, this, undefined, this.logger);
-            calculator.clearCache();
-            
-            new Notice('Universal Calculator cache cleared successfully');
-            this.logger?.info('Diagnostics', 'Calculator cache cleared');
-        } catch (error) {
-            this.logger?.error('Diagnostics', 'Error clearing calculator cache', error as Error);
-            new Notice(`Error clearing calculator cache: ${error.message}`);
-        }
-    }
-
-    /**
-     * Show Worker Pool information
-     */
-    private async showWorkerPoolInfo(): Promise<void> {
-        try {
-            const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
-            const calculator = new UniversalMetricsCalculator(this.app, this, undefined, this.logger);
-            const poolInfo = calculator.getWorkerPoolInfo();
-            
-            const message = `Worker Pool Information:
-Active Workers: ${poolInfo.activeWorkers || 0}
-Total Tasks: ${poolInfo.totalTasks || 0}
-Queue Length: ${poolInfo.queueLength || 0}
-Health Status: ${poolInfo.healthStatus || 'Unknown'}
-Load Balancing: ${poolInfo.loadBalancing || 'Unknown'}`;
-
-            new Notice(message, 8000);
-            this.logger?.info('Diagnostics', 'Worker pool info displayed', poolInfo);
-        } catch (error) {
-            this.logger?.error('Diagnostics', 'Error showing worker pool info', error as Error);
-            new Notice(`Error retrieving worker pool info: ${error.message}`);
-        }
     }
 }
 
