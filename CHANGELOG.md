@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.11.1](#0111---2025-06-03)
   - [Version 0.11.0](#0110---2025-01-14)
   - [Version 0.10.1](#0101---2025-01-06)
   - [Version 0.10.0](#0100---2025-01-06)
@@ -21,6 +22,16 @@
 *No unreleased changes yet.*
 
 ## Released Versions
+
+## [0.11.1] - 2025-06-03
+### Added
+- **Unified Test Suite Modal**: Consolidated all testing functionality into a single comprehensive interface with integrated log viewer and export capabilities
+
+### Changed
+- **Streamlined Command Palette**: Reduced to just 2 essential commands ("Open Hub" and "Open Unified Test Suite") with cleaner naming
+
+### Fixed
+- **Log Viewer Access**: Resolved "memory adapter not found" error by properly connecting logging components
 
 ## [0.11.0] - 2025-06-02
 ### Added
