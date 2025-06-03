@@ -40,6 +40,7 @@ import {
 } from './types';
 import { getJournalStructure } from '../utils/settings-helpers';
 import { CalloutStructure, DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../types/journal-check';
+import { SettingsAdapter } from '../state/adapters/SettingsAdapter';
 
 // Cache configuration
 interface CacheEntry {
@@ -1093,8 +1094,13 @@ export class UniversalMetricsCalculator {
     }
 
     private extractDateFromContent(journalLines: string[], filePath: string, fileContent: string): string {
-        // Use the same date extraction logic as the original MetricsProcessor
-        return getDreamEntryDate(journalLines, filePath, fileContent);
+        // Get date handling configuration from settings with proper backward compatibility
+        const settingsAdapter = new SettingsAdapter(this.settings);
+        const adaptedSettings = settingsAdapter.getSettings();
+        const dateHandling = adaptedSettings.dateHandling;
+
+        // Use the enhanced date extraction logic that respects user preferences
+        return getDreamEntryDate(journalLines, filePath, fileContent, dateHandling);
     }
 
     private async processMetricsWithWorkerPool(entries: MetricsEntry[]): Promise<MetricsResult> {

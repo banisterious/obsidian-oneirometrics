@@ -10,58 +10,8 @@ import DreamMetricsPlugin from '../../main';
 import { DreamMetricData, DreamMetricsSettings } from '../../types';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
-
-/**
- * Extract date from journal entry lines and file information
- * 
- * @param journalLines - Array of lines that might contain date information
- * @param filePath - Path to the journal file
- * @param fileContent - Content of the journal file
- * @returns Formatted date string in ISO format (YYYY-MM-DD)
- */
-export function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {
-    // 1. Block Reference (^YYYYMMDD) on the callout line or the next line
-    const blockRefRegex = /\^(\d{8})/;
-    for (let i = 0; i < Math.min(2, journalLines.length); i++) {
-        const blockRefMatch = journalLines[i].match(blockRefRegex);
-        if (blockRefMatch) {
-            const dateStr = blockRefMatch[1];
-            return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-        }
-    }
-    // 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
-    const calloutLine = journalLines[0] || '';
-    const longDateRegex = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})/;
-    const longDateMatch = calloutLine.match(longDateRegex);
-    if (longDateMatch) {
-        const [_, day, year] = longDateMatch;
-        const dateObj = new Date(`${longDateMatch[0]}`);
-        if (!isNaN(dateObj.getTime())) {
-            return dateObj.toISOString().split('T')[0];
-        }
-    }
-    // 3. YAML 'created' field
-    const yamlCreatedMatch = fileContent.match(/created:\s*(\d{8})/);
-    if (yamlCreatedMatch) {
-        const dateStr = yamlCreatedMatch[1];
-        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-    }
-    // 4. YAML 'modified' field
-    const yamlModifiedMatch = fileContent.match(/modified:\s*(\d{8})/);
-    if (yamlModifiedMatch) {
-        const dateStr = yamlModifiedMatch[1];
-        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-    }
-    // 5. Folder or filename (for year only, as a fallback)
-    // Try to extract year from folder or filename
-    const yearRegex = /\b(\d{4})\b/;
-    const pathMatch = filePath.match(yearRegex);
-    if (pathMatch) {
-        return pathMatch[1];
-    }
-    // 6. Current date
-    return new Date().toISOString().split('T')[0];
-}
+import { SettingsAdapter } from '../state/adapters/SettingsAdapter';
+import { getDreamEntryDate } from '../utils/date-utils';
 
 export class MetricsProcessor {
     private readonly settings: DreamMetricsSettings;
@@ -242,8 +192,11 @@ export class MetricsProcessor {
                                         const journalLine = journal.lines[0];
                                         const diaryLine = diary.lines[0];
                                         
-                                        // More flexible date extraction
-                                        let date = getDreamEntryDate([journalLine, lines[journal.idx + 1] || ''], path, content);
+                                        // More flexible date extraction with user preferences
+                                        const settingsAdapter = new SettingsAdapter(this.settings);
+                                        const adaptedSettings = settingsAdapter.getSettings();
+                                        const dateHandling = adaptedSettings.dateHandling;
+                                        let date = getDreamEntryDate([journalLine, lines[journal.idx + 1] || ''], path, content, dateHandling);
                                         
                                         // More flexible title extraction
                                         let title = '';

@@ -365,33 +365,79 @@ export function safeDateOrDefault(
  * 
  * This function attempts to find a date associated with a dream journal entry
  * by checking various sources in order of preference:
- * 1. Block reference (^YYYYMMDD) in the first two lines
- * 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
- * 3. YAML 'created' field
- * 4. YAML 'modified' field
- * 5. Year from folder or filename
- * 6. Current date as fallback
+ * 1. Date in callout header (when dateHandling.placement === 'header')
+ * 2. Date field content (when dateHandling.placement === 'field') 
+ * 3. Block reference (^YYYYMMDD) in the first two lines
+ * 4. Legacy date formats for backward compatibility
+ * 5. YAML 'created' field
+ * 6. YAML 'modified' field
+ * 7. Year from folder or filename
+ * 8. Current date as fallback
  * 
  * @param journalLines Array of lines from the journal entry
  * @param filePath Path to the file containing the entry
  * @param fileContent Full content of the file
+ * @param dateHandling Optional date handling configuration
  * @returns Date string in YYYY-MM-DD format
  */
-export function getDreamEntryDate(journalLines: string[], filePath: string, fileContent: string): string {
+export function getDreamEntryDate(
+    journalLines: string[], 
+    filePath: string, 
+    fileContent: string,
+    dateHandling?: {
+        placement: 'none' | 'header' | 'field';
+        headerFormat?: string;
+        fieldFormat?: string;
+        includeBlockReferences?: boolean;
+        blockReferenceFormat?: string;
+    }
+): string {
     try {
-        // 1. Block Reference (^YYYYMMDD) on the callout line or the next line
+        // If dateHandling is configured, try those methods first
+        if (dateHandling) {
+            // 1. Try header date extraction if placement is 'header'
+            if (dateHandling.placement === 'header') {
+                const headerDate = extractDateFromHeader(journalLines, dateHandling.headerFormat || 'MMMM d, yyyy');
+                if (headerDate) {
+                    safeLogger.debug('Date', 'Found date via header extraction', { headerDate });
+                    return headerDate;
+                }
+            }
+            
+            // 2. Try field date extraction if placement is 'field'
+            if (dateHandling.placement === 'field') {
+                const fieldDate = extractDateFromField(journalLines, dateHandling.fieldFormat || 'Date:');
+                if (fieldDate) {
+                    safeLogger.debug('Date', 'Found date via field extraction', { fieldDate });
+                    return fieldDate;
+                }
+            }
+            
+            // 3. Try block reference with custom format if enabled
+            if (dateHandling.includeBlockReferences) {
+                const blockDate = extractDateFromBlockReference(journalLines, dateHandling.blockReferenceFormat || '^YYYYMMDD');
+                if (blockDate) {
+                    safeLogger.debug('Date', 'Found date via custom block reference', { blockDate });
+                    return blockDate;
+                }
+            }
+        }
+
+        // Legacy parsing for backward compatibility
+        
+        // 4. Block Reference (^YYYYMMDD) on the callout line or the next line
         const blockRefRegex = /\^(\d{8})/;
         for (let i = 0; i < Math.min(2, journalLines.length); i++) {
             const blockRefMatch = journalLines[i].match(blockRefRegex);
             if (blockRefMatch) {
                 const dateStr = blockRefMatch[1];
                 const formattedDate = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-                safeLogger.debug('Date', 'Found date via block reference', { dateStr, formattedDate, line: journalLines[i] });
+                safeLogger.debug('Date', 'Found date via legacy block reference', { dateStr, formattedDate, line: journalLines[i] });
                 return formattedDate;
             }
         }
 
-        // 2. Date in the callout line (e.g., 'Monday, January 6, 2025')
+        // 5. Date in the callout line (e.g., 'Monday, January 6, 2025')
         const calloutLine = journalLines[0] || '';
         const longDateRegex = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})/;
         const longDateMatch = calloutLine.match(longDateRegex);
@@ -400,15 +446,15 @@ export function getDreamEntryDate(journalLines: string[], filePath: string, file
                 const dateObj = new Date(longDateMatch[0]);
                 if (!isNaN(dateObj.getTime())) {
                     const formattedDate = dateObj.toISOString().split('T')[0];
-                    safeLogger.debug('Date', 'Found date via callout line parsing', { longDateMatch: longDateMatch[0], formattedDate });
+                    safeLogger.debug('Date', 'Found date via legacy callout line parsing', { longDateMatch: longDateMatch[0], formattedDate });
                     return formattedDate;
                 }
             } catch (error) {
-                safeLogger.warn('Date', 'Failed to parse long date format', { dateMatch: longDateMatch[0], error });
+                safeLogger.warn('Date', 'Failed to parse legacy long date format', { dateMatch: longDateMatch[0], error });
             }
         }
 
-        // 3. YAML 'created' field
+        // 6. YAML 'created' field
         const yamlCreatedMatch = fileContent.match(/created:\s*(\d{8})/);
         if (yamlCreatedMatch) {
             const dateStr = yamlCreatedMatch[1];
@@ -417,7 +463,7 @@ export function getDreamEntryDate(journalLines: string[], filePath: string, file
             return formattedDate;
         }
 
-        // 4. YAML 'modified' field
+        // 7. YAML 'modified' field
         const yamlModifiedMatch = fileContent.match(/modified:\s*(\d{8})/);
         if (yamlModifiedMatch) {
             const dateStr = yamlModifiedMatch[1];
@@ -426,7 +472,7 @@ export function getDreamEntryDate(journalLines: string[], filePath: string, file
             return formattedDate;
         }
 
-        // 5. Folder or filename (for year only, as a fallback)
+        // 8. Folder or filename (for year only, as a fallback)
         const yearRegex = /\b(\d{4})\b/;
         const pathMatch = filePath.match(yearRegex);
         if (pathMatch) {
@@ -436,7 +482,7 @@ export function getDreamEntryDate(journalLines: string[], filePath: string, file
             return fallbackDate;
         }
 
-        // 6. Current date as final fallback
+        // 9. Current date as final fallback
         const currentDate = new Date().toISOString().split('T')[0];
         safeLogger.warn('Date', 'No date found in dream entry, using current date as fallback', { 
             filePath, 
@@ -452,5 +498,156 @@ export function getDreamEntryDate(journalLines: string[], filePath: string, file
             journalLinesCount: journalLines.length
         });
         return new Date().toISOString().split('T')[0];
+    }
+}
+
+/**
+ * Extracts date from callout header based on the configured format
+ * Handles formats like "[!journal] January 6, 2025" or "[!journal|meta] Jan 6, 2025"
+ */
+function extractDateFromHeader(journalLines: string[], headerFormat: string): string | null {
+    try {
+        const calloutLine = journalLines[0] || '';
+        
+        // Look for callout header with date
+        // Pattern: [!type] Date or [!type|meta] Date
+        const headerMatch = calloutLine.match(/\[![\w-]+(?:\|[^\]]+)?\]\s+(.+?)(?:\s+\^[\w\d]+)?$/);
+        if (!headerMatch) return null;
+        
+        const datePortion = headerMatch[1].trim();
+        
+        // Try to parse the date using simple format matching
+        const parsedDate = parseDateFromFormat(datePortion, headerFormat);
+        if (parsedDate) {
+            return parsedDate.toISOString().split('T')[0];
+        }
+        
+        return null;
+    } catch (error) {
+        safeLogger.warn('Date', 'Error extracting date from header', { error });
+        return null;
+    }
+}
+
+/**
+ * Extracts date from field content based on the configured field format
+ * Handles formats like "Date: 2025-01-06" or "Created: January 6, 2025"
+ */
+function extractDateFromField(journalLines: string[], fieldFormat: string): string | null {
+    try {
+        // Extract field name from format (everything before the colon)
+        const fieldName = fieldFormat.includes(':') ? fieldFormat.split(':')[0].trim() : 'Date';
+        
+        // Look for the field in the content
+        for (const line of journalLines) {
+            const fieldRegex = new RegExp(`${fieldName}\\s*:\\s*(.+)`, 'i');
+            const fieldMatch = line.match(fieldRegex);
+            if (fieldMatch) {
+                const dateText = fieldMatch[1].trim();
+                
+                // Try parsing the date
+                const parsedDate = parseDate(dateText);
+                if (parsedDate) {
+                    return parsedDate.toISOString().split('T')[0];
+                }
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        safeLogger.warn('Date', 'Error extracting date from field', { error });
+        return null;
+    }
+}
+
+/**
+ * Extracts date from block reference with custom format
+ * Handles formats like "^20250106" or "^2025-01-06"
+ */
+function extractDateFromBlockReference(journalLines: string[], blockFormat: string): string | null {
+    try {
+        // Convert format to regex pattern
+        let pattern = blockFormat
+            .replace('YYYY', '(\\d{4})')
+            .replace('MM', '(\\d{2})')
+            .replace('DD', '(\\d{2})');
+        
+        // Escape the ^ if it's at the beginning
+        if (pattern.startsWith('^')) {
+            pattern = '\\' + pattern;
+        }
+        
+        const blockRegex = new RegExp(pattern);
+        
+        for (let i = 0; i < Math.min(2, journalLines.length); i++) {
+            const blockMatch = journalLines[i].match(blockRegex);
+            if (blockMatch && blockMatch.length >= 4) {
+                const year = blockMatch[1];
+                const month = blockMatch[2];
+                const day = blockMatch[3];
+                
+                return `${year}-${month}-${day}`;
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        safeLogger.warn('Date', 'Error extracting date from block reference', { error });
+        return null;
+    }
+}
+
+/**
+ * Simple date parsing from format (basic Moment.js-like functionality)
+ * Handles common patterns like "MMMM d, yyyy" and "MMM DD, YYYY"
+ */
+function parseDateFromFormat(dateText: string, format: string): Date | null {
+    try {
+        // Simple format matching for common patterns
+        const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Handle "January 6, 2025" format
+        if (format.includes('MMMM')) {
+            const longMonthRegex = new RegExp(`(${months.join('|')})\\s+(\\d{1,2}),?\\s+(\\d{4})`);
+            const match = dateText.match(longMonthRegex);
+            if (match) {
+                const monthIndex = months.indexOf(match[1]);
+                const day = parseInt(match[2]);
+                const year = parseInt(match[3]);
+                
+                if (monthIndex >= 0) {
+                    return new Date(year, monthIndex, day);
+                }
+            }
+        }
+        
+        // Handle "Jan 6, 2025" format
+        if (format.includes('MMM')) {
+            const shortMonthRegex = new RegExp(`(${monthsShort.join('|')})\\s+(\\d{1,2}),?\\s+(\\d{4})`);
+            const match = dateText.match(shortMonthRegex);
+            if (match) {
+                const monthIndex = monthsShort.indexOf(match[1]);
+                const day = parseInt(match[2]);
+                const year = parseInt(match[3]);
+                
+                if (monthIndex >= 0) {
+                    return new Date(year, monthIndex, day);
+                }
+            }
+        }
+        
+        // Fallback to Date constructor
+        const fallbackDate = new Date(dateText);
+        if (!isNaN(fallbackDate.getTime())) {
+            return fallbackDate;
+        }
+        
+        return null;
+    } catch (error) {
+        safeLogger.warn('Date', 'Error parsing date from format', { dateText, format, error });
+        return null;
     }
 } 
