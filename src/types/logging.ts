@@ -46,7 +46,7 @@ export interface LoggingSettings {
  * Default logging configuration
  */
 export const DEFAULT_LOGGING: LoggingSettings = {
-    level: 'info',
+    level: 'off',
     maxSize: 1024 * 1024 * 5, // 5MB
     maxBackups: 3
 }; 

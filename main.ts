@@ -130,6 +130,8 @@ import {
 import { WebWorkerTestModal } from './src/workers/ui/WebWorkerTestModal';
 import { DateNavigatorTestModal } from './src/workers/ui/DateNavigatorTestModal';
 import { MetricsCalculatorTestModal } from './src/workers/ui/MetricsCalculatorTestModal';
+import { TemplateTabsModal } from './src/templates/ui/TemplateTabsModal';
+import { UnifiedTestSuiteModal } from './src/testing/ui/UnifiedTestSuiteModal';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -257,13 +259,46 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         });
 
-        // Add test command for Date Utils Testing (always available for testing comprehensive date handling)
+        // Add test command for Date Utils Testing (hidden when logging is off)
         this.addCommand({
             id: 'test-date-utils',
             name: 'Test Date Utilities',
-            callback: () => {
-                const { openDateUtilsTestModal } = require('./src/testing/index');
-                openDateUtilsTestModal(this.app, this);
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    const { openDateUtilsTestModal } = require('./src/testing/index');
+                    openDateUtilsTestModal(this.app, this);
+                }
+                return true;
+            }
+        });
+
+        // Add Template Tabs Modal command (hidden when logging is off)
+        this.addCommand({
+            id: 'open-template-tabs-modal',
+            name: 'Template: Open Tabs Modal Template',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    new TemplateTabsModal(this.app).open();
+                }
+                return true;
+            }
+        });
+
+        // Add Unified Test Suite Modal command (hidden when logging is off)
+        this.addCommand({
+            id: 'open-unified-test-suite',
+            name: 'OneiroMetrics: Open Unified Test Suite',
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    new UnifiedTestSuiteModal(this.app, this).open();
+                }
+                return true;
             }
         });
 

@@ -102,11 +102,11 @@ export class SettingsAdapter {
    * @returns Valid log level
    */
   private getLogLevel(settings: any): LogLevel {
-    const level = settings.logging?.level || 'info';
+    const level = settings.logging?.level || 'off';
     if (this.isValidLogLevel(level)) {
       return level;
     }
-    return 'info';
+    return 'off';
   }
 
   /**
@@ -115,7 +115,7 @@ export class SettingsAdapter {
    * @returns Whether the level is valid
    */
   private isValidLogLevel(level: string): level is LogLevel {
-    return ['trace', 'debug', 'info', 'warn', 'error', 'silent'].includes(level);
+    return ['off', 'error', 'warn', 'info', 'debug', 'trace'].includes(level);
   }
 
   /**

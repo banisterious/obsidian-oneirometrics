@@ -390,7 +390,7 @@ export class PluginLoader {
             backupEnabled: isBackupEnabled(settings),
             backupFolderPath: getBackupFolderPath(settings),
             logging: {
-                level: settings.logging?.level || 'info'
+                level: settings.logging?.level || 'off'
             }
         };
         
