@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.10.1](#0101---2025-01-06)
   - [Version 0.10.0](#0100---2025-01-06)
   - [Version 0.9.0](#090---2025-01-06)
   - [Version 0.7.x](#070---2025-05-30)
@@ -89,6 +90,27 @@
 - **Performance Optimized**: Cache speedup 2x, large dataset handling (1.4M entries/sec throughput)
 
 ## Released Versions
+
+## [0.10.1] - 2025-01-06
+### Added  
+- **Date Fields Toggle**: New setting to control inclusion of "Date:" fields in callouts
+  - Added "Include Date Fields" toggle in Callout Settings tab  
+  - Allows users to disable date fields for daily note workflows where dates are already in filenames/headers
+  - Defaults to enabled (true) to maintain current user workflow
+  - Affects Journal and Dream Diary callouts (metrics callouts remain unchanged)
+
+### Changed
+- **Improved User Workflow Support**: Better accommodation for different Obsidian usage patterns
+  - Users who rely on daily notes with dates in filenames can now disable redundant date fields
+  - Plugin remains optimized for users who prefer explicit date fields in callout content
+  - Setting description provides clear guidance on when to disable date fields
+
+### Technical Improvements
+- **Settings Architecture**: Enhanced settings system with new boolean property
+  - Added `includeDateFields` property to `DreamMetricsSettings` interface
+  - Updated `SettingsAdapter` to handle default value (true) for backward compatibility  
+  - Implemented conditional field rendering in callout generation functions
+  - Real-time preview updates when date field setting is toggled
 
 ## [0.10.0] - 2025-01-06
 ### Added

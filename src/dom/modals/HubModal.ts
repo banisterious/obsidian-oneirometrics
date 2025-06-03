@@ -1530,6 +1530,19 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     updateAllCallouts();
                 }));
 
+        // Include Date Fields Setting
+        new Setting(settingsContainer)
+            .setName('Include Date Fields')
+            .setDesc('Include "Date:" fields in Journal and Dream Diary callouts. Disable this if you use daily notes with dates in filenames or headers.')
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.includeDateFields !== false)
+                    .onChange(async (value) => {
+                        this.plugin.settings.includeDateFields = value;
+                        await this.plugin.saveSettings();
+                        updateAllCallouts();
+                    });
+            });
+
         // Single-Line Toggle (renamed)
         new Setting(settingsContainer)
             .setName('Single-Line Metrics Callout Structure')
@@ -1606,7 +1619,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const header = `> [!${calloutName}${metaStr}]`;
             const fields = [
                 '',
-                'Date:',
+                ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
                 'Location:',
                 'Mood:',
                 'Key Events:',
@@ -1627,7 +1640,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const header = `> [!${calloutName}${metaStr}]`;
             const fields = [
                 '',
-                'Date:',
+                ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
                 'Dream Title:',
                 'Vividness:',
                 'Emotions:',
@@ -1651,8 +1664,29 @@ This metric assesses **how well your memory of the dream holds up and remains co
             
             if (flattenNested) {
                 // Create separate callouts when flattened
-                const journalCallout = `> [!${journalCalloutName}${metaStr}]\n> \n> Journaling goes here.`;
-                const diaryCallout = `> [!${dreamDiaryCalloutName}${metaStr}]\n> \n> Dream content goes here.`;
+                const journalFields = [
+                    '',
+                    ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
+                    'Location:',
+                    'Mood:',
+                    'Key Events:',
+                    'Reflections:'
+                ];
+                const journalContent = journalFields.join(' \n> ');
+                const journalCallout = `> [!${journalCalloutName}${metaStr}]${journalContent}`;
+                
+                const dreamDiaryFields = [
+                    '',
+                    ...(this.plugin.settings.includeDateFields !== false ? ['Date:'] : []),
+                    'Dream Title:',
+                    'Vividness:',
+                    'Emotions:',
+                    'Symbols:',
+                    'Personal Meaning:'
+                ];
+                const dreamDiaryContent = dreamDiaryFields.join(' \n> ');
+                const diaryCallout = `> [!${dreamDiaryCalloutName}${metaStr}]${dreamDiaryContent}`;
+                
                 const metricsFields = [
                     '',
                     'Sensory Detail: 1-5',
@@ -1665,7 +1699,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 
                 return `${journalCallout}\n\n${diaryCallout}\n\n${metricsCallout}`;
             } else {
-                // Create nested structure 
+                // Create nested structure with conditional date fields
                 const metricsFields = [
                     'Sensory Detail: 1-5',
                     'Emotional Recall: 1-5', 
@@ -1679,7 +1713,20 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     ? metricsFields.join(' , ')
                     : metricsFields.join(' \n> > > ');
                 
-                return `> [!${journalCalloutName}${metaStr}]\n> Enter your dream here.\n>\n> > [!${dreamDiaryCalloutName}${metaStr}]\n> > Dream content goes here.\n> >\n> > > [!${metricsCalloutName}${metaStr}]\n> > > ${metricsContent}`;
+                // Build the nested structure with conditional date fields
+                let nestedContent = `> [!${journalCalloutName}${metaStr}]\n> Enter your dream here.\n>\n`;
+                
+                // Add dream diary section with conditional date field
+                nestedContent += `> > [!${dreamDiaryCalloutName}${metaStr}]\n`;
+                if (this.plugin.settings.includeDateFields !== false) {
+                    nestedContent += `> > Date:\n`;
+                }
+                nestedContent += `> > Dream Title:\n> > Vividness:\n> > Emotions:\n> > Symbols:\n> > Personal Meaning:\n> >\n`;
+                
+                // Add metrics section
+                nestedContent += `> > > [!${metricsCalloutName}${metaStr}]\n> > > ${metricsContent}`;
+                
+                return nestedContent;
             }
         };
 

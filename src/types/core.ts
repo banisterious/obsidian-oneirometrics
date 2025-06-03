@@ -179,6 +179,9 @@ export interface DreamMetricsSettings {
     /** Callout name to identify dream diary entries */
     dreamDiaryCalloutName?: string;
     
+    /** Whether to include date fields in callouts */
+    includeDateFields?: boolean;
+    
     /** Whether to show ribbon buttons in the sidebar */
     showRibbonButtons: boolean;
     
