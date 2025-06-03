@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.10.0](#0100---2025-01-06)
   - [Version 0.9.0](#090---2025-01-06)
   - [Version 0.7.x](#070---2025-05-30)
   - [Version 0.6.x](#060---2025-05-25)
@@ -88,6 +89,41 @@
 - **Performance Optimized**: Cache speedup 2x, large dataset handling (1.4M entries/sec throughput)
 
 ## Released Versions
+
+## [0.10.0] - 2025-01-06
+### Added
+- **Complete Callout Name Customization**: Full control over all callout names used throughout OneiroMetrics
+  - Added Journal Callout Name setting (default: "journal")
+  - Added Dream Diary Callout Name setting (default: "dream-diary")  
+  - Added Metrics Callout Name setting (default: "dream-metrics")
+  - Real-time preview updates when callout names are changed
+  - Settings affect Quick Copy generation, scraping detection, and template creation
+
+- **Major Hub Modal UX Improvements**: Reorganized for better user workflow and clarity
+  - Renamed "Callout Quick Copy" tab to "Callout Settings" to reflect evolved purpose
+  - Moved Callout Settings tab up one position for logical priority ordering
+  - Reorganized content hierarchy: Callout Settings section at top, Quick Copy below
+  - Added clear H2 section headers for visual separation and navigation
+  - Enhanced descriptions to clarify how settings affect entire plugin behavior
+
+### Changed
+- **Unified Callout Management**: All callout naming now centralized in one location
+  - Moved all callout name settings from main Settings page to Hub Modal
+  - Created single source of truth for callout configuration
+  - Eliminated redundant settings sections for cleaner UI
+
+### Fixed
+- **Callout Generation Consistency**: Resolved multiple callout generation issues
+  - Fixed hardcoded "dream-metrics" usage to respect user's custom callout name setting
+  - Added blank lines before and after callout titles for consistent formatting across all types
+  - Fixed Single-Line toggle to only affect metrics part of nested structures (not entire structure)
+  - Fixed flattened nested structure to create proper separate callouts instead of malformed single callout
+
+### Technical Improvements
+- **Dynamic Callout Detection**: Enhanced scraping system foundation
+  - Scraping logic already uses structure-based detection (mostly dynamic)
+  - Prepared foundation for making default Journal Structures fully dynamic
+  - Established pattern for unified callout naming across all features
 
 ## [0.9.0] - 2025-06-02
 ### Added
