@@ -9,7 +9,8 @@ import {
     getEndOfDay, 
     safeDateOrDefault,
     formatDateKey,
-    parseDateKey
+    parseDateKey,
+    getDreamEntryDate
 } from '../../utils/date-utils';
 import safeLogger from '../../logging/safe-logger';
 
@@ -29,7 +30,8 @@ export class DateUtilsTestModal extends Modal {
         'getEndOfDay': getEndOfDay,
         'safeDateOrDefault': safeDateOrDefault,
         'formatDateKey': formatDateKey,
-        'parseDateKey': parseDateKey
+        'parseDateKey': parseDateKey,
+        'getDreamEntryDate': getDreamEntryDate
     };
     private selectedFunction: string = 'parseDate';
     private input: string = '';
@@ -181,6 +183,9 @@ export class DateUtilsTestModal extends Modal {
             case 'parseDateKey':
                 placeholder = 'Enter a date key to parse\nExample:\n2025-05-15';
                 break;
+            case 'getDreamEntryDate':
+                placeholder = 'Enter journal lines, file path, and file content separated by | pipes\nExamples:\n[!journal] January 6, 2025|test.md|Full file content\n[!dream-diary] Dream title ^20250106|test.md|Content\nDate: 2025-01-06|test.md|Field format content';
+                break;
             default:
                 placeholder = 'Enter input for the selected function';
         }
@@ -220,6 +225,28 @@ export class DateUtilsTestModal extends Modal {
                     // These functions take a single input
                     args = [this.input];
                     result = func(this.input);
+                    break;
+                
+                case 'getDreamEntryDate':
+                    // getDreamEntryDate takes (journalLines, filePath, fileContent, dateHandling)
+                    if (this.input.includes('|')) {
+                        const parts = this.input.split('|').map(s => s.trim());
+                        if (parts.length >= 3) {
+                            const journalLines = [parts[0]];
+                            const filePath = parts[1];
+                            const fileContent = parts[2];
+                            // Optional 4th parameter for dateHandling config
+                            const dateHandling = parts[3] ? JSON.parse(parts[3]) : undefined;
+                            args = [journalLines, filePath, fileContent, dateHandling];
+                            result = func(journalLines, filePath, fileContent, dateHandling);
+                        } else {
+                            throw new Error('getDreamEntryDate requires: journalLines|filePath|fileContent[|dateHandling]');
+                        }
+                    } else {
+                        // Treat as single journal line with defaults
+                        args = [[this.input], 'test.md', this.input];
+                        result = func([this.input], 'test.md', this.input);
+                    }
                     break;
                 
                 case 'formatDate':
@@ -309,6 +336,16 @@ export class DateUtilsTestModal extends Modal {
                             'invalid-date',
                             null,
                             ''
+                        ];
+                        break;
+                    
+                    case 'getDreamEntryDate':
+                        testInputs = [
+                            [['[!journal] January 6, 2025'], 'test.md', 'Content'],
+                            [['[!dream-diary] Dream title ^20250106'], 'test.md', 'Content'],
+                            [['Date: 2025-01-06'], 'test.md', 'Content'],
+                            [['Monday, January 6, 2025'], 'test.md', 'Content'],
+                            [['No date content'], 'test.md', 'Content']
                         ];
                         break;
                     
@@ -541,6 +578,8 @@ export class DateUtilsTestModal extends Modal {
                 return '2025-05-15';
             case 'parseDateKey':
                 return '2025-05-15';
+            case 'getDreamEntryDate':
+                return '[!journal] January 6, 2025|test.md|Full file content with journal entry';
             default:
                 return '';
         }
