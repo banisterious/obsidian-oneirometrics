@@ -2296,9 +2296,6 @@ Templates found: ${debugInfo.templatesFoundViaIntegration}
 
 Full debug info in logs/console`);
                     
-                    // Also log to console as fallback
-                    console.log('OneiroMetrics Templater Debug:', debugInfo);
-                    
                 } catch (error) {
                     this.logger.error('TemplaterDebug', 'Error during debug info collection', { error });
                     new Notice('Error collecting debug info - check console/logs');

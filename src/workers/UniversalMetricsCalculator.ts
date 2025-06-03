@@ -122,33 +122,58 @@ export class UniversalMetricsCalculator {
     private getActiveStructures(): CalloutStructure[] {
         const journalStructure = getJournalStructure(this.settings);
         
+        // Get user's callout settings
+        const journalCalloutName = this.settings.journalCalloutName || 'journal-entry';
+        const dreamDiaryCalloutName = this.settings.dreamDiaryCalloutName || 'dream-diary';
+        const metricsCalloutName = this.settings.metricsCalloutName || 'dream-metrics';
+        
         this.logger?.debug('Structure', 'getActiveStructures called', {
             hasJournalStructure: !!journalStructure,
             isEnabled: journalStructure?.enabled,
             structuresCount: journalStructure?.structures?.length || 0,
             structureNames: journalStructure?.structures?.map(s => s.name) || [],
+            userCalloutSettings: {
+                journalCalloutName,
+                dreamDiaryCalloutName,
+                metricsCalloutName
+            },
             defaultStructuresCount: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.length,
             defaultStructureNames: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.map(s => s.name)
         });
         
+        // Check if configured structures match user's callout settings
+        let useConfiguredStructures = false;
         if (journalStructure?.enabled && journalStructure.structures?.length > 0) {
-            this.logger?.debug('Structure', 'Using configured journal structures', {
-                structures: journalStructure.structures.map(s => ({ 
-                    name: s.name, 
-                    rootCallout: s.rootCallout,
-                    childCallouts: s.childCallouts,
-                    id: s.id
-                }))
-            });
+            // Check if any configured structure uses the user's main callout names
+            const hasMatchingStructure = journalStructure.structures.some(structure => 
+                structure.rootCallout === journalCalloutName || 
+                structure.rootCallout === 'av-journal'
+            );
+            
+            if (hasMatchingStructure) {
+                useConfiguredStructures = true;
+                this.logger?.debug('Structure', 'Using configured journal structures (they match callout settings)', {
+                    structures: journalStructure.structures.map(s => ({ 
+                        name: s.name, 
+                        rootCallout: s.rootCallout,
+                        childCallouts: s.childCallouts,
+                        metricsCallout: s.metricsCallout,
+                        id: s.id
+                    }))
+                });
+            } else {
+                this.logger?.warn('Structure', 'Configured journal structures do not match callout settings - using dynamic structures', {
+                    configuredStructures: journalStructure.structures.map(s => s.rootCallout),
+                    expectedCallouts: [journalCalloutName, 'av-journal']
+                });
+            }
+        }
+        
+        if (useConfiguredStructures) {
             return journalStructure.structures;
         }
         
-        // NEW: Build dynamic structures from callout settings
-        const journalCalloutName = this.settings.journalCalloutName || 'journal-entry';
-        const dreamDiaryCalloutName = this.settings.dreamDiaryCalloutName || 'dream-diary';
-        const metricsCalloutName = this.settings.metricsCalloutName || 'dream-metrics';
-        
-        // Create structures for both journal-entry and av-journal based on user settings
+        // Build dynamic structures based on user's callout settings
         const dynamicStructures: CalloutStructure[] = [
             {
                 id: 'dynamic-journal-entry-structure',
@@ -369,6 +394,8 @@ export class UniversalMetricsCalculator {
         let entriesProcessed = 0;
         let foundAnyJournalEntries = false;
         let foundAnyMetrics = false;
+        let dreamDiaryCalloutsFound = 0;
+        let dreamEntriesCreated = 0;
 
         try {
             // Get files to process (same logic as original)
@@ -382,9 +409,9 @@ export class UniversalMetricsCalculator {
             this.logger?.info('Scrape', `Processing ${files.length} files with Universal Worker Pool`);
 
             // Extract dream entries from files
-            const dreamEntries = await this.extractDreamEntries(files);
-            this.logger?.debug('Scrape', `Extracted ${dreamEntries.length} dream entries`, { 
-                first3Entries: dreamEntries.slice(0, 3).map(e => ({
+            const { entries, debugInfo } = await this.extractDreamEntries(files);
+            this.logger?.debug('Scrape', `Extracted ${entries.length} dream entries`, { 
+                first3Entries: entries.slice(0, 3).map(e => ({
                     date: e.date,
                     title: e.title,
                     contentLength: e.content?.length || 0,
@@ -392,117 +419,56 @@ export class UniversalMetricsCalculator {
                 }))
             });
             
-            if (dreamEntries.length === 0) {
-                new Notice('No dream journal entries found in the selected notes.');
-                this.logger?.warn('Scrape', 'No dream journal entries found');
-                return;
+            // Count the total dream-diary callouts and entries created by re-parsing files
+            for (const filePath of files) {
+                const file = this.app.vault.getAbstractFileByPath(filePath);
+                if (file instanceof TFile) {
+                    try {
+                        const content = await this.app.vault.read(file);
+                        const { entries, dreamDiaryCalloutsInFile, debugInfo } = this.parseJournalEntries(content, filePath);
+                        dreamDiaryCalloutsFound += dreamDiaryCalloutsInFile;
+                    } catch (error) {
+                        // Ignore errors in counting
+                    }
+                }
             }
+            dreamEntriesCreated = entries.length;
 
             foundAnyJournalEntries = true;
-            entriesProcessed = dreamEntries.length;
+            entriesProcessed = entries.length;
 
-            // Process metrics using worker pool
-            const metricsResult = await this.processMetricsWithWorkerPool(dreamEntries);
-            this.logger?.debug('Scrape', `Worker pool returned ${metricsResult.entries.length} processed entries`, {
-                first3Processed: metricsResult.entries.slice(0, 3).map(e => ({
-                    id: e.id,
-                    date: e.date,
-                    title: e.title,
-                    calculatedMetrics: e.calculatedMetrics,
-                    metadata: e.metadata
-                }))
-            });
+            // Process entries and collect metrics
+            let metrics: Record<string, number[]> = {};
+            let processedEntries: DreamMetricData[] = [];
+            let foundAnyMetrics = false;
             
-            foundAnyMetrics = metricsResult.entries.length > 0;
-
-            // Convert to original format for compatibility - THIS IS WHERE THE BUG LIKELY IS
-            const metrics: Record<string, number[]> = {};
-            const processedEntries: DreamMetricData[] = [];
-
-            this.logger?.debug('Scrape', 'Starting metrics aggregation', {
-                totalEntriesToProcess: metricsResult.entries.length
-            });
-
-            for (const entry of metricsResult.entries) {
-                this.logger?.debug('Scrape', `Converting entry ${entry.id}`, {
-                    originalEntry: {
-                        id: entry.id,
+            // Process with worker pool if available
+            const metricsResult = await this.processMetricsWithWorkerPool(entries);
+            
+            if (metricsResult.entries.length > 0) {
+                foundAnyMetrics = true;
+                for (const entry of metricsResult.entries) {
+                    const dreamData: DreamMetricData = {
                         date: entry.date,
-                        title: entry.title,
-                        content: entry.content?.substring(0, 50) + '...',
-                        calculatedMetrics: entry.calculatedMetrics,
-                        metadata: entry.metadata
-                    }
-                });
-
-                // Convert ProcessedMetricsEntry to DreamMetricData
-                const dreamEntry: DreamMetricData = {
-                    date: entry.date,
-                    title: entry.title || 'Untitled Dream',
-                    content: entry.content,
-                    wordCount: entry.calculatedMetrics['Words'] || entry.calculatedMetrics['Word Count'] || 0,
-                    metrics: entry.calculatedMetrics,
-                    source: typeof entry.metadata?.source === 'string' ? entry.metadata.source : 
-                           (entry.metadata?.source as any)?.file || 
-                           (entry.metadata?.source as any)?.id || 
-                           'unknown',
-                    calloutMetadata: {
-                        type: 'dream',
-                        id: entry.id
-                    }
-                };
-
-                // Reduced debug logging - only log first few entries or on errors
-                if (processedEntries.length < 3) {
-                    this.logger?.debug('Scrape', `Converted to DreamMetricData`, {
-                        convertedEntry: {
-                            date: dreamEntry.date,
-                            title: dreamEntry.title,
-                            content: dreamEntry.content?.substring(0, 50) + '...',
-                            wordCount: dreamEntry.wordCount,
-                            source: dreamEntry.source,
-                            calloutMetadata: dreamEntry.calloutMetadata
-                        }
-                    });
-                }
-
-                processedEntries.push(dreamEntry);
-
-                // Aggregate metrics with detailed logging
-                Object.entries(entry.calculatedMetrics).forEach(([metricName, value]) => {
-                    if (!metrics[metricName]) {
-                        metrics[metricName] = [];
-                        this.logger?.debug('Scrape', `Created new metric array: ${metricName}`);
-                    }
-                    metrics[metricName].push(value);
+                        title: entry.title || '',
+                        content: entry.content || '',
+                        metrics: entry.calculatedMetrics,
+                        source: entry.metadata?.source as string || 'unknown',
+                        wordCount: entry.calculatedMetrics['Words'] || entry.calculatedMetrics['Word Count'] || 0
+                    };
+                    processedEntries.push(dreamData);
                     
-                    // Log first few values for each metric to verify
-                    if (metrics[metricName].length <= 3) {
-                        this.logger?.debug('Scrape', `Added to ${metricName}: ${value} (total values: ${metrics[metricName].length})`);
-                    }
-                });
-
-                totalWords += dreamEntry.wordCount || 0;
-            }
-
-            // Log final aggregation summary
-            this.logger?.debug('Scrape', `Final aggregated metrics summary`, {
-                totalMetricTypes: Object.keys(metrics).length,
-                metricBreakdown: Object.fromEntries(
-                    Object.entries(metrics).map(([metricName, values]) => [
-                        metricName, 
-                        {
-                            count: values.length,
-                            min: Math.min(...values),
-                            max: Math.max(...values),
-                            average: (values.reduce((sum, val) => sum + val, 0) / values.length).toFixed(2),
-                            first3Values: values.slice(0, 3)
+                    // Aggregate metrics
+                    for (const [metricName, value] of Object.entries(entry.calculatedMetrics)) {
+                        if (!metrics[metricName]) {
+                            metrics[metricName] = [];
                         }
-                    ])
-                ),
-                totalEntries: processedEntries.length,
-                totalWords
-            });
+                        metrics[metricName].push(value);
+                    }
+                    
+                    totalWords += dreamData.wordCount || 0;
+                }
+            }
 
             // Update project note
             await this.updateProjectNote(metrics, processedEntries);
@@ -822,9 +788,10 @@ export class UniversalMetricsCalculator {
         return files;
     }
 
-    private async extractDreamEntries(files: string[]): Promise<MetricsEntry[]> {
+    private async extractDreamEntries(files: string[]): Promise<{ entries: MetricsEntry[], debugInfo: any[] }> {
         this.logger?.debug('Extract', `Starting extraction from ${files.length} files`);
         const dreamEntries: MetricsEntry[] = [];
+        const allDebugInfo: any[] = [];
         
         for (const path of files) {
             const file = this.app.vault.getAbstractFileByPath(path);
@@ -842,7 +809,7 @@ export class UniversalMetricsCalculator {
                 
                 // Use simplified extraction logic for now
                 // In a full implementation, this would use the complex parsing from MetricsProcessor
-                const entries = this.parseJournalEntries(content, path);
+                const { entries, dreamDiaryCalloutsInFile, debugInfo } = this.parseJournalEntries(content, path);
                 
                 this.logger?.debug('Extract', `Extracted ${entries.length} entries from ${path}`, {
                     entries: entries.map(e => ({
@@ -855,16 +822,17 @@ export class UniversalMetricsCalculator {
                 });
                 
                 dreamEntries.push(...entries);
+                allDebugInfo.push(...debugInfo);
             } catch (error) {
                 this.logger?.error('Extract', `Error processing file ${path}`, error as Error);
             }
         }
         
         this.logger?.info('Extract', `Total extraction complete: ${dreamEntries.length} entries from ${files.length} files`);
-        return dreamEntries;
+        return { entries: dreamEntries, debugInfo: allDebugInfo };
     }
 
-    private parseJournalEntries(content: string, filePath: string): MetricsEntry[] {
+    private parseJournalEntries(content: string, filePath: string): { entries: MetricsEntry[], dreamDiaryCalloutsInFile: number, debugInfo: any[] } {
         // Use the same sophisticated parsing logic as MetricsProcessor
         this.logger?.debug('Parse', `Starting journal parsing for ${filePath}`);
         const entries: MetricsEntry[] = [];
@@ -877,6 +845,8 @@ export class UniversalMetricsCalculator {
         let currentDiary: any = null;
         let currentMetrics: any = null;
         let calloutsFound = 0;
+        let dreamDiaryCalloutsInFile = 0;
+        let dreamDiaryDebugInfo: any[] = [];
         
         const getCalloutType = (line: string) => {
             // Updated regex to handle metadata parameters like |hide and edge cases like |]
@@ -894,6 +864,23 @@ export class UniversalMetricsCalculator {
             const line = lines[idx];
             const calloutType = getCalloutType(line);
             const level = getBlockLevel(line);
+            
+            // Debug logging for dream-diary detection
+            if (line.toLowerCase().includes('dream-diary')) {
+                const calloutRole = this.getCalloutRole(calloutType);
+                const debugInfo = {
+                    file: filePath,
+                    lineNumber: idx + 1,
+                    line: line.substring(0, 150),
+                    extractedCalloutType: calloutType,
+                    calloutRole: calloutRole,
+                    level: level,
+                    isRecognized: this.isRecognizedCallout(calloutType)
+                };
+                dreamDiaryDebugInfo.push(debugInfo);
+                
+                this.logger?.debug('Parse', `Found dream-diary line in ${filePath}:${idx}`, debugInfo);
+            }
             
             // Clean up stack based on level changes, but be more conservative
             // Only clean up if we're at a lower or equal level AND it's a structural callout type
@@ -919,6 +906,7 @@ export class UniversalMetricsCalculator {
                 calloutsFound++;
             } else if (calloutRole === 'child') {
                 // Handle child callout (dream-diary, etc.)
+                dreamDiaryCalloutsInFile++;
                 currentDiary = {
                     lines: [line],
                     metrics: [],
@@ -1091,18 +1079,6 @@ export class UniversalMetricsCalculator {
                         // Only process metrics if we have explicit metrics text
                         const basicMetrics = metricsText.trim() ? this.processMetrics(metricsText, {}) : {};
                         
-                        // Enhanced debug logging for metrics parsing issues
-                        if (metricsText.includes('[!') || Object.keys(basicMetrics).some(key => String(basicMetrics[key]).includes('[!'))) {
-                            this.logger?.warn('Parse', `Metrics text contains callout references - cleaning needed`, {
-                                title: title,
-                                date: date,
-                                rawMetricsLines: diary.metrics.map((m: any) => m.lines.slice(0, 3)),
-                                cleanedMetricsText: metricsText,
-                                extractedMetrics: basicMetrics,
-                                diaryLineNumber: diary.idx
-                            });
-                        }
-                        
                         const entry = {
                             id: blockId || `entry_${diary.idx}_${Date.now()}`,
                             date: date,
@@ -1117,7 +1093,8 @@ export class UniversalMetricsCalculator {
                             }
                         };
                         
-                        this.logger?.debug('Parse', `Created dream entry`, {
+                        this.logger?.debug('Parse', `✅ INCLUDED dream entry`, {
+                            file: filePath,
                             id: entry.id,
                             date: entry.date,
                             title: entry.title,
@@ -1125,19 +1102,24 @@ export class UniversalMetricsCalculator {
                             contentPreview: entry.content.substring(0, 100) + '...',
                             metricsKeys: Object.keys(entry.metrics),
                             metricsText: metricsText.substring(0, 50),
-                            blockId
+                            blockId,
+                            diaryCalloutLine: diaryLine.substring(0, 100),
+                            lineNumber: diary.idx
                         });
                         
                         entries.push(entry);
                     } else {
-                        this.logger?.warn('Parse', `Skipping diary entry - no content extracted`, {
+                        this.logger?.warn('Parse', `❌ EXCLUDED dream entry - no content extracted`, {
+                            file: filePath,
                             diaryLine: diaryLine.substring(0, 100),
                             title: title,
                             metricsText: metricsText.substring(0, 50),
                             contentLines: diaryContentLines.length,
                             rawDiaryLines: diary.lines.length,
                             filteredContentLength: dreamContent.length,
-                            firstFewContentLines: diaryContentLines.slice(0, 3)
+                            firstFewContentLines: diaryContentLines.slice(0, 3),
+                            allDiaryLines: diary.lines.slice(0, 10),
+                            lineNumber: diary.idx
                         });
                     }
                 }
@@ -1157,7 +1139,7 @@ export class UniversalMetricsCalculator {
             } : null
         });
         
-        return entries;
+        return { entries, dreamDiaryCalloutsInFile, debugInfo: dreamDiaryDebugInfo };
     }
 
     private extractDateFromContent(journalLines: string[], filePath: string, fileContent: string): string {

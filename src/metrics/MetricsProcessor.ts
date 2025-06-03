@@ -42,6 +42,8 @@ export class MetricsProcessor {
         let validNotes = 0;
         let foundAnyJournalEntries = false;
         let foundAnyMetrics = false;
+        let dreamDiaryCalloutsFound = 0;
+        let dreamEntriesCreated = 0;
 
         try {
             // After the selection UI, define files for scraping
@@ -145,6 +147,7 @@ export class MetricsProcessor {
                                 blockStack.push({ type: 'journal-entry', obj: currentJournal, level });
                                 calloutsFound++;
                             } else if (calloutType === 'dream-diary') {
+                                dreamDiaryCalloutsFound++;
                                 currentDiary = {
                                     lines: [line],
                                     level,
@@ -258,14 +261,38 @@ export class MetricsProcessor {
                                                 id: blockId
                                             }
                                         };
+                                        
+                                        this.logger?.debug('Parse', `✅ INCLUDED dream entry (MetricsProcessor)`, {
+                                            file: path,
+                                            date: date,
+                                            title: dreamTitle,
+                                            wordCount: dreamMetrics['Words'],
+                                            contentPreview: dreamContent.substring(0, 100) + '...',
+                                            blockId: blockId,
+                                            metricsKeys: Object.keys(dreamMetrics),
+                                            lineInfo: 'MetricsProcessor parsing'
+                                        });
+                                        
                                         dreamEntries.push(dreamEntry);
                                         entriesProcessed++;
+                                        dreamEntriesCreated++;
                                     }
                                 }
                             }
                         }
                         // END IMPROVED STACK LOGIC
                         this.logger?.debug('Scrape', `Parsed callout structure for file: ${path}`, { journals, blockStack: blockStack.length });
+                        
+                        // Log summary for this file
+                        const fileDreamDiaries = journals.reduce((sum, j) => sum + j.diaries.length, 0);
+                        const fileEntriesCreated = dreamEntries.length - entriesProcessed + dreamEntriesCreated;
+                        if (fileDreamDiaries > 0) {
+                            this.logger?.info('Parse', `File Summary: ${path}`, {
+                                dreamDiaryCallouts: fileDreamDiaries,
+                                entriesCreated: fileEntriesCreated - (dreamEntries.length - dreamEntriesCreated),
+                                discrepancy: fileDreamDiaries !== (fileEntriesCreated - (dreamEntries.length - dreamEntriesCreated))
+                            });
+                        }
                     } catch (error) {
                         this.logger?.error('Scrape', `Error processing file ${path}:`, error as Error);
                         new Notice(`Error processing file: ${path}`);
@@ -274,6 +301,34 @@ export class MetricsProcessor {
                 
                 // Wait for batch to complete
                 await Promise.all(batchPromises);
+            }
+
+            // Add final summary log
+            this.logger?.info('Scrape', `FINAL SUMMARY`, {
+                totalDreamDiaryCallouts: dreamDiaryCalloutsFound,
+                totalEntriesCreated: dreamEntriesCreated,
+                discrepancy: dreamDiaryCalloutsFound !== dreamEntriesCreated,
+                validNotes: validNotes
+            });
+
+            // Also write a simple debug file for easy reading
+            try {
+                const summaryText = `OneiroMetrics Debug Summary
+Generated: ${new Date().toISOString()}
+
+TOTALS:
+- Dream-diary callouts found: ${dreamDiaryCalloutsFound}
+- Dream entries created: ${dreamEntriesCreated} 
+- Discrepancy: ${dreamDiaryCalloutsFound !== dreamEntriesCreated ? 'YES - MISSING ENTRIES' : 'NO - PERFECT MATCH'}
+- Files processed: ${validNotes}
+
+Expected: 148 callouts → 148 entries
+Current: ${dreamDiaryCalloutsFound} callouts → ${dreamEntriesCreated} entries
+Missing: ${dreamDiaryCalloutsFound - dreamEntriesCreated} entries
+`;
+                await this.app.vault.adapter.write('debug-summary.txt', summaryText);
+            } catch (e) {
+                // Silent fail - debug file is optional
             }
 
             // Update project note with the metrics
@@ -431,4 +486,4 @@ export class MetricsProcessor {
         
         return metrics;
     }
-} 
+}

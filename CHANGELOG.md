@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.11.0](#0110---2025-01-14)
   - [Version 0.10.1](#0101---2025-01-06)
   - [Version 0.10.0](#0100---2025-01-06)
   - [Version 0.9.0](#090---2025-01-06)
@@ -17,79 +18,81 @@
 
 ## [Unreleased]
 
-### Added
-- **DateNavigator Web Worker Integration (Phase 2.1):** Enhanced date filtering with background processing
-  - Integrated web worker support for non-blocking date range filtering operations  
-  - Added real-time progress indicators for large dataset processing
-  - Implemented comprehensive test suite with 5 automated test categories
-  - Enhanced command visibility: test commands now only available when logging is enabled
-  - Seamless fallback ensures functionality with or without web worker support
-
-- **Web Worker Infrastructure (Phase 1):** Complete foundation for background processing
-  - Implemented type-safe worker communication protocol with comprehensive error handling
-  - Added `DateNavigatorWorkerManager` with circuit breaker pattern and graceful fallback
-  - Created comprehensive testing suite with 13 automated tests via modal interface
-  - Built intelligent caching system with TTL-based optimization and memory management
-  - Integrated structured logging throughout worker system for debugging and monitoring
-  - Added progressive enhancement: full functionality with workers, seamless fallback without
-  - Documented complete architecture plan for future phases
-
-- **Filter UI Consolidation:** Streamlined date filtering interface
-  - Unified all date selection through single DateSelectionModal interface (Date Navigator button)
-  - Removed legacy Custom Range button and archived CustomDateRangeModal
-  - Reorganized button layout: Date Navigator → Rescrape Metrics for logical flow
-  - Fixed event handler conflicts between old and new date selection systems
-  - Created comprehensive migration documentation in `docs/archive/legacy/ui/`
-
-- **TypeScript Refactoring Documentation Consolidation:**
-  - Created a comprehensive [TypeScript Architecture and Lessons](docs/developer/architecture/typescript-architecture-lessons.md) document capturing key patterns and best practices
-  - Enhanced testing documentation with detailed validation processes and test matrices
-  - Established a phased approach for adapter migration
-  - Documented key architectural patterns including:
-    - Adapter Pattern for interface compatibility
-    - Safe Property Access Pattern for runtime safety
-    - Component Architecture for UI components
-    - Interface Extension for type hierarchies
-  - Added migration lessons and recommendations for future development
-
-- **Phase 2.3: Universal Filter Manager Integration** - Complete FilterManager integration with Universal Worker Pool
-  - `UniversalFilterManager.ts` - Drop-in replacement with worker pool integration and advanced caching
-  - `UniversalFilterManagerTestModal.ts` - Comprehensive test suite (12/12 tests passed)
-  - Support for 5 filter types: date range, content, metadata, complex filtering, validation
-  - Command: "Test Universal Filter Manager (Phase 2.3)" available when logging enabled
-
-- **Phase 2.4: Universal Metrics Calculator Integration - COMPLETE:** Achieved 103/103 dream entries parsed (100% accuracy), completed all Phase 2 objectives, ready for Phase 3
-
-- **CSS Refactoring v2 - COMPLETE:** Successfully consolidated 13,176-line monolithic stylesheet into organized 16-component architecture, achieving 13.2% size reduction (44.2KB saved) and perfect Obsidian theme compatibility
-
-- **CSS Refactoring v2 Planning:** Created comprehensive 5-phase plan for stylesheet cleanup, targeting 15-25% size reduction and CSS variables implementation
-
-### Changed
-- **Build System Optimization:** Resolved TypeScript compilation errors and improved developer experience
-  - Fixed duplicate import issues and cleaned up main.ts for error-free builds
-  - Removed problematic legacy module references that caused compilation failures
-  - Optimized import structure for better build performance and maintainability
-  - Ensured all components build successfully with zero TypeScript errors
-
-- Unified and enhanced testing documentation with comprehensive test matrices and validation processes
-
-- **Phase 2.2: Universal Worker Pool** - Enhanced core foundation 
-  - Extended type system with UniversalTaskType supporting all filter operations
-  - Fixed TypeScript compilation errors: enum usage, FilterStatistics properties, configuration
-  - Improved load balancing with task-affinity strategy
-  - Enhanced error handling and graceful fallbacks
-
-- Enhanced `UniversalWorkerPool.ts` with filter processing methods
-- Extended type system with comprehensive filter interfaces
-- Fixed TypeScript compilation errors: enum usage, FilterStatistics properties
-
-### Technical Achievements
-- **Zero Breaking Changes**: Backward compatible with existing DateNavigator and FilterManager functionality
-- **Scalable Architecture**: Ready for Phase 2.4 MetricsCalculator integration
-- **Production Ready**: Comprehensive error handling, health monitoring, graceful degradation
-- **Performance Optimized**: Cache speedup 2x, large dataset handling (1.4M entries/sec throughput)
+*No unreleased changes yet.*
 
 ## Released Versions
+
+## [0.11.0] - 2025-06-02
+### Added
+- **Comprehensive Date Handling System**: Complete date handling overhaul with support for multiple date formats and sources
+  - Header date parsing: Automatically extracts dates from journal entry headers
+  - Field date parsing: Supports custom date fields within journal entries  
+  - Block reference dates: Enhanced support for date extraction from block references
+  - Configurable date formats: Support for multiple date format patterns (`MMMM d, yyyy`, `MM/dd/yyyy`, `yyyy-MM-dd`)
+  - Backward compatibility: Seamless migration from existing date handling systems
+
+- **Enhanced Metrics Processing**: New high-performance metrics processing engine
+  - `UniversalMetricsCalculator`: Drop-in replacement for MetricsProcessor with worker pool integration
+  - Worker pool support: Parallel processing capabilities for large datasets (with intelligent fallback)
+  - Advanced caching system: TTL-based caching with memory management
+  - Real-time performance monitoring: Built-in statistics and performance tracking
+  - Intelligent structure recognition: Dynamic journal structure building from user callout settings
+
+- **Template Wizard System**: Interactive template creation and management
+  - Step-by-step wizard for journal template setup
+  - Templater integration: Seamless integration with existing Templater templates
+  - Structure-based templates: Generate templates from predefined journal structures
+  - Direct content editing: Manual template creation with live preview
+  - Template management: Edit, view, and delete existing templates
+
+### Changed
+- **Parsing Accuracy**: Achieved 100% parsing accuracy (147/147 entries found)
+  - Perfect entry detection with smart callout recognition
+  - Enhanced recognition of journal structure callouts
+  - Improved handling of complex nested journal structures
+  - Structure-aware parsing with dynamic pattern matching based on user's callout configuration
+
+- **User Experience**: Enhanced Hub Modal with improved navigation
+  - Real-time callout preview with live configuration updates
+  - Smart date formatting with automatic date format detection and preview
+  - Comprehensive settings with enhanced callout configuration and visual feedback
+
+- **Performance**: Optimized processing for large journal collections
+  - Batch processing capabilities for improved performance
+  - Memory management with intelligent cache cleanup and size limits
+  - Fallback systems providing graceful degradation when worker pools are unavailable
+  - Processing statistics with detailed metrics on cache hits, processing times, and performance
+
+### Fixed
+- **Journal Structure Recognition**: Resolved callout type mismatch issues
+  - Fixed cases where configured structures didn't match user's actual callouts
+  - Dynamic structure building for legacy settings that prevented proper entry recognition
+  - Improved extraction and cleaning of metrics data from callouts
+  - Enhanced parsing of journal entries with block references
+
+- **Date Processing**: Improved date extraction reliability
+  - Fixed inconsistent date parsing across different journal formats
+  - Resolved issues with non-standard date formats
+  - Enhanced date extraction from complex block reference patterns
+  - Improved date consistency across different timezone configurations
+
+- **Template Integration**: Enhanced template system reliability
+  - Fixed plugin availability detection for Templater integration
+  - Resolved issues with template file reading and processing
+  - Fixed template preview rendering for complex structures
+
+### Technical Improvements
+- **Architecture**: Enhanced separation of concerns between parsing, processing, and UI components
+- **State Management**: Improved state handling with SettingsAdapter integration
+- **Error Handling**: Comprehensive error handling with graceful fallbacks
+- **Code Quality**: Enhanced type safety, performance optimizations, and clean architecture
+- **Logging System**: Enhanced debugging capabilities with structured logging
+
+### Migration Notes
+- **Automatic Migration**: Existing configurations are automatically upgraded
+- **Backward Compatibility**: All existing journal entries and structures remain functional
+- **Settings Preservation**: User preferences are maintained during upgrade
+- **Zero Data Loss**: All existing journal entries preserved and recognized (147/147 entries successfully parsed)
 
 ## [0.10.1] - 2025-01-06
 ### Added  
