@@ -1,5 +1,6 @@
 import { format, parse, isValid, startOfDay, endOfDay } from 'date-fns';
 import safeLogger from '../logging/safe-logger';
+import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../types/journal-check';
 
 /**
  * Date utility functions for OneiroMetrics
@@ -123,8 +124,12 @@ export function parseDate(dateStr: string | null | undefined): Date | null {
             }
         }
 
-        // Try callout metadata format (e.g., [!journal-entry|20250513])
-        const calloutMatch = dateStr.match(/\[!(?:journal-entry|dream-diary|diary-entry|daily-note|daily|weekly)\|(\d{8})\]/);
+        // Try callout metadata format - use dynamic pattern based on journal structures
+        const allJournalCallouts = DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures
+            .map(s => s.rootCallout)
+            .concat(['dream-diary', 'diary-entry', 'daily-note', 'daily', 'weekly']); // Include common variants
+        const calloutPattern = new RegExp(`\\[!(?:${allJournalCallouts.join('|')})\\|(\\d{8})\\]`);
+        const calloutMatch = dateStr.match(calloutPattern);
         if (calloutMatch) {
             const dateValue = calloutMatch[1];
             const year = parseInt(dateValue.slice(0, 4));

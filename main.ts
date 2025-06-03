@@ -257,6 +257,16 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         });
 
+        // Add test command for Date Utils Testing (always available for testing comprehensive date handling)
+        this.addCommand({
+            id: 'test-date-utils',
+            name: 'Test Date Utilities',
+            callback: () => {
+                const { openDateUtilsTestModal } = require('./src/testing/index');
+                openDateUtilsTestModal(this.app, this);
+            }
+        });
+
         // Add diagnostic commands that only show when logging is enabled
         this.addCommand({
             id: 'show-universal-calculator-stats',

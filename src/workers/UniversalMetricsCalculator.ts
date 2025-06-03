@@ -121,11 +121,37 @@ export class UniversalMetricsCalculator {
      */
     private getActiveStructures(): CalloutStructure[] {
         const journalStructure = getJournalStructure(this.settings);
+        
+        this.logger?.debug('Structure', 'getActiveStructures called', {
+            hasJournalStructure: !!journalStructure,
+            isEnabled: journalStructure?.enabled,
+            structuresCount: journalStructure?.structures?.length || 0,
+            structureNames: journalStructure?.structures?.map(s => s.name) || [],
+            defaultStructuresCount: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.length,
+            defaultStructureNames: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.map(s => s.name)
+        });
+        
         if (journalStructure?.enabled && journalStructure.structures?.length > 0) {
+            this.logger?.debug('Structure', 'Using configured journal structures', {
+                structures: journalStructure.structures.map(s => ({ 
+                    name: s.name, 
+                    rootCallout: s.rootCallout,
+                    childCallouts: s.childCallouts,
+                    id: s.id
+                }))
+            });
             return journalStructure.structures;
         }
         
         // Fallback to default structures if none configured
+        this.logger?.debug('Structure', 'Using default journal structures', {
+            structures: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.map(s => ({ 
+                name: s.name, 
+                rootCallout: s.rootCallout,
+                childCallouts: s.childCallouts,
+                id: s.id
+            }))
+        });
         return DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures;
     }
 
