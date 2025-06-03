@@ -121,17 +121,6 @@ To use Templater integration:
 
 ---
 
-## Debugging & Logging
-
-- **Debug Button:**  
-  - Appears only when Logging Level is set to **Debug** in settings.
-  - Use it to reset event listeners, refresh tables, and view diagnostics.
-- **How to Enable:**  
-  - Go to OneiroMetrics settings → Logging → set Logging Level to **Debug**.
-- See [Logging Guide](docs/developer/implementation/logging.md) for advanced usage.
-
----
-
 ## Recent Fixes
 
 - "Show more" button now reliably expands/collapses dream content.
