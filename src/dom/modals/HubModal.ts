@@ -45,6 +45,7 @@ interface TemplateWizardState {
     templateDescription: string;
     isValid: boolean;
     currentStep: number;
+    editingTemplateId?: string; // Track if we're editing an existing template
 }
 
 export class HubModal extends Modal {
@@ -3076,7 +3077,8 @@ Example:
             templateName: template.name,
             templateDescription: template.description || '',
             isValid: true,
-            currentStep: method === 'templater' ? 2 : (method === 'structure' ? 3 : 2)
+            currentStep: method === 'templater' ? 2 : (method === 'structure' ? 3 : 2),
+            editingTemplateId: template.id // Store the ID so we know we're editing
         };
         
         // Re-render in wizard mode
@@ -3464,7 +3466,7 @@ Example:
         if (!this.wizardState || !this.wizardState.isValid) return;
         
         const template: JournalTemplate = {
-            id: `template-${Date.now()}`,
+            id: this.wizardState.editingTemplateId || `template-${Date.now()}`, // Use existing ID when editing
             name: this.wizardState.templateName,
             description: this.wizardState.templateDescription,
             content: this.wizardState.content,
@@ -3515,13 +3517,26 @@ Example:
                 };
             }
             
-            // Add template
-            this.plugin.settings.linting.templates.push(template);
+            // Check if we're editing an existing template
+            if (this.wizardState?.editingTemplateId) {
+                // Update existing template
+                const templateIndex = this.plugin.settings.linting.templates.findIndex(t => t.id === template.id);
+                if (templateIndex >= 0) {
+                    this.plugin.settings.linting.templates[templateIndex] = template;
+                    new Notice(`Template "${template.name}" updated successfully!`);
+                } else {
+                    // Template not found, add as new (fallback)
+                    this.plugin.settings.linting.templates.push(template);
+                    new Notice(`Template "${template.name}" created successfully!`);
+                }
+            } else {
+                // Add new template
+                this.plugin.settings.linting.templates.push(template);
+                new Notice(`Template "${template.name}" created successfully!`);
+            }
             
             // Save settings
             await this.plugin.saveSettings();
-            
-            new Notice(`Template "${template.name}" created successfully!`);
             
             // Exit wizard mode and return to overview
             this.exitWizardMode();
