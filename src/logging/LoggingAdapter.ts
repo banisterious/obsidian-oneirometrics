@@ -2,6 +2,7 @@ import { App, Notice } from 'obsidian';
 import { LogLevel, LoggerConfig } from './LoggingInterfaces';
 import { LoggingService } from './LoggingService';
 import { LegacyLoggerAdapter } from './adapters/LegacyLoggerAdapter';
+import { MemoryAdapter } from './adapters/MemoryAdapter';
 
 /**
  * Adapter class that bridges the old Logger implementation and the new LoggingService.
@@ -11,6 +12,9 @@ import { LegacyLoggerAdapter } from './adapters/LegacyLoggerAdapter';
 export class LoggingAdapter {
     private loggingService: LoggingService;
     private legacyLogger: LegacyLoggerAdapter;
+    
+    // Expose the memory adapter for log viewer access
+    public memoryAdapter?: MemoryAdapter;
     
     // Expose the same properties as the legacy Logger
     logLevel: LogLevel = 'off';
@@ -25,6 +29,14 @@ export class LoggingAdapter {
     constructor(app: App) {
         this.loggingService = LoggingService.getInstance(app);
         this.legacyLogger = LegacyLoggerAdapter.getInstance(app);
+    }
+    
+    /**
+     * Set the memory adapter for log viewer access.
+     * @param memoryAdapter The memory adapter instance
+     */
+    setMemoryAdapter(memoryAdapter: MemoryAdapter) {
+        this.memoryAdapter = memoryAdapter;
     }
     
     /**

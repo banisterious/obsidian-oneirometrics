@@ -357,7 +357,10 @@ export class PluginLoader {
             globalLogger.debug('DreamMetricsPlugin', 'Logger initialized and registered with registry');
             
             // Initialize the log viewer UI
-            initializeLogUI(this.plugin);
+            const logUIComponents = initializeLogUI(this.plugin);
+            
+            // Set the memory adapter on the logging adapter for log viewer access
+            logger.setMemoryAdapter(logUIComponents.memoryAdapter);
         } catch (e) {
             safeLogger.error('DreamMetricsPlugin', 'Error initializing logger', 
                 e instanceof Error ? e : new Error(String(e)));
