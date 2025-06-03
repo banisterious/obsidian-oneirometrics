@@ -2359,6 +2359,10 @@
     }
 }
 
+.oom-notice.oom-notice--info {
+    margin-bottom: 1em;
+}
+
 /* =============================================================================
    ICON BUTTONS & PICKER BUTTONS - Theme Integrated
    ============================================================================= */
@@ -5216,6 +5220,10 @@ h2.oom-metrics-tabs-label {
 /* =============================================================================
    TABLE CONTAINERS - Theme Integrated & Modernized
    ============================================================================= */
+
+.markdown-preview-view.markdown-rendered.oom-project-note-view .inline-title {
+    display: none;
+}
 
 .oom-table-container {
     /* === STRUCTURAL PROPERTIES ONLY === */
@@ -10433,6 +10441,12 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     gap: var(--oom-spacing-lg);
 }
 
+.unified-test-suite-utility-description {
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
 .unified-test-suite-utility-section {
     padding: var(--oom-spacing-md);
     border: 1px solid var(--background-modifier-border);
@@ -10444,6 +10458,211 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     margin-bottom: var(--oom-spacing-md);
     color: var(--text-normal);
     font-size: var(--h4-size);
+}
+
+.unified-test-suite-folder-config {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-folder-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-monospace);
+    margin-top: 0.5rem;
+}
+
+.unified-test-suite-folder-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-generation-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.unified-test-suite-custom-dialog {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    border: 2px solid var(--interactive-accent);
+    border-radius: 8px;
+    background: var(--background-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.unified-test-suite-custom-dialog h4 {
+    margin: 0 0 1rem 0;
+    color: var(--interactive-accent);
+    font-weight: 600;
+}
+
+.unified-test-suite-dialog-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+.unified-test-suite-dialog-buttons button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.unified-test-suite-dialog-buttons button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-dialog-buttons button.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.unified-test-suite-dialog-buttons button.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* Template Selection Styles */
+
+.unified-test-suite-template-config {
+    margin: var(--oom-spacing-md) 0;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-template-input {
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin: var(--oom-spacing-xs) 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+.unified-test-suite-template-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-browse-button {
+    margin-top: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs) var(--oom-spacing-md);
+    background: var(--interactive-normal);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: background-color var(--oom-transition-normal);
+}
+
+.unified-test-suite-browse-button:hover {
+    background: var(--interactive-hover);
+}
+
+.unified-test-suite-template-selector-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-lg);
+    box-shadow: var(--oom-shadow-lg);
+    padding: var(--oom-spacing-lg);
+    z-index: var(--oom-z-modal);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 70vh;
+}
+
+.unified-test-suite-template-selector-dialog h4 {
+    margin: 0 0 var(--oom-spacing-md) 0;
+    color: var(--text-normal);
+    font-size: var(--font-ui-larger);
+    font-weight: var(--font-weight-bold);
+}
+
+.unified-test-suite-template-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: var(--oom-spacing-md) 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-track {
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+.unified-test-suite-template-option {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: background-color var(--oom-transition-fast);
+}
+
+.unified-test-suite-template-option:last-child {
+    border-bottom: none;
+}
+
+.unified-test-suite-template-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-template-option span {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    word-break: break-all;
+}
+
+.unified-test-suite-template-close {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    background: var(--background-modifier-border);
+    color: var(--text-normal);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-ui-medium);
+    transition: background-color var(--oom-transition-normal);
+}
+
+.unified-test-suite-template-close:hover {
+    background: var(--background-modifier-border-hover);
 }
 
 /* Unified Test Suite Help Content */
@@ -10629,6 +10848,69 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     border-color: var(--background-modifier-error);
     background: var(--background-modifier-error);
     color: var(--text-error);
+}
+
+/* Unified Test Suite - Logging Settings */
+.unified-test-suite-logging-settings {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.unified-test-suite-setting-label {
+    font-weight: 500;
+    min-width: 80px;
+    margin: 0;
+    color: var(--text-normal);
+}
+
+.unified-test-suite-log-level-select {
+    /*padding: 0.375rem 0.75rem;
+    border: 1px solid var(--background-modifier-border);
+    min-width: 120px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--text-normal);
+    background: var(--background-primary);*/
+}
+
+.unified-test-suite-log-level-select:hover {
+    border-color: var(--interactive-hover);
+}
+
+.unified-test-suite-log-level-select:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-setting-helper {
+    margin-top: 0.5rem;
+}
+
+.unified-test-suite-helper-text {
+    margin: 0;
+    line-height: 1.4;
+    font-size: 0.8rem;
+    font-style: italic;
+    /*color: var(--text-muted);*/
+}
+
+/* Spacing adjustments for logging sections */
+.unified-test-suite-logging-testing,
+.unified-test-suite-log-management,
+.unified-test-suite-log-stats {
+    margin-top: 1.5rem;
 }
 
 /* Responsive Design */

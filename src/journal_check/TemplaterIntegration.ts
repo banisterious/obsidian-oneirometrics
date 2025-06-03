@@ -301,6 +301,23 @@ export class TemplaterIntegration {
         
         let staticContent = content;
         
+        // Handle OneiroMetrics date placeholders first (from test data generation system)
+        // Support multiple date formats
+        staticContent = staticContent.replace(/\{\{date\}\}/g, '[[DATE: YYYY-MM-DD]]');
+        staticContent = staticContent.replace(/\{\{date-iso\}\}/g, '[[DATE: YYYY-MM-DD]]');
+        staticContent = staticContent.replace(/\{\{date-long\}\}/g, '[[DATE: MMMM DD, YYYY]]');
+        staticContent = staticContent.replace(/\{\{date-month-day\}\}/g, '[[DATE: MMMM DD]]');
+        staticContent = staticContent.replace(/\{\{date-compact\}\}/g, '[[DATE: YYYYMMDD]]');
+        staticContent = staticContent.replace(/\{\{date-ref\}\}/g, '[[DATE: YYYYMMDD]]');
+        
+        // Handle other OneiroMetrics placeholders
+        staticContent = staticContent.replace(/\{\{title\}\}/g, '[[TITLE]]');
+        staticContent = staticContent.replace(/\{\{content\}\}/g, '[[CONTENT]]');
+        staticContent = staticContent.replace(/\{\{metrics\}\}/g, '[[METRICS]]');
+        
+        // Handle individual metric placeholders (e.g., {{Sensory Detail}})
+        staticContent = staticContent.replace(/\{\{([^}]+)\}\}/g, '[[METRIC: $1]]');
+
         // Convert date variables: <% tp.date.now("YYYY-MM-DD") %> → [[DATE: YYYY-MM-DD]]
         staticContent = staticContent.replace(
             /<%[\s\*]*tp\.date\.now\(['"]([^'"]+)['"]\)[\s\*]*%>/g,
@@ -429,5 +446,68 @@ export class TemplaterIntegration {
         }
         
         new Notice(`Template converted: ${placeholders.length} placeholders found`);
+    }
+    
+    /**
+     * Process OneiroMetrics placeholders with actual data
+     * This handles the {{date}}, {{title}}, etc. placeholders used in the test data generation system
+     */
+    processOneiroMetricsPlaceholders(content: string, data: {
+        date?: string;
+        title?: string;
+        content?: string;
+        metrics?: Record<string, any>;
+    } = {}): string {
+        if (!content) return '';
+        
+        let processedContent = content;
+        
+        // Process date placeholders if date is provided
+        if (data.date) {
+            const entryDate = new Date(data.date);
+            
+            // Support multiple date formats
+            processedContent = processedContent.replace(/\{\{date\}\}/g, data.date); // ISO format: YYYY-MM-DD
+            processedContent = processedContent.replace(/\{\{date-iso\}\}/g, data.date); // Same as above, explicit
+            processedContent = processedContent.replace(/\{\{date-long\}\}/g, entryDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            })); // Format: January 15, 2025
+            processedContent = processedContent.replace(/\{\{date-month-day\}\}/g, entryDate.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric' 
+            })); // Format: January 15
+            processedContent = processedContent.replace(/\{\{date-compact\}\}/g, entryDate.toISOString().split('T')[0].replace(/-/g, '')); // Format: YYYYMMDD
+            processedContent = processedContent.replace(/\{\{date-ref\}\}/g, entryDate.toISOString().split('T')[0].replace(/-/g, '')); // Alias for date-compact
+        }
+        
+        // Process other placeholders
+        if (data.title) {
+            processedContent = processedContent.replace(/\{\{title\}\}/g, data.title);
+        }
+        
+        if (data.content) {
+            processedContent = processedContent.replace(/\{\{content\}\}/g, data.content);
+        }
+        
+        // Process metrics placeholder
+        if (data.metrics) {
+            // Replace {{metrics}} with formatted string
+            if (processedContent.includes('{{metrics}}')) {
+                const metricsString = Object.entries(data.metrics)
+                    .map(([key, value]) => `**${key}**: ${value}`)
+                    .join(' • ');
+                processedContent = processedContent.replace(/\{\{metrics\}\}/g, metricsString);
+            }
+            
+            // Replace individual metric placeholders like {{Sensory Detail}}
+            Object.entries(data.metrics).forEach(([metricName, value]) => {
+                const placeholder = new RegExp(`\\{\\{${metricName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}\\}`, 'g');
+                processedContent = processedContent.replace(placeholder, String(value));
+            });
+        }
+        
+        return processedContent;
     }
 } 

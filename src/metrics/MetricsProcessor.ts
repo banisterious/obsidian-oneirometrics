@@ -51,23 +51,74 @@ export class MetricsProcessor {
             const mode = getSelectionMode(this.settings);
             const selectedFolderPath = getSelectedFolder(this.settings);
             if (mode === 'folder' && selectedFolderPath) {
-                // Recursively gather up to 200 markdown files from the selected folder
+                // Recursively gather markdown files from the selected folder
                 const folder = this.app.vault.getAbstractFileByPath(selectedFolderPath);
                 if (folder && folder instanceof TFolder) {
                     const gatherFiles = (folder: TFolder, acc: string[]) => {
                         for (const child of folder.children) {
                             if (child instanceof TFile && child.extension === 'md') {
                                 acc.push(child.path);
-                                if (acc.length >= 200) break;
+                                
+                                // Check performance testing settings for file limits
+                                const perfSettings = this.settings.performanceTesting;
+                                const isPerformanceMode = perfSettings?.enabled ?? false;
+                                const maxFiles = perfSettings?.maxFiles ?? 0;
+                                
+                                // Apply limits based on performance mode
+                                if (!isPerformanceMode && acc.length >= 200) {
+                                    // Normal mode: limit to 200 files
+                                    break;
+                                } else if (isPerformanceMode && maxFiles > 0 && acc.length >= maxFiles) {
+                                    // Performance mode with custom limit
+                                    break;
+                                }
+                                // If performance mode with maxFiles = 0 (unlimited), no limit
                             } else if (child instanceof TFolder) {
                                 gatherFiles(child, acc);
-                                if (acc.length >= 200) break;
+                                
+                                // Check limits after recursive call too
+                                const perfSettings = this.settings.performanceTesting;
+                                const isPerformanceMode = perfSettings?.enabled ?? false;
+                                const maxFiles = perfSettings?.maxFiles ?? 0;
+                                
+                                if (!isPerformanceMode && acc.length >= 200) break;
+                                else if (isPerformanceMode && maxFiles > 0 && acc.length >= maxFiles) break;
                             }
                         }
                     };
                     const acc: string[] = [];
                     gatherFiles(folder, acc);
-                    files = acc.slice(0, 200);
+                    
+                    // Apply final slice based on performance mode
+                    const perfSettings = this.settings.performanceTesting;
+                    const isPerformanceMode = perfSettings?.enabled ?? false;
+                    const maxFiles = perfSettings?.maxFiles ?? 0;
+                    
+                    if (!isPerformanceMode) {
+                        // Normal mode: limit to 200
+                        files = acc.slice(0, 200);
+                    } else if (maxFiles > 0) {
+                        // Performance mode with custom limit
+                        files = acc.slice(0, maxFiles);
+                    } else {
+                        // Performance mode unlimited
+                        files = acc;
+                    }
+                    
+                    // Log performance mode status
+                    if (isPerformanceMode) {
+                        const limitText = maxFiles > 0 ? `${maxFiles} files` : 'unlimited files';
+                        this.logger?.info('Performance', `Performance testing mode active - processing ${limitText} (found ${acc.length} total files)`);
+                        
+                        // Show warning if enabled
+                        if (perfSettings?.showWarnings) {
+                            console.warn(`[OneiroMetrics Performance Mode] Processing ${files.length} files (limit: ${limitText})`);
+                        }
+                    } else {
+                        if (acc.length > 200) {
+                            this.logger?.info('FileLimit', `Found ${acc.length} files, limited to 200 (enable performance testing mode to process more)`);
+                        }
+                    }
                 }
                 // Exclude files if user previewed and unchecked them
                 const pluginAny = this.plugin as any;

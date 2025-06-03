@@ -302,6 +302,24 @@ export interface DreamMetricsSettings {
         /** Frequency of automatic backups */
         frequency?: 'onEdit' | 'onSave' | 'daily' | 'hourly';
     };
+    
+    /** Test data settings */
+    testDataFolder?: string;
+    
+    /** Template file to use for test data generation */
+    testDataTemplate?: string;
+    
+    /** Performance testing settings */
+    performanceTesting?: {
+        /** Whether performance testing mode is enabled (disables normal file limits) */
+        enabled: boolean;
+        
+        /** Maximum files to process in performance mode (0 = unlimited) */
+        maxFiles: number;
+        
+        /** Show warnings when performance mode is active */
+        showWarnings: boolean;
+    };
 }
 
 /**

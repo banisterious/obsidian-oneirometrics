@@ -525,9 +525,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             text: 'OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies.'
         });
 
-        // Add Ribbon Button Section (move to top)
-        containerEl.createEl('h2', { text: 'Ribbon Button' });
-
         // Ribbon buttons setting
         new Setting(containerEl)
             .setName('Show Ribbon Buttons')
@@ -539,12 +536,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     this.plugin.updateRibbonIcons();
                 }));
-
-        // Add section border after button settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
-
-        // New section: Metrics Note and Callout Name
-        containerEl.createEl('h2', { text: 'Metrics Note and Callout Name' });
 
         // OneiroMetrics Note Setting
         new Setting(containerEl)
@@ -559,21 +550,15 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Add section border after basic settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
-
         // Add Journal Structure Check settings
         this.addJournalStructureSettings(containerEl);
         
-        // Add section border after journal structure settings
+        // Add section border after basic settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
-        // Add Select Notes/Folders Section
-        containerEl.createEl('h2', { text: 'Select Notes/Folders' });
-        
-        // Selection Mode
+        // Selection Mode (renamed from "Select Notes/Folders" section)
         const selectionModeSetting = new Setting(containerEl)
-            .setName('Selection Mode')
+            .setName('Select Notes/Folders')
             .setDesc('How to select notes for analyzing')
             .addDropdown(drop => {
                 drop.addOption('notes', 'Selected Notes');
@@ -843,6 +828,9 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .addButton(button => {
                 button.setButtonText('View Metrics Guide')
                     .onClick(() => {
+                        // Close the settings modal first
+                        (this.app as any).setting.close();
+                        
                         // Use ModalsManager instead of the removed showMetricsTabsModal method
                         const modalsManager = new ModalsManager(this.app, this.plugin, null);
                         modalsManager.openHubModal();
@@ -892,9 +880,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     ).open();
                 });
         });
-
-        // Add the metrics section
-        containerEl.createEl('h2', { text: 'Metrics' });
         
         // Helper function to add metric toggles
         const addMetricToggle = (metric: DreamMetric, key: string, container: HTMLElement) => {
@@ -1002,7 +987,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Display enabled metrics
         if (groupedMetrics.enabled.length > 0) {
-            metricsContainer.createEl('h3', { text: 'Enabled Metrics' });
+            metricsContainer.createEl('h2', { text: 'Enabled Metrics' });
             groupedMetrics.enabled.forEach(([key, metric]) => {
                 addMetricToggle(metric, key, metricsContainer);
             });
@@ -1010,7 +995,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Display disabled metrics
         if (groupedMetrics.disabled.length > 0) {
-            metricsContainer.createEl('h3', { text: 'Disabled Metrics' });
+            metricsContainer.createEl('h2', { text: 'Disabled Metrics' });
             groupedMetrics.disabled.forEach(([key, metric]) => {
                 addMetricToggle(metric, key, metricsContainer);
             });
@@ -1314,6 +1299,93 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add section border after logging settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
+        // Add Performance Testing Settings Section
+        containerEl.createEl('h2', { text: 'Performance Testing Settings' });
+        
+        // Add explanatory note about performance testing
+        const perfTestingInfoEl = containerEl.createEl('div', {
+            cls: 'oom-notice oom-notice--warning'
+        });
+        perfTestingInfoEl.createEl('strong', { text: 'Performance Testing Mode: ' });
+        perfTestingInfoEl.createEl('span', { 
+            text: 'Removes or increases the normal 200-file limit for scraping operations. Enable this only for testing with large datasets.'
+        });
+
+        // Performance mode toggle
+        new Setting(containerEl)
+            .setName('Enable Performance Testing Mode')
+            .setDesc('Removes the normal 200-file limit during scraping operations. Use for testing with large datasets.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.performanceTesting?.enabled ?? false)
+                .onChange(async (value) => {
+                    if (!this.plugin.settings.performanceTesting) {
+                        this.plugin.settings.performanceTesting = {
+                            enabled: false,
+                            maxFiles: 0,
+                            showWarnings: true
+                        };
+                    }
+                    this.plugin.settings.performanceTesting.enabled = value;
+                    await this.plugin.saveSettings();
+                    this.display(); // Refresh to show/hide dependent settings
+                }));
+
+        // Show dependent settings only when performance mode is enabled
+        if (this.plugin.settings.performanceTesting?.enabled) {
+            // Max files setting
+            new Setting(containerEl)
+                .setName('Maximum Files to Process')
+                .setDesc('Maximum number of files to process in performance mode. Set to 0 for unlimited.')
+                .addText(text => text
+                    .setPlaceholder('0')
+                    .setValue(String(this.plugin.settings.performanceTesting?.maxFiles ?? 0))
+                    .onChange(async (value) => {
+                        const maxFiles = parseInt(value) || 0;
+                        if (!this.plugin.settings.performanceTesting) {
+                            this.plugin.settings.performanceTesting = {
+                                enabled: false,
+                                maxFiles: 0,
+                                showWarnings: true
+                            };
+                        }
+                        this.plugin.settings.performanceTesting.maxFiles = maxFiles;
+                        await this.plugin.saveSettings();
+                    }));
+
+            // Show warnings toggle
+            new Setting(containerEl)
+                .setName('Show Performance Warnings')
+                .setDesc('Display console warnings when performance testing mode is active.')
+                .addToggle(toggle => toggle
+                    .setValue(this.plugin.settings.performanceTesting?.showWarnings ?? true)
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.performanceTesting) {
+                            this.plugin.settings.performanceTesting = {
+                                enabled: false,
+                                maxFiles: 0,
+                                showWarnings: true
+                            };
+                        }
+                        this.plugin.settings.performanceTesting.showWarnings = value;
+                        await this.plugin.saveSettings();
+                    }));
+
+            // Status indicator
+            const statusText = this.plugin.settings.performanceTesting.maxFiles > 0 
+                ? `Processing up to ${this.plugin.settings.performanceTesting.maxFiles} files`
+                : 'Processing unlimited files';
+            
+            const statusEl = containerEl.createEl('div', {
+                cls: 'oom-notice oom-notice--info'
+            });
+            statusEl.createEl('span', { 
+                text: `⚠️ Performance mode active: ${statusText}`
+            });
+        }
+
+        // Add section border after performance testing settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+
         containerEl.scrollTop = prevScroll;
         if (focusSelector) {
             const toFocus = containerEl.querySelector(focusSelector) as HTMLElement;
@@ -1322,8 +1394,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     }
 
     private addJournalStructureSettings(containerEl: HTMLElement) {
-        containerEl.createEl('h2', { text: 'Journal Structure' });
-        
         // Journal Structure settings button
         new Setting(containerEl)
             .setName('Journal Structure Settings')

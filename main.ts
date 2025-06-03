@@ -371,6 +371,27 @@ export default class DreamMetricsPlugin extends Plugin {
             this.logger?.debug('UI', 'No preview element found, skipping project note view update');
             return;
         }
+
+        // Check if we're viewing the OneiroMetrics project note
+        const currentFile = view.file;
+        const projectNotePath = getProjectNotePath(this.settings);
+        const isProjectNote = currentFile && projectNotePath && currentFile.path === projectNotePath;
+
+        // Find the markdown-preview-view element and manage the oom class
+        const markdownPreviewView = previewEl.querySelector('.markdown-preview-view') as HTMLElement;
+        if (markdownPreviewView) {
+            const hasClass = markdownPreviewView.hasClass('oom-project-note-view');
+            
+            if (isProjectNote && !hasClass) {
+                // Only add if we're viewing the project note and it doesn't already have the class
+                markdownPreviewView.addClass('oom-project-note-view');
+                this.logger?.debug('UI', 'Added oom-project-note-view class to markdown-preview-view');
+            } else if (!isProjectNote && hasClass) {
+                // Only remove if we're not viewing the project note and it has the class
+                markdownPreviewView.removeClass('oom-project-note-view');
+                this.logger?.debug('UI', 'Removed oom-project-note-view class from markdown-preview-view');
+            }
+        }
         
         // Set container for event handlers and content toggler
         this.container = previewEl;
@@ -424,15 +445,29 @@ export default class DreamMetricsPlugin extends Plugin {
         // Update the logger
         this.logger.configure(level);
         
-        // Update settings
+        // Update settings explicitly
+        if (!this.settings.logging) {
+            this.settings.logging = {
+                level: level,
+                maxSize: 1024 * 1024,
+                maxBackups: 3
+            };
+        } else {
+            this.settings.logging.level = level;
+        }
+        
+        // Update settings through settings manager
         this.settingsManager.updateLogConfig(
             level,
             this.settings.logging?.maxSize || 1024 * 1024,
             this.settings.logging?.maxBackups || 3
         );
         
-        // Save settings
+        // Save settings explicitly
         this.saveSettings();
+        
+        // Log the change for debugging
+        safeLogger.info('Plugin', `Log level changed to: ${level}`);
         
         // Update UI if needed
         this.updateProjectNoteView(level);

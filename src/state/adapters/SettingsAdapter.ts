@@ -78,6 +78,17 @@ export class SettingsAdapter {
         level: this.getLogLevel(settings),
         maxSize: settings.logging?.maxSize || settings.logging?.maxLogSize || 1024 * 1024, // 1MB default
         maxBackups: settings.logging?.maxBackups || 3,
+      },
+      
+      // Test data settings
+      testDataFolder: settings.testDataFolder || 'Test Data/Dreams',
+      testDataTemplate: settings.testDataTemplate || '',
+      
+      // Performance testing settings
+      performanceTesting: {
+        enabled: settings.performanceTesting?.enabled ?? false,
+        maxFiles: settings.performanceTesting?.maxFiles ?? 0, // 0 = unlimited
+        showWarnings: settings.performanceTesting?.showWarnings ?? true
       }
     };
     

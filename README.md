@@ -12,6 +12,7 @@
 ### Table of Contents
 
 - [Features](#features)
+- [Journal Structure Check](#journal-structure-check)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
 - [Settings](#settings)
@@ -25,16 +26,19 @@
 
 ## Features
 
-- Track customizable dream metrics (e.g., sensory detail, emotional recall)
-- Filter entries by date with intuitive dropdowns and calendar
-- Favorites system for custom date ranges
-- Summary tables and visualizations
-- Export data for further analysis
-- High-performance scraping handles thousands of entries efficiently (564 entries/second)
-- Accessibility and keyboard navigation
-- Mobile-optimized, responsive UI
-- Backup system for your data
-- Powerful logging and debug tools
+- **Comprehensive Metrics Tracking:** Track customizable dream metrics with flexible scoring systems (e.g., sensory detail, emotional recall, lucidity levels)
+- **Advanced Date Filtering:** Filter entries by date with intuitive dropdowns, calendar selection, and custom date ranges
+- **Favorites System:** Save and quickly access your most-used date ranges and filtering preferences
+- **Rich Visualizations:** Summary tables, charts, and statistical analysis of your dream patterns
+- **Data Export:** Export filtered data for further analysis in external tools
+- **High-Performance Processing:** Efficiently handles large datasets - tested at 564 entries/second with thousands of dream entries
+- **Template System:** Create sophisticated dream journal templates with dynamic placeholders like `{{date}}`, `{{date-long}}`, `{{date-month-day}}`, and `{{date-ref}}`
+- **Templater Integration:** Full support for [Templater](https://github.com/SilentVoid13/Templater) plugin with fallback compatibility
+- **Journal Structure Validation:** Automated checking and validation of dream journal entry formats
+- **Accessibility & Mobile:** Complete keyboard navigation support and mobile-optimized responsive design
+- **Robust Backup System:** Automatic backups with configurable retention and recovery options
+- **Advanced Debugging:** Comprehensive logging system with multiple verbosity levels and performance monitoring
+- **Test Suite:** Built-in testing utilities for data generation, performance benchmarking, and system validation
 
 <p align="center">
   <img src="docs/images/oom-metrics-note-001.png" alt="A screenshot of the OneiroMetrics metrics view" width="600"/>

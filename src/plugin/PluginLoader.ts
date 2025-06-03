@@ -340,12 +340,14 @@ export class PluginLoader {
                     settings.logging.maxSize || settings.logging.maxLogSize,
                     settings.logging.maxBackups
                 );
+                safeLogger.info('Plugin', `Logger configured with level: ${settings.logging.level}`);
             } else {
                 logger.configure(
                     DEFAULT_LOGGING.level,
                     DEFAULT_LOGGING.maxSize,
                     DEFAULT_LOGGING.maxBackups
                 );
+                safeLogger.warn('Plugin', `No logging settings found, using defaults: ${DEFAULT_LOGGING.level}`);
             }
             
             // Update the global logger with the configured instance
@@ -355,6 +357,12 @@ export class PluginLoader {
             // Update the logger in the registry with the fully configured version
             upgradeService(SERVICE_NAMES.LOGGER, logger);
             globalLogger.debug('DreamMetricsPlugin', 'Logger initialized and registered with registry');
+            
+            // Force re-configuration to ensure settings are applied
+            if (settings.logging?.level) {
+                plugin.setLogLevel(settings.logging.level);
+                globalLogger.info('Plugin', `Log level enforced during startup: ${settings.logging.level}`);
+            }
             
             // Initialize the log viewer UI
             const logUIComponents = initializeLogUI(this.plugin);
@@ -464,15 +472,21 @@ export class PluginLoader {
                     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
                     if (view && view.getMode() === 'preview') {
                         const file = view.file;
-                        if (file && file.path === getProjectNotePath(settings)) {
+                        const projectNotePath = getProjectNotePath(settings);
+                        const isProjectNote = file && projectNotePath && file.path === projectNotePath;
+                        
+                        if (isProjectNote) {
                             safeLogger.debug('Events', 'Metrics note view detected, updating project note view');
-                            // Call updateProjectNoteView which properly sets up event handlers
-                            if (typeof plugin.updateProjectNoteView === 'function') {
-                                plugin.updateProjectNoteView();
-                            } else {
-                                // Fallback to direct event listener attachment
-                                plugin.attachProjectNoteEventListeners();
-                            }
+                        } else {
+                            safeLogger.debug('Events', 'Non-metrics note view detected, updating view to remove project note styling');
+                        }
+                        
+                        // Always call updateProjectNoteView to manage the oom-project-note-view class
+                        if (typeof plugin.updateProjectNoteView === 'function') {
+                            plugin.updateProjectNoteView();
+                        } else if (isProjectNote) {
+                            // Fallback to direct event listener attachment only for project notes
+                            plugin.attachProjectNoteEventListeners();
                         }
                     }
                 }, 500); // 500ms delay to ensure content is rendered
@@ -495,11 +509,16 @@ export class PluginLoader {
                     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                     if (activeView && activeView.getMode() === 'preview') {
                         const file = activeView.file;
-                        if (file && file.path === getProjectNotePath(settings)) {
+                        const projectNotePath = getProjectNotePath(settings);
+                        const isProjectNote = file && projectNotePath && file.path === projectNotePath;
+                        
+                        if (isProjectNote) {
                             safeLogger.debug('Events', 'Metrics note already open on startup, updating project note view');
-                            if (typeof plugin.updateProjectNoteView === 'function') {
-                                plugin.updateProjectNoteView();
-                            }
+                        }
+                        
+                        // Always call updateProjectNoteView to manage the oom-project-note-view class
+                        if (typeof plugin.updateProjectNoteView === 'function') {
+                            plugin.updateProjectNoteView();
                         }
                     }
                 }, 1000);

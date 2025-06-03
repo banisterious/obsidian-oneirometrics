@@ -1083,8 +1083,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         if (this.selectionMode === 'folder') {
             selectorSection.createEl('h4', { text: 'Selected Folder' });
             selectorSection.createEl('p', { 
-                text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)',
-                cls: 'oom-section-helper'
+                text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files, configurable in Test Suite → Utilities)',
+                cls: 'oom-modal-helper' 
             });
             
             // Replace placeholder with actual folder selector
@@ -1166,8 +1166,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
             if (value === 'folder') {
                 selectorSection.createEl('h4', { text: 'Selected Folder' });
                 selectorSection.createEl('p', { 
-                    text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files)',
-                    cls: 'oom-section-helper'
+                    text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files, configurable in Test Suite → Utilities)',
+                    cls: 'oom-modal-helper' 
                 });
                 
                 // Add folder selector
@@ -1281,6 +1281,12 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         templateSection.createEl('p', { 
             text: 'Create and manage journal templates using the unified template wizard.' 
+        });
+        
+        // Add placeholder documentation
+        templateSection.createEl('p', {
+            text: 'When creating templates, use placeholders for dynamic content: {{date}} (2025-01-15), {{date-long}} (January 15, 2025), {{date-month-day}} (January 15), {{date-compact}} / {{date-ref}} (20250115), {{title}}, {{content}}, {{metrics}}, or individual metric names like {{Sensory Detail}}.',
+            cls: 'oom-journal-structure-description'
         });
         
         // Get existing templates for display
