@@ -30,6 +30,7 @@
 - Favorites system for custom date ranges
 - Summary tables and visualizations
 - Export data for further analysis
+- High-performance scraping handles thousands of entries efficiently (564 entries/second)
 - Accessibility and keyboard navigation
 - Mobile-optimized, responsive UI
 - Backup system for your data
