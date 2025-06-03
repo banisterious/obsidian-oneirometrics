@@ -198,11 +198,14 @@ export interface DreamMetricsSettings {
     /** Callout name to identify dream entries */
     calloutName: string;
     
-    /** Callout name to identify journal entries */
+    /** Journal callout name (default: 'journal') */
     journalCalloutName?: string;
     
-    /** Callout name to identify dream diary entries */
+    /** Dream diary callout name (default: 'dream-diary') */
     dreamDiaryCalloutName?: string;
+    
+    /** Metrics callout name (default: 'dream-metrics') */
+    metricsCalloutName?: string;
     
     /** Date handling configuration */
     dateHandling?: DateHandlingConfig;

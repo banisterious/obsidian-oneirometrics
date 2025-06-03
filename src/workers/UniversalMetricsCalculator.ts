@@ -143,16 +143,57 @@ export class UniversalMetricsCalculator {
             return journalStructure.structures;
         }
         
-        // Fallback to default structures if none configured
-        this.logger?.debug('Structure', 'Using default journal structures', {
-            structures: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.map(s => ({ 
+        // NEW: Build dynamic structures from callout settings
+        const journalCalloutName = this.settings.journalCalloutName || 'journal-entry';
+        const dreamDiaryCalloutName = this.settings.dreamDiaryCalloutName || 'dream-diary';
+        const metricsCalloutName = this.settings.metricsCalloutName || 'dream-metrics';
+        
+        // Create structures for both journal-entry and av-journal based on user settings
+        const dynamicStructures: CalloutStructure[] = [
+            {
+                id: 'dynamic-journal-entry-structure',
+                name: 'Dynamic Journal Entry Structure',
+                description: `Dynamic structure using ${journalCalloutName} → ${dreamDiaryCalloutName} → ${metricsCalloutName}`,
+                type: 'nested',
+                rootCallout: journalCalloutName,
+                childCallouts: [dreamDiaryCalloutName],
+                metricsCallout: metricsCalloutName,
+                dateFormat: ['MMMM d, yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'],
+                requiredFields: [],
+                optionalFields: []
+            }
+        ];
+        
+        // Also add av-journal structure if it's different from the main one
+        if (journalCalloutName !== 'av-journal') {
+            dynamicStructures.push({
+                id: 'dynamic-av-journal-structure',
+                name: 'Dynamic AV Journal Structure',
+                description: `Dynamic AV Journal structure using av-journal → ${dreamDiaryCalloutName} → ${metricsCalloutName}`,
+                type: 'nested',
+                rootCallout: 'av-journal',
+                childCallouts: [dreamDiaryCalloutName],
+                metricsCallout: metricsCalloutName,
+                dateFormat: ['MMMM d, yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'],
+                requiredFields: [],
+                optionalFields: []
+            });
+        }
+        
+        this.logger?.debug('Structure', 'Built dynamic journal structures from callout settings', {
+            journalCalloutName,
+            dreamDiaryCalloutName,
+            metricsCalloutName,
+            structures: dynamicStructures.map(s => ({ 
                 name: s.name, 
                 rootCallout: s.rootCallout,
                 childCallouts: s.childCallouts,
+                metricsCallout: s.metricsCallout,
                 id: s.id
             }))
         });
-        return DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures;
+        
+        return dynamicStructures;
     }
 
     /**
