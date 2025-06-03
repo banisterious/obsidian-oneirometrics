@@ -194,7 +194,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add OneiroMetrics Hub command (always available)
         this.addCommand({
             id: 'open-oneirometrics-hub',
-            name: 'OneiroMetrics: Open Hub',
+            name: 'Open Hub',
             callback: () => {
                 const modalsManager = new ModalsManager(this.app, this, this.logger);
                 modalsManager.openHubModal();
@@ -204,7 +204,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add Unified Test Suite Modal command (always available)
         this.addCommand({
             id: 'open-unified-test-suite',
-            name: 'OneiroMetrics: Open Unified Test Suite',
+            name: 'Open Unified Test Suite',
             callback: () => {
                 new UnifiedTestSuiteModal(this.app, this).open();
             }

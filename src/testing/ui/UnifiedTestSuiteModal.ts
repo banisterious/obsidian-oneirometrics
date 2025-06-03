@@ -475,6 +475,18 @@ export class UnifiedTestSuiteModal extends Modal {
         this.createUtilityButton(cleanupSection, 'Reset Test Environment', 'refresh-cw', () => {
             this.resetTestEnvironment();
         });
+        
+        // Logging & Diagnostics utilities
+        const loggingSection = utilitiesContainer.createDiv({ cls: 'unified-test-suite-utility-section' });
+        loggingSection.createEl('h3', { text: 'Logging & Diagnostics' });
+        
+        this.createUtilityButton(loggingSection, 'Open Log Viewer', 'file-text', () => {
+            this.openLogViewer();
+        });
+        
+        this.createUtilityButton(loggingSection, 'Export Logs to File', 'download', () => {
+            this.exportLogsToFile();
+        });
     }
     
     // Help content
@@ -751,6 +763,58 @@ The Unified Test Suite consolidates all OneiroMetrics testing functionality into
         
         if (this.selectedTab === 'dashboard') {
             this.loadDashboardContent();
+        }
+    }
+    
+    private openLogViewer() {
+        try {
+            const { LogViewerModal } = require('../../logging/ui/LogViewerModal');
+            const { getService, SERVICE_NAMES } = require('../../state/ServiceRegistry');
+            const logger = getService(SERVICE_NAMES.LOGGER);
+            const memoryAdapter = logger?.memoryAdapter;
+            
+            if (memoryAdapter) {
+                new LogViewerModal(this.app, memoryAdapter).open();
+            } else {
+                new Notice('Log viewer not available - no memory adapter found');
+            }
+        } catch (error) {
+            new Notice(`Failed to open log viewer: ${(error as Error).message}`);
+            this.logger.error('Failed to open log viewer', (error as Error).message);
+        }
+    }
+    
+    private exportLogsToFile() {
+        try {
+            const { getService, SERVICE_NAMES } = require('../../state/ServiceRegistry');
+            const logger = getService(SERVICE_NAMES.LOGGER);
+            const memoryAdapter = logger?.memoryAdapter;
+            
+            if (memoryAdapter) {
+                const logs = memoryAdapter.getEntries();
+                if (logs.length === 0) {
+                    new Notice('No logs available to export');
+                    return;
+                }
+                
+                const logsJson = JSON.stringify(logs, null, 2);
+                
+                const element = document.createElement('a');
+                element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(logsJson));
+                element.setAttribute('download', `oneirometrics-logs-${new Date().toISOString()}.json`);
+                
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+                
+                new Notice(`OneiroMetrics logs exported (${logs.length} entries)`);
+            } else {
+                new Notice('Export failed - no logs available');
+            }
+        } catch (error) {
+            new Notice(`Failed to export logs: ${(error as Error).message}`);
+            this.logger.error('Failed to export logs', (error as Error).message);
         }
     }
 } 
