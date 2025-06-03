@@ -39,7 +39,7 @@ import { ContentToggler } from '../dom/content';
 import { DreamMetricsSettingTab } from '../../settings';
 
 // Import worker test command helpers
-import { addWorkerTestCommand } from '../workers/ui/WorkerTestCommand';
+// import { addWorkerTestCommand } from '../workers/ui/WorkerTestCommand';
 
 // Import safeLogger directly from the module
 import safeLogger from '../logging/safe-logger';
@@ -516,19 +516,8 @@ export class PluginLoader {
      * This is a stub method that will need to be expanded to include all commands
      */
     private async registerCommands(): Promise<void> {
-        // This is just a stub - would need to implement all the commands from main.ts
-        const plugin = this.plugin as any;
-        
-        // Add Web Worker test command for Phase 1 testing
-        try {
-            addWorkerTestCommand(plugin);
-            safeLogger.info('Commands', 'Web Worker test command registered successfully');
-        } catch (error) {
-            safeLogger.error('Commands', 'Failed to register Web Worker test command', 
-                error instanceof Error ? error : new Error(String(error)));
-        }
-        
-        // Add more commands as needed
+        // Note: Commands are now registered in main.ts onload()
+        // Web Worker testing and logging commands are integrated into Unified Test Suite
     }
 
     /**

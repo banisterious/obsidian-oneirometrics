@@ -115,6 +115,12 @@ export class UnifiedTestSuiteModal extends Modal {
         this.createDashboardTab();
         
         // Core testing categories
+        this.createTestGroup('System Diagnostics', [
+            { id: 'test-logging', name: 'Logging', description: 'Test logging infrastructure and manage log data' },
+            { id: 'test-web-workers', name: 'Web Workers', description: 'Test web worker functionality' },
+            { id: 'test-state-management', name: 'State Management', description: 'Test plugin state handling' }
+        ]);
+        
         this.createTestGroup('Performance Testing', [
             { id: 'performance-scraping', name: 'Scraping Performance', description: 'Test data scraping performance with various dataset sizes' },
             { id: 'performance-memory', name: 'Memory Analysis', description: 'Memory usage and leak detection' },
@@ -132,12 +138,6 @@ export class UnifiedTestSuiteModal extends Modal {
             { id: 'test-journal-structure', name: 'Journal Structure', description: 'Validate journal structure and parsing' },
             { id: 'test-data-integrity', name: 'Data Integrity', description: 'Verify data consistency and accuracy' },
             { id: 'test-settings', name: 'Settings Validation', description: 'Test plugin settings and configuration' }
-        ]);
-        
-        this.createTestGroup('System Diagnostics', [
-            { id: 'test-web-workers', name: 'Web Workers', description: 'Test web worker functionality' },
-            { id: 'test-logging', name: 'Logging System', description: 'Test logging infrastructure' },
-            { id: 'test-state-management', name: 'State Management', description: 'Test plugin state handling' }
         ]);
         
         // Utilities and tools
@@ -331,6 +331,12 @@ export class UnifiedTestSuiteModal extends Modal {
             cls: 'unified-test-suite-content-header' 
         });
         
+        // Special handling for logging tab
+        if (testId === 'test-logging') {
+            this.loadLoggingContent();
+            return;
+        }
+        
         // Generic component test interface
         this.contentContainer.createEl('p', {
             text: `Test interface for ${testTitle}. This integrates the functionality from the individual test modal.`,
@@ -435,7 +441,57 @@ export class UnifiedTestSuiteModal extends Modal {
         });
     }
     
-    // Utilities content
+    // Logging content (moved from utilities)
+    private loadLoggingContent() {
+        this.contentContainer.createEl('p', {
+            text: 'Manage logging infrastructure, view logs, and export log data.',
+            cls: 'unified-test-suite-content-description'
+        });
+        
+        // Logging test controls
+        const testingContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-logging-testing' });
+        testingContainer.createEl('h3', { text: 'Logging System Tests' });
+        
+        this.createTestButton(testingContainer, 'Test Log Levels', () => {
+            this.testLogLevels();
+        });
+        
+        this.createTestButton(testingContainer, 'Test Memory Adapter', () => {
+            this.testMemoryAdapter();
+        });
+        
+        this.createTestButton(testingContainer, 'Test Log Persistence', () => {
+            this.testLogPersistence();
+        });
+        
+        // Log management utilities
+        const managementContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-log-management' });
+        managementContainer.createEl('h3', { text: 'Log Management' });
+        
+        this.createUtilityButton(managementContainer, 'Open Log Viewer', 'file-text', () => {
+            this.openLogViewer();
+        });
+        
+        this.createUtilityButton(managementContainer, 'Export Logs to File', 'download', () => {
+            this.exportLogsToFile();
+        });
+        
+        this.createUtilityButton(managementContainer, 'Copy Recent Logs to Clipboard', 'copy', () => {
+            this.copyRecentLogsToClipboard();
+        });
+        
+        this.createUtilityButton(managementContainer, 'Clear Logs', 'trash', () => {
+            this.clearLogs();
+        });
+        
+        // Log statistics
+        const statsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-log-stats' });
+        statsContainer.createEl('h3', { text: 'Log Statistics' });
+        
+        this.loadLogStatistics(statsContainer);
+    }
+    
+    // Utilities content (updated to remove logging section)
     private loadUtilitiesContent() {
         this.contentContainer.empty();
         
@@ -474,18 +530,6 @@ export class UnifiedTestSuiteModal extends Modal {
         
         this.createUtilityButton(cleanupSection, 'Reset Test Environment', 'refresh-cw', () => {
             this.resetTestEnvironment();
-        });
-        
-        // Logging & Diagnostics utilities
-        const loggingSection = utilitiesContainer.createDiv({ cls: 'unified-test-suite-utility-section' });
-        loggingSection.createEl('h3', { text: 'Logging & Diagnostics' });
-        
-        this.createUtilityButton(loggingSection, 'Open Log Viewer', 'file-text', () => {
-            this.openLogViewer();
-        });
-        
-        this.createUtilityButton(loggingSection, 'Export Logs to File', 'download', () => {
-            this.exportLogsToFile();
         });
     }
     
@@ -705,7 +749,7 @@ The Unified Test Suite consolidates all OneiroMetrics testing functionality into
             'test-data-integrity': 'Data Integrity Test',
             'test-settings': 'Settings Validation Test',
             'test-web-workers': 'Web Workers Test',
-            'test-logging': 'Logging System Test',
+            'test-logging': 'Logging',
             'test-state-management': 'State Management Test'
         };
         
@@ -815,6 +859,110 @@ The Unified Test Suite consolidates all OneiroMetrics testing functionality into
         } catch (error) {
             new Notice(`Failed to export logs: ${(error as Error).message}`);
             this.logger.error('Failed to export logs', (error as Error).message);
+        }
+    }
+    
+    // Logging-specific methods
+    private testLogLevels() {
+        new Notice('Testing log levels...');
+        // Implementation would test different log levels
+    }
+    
+    private testMemoryAdapter() {
+        try {
+            const { getService, SERVICE_NAMES } = require('../../state/ServiceRegistry');
+            const logger = getService(SERVICE_NAMES.LOGGER);
+            const memoryAdapter = logger?.memoryAdapter;
+            
+            if (memoryAdapter) {
+                const entries = memoryAdapter.getEntries();
+                new Notice(`Memory adapter test successful - ${entries.length} log entries found`);
+            } else {
+                new Notice('Memory adapter test failed - no adapter found');
+            }
+        } catch (error) {
+            new Notice(`Memory adapter test failed: ${(error as Error).message}`);
+        }
+    }
+    
+    private testLogPersistence() {
+        new Notice('Testing log persistence...');
+        // Implementation would test log persistence mechanisms
+    }
+    
+    private copyRecentLogsToClipboard() {
+        try {
+            const { getService, SERVICE_NAMES } = require('../../state/ServiceRegistry');
+            const logger = getService(SERVICE_NAMES.LOGGER);
+            const memoryAdapter = logger?.memoryAdapter;
+            
+            if (memoryAdapter) {
+                const logs = memoryAdapter.getEntries();
+                if (logs.length === 0) {
+                    new Notice('No logs available to copy');
+                    return;
+                }
+                
+                // Get recent logs (last 50)
+                const recentLogs = logs.slice(-50);
+                const logsText = recentLogs.map(log => 
+                    `[${log.timestamp}] ${log.level.toUpperCase()}: ${log.message}`
+                ).join('\n');
+                
+                navigator.clipboard.writeText(logsText);
+                new Notice(`${recentLogs.length} recent log entries copied to clipboard`);
+            } else {
+                new Notice('Copy failed - no logs available');
+            }
+        } catch (error) {
+            new Notice(`Failed to copy logs: ${(error as Error).message}`);
+        }
+    }
+    
+    private clearLogs() {
+        try {
+            const { getService, SERVICE_NAMES } = require('../../state/ServiceRegistry');
+            const logger = getService(SERVICE_NAMES.LOGGER);
+            const memoryAdapter = logger?.memoryAdapter;
+            
+            if (memoryAdapter) {
+                const entriesCount = memoryAdapter.getEntries().length;
+                memoryAdapter.clear();
+                new Notice(`${entriesCount} log entries cleared`);
+            } else {
+                new Notice('Clear failed - no memory adapter found');
+            }
+        } catch (error) {
+            new Notice(`Failed to clear logs: ${(error as Error).message}`);
+        }
+    }
+    
+    private loadLogStatistics(container: HTMLElement) {
+        try {
+            const { getService, SERVICE_NAMES } = require('../../state/ServiceRegistry');
+            const logger = getService(SERVICE_NAMES.LOGGER);
+            const memoryAdapter = logger?.memoryAdapter;
+            
+            if (memoryAdapter) {
+                const logs = memoryAdapter.getEntries();
+                const stats = {
+                    total: logs.length,
+                    debug: logs.filter(l => l.level === 'debug').length,
+                    info: logs.filter(l => l.level === 'info').length,
+                    warn: logs.filter(l => l.level === 'warn').length,
+                    error: logs.filter(l => l.level === 'error').length
+                };
+                
+                this.createStatWidget(container, 'Total Logs', stats.total.toString());
+                this.createStatWidget(container, 'Debug', stats.debug.toString());
+                this.createStatWidget(container, 'Info', stats.info.toString());
+                this.createStatWidget(container, 'Warnings', stats.warn.toString());
+                this.createStatWidget(container, 'Errors', stats.error.toString());
+            } else {
+                container.createEl('p', { text: 'No logging statistics available' });
+            }
+        } catch (error) {
+            container.createEl('p', { text: 'Failed to load logging statistics' });
         }
     }
 } 

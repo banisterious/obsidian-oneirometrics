@@ -201,57 +201,17 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         });
 
-        // Add Unified Test Suite Modal command (always available)
+        // Add Unified Test Suite Modal command (only available when logging is enabled)
         this.addCommand({
             id: 'open-unified-test-suite',
             name: 'Open Unified Test Suite',
-            callback: () => {
-                new UnifiedTestSuiteModal(this.app, this).open();
-            }
-        });
-
-        // Add Log Viewer command (always available)
-        this.addCommand({
-            id: 'open-log-viewer',
-            name: 'OneiroMetrics: Open Log Viewer',
-            callback: () => {
-                const { LogViewerModal } = require('./src/logging/ui/LogViewerModal');
-                const { getService, SERVICE_NAMES } = require('./src/state/ServiceRegistry');
-                const logger = getService(SERVICE_NAMES.LOGGER);
-                const memoryAdapter = logger?.memoryAdapter;
-                if (memoryAdapter) {
-                    new LogViewerModal(this.app, memoryAdapter).open();
-                } else {
-                    new Notice('Log viewer not available - no memory adapter found');
+            checkCallback: (checking: boolean) => {
+                const logLevel = this.settings?.logging?.level || 'off';
+                if (logLevel === 'off') return false;
+                if (!checking) {
+                    new UnifiedTestSuiteModal(this.app, this).open();
                 }
-            }
-        });
-
-        // Add Export Logs command (always available)
-        this.addCommand({
-            id: 'export-logs',
-            name: 'OneiroMetrics: Export Logs to File',
-            callback: () => {
-                const { getService, SERVICE_NAMES } = require('./src/state/ServiceRegistry');
-                const logger = getService(SERVICE_NAMES.LOGGER);
-                const memoryAdapter = logger?.memoryAdapter;
-                if (memoryAdapter) {
-                    const logs = memoryAdapter.getEntries();
-                    const logsJson = JSON.stringify(logs, null, 2);
-                    
-                    const element = document.createElement('a');
-                    element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(logsJson));
-                    element.setAttribute('download', `oneirometrics-logs-${new Date().toISOString()}.json`);
-                    
-                    element.style.display = 'none';
-                    document.body.appendChild(element);
-                    element.click();
-                    document.body.removeChild(element);
-                    
-                    new Notice('OneiroMetrics logs exported');
-                } else {
-                    new Notice('Export failed - no logs available');
-                }
+                return true;
             }
         });
     }

@@ -29,9 +29,9 @@ export function initializeLogUI(plugin: Plugin): {
   // Add the memory adapter to the log manager
   LogManager.getInstance().addAdapter(memoryAdapter);
   
-  // Create and register commands
+  // Create commands object but don't register commands - logging functionality is now in Unified Test Suite
   const logCommands = new LogCommands(plugin, memoryAdapter);
-  logCommands.registerCommands();
+  // logCommands.registerCommands(); // Commented out - commands integrated into Unified Test Suite
   
   // Ribbon icon removed - log viewer accessible via command palette
   
