@@ -759,10 +759,16 @@ export class UniversalMetricsCalculator {
         if (this.settings.selectionMode === 'folder' && this.settings.selectedFolder) {
             const folder = this.app.vault.getAbstractFileByPath(this.settings.selectedFolder);
             if (folder && 'children' in folder) {
+                const excludedNotes = this.settings.excludedNotes || [];
+                const excludedSubfolders = this.settings.excludedSubfolders || [];
+                
                 const gatherFiles = (folder: any, acc: string[]) => {
                     for (const child of folder.children) {
                         if (child && 'extension' in child && child.extension === 'md') {
-                            acc.push(child.path);
+                            // Check if this file is in the excluded notes list
+                            if (!excludedNotes.includes(child.path)) {
+                                acc.push(child.path);
+                            }
                             
                             // Check performance testing settings for file limits
                             const perfSettings = this.settings.performanceTesting;
@@ -779,7 +785,10 @@ export class UniversalMetricsCalculator {
                             }
                             // If performance mode with maxFiles = 0 (unlimited), no limit
                         } else if (child && 'children' in child) {
-                            gatherFiles(child, acc);
+                            // Check if this subfolder is excluded before recursing into it
+                            if (!excludedSubfolders.includes(child.path)) {
+                                gatherFiles(child, acc);
+                            }
                             
                             // Check limits after recursive call too
                             const perfSettings = this.settings.performanceTesting;
@@ -823,6 +832,11 @@ export class UniversalMetricsCalculator {
                     if (acc.length > 200) {
                         this.logger?.info('FileLimit', `Found ${acc.length} files, limited to 200 (enable performance testing mode to process more)`);
                     }
+                }
+                
+                // Log exclusion information
+                if (excludedNotes.length > 0 || excludedSubfolders.length > 0) {
+                    this.logger?.info('Exclusions', `Applied exclusions - Notes: ${excludedNotes.length}, Subfolders: ${excludedSubfolders.length}`);
                 }
             }
             

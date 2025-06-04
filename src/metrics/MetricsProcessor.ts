@@ -54,10 +54,16 @@ export class MetricsProcessor {
                 // Recursively gather markdown files from the selected folder
                 const folder = this.app.vault.getAbstractFileByPath(selectedFolderPath);
                 if (folder && folder instanceof TFolder) {
+                    const excludedNotes = this.settings.excludedNotes || [];
+                    const excludedSubfolders = this.settings.excludedSubfolders || [];
+                    
                     const gatherFiles = (folder: TFolder, acc: string[]) => {
                         for (const child of folder.children) {
                             if (child instanceof TFile && child.extension === 'md') {
-                                acc.push(child.path);
+                                // Check if this file is in the excluded notes list
+                                if (!excludedNotes.includes(child.path)) {
+                                    acc.push(child.path);
+                                }
                                 
                                 // Check performance testing settings for file limits
                                 const perfSettings = this.settings.performanceTesting;
@@ -74,7 +80,10 @@ export class MetricsProcessor {
                                 }
                                 // If performance mode with maxFiles = 0 (unlimited), no limit
                             } else if (child instanceof TFolder) {
-                                gatherFiles(child, acc);
+                                // Check if this subfolder is excluded before recursing into it
+                                if (!excludedSubfolders.includes(child.path)) {
+                                    gatherFiles(child, acc);
+                                }
                                 
                                 // Check limits after recursive call too
                                 const perfSettings = this.settings.performanceTesting;
@@ -118,6 +127,11 @@ export class MetricsProcessor {
                         if (acc.length > 200) {
                             this.logger?.info('FileLimit', `Found ${acc.length} files, limited to 200 (enable performance testing mode to process more)`);
                         }
+                    }
+                    
+                    // Log exclusion information
+                    if (excludedNotes.length > 0 || excludedSubfolders.length > 0) {
+                        this.logger?.info('Exclusions', `Applied exclusions - Notes: ${excludedNotes.length}, Subfolders: ${excludedSubfolders.length}`);
                     }
                 }
                 // Exclude files if user previewed and unchecked them
