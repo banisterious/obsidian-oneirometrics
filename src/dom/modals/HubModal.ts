@@ -13,6 +13,8 @@ import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../
 import safeLogger from '../../logging/safe-logger';
 import { getLogger } from '../../logging';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
+import { getProjectNotePath, setProjectNotePath } from '../../utils/settings-helpers';
+import { FileSuggest } from '../../../settings';
 
 // Interface for grouped metrics
 interface MetricGroup {
@@ -1090,66 +1092,24 @@ This metric assesses **how well your memory of the dream holds up and remains co
             text: 'Extract dream metrics from journal entries.'
         });
         
-        // Mode Selection Section
-        const modeSection = this.contentContainer.createDiv({ cls: 'oom-modal-section' });
+        // OneiroMetrics Note Section (mirrored from Settings - exactly matches Settings style)
+        const projectNoteSection = this.contentContainer.createDiv({ cls: 'oom-modal-section' });
         
-        modeSection.createEl('h4', { text: 'Selection Mode' });
-        modeSection.createEl('p', { 
-            text: 'Choose whether to scrape individual notes or a folder',
-            cls: 'oom-section-helper'
-        });
-        
-        const modeRow = modeSection.createDiv({ cls: 'oom-actions-row' });
-        
-        const modeDropdown = modeRow.createEl('select', { cls: 'oom-dropdown' });
-        modeDropdown.createEl('option', { text: 'Notes', value: 'notes' });
-        modeDropdown.createEl('option', { text: 'Folder', value: 'folder' });
-        modeDropdown.value = this.selectionMode;
-        
-        // File/Folder Selector Section
-        const selectorSection = this.contentContainer.createDiv({ cls: 'oom-modal-section' });
-        
-        if (this.selectionMode === 'folder') {
-            selectorSection.createEl('h4', { text: 'Selected Folder' });
-            selectorSection.createEl('p', { 
-                text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files, configurable in Test Suite → Utilities)',
-                cls: 'oom-modal-helper' 
+        // Create a Setting-style implementation for consistency with Settings tab
+        const projectNoteSetting = new Setting(projectNoteSection)
+            .setName('OneiroMetrics Note')
+            .setDesc('The note where OneiroMetrics tables will be written')
+            .addSearch(search => {
+                search.setPlaceholder('Example: Journals/Dream Diary/Metrics/Metrics.md')
+                    .setValue(getProjectNotePath(this.plugin.settings))
+                    .onChange(async (value) => {
+                        setProjectNotePath(this.plugin.settings, value);
+                        await this.plugin.saveSettings();
+                    });
+                
+                // Add file suggestions - now exactly matches Settings implementation
+                new FileSuggest(this.app, search.inputEl);
             });
-            
-            // Replace placeholder with actual folder selector
-            const folderSelectorContainer = selectorSection.createDiv('oom-folder-selector-container');
-            createFolderAutocomplete({
-                app: this.app,
-                plugin: this.plugin,
-                containerEl: folderSelectorContainer,
-                selectedFolder: this.selectedFolder,
-                onChange: (folder: string) => {
-                    this.selectedFolder = folder;
-                    this.plugin.settings.selectedFolder = folder;
-                    this.plugin.saveSettings();
-                }
-            });
-        } else {
-            selectorSection.createEl('h4', { text: 'Selected Notes' });
-            selectorSection.createEl('p', { 
-                text: 'Notes to search for dream metrics (select one or more)',
-                cls: 'oom-section-helper'
-            });
-            
-            // Replace placeholder with actual notes selector
-            const notesSelectorContainer = selectorSection.createDiv('oom-notes-selector-container');
-            createSelectedNotesAutocomplete({
-                app: this.app,
-                plugin: this.plugin,
-                containerEl: notesSelectorContainer,
-                selectedNotes: this.selectedNotes,
-                onChange: (notes: string[]) => {
-                    this.selectedNotes = notes;
-                    this.plugin.settings.selectedNotes = notes;
-                    this.plugin.saveSettings();
-                }
-            });
-        }
         
         // Progress Section
         const progressSection = this.contentContainer.createDiv({ cls: 'oom-modal-section oom-progress-section' });
@@ -1181,59 +1141,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
         this.openNoteButton.disabled = true;
         
         // Set up event handlers
-        
-        // Mode dropdown change handler
-        modeDropdown.addEventListener('change', (e) => {
-            const value = (e.target as HTMLSelectElement).value as 'notes' | 'folder';
-            this.selectionMode = value;
-            this.plugin.settings.selectionMode = value;
-            this.plugin.saveSettings();
-            
-            // Rebuild the selector section with the new mode
-            selectorSection.empty();
-            
-            if (value === 'folder') {
-                selectorSection.createEl('h4', { text: 'Selected Folder' });
-                selectorSection.createEl('p', { 
-                    text: 'Name of the folder you intend to scrape (e.g. "Journals/YYYY-MM-DD") (max 200 files, configurable in Test Suite → Utilities)',
-                    cls: 'oom-modal-helper' 
-                });
-                
-                // Add folder selector
-                const folderSelectorContainer = selectorSection.createDiv('oom-folder-selector-container');
-                createFolderAutocomplete({
-                    app: this.app,
-                    plugin: this.plugin,
-                    containerEl: folderSelectorContainer,
-                    selectedFolder: this.selectedFolder,
-                    onChange: (folder: string) => {
-                        this.selectedFolder = folder;
-                        this.plugin.settings.selectedFolder = folder;
-                        this.plugin.saveSettings();
-                    }
-                });
-            } else {
-                selectorSection.createEl('h4', { text: 'Selected Notes' });
-                selectorSection.createEl('p', { 
-                    text: 'Notes to search for dream metrics (select one or more)',
-                    cls: 'oom-section-helper'
-                });
-                
-                // Add notes selector
-                const notesSelectorContainer = selectorSection.createDiv('oom-notes-selector-container');
-                createSelectedNotesAutocomplete({
-                    app: this.app,
-                    plugin: this.plugin,
-                    containerEl: notesSelectorContainer,
-                    selectedNotes: this.selectedNotes,
-                    onChange: (notes: string[]) => {
-                        this.selectedNotes = notes;
-                        this.plugin.settings.selectedNotes = notes;
-                        this.plugin.saveSettings();
-                    }
-                });
-            }
-        });
         
         // Scrape button click handler
         this.scrapeButton.addEventListener('click', () => {

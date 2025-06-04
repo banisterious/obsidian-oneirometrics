@@ -1755,34 +1755,7 @@ abstract class BaseSuggest {
     }
 }
 
-class FolderSuggest extends BaseSuggest {
-    getSuggestions(query: string): TFolder[] {
-        const files = this.app.vault.getAllLoadedFiles();
-        const folders: TFolder[] = [];
-        const lowerQuery = query.toLowerCase();
-        
-        files.forEach(file => {
-            if (file instanceof TFolder && file.path.toLowerCase().contains(lowerQuery)) {
-                folders.push(file);
-            }
-        });
-        
-        return folders.slice(0, 1000);
-    }
-
-    renderSuggestion(folder: TFolder, el: HTMLElement) {
-        el.setText(folder.path);
-    }
-
-    selectSuggestion(folder: TFolder) {
-        this.inputEl.value = folder.path;
-        this.inputEl.trigger("input");
-        // Use the inherited close method
-        (this as any).close();
-    }
-}
-
-class FileSuggest extends BaseSuggest {
+export class FileSuggest extends BaseSuggest {
     getSuggestions(query: string): TFile[] {
         const files = this.app.vault.getAllLoadedFiles();
         const markdownFiles: TFile[] = [];
@@ -1805,6 +1778,33 @@ class FileSuggest extends BaseSuggest {
 
     selectSuggestion(file: TFile) {
         this.inputEl.value = file.path;
+        this.inputEl.trigger("input");
+        // Use the inherited close method
+        (this as any).close();
+    }
+}
+
+export class FolderSuggest extends BaseSuggest {
+    getSuggestions(query: string): TFolder[] {
+        const files = this.app.vault.getAllLoadedFiles();
+        const folders: TFolder[] = [];
+        const lowerQuery = query.toLowerCase();
+        
+        files.forEach(file => {
+            if (file instanceof TFolder && file.path.toLowerCase().contains(lowerQuery)) {
+                folders.push(file);
+            }
+        });
+        
+        return folders.slice(0, 1000);
+    }
+
+    renderSuggestion(folder: TFolder, el: HTMLElement) {
+        el.setText(folder.path);
+    }
+
+    selectSuggestion(folder: TFolder) {
+        this.inputEl.value = folder.path;
         this.inputEl.trigger("input");
         // Use the inherited close method
         (this as any).close();
