@@ -61,12 +61,11 @@ OneiroMetrics now includes a powerful journal structure validation system to hel
 ### Using Journal Structure Check
 1. Enable the feature in settings
 2. Create or use the default journal structures
-3. Validate your entries with the `Validate Dream Journal Structure` command
 4. Create templates with the template wizard
 5. Apply templates to new journal entries
 
 ### Templater Integration
-OneiroMetrics now standardizes on Templater as the recommended template engine for dream journals, offering:
+OneiroMetrics now provides Templater integration as an alternative template engine for dream journals, offering:
 
 - **Dynamic Content:** Automatic dates, user prompts, and conditional content
 - **Fallback System:** Templates still work even without Templater installed
@@ -100,12 +99,9 @@ To use Templater integration:
 
 - **Reading View Required:** OneiroMetrics works best in Reading View. If you open a metrics note in Live Preview, you'll see a warning.
 - **Access Settings:**  
-  - In the Dream Journal Manager, click the 'Settings' button.
-  - In your metrics note, click the 'Settings' button at the top.
-  - Use the command palette: `Ctrl/Cmd + P` → "OneiroMetrics Settings".
-  - Right-click the journal icon in the sidebar.
+  - In the Hub modal, click the 'Settings' button.
 
-- **Filtering:** Use the date filter dropdown to quickly view entries from "Yesterday", "This Week", "Last 12 Months", and more. Save your favorite ranges for quick access.
+- **Filtering:** Choose from multiple date filtering options in the dropdown: "All Time", "Today", "Yesterday", "This Week", "This Month", "Last 30 Days", "Last 6 Months", "This Year", and "Last 12 Months". Use the "Date Navigator" button for custom date selection and date range filtering. Save frequently used date ranges as favorites for quick access. All filter selections are automatically saved and restored between sessions.
 
 - **Metrics Table:** View, sort, and analyze your dream data in a responsive table. Use the Readable Line Length toggle for optimal display.
 
@@ -115,24 +111,13 @@ To use Templater integration:
 
 ## Settings
 
-- **Metrics Note Path:** Where your summary table is stored.
+- **OneiroMetrics Note:** Where your summary table is stored.
 - **Selected Notes/Folders:** Choose which notes to analyze.
 - **Metrics:** Add, edit, or remove metrics. Customize names, icons, ranges, and descriptions.
 - **Display:** Toggle readable line length, configure week start day, and view metric descriptions.
 - **Backups:** Enable/disable, set backup folder, and manage backup files.
 - **Logging:** Set log level (Off, Errors, Warn, Info, Debug, Trace).  
   - Logging is **Off** by default. Enable only for troubleshooting.
-
----
-
-## Debugging & Logging
-
-- **Debug Button:**  
-  - Appears only when Logging Level is set to **Debug** in settings.
-  - Use it to reset event listeners, refresh tables, and view diagnostics.
-- **How to Enable:**  
-  - Go to OneiroMetrics settings → Logging → set Logging Level to **Debug**.
-- See [Logging Guide](docs/developer/implementation/logging.md) for advanced usage.
 
 ---
 
