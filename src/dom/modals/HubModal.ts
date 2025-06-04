@@ -8,13 +8,28 @@
 
 import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile, ButtonComponent, DropdownComponent, TextAreaComponent, TextComponent, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
-import { DreamMetric, DateHandlingConfig, DatePlacement } from '../../types/core';
+import { DreamMetric, DateHandlingConfig, DatePlacement, SelectionMode } from '../../types/core';
 import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../../types/journal-check';
 import safeLogger from '../../logging/safe-logger';
 import { getLogger } from '../../logging';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
-import { getProjectNotePath, setProjectNotePath } from '../../utils/settings-helpers';
-import { FileSuggest } from '../../../settings';
+import { 
+    getProjectNotePath, 
+    setProjectNotePath,
+    getSelectedFolder, 
+    setSelectedFolder,
+    getSelectionMode,
+    setSelectionMode
+} from '../../utils/settings-helpers';
+import { FileSuggest, FolderSuggest } from '../../../settings';
+import { 
+    isFolderMode,
+    isNotesMode,
+    areSelectionModesEquivalent,
+    getSelectionModeLabel,
+    normalizeSelectionMode
+} from '../../utils/selection-mode-helpers';
+import { SettingsAdapter } from '../../state/adapters/SettingsAdapter';
 
 // Interface for grouped metrics
 interface MetricGroup {
@@ -1110,6 +1125,82 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 // Add file suggestions - now exactly matches Settings implementation
                 new FileSuggest(this.app, search.inputEl);
             });
+
+        // Selection Mode (moved from Settings - identical implementation)
+        const selectionModeSetting = new Setting(this.contentContainer)
+            .setName('Select Notes/Folders')
+            .setDesc('How to select notes for analyzing')
+            .addDropdown(drop => {
+                drop.addOption('notes', 'Selected Notes');
+                drop.addOption('folder', 'Selected Folder');
+                
+                // Use the UI representation (notes/folder)
+                const settingsAdapter = new SettingsAdapter(this.plugin.settings);
+                const selectionMode = getSelectionMode(this.plugin.settings);
+                // Convert internal mode (manual/automatic) to UI mode (notes/folder)
+                const uiMode = normalizeSelectionMode(selectionMode) === 'manual' ? 'notes' : 'folder';
+                drop.setValue(uiMode);
+                
+                drop.onChange(async (value) => {
+                    // Convert to internal representation (manual/automatic)
+                    // 'notes' -> 'manual', 'folder' -> 'automatic'
+                    const internalMode = value === 'notes' ? 'manual' : 'automatic';
+                    this.plugin.settings.selectionMode = internalMode;
+                    
+                    // Clear irrelevant selection when switching modes
+                    if (isFolderMode(value as SelectionMode)) {
+                        this.plugin.settings.selectedNotes = [];
+                    } else {
+                        setSelectedFolder(this.plugin.settings, '');
+                    }
+                    await this.plugin.saveSettings();
+                    this.loadDreamScrapeContent(); // Refresh the Dream Scrape content to show the updated selection UI
+                });
+            });
+
+        // Dynamic label and field based on selection mode (identical to Settings implementation)
+        const selectionMode = getSelectionMode(this.plugin.settings);
+        // Convert internal mode (manual/automatic) to UI mode (notes/folder)
+        const uiMode = normalizeSelectionMode(selectionMode) === 'manual' ? 'notes' : 'folder';
+        const selectionLabel = getSelectionModeLabel(uiMode);
+        const selectionDesc = this.getSelectionModeDescription(uiMode);
+        
+        const selectionSetting = new Setting(this.contentContainer)
+            .setName(selectionLabel)
+            .setDesc(selectionDesc);
+
+        if (isFolderMode(uiMode as SelectionMode)) {
+            // Use Obsidian's built-in search like Templater (identical to Settings)
+            selectionSetting.addSearch(search => {
+                search.setPlaceholder('Choose folder...')
+                    .setValue(getSelectedFolder(this.plugin.settings))
+                    .onChange(async (value) => {
+                        setSelectedFolder(this.plugin.settings, value);
+                        await this.plugin.saveSettings();
+                    });
+                
+                // Add folder suggestions
+                new FolderSuggest(this.app, search.inputEl);
+            });
+        } else {
+            // Multi-chip note autocomplete (identical to Settings)
+            const searchFieldContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container' });
+            const chipsContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-chips-container' });
+            chipsContainer.style.display = (this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0) ? '' : 'none';
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: searchFieldContainer,
+                selectedNotes: this.plugin.settings.selectedNotes,
+                onChange: (selected) => {
+                    this.plugin.settings.selectedNotes = selected;
+                    chipsContainer.style.display = (selected && selected.length > 0) ? '' : 'none';
+                    this.plugin.saveSettings();
+                }
+            });
+            // Fix: append the search field to the setting's control element
+            selectionSetting.controlEl.appendChild(searchFieldContainer);
+        }
         
         // Progress Section
         const progressSection = this.contentContainer.createDiv({ cls: 'oom-modal-section oom-progress-section' });
@@ -5566,5 +5657,16 @@ Example:
             this.logger.error('Templates', 'Failed to export selected templates:', error as Error);
             new Notice('Failed to export templates. Please try again.');
         }
+    }
+
+    // Helper function to get selection mode description
+    private getSelectionModeDescription(mode: string): string {
+        if (mode === 'notes' || mode === 'manual') {
+            return 'Select individual notes to include in dream metrics';
+        }
+        if (mode === 'folder' || mode === 'automatic') {
+            return 'Select a folder to recursively search for dream metrics';
+        }
+        return 'Choose how to select notes for metrics processing';
     }
 }
