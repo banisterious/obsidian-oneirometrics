@@ -36,10 +36,13 @@
 | **AV-Journal Fix** | ✅ Complete | `[!av-journal]` callouts recognized |
 | **Structure Integration** | ✅ Complete | Hardcoded callouts replaced |
 | **Phase 1 Complete** | ✅ Complete | Core integration functional |
-| **Phase 2 Start** | 🔄 Ready | UI development begins |
-| **Structure Manager UI** | ⏳ Pending | Basic structure management |
-| **Phase 2 Complete** | ⏳ Pending | Full configurability available |
-| **Phase 3 Start** | ⏳ Pending | Advanced features begin |
+| **Phase 2 Start** | ✅ Complete | UI development begins |
+| **Structure Manager UI** | ✅ Complete | Full structure management implemented |
+| **Phase 2 Complete** | ✅ Complete | Full configurability available |
+| **Hub Consolidation** | ✅ Complete | **v0.12.0** - Unified OneiroMetrics Hub |
+| **Date System Overhaul** | ✅ Complete | **v0.12.0** - Complete date formatting rebuild |
+| **Field Architecture Rebuild** | ✅ Complete | **v0.12.0** - Core field systems reconstructed |
+| **Phase 3 Start** | 🔄 In Progress | Advanced features begin |
 | **Auto-Detection** | ⏳ Pending | Structure detection implemented |
 | **Migration Tools** | ⏳ Pending | Content migration capabilities |
 | **Project Complete** | ⏳ Pending | All phases delivered |
@@ -58,9 +61,16 @@
 | 1.3 | Update parsing logic | ✅ **COMPLETE** | Dynamic parent-child relationship detection, structure-aware patterns |
 | 1.4 | Test with existing journals | ✅ **COMPLETE** | Backward compatible, av-journal callouts now recognized |
 | **Phase 2: Structure Management** | | | |
-| 2.1 | Settings UI integration | 🔄 **PLANNED** | Integrate with existing journal structure settings |
-| 2.2 | Structure validation | 🔄 **PLANNED** | Validate structure definitions |
-| 2.3 | User feedback system | 🔄 **PLANNED** | Show which structures are active |
+| 2.1 | Settings UI integration | ✅ **COMPLETE** | Fully integrated with OneiroMetrics Hub (v0.12.0) |
+| 2.2 | Structure validation | ✅ **COMPLETE** | Real-time validation with error/warning display |
+| 2.3 | User feedback system | ✅ **COMPLETE** | Live preview and validation indicators |
+| 2.4 | Hub consolidation | ✅ **COMPLETE** | **v0.12.0** - Unified interface with rebuilt fields |
+| **v0.12.0: Architecture Overhaul** | | | |
+| A.1 | Field system rebuild | ✅ **COMPLETE** | Ground-up reconstruction of core input fields |
+| A.2 | Date formatting overhaul | ✅ **COMPLETE** | Fixed broken formatting, added date-fns integration |
+| A.3 | Callout settings integration | ✅ **COMPLETE** | Moved to Hub with enhanced functionality |
+| A.4 | Settings consolidation | ✅ **COMPLETE** | Eliminated scattered modals, unified interface |
+| A.5 | Enhanced validation systems | ✅ **COMPLETE** | Comprehensive error handling and user feedback |
 | **Phase 3: Advanced Features** | | | |
 | 3.1 | Auto-detection | 🔄 **PLANNED** | Detect journal structures automatically |
 | 3.2 | Migration tools | 🔄 **PLANNED** | Help users migrate between structures |
@@ -70,12 +80,13 @@
 
 | File | Type | Priority | Status | Changes Required | Dependencies |
 |------|------|----------|--------|------------------|--------------|
-| `src/workers/UniversalMetricsCalculator.ts` | Core | High | ⏳ Pending | Replace hardcoded callout array | Settings system |
-| `src/types/journal-check.ts` | Types | High | ⏳ Pending | Add default structures | None |
-| `settings.ts` | UI | High | ⏳ Pending | Structure management controls | Modal components |
-| `src/utils/structure-helpers.ts` | Utils | Medium | ⏳ Pending | Create new file | Type definitions |
-| `src/journal_check/ui/StructureManagerModal.ts` | UI | Medium | ⏳ Pending | Create new file | Settings integration |
-| Tests files | Tests | Medium | ⏳ Pending | Unit and integration tests | Implementation complete |
+| `src/workers/UniversalMetricsCalculator.ts` | Core | High | ✅ **COMPLETE** | Structure-based callout recognition implemented | Settings system |
+| `src/types/journal-check.ts` | Types | High | ✅ **COMPLETE** | Default structures and type definitions | None |
+| `src/dom/modals/HubModal.ts` | UI | High | ✅ **COMPLETE** | **v0.12.0** - Unified Hub with consolidated settings | Modal components |
+| `src/utils/structure-helpers.ts` | Utils | Medium | ✅ **COMPLETE** | Structure helper functions implemented | Type definitions |
+| `src/dom/modals/HubModal.ts` (Date Fields) | UI | High | ✅ **COMPLETE** | **v0.12.0** - Complete date field system rebuild | date-fns integration |
+| `src/dom/modals/HubModal.ts` (Callout Settings) | UI | High | ✅ **COMPLETE** | **v0.12.0** - Callout Settings integrated into Hub | Settings persistence |
+| Test files | Tests | Medium | 🔄 **PLANNED** | Unit and integration tests | Implementation complete |
 
 ### **Testing Progress**
 
@@ -135,7 +146,31 @@
 
 ## 🎯 **Project Overview**
 
-**Status**: Phase 1 Complete ✅ | Phase 2.4 Complete ✅ | Phase 3 Content Analysis Tab Complete ✅
+**Status**: Phase 1 Complete ✅ | Phase 2 Complete ✅ | v0.12.0 Architecture Overhaul Complete ✅ | Phase 3 Content Analysis Tab Complete ✅
+
+### **🚀 v0.12.0 Major Architecture Overhaul (January 2025)**
+
+**Completed**: Major architectural consolidation and system rebuilds
+
+**Revolutionary Changes**:
+- 🏗️ **Unified OneiroMetrics Hub**: Complete consolidation of all plugin functionality into a single, tabbed interface
+- 🔧 **Field Architecture Rebuild**: Ground-up reconstruction of core input fields and settings interfaces
+- 📅 **Date System Overhaul**: Complete replacement of broken date formatting with robust date-fns integration
+- 🎨 **Callout Settings Integration**: Moved and rebuilt Callout Settings as a core Hub tab
+- 🔄 **Settings Consolidation**: Eliminated scattered modal dialogs in favor of unified hub interface
+
+**Technical Achievements**:
+- **Rebuilt Field Systems**: All major configuration fields reconstructed with modern patterns
+- **Enhanced Validation**: New validation systems with better error reporting and user guidance
+- **Improved Data Flow**: More predictable state management across rebuilt field systems
+- **Date Format Fixes**: Fixed broken token replacement (e.g., "yyyyMMDD" now correctly shows "20250115" instead of "2025MMDD")
+- **Comprehensive Fallbacks**: Robust error handling with graceful degradation across all rebuilt systems
+
+**User Experience Revolution**:
+- **Seamless Integration**: Previously separate configurations now work together harmoniously
+- **Reduced Cognitive Load**: Fewer modal switches and context changes required
+- **Better Accessibility**: Improved keyboard navigation and screen reader support
+- **Consistent Interface**: Unified design language across all rebuilt components
 
 ### **Phase 1 Completion Summary** 
 
@@ -432,12 +467,32 @@ The remaining work focuses on making the structure system fully functional and u
 
 ### **🎯 Next Implementation Priorities**
 
-**Priority 3: Data Integration and Analytics**  
-- 🔄 **Connect usage statistics to actual settings data**
-- 🔄 **Implement structure validation logic**
-- 🔄 **Add analytics tracking for structure usage**
-- 🔄 **Enhanced structure list with real usage data**
-- 🔄 **Structure performance metrics and recommendations**
+**✅ COMPLETED IN v0.12.0:**
+- ✅ **Unified Hub Architecture**: Complete consolidation of all plugin functionality
+- ✅ **Field System Overhaul**: Ground-up reconstruction of core input and configuration fields
+- ✅ **Date Formatting Revolution**: Fixed broken date format preview system with proper date-fns integration
+- ✅ **Callout Settings Integration**: Moved and enhanced Callout Settings as core Hub functionality
+- ✅ **Settings Persistence**: Robust settings synchronization across all rebuilt field systems
+- ✅ **Enhanced User Experience**: Eliminated modal switching, improved accessibility, unified design
+
+**🔄 REMAINING PRIORITIES (Phase 3):**
+
+**Priority 3.1: Content Analysis & Detection (High Priority)**  
+- 🔄 **Implement auto-detection of journal structures from existing content**
+- 🔄 **Create content analysis tools for understanding current patterns**
+- 🔄 **Add smart structure suggestions based on existing callouts**
+- 🔄 **Implement "Analyze My Content" feature in Hub Content Analysis tab**
+
+**Priority 3.2: Advanced Validation (Medium Priority)**
+- 🔄 **Connect structure validation to actual LintingEngine**
+- 🔄 **Add callout pattern validation against structures**
+- 🔄 **Create structure conflict detection**
+- 🔄 **Implement real-time validation feedback in Hub**
+
+**Priority 3.3: Migration & Conversion Tools (Lower Priority)**
+- 🔄 **Create migration tools for converting between structures**
+- 🔄 **Add bulk content migration capabilities**
+- 🔄 **Implement automated structure migration workflows**
 
 ## 🎨 **Phase 2.4 UI Design Specifications - Obsidian Settings Style**
 
