@@ -94,6 +94,10 @@ export class HubModal extends Modal {
     private scrapeButton: HTMLButtonElement | null = null;
     private openNoteButton: HTMLButtonElement | null = null;
     
+    // Smart preservation: backup storage for selections when switching modes
+    private backupSelectedNotes: string[] = [];
+    private backupSelectedFolder: string = '';
+    
     // Embedded wizard properties
     private journalStructureMode: 'normal' | 'wizard' = 'normal';
     private wizardState: TemplateWizardState | null = null;
@@ -117,6 +121,10 @@ export class HubModal extends Modal {
         this.selectionMode = (settingsMode === 'manual') ? 'notes' : settingsMode as 'notes' | 'folder';
         this.selectedNotes = this.plugin.settings.selectedNotes || [];
         this.selectedFolder = this.plugin.settings.selectedFolder || '';
+        
+        // Initialize backup storage to preserve current selections
+        this.backupSelectedNotes = [...(this.plugin.settings.selectedNotes || [])];
+        this.backupSelectedFolder = this.plugin.settings.selectedFolder || '';
     }
     
     onOpen() {
@@ -1145,14 +1153,40 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     // Convert to internal representation (manual/automatic)
                     // 'notes' -> 'manual', 'folder' -> 'automatic'
                     const internalMode = value === 'notes' ? 'manual' : 'automatic';
+                    const currentMode = getSelectionMode(this.plugin.settings);
+                    const currentUiMode = normalizeSelectionMode(currentMode) === 'manual' ? 'notes' : 'folder';
+                    
+                    // Smart preservation: backup current selections before switching modes
+                    if (currentUiMode === 'notes' && this.plugin.settings.selectedNotes?.length > 0) {
+                        // Backup current notes selection
+                        this.backupSelectedNotes = [...this.plugin.settings.selectedNotes];
+                    } else if (currentUiMode === 'folder' && this.plugin.settings.selectedFolder) {
+                        // Backup current folder selection
+                        this.backupSelectedFolder = this.plugin.settings.selectedFolder;
+                    }
+                    
+                    // Update the selection mode
                     this.plugin.settings.selectionMode = internalMode;
                     
-                    // Clear irrelevant selection when switching modes
+                    // Smart restoration and clearing logic
                     if (isFolderMode(value as SelectionMode)) {
+                        // Switching to folder mode
                         this.plugin.settings.selectedNotes = [];
+                        
+                        // Restore previous folder selection if we have one
+                        if (this.backupSelectedFolder) {
+                            setSelectedFolder(this.plugin.settings, this.backupSelectedFolder);
+                        }
                     } else {
+                        // Switching to notes mode  
                         setSelectedFolder(this.plugin.settings, '');
+                        
+                        // Restore previous notes selection if we have one
+                        if (this.backupSelectedNotes.length > 0) {
+                            this.plugin.settings.selectedNotes = [...this.backupSelectedNotes];
+                        }
                     }
+                    
                     await this.plugin.saveSettings();
                     this.loadDreamScrapeContent(); // Refresh the Dream Scrape content to show the updated selection UI
                 });
@@ -1163,7 +1197,21 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Convert internal mode (manual/automatic) to UI mode (notes/folder)
         const uiMode = normalizeSelectionMode(selectionMode) === 'manual' ? 'notes' : 'folder';
         const selectionLabel = getSelectionModeLabel(uiMode);
-        const selectionDesc = this.getSelectionModeDescription(uiMode);
+        let selectionDesc = this.getSelectionModeDescription(uiMode);
+        
+        // Add visual indicator for restored selections
+        if (uiMode === 'notes' && this.plugin.settings.selectedNotes?.length > 0 && this.backupSelectedNotes.length > 0) {
+            // Check if current selection matches backup (indicating restoration)
+            const currentIds = this.plugin.settings.selectedNotes.sort().join(',');
+            const backupIds = this.backupSelectedNotes.sort().join(',');
+            if (currentIds === backupIds) {
+                selectionDesc += ' (restored from previous session)';
+            }
+        } else if (uiMode === 'folder' && this.plugin.settings.selectedFolder && this.backupSelectedFolder) {
+            if (this.plugin.settings.selectedFolder === this.backupSelectedFolder) {
+                selectionDesc += ' (restored from previous session)';
+            }
+        }
         
         const selectionSetting = new Setting(this.contentContainer)
             .setName(selectionLabel)
