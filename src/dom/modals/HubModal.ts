@@ -1230,6 +1230,15 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 // Add folder suggestions
                 new FolderSuggest(this.app, search.inputEl);
             });
+
+            // Exclusion fields - only show in folder mode
+            const excludeNotesSection = new Setting(this.contentContainer)
+                .setName('Exclude Notes')
+                .setDesc('Skip specific notes within the selected folder (coming soon)');
+            
+            const excludeSubfoldersSection = new Setting(this.contentContainer)
+                .setName('Exclude Subfolders') 
+                .setDesc('Skip specific subfolders within the selected folder (coming soon)');
         } else {
             // Multi-chip note autocomplete (identical to Settings)
             const searchFieldContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container' });
