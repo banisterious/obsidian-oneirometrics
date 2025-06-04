@@ -75,6 +75,10 @@
 | 3.1 | Auto-detection | 🔄 **PLANNED** | Detect journal structures automatically |
 | 3.2 | Migration tools | 🔄 **PLANNED** | Help users migrate between structures |
 | 3.3 | Custom structure creation | 🔄 **PLANNED** | UI for creating custom structures |
+| **Phase 3: UI/UX Enhancements** | | | |
+| 3.4 | Callout Settings consolidation | 🔄 **PLANNED** | Explore merging Callout Settings into Journal Structure tab |
+| 3.5 | Template icon buttons | 🔄 **PLANNED** | Replace text buttons with icons (pencil, eye, trashcan) |
+| 3.6 | Advanced validation | 🔄 **PLANNED** | Real-time structure validation with LintingEngine |
 
 ### **File Modification Tracker**
 
@@ -489,7 +493,66 @@ The remaining work focuses on making the structure system fully functional and u
 - 🔄 **Create structure conflict detection**
 - 🔄 **Implement real-time validation feedback in Hub**
 
-**Priority 3.3: Migration & Conversion Tools (Lower Priority)**
+**Priority 3.3: UI/UX Enhancements (Medium Priority)**
+- 🔄 **Explore consolidating Callout Settings tab into Journal Structure tab** (with callout settings at the top)
+- 🔄 **Replace Existing Templates text buttons with icon buttons** (pencil for Edit, eye for View, trashcan for Delete)
+- 🔄 **Improve visual hierarchy and accessibility across Hub interface**
+- 🔄 **Add keyboard shortcuts for common Hub operations**
+
+#### **🤔 Callout Settings Consolidation Exploration**
+
+**Rationale**: Current separation between "Callout Settings" and "Journal Structure" tabs can cause confusion, as they're closely related functionality. Users may not realize that changes in one affect the other.
+
+**Proposed Layout**:
+```
+Journal Structure Tab:
+┌─ CALLOUT SETTINGS (Top Section) ──────────────────┐
+│ Journal Callout Name:    [journal-entry        ] │
+│ Dream Diary Callout:     [dream-diary          ] │  
+│ Metrics Callout:         [dream-metrics        ] │
+│ Date Format:             [yyyyMMDD             ] │
+│ Date Placement:          [Header ▼]             │
+└─────────────────────────────────────────────────┘
+
+┌─ STRUCTURES (Main Section) ────────────────────────┐
+│ [+ Add Structure] [Import] [Export All]           │
+│ (existing structure management interface)          │
+└─────────────────────────────────────────────────┘
+```
+
+**Benefits**:
+- ✅ **Reduced cognitive load**: Related settings in one place
+- ✅ **Improved discoverability**: Users see how callout names relate to structures
+- ✅ **Simplified navigation**: One less tab to manage
+- ✅ **Better validation**: Can validate callout consistency with structures in real-time
+
+**Considerations**:
+- ⚠️ **Page complexity**: May become too dense with information
+- ⚠️ **Existing user workflows**: Users accustomed to separate tabs
+- ⚠️ **Visual hierarchy**: Need careful design to maintain clarity
+
+**Implementation Approach**:
+1. **Research Phase**: Analyze user feedback on current tab separation
+2. **Prototype**: Create mockup of consolidated interface
+3. **A/B Testing**: Compare usability of separate vs consolidated tabs
+4. **Gradual Migration**: If beneficial, implement with user preference toggle
+
+#### **🎨 Template Icon Buttons Enhancement**
+
+**Current State**: Text buttons for template actions ("Edit Template", "View Template", "Delete Template")
+
+**Proposed Enhancement**:
+- 📝 **Edit**: Pencil icon (`lucide-edit` or `lucide-edit-3`)
+- 👁️ **View**: Eye icon (`lucide-eye`)  
+- 🗑️ **Delete**: Trash can icon (`lucide-trash-2`)
+
+**Implementation Details**:
+- Use Obsidian's icon system for consistency
+- Add tooltips for accessibility
+- Maintain text labels for screen readers
+- Consider icon + text for better UX
+
+**Priority 3.4: Migration & Conversion Tools (Lower Priority)**
 - 🔄 **Create migration tools for converting between structures**
 - 🔄 **Add bulk content migration capabilities**
 - 🔄 **Implement automated structure migration workflows**
