@@ -84,31 +84,63 @@ export function setLogMaxSize(settings: DreamMetricsSettings, size: number): voi
 }
 
 /**
- * Gets the backup enabled state
+ * Gets the backup enabled state, handling both flat and nested structures
  */
 export function isBackupEnabled(settings: DreamMetricsSettings): boolean {
-    return settings.backupEnabled || false;
+    // Check both the flat property and the nested backup object
+    if (typeof settings.backupEnabled !== 'undefined') {
+        return settings.backupEnabled;
+    }
+    if (settings.backup?.enabled !== undefined) {
+        return settings.backup.enabled;
+    }
+    return false;
 }
 
 /**
- * Sets the backup enabled state
+ * Sets the backup enabled state, keeping both flat and nested properties in sync
  */
 export function setBackupEnabled(settings: DreamMetricsSettings, enabled: boolean): void {
     settings.backupEnabled = enabled;
+    // Also update nested backup object
+    if (!settings.backup) {
+        settings.backup = {
+            enabled: false,
+            folderPath: '',
+            maxBackups: 5
+        };
+    }
+    settings.backup.enabled = enabled;
 }
 
 /**
- * Gets the backup folder path
+ * Gets the backup folder path, handling both flat and nested structures
  */
 export function getBackupFolderPath(settings: DreamMetricsSettings): string {
-    return settings.backupFolderPath || '';
+    // Check both the flat property and the nested backup object
+    if (settings.backupFolderPath) {
+        return settings.backupFolderPath;
+    }
+    if (settings.backup?.folderPath) {
+        return settings.backup.folderPath;
+    }
+    return '';
 }
 
 /**
- * Sets the backup folder path
+ * Sets the backup folder path, keeping both flat and nested properties in sync
  */
 export function setBackupFolderPath(settings: DreamMetricsSettings, path: string): void {
     settings.backupFolderPath = path;
+    // Also update nested backup object
+    if (!settings.backup) {
+        settings.backup = {
+            enabled: isBackupEnabled(settings),
+            folderPath: '',
+            maxBackups: 5
+        };
+    }
+    settings.backup.folderPath = path;
 }
 
 /**

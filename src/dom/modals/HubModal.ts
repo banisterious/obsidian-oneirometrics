@@ -1014,7 +1014,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         // Recent Activity Section
         const recentActivitySection = infoGridContainer.createDiv({ cls: 'oom-dashboard-section' });
-        recentActivitySection.createEl('h4', { text: 'Recent Activity' });
+        recentActivitySection.createEl('h3', { text: 'Recent Activity' });
         
         const recentActivityList = recentActivitySection.createEl('ul', { cls: 'oom-recent-activity-list' });
         
@@ -1332,11 +1332,54 @@ This metric assesses **how well your memory of the dream holds up and remains co
             this.enterWizardMode();
         });
         
+        // Template import/export section
+        const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
+        importExportSection.style.marginTop = '1.5em';
+        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('p', { 
+            text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
+            cls: 'oom-setting-desc'
+        });
+
+        const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.marginTop = '0.5em';
+
+        // Export button
+        const exportBtn = buttonContainer.createEl('button', {
+            text: 'Export Templates',
+            cls: 'oom-button'
+        });
+        exportBtn.addEventListener('click', () => {
+            this.exportTemplates();
+        });
+
+        // Import button  
+        const importBtn = buttonContainer.createEl('button', {
+            text: 'Import Templates',
+            cls: 'oom-button'
+        });
+        importBtn.addEventListener('click', () => {
+            this.importTemplates();
+        });
+
+        // Individual template export (if templates exist)
+        if (templates.length > 0) {
+            const individualExportBtn = buttonContainer.createEl('button', {
+                text: 'Export Selected',
+                cls: 'oom-button'
+            });
+            individualExportBtn.addEventListener('click', () => {
+                this.showTemplateExportDialog();
+            });
+        }
+        
         // Show existing templates count if any
         if (templates.length > 0) {
             const statusEl = templateSection.createDiv({ cls: 'oom-template-status' });
             statusEl.style.marginTop = '1em';
-            statusEl.createEl('h4', { text: 'Existing Templates' });
+            statusEl.createEl('h3', { text: 'Existing Templates' });
             
             // Create a table-like display for templates
             const templatesContainer = statusEl.createDiv({ cls: 'oom-templates-list' });
@@ -2351,6 +2394,49 @@ Full debug info in logs/console`);
         createBtn.addEventListener('click', () => {
             this.enterWizardMode();
         });
+        
+        // Template import/export section
+        const importExportSection = containerEl.createDiv({ cls: 'oom-template-import-export' });
+        importExportSection.style.marginTop = '1.5em';
+        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('p', { 
+            text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
+            cls: 'oom-setting-desc'
+        });
+
+        const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.marginTop = '0.5em';
+
+        // Export button
+        const exportBtn = buttonContainer.createEl('button', {
+            text: 'Export Templates',
+            cls: 'oom-button'
+        });
+        exportBtn.addEventListener('click', () => {
+            this.exportTemplates();
+        });
+
+        // Import button  
+        const importBtn = buttonContainer.createEl('button', {
+            text: 'Import Templates',
+            cls: 'oom-button'
+        });
+        importBtn.addEventListener('click', () => {
+            this.importTemplates();
+        });
+
+        // Individual template export (if templates exist)
+        if (templates.length > 0) {
+            const individualExportBtn = buttonContainer.createEl('button', {
+                text: 'Export Selected',
+                cls: 'oom-button'
+            });
+            individualExportBtn.addEventListener('click', () => {
+                this.showTemplateExportDialog();
+            });
+        }
         
         // Show existing templates count if any
         if (templates.length > 0) {
@@ -3727,7 +3813,7 @@ Example:
         
         // Analysis targets selection
         const targetsContainer = patternAnalysisSection.createDiv({ cls: 'oom-analysis-targets' });
-        targetsContainer.createEl('h4', { text: 'Analysis Targets' });
+        targetsContainer.createEl('h3', { text: 'Analysis Targets' });
         
         const targetsList = targetsContainer.createDiv({ cls: 'oom-targets-list' });
         
@@ -5147,6 +5233,431 @@ Example:
             if (node.children.length > 0) {
                 this.countCalloutTypes(node.children, calloutsFound);
             }
+        }
+    }
+
+    /**
+     * Export all templates to a JSON file with user-chosen filename
+     */
+    private async exportTemplates() {
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        if (templates.length === 0) {
+            new Notice('No templates to export.');
+            return;
+        }
+
+        try {
+            // Create export data with metadata
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                exportedFrom: 'OneiroMetrics Obsidian Plugin',
+                version: '1.0',
+                templateCount: templates.length,
+                templates: templates
+            };
+
+            // Convert to JSON with pretty formatting
+            const jsonData = JSON.stringify(exportData, null, 2);
+            
+            // Create blob and download
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create download link with suggested filename
+            const currentDate = new Date().toISOString().split('T')[0];
+            const suggestedFilename = `oneirometrics-templates-${currentDate}.json`;
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = suggestedFilename;
+            downloadLink.style.display = 'none';
+            
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            URL.revokeObjectURL(url);
+            
+            new Notice(`Exported ${templates.length} templates successfully!`);
+            this.logger.info('Templates', `Exported ${templates.length} templates to ${suggestedFilename}`);
+            
+        } catch (error) {
+            this.logger.error('Templates', 'Failed to export templates:', error as Error);
+            new Notice('Failed to export templates. Please try again.');
+        }
+    }
+
+    /**
+     * Import templates from a JSON file with user file selection
+     */
+    private async importTemplates() {
+        try {
+            // Create file input element
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json';
+            fileInput.style.display = 'none';
+            
+            fileInput.addEventListener('change', async (event) => {
+                const file = (event.target as HTMLInputElement).files?.[0];
+                if (!file) return;
+                
+                try {
+                    const fileContent = await file.text();
+                    await this.processImportedTemplates(fileContent, file.name);
+                } catch (error) {
+                    this.logger.error('Templates', 'Failed to read import file:', error as Error);
+                    new Notice(`Failed to read file: ${(error as Error).message}`);
+                }
+            });
+            
+            document.body.appendChild(fileInput);
+            fileInput.click();
+            document.body.removeChild(fileInput);
+            
+        } catch (error) {
+            this.logger.error('Templates', 'Failed to import templates:', error as Error);
+            new Notice('Failed to import templates. Please try again.');
+        }
+    }
+
+    /**
+     * Process imported template data
+     */
+    private async processImportedTemplates(fileContent: string, filename: string) {
+        try {
+            const importData = JSON.parse(fileContent);
+            
+            // Validate import data structure
+            if (!importData.templates || !Array.isArray(importData.templates)) {
+                new Notice('Invalid template file format. Expected JSON with templates array.');
+                return;
+            }
+            
+            const importedTemplates = importData.templates;
+            const existingTemplates = this.plugin.settings.linting?.templates || [];
+            
+            // Check for conflicts and show import dialog
+            await this.showImportConfirmationDialog(importedTemplates, existingTemplates, filename);
+            
+        } catch (error) {
+            this.logger.error('Templates', 'Failed to parse import data:', error as Error);
+            new Notice('Invalid JSON file. Please check the file format.');
+        }
+    }
+
+    /**
+     * Show import confirmation dialog with conflict resolution
+     */
+    private async showImportConfirmationDialog(importedTemplates: JournalTemplate[], existingTemplates: JournalTemplate[], filename: string) {
+        const modal = new Modal(this.app);
+        modal.titleEl.textContent = 'Import Templates';
+        
+        const { contentEl } = modal;
+        
+        contentEl.createEl('h3', { text: `Import from ${filename}` });
+        contentEl.createEl('p', { text: `Found ${importedTemplates.length} templates to import.` });
+        
+        // Check for conflicts
+        const conflicts: { imported: JournalTemplate; existing: JournalTemplate }[] = [];
+        const newTemplates: JournalTemplate[] = [];
+        
+        importedTemplates.forEach(imported => {
+            const existing = existingTemplates.find(existing => 
+                existing.name === imported.name || existing.id === imported.id
+            );
+            if (existing) {
+                conflicts.push({ imported, existing });
+            } else {
+                newTemplates.push(imported);
+            }
+        });
+        
+        if (newTemplates.length > 0) {
+            contentEl.createEl('p', { text: `${newTemplates.length} new templates will be added.` });
+        }
+        
+        if (conflicts.length > 0) {
+            contentEl.createEl('p', { 
+                text: `${conflicts.length} templates have naming conflicts.`,
+                cls: 'oom-warning'
+            });
+            
+            const conflictSection = contentEl.createDiv({ cls: 'oom-import-conflicts' });
+            conflictSection.createEl('h4', { text: 'Conflict Resolution' });
+            
+            const resolutionSelect = conflictSection.createEl('select');
+            resolutionSelect.createEl('option', { value: 'skip', text: 'Skip conflicting templates' });
+            resolutionSelect.createEl('option', { value: 'replace', text: 'Replace existing templates' });
+            resolutionSelect.createEl('option', { value: 'rename', text: 'Import with new names (add suffix)' });
+        }
+        
+        const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
+        buttonContainer.style.marginTop = '1.5em';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.justifyContent = 'flex-end';
+        
+        const cancelBtn = buttonContainer.createEl('button', {
+            text: 'Cancel',
+            cls: 'oom-button'
+        });
+        cancelBtn.addEventListener('click', () => modal.close());
+        
+        const importBtn = buttonContainer.createEl('button', {
+            text: 'Import',
+            cls: 'oom-button mod-cta'
+        });
+        importBtn.addEventListener('click', async () => {
+            const resolution = conflicts.length > 0 ? 
+                (contentEl.querySelector('select') as HTMLSelectElement).value : 'none';
+            await this.executeTemplateImport(importedTemplates, existingTemplates, resolution);
+            modal.close();
+            // Refresh the templates display
+            this.loadJournalStructureContent();
+        });
+        
+        modal.open();
+    }
+
+    /**
+     * Execute the template import with the chosen resolution strategy
+     */
+    private async executeTemplateImport(importedTemplates: JournalTemplate[], existingTemplates: JournalTemplate[], resolution: string) {
+        try {
+            // Ensure linting settings exist
+            if (!this.plugin.settings.linting) {
+                this.plugin.settings.linting = {
+                    enabled: true,
+                    rules: [],
+                    structures: [],
+                    templates: [],
+                    templaterIntegration: {
+                        enabled: false,
+                        folderPath: 'templates/dreams',
+                        defaultTemplate: 'templates/dreams/default.md'
+                    },
+                    contentIsolation: {
+                        ignoreImages: true,
+                        ignoreLinks: false,
+                        ignoreFormatting: true,
+                        ignoreHeadings: false,
+                        ignoreCodeBlocks: true,
+                        ignoreFrontmatter: true,
+                        ignoreComments: true,
+                        customIgnorePatterns: []
+                    },
+                    userInterface: {
+                        showInlineValidation: true,
+                        severityIndicators: {
+                            error: '❌',
+                            warning: '⚠️',
+                            info: 'ℹ️'
+                        },
+                        quickFixesEnabled: true
+                    }
+                } as any;
+            }
+
+            let importCount = 0;
+            let skipCount = 0;
+            let replaceCount = 0;
+
+            for (const importedTemplate of importedTemplates) {
+                const existingIndex = existingTemplates.findIndex(existing => 
+                    existing.name === importedTemplate.name || existing.id === importedTemplate.id
+                );
+                
+                if (existingIndex >= 0) {
+                    // Handle conflict
+                    switch (resolution) {
+                        case 'skip':
+                            skipCount++;
+                            break;
+                        case 'replace':
+                            this.plugin.settings.linting.templates[existingIndex] = {
+                                ...importedTemplate,
+                                id: existingTemplates[existingIndex].id // Keep original ID
+                            };
+                            replaceCount++;
+                            break;
+                        case 'rename':
+                            const newTemplate = {
+                                ...importedTemplate,
+                                id: `template-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                name: `${importedTemplate.name} (imported)`
+                            };
+                            this.plugin.settings.linting.templates.push(newTemplate);
+                            importCount++;
+                            break;
+                    }
+                } else {
+                    // No conflict, add new template
+                    const newTemplate = {
+                        ...importedTemplate,
+                        id: `template-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                    };
+                    this.plugin.settings.linting.templates.push(newTemplate);
+                    importCount++;
+                }
+            }
+
+            await this.plugin.saveSettings();
+            
+            let message = `Import completed! `;
+            if (importCount > 0) message += `${importCount} templates imported. `;
+            if (replaceCount > 0) message += `${replaceCount} templates replaced. `;
+            if (skipCount > 0) message += `${skipCount} templates skipped.`;
+            
+            new Notice(message);
+            this.logger.info('Templates', `Import completed: ${importCount} imported, ${replaceCount} replaced, ${skipCount} skipped`);
+            
+        } catch (error) {
+            this.logger.error('Templates', 'Failed to execute template import:', error as Error);
+            new Notice('Failed to import templates. Please try again.');
+        }
+    }
+
+    /**
+     * Show dialog for selecting individual templates to export
+     */
+    private async showTemplateExportDialog() {
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        if (templates.length === 0) {
+            new Notice('No templates available to export.');
+            return;
+        }
+
+        const modal = new Modal(this.app);
+        modal.titleEl.textContent = 'Export Selected Templates';
+        
+        const { contentEl } = modal;
+        
+        contentEl.createEl('h3', { text: 'Select Templates to Export' });
+        contentEl.createEl('p', { text: 'Choose which templates you want to export:' });
+        
+        const templateList = contentEl.createDiv({ cls: 'oom-template-selection-list' });
+        templateList.style.maxHeight = '300px';
+        templateList.style.overflowY = 'auto';
+        templateList.style.border = '1px solid var(--background-modifier-border)';
+        templateList.style.borderRadius = '4px';
+        templateList.style.padding = '0.5em';
+        templateList.style.marginTop = '1em';
+        
+        const checkboxes: { template: JournalTemplate; checkbox: HTMLInputElement }[] = [];
+        
+        templates.forEach(template => {
+            const templateItem = templateList.createDiv({ cls: 'oom-template-selection-item' });
+            templateItem.style.display = 'flex';
+            templateItem.style.alignItems = 'center';
+            templateItem.style.padding = '0.5em';
+            templateItem.style.borderBottom = '1px solid var(--background-modifier-border-focus)';
+            
+            const checkbox = templateItem.createEl('input', { type: 'checkbox' });
+            checkbox.style.marginRight = '0.75em';
+            
+            const labelContainer = templateItem.createDiv();
+            labelContainer.createEl('strong', { text: template.name });
+            
+            if (template.description) {
+                labelContainer.createEl('br');
+                labelContainer.createEl('span', { 
+                    text: template.description,
+                    cls: 'oom-template-desc'
+                });
+            }
+            
+            checkboxes.push({ template, checkbox });
+        });
+        
+        const selectAllContainer = contentEl.createDiv({ cls: 'oom-select-all' });
+        selectAllContainer.style.marginTop = '0.75em';
+        
+        const selectAllCheckbox = selectAllContainer.createEl('input', { type: 'checkbox' });
+        selectAllCheckbox.style.marginRight = '0.5em';
+        selectAllContainer.createEl('label', { text: 'Select All' });
+        
+        selectAllCheckbox.addEventListener('change', () => {
+            checkboxes.forEach(({ checkbox }) => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        });
+        
+        const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
+        buttonContainer.style.marginTop = '1.5em';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.justifyContent = 'flex-end';
+        
+        const cancelBtn = buttonContainer.createEl('button', {
+            text: 'Cancel',
+            cls: 'oom-button'
+        });
+        cancelBtn.addEventListener('click', () => modal.close());
+        
+        const exportBtn = buttonContainer.createEl('button', {
+            text: 'Export Selected',
+            cls: 'oom-button mod-cta'
+        });
+        exportBtn.addEventListener('click', async () => {
+            const selectedTemplates = checkboxes
+                .filter(({ checkbox }) => checkbox.checked)
+                .map(({ template }) => template);
+                
+            if (selectedTemplates.length === 0) {
+                new Notice('Please select at least one template to export.');
+                return;
+            }
+            
+            await this.exportSelectedTemplates(selectedTemplates);
+            modal.close();
+        });
+        
+        modal.open();
+    }
+
+    /**
+     * Export selected templates to a file
+     */
+    private async exportSelectedTemplates(templates: JournalTemplate[]) {
+        try {
+            // Create export data
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                exportedFrom: 'OneiroMetrics Obsidian Plugin',
+                version: '1.0',
+                templateCount: templates.length,
+                templates: templates
+            };
+
+            const jsonData = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const currentDate = new Date().toISOString().split('T')[0];
+            const suggestedFilename = templates.length === 1 
+                ? `oneirometrics-template-${templates[0].name.replace(/[^a-zA-Z0-9]/g, '-')}-${currentDate}.json`
+                : `oneirometrics-templates-selected-${currentDate}.json`;
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = suggestedFilename;
+            downloadLink.style.display = 'none';
+            
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            URL.revokeObjectURL(url);
+            
+            new Notice(`Exported ${templates.length} selected templates successfully!`);
+            this.logger.info('Templates', `Exported ${templates.length} selected templates`);
+            
+        } catch (error) {
+            this.logger.error('Templates', 'Failed to export selected templates:', error as Error);
+            new Notice('Failed to export templates. Please try again.');
         }
     }
 }

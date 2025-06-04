@@ -3645,6 +3645,27 @@ input.oom-folder-autocomplete-input,
    INPUT LABELS AND DESCRIPTIONS
    ============================================================================= */
 
+.oom-chips-container {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    box-shadow: none;
+    background: none;
+}
+
+span.oom-chip-text {
+    font-size: var(--font-ui-smaller);
+}
+
+.suggestion-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+    background: var(--background-primary);
+}
+
 .oom-text-input-label,
 .oom-setting-name,
 .oom-toggle-label {
@@ -4348,6 +4369,11 @@ input.oom-folder-autocomplete-input,
     /* NO VISUAL STYLING - Let theme handle section styling */
     
     /* === NESTED HEADING === */
+    h3 {
+      font-size: var(--font-ui-medium);
+      font-weight: var(--font-semibold);
+    }
+
     h4 {
         margin-top: 0;
         margin-bottom: var(--oom-spacing-sm);
@@ -4357,6 +4383,18 @@ input.oom-folder-autocomplete-input,
         
         /* NO VISUAL STYLING - Let theme handle heading borders and colors */
     }
+}
+
+.oom-template-import-export h3,
+.oom-template-status h3,
+.oom-analysis-targets h3,
+.oom-analysis-targets h4 {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.oom-suggestions-hidden .suggestion {
+    display: none;
 }
 
 /* =============================================================================

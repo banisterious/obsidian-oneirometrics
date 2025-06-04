@@ -1,5 +1,5 @@
 // Shared autocomplete utility for OneiroMetrics Selected Notes
-import { App, TFile, TFolder, Plugin } from 'obsidian';
+import { App, TFile, TFolder, Plugin, Scope } from 'obsidian';
 
 interface AutocompleteOptions {
     app: App;
@@ -7,6 +7,246 @@ interface AutocompleteOptions {
     containerEl: HTMLElement;
     selectedNotes: string[];
     onChange: (selected: string[]) => void;
+}
+
+// Enhanced suggestion display system for multi-select
+class MultiSelectSuggestionDisplay {
+    private owner: any;
+    private containerEl: HTMLElement;
+    private values: any[] = [];
+    private suggestions: HTMLElement[] = [];
+    private selectedItem: number = 0;
+
+    constructor(owner: any, containerEl: HTMLElement, scope: Scope) {
+        this.owner = owner;
+        this.containerEl = containerEl;
+        
+        containerEl.on("click", ".suggestion-item", this.onSuggestionClick.bind(this));
+        containerEl.on("mousemove", ".suggestion-item", this.onSuggestionMouseover.bind(this));
+        
+        scope.register([], "ArrowUp", (evt) => {
+            if (!evt.isComposing) {
+                this.setSelectedItem(this.selectedItem - 1, true);
+                return false;
+            }
+        });
+        
+        scope.register([], "ArrowDown", (evt) => {
+            if (!evt.isComposing) {  
+                this.setSelectedItem(this.selectedItem + 1, true);
+                return false;
+            }
+        });
+        
+        scope.register([], "Enter", (evt) => {
+            if (!evt.isComposing) {
+                this.useSelectedItem(evt);
+                return false;
+            }
+        });
+    }
+
+    private onSuggestionClick(evt: MouseEvent, target: HTMLElement) {
+        evt.preventDefault();
+        const index = this.suggestions.indexOf(target);
+        this.setSelectedItem(index, false);
+        this.useSelectedItem(evt);
+    }
+
+    private onSuggestionMouseover(evt: MouseEvent, target: HTMLElement) {
+        const index = this.suggestions.indexOf(target);
+        this.setSelectedItem(index, false);
+    }
+
+    setSuggestions(items: any[]) {
+        this.containerEl.empty();
+        const suggestions: HTMLElement[] = [];
+        
+        items.forEach(item => {
+            const suggestionEl = this.containerEl.createDiv("suggestion-item");
+            this.owner.renderSuggestion(item, suggestionEl);
+            suggestions.push(suggestionEl);
+        });
+        
+        this.values = items;
+        this.suggestions = suggestions;
+        this.setSelectedItem(0, false);
+    }
+
+    private useSelectedItem(evt: Event) {
+        const selectedValue = this.values[this.selectedItem];
+        if (selectedValue) {
+            this.owner.selectSuggestion(selectedValue, evt);
+        }
+    }
+
+    private setSelectedItem(index: number, scroll: boolean) {
+        if (this.suggestions.length === 0) return;
+        
+        const wrappedIndex = ((index % this.suggestions.length) + this.suggestions.length) % this.suggestions.length;
+        const currentSelected = this.suggestions[this.selectedItem];
+        const newSelected = this.suggestions[wrappedIndex];
+        
+        currentSelected?.removeClass("is-selected");
+        newSelected?.addClass("is-selected");
+        
+        this.selectedItem = wrappedIndex;
+        
+        if (scroll) {
+            newSelected?.scrollIntoView(false);
+        }
+    }
+}
+
+// Enhanced multi-select notes suggester
+class MultiSelectNotesSuggest {
+    private app: App;
+    private inputEl: HTMLInputElement;
+    private scope: Scope;
+    private suggestEl: HTMLElement;
+    private suggest: MultiSelectSuggestionDisplay;
+    private popper: any;
+    private selectedNotes: string[];
+    private onChange: (selected: string[]) => void;
+    private renderChips: () => void;
+
+    constructor(app: App, inputEl: HTMLInputElement, selectedNotes: string[], onChange: (selected: string[]) => void, renderChips: () => void) {
+        this.app = app;
+        this.inputEl = inputEl;
+        this.selectedNotes = selectedNotes;
+        this.onChange = onChange;
+        this.renderChips = renderChips;
+        this.scope = new Scope();
+        
+        this.suggestEl = createDiv("suggestion-container");
+        const suggestionDiv = this.suggestEl.createDiv("suggestion");
+        this.suggest = new MultiSelectSuggestionDisplay(this, suggestionDiv, this.scope);
+        
+        this.scope.register([], "Escape", this.close.bind(this));
+        
+        this.inputEl.addEventListener("input", this.onInputChanged.bind(this));
+        this.inputEl.addEventListener("focus", this.onInputChanged.bind(this));
+        this.inputEl.addEventListener("blur", this.close.bind(this));
+        
+        this.suggestEl.on("mousedown", ".suggestion-container", (evt) => {
+            evt.preventDefault();
+        });
+    }
+
+    getSuggestions(query: string): TFile[] {
+        if (!query.trim()) return [];
+        
+        const files = this.app.vault.getMarkdownFiles();
+        const lowerQuery = query.toLowerCase();
+        const yearMatch = query.match(/^(20\d{2})$/);
+        
+        let matchingFiles = files.filter(file => {
+            // Skip backup files and already selected notes
+            if (file.path.includes('.backup-') || 
+                file.path.includes('/Backups/') || 
+                file.path.endsWith('.backup') ||
+                this.selectedNotes.includes(file.path)) {
+                return false;
+            }
+            
+            const lowerPath = file.path.toLowerCase();
+            return lowerPath.includes(lowerQuery) || (yearMatch && file.path.includes(yearMatch[1]));
+        });
+        
+        // If user types a year, prioritize Journals/<year>/<year>.md if it exists
+        if (yearMatch) {
+            const yearFile = matchingFiles.find(f => f.path === `Journals/${yearMatch[1]}/${yearMatch[1]}.md`);
+            if (yearFile) {
+                matchingFiles = [yearFile, ...matchingFiles.filter(f => f !== yearFile)];
+            }
+        }
+        
+        // Sort by relevance
+        matchingFiles.sort((a, b) => {
+            const aExact = a.path.toLowerCase() === lowerQuery;
+            const bExact = b.path.toLowerCase() === lowerQuery;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.path.localeCompare(b.path);
+        });
+        
+        return matchingFiles.slice(0, 1000);
+    }
+
+    renderSuggestion(file: TFile, el: HTMLElement) {
+        el.setText(file.path);
+        el.setAttr('title', file.path);
+    }
+
+    selectSuggestion(file: TFile) {
+        // Add the selected file to the list
+        this.selectedNotes.push(file.path);
+        this.onChange([...this.selectedNotes]);
+        
+        // Clear the input and close suggestions
+        this.inputEl.value = '';
+        this.close();
+        
+        // Re-render chips
+        this.renderChips();
+    }
+
+    private onInputChanged() {
+        const query = this.inputEl.value;
+        const suggestions = this.getSuggestions(query);
+        
+        if (!suggestions || suggestions.length === 0) {
+            this.close();
+            return;
+        }
+        
+        this.suggest.setSuggestions(suggestions);
+        this.open(document.body, this.inputEl);
+    }
+
+    private open(container: HTMLElement, referenceEl: HTMLElement) {
+        this.app.keymap.pushScope(this.scope);
+        container.appendChild(this.suggestEl);
+        
+        // Use Obsidian's positioning if available, otherwise fallback to simple positioning
+        if ((window as any).Popper) {
+            this.popper = (window as any).Popper.createPopper(referenceEl, this.suggestEl, {
+                placement: "bottom-start",
+                modifiers: [{
+                    name: "sameWidth",
+                    enabled: true,
+                    fn: ({ state, instance }: any) => {
+                        const width = `${state.rects.reference.width}px`;
+                        if (state.styles.popper.width !== width) {
+                            state.styles.popper.width = width;
+                            instance.update();
+                        }
+                    },
+                    phase: "beforeWrite",
+                    requires: ["computeStyles"]
+                }]
+            });
+        } else {
+            // Fallback positioning
+            const rect = referenceEl.getBoundingClientRect();
+            this.suggestEl.style.position = "absolute";
+            this.suggestEl.style.top = `${rect.bottom}px`;
+            this.suggestEl.style.left = `${rect.left}px`;
+            this.suggestEl.style.width = `${rect.width}px`;
+        }
+    }
+
+    private close() {
+        this.app.keymap.popScope(this.scope);
+        this.suggest.setSuggestions([]);
+        
+        if (this.popper) {
+            this.popper.destroy();
+            this.popper = null;
+        }
+        
+        this.suggestEl.detach();
+    }
 }
 
 export function createSelectedNotesAutocomplete({
@@ -23,33 +263,100 @@ export function createSelectedNotesAutocomplete({
         attr: { placeholder: 'Type to search notes...' }
     });
     const chipsContainer = containerEl.createEl('div', { cls: 'oom-chips-container' });
-    chipsContainer.style.border = 'none';
-    chipsContainer.style.background = 'none';
-    chipsContainer.style.padding = '0';
-    chipsContainer.style.margin = '0';
-    chipsContainer.style.boxShadow = 'none';
+    
     // Remove border/background from .oom-chip as well
     const style = document.createElement('style');
     style.textContent = `
-        .oom-chips-container { border: none !important; background: none !important; box-shadow: none !important; }
-        .oom-chip { border: none !important; background: none !important; box-shadow: none !important; }
+        .oom-chips-container { 
+            border: none !important; 
+            background: none !important; 
+            box-shadow: none !important;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .oom-chip { 
+            border: none !important; 
+            background: var(--background-modifier-border) !important; 
+            box-shadow: none !important;
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-normal);
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .oom-chip-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: default;
+        }
+        .oom-chip-remove {
+            margin-left: 4px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: bold;
+            font-size: 12px;
+            line-height: 1;
+            padding: 0 2px;
+            border-radius: 2px;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        .oom-chip-remove:hover {
+            color: var(--text-error);
+            background-color: var(--background-modifier-error);
+        }
+        .oom-multiselect-input {
+            margin-bottom: 4px;
+        }
     `;
     document.head.appendChild(style);
-
-    const suggestionContainer = containerEl.createEl('div', {
-        cls: 'oom-suggestion-container'
-    });
 
     function renderChips() {
         chipsContainer.empty();
         if (selectedNotes.length === 0) {
-            chipsContainer.style.display = 'none';
+            chipsContainer.classList.add('oom-chips-hidden');
         } else {
-            chipsContainer.style.display = '';
+            chipsContainer.classList.remove('oom-chips-hidden');
+            
+            // Helper function to get display name for a note path
+            const getDisplayName = (notePath: string): string => {
+                const filename = notePath.split('/').pop() || notePath;
+                
+                // Check for filename conflicts
+                const conflictingPaths = selectedNotes.filter(path => {
+                    const otherFilename = path.split('/').pop() || path;
+                    return otherFilename === filename && path !== notePath;
+                });
+                
+                if (conflictingPaths.length > 0) {
+                    // If there are conflicts, show minimal disambiguating path
+                    const pathParts = notePath.split('/');
+                    if (pathParts.length > 1) {
+                        // Show parent folder + filename (e.g., "2025/2025.md")
+                        return `${pathParts[pathParts.length - 2]}/${filename}`;
+                    }
+                }
+                
+                return filename;
+            };
+            
             for (const note of selectedNotes) {
                 const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
-                const chipText = chip.createEl('span', { cls: 'oom-chip-text', text: note });
+                const displayName = getDisplayName(note);
+                const chipText = chip.createEl('span', { 
+                    cls: 'oom-chip-text', 
+                    text: displayName 
+                });
+                
+                // Set tooltip to show full path
                 chipText.setAttr('title', note);
+                
                 const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
                 removeBtn.onclick = () => {
                     const idx = selectedNotes.indexOf(note);
@@ -62,137 +369,17 @@ export function createSelectedNotesAutocomplete({
             }
         }
     }
-    renderChips();
 
-    function hideSuggestions() {
-        suggestionContainer.classList.remove('visible');
-        suggestionContainer.empty();
-    }
-
-    function showSuggestions() {
-        if (suggestionContainer.children.length > 0) {
-            suggestionContainer.classList.add('visible');
-            const inputRect = input.getBoundingClientRect();
-            const containerRect = containerEl.getBoundingClientRect();
-            suggestionContainer.style.position = 'absolute';
-            suggestionContainer.style.top = `${input.offsetTop + input.offsetHeight}px`;
-            suggestionContainer.style.left = `${input.offsetLeft}px`;
-            suggestionContainer.style.width = `${input.offsetWidth}px`;
-        }
-    }
-
-    input.addEventListener('input', async () => {
-        const value = input.value;
-        if (!value) {
-            hideSuggestions();
-            return;
-        }
-        const files = app.vault.getMarkdownFiles();
-        const lowerInput = value.toLowerCase();
-        const yearMatch = value.match(/^(20\d{2})$/);
-        let matchingFiles = files
-            .map(file => file.path)
-            .filter(path => {
-                if (path.includes('.backup-') || path.includes('/Backups/') || path.endsWith('.backup')) {
-                    return false;
-                }
-                const lowerPath = path.toLowerCase();
-                return !selectedNotes.includes(path) &&
-                    (lowerPath.includes(lowerInput) || (yearMatch && path.includes(yearMatch[1])));
-            });
-        // If user types a year, suggest Journals/<year>/<year>.md if it exists
-        if (yearMatch) {
-            const yearFile = `Journals/${yearMatch[1]}/${yearMatch[1]}.md`;
-            if (matchingFiles.includes(yearFile)) {
-                matchingFiles = [yearFile, ...matchingFiles.filter(f => f !== yearFile)];
-            }
-        }
-        matchingFiles = [...new Set(matchingFiles)]
-            .sort((a, b) => {
-                const aExact = a.toLowerCase() === lowerInput;
-                const bExact = b.toLowerCase() === lowerInput;
-                if (aExact && !bExact) return -1;
-                if (!aExact && bExact) return 1;
-                return a.localeCompare(b);
-            })
-            .slice(0, 7);
-        suggestionContainer.empty();
-        if (matchingFiles.length > 0) {
-            for (const suggestion of matchingFiles) {
-                const item = suggestionContainer.createEl('div', {
-                    cls: 'suggestion-item',
-                    attr: { title: suggestion }
-                });
-                item.textContent = suggestion;
-                item.onclick = () => {
-                    selectedNotes.push(suggestion);
-                    onChange([...selectedNotes]);
-                    input.value = '';
-                    hideSuggestions();
-                    renderChips();
-                };
-            }
-            showSuggestions();
-        } else {
-            hideSuggestions();
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!containerEl.contains(e.target as Node)) {
-            hideSuggestions();
-        }
-    });
-
-    input.addEventListener('keydown', (e) => {
-        const items = suggestionContainer.querySelectorAll('.suggestion-item');
-        const currentIndex = Array.from(items).findIndex(item => item.classList.contains('is-selected'));
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                if (currentIndex < items.length - 1) {
-                    items[currentIndex]?.classList.remove('is-selected');
-                    items[currentIndex + 1].classList.add('is-selected');
-                    (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                } else if (items.length > 0 && currentIndex === -1) {
-                    items[0].classList.add('is-selected');
-                    (items[0] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                }
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                if (currentIndex > 0) {
-                    items[currentIndex]?.classList.remove('is-selected');
-                    items[currentIndex - 1].classList.add('is-selected');
-                    (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                }
-                break;
-            case 'Enter':
-                e.preventDefault();
-                const selectedItem = suggestionContainer.querySelector('.is-selected');
-                if (selectedItem) {
-                    const path = selectedItem.textContent;
-                    if (path) {
-                        selectedNotes.push(path);
-                        onChange([...selectedNotes]);
-                        input.value = '';
-                        hideSuggestions();
-                        renderChips();
-                    }
-                }
-                break;
-            case 'Escape':
-                hideSuggestions();
-                break;
-        }
-    });
+    // Initialize the enhanced suggestions system
+    const notesSuggest = new MultiSelectNotesSuggest(app, input, selectedNotes, onChange, renderChips);
 
     // Initial render
     renderChips();
+    
     return {
         input,
         chipsContainer,
-        suggestionContainer
+        suggestionContainer: undefined // Not needed anymore with the new system
     };
 }
 
@@ -233,7 +420,7 @@ export function createFolderAutocomplete({
     }
 
     function hideSuggestions() {
-        suggestionContainer.classList.remove('visible');
+        suggestionContainer.classList.remove('oom-suggestions-visible');
         suggestionContainer.empty();
     }
 
@@ -258,14 +445,12 @@ export function createFolderAutocomplete({
                     hideSuggestions();
                 });
             });
-            suggestionContainer.classList.add('visible');
+            suggestionContainer.classList.add('oom-suggestions-visible');
             const inputRect = input.getBoundingClientRect();
             const containerRect = containerEl.getBoundingClientRect();
-            suggestionContainer.style.position = 'absolute';
-            suggestionContainer.style.top = `${input.offsetTop + input.offsetHeight}px`;
-            suggestionContainer.style.left = `${input.offsetLeft}px`;
-            suggestionContainer.style.width = `${input.offsetWidth}px`;
-            suggestionContainer.style.display = 'block';
+            suggestionContainer.style.setProperty('--oom-suggestion-top', `${input.offsetTop + input.offsetHeight}px`);
+            suggestionContainer.style.setProperty('--oom-suggestion-left', `${input.offsetLeft}px`);
+            suggestionContainer.style.setProperty('--oom-suggestion-width', `${input.offsetWidth}px`);
         } else {
             hideSuggestions();
         }

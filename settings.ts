@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent } from "obsidian";
+import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent, Scope } from "obsidian";
 import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from "./types";
 import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
@@ -537,22 +537,22 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     this.plugin.updateRibbonIcons();
                 }));
 
-        // OneiroMetrics Note Setting
-        new Setting(containerEl)
+        // OneiroMetrics Note Setting with Obsidian's built-in search like Templater
+        const oneiroMetricsNoteSetting = new Setting(containerEl)
             .setName('OneiroMetrics Note')
             .setDesc('The note where OneiroMetrics tables will be written')
-            .addText(text => {
-                text.setPlaceholder('Journals/Dream Diary/Metrics/Metrics.md')
+            .addSearch(search => {
+                search.setPlaceholder('Example: Journals/Dream Diary/Metrics/Metrics.md')
                     .setValue(getProjectNotePath(this.plugin.settings))
                     .onChange(async (value) => {
                         setProjectNotePath(this.plugin.settings, value);
                         await this.plugin.saveSettings();
                     });
+                
+                // Add file suggestions
+                new FileSuggest(this.app, search.inputEl);
             });
 
-        // Add Journal Structure Check settings
-        this.addJournalStructureSettings(containerEl);
-        
         // Add section border after basic settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
@@ -600,192 +600,17 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .setDesc(selectionDesc);
 
         if (isFolderMode(uiMode as SelectionMode)) {
-            // Folder autocomplete
+            // Use Obsidian's built-in search like Templater
             selectionSetting.addSearch(search => {
-                search.setPlaceholder('Choose folder...');
-                search.setValue(getSelectedFolder(this.plugin.settings));
-                const parentForSuggestions = search.inputEl.parentElement || containerEl;
-                const suggestionContainer = parentForSuggestions.createEl('div', {
-                    cls: 'suggestion-container oom-suggestion-container',
-                    attr: {
-                        style: 'display: none;'
-                    }
-                });
-
-                // Helper to position the dropdown
-                function positionSuggestionContainer() {
-                    const inputRect = search.inputEl.getBoundingClientRect();
-                    const parent = search.inputEl.parentElement || containerEl;
-                    const parentRect = parent.getBoundingClientRect();
-                    const dropdownWidth = Math.max(inputRect.width, 180);
-                    let left = inputRect.left - parentRect.left;
-                    let top = inputRect.bottom - parentRect.top;
-                    suggestionContainer.classList.add('oom-suggestion-container');
-                    suggestionContainer.style.removeProperty('position');
-                    suggestionContainer.style.removeProperty('left');
-                    suggestionContainer.style.removeProperty('top');
-                    suggestionContainer.style.removeProperty('width');
-                    suggestionContainer.style.removeProperty('overflowX');
-                    suggestionContainer.style.removeProperty('maxWidth');
-                    suggestionContainer.style.removeProperty('right');
-                    suggestionContainer.style.setProperty('--oom-suggestion-left', `${left}px`);
-                    suggestionContainer.style.setProperty('--oom-suggestion-top', `${top}px`);
-                    suggestionContainer.style.setProperty('--oom-suggestion-width', `${dropdownWidth}px`);
-                }
-
-                // Clean up suggestion container on plugin unload
-                this.plugin.register(() => suggestionContainer.remove());
-
-                // Function to get all folders
-                const getFolders = (): string[] => {
-                    try {
-                        const folders: string[] = [];
-                        const processFolder = (folder: TFolder, prefix: string = '') => {
-                            folders.push(prefix + folder.path);
-                            folder.children.forEach(child => {
-                                if (child instanceof TFolder) {
-                                    processFolder(child);
-                                }
-                            });
-                        };
-                        
-                        this.app.vault.getAllLoadedFiles().forEach(file => {
-                            if (file instanceof TFolder) {
-                                processFolder(file);
-                            }
-                        });
-                        
-                        // Filter out folders we don't want to show in the UI
-                        const filteredFolders = folders.filter(folder => 
-                            !folder.startsWith('.') && 
-                            !folder.includes('.git/')
-                        );
-                        
-                        debug('Settings', 'Backup folder options', { 
-                            allFolders: folders.length,
-                            filteredFolders: filteredFolders.length
-                        });
-                        
-                        return filteredFolders;
-                    } catch (error) {
-                        new Notice('Error getting folders: ' + (error as Error).message);
-                        return [];
-                    }
-                };
-
-                // Function to show suggestions
-                const showSuggestions = (query: string) => {
-                    const folders = getFolders();
-                    const normalizedQuery = query.toLowerCase();
-                    const filteredFolders = folders
-                        .filter(folder => folder.toLowerCase().includes(normalizedQuery))
-                        .slice(0, 10);
-                    
-                    debug('Settings', 'Backup folder suggestions', {
-                        allFolders: folders.length,
-                        filteredCount: filteredFolders.length,
-                        query: normalizedQuery
+                search.setPlaceholder('Choose folder...')
+                    .setValue(getSelectedFolder(this.plugin.settings))
+                    .onChange(async (value) => {
+                        setSelectedFolder(this.plugin.settings, value);
+                        await this.plugin.saveSettings();
                     });
-
-                    suggestionContainer.empty();
-                    
-                    if (filteredFolders.length > 0) {
-                        filteredFolders.forEach(folder => {
-                            const item = suggestionContainer.createEl('div', {
-                                cls: 'suggestion-item',
-                                attr: { title: folder }
-                            });
-                            item.textContent = folder;
-                            
-                            item.addEventListener('mousedown', async (e) => {
-                                e.preventDefault();
-                                search.setValue(folder);
-                                setSelectedFolder(this.plugin.settings, folder);
-                                this.plugin.settings.backupFolderPath = folder;
-                                await this.plugin.saveSettings();
-                                suggestionContainer.classList.remove('visible');
-                                suggestionContainer.style.display = 'none';
-                            });
-                        });
-                        
-                        positionSuggestionContainer();
-                        suggestionContainer.classList.add('visible');
-                        suggestionContainer.style.display = 'block';
-                    } else {
-                        suggestionContainer.classList.remove('visible');
-                        suggestionContainer.style.display = 'none';
-                    }
-                };
-
-                // Update search input handling
-                search.inputEl.addEventListener('input', debounce((e) => {
-                    showSuggestions(search.inputEl.value);
-                }, 300));
-
-                search.inputEl.addEventListener('focus', debounce((e) => {
-                    showSuggestions(search.inputEl.value);
-                }, 300));
-
-                // Keyboard navigation for suggestions
-                search.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
-                    const items = suggestionContainer.querySelectorAll('.suggestion-item');
-                    const currentIndex = Array.from(items).findIndex(item => 
-                        item.classList.contains('is-selected')
-                    );
-
-                    switch (e.key) {
-                        case 'ArrowDown':
-                            e.preventDefault();
-                            if (currentIndex < items.length - 1) {
-                                items[currentIndex]?.classList.remove('is-selected');
-                                items[currentIndex + 1].classList.add('is-selected');
-                                (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                            }
-                            break;
-
-                        case 'ArrowUp':
-                            e.preventDefault();
-                            if (currentIndex > 0) {
-                                items[currentIndex]?.classList.remove('is-selected');
-                                items[currentIndex - 1].classList.add('is-selected');
-                                (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                            }
-                            break;
-
-                        case 'Enter':
-                            e.preventDefault();
-                            const selectedItem = suggestionContainer.querySelector('.is-selected');
-                            if (selectedItem) {
-                                const folder = selectedItem.textContent;
-                                if (folder) {
-                                    search.setValue(folder);
-                                    setSelectedFolder(this.plugin.settings, folder);
-                                    this.plugin.settings.backupFolderPath = folder;
-                                    this.plugin.saveSettings();
-                                    suggestionContainer.classList.add('visible');
-                                    suggestionContainer.classList.remove('visible');
-                                }
-                            }
-                            break;
-
-                        case 'Escape':
-                            suggestionContainer.classList.remove('visible');
-                            suggestionContainer.style.display = 'none';
-                            break;
-                    }
-                });
-
-                // Hide suggestions on blur (with delay for click)
-                search.inputEl.addEventListener('blur', () => {
-                    setTimeout(() => { suggestionContainer.classList.remove('visible'); suggestionContainer.style.display = 'none'; }, 200);
-                });
-
-                // Update suggestions on resize
-                window.addEventListener('resize', () => {
-                    if (suggestionContainer.classList.contains('visible')) {
-                        positionSuggestionContainer();
-                    }
-                });
+                
+                // Add folder suggestions
+                new FolderSuggest(this.app, search.inputEl);
             });
         } else {
             // Multi-chip note autocomplete
@@ -808,6 +633,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         }
 
         // Add section border after selection settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+
+        // Add Journal Structure Check settings
+        this.addJournalStructureSettings(containerEl);
+        
+        // Add section border after journal structure settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
         // Add Metrics Settings Section
@@ -1014,7 +845,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         containerEl.createEl('h2', { text: 'Backup Settings' });
 
         // Backup Enabled toggle
-        new Setting(containerEl)
+        const backupToggleSetting = new Setting(containerEl)
             .setName('Create Backups')
             .setDesc('Create backups of the project note before making changes')
             .addToggle(toggle => toggle
@@ -1022,218 +853,30 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     setBackupEnabled(this.plugin.settings, value);
                     await this.plugin.saveSettings();
-                    this.display(); // Refresh to show/hide backup folder setting
+                    // Show/hide backup folder setting without refreshing entire page
+                    if (backupFolderContainer) {
+                        backupFolderContainer.style.display = value ? 'block' : 'none';
+                    }
                 }));
 
-        // Backup Folder Path (only shown when backups are enabled)
-        if (isBackupEnabled(this.plugin.settings)) {
-            const backupFolderSetting = new Setting(containerEl)
+        // Backup Folder Path (create container but may be hidden)
+        const backupFolderContainer = containerEl.createEl('div');
+        backupFolderContainer.style.display = isBackupEnabled(this.plugin.settings) ? 'block' : 'none';
+        
+        if (true) { // Always create the setting, just hide the container if needed
+            const backupFolderSetting = new Setting(backupFolderContainer)
                 .setName('Backup Folder')
                 .setDesc('Select an existing folder where backups will be stored')
                 .addSearch(search => {
-                    search
-                        .setPlaceholder('Choose backup folder...')
-                        .setValue(getBackupFolderPath(this.plugin.settings));
-
-                    // Create suggestion container with fixed positioning
-                    const parentForSuggestions = search.inputEl.parentElement || containerEl;
-                    const suggestionContainer = parentForSuggestions.createEl('div', {
-                        cls: 'suggestion-container oom-suggestion-container',
-                        attr: {
-                            style: `
-                                display: none;
-                                position: absolute;
-                                z-index: 1000;
-                                background: var(--background-primary);
-                                border: 1px solid var(--background-modifier-border);
-                                border-radius: 4px;
-                                max-height: 200px;
-                                overflow-y: auto;
-                                min-width: 180px;
-                                width: 100%;
-                                box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
-                            `
-                        }
-                    });
-
-                    // Helper to position the dropdown
-                    function positionSuggestionContainer() {
-                        const inputRect = search.inputEl.getBoundingClientRect();
-                        const parent = search.inputEl.parentElement || containerEl;
-                        const parentRect = parent.getBoundingClientRect();
-                        const dropdownWidth = Math.max(inputRect.width, 180);
-                        let left = inputRect.left - parentRect.left;
-                        let top = inputRect.bottom - parentRect.top;
-                        suggestionContainer.classList.add('oom-suggestion-container');
-                        suggestionContainer.style.removeProperty('position');
-                        suggestionContainer.style.removeProperty('left');
-                        suggestionContainer.style.removeProperty('top');
-                        suggestionContainer.style.removeProperty('width');
-                        suggestionContainer.style.removeProperty('overflowX');
-                        suggestionContainer.style.removeProperty('maxWidth');
-                        suggestionContainer.style.removeProperty('right');
-                        suggestionContainer.style.setProperty('--oom-suggestion-left', `${left}px`);
-                        suggestionContainer.style.setProperty('--oom-suggestion-top', `${top}px`);
-                        suggestionContainer.style.setProperty('--oom-suggestion-width', `${dropdownWidth}px`);
-                    }
-
-                    // Clean up suggestion container on plugin unload
-                    this.plugin.register(() => suggestionContainer.remove());
-
-                    // Function to get all folders
-                    const getFolders = (): string[] => {
-                        try {
-                            const folders: string[] = [];
-                            const processFolder = (folder: TFolder, prefix: string = '') => {
-                                folders.push(prefix + folder.path);
-                                folder.children.forEach(child => {
-                                    if (child instanceof TFolder) {
-                                        processFolder(child);
-                                    }
-                                });
-                            };
-                            
-                            this.app.vault.getAllLoadedFiles().forEach(file => {
-                                if (file instanceof TFolder) {
-                                    processFolder(file);
-                                }
-                            });
-                            
-                            // Filter out folders we don't want to show in the UI
-                            const filteredFolders = folders.filter(folder => 
-                                !folder.startsWith('.') && 
-                                !folder.includes('.git/')
-                            );
-                            
-                            debug('Settings', 'Backup folder options', { 
-                                allFolders: folders.length,
-                                filteredFolders: filteredFolders.length
-                            });
-                            
-                            return filteredFolders;
-                        } catch (error) {
-                            new Notice('Error getting folders: ' + (error as Error).message);
-                            return [];
-                        }
-                    };
-
-                    // Function to show suggestions
-                    const showSuggestions = (query: string) => {
-                        const folders = getFolders();
-                        const normalizedQuery = query.toLowerCase();
-                        const filteredFolders = folders
-                            .filter(folder => folder.toLowerCase().includes(normalizedQuery))
-                            .slice(0, 10);
-                        
-                        debug('Settings', 'Backup folder suggestions', {
-                            allFolders: folders.length,
-                            filteredCount: filteredFolders.length,
-                            query: normalizedQuery
+                    search.setPlaceholder('Choose backup folder...')
+                        .setValue(getBackupFolderPath(this.plugin.settings))
+                        .onChange(async (value) => {
+                            setBackupFolderPath(this.plugin.settings, value);
+                            await this.plugin.saveSettings();
                         });
-
-                        suggestionContainer.empty();
-                        
-                        if (filteredFolders.length > 0) {
-                            filteredFolders.forEach(folder => {
-                                const item = suggestionContainer.createEl('div', {
-                                    cls: 'suggestion-item',
-                                    attr: { title: folder }
-                                });
-                                item.textContent = folder;
-                                
-                                // Add hover effect
-                                item.classList.add('selected');
-                                item.classList.remove('selected');
-                                
-                                item.addEventListener('mousedown', async (e) => {
-                                    e.preventDefault();
-                                    search.setValue(folder);
-                                    setSelectedFolder(this.plugin.settings, folder);
-                                    this.plugin.settings.backupFolderPath = folder;
-                                    await this.plugin.saveSettings();
-                                    suggestionContainer.classList.remove('visible');
-                                    suggestionContainer.style.display = 'none';
-                                });
-                            });
-                            
-                            positionSuggestionContainer();
-                            suggestionContainer.classList.add('visible');
-                            suggestionContainer.style.display = 'block';
-                        } else {
-                            suggestionContainer.classList.remove('visible');
-                            suggestionContainer.style.display = 'none';
-                        }
-                    };
-
-                    // Update search input handling
-                    search.inputEl.addEventListener('input', debounce((e) => {
-                        showSuggestions(search.inputEl.value);
-                    }, 300));
-
-                    search.inputEl.addEventListener('focus', debounce((e) => {
-                        showSuggestions(search.inputEl.value);
-                    }, 300));
-
-                    // Keyboard navigation for suggestions
-                    search.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
-                        const items = suggestionContainer.querySelectorAll('.suggestion-item');
-                        const currentIndex = Array.from(items).findIndex(item => 
-                            item.classList.contains('is-selected')
-                        );
-
-                        switch (e.key) {
-                            case 'ArrowDown':
-                                e.preventDefault();
-                                if (currentIndex < items.length - 1) {
-                                    items[currentIndex]?.classList.remove('is-selected');
-                                    items[currentIndex + 1].classList.add('is-selected');
-                                    (items[currentIndex + 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                                }
-                                break;
-
-                            case 'ArrowUp':
-                                e.preventDefault();
-                                if (currentIndex > 0) {
-                                    items[currentIndex]?.classList.remove('is-selected');
-                                    items[currentIndex - 1].classList.add('is-selected');
-                                    (items[currentIndex - 1] as HTMLElement).scrollIntoView({ block: 'nearest' });
-                                }
-                                break;
-
-                            case 'Enter':
-                                e.preventDefault();
-                                const selectedItem = suggestionContainer.querySelector('.is-selected');
-                                if (selectedItem) {
-                                    const folder = selectedItem.textContent;
-                                    if (folder) {
-                                        search.setValue(folder);
-                                        setSelectedFolder(this.plugin.settings, folder);
-                                        this.plugin.settings.backupFolderPath = folder;
-                                        this.plugin.saveSettings();
-                                        suggestionContainer.classList.add('visible');
-                                        suggestionContainer.classList.remove('visible');
-                                    }
-                                }
-                                break;
-
-                            case 'Escape':
-                                suggestionContainer.classList.remove('visible');
-                                suggestionContainer.style.display = 'none';
-                                break;
-                        }
-                    });
-
-                    // Hide suggestions on blur (with delay for click)
-                    search.inputEl.addEventListener('blur', () => {
-                        setTimeout(() => { suggestionContainer.classList.remove('visible'); suggestionContainer.style.display = 'none'; }, 200);
-                    });
-
-                    // Update suggestions on resize
-                    window.addEventListener('resize', () => {
-                        if (suggestionContainer.classList.contains('visible')) {
-                            positionSuggestionContainer();
-                        }
-                    });
+                    
+                    // Add folder suggestions
+                    new FolderSuggest(this.app, search.inputEl);
                 });
         }
 
@@ -1242,6 +885,24 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Add Logging Settings Section
         containerEl.createEl('h2', { text: 'Logging Settings' });
+        
+        // Store references to conditional settings for showing/hiding
+        let maxSizeSetting: Setting;
+        let maxBackupsSetting: Setting;
+        let performanceSection: HTMLElement;
+        
+        const updateLoggingSettingsVisibility = (logLevel: string) => {
+            const shouldShow = logLevel !== 'off';
+            if (maxSizeSetting) {
+                maxSizeSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
+            }
+            if (maxBackupsSetting) {
+                maxBackupsSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
+            }
+            if (performanceSection) {
+                performanceSection.style.display = shouldShow ? 'block' : 'none';
+            }
+        };
         
         new Setting(containerEl)
             .setName('Logging Level')
@@ -1258,9 +919,10 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     this.plugin.settings.logging.level = value as any;
                     await this.plugin.saveSettings();
                     this.plugin.setLogLevel(value as any);
+                    updateLoggingSettingsVisibility(value);
                 }));
 
-        new Setting(containerEl)
+        maxSizeSetting = new Setting(containerEl)
             .setName('Maximum Log Size')
             .setDesc('Maximum size of the log file in MB before rotation.')
             .addText(text => text
@@ -1278,7 +940,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        new Setting(containerEl)
+        maxBackupsSetting = new Setting(containerEl)
             .setName('Maximum Backups')
             .setDesc('Number of backup log files to keep.')
             .addText(text => text
@@ -1299,11 +961,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add section border after logging settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
-        // Add Performance Testing Settings Section
-        containerEl.createEl('h2', { text: 'Performance Testing Settings' });
+        // Create Performance Testing Settings Section (conditionally visible)
+        performanceSection = containerEl.createDiv();
+        performanceSection.createEl('h2', { text: 'Performance Testing Settings' });
         
         // Add explanatory note about performance testing
-        const perfTestingInfoEl = containerEl.createEl('div', {
+        const perfTestingInfoEl = performanceSection.createEl('div', {
             cls: 'oom-notice oom-notice--warning'
         });
         perfTestingInfoEl.createEl('strong', { text: 'Performance Testing Mode: ' });
@@ -1312,7 +975,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         });
 
         // Performance mode toggle
-        new Setting(containerEl)
+        new Setting(performanceSection)
             .setName('Enable Performance Testing Mode')
             .setDesc('Removes the normal 200-file limit during scraping operations. Use for testing with large datasets.')
             .addToggle(toggle => toggle
@@ -1333,7 +996,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Show dependent settings only when performance mode is enabled
         if (this.plugin.settings.performanceTesting?.enabled) {
             // Max files setting
-            new Setting(containerEl)
+            new Setting(performanceSection)
                 .setName('Maximum Files to Process')
                 .setDesc('Maximum number of files to process in performance mode. Set to 0 for unlimited.')
                 .addText(text => text
@@ -1353,7 +1016,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }));
 
             // Show warnings toggle
-            new Setting(containerEl)
+            new Setting(performanceSection)
                 .setName('Show Performance Warnings')
                 .setDesc('Display console warnings when performance testing mode is active.')
                 .addToggle(toggle => toggle
@@ -1375,7 +1038,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 ? `Processing up to ${this.plugin.settings.performanceTesting.maxFiles} files`
                 : 'Processing unlimited files';
             
-            const statusEl = containerEl.createEl('div', {
+            const statusEl = performanceSection.createEl('div', {
                 cls: 'oom-notice oom-notice--info'
             });
             statusEl.createEl('span', { 
@@ -1384,7 +1047,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         }
 
         // Add section border after performance testing settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
+        performanceSection.createEl('div', { cls: 'oom-section-border' });
+        
+        // Initialize visibility based on current logging level
+        const currentLogLevel = this.plugin.settings.logging.level || 'off';
+        updateLoggingSettingsVisibility(currentLogLevel);
 
         containerEl.scrollTop = prevScroll;
         if (focusSelector) {
@@ -1905,4 +1572,241 @@ function sortMetricEntriesByOrder(
     // Return the original entries if there's an error
     return metricEntries;
   }
+}
+
+// Suggestion classes based on Templater's implementation
+class SuggestionDisplay {
+    private owner: any;
+    private containerEl: HTMLElement;
+    private values: any[] = [];
+    private suggestions: HTMLElement[] = [];
+    private selectedItem: number = 0;
+
+    constructor(owner: any, containerEl: HTMLElement, scope: Scope) {
+        this.owner = owner;
+        this.containerEl = containerEl;
+        
+        containerEl.on("click", ".suggestion-item", this.onSuggestionClick.bind(this));
+        containerEl.on("mousemove", ".suggestion-item", this.onSuggestionMouseover.bind(this));
+        
+        scope.register([], "ArrowUp", (evt) => {
+            if (!evt.isComposing) {
+                this.setSelectedItem(this.selectedItem - 1, true);
+                return false;
+            }
+        });
+        
+        scope.register([], "ArrowDown", (evt) => {
+            if (!evt.isComposing) {  
+                this.setSelectedItem(this.selectedItem + 1, true);
+                return false;
+            }
+        });
+        
+        scope.register([], "Enter", (evt) => {
+            if (!evt.isComposing) {
+                this.useSelectedItem(evt);
+                return false;
+            }
+        });
+    }
+
+    private onSuggestionClick(evt: MouseEvent, target: HTMLElement) {
+        evt.preventDefault();
+        const index = this.suggestions.indexOf(target);
+        this.setSelectedItem(index, false);
+        this.useSelectedItem(evt);
+    }
+
+    private onSuggestionMouseover(evt: MouseEvent, target: HTMLElement) {
+        const index = this.suggestions.indexOf(target);
+        this.setSelectedItem(index, false);
+    }
+
+    setSuggestions(items: any[]) {
+        this.containerEl.empty();
+        const suggestions: HTMLElement[] = [];
+        
+        items.forEach(item => {
+            const suggestionEl = this.containerEl.createDiv("suggestion-item");
+            this.owner.renderSuggestion(item, suggestionEl);
+            suggestions.push(suggestionEl);
+        });
+        
+        this.values = items;
+        this.suggestions = suggestions;
+        this.setSelectedItem(0, false);
+    }
+
+    private useSelectedItem(evt: Event) {
+        const selectedValue = this.values[this.selectedItem];
+        if (selectedValue) {
+            this.owner.selectSuggestion(selectedValue, evt);
+        }
+    }
+
+    private setSelectedItem(index: number, scroll: boolean) {
+        const wrappedIndex = ((index % this.suggestions.length) + this.suggestions.length) % this.suggestions.length;
+        const currentSelected = this.suggestions[this.selectedItem];
+        const newSelected = this.suggestions[wrappedIndex];
+        
+        currentSelected?.removeClass("is-selected");
+        newSelected?.addClass("is-selected");
+        
+        this.selectedItem = wrappedIndex;
+        
+        if (scroll) {
+            newSelected?.scrollIntoView(false);
+        }
+    }
+}
+
+abstract class BaseSuggest {
+    protected app: App;
+    protected inputEl: HTMLInputElement;
+    protected scope: Scope;
+    protected suggestEl: HTMLElement;
+    protected suggest: SuggestionDisplay;
+    protected popper: any;
+
+    constructor(app: App, inputEl: HTMLInputElement) {
+        this.app = app;
+        this.inputEl = inputEl;
+        this.scope = new Scope();
+        
+        this.suggestEl = createDiv("suggestion-container");
+        const suggestionDiv = this.suggestEl.createDiv("suggestion");
+        this.suggest = new SuggestionDisplay(this, suggestionDiv, this.scope);
+        
+        this.scope.register([], "Escape", this.close.bind(this));
+        
+        this.inputEl.addEventListener("input", this.onInputChanged.bind(this));
+        this.inputEl.addEventListener("focus", this.onInputChanged.bind(this));
+        this.inputEl.addEventListener("blur", this.close.bind(this));
+        
+        this.suggestEl.on("mousedown", ".suggestion-container", (evt) => {
+            evt.preventDefault();
+        });
+    }
+
+    abstract getSuggestions(query: string): any[];
+    abstract renderSuggestion(item: any, el: HTMLElement): void;
+    abstract selectSuggestion(item: any, evt?: Event): void;
+
+    private onInputChanged() {
+        const query = this.inputEl.value;
+        const suggestions = this.getSuggestions(query);
+        
+        if (!suggestions) {
+            this.close();
+            return;
+        }
+        
+        if (suggestions.length > 0) {
+            this.suggest.setSuggestions(suggestions);
+            this.open(document.body, this.inputEl);
+        } else {
+            this.close();
+        }
+    }
+
+    private open(container: HTMLElement, referenceEl: HTMLElement) {
+        this.app.keymap.pushScope(this.scope);
+        container.appendChild(this.suggestEl);
+        
+        // Use Obsidian's positioning if available, otherwise fallback to simple positioning
+        if ((window as any).Popper) {
+            this.popper = (window as any).Popper.createPopper(referenceEl, this.suggestEl, {
+                placement: "bottom-start",
+                modifiers: [{
+                    name: "sameWidth",
+                    enabled: true,
+                    fn: ({ state, instance }: any) => {
+                        const width = `${state.rects.reference.width}px`;
+                        if (state.styles.popper.width !== width) {
+                            state.styles.popper.width = width;
+                            instance.update();
+                        }
+                    },
+                    phase: "beforeWrite",
+                    requires: ["computeStyles"]
+                }]
+            });
+        } else {
+            // Fallback positioning
+            const rect = referenceEl.getBoundingClientRect();
+            this.suggestEl.style.position = "absolute";
+            this.suggestEl.style.top = `${rect.bottom}px`;
+            this.suggestEl.style.left = `${rect.left}px`;
+            this.suggestEl.style.width = `${rect.width}px`;
+        }
+    }
+
+    private close() {
+        this.app.keymap.popScope(this.scope);
+        this.suggest.setSuggestions([]);
+        
+        if (this.popper) {
+            this.popper.destroy();
+            this.popper = null;
+        }
+        
+        this.suggestEl.detach();
+    }
+}
+
+class FolderSuggest extends BaseSuggest {
+    getSuggestions(query: string): TFolder[] {
+        const files = this.app.vault.getAllLoadedFiles();
+        const folders: TFolder[] = [];
+        const lowerQuery = query.toLowerCase();
+        
+        files.forEach(file => {
+            if (file instanceof TFolder && file.path.toLowerCase().contains(lowerQuery)) {
+                folders.push(file);
+            }
+        });
+        
+        return folders.slice(0, 1000);
+    }
+
+    renderSuggestion(folder: TFolder, el: HTMLElement) {
+        el.setText(folder.path);
+    }
+
+    selectSuggestion(folder: TFolder) {
+        this.inputEl.value = folder.path;
+        this.inputEl.trigger("input");
+        // Use the inherited close method
+        (this as any).close();
+    }
+}
+
+class FileSuggest extends BaseSuggest {
+    getSuggestions(query: string): TFile[] {
+        const files = this.app.vault.getAllLoadedFiles();
+        const markdownFiles: TFile[] = [];
+        const lowerQuery = query.toLowerCase();
+        
+        files.forEach(file => {
+            if (file instanceof TFile && 
+                file.extension === "md" && 
+                file.path.toLowerCase().contains(lowerQuery)) {
+                markdownFiles.push(file);
+            }
+        });
+        
+        return markdownFiles.slice(0, 1000);
+    }
+
+    renderSuggestion(file: TFile, el: HTMLElement) {
+        el.setText(file.path);
+    }
+
+    selectSuggestion(file: TFile) {
+        this.inputEl.value = file.path;
+        this.inputEl.trigger("input");
+        // Use the inherited close method
+        (this as any).close();
+    }
 }
