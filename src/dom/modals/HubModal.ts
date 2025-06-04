@@ -12,7 +12,7 @@ import { DreamMetric, DateHandlingConfig, DatePlacement, SelectionMode } from '.
 import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../../types/journal-check';
 import safeLogger from '../../logging/safe-logger';
 import { getLogger } from '../../logging';
-import { createSelectedNotesAutocomplete, createFolderAutocomplete } from '../../../autocomplete';
+import { createSelectedNotesAutocomplete, createFolderAutocomplete, createSelectedFoldersAutocomplete } from '../../../autocomplete';
 import { 
     getProjectNotePath, 
     setProjectNotePath,
@@ -1260,23 +1260,24 @@ This metric assesses **how well your memory of the dream holds up and remains co
             });
             excludeNotesSection.controlEl.appendChild(excludeNotesContainer);
             
-            // Exclude Subfolders - folder search like selectedFolder  
+            // Exclude Subfolders - multi-select autocomplete like excludeNotes
             const excludeSubfoldersSection = new Setting(this.contentContainer)
                 .setName('Exclude Subfolders')
-                .setDesc('Skip specific subfolders within the selected folder')
-                .addSearch(search => {
-                    search.setPlaceholder('Choose subfolders to exclude...')
-                        .setValue((this.plugin.settings.excludedSubfolders || []).join(', '))
-                        .onChange(async (value) => {
-                            // Parse comma-separated folder paths
-                            const folders = value.split(',').map(f => f.trim()).filter(f => f.length > 0);
-                            this.plugin.settings.excludedSubfolders = folders;
-                            this.excludedSubfolders = [...folders];
-                            await this.plugin.saveSettings();
-                        });
-                    
-                    new FolderSuggest(this.app, search.inputEl);
-                });
+                .setDesc('Skip specific subfolders within the selected folder');
+            
+            const excludeSubfoldersContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container oom-exclude-subfolders-container' });
+            createSelectedFoldersAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: excludeSubfoldersContainer,
+                selectedFolders: this.plugin.settings.excludedSubfolders || [],
+                onChange: async (selected) => {
+                    this.plugin.settings.excludedSubfolders = selected;
+                    this.excludedSubfolders = [...selected];
+                    await this.plugin.saveSettings();
+                }
+            });
+            excludeSubfoldersSection.controlEl.appendChild(excludeSubfoldersContainer);
         } else {
             // Multi-chip note autocomplete (identical to Settings)
             const searchFieldContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container' });

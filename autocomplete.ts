@@ -511,4 +511,234 @@ export function createFolderAutocomplete({
         input,
         suggestionContainer
     };
+}
+
+// Multi-select folders autocomplete interface
+interface FoldersAutocompleteOptions {
+    app: App;
+    plugin: any;
+    containerEl: HTMLElement;
+    selectedFolders: string[];
+    onChange: (selected: string[]) => void;
+}
+
+// Multi-select folders suggester class
+class MultiSelectFoldersSuggest {
+    private app: App;
+    private inputEl: HTMLInputElement;
+    private scope: Scope;
+    private suggestEl: HTMLElement;
+    private suggest: MultiSelectSuggestionDisplay;
+    private popper: any;
+    private selectedFolders: string[];
+    private onChange: (selected: string[]) => void;
+    private renderChips: () => void;
+
+    constructor(app: App, inputEl: HTMLInputElement, selectedFolders: string[], onChange: (selected: string[]) => void, renderChips: () => void) {
+        this.app = app;
+        this.inputEl = inputEl;
+        this.selectedFolders = selectedFolders;
+        this.onChange = onChange;
+        this.renderChips = renderChips;
+        this.scope = new Scope();
+        
+        this.suggestEl = createDiv("suggestion-container");
+        const suggestionDiv = this.suggestEl.createDiv("suggestion");
+        this.suggest = new MultiSelectSuggestionDisplay(this, suggestionDiv, this.scope);
+        
+        this.scope.register([], "Escape", this.close.bind(this));
+        
+        this.inputEl.addEventListener("input", this.onInputChanged.bind(this));
+        this.inputEl.addEventListener("focus", this.onInputChanged.bind(this));
+        this.inputEl.addEventListener("blur", this.close.bind(this));
+        
+        this.suggestEl.on("mousedown", ".suggestion-container", (evt) => {
+            evt.preventDefault();
+        });
+    }
+
+    getSuggestions(query: string): TFolder[] {
+        if (!query.trim()) return [];
+        
+        const files = this.app.vault.getAllLoadedFiles();
+        const folders: TFolder[] = [];
+        const lowerQuery = query.toLowerCase();
+        
+        files.forEach(file => {
+            if (file instanceof TFolder && 
+                !this.selectedFolders.includes(file.path) &&
+                file.path.toLowerCase().includes(lowerQuery)) {
+                folders.push(file);
+            }
+        });
+        
+        // Sort by relevance
+        folders.sort((a, b) => {
+            const aExact = a.path.toLowerCase() === lowerQuery;
+            const bExact = b.path.toLowerCase() === lowerQuery;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.path.localeCompare(b.path);
+        });
+        
+        return folders.slice(0, 1000);
+    }
+
+    renderSuggestion(folder: TFolder, el: HTMLElement) {
+        el.setText(folder.path);
+        el.setAttr('title', folder.path);
+    }
+
+    selectSuggestion(folder: TFolder) {
+        // Add the selected folder to the list
+        this.selectedFolders.push(folder.path);
+        this.onChange([...this.selectedFolders]);
+        
+        // Clear the input and close suggestions
+        this.inputEl.value = '';
+        this.close();
+        
+        // Re-render chips
+        this.renderChips();
+    }
+
+    private onInputChanged() {
+        const query = this.inputEl.value;
+        const suggestions = this.getSuggestions(query);
+        
+        if (!suggestions || suggestions.length === 0) {
+            this.close();
+            return;
+        }
+        
+        if (suggestions.length > 0) {
+            this.suggest.setSuggestions(suggestions);
+            this.open(document.body, this.inputEl);
+        } else {
+            this.close();
+        }
+    }
+
+    private open(container: HTMLElement, referenceEl: HTMLElement) {
+        this.app.keymap.pushScope(this.scope);
+        container.appendChild(this.suggestEl);
+        
+        // Use Obsidian's positioning if available
+        if ((window as any).Popper) {
+            this.popper = (window as any).Popper.createPopper(referenceEl, this.suggestEl, {
+                placement: "bottom-start",
+                modifiers: [{
+                    name: "sameWidth",
+                    enabled: true,
+                    fn: ({ state, instance }: any) => {
+                        const width = `${state.rects.reference.width}px`;
+                        if (state.styles.popper.width !== width) {
+                            state.styles.popper.width = width;
+                            instance.update();
+                        }
+                    },
+                    phase: "beforeWrite",
+                    requires: ["computeStyles"]
+                }]
+            });
+        } else {
+            // Fallback positioning
+            const rect = referenceEl.getBoundingClientRect();
+            this.suggestEl.style.position = "absolute";
+            this.suggestEl.style.top = `${rect.bottom}px`;
+            this.suggestEl.style.left = `${rect.left}px`;
+            this.suggestEl.style.width = `${rect.width}px`;
+        }
+    }
+
+    private close() {
+        this.app.keymap.popScope(this.scope);
+        this.suggest.setSuggestions([]);
+        
+        if (this.popper) {
+            this.popper.destroy();
+            this.popper = null;
+        }
+        
+        this.suggestEl.detach();
+    }
+}
+
+// Export function for multi-select folders autocomplete
+export function createSelectedFoldersAutocomplete({
+    app,
+    plugin,
+    containerEl,
+    selectedFolders,
+    onChange
+}: FoldersAutocompleteOptions) {
+    const input = containerEl.createEl('input', {
+        type: 'text',
+        cls: 'oom-multiselect-input',
+        attr: { placeholder: 'Type to search and select folders...' }
+    });
+    
+    const chipsContainer = containerEl.createEl('div', {
+        cls: 'oom-multiselect-chips-container oom-exclude-folders-chips'
+    });
+    
+    // Add styles for folder chips (similar to notes but with folder styling)
+    if (!document.getElementById('oom-folder-chips-styles')) {
+        const style = document.createElement('style');
+        style.id = 'oom-folder-chips-styles';
+        style.textContent = `
+            .oom-exclude-folders-chips .oom-chip {
+                background-color: var(--background-modifier-error);
+                border-color: var(--text-error);
+                color: var(--text-error);
+            }
+            .oom-exclude-folders-chips .oom-chip:hover {
+                background-color: var(--text-error);
+                color: var(--text-on-accent);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function renderChips() {
+        chipsContainer.empty();
+        if (selectedFolders.length === 0) {
+            chipsContainer.classList.add('oom-chips-hidden');
+        } else {
+            chipsContainer.classList.remove('oom-chips-hidden');
+            
+            for (const folder of selectedFolders) {
+                const chip = chipsContainer.createEl('span', { cls: 'oom-chip' });
+                const chipText = chip.createEl('span', { 
+                    cls: 'oom-chip-text', 
+                    text: folder 
+                });
+                
+                // Set tooltip to show full path
+                chipText.setAttr('title', folder);
+                
+                const removeBtn = chip.createEl('span', { cls: 'oom-chip-remove', text: '×' });
+                removeBtn.onclick = () => {
+                    const idx = selectedFolders.indexOf(folder);
+                    if (idx !== -1) {
+                        selectedFolders.splice(idx, 1);
+                        onChange([...selectedFolders]);
+                        renderChips();
+                    }
+                };
+            }
+        }
+    }
+
+    // Initialize the enhanced suggestions system
+    const foldersSuggest = new MultiSelectFoldersSuggest(app, input, selectedFolders, onChange, renderChips);
+
+    // Initial render
+    renderChips();
+    
+    return {
+        input,
+        chipsContainer,
+        suggestionContainer: undefined // Not needed with the new system
+    };
 } 
