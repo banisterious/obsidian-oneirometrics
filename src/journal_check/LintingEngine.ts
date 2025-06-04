@@ -523,4 +523,244 @@ export class LintingEngine {
             }
         };
     }
+    
+    /**
+     * Validate structure compliance against callout content
+     */
+    public validateStructureCompliance(content: string, structure: CalloutStructure): ValidationResult[] {
+        const results: ValidationResult[] = [];
+        const callouts = this.contentParser.parseCallouts(content);
+        
+        // Check if required root callout exists
+        if (!callouts.some(c => c.type === structure.rootCallout)) {
+            results.push({
+                id: `structure-validation-${Date.now()}-1`,
+                severity: 'error',
+                message: `Missing required root callout: [!${structure.rootCallout}]`,
+                position: {
+                    start: { line: 1, column: 1 },
+                    end: { line: 1, column: 1 }
+                },
+                rule: {
+                    id: 'structure-validation',
+                    name: 'Structure Validation',
+                    description: 'Validates journal structure compliance',
+                    type: 'structure',
+                    severity: 'error',
+                    enabled: true,
+                    pattern: '',
+                    message: `Missing required root callout: [!${structure.rootCallout}]`,
+                    priority: 1
+                },
+                quickFixes: [{
+                    title: `Add [!${structure.rootCallout}] callout`,
+                    action: (content: string) => `> [!${structure.rootCallout}]\n> \n\n${content}`
+                }]
+            });
+        }
+        
+        // Check if metrics callout exists (if defined)
+        if (structure.metricsCallout && !callouts.some(c => c.type === structure.metricsCallout)) {
+            results.push({
+                id: `structure-validation-${Date.now()}-2`,
+                severity: 'warning',
+                message: `Missing recommended metrics callout: [!${structure.metricsCallout}]`,
+                position: {
+                    start: { line: 1, column: 1 },
+                    end: { line: 1, column: 1 }
+                },
+                rule: {
+                    id: 'structure-validation',
+                    name: 'Structure Validation',
+                    description: 'Validates journal structure compliance',
+                    type: 'structure',
+                    severity: 'warning',
+                    enabled: true,
+                    pattern: '',
+                    message: `Missing recommended metrics callout: [!${structure.metricsCallout}]`,
+                    priority: 2
+                },
+                quickFixes: [{
+                    title: `Add [!${structure.metricsCallout}] callout`,
+                    action: (content: string) => `${content}\n\n> [!${structure.metricsCallout}]\n> Add metrics here`
+                }]
+            });
+        }
+        
+        // Check for unknown callouts not in structure definition
+        const allowedCallouts = [
+            structure.rootCallout,
+            ...(structure.childCallouts || []),
+            structure.metricsCallout
+        ].filter(Boolean);
+        
+        callouts.forEach((callout, index) => {
+            if (!allowedCallouts.includes(callout.type)) {
+                results.push({
+                    id: `structure-validation-${Date.now()}-${index + 3}`,
+                    severity: 'info',
+                    message: `Callout [!${callout.type}] not defined in structure "${structure.name}"`,
+                    position: {
+                        start: { line: 1, column: 1 },
+                        end: { line: 1, column: 1 }
+                    },
+                    rule: {
+                        id: 'structure-validation',
+                        name: 'Structure Validation',
+                        description: 'Validates journal structure compliance',
+                        type: 'structure',
+                        severity: 'info',
+                        enabled: true,
+                        pattern: '',
+                        message: `Callout [!${callout.type}] not defined in structure`,
+                        priority: 3
+                    }
+                });
+            }
+        });
+        
+        return results;
+    }
+    
+    /**
+     * Detect structure conflicts between multiple structures
+     */
+    public detectStructureConflicts(structures: CalloutStructure[]): ValidationResult[] {
+        const results: ValidationResult[] = [];
+        const calloutUsage = new Map<string, string[]>();
+        
+        // Build map of callout types to structure names that use them
+        structures.forEach(structure => {
+            const callouts = [
+                structure.rootCallout,
+                ...(structure.childCallouts || []),
+                structure.metricsCallout
+            ].filter(Boolean);
+            
+            callouts.forEach(callout => {
+                if (!calloutUsage.has(callout)) {
+                    calloutUsage.set(callout, []);
+                }
+                calloutUsage.get(callout)!.push(structure.name);
+            });
+        });
+        
+        // Check for conflicts (same callout used by multiple structures)
+        let conflictIndex = 0;
+        calloutUsage.forEach((structureNames, callout) => {
+            if (structureNames.length > 1) {
+                results.push({
+                    id: `structure-conflict-${Date.now()}-${conflictIndex++}`,
+                    severity: 'warning',
+                    message: `Callout [!${callout}] is used by multiple structures: ${structureNames.join(', ')}`,
+                    position: {
+                        start: { line: 1, column: 1 },
+                        end: { line: 1, column: 1 }
+                    },
+                    rule: {
+                        id: 'structure-conflict',
+                        name: 'Structure Conflict Detection',
+                        description: 'Detects conflicts between structure definitions',
+                        type: 'structure',
+                        severity: 'warning',
+                        enabled: true,
+                        pattern: '',
+                        message: 'Callout used by multiple structures',
+                        priority: 2
+                    }
+                });
+            }
+        });
+        
+        return results;
+    }
+    
+    /**
+     * Validate a structure definition itself
+     */
+    public validateStructureDefinition(structure: CalloutStructure): ValidationResult[] {
+        const results: ValidationResult[] = [];
+        
+        // Check required fields
+        if (!structure.name || structure.name.trim() === '') {
+            results.push({
+                id: `structure-definition-${Date.now()}-1`,
+                severity: 'error',
+                message: 'Structure name is required',
+                position: {
+                    start: { line: 1, column: 1 },
+                    end: { line: 1, column: 1 }
+                },
+                rule: {
+                    id: 'structure-definition',
+                    name: 'Structure Definition Validation',
+                    description: 'Validates structure definition completeness',
+                    type: 'structure',
+                    severity: 'error',
+                    enabled: true,
+                    pattern: '',
+                    message: 'Structure name is required',
+                    priority: 1
+                }
+            });
+        }
+        
+        if (!structure.rootCallout || structure.rootCallout.trim() === '') {
+            results.push({
+                id: `structure-definition-${Date.now()}-2`,
+                severity: 'error',
+                message: 'Root callout is required',
+                position: {
+                    start: { line: 1, column: 1 },
+                    end: { line: 1, column: 1 }
+                },
+                rule: {
+                    id: 'structure-definition',
+                    name: 'Structure Definition Validation',
+                    description: 'Validates structure definition completeness',
+                    type: 'structure',
+                    severity: 'error',
+                    enabled: true,
+                    pattern: '',
+                    message: 'Root callout is required',
+                    priority: 1
+                }
+            });
+        }
+        
+        // Check for invalid callout names (basic validation)
+        const invalidChars = /[^a-zA-Z0-9\-_]/;
+        const calloutsToCheck = [
+            structure.rootCallout,
+            ...(structure.childCallouts || []),
+            structure.metricsCallout
+        ].filter(Boolean);
+        
+        calloutsToCheck.forEach((callout, index) => {
+            if (invalidChars.test(callout)) {
+                results.push({
+                    id: `structure-definition-${Date.now()}-${index + 3}`,
+                    severity: 'warning',
+                    message: `Callout "${callout}" contains invalid characters`,
+                    position: {
+                        start: { line: 1, column: 1 },
+                        end: { line: 1, column: 1 }
+                    },
+                    rule: {
+                        id: 'structure-definition',
+                        name: 'Structure Definition Validation',
+                        description: 'Validates structure definition completeness',
+                        type: 'structure',
+                        severity: 'warning',
+                        enabled: true,
+                        pattern: '',
+                        message: 'Invalid characters in callout name',
+                        priority: 3
+                    }
+                });
+            }
+        });
+        
+        return results;
+    }
 } 

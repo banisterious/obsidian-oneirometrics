@@ -6,7 +6,7 @@
  * Callout Quick Copy, and detailed metric reference information.
  */
 
-import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile, ButtonComponent, DropdownComponent, TextAreaComponent, TextComponent } from 'obsidian';
+import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile, ButtonComponent, DropdownComponent, TextAreaComponent, TextComponent, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
 import { DreamMetric, DateHandlingConfig, DatePlacement } from '../../types/core';
 import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../../types/journal-check';
@@ -46,6 +46,15 @@ interface TemplateWizardState {
     isValid: boolean;
     currentStep: number;
     editingTemplateId?: string; // Track if we're editing an existing template
+}
+
+interface CalloutNode {
+    type: string;
+    title: string;
+    depth: number;
+    children: CalloutNode[];
+    lineNumber: number;
+    position?: { start: number; end: number };
 }
 
 export class HubModal extends Modal {
@@ -144,6 +153,7 @@ export class HubModal extends Modal {
         this.createCalloutSettingsTab(); // Moved up and renamed
         this.createDreamScrapeTab();
         this.createJournalStructureTab();
+        this.createContentAnalysisTab(); // NEW: Content Analysis tab
         
         // Create Overview tab (renamed to Reference Overview)
         this.createOverviewTab();
@@ -203,6 +213,23 @@ export class HubModal extends Modal {
         
         journalStructureTab.addEventListener('click', () => {
             this.selectTab('journal-structure');
+        });
+    }
+    
+    // Create Content Analysis tab
+    private createContentAnalysisTab() {
+        const contentAnalysisTab = this.tabsContainer.createDiv({
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
+            attr: { 'data-tab-id': 'content-analysis' }
+        });
+        
+        contentAnalysisTab.createDiv({ 
+            text: 'Content Analysis', 
+            cls: 'oom-hub-tab-label' 
+        });
+        
+        contentAnalysisTab.addEventListener('click', () => {
+            this.selectTab('content-analysis');
         });
     }
     
@@ -301,6 +328,8 @@ export class HubModal extends Modal {
             this.loadDreamScrapeContent();
         } else if (tabId === 'journal-structure') {
             this.loadJournalStructureContent();
+        } else if (tabId === 'content-analysis') {
+            this.loadContentAnalysisContent();
         } else if (tabId === 'callout-settings') {
             this.loadCalloutSettingsContent();
         } else if (tabId === 'overview') {
@@ -1638,10 +1667,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
 
         // Date Options Container (only visible when master toggle is ON)
         dateOptionsContainer = settingsContainer.createDiv({ cls: 'oom-date-options-container' });
-        dateOptionsContainer.style.marginLeft = '2em';
-        dateOptionsContainer.style.marginTop = '1em';
-        dateOptionsContainer.style.paddingLeft = '1em';
-        dateOptionsContainer.style.borderLeft = '2px solid var(--background-modifier-border)';
         dateOptionsContainer.style.display = dateFieldsEnabled ? 'block' : 'none';
 
         // Date Placement Dropdown
@@ -2809,8 +2834,10 @@ Example:
             textarea.style.borderRadius = '4px';
             textarea.style.resize = 'vertical';
             
-            // Set initial value
+            // Set initial value - this was missing proper restoration for editing!
             textarea.value = this.wizardState!.content || '';
+            
+            console.log('🔧 Direct Input - Setting textarea content:', this.wizardState!.content?.substring(0, 100));
             
             // Add event handler
             textarea.addEventListener('input', () => {
@@ -3061,18 +3088,46 @@ Example:
         // Enter wizard mode with the existing template data
         this.journalStructureMode = 'wizard';
         
-        // Determine the method based on template properties
-        let method: TemplateCreationMethod = 'direct';
+        // Determine the method based on template properties - improved logic
+        let method: TemplateCreationMethod = 'direct'; // Default to direct if unsure
+        
         if (template.isTemplaterTemplate && template.templaterFile) {
             method = 'templater';
-        } else if (template.structure) {
-            method = 'structure';
+        } else if (template.structure && template.structure.trim() !== '') {
+            // Only use structure method if the template actually has a defined structure
+            // AND the content looks like it was generated from a structure
+            const availableStructures = this.getAvailableStructures();
+            const matchingStructure = availableStructures.find(s => s.id === template.structure);
+            
+            if (matchingStructure) {
+                // Check if content looks structure-generated vs. direct input
+                const hasStructureMarkers = template.content?.includes('[!journal-entry]') ||
+                                          template.content?.includes('[!dream-diary]') ||
+                                          template.content?.includes('[!dream-metrics]');
+                
+                if (hasStructureMarkers) {
+                    method = 'structure';
+                } else {
+                    // Content doesn't match structure patterns, likely direct input with assigned structure
+                    method = 'direct';
+                }
+            }
         }
         
-        // Find the structure if it exists
+        console.log('🔧 Edit Template - Detected method:', method, 'for template:', template.name);
+        console.log('🔧 Template has structure:', template.structure);
+        console.log('🔧 Template content preview:', template.content?.substring(0, 100));
+        
+        // Find the structure if it exists and method is structure
         let structure: CalloutStructure | null = null;
-        if (template.structure) {
+        if (method === 'structure' && template.structure) {
             structure = this.getAvailableStructures().find(s => s.id === template.structure) || null;
+        }
+        
+        // Set appropriate wizard step based on method
+        let startStep = 2; // Default to step 2 for most methods
+        if (method === 'structure') {
+            startStep = 3; // Go to final preview step for structure method
         }
         
         this.wizardState = {
@@ -3083,9 +3138,11 @@ Example:
             templateName: template.name,
             templateDescription: template.description || '',
             isValid: true,
-            currentStep: method === 'templater' ? 2 : (method === 'structure' ? 3 : 2),
+            currentStep: startStep,
             editingTemplateId: template.id // Store the ID so we know we're editing
         };
+        
+        console.log('🔧 Wizard state for editing:', this.wizardState);
         
         // Re-render in wizard mode
         this.loadJournalStructureContent();
@@ -3476,10 +3533,13 @@ Example:
             name: this.wizardState.templateName,
             description: this.wizardState.templateDescription,
             content: this.wizardState.content,
-            structure: this.wizardState.structure?.id || '',
+            structure: this.wizardState.structure?.id || '', // This was the bug - ensure structure ID is properly set
             isTemplaterTemplate: this.wizardState.method === 'templater',
             templaterFile: this.wizardState.templaterFile || ''
         };
+        
+        console.log('🔧 Saving template with structure ID:', template.structure);
+        console.log('🔧 Template data:', template);
         
         this.saveTemplate(template);
     }
@@ -3550,6 +3610,1543 @@ Example:
         } catch (error) {
             safeLogger.error('UI', 'Error saving template', error as Error);
             new Notice('Error saving template. Please try again.');
+        }
+    }
+    
+    // Load Content Analysis content
+    private loadContentAnalysisContent() {
+        this.contentContainer.empty();
+        
+        // Add header section
+        const headerSection = this.contentContainer.createDiv({ 
+            cls: 'oom-content-analysis-header' 
+        });
+        
+        headerSection.createEl('h2', { text: 'Content Analysis' });
+        
+        headerSection.createEl('p', { 
+            text: 'Analyze templates, folders, and notes to validate structure patterns, discover existing callout usage, and migrate between different journal formats.',
+            cls: 'oom-content-analysis-description'
+        });
+        
+        // Create main content container
+        const mainContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-content-analysis-main' 
+        });
+        
+        // Template Validation Section (Priority 1)
+        const templateValidationSection = mainContainer.createDiv({ cls: 'oom-analysis-section' });
+        templateValidationSection.createEl('h3', { text: 'Template Validation', cls: 'oom-section-header' });
+        
+        templateValidationSection.createEl('p', { 
+            text: 'Check if your Hub templates follow proper structure patterns and validate callout syntax.' 
+        });
+        
+        // Add recovery button for lost content
+        const recoveryContainer = templateValidationSection.createDiv({ cls: 'oom-recovery-container' });
+        recoveryContainer.style.marginBottom = '1em';
+        recoveryContainer.style.padding = '1em';
+        recoveryContainer.style.background = 'var(--background-secondary)';
+        recoveryContainer.style.borderRadius = '4px';
+        recoveryContainer.style.border = '1px solid var(--background-modifier-border)';
+        
+        const recoveryHeader = recoveryContainer.createEl('strong', { text: '🆘 Lost Template Content?' });
+        recoveryContainer.createEl('br');
+        recoveryContainer.createEl('span', { 
+            text: 'If your templates lost their content, use the recovery tool to attempt restoration.',
+            cls: 'oom-recovery-description'
+        });
+        recoveryContainer.createEl('br');
+        const recoverBtn = recoveryContainer.createEl('button', {
+            text: '🔧 Open Template Recovery Tool',
+            cls: 'oom-recovery-launch-btn'
+        });
+        recoverBtn.style.marginTop = '0.5em';
+        recoverBtn.addEventListener('click', () => {
+            this.recoverLostTemplateContent();
+        });
+        
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        if (templates.length > 0) {
+            const templatesList = templateValidationSection.createDiv({ cls: 'oom-templates-validation-list' });
+            
+            templates.forEach(template => {
+                const templateItem = templatesList.createDiv({ cls: 'oom-template-validation-item' });
+                templateItem.style.border = '1px solid var(--background-modifier-border)';
+                templateItem.style.borderRadius = '4px';
+                templateItem.style.padding = '1em';
+                templateItem.style.marginBottom = '0.5em';
+                
+                const templateHeader = templateItem.createDiv({ cls: 'oom-template-validation-header' });
+                templateHeader.style.display = 'flex';
+                templateHeader.style.justifyContent = 'space-between';
+                templateHeader.style.alignItems = 'center';
+                templateHeader.style.marginBottom = '0.5em';
+                
+                const templateInfo = templateHeader.createDiv();
+                templateInfo.createEl('strong', { text: template.name });
+                templateInfo.createEl('br');
+                templateInfo.createEl('span', { 
+                    text: template.description || 'No description',
+                    cls: 'oom-template-description'
+                });
+                
+                const validateBtn = templateHeader.createEl('button', {
+                    text: 'Validate',
+                    cls: 'oom-button-secondary'
+                });
+                validateBtn.addEventListener('click', () => {
+                    this.validateTemplate(template, templateItem);
+                });
+                
+                // Placeholder for validation results
+                const resultsContainer = templateItem.createDiv({ 
+                    cls: 'oom-template-validation-results'
+                });
+                resultsContainer.style.display = 'none';
+                resultsContainer.style.marginTop = '0.5em';
+                resultsContainer.style.padding = '0.5em';
+                resultsContainer.style.background = 'var(--background-secondary)';
+                resultsContainer.style.borderRadius = '3px';
+            });
+        } else {
+            templateValidationSection.createEl('p', { 
+                text: 'No templates available. Create templates first using the Template Wizard.',
+                cls: 'oom-empty-state'
+            });
+        }
+        
+        // Content Pattern Analysis Section (Priority 2)
+        const patternAnalysisSection = mainContainer.createDiv({ cls: 'oom-analysis-section' });
+        patternAnalysisSection.createEl('h3', { text: 'Content Pattern Analysis', cls: 'oom-section-header' });
+        
+        patternAnalysisSection.createEl('p', { 
+            text: 'Analyze specific folders or notes to discover what callout patterns you\'re actually using in your existing journals.' 
+        });
+        
+        // Analysis targets selection
+        const targetsContainer = patternAnalysisSection.createDiv({ cls: 'oom-analysis-targets' });
+        targetsContainer.createEl('h4', { text: 'Analysis Targets' });
+        
+        const targetsList = targetsContainer.createDiv({ cls: 'oom-targets-list' });
+        
+        const emptyState = targetsList.createDiv({ cls: 'oom-targets-empty-state' });
+        emptyState.textContent = 'No analysis targets selected. Use the buttons below to add folders or notes.';
+        
+        const targetsActions = targetsContainer.createDiv({ cls: 'oom-targets-actions' });
+        targetsActions.style.display = 'flex';
+        targetsActions.style.gap = '0.5em';
+        targetsActions.style.marginBottom = '1em';
+        
+        const addFolderBtn = targetsActions.createEl('button', {
+            text: '📁 Add Folder',
+            cls: 'oom-button-secondary'
+        });
+        addFolderBtn.addEventListener('click', () => {
+            this.showFolderSelectionDialog(targetsList, emptyState);
+        });
+        
+        const addNoteBtn = targetsActions.createEl('button', {
+            text: '📄 Add Note',
+            cls: 'oom-button-secondary'
+        });
+        addNoteBtn.addEventListener('click', () => {
+            this.showNoteSelectionDialog(targetsList, emptyState);
+        });
+        
+        const analyzeBtn = targetsActions.createEl('button', {
+            text: 'Analyze Selected Content',
+            cls: 'oom-button-primary'
+        });
+        analyzeBtn.disabled = true;
+        analyzeBtn.addEventListener('click', () => {
+            this.logger.info('ContentAnalysis', 'ANALYZE BUTTON CLICKED - Starting analysis');
+            this.analyzeSelectedContent();
+        });
+        
+        // Structure Migration Section (Priority 3)
+        const migrationSection = mainContainer.createDiv({ cls: 'oom-analysis-section' });
+        migrationSection.createEl('h3', { text: 'Structure Migration Tools', cls: 'oom-section-header' });
+        
+        migrationSection.createEl('p', { 
+            text: 'Convert content between different callout structures safely with previews and backups.' 
+        });
+        
+        const migrationPlaceholder = migrationSection.createDiv({ cls: 'oom-migration-placeholder' });
+        migrationPlaceholder.style.padding = '2em';
+        migrationPlaceholder.style.textAlign = 'center';
+        migrationPlaceholder.style.border = '2px dashed var(--background-modifier-border)';
+        migrationPlaceholder.style.borderRadius = '8px';
+        migrationPlaceholder.style.color = 'var(--text-muted)';
+        
+        migrationPlaceholder.createEl('p', { text: '🚧 Migration tools coming soon!' });
+        const migrationDescription = migrationPlaceholder.createEl('p', { 
+            text: 'This will include structure conversion previews, bulk content migration, and backup/restore functionality.'
+        });
+        migrationDescription.style.fontSize = '0.9em';
+    }
+    
+    // Validate a template (placeholder implementation)
+    private validateTemplate(template: JournalTemplate, templateItem: HTMLElement) {
+        // Get the results container for this template
+        const resultsContainer = templateItem.querySelector('.oom-template-validation-results') as HTMLElement;
+        if (!resultsContainer) return;
+        
+        // Show loading state
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = '';
+        resultsContainer.createEl('p', { text: '🔄 Validating template...', cls: 'oom-validation-loading' });
+        
+        console.log('🔍 Debug template validation:');
+        console.log('Template structure ID:', template.structure);
+        console.log('Template is Templater:', template.isTemplaterTemplate);
+        console.log('Template Templater file:', template.templaterFile);
+        console.log('Template content length:', template.content?.length || 0);
+        
+        // Clear loading state
+        resultsContainer.innerHTML = '';
+        
+        // Determine template type and validate accordingly
+        if (template.isTemplaterTemplate) {
+            // Templater template validation
+            this.validateTemplaterTemplate(template, resultsContainer);
+        } else if (template.structure && template.structure.trim() !== '') {
+            // Structure-based template validation
+            this.validateStructureBasedTemplate(template, resultsContainer);
+        } else {
+            // Direct Input template validation
+            this.validateDirectInputTemplate(template, resultsContainer);
+        }
+    }
+    
+    /**
+     * Validate a Templater-based template
+     */
+    private validateTemplaterTemplate(template: JournalTemplate, resultsContainer: HTMLElement) {
+        const errors: string[] = [];
+        const warnings: string[] = [];
+        const info: string[] = [];
+        
+        // Check if Templater plugin is available
+        const templaterEnabled = !!(this.plugin.templaterIntegration?.isTemplaterInstalled?.());
+        if (!templaterEnabled) {
+            errors.push('Templater plugin is not installed or enabled');
+        }
+        
+        // Check if templater file exists
+        if (!template.templaterFile) {
+            errors.push('No Templater file specified for this template');
+        } else {
+            const file = this.app.vault.getAbstractFileByPath(template.templaterFile);
+            if (!file) {
+                errors.push(`Templater file not found: ${template.templaterFile}`);
+            } else {
+                info.push(`Templater file: ${template.templaterFile}`);
+            }
+        }
+        
+        // Check template content
+        if (!template.content || template.content.trim() === '') {
+            warnings.push('Template content is empty');
+        } else {
+            info.push(`Template content: ${template.content.length} characters`);
+        }
+        
+        this.displayValidationResults(resultsContainer, errors, warnings, info, 'Templater Template');
+    }
+    
+    /**
+     * Validate a structure-based template
+     */
+    private validateStructureBasedTemplate(template: JournalTemplate, resultsContainer: HTMLElement) {
+        const errors: string[] = [];
+        const warnings: string[] = [];
+        const info: string[] = [];
+        
+        // Get available structures
+        const journalStructures = this.plugin.settings.journalStructure?.structures || [];
+        const lintingStructures = this.plugin.settings.linting?.structures || [];
+        const allStructures = [...journalStructures, ...lintingStructures];
+        
+        // Check if structure exists
+        const associatedStructure = allStructures.find(s => s.id === template.structure);
+        if (!associatedStructure) {
+            errors.push(`Structure not found: "${template.structure}"`);
+            info.push(`Available structures: ${allStructures.map(s => s.id).join(', ')}`);
+        } else {
+            info.push(`Using structure: ${associatedStructure.name} (${associatedStructure.id})`);
+            
+            // Validate content against structure if we have the LintingEngine
+            try {
+                const lintingEngine = new (require('../../journal_check/LintingEngine').LintingEngine)(this.plugin);
+                const validationResults = lintingEngine.validateStructureCompliance(template.content, associatedStructure);
+                
+                validationResults.forEach(result => {
+                    if (result.severity === 'error') {
+                        errors.push(result.message);
+                    } else if (result.severity === 'warning') {
+                        warnings.push(result.message);
+                    } else {
+                        info.push(result.message);
+                    }
+                });
+            } catch (error) {
+                warnings.push('Could not perform structure compliance validation');
+            }
+        }
+        
+        // Check template content
+        if (!template.content || template.content.trim() === '') {
+            errors.push('Template content is empty');
+        } else {
+            info.push(`Template content: ${template.content.length} characters`);
+            
+            // Check for expected callout patterns
+            const hasCallouts = />\s*\[![^\]]+\]/.test(template.content);
+            if (!hasCallouts) {
+                warnings.push('Template does not contain any callouts - this might be intentional for structure-based templates');
+            }
+        }
+        
+        this.displayValidationResults(resultsContainer, errors, warnings, info, 'Structure-Based Template');
+    }
+    
+    /**
+     * Validate a direct input template
+     */
+    private validateDirectInputTemplate(template: JournalTemplate, resultsContainer: HTMLElement) {
+        const errors: string[] = [];
+        const warnings: string[] = [];
+        const info: string[] = [];
+        
+        // For Direct Input templates, we have different validation criteria
+        info.push('Template Type: Direct Input (standalone template)');
+        
+        // Check template content
+        if (!template.content || template.content.trim() === '') {
+            errors.push('Template content is empty');
+        } else {
+            info.push(`Template content: ${template.content.length} characters`);
+            
+            // Check for callout patterns (helpful but not required)
+            const calloutMatches = template.content.match(/>\s*\[!([^\]]+)\]/g);
+            if (calloutMatches) {
+                const calloutTypes = calloutMatches.map(match => {
+                    const typeMatch = match.match(/\[!([^\]]+)\]/);
+                    return typeMatch ? typeMatch[1] : 'unknown';
+                });
+                info.push(`Contains callouts: ${calloutTypes.join(', ')}`);
+            } else {
+                info.push('No callouts detected - this is fine for direct input templates');
+            }
+            
+            // Check for placeholder patterns
+            const placeholders = template.content.match(/\{\{[^}]+\}\}/g);
+            if (placeholders) {
+                info.push(`Contains placeholders: ${placeholders.join(', ')}`);
+            }
+        }
+        
+        // Check template name
+        if (!template.name || template.name.trim() === '') {
+            errors.push('Template name is missing');
+        }
+        
+        // For Direct Input templates, empty structure ID is perfectly fine
+        if (!template.structure || template.structure.trim() === '') {
+            info.push('No structure association - this is normal for Direct Input templates');
+        } else {
+            info.push(`Has structure association: ${template.structure} (optional for Direct Input)`);
+        }
+        
+        this.displayValidationResults(resultsContainer, errors, warnings, info, 'Direct Input Template');
+    }
+    
+    /**
+     * Display validation results in a consistent format
+     */
+    private displayValidationResults(resultsContainer: HTMLElement, errors: string[], warnings: string[], info: string[], templateType: string) {
+        if (errors.length === 0 && warnings.length === 0) {
+            const successEl = resultsContainer.createDiv({ cls: 'oom-validation-success' });
+            successEl.createEl('span', { text: '✅ Template validation passed!' });
+            successEl.createEl('p', { 
+                text: `${templateType} is properly configured.`,
+                cls: 'oom-validation-success-details'
+            });
+            
+            // Show info details
+            if (info.length > 0) {
+                const infoSection = successEl.createDiv({ cls: 'oom-validation-info-section' });
+                infoSection.style.marginTop = '0.5em';
+                infoSection.style.fontSize = '0.9em';
+                infoSection.style.color = 'var(--text-muted)';
+                info.forEach(infoItem => {
+                    infoSection.createEl('div', { text: `ℹ️ ${infoItem}` });
+                });
+            }
+        } else {
+            // Create summary
+            const summaryEl = resultsContainer.createDiv({ cls: 'oom-validation-summary' });
+            const summaryParts = [];
+            if (errors.length > 0) summaryParts.push(`${errors.length} error${errors.length !== 1 ? 's' : ''}`);
+            if (warnings.length > 0) summaryParts.push(`${warnings.length} warning${warnings.length !== 1 ? 's' : ''}`);
+            
+            summaryEl.createEl('strong', { text: `${templateType} validation found: ${summaryParts.join(', ')}` });
+            
+            // Show detailed results
+            const detailsEl = resultsContainer.createDiv({ cls: 'oom-validation-details' });
+            
+            // Show errors first
+            if (errors.length > 0) {
+                const errorsSection = detailsEl.createDiv({ cls: 'oom-validation-section' });
+                errorsSection.createEl('h5', { text: '❌ Errors' });
+                errors.forEach(error => {
+                    const errorItem = errorsSection.createDiv({ cls: 'oom-validation-item error' });
+                    errorItem.createEl('span', { text: error });
+                });
+            }
+            
+            // Show warnings
+            if (warnings.length > 0) {
+                const warningsSection = detailsEl.createDiv({ cls: 'oom-validation-section' });
+                warningsSection.createEl('h5', { text: '⚠️ Warnings' });
+                warnings.forEach(warning => {
+                    const warningItem = warningsSection.createDiv({ cls: 'oom-validation-item warning' });
+                    warningItem.createEl('span', { text: warning });
+                });
+            }
+            
+            // Show info
+            if (info.length > 0) {
+                const infoSection = detailsEl.createDiv({ cls: 'oom-validation-section' });
+                infoSection.createEl('h5', { text: 'ℹ️ Information' });
+                info.forEach(infoItem => {
+                    const infoEl = infoSection.createDiv({ cls: 'oom-validation-item info' });
+                    infoEl.createEl('span', { text: infoItem });
+                });
+            }
+        }
+    }
+    
+    /**
+     * Show folder selection dialog for content analysis
+     */
+    private showFolderSelectionDialog(targetsList: HTMLElement, emptyState: HTMLElement) {
+        // Get all folders in the vault using Obsidian's TFolder type
+        const folders = this.app.vault.getAllLoadedFiles()
+            .filter(file => 'children' in file && file.children !== undefined) // This indicates it's a folder
+            .map(folder => folder.path)
+            .filter(path => path !== '') // Remove empty root path
+            .sort();
+        
+        if (folders.length === 0) {
+            new Notice('No folders found in your vault');
+            return;
+        }
+        
+        // Create simple selection dialog
+        const modal = new Modal(this.app);
+        modal.titleEl.textContent = 'Select Folder for Analysis';
+        
+        const { contentEl } = modal;
+        contentEl.createEl('p', { text: 'Choose a folder to analyze for callout patterns:' });
+        
+        const folderList = contentEl.createDiv({ cls: 'oom-folder-list' });
+        folderList.style.maxHeight = '300px';
+        folderList.style.overflowY = 'auto';
+        folderList.style.border = '1px solid var(--background-modifier-border)';
+        folderList.style.borderRadius = '4px';
+        folderList.style.margin = '1em 0';
+        
+        folders.forEach(folderPath => {
+            const folderItem = folderList.createDiv({ cls: 'oom-folder-item' });
+            folderItem.style.padding = '0.5em';
+            folderItem.style.borderBottom = '1px solid var(--background-modifier-border)';
+            folderItem.style.cursor = 'pointer';
+            
+            folderItem.textContent = `📁 ${folderPath}`;
+            
+            folderItem.addEventListener('click', () => {
+                this.addAnalysisTarget(targetsList, emptyState, {
+                    type: 'folder',
+                    path: folderPath,
+                    name: folderPath,
+                    includeSubfolders: true
+                });
+                modal.close();
+                new Notice(`Added folder: ${folderPath}`);
+            });
+            
+            folderItem.addEventListener('mouseenter', () => {
+                folderItem.style.backgroundColor = 'var(--background-modifier-hover)';
+            });
+            
+            folderItem.addEventListener('mouseleave', () => {
+                folderItem.style.backgroundColor = '';
+            });
+        });
+        
+        const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
+        buttonContainer.style.textAlign = 'right';
+        buttonContainer.style.marginTop = '1em';
+        
+        const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
+        cancelBtn.addEventListener('click', () => modal.close());
+        
+        modal.open();
+    }
+    
+    /**
+     * Show note selection dialog for content analysis
+     */
+    private showNoteSelectionDialog(targetsList: HTMLElement, emptyState: HTMLElement) {
+        // Get all markdown files in the vault
+        const markdownFiles = this.app.vault.getMarkdownFiles()
+            .map(file => ({ path: file.path, name: file.basename }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        
+        if (markdownFiles.length === 0) {
+            new Notice('No markdown files found in your vault');
+            return;
+        }
+        
+        // Create selection dialog with search
+        const modal = new Modal(this.app);
+        modal.titleEl.textContent = 'Select Note for Analysis';
+        
+        const { contentEl } = modal;
+        contentEl.createEl('p', { text: 'Choose a note to analyze for callout patterns:' });
+        
+        // Add search input
+        const searchContainer = contentEl.createDiv({ cls: 'oom-search-container' });
+        searchContainer.style.margin = '1em 0';
+        
+        const searchInput = searchContainer.createEl('input', { 
+            type: 'text',
+            placeholder: 'Search notes...'
+        });
+        searchInput.style.width = '100%';
+        searchInput.style.padding = '0.5em';
+        searchInput.style.border = '1px solid var(--background-modifier-border)';
+        searchInput.style.borderRadius = '4px';
+        
+        const noteList = contentEl.createDiv({ cls: 'oom-note-list' });
+        noteList.style.maxHeight = '300px';
+        noteList.style.overflowY = 'auto';
+        noteList.style.border = '1px solid var(--background-modifier-border)';
+        noteList.style.borderRadius = '4px';
+        noteList.style.margin = '1em 0';
+        
+        const renderNotes = (filteredFiles: typeof markdownFiles) => {
+            noteList.empty();
+            
+            filteredFiles.slice(0, 100).forEach(file => { // Limit to 100 for performance
+                const noteItem = noteList.createDiv({ cls: 'oom-note-item' });
+                noteItem.style.padding = '0.5em';
+                noteItem.style.borderBottom = '1px solid var(--background-modifier-border)';
+                noteItem.style.cursor = 'pointer';
+                
+                noteItem.createEl('div', { text: file.name, cls: 'oom-note-name' });
+                const pathEl = noteItem.createEl('div', { text: file.path, cls: 'oom-note-path' });
+                pathEl.style.fontSize = '0.8em';
+                pathEl.style.color = 'var(--text-muted)';
+                
+                noteItem.addEventListener('click', () => {
+                    this.addAnalysisTarget(targetsList, emptyState, {
+                        type: 'note',
+                        path: file.path,
+                        name: file.name
+                    });
+                    modal.close();
+                    new Notice(`Added note: ${file.name}`);
+                });
+                
+                noteItem.addEventListener('mouseenter', () => {
+                    noteItem.style.backgroundColor = 'var(--background-modifier-hover)';
+                });
+                
+                noteItem.addEventListener('mouseleave', () => {
+                    noteItem.style.backgroundColor = '';
+                });
+            });
+            
+            if (filteredFiles.length > 100) {
+                const moreItem = noteList.createDiv({ cls: 'oom-note-item' });
+                moreItem.style.padding = '0.5em';
+                moreItem.style.textAlign = 'center';
+                moreItem.style.color = 'var(--text-muted)';
+                moreItem.textContent = `... and ${filteredFiles.length - 100} more. Refine your search.`;
+            }
+        };
+        
+        // Initial render
+        renderNotes(markdownFiles);
+        
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filtered = markdownFiles.filter(file => 
+                file.name.toLowerCase().includes(searchTerm) || 
+                file.path.toLowerCase().includes(searchTerm)
+            );
+            renderNotes(filtered);
+        });
+        
+        const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
+        buttonContainer.style.textAlign = 'right';
+        buttonContainer.style.marginTop = '1em';
+        
+        const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
+        cancelBtn.addEventListener('click', () => modal.close());
+        
+        modal.open();
+        
+        // Focus search input
+        setTimeout(() => searchInput.focus(), 100);
+    }
+    
+    /**
+     * Add an analysis target to the list
+     */
+    private addAnalysisTarget(targetsList: HTMLElement, emptyState: HTMLElement, target: { type: string; path: string; name: string; includeSubfolders?: boolean }) {
+        // Hide empty state
+        emptyState.style.display = 'none';
+        
+        // Check if target already exists
+        const existingTargets = Array.from(targetsList.querySelectorAll('.oom-analysis-target'));
+        const duplicate = existingTargets.find(el => {
+            const pathEl = el.querySelector('.oom-target-path') as HTMLElement;
+            return pathEl && pathEl.textContent === target.path;
+        });
+        
+        if (duplicate) {
+            new Notice('This target is already in the analysis list');
+            return;
+        }
+        
+        // Create target item
+        const targetItem = targetsList.createDiv({ cls: 'oom-analysis-target' });
+        
+        const targetInfo = targetItem.createDiv({ cls: 'oom-target-info' });
+        
+        const icon = target.type === 'folder' ? '📁' : '📄';
+        targetInfo.createEl('span', { text: `${icon} ${target.name}`, cls: 'oom-target-name' });
+        targetInfo.createEl('br');
+        targetInfo.createEl('span', { text: target.path, cls: 'oom-target-path' });
+        
+        if (target.type === 'folder' && target.includeSubfolders) {
+            targetInfo.createEl('br');
+            const subfoldersEl = targetInfo.createEl('span', { text: 'Includes subfolders', cls: 'oom-target-options' });
+        }
+        
+        // Remove button
+        const removeBtn = targetItem.createEl('button', { text: '×', cls: 'oom-remove-target-btn' });
+        
+        removeBtn.addEventListener('click', () => {
+            targetItem.remove();
+            
+            // Show empty state if no targets left
+            const remainingTargets = targetsList.querySelectorAll('.oom-analysis-target');
+            if (remainingTargets.length === 0) {
+                emptyState.style.display = 'block';
+            }
+            
+            // Update analyze button state
+            this.updateAnalyzeButtonState();
+        });
+        
+        // Update analyze button state
+        this.updateAnalyzeButtonState();
+    }
+    
+    /**
+     * Update the analyze button state based on selected targets
+     */
+    private updateAnalyzeButtonState() {
+        const analyzeBtn = this.contentContainer.querySelector('.oom-button-primary') as HTMLButtonElement;
+        if (analyzeBtn) {
+            const targetsList = this.contentContainer.querySelector('.oom-targets-list');
+            const hasTargets = targetsList && targetsList.querySelectorAll('.oom-analysis-target').length > 0;
+            analyzeBtn.disabled = !hasTargets;
+            
+            if (hasTargets) {
+                analyzeBtn.textContent = 'Analyze Selected Content';
+            } else {
+                analyzeBtn.textContent = 'Analyze Selected Content';
+            }
+        }
+    }
+    
+    /**
+     * Analyze selected content for callout patterns
+     */
+    private async analyzeSelectedContent() {
+        // Fallback logging in case structured logging isn't working
+        console.log('🚨 CONTENT ANALYSIS STARTED - METHOD CALLED');
+        this.logger.info('ContentAnalysis', 'ANALYSIS STARTED - Checking for targets');
+        
+        const targetsList = this.contentContainer.querySelector('.oom-targets-list');
+        console.log('🚨 Targets list element:', targetsList);
+        
+        if (!targetsList) {
+            console.log('🚨 NO TARGETS LIST FOUND IN DOM');
+            this.logger.error('ContentAnalysis', 'No targets list found in DOM');
+            return;
+        }
+        
+        const targets = Array.from(targetsList.querySelectorAll('.oom-analysis-target'));
+        console.log('🚨 Found targets:', targets.length, targets);
+        this.logger.info('ContentAnalysis', `Found ${targets.length} targets for analysis`);
+        
+        if (targets.length === 0) {
+            console.log('🚨 NO TARGETS SELECTED - This might be the issue');
+            this.logger.warn('ContentAnalysis', 'No targets selected for analysis');
+            new Notice('No targets selected for analysis');
+            return;
+        }
+        
+        console.log('🚨 Starting analysis process with', targets.length, 'targets');
+        this.logger.info('ContentAnalysis', 'Starting content analysis process');
+        this.isScraping = true;
+        this.updateAnalyzeButtonState();
+        
+        // Show progress
+        const progressContainer = this.contentContainer.createDiv({ cls: 'oom-progress-container' });
+        progressContainer.style.marginTop = '2em';
+        progressContainer.style.padding = '2em';
+        progressContainer.style.border = '2px solid var(--background-modifier-border)';
+        progressContainer.style.borderRadius = '8px';
+        
+        const progressTitle = progressContainer.createEl('h3', { text: '🔍 Analyzing Content...' });
+        progressTitle.style.marginBottom = '1em';
+        
+        const progressBar = progressContainer.createDiv({ cls: 'oom-progress-bar' });
+        progressBar.style.width = '100%';
+        progressBar.style.height = '20px';
+        progressBar.style.backgroundColor = 'var(--background-modifier-border)';
+        progressBar.style.borderRadius = '10px';
+        progressBar.style.overflow = 'hidden';
+        
+        const progressFill = progressBar.createDiv({ cls: 'oom-progress-fill' });
+        progressFill.style.height = '100%';
+        progressFill.style.backgroundColor = 'var(--interactive-accent)';
+        progressFill.style.width = '0%';
+        progressFill.style.transition = 'width 0.3s ease';
+        
+        const statusText = progressContainer.createEl('p', { text: 'Preparing analysis...' });
+        statusText.style.marginTop = '1em';
+        statusText.style.textAlign = 'center';
+        
+        try {
+            // Initialize results object
+            const results = {
+                totalFiles: 0,
+                filesWithCallouts: 0,
+                calloutsFound: {} as Record<string, number>,
+                fileStructures: {} as Record<string, { name: string; structure: CalloutNode[] }>
+            };
+            
+            console.log('🚨 Results object initialized, processing targets');
+            this.logger.info('ContentAnalysis', 'Results object initialized, processing targets');
+            
+            // Get files to analyze from targets
+            let filesToAnalyze: any[] = [];
+            
+            for (const targetEl of targets) {
+                const pathEl = targetEl.querySelector('.oom-target-path') as HTMLElement;
+                if (!pathEl) continue;
+                
+                const targetPath = pathEl.textContent || '';
+                const isFolder = targetEl.textContent?.includes('📁');
+                
+                this.logger.info('ContentAnalysis', `Processing target: ${targetPath} (folder: ${isFolder})`);
+                
+                if (isFolder) {
+                    // Analyze folder
+                    const allFiles = this.app.vault.getMarkdownFiles();
+                    const folderFiles = allFiles.filter(file => 
+                        file.path.startsWith(targetPath + '/') || file.path === targetPath
+                    );
+                    this.logger.info('ContentAnalysis', `Found ${folderFiles.length} files in folder ${targetPath}`);
+                    filesToAnalyze.push(...folderFiles);
+                } else {
+                    // Analyze single file
+                    const file = this.app.vault.getAbstractFileByPath(targetPath);
+                    if (file && 'extension' in file && file.extension === 'md') {
+                        this.logger.info('ContentAnalysis', `Added single file: ${targetPath}`);
+                        filesToAnalyze.push(file);
+                    } else {
+                        this.logger.warn('ContentAnalysis', `File not found or not markdown: ${targetPath}`);
+                    }
+                }
+            }
+            
+            results.totalFiles = filesToAnalyze.length;
+            console.log('🚨 Total files to analyze:', results.totalFiles);
+            this.logger.info('ContentAnalysis', `Total files to analyze: ${results.totalFiles}`);
+            
+            if (results.totalFiles === 0) {
+                console.log('🚨 NO FILES FOUND TO ANALYZE - This is the problem!');
+                this.logger.error('ContentAnalysis', 'NO FILES FOUND TO ANALYZE - This is the problem!');
+                statusText.textContent = 'No files found to analyze';
+                setTimeout(() => {
+                    progressContainer.remove();
+                    this.isScraping = false;
+                    this.updateAnalyzeButtonState();
+                }, 1000);
+                return;
+            }
+            
+            // Analyze files
+            console.log('🚨 Starting analysis of', filesToAnalyze.length, 'files');
+            this.logger.info('ContentAnalysis', `Starting analysis of ${filesToAnalyze.length} files`);
+            for (let i = 0; i < filesToAnalyze.length; i++) {
+                const file = filesToAnalyze[i];
+                const progress = (i / filesToAnalyze.length) * 100;
+                
+                progressFill.style.width = `${progress}%`;
+                statusText.textContent = `Analyzing ${file.name} (${i + 1}/${filesToAnalyze.length})`;
+                
+                console.log('🚨 About to analyze file', i + 1, '/', filesToAnalyze.length, ':', file.name);
+                this.logger.info('ContentAnalysis', `About to analyze file ${i + 1}/${filesToAnalyze.length}: ${file.name}`);
+                await this.analyzeFile(file, results);
+                
+                // Small delay to show progress
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            progressFill.style.width = '100%';
+            statusText.textContent = 'Analysis complete!';
+            
+            this.logger.info('ContentAnalysis', 'All files processed, showing results', {
+                totalFiles: results.totalFiles,
+                filesWithCallouts: results.filesWithCallouts,
+                totalCalloutTypes: Object.keys(results.calloutsFound).length
+            });
+            
+            // Show results after a brief delay
+            setTimeout(() => {
+                progressContainer.remove();
+                this.showAnalysisResults(results);
+                this.isScraping = false;
+                this.updateAnalyzeButtonState();
+            }, 500);
+            
+        } catch (error) {
+            this.logger.error('ContentAnalysis', `CRITICAL ERROR in analysis: ${(error as Error).message}`, error);
+            progressContainer.remove();
+            console.error('Analysis failed:', error);
+            new Notice(`Analysis failed: ${(error as Error).message}`);
+            this.isScraping = false;
+            this.updateAnalyzeButtonState();
+        }
+    }
+    
+    /**
+     * Analyze a single file for callout patterns and nested structures
+     */
+    private async analyzeFile(file: any, results: any) {
+        console.log('🚨 ANALYZE FILE STARTED for:', file.name);
+        this.logger.info('ContentAnalysis', 'Starting file analysis', {
+            fileName: file.name,
+            filePath: file.path
+        });
+        
+        try {
+            console.log('🚨 About to read file content for:', file.name);
+            this.logger.info('ContentAnalysis', 'Reading file content', {
+                fileName: file.name
+            });
+            
+            const content = await this.app.vault.read(file);
+            console.log('🚨 File content read successfully, length:', content.length);
+            
+            this.logger.info('ContentAnalysis', 'File content read successfully', {
+                fileName: file.name,
+                contentLength: content.length,
+                contentPreview: content.substring(0, 200)
+            });
+            
+            // Find callout patterns and analyze nesting
+            console.log('🚨 About to call parseCalloutStructure');
+            this.logger.info('ContentAnalysis', 'Calling parseCalloutStructure', {
+                fileName: file.name
+            });
+            
+            const calloutStructure = this.parseCalloutStructure(content);
+            console.log('🚨 parseCalloutStructure completed, found', calloutStructure.length, 'callouts');
+            this.logger.info('ContentAnalysis', 'parseCalloutStructure completed', {
+                fileName: file.name,
+                structureLength: calloutStructure.length,
+                structure: calloutStructure
+            });
+            
+            if (calloutStructure.length > 0) {
+                this.logger.info('ContentAnalysis', 'Callouts found in file', {
+                    fileName: file.name,
+                    calloutCount: calloutStructure.length
+                });
+                
+                results.filesWithCallouts++;
+                
+                // Store the file's callout structure
+                results.fileStructures[file.path] = {
+                    name: file.name,
+                    structure: calloutStructure
+                };
+                
+                // Count callout types (including nested ones)
+                this.countCalloutTypes(calloutStructure, results.calloutsFound);
+                
+                this.logger.debug('ContentAnalysis', 'File structure stored and types counted', {
+                    fileName: file.name,
+                    calloutsFound: results.calloutsFound
+                });
+            } else {
+                this.logger.warn('ContentAnalysis', 'No callouts found in file', {
+                    fileName: file.name,
+                    contentLength: content.length,
+                    hasCalloutBrackets: content.includes('[!'),
+                    hasGreaterThan: content.includes('>'),
+                    firstFewLines: content.split('\n').slice(0, 10)
+                });
+            }
+            
+        } catch (error) {
+            this.logger.error('ContentAnalysis', `Failed to analyze file ${file.name}`, error);
+            console.warn(`Failed to analyze file ${file.path}:`, error);
+        }
+    }
+    
+    /**
+     * Show analysis results in a modal
+     */
+    private showAnalysisResults(results: any) {
+        const modal = new Modal(this.app);
+        modal.titleEl.textContent = 'Content Analysis Results';
+        
+        const { contentEl } = modal;
+        
+        // Summary section
+        const summarySection = contentEl.createDiv({ cls: 'oom-analysis-summary' });
+        summarySection.createEl('h3', { text: '📊 Summary' });
+        
+        const summaryList = summarySection.createEl('ul');
+        summaryList.createEl('li', { text: `Total files analyzed: ${results.totalFiles}` });
+        summaryList.createEl('li', { text: `Files with callouts: ${results.filesWithCallouts}` });
+        summaryList.createEl('li', { text: `Callout usage rate: ${results.totalFiles > 0 ? Math.round((results.filesWithCallouts / results.totalFiles) * 100) : 0}%` });
+        
+        // Structure Analysis section - NEW
+        if (Object.keys(results.fileStructures).length > 0) {
+            const structureSection = contentEl.createDiv({ cls: 'oom-analysis-structures' });
+            structureSection.createEl('h3', { text: '🌳 Callout Structure Analysis' });
+            
+            const fileEntries = Object.entries(results.fileStructures);
+            
+            // Show structure complexity metrics
+            const complexitySection = structureSection.createDiv({ cls: 'oom-structure-complexity' });
+            complexitySection.style.marginBottom = '1.5em';
+            complexitySection.style.padding = '1em';
+            complexitySection.style.background = 'var(--background-secondary)';
+            complexitySection.style.borderRadius = '5px';
+            
+            const totalCallouts = Object.values(results.calloutsFound).reduce((sum: number, count: number) => sum + count, 0);
+            const filesWithNesting = fileEntries.filter(([, data]: [string, any]) => 
+                this.hasNestedCallouts(data.structure)
+            ).length;
+            const avgDepth = this.calculateAverageDepth(fileEntries);
+            
+            complexitySection.createEl('h4', { text: '📈 Structure Metrics' });
+            const metricsList = complexitySection.createEl('ul');
+            metricsList.createEl('li', { text: `Total callouts found: ${totalCallouts}` });
+            metricsList.createEl('li', { text: `Files with nested callouts: ${filesWithNesting}/${results.filesWithCallouts}` });
+            metricsList.createEl('li', { text: `Average nesting depth: ${avgDepth.toFixed(1)}` });
+            
+            // Show file structures
+            structureSection.createEl('h4', { text: '📁 File Structure Details' });
+            
+            fileEntries.forEach(([filePath, fileData]: [string, any]) => {
+                const fileContainer = structureSection.createDiv({ cls: 'oom-file-structure' });
+                fileContainer.style.marginBottom = '1.5em';
+                fileContainer.style.border = '1px solid var(--background-modifier-border)';
+                fileContainer.style.borderRadius = '5px';
+                fileContainer.style.padding = '1em';
+                
+                const fileHeader = fileContainer.createDiv({ cls: 'oom-file-header' });
+                fileHeader.style.marginBottom = '0.5em';
+                fileHeader.style.fontWeight = 'bold';
+                fileHeader.createEl('span', { text: `📄 ${fileData.name}` });
+                
+                const pathSpan = fileHeader.createEl('span', { text: ` (${filePath})` });
+                pathSpan.style.fontSize = '0.9em';
+                pathSpan.style.color = 'var(--text-muted)';
+                pathSpan.style.fontWeight = 'normal';
+                
+                // Display callout tree
+                const treeContainer = fileContainer.createDiv({ cls: 'oom-callout-tree' });
+                this.renderCalloutTree(treeContainer, fileData.structure, 0);
+            });
+        }
+        
+        // Callouts found section
+        const calloutsSection = contentEl.createDiv({ cls: 'oom-analysis-callouts' });
+        calloutsSection.createEl('h3', { text: '🎯 Callout Types Found' });
+        
+        const calloutEntries = Object.entries(results.calloutsFound);
+        if (calloutEntries.length > 0) {
+            const calloutTable = calloutsSection.createEl('table');
+            calloutTable.style.width = '100%';
+            calloutTable.style.borderCollapse = 'collapse';
+            
+            // Header
+            const headerRow = calloutTable.createEl('tr');
+            headerRow.createEl('th', { text: 'Callout Type' }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: left;';
+            headerRow.createEl('th', { text: 'Count' }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: right;';
+            
+            // Sort by count descending
+            calloutEntries.sort((a, b) => (b[1] as number) - (a[1] as number)).forEach(([type, count]) => {
+                const row = calloutTable.createEl('tr');
+                row.createEl('td', { text: type }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em;';
+                row.createEl('td', { text: count.toString() }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: right;';
+            });
+        } else {
+            calloutsSection.createEl('p', { text: 'No callouts found in the analyzed content.' });
+        }
+        
+        // Suggestions section
+        const suggestionsSection = contentEl.createDiv({ cls: 'oom-analysis-suggestions' });
+        suggestionsSection.createEl('h3', { text: '💡 Suggestions' });
+        
+        const suggestions = this.generateAnalysisSuggestions(results);
+        if (suggestions.length > 0) {
+            const suggestionsList = suggestionsSection.createEl('ul');
+            suggestions.forEach(suggestion => {
+                suggestionsList.createEl('li', { text: suggestion });
+            });
+        } else {
+            suggestionsSection.createEl('p', { text: 'No specific suggestions at this time.' });
+        }
+        
+        // Close button
+        const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
+        buttonContainer.style.textAlign = 'right';
+        buttonContainer.style.marginTop = '2em';
+        
+        const closeBtn = buttonContainer.createEl('button', { text: 'Close', cls: 'mod-cta' });
+        closeBtn.addEventListener('click', () => modal.close());
+        
+        modal.open();
+    }
+    
+    /**
+     * Check if callout structure has nested elements
+     */
+    private hasNestedCallouts(structure: CalloutNode[]): boolean {
+        return structure.some(node => node.children.length > 0 || 
+            node.children.some(child => this.hasNestedCallouts([child]))
+        );
+    }
+    
+    /**
+     * Calculate average nesting depth across all files
+     */
+    private calculateAverageDepth(fileEntries: [string, any][]): number {
+        let totalDepth = 0;
+        let totalCallouts = 0;
+        
+        fileEntries.forEach(([, fileData]: [string, any]) => {
+            const depths = this.getCalloutDepths(fileData.structure);
+            totalDepth += depths.reduce((sum, depth) => sum + depth, 0);
+            totalCallouts += depths.length;
+        });
+        
+        return totalCallouts > 0 ? totalDepth / totalCallouts : 0;
+    }
+    
+    /**
+     * Get all depths from a callout structure
+     */
+    private getCalloutDepths(nodes: CalloutNode[]): number[] {
+        const depths: number[] = [];
+        
+        const traverse = (nodeList: CalloutNode[], currentDepth: number) => {
+            nodeList.forEach(node => {
+                depths.push(currentDepth);
+                if (node.children.length > 0) {
+                    traverse(node.children, currentDepth + 1);
+                }
+            });
+        };
+        
+        traverse(nodes, 1);
+        return depths;
+    }
+    
+    /**
+     * Render a visual tree of callout structures
+     */
+    private renderCalloutTree(container: HTMLElement, nodes: CalloutNode[], depth: number) {
+        nodes.forEach((node, index) => {
+            const nodeEl = container.createDiv({ cls: 'oom-tree-node' });
+            // Set depth as a CSS custom property for styling
+            nodeEl.style.setProperty('--depth', depth.toString());
+            
+            // Create tree line indicators
+            const lineEl = nodeEl.createSpan({ cls: 'oom-tree-line' });
+            
+            if (depth === 0) {
+                lineEl.textContent = index === nodes.length - 1 ? '└─' : '├─';
+            } else {
+                lineEl.textContent = index === nodes.length - 1 ? '└─' : '├─';
+            }
+            
+            // Callout type badge
+            const typeEl = nodeEl.createSpan({ cls: 'oom-callout-type-badge' });
+            typeEl.textContent = `[!${node.type}]`;
+            
+            // Title or line number
+            const titleEl = nodeEl.createSpan({ cls: 'oom-callout-title' });
+            if (node.title) {
+                titleEl.textContent = node.title;
+                // Removed: titleEl.style.fontWeight = 'bold';
+            } else {
+                titleEl.textContent = `(line ${node.lineNumber})`;
+                titleEl.style.color = 'var(--text-muted)';
+                titleEl.style.fontStyle = 'italic';
+            }
+            
+            // Render children recursively
+            if (node.children.length > 0) {
+                this.renderCalloutTree(container, node.children, depth + 1);
+            }
+        });
+    }
+    
+    /**
+     * Generate suggestions based on analysis results
+     */
+    private generateAnalysisSuggestions(results: any): string[] {
+        const suggestions: string[] = [];
+        
+        if (results.totalFiles === 0) {
+            suggestions.push('No files were found to analyze. Check your target selection.');
+            return suggestions;
+        }
+        
+        if (results.filesWithCallouts === 0) {
+            suggestions.push('No callouts found. Consider adding structured callouts to organize your content.');
+            suggestions.push('Try using [!journal-entry], [!dream-diary], or [!dream-metrics] callouts.');
+            return suggestions;
+        }
+        
+        const calloutTypes = Object.keys(results.calloutsFound);
+        const usageRate = results.filesWithCallouts / results.totalFiles;
+        
+        if (usageRate < 0.3) {
+            suggestions.push(`Only ${Math.round(usageRate * 100)}% of files use callouts. Consider adding more structured content.`);
+        }
+        
+        // Check for common patterns
+        const hasJournalCallouts = calloutTypes.some(type => type.includes('journal'));
+        const hasDreamCallouts = calloutTypes.some(type => type.includes('dream'));
+        const hasMetricsCallouts = calloutTypes.some(type => type.includes('metric'));
+        
+        if (!hasJournalCallouts) {
+            suggestions.push('Consider using [!journal-entry] callouts for main journal content.');
+        }
+        
+        if (!hasDreamCallouts) {
+            suggestions.push('Consider using [!dream-diary] callouts for dream-specific content.');
+        }
+        
+        if (!hasMetricsCallouts) {
+            suggestions.push('Consider using [!dream-metrics] callouts to track quantified dream data.');
+        }
+        
+        if (calloutTypes.length > 10) {
+            suggestions.push(`Found ${calloutTypes.length} different callout types. Consider standardizing on fewer types for consistency.`);
+        }
+        
+        return suggestions;
+    }
+    
+    /**
+     * Emergency template recovery function
+     */
+    private async recoverLostTemplateContent() {
+        const modal = new Modal(this.app);
+        modal.titleEl.textContent = '🆘 Template Recovery Tool';
+        
+        const { contentEl } = modal;
+        
+        contentEl.createEl('h3', { text: 'Template Content Recovery' });
+        contentEl.createEl('p', { 
+            text: 'This tool attempts to recover lost template content from various sources.' 
+        });
+        
+        const recoveryActions = contentEl.createDiv({ cls: 'oom-recovery-actions' });
+        
+        // Check browser localStorage
+        const checkLocalStorageBtn = recoveryActions.createEl('button', {
+            text: '🔍 Check Browser Cache',
+            cls: 'oom-recovery-button'
+        });
+        checkLocalStorageBtn.addEventListener('click', () => {
+            this.checkBrowserCacheForTemplates(contentEl);
+        });
+        
+        // Check for backup files
+        const checkBackupsBtn = recoveryActions.createEl('button', {
+            text: '📁 Check Plugin Folder for Backups',
+            cls: 'oom-recovery-button'
+        });
+        checkBackupsBtn.addEventListener('click', () => {
+            this.checkPluginFolderForBackups(contentEl);
+        });
+        
+        // Manual content restoration
+        const manualRestoreBtn = recoveryActions.createEl('button', {
+            text: '✏️ Manual Content Restoration',
+            cls: 'oom-recovery-button'
+        });
+        manualRestoreBtn.addEventListener('click', () => {
+            this.showManualTemplateRestore(contentEl);
+        });
+        
+        const closeBtn = contentEl.createEl('button', { text: 'Close', cls: 'mod-cta' });
+        closeBtn.style.marginTop = '2em';
+        closeBtn.addEventListener('click', () => modal.close());
+        
+        modal.open();
+    }
+    
+    /**
+     * Check browser cache for template content
+     */
+    private checkBrowserCacheForTemplates(containerEl: HTMLElement) {
+        const resultsEl = containerEl.createDiv({ cls: 'oom-recovery-results' });
+        resultsEl.innerHTML = '';
+        
+        resultsEl.createEl('h4', { text: '🔍 Browser Cache Search Results' });
+        
+        try {
+            // Check localStorage
+            const localStorageResults = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('template') || key.includes('oneiro') || key.includes('wizard'))) {
+                    const value = localStorage.getItem(key);
+                    if (value && value.length > 50) { // Only show substantial content
+                        localStorageResults.push({ key, value });
+                    }
+                }
+            }
+            
+            if (localStorageResults.length > 0) {
+                resultsEl.createEl('p', { text: `Found ${localStorageResults.length} potential cache entries:` });
+                localStorageResults.forEach((item, index) => {
+                    const itemEl = resultsEl.createDiv({ cls: 'oom-cache-item' });
+                    itemEl.style.border = '1px solid var(--background-modifier-border)';
+                    itemEl.style.padding = '1em';
+                    itemEl.style.margin = '0.5em 0';
+                    itemEl.style.borderRadius = '4px';
+                    
+                    itemEl.createEl('strong', { text: `Cache Entry ${index + 1}: ${item.key}` });
+                    const previewEl = itemEl.createEl('pre', { text: item.value.substring(0, 200) + '...' });
+                    previewEl.style.fontSize = '0.8em';
+                    previewEl.style.background = 'var(--background-secondary)';
+                    previewEl.style.padding = '0.5em';
+                    previewEl.style.borderRadius = '3px';
+                    
+                    const restoreBtn = itemEl.createEl('button', { text: 'Restore This Content' });
+                    restoreBtn.addEventListener('click', () => {
+                        this.restoreTemplateFromCache(item.value);
+                    });
+                });
+            } else {
+                resultsEl.createEl('p', { text: 'No template-related content found in browser cache.' });
+            }
+            
+        } catch (error) {
+            resultsEl.createEl('p', { text: `Error checking cache: ${(error as Error).message}` });
+        }
+    }
+    
+    /**
+     * Check plugin folder for backup files
+     */
+    private checkPluginFolderForBackups(containerEl: HTMLElement) {
+        const resultsEl = containerEl.createDiv({ cls: 'oom-recovery-results' });
+        resultsEl.innerHTML = '';
+        
+        resultsEl.createEl('h4', { text: '📁 Plugin Folder Search' });
+        resultsEl.createEl('p', { 
+            text: 'Check these locations in your vault for backup files:' 
+        });
+        
+        const pathsList = resultsEl.createEl('ul');
+        pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/' });
+        pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/data.json (main settings file)' });
+        pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/backups/ (if any)' });
+        
+        resultsEl.createEl('p', { 
+            text: 'You can also check for .bak files or temporary files with your template content.' 
+        });
+    }
+    
+    /**
+     * Show manual template restoration interface
+     */
+    private showManualTemplateRestore(containerEl: HTMLElement) {
+        const restoreEl = containerEl.createDiv({ cls: 'oom-manual-restore' });
+        restoreEl.innerHTML = '';
+        
+        restoreEl.createEl('h4', { text: '✏️ Manual Template Restoration' });
+        restoreEl.createEl('p', { 
+            text: 'If you remember or have a copy of your template content, paste it here to restore:' 
+        });
+        
+        const textarea = restoreEl.createEl('textarea');
+        textarea.placeholder = 'Paste your template content here...';
+        textarea.style.width = '100%';
+        textarea.style.height = '200px';
+        textarea.style.fontFamily = 'var(--font-monospace)';
+        textarea.style.padding = '1em';
+        
+        const templateNameInput = restoreEl.createEl('input');
+        templateNameInput.type = 'text';
+        templateNameInput.placeholder = 'Template name...';
+        templateNameInput.style.width = '100%';
+        templateNameInput.style.margin = '1em 0';
+        templateNameInput.style.padding = '0.5em';
+        
+        const restoreBtn = restoreEl.createEl('button', { 
+            text: 'Restore Template',
+            cls: 'mod-cta'
+        });
+        restoreBtn.addEventListener('click', () => {
+            if (textarea.value.trim() && templateNameInput.value.trim()) {
+                this.createNewTemplateFromContent(templateNameInput.value, textarea.value);
+            } else {
+                new Notice('Please provide both template name and content');
+            }
+        });
+    }
+    
+    /**
+     * Restore template from cached content
+     */
+    private async restoreTemplateFromCache(cachedContent: string) {
+        try {
+            // Try to parse as JSON first
+            const parsed = JSON.parse(cachedContent);
+            if (parsed.name && parsed.content) {
+                await this.createNewTemplateFromContent(parsed.name + ' (Recovered)', parsed.content);
+                return;
+            }
+        } catch {
+            // If not JSON, treat as plain content
+        }
+        
+        // Create template with cached content
+        const templateName = `Recovered Template ${Date.now()}`;
+        await this.createNewTemplateFromContent(templateName, cachedContent);
+    }
+    
+    /**
+     * Create a new template from recovered content
+     */
+    private async createNewTemplateFromContent(name: string, content: string) {
+        const newTemplate: JournalTemplate = {
+            id: `template-${Date.now()}`,
+            name: name,
+            description: 'Recovered template content',
+            content: content,
+            structure: 'default-dream-structure',
+            isTemplaterTemplate: false,
+            templaterFile: ''
+        };
+        
+        try {
+            await this.saveTemplate(newTemplate);
+            new Notice(`Template "${name}" recovered successfully!`);
+        } catch (error) {
+            new Notice(`Failed to restore template: ${(error as Error).message}`);
+        }
+    }
+    
+    /**
+     * Parse the nested structure of callouts in content using the sophisticated logic from ContentParser
+     */
+    private parseCalloutStructure(content: string): CalloutNode[] {
+        this.logger.info('CalloutParser', 'Starting callout structure parsing', {
+            contentLength: content.length,
+            contentPreview: content.substring(0, 500)
+        });
+        
+        // Enhanced regex to match callout patterns with proper nesting detection
+        // Changed from (\w+) to ([\w-]+) to include hyphens in callout names
+        const calloutRegex = /^(\s*)(>+)\s*\[!([\w-]+)\](.*)$/gm;
+        const matches: RegExpExecArray[] = [];
+        let match: RegExpExecArray | null;
+        
+        while ((match = calloutRegex.exec(content)) !== null) {
+            this.logger.info('CalloutParser', 'Found callout match', {
+                fullMatch: match[0],
+                spaces: match[1],
+                chevrons: match[2],
+                type: match[3],
+                title: match[4],
+                index: match.index,
+                spacesLength: match[1].length,
+                chevronsLength: match[2].length,
+                calculatedDepth: match[1].length + match[2].length
+            });
+            matches.push(match);
+        }
+        
+        this.logger.info('CalloutParser', 'Regex matching completed', {
+            totalMatches: matches.length
+        });
+        
+        if (matches.length === 0) {
+            this.logger.warn('CalloutParser', 'No callout matches found, analyzing content for debugging');
+            
+            // Try a simpler pattern to see what's in the content
+            const simplePattern = /\[!(\w+)\]/g;
+            let simpleMatch;
+            const simpleMatches = [];
+            while ((simpleMatch = simplePattern.exec(content)) !== null) {
+                simpleMatches.push(simpleMatch[0]);
+            }
+            
+            this.logger.debug('CalloutParser', 'Simple pattern analysis', {
+                simpleMatches: simpleMatches
+            });
+            
+            // Show content lines that contain callout-like patterns
+            const lines = content.split('\n');
+            const calloutLines: { lineNumber: number; content: string }[] = [];
+            lines.forEach((line, index) => {
+                if (line.includes('[!')) {
+                    calloutLines.push({
+                        lineNumber: index + 1,
+                        content: line
+                    });
+                }
+            });
+            
+            this.logger.debug('CalloutParser', 'Lines containing callout patterns', {
+                calloutLines: calloutLines
+            });
+        }
+        
+        // Convert matches to CalloutNode objects with position tracking
+        const blocks: (CalloutNode & { position: { start: number; end: number } })[] = matches.map((match, index) => {
+            const indentation = match[2].length; // Only count chevrons, not spaces
+            const type = match[3];
+            const title = match[4].trim();
+            const position = {
+                start: match.index!,
+                end: match.index! + match[0].length
+            };
+            
+            // Calculate line number
+            const beforeMatch = content.substring(0, match.index!);
+            const lineNumber = beforeMatch.split('\n').length;
+            
+            const nodeData = {
+                type: type.toLowerCase().trim(),
+                title: title,
+                depth: indentation,
+                lineNumber: lineNumber,
+                chevronCount: match[2].length,
+                spacesCount: match[1].length
+            };
+            
+            this.logger.info('CalloutParser', 'Creating callout node', nodeData);
+
+            return {
+                type: type.toLowerCase().trim(),
+                title: title,
+                depth: indentation,
+                children: [],
+                lineNumber: lineNumber,
+                position: position
+            };
+        });
+        
+        // Build parent-child relationships based on indentation and sequential order
+        const rootBlocks: CalloutNode[] = [];
+        
+        // Sort by line number to ensure proper sequential processing
+        blocks.sort((a, b) => a.lineNumber - b.lineNumber);
+        
+        // Use a stack-based approach to build the hierarchy
+        const parentStack: (CalloutNode & { position: { start: number; end: number } })[] = [];
+        
+        for (const block of blocks) {
+            const currentDepth = block.depth;
+            
+            console.log('🚨 Processing callout:', block.type, 'depth:', currentDepth, 'line:', block.lineNumber);
+            this.logger.info('CalloutParser', 'Processing block for nesting', {
+                type: block.type,
+                depth: currentDepth,
+                lineNumber: block.lineNumber
+            });
+            
+            // Pop from stack until we find a suitable parent (with lower depth)
+            while (parentStack.length > 0 && parentStack[parentStack.length - 1].depth >= currentDepth) {
+                const popped = parentStack.pop();
+                console.log('🚨 Popped from stack:', popped?.type, 'depth:', popped?.depth);
+            }
+            
+            console.log('🚨 Stack after popping:', parentStack.map(p => `${p.type}(${p.depth})`));
+            
+            // If we have a potential parent in the stack
+            if (parentStack.length > 0) {
+                const parent = parentStack[parentStack.length - 1];
+                console.log('🚨 Found parent:', parent.type, 'depth:', parent.depth, 'for child:', block.type, 'depth:', currentDepth);
+                this.logger.info('CalloutParser', 'Found parent via stack', {
+                    child: block.type,
+                    childDepth: currentDepth,
+                    parent: parent.type,
+                    parentDepth: parent.depth
+                });
+                parent.children.push(block);
+            } else {
+                console.log('🚨 Adding as root:', block.type, 'depth:', currentDepth);
+                this.logger.info('CalloutParser', 'Adding root level callout', {
+                    type: block.type,
+                    depth: currentDepth
+                });
+                rootBlocks.push(block);
+            }
+            
+            // Add current block to stack for potential future children
+            parentStack.push(block);
+            console.log('🚨 Added to stack:', block.type, 'Stack now:', parentStack.map(p => `${p.type}(${p.depth})`));
+        }
+        
+        this.logger.info('CalloutParser', 'Callout structure parsing completed', {
+            rootBlocksCount: rootBlocks.length,
+            totalNodes: matches.length
+        });
+        
+        return rootBlocks;
+    }
+    
+    /**
+     * Recursively count callout types in a nested structure
+     */
+    private countCalloutTypes(nodes: CalloutNode[], calloutsFound: Record<string, number>) {
+        for (const node of nodes) {
+            calloutsFound[node.type] = (calloutsFound[node.type] || 0) + 1;
+            
+            if (node.children.length > 0) {
+                this.countCalloutTypes(node.children, calloutsFound);
+            }
         }
     }
 }

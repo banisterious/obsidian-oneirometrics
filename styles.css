@@ -10975,3 +10975,84 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
         gap: var(--oom-spacing-xs);
     }
 }
+
+/* Callout Settings */
+
+.oom-date-options-container {
+    display: block;
+    margin-top: 1em;
+    margin-left: 2em;
+    padding-left: 1em;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+/* Targets */
+
+.oom-targets-list {
+   min-height: 100px;
+   margin-bottom: 1em;
+   padding: 1em;
+   border: 1px solid var(--background-modifier-border);
+   border-radius: 4px;
+
+   & .oom-targets-empty-state {
+        display: none;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+   & .oom-analysis-target {
+        display: flex;
+        margin: 0.25em 0px;
+        padding: 0.5em;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 4px;
+        background-color: var(--background-secondary);
+
+        & .oom-target-info {
+
+           &.oom-target-name {
+            }
+
+           &.oom-target-path {
+            }
+        }
+
+        & .oom-remove-target-btn {
+             border: none;
+             font-size: 1.2em;
+             cursor: pointer;
+             color: var(--text-muted);
+             background: transparent;
+        }
+    }
+}
+
+/* Tree */
+
+.oom-tree-node {
+    margin-bottom: 0.25em;
+    margin-left: calc(var(--depth, 0) * 1.5em);
+    font-size: var(--font-ui-smaller);
+
+    & .oom-tree-line {
+        margin-right: 0.5em;
+        color: var(--text-muted);
+    }
+
+    & .oom-callout-type-badge {
+        margin-right: 0.5em;
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        font-size: var(--font-ui-smaller);
+        font-family: monospace;
+        color: var(--text-on-accent);
+        background: var(--interactive-accent);
+    }
+
+    & .oom-callout-title {
+        font-size: var(--font-ui-smaller);
+    }
+}

@@ -21,6 +21,9 @@ export interface JournalStructureSettings {
     /** Templates for journal entries */
     templates: JournalTemplate[];
     
+    /** Usage statistics for each structure (keyed by structure ID) */
+    usageStats?: Record<string, StructureUsageStats>;
+    
     /** Templater integration configuration */
     templaterIntegration: {
         /** Whether Templater integration is enabled */
@@ -319,6 +322,95 @@ export interface TestResult {
 }
 
 /**
+ * Interface representing usage statistics for a journal structure
+ */
+export interface StructureUsageStats {
+    /** Number of times this structure was successfully used */
+    timesUsed: number;
+    
+    /** Last time this structure was used (ISO string) */
+    lastUsed: string | null;
+    
+    /** Success rate as a percentage (0-1) */
+    successRate: number;
+    
+    /** Total number of parse attempts with this structure */
+    totalAttempts: number;
+    
+    /** Average parsing time in milliseconds */
+    averageParseTime?: number;
+    
+    /** Most common errors encountered with this structure */
+    commonErrors?: string[];
+}
+
+/**
+ * Interface representing a structure suggestion from auto-detection
+ */
+export interface StructureSuggestion {
+    /** Suggested structure configuration */
+    structure: CalloutStructure;
+    
+    /** Confidence level of the suggestion (0-1) */
+    confidence: number;
+    
+    /** Reason for the suggestion */
+    reason: string;
+    
+    /** Examples found in content that support this suggestion */
+    examples: string[];
+    
+    /** Number of entries that would match this structure */
+    matchCount: number;
+}
+
+/**
+ * Interface representing a migration plan between structures
+ */
+export interface MigrationPlan {
+    /** Source structure being migrated from */
+    fromStructure: CalloutStructure;
+    
+    /** Target structure being migrated to */
+    toStructure: CalloutStructure;
+    
+    /** List of changes required for migration */
+    changes: MigrationChange[];
+    
+    /** Estimated complexity of migration */
+    complexity: 'simple' | 'moderate' | 'complex';
+    
+    /** Estimated number of files that will be affected */
+    affectedFileCount: number;
+    
+    /** Warning messages about potential issues */
+    warnings: string[];
+}
+
+/**
+ * Interface representing a single change in a migration plan
+ */
+export interface MigrationChange {
+    /** Type of change required */
+    type: 'rename-callout' | 'restructure-nesting' | 'update-metadata' | 'manual-review';
+    
+    /** Description of the change */
+    description: string;
+    
+    /** Whether this change can be automated */
+    automated: boolean;
+    
+    /** Pattern to find content that needs this change */
+    findPattern?: string | RegExp;
+    
+    /** Replacement pattern for automated changes */
+    replacePattern?: string;
+    
+    /** Estimated number of occurrences */
+    estimatedOccurrences?: number;
+}
+
+/**
  * Default journal structure check settings
  */
 export const DEFAULT_JOURNAL_STRUCTURE_SETTINGS: JournalStructureSettings = {
@@ -411,4 +503,70 @@ export const DEFAULT_JOURNAL_STRUCTURE_SETTINGS: JournalStructureSettings = {
         },
         quickFixesEnabled: true
     }
-}; 
+};
+
+/**
+ * Interface representing an analysis target (folder, note, or template)
+ */
+export interface AnalysisTarget {
+    /** Type of target */
+    type: 'folder' | 'note' | 'template';
+    
+    /** Path to the folder or note, or template ID for templates */
+    path: string;
+    
+    /** Display name */
+    name: string;
+    
+    /** Whether to include subfolders (for folder targets) */
+    includeSubfolders?: boolean;
+    
+    /** Template content (for template targets) */
+    templateContent?: string;
+}
+
+/**
+ * Interface representing the results of content analysis
+ */
+export interface ContentAnalysis {
+    /** Analysis targets that were processed */
+    targets: AnalysisTarget[];
+    
+    /** Total files analyzed */
+    totalFiles: number;
+    
+    /** Callout patterns discovered */
+    patterns: CalloutPattern[];
+    
+    /** Suggested structures based on analysis */
+    suggestions: StructureSuggestion[];
+    
+    /** Unrecognized callouts found */
+    unrecognizedCallouts: string[];
+    
+    /** Files with parsing issues */
+    problemFiles: string[];
+    
+    /** Analysis timestamp */
+    timestamp: string;
+}
+
+/**
+ * Interface representing a discovered callout pattern
+ */
+export interface CalloutPattern {
+    /** Pattern description (e.g., "journal-entry → dream-diary → metrics") */
+    pattern: string;
+    
+    /** Number of files using this pattern */
+    fileCount: number;
+    
+    /** Example file paths */
+    exampleFiles: string[];
+    
+    /** Whether this pattern matches an existing structure */
+    matchesExistingStructure: boolean;
+    
+    /** Confidence level of pattern detection */
+    confidence: number;
+} 
