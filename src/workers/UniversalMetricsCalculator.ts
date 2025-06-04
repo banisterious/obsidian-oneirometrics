@@ -41,6 +41,13 @@ import {
 import { getJournalStructure } from '../utils/settings-helpers';
 import { CalloutStructure, DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../types/journal-check';
 import { SettingsAdapter } from '../state/adapters/SettingsAdapter';
+import { 
+    isFolderMode,
+    isNotesMode,
+    areSelectionModesEquivalent,
+    getSelectionModeLabel,
+    normalizeSelectionMode
+} from '../utils/selection-mode-helpers';
 
 // Cache configuration
 interface CacheEntry {
@@ -127,7 +134,7 @@ export class UniversalMetricsCalculator {
         const dreamDiaryCalloutName = this.settings.dreamDiaryCalloutName || 'dream-diary';
         const metricsCalloutName = this.settings.metricsCalloutName || 'dream-metrics';
         
-        this.logger?.debug('Structure', 'getActiveStructures called', {
+        this.logger?.info('Structure', 'DEBUG: getActiveStructures called with settings', {
             hasJournalStructure: !!journalStructure,
             isEnabled: journalStructure?.enabled,
             structuresCount: journalStructure?.structures?.length || 0,
@@ -136,6 +143,11 @@ export class UniversalMetricsCalculator {
                 journalCalloutName,
                 dreamDiaryCalloutName,
                 metricsCalloutName
+            },
+            rawSettings: {
+                journalCalloutName: this.settings.journalCalloutName,
+                dreamDiaryCalloutName: this.settings.dreamDiaryCalloutName,
+                metricsCalloutName: this.settings.metricsCalloutName
             },
             defaultStructuresCount: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.length,
             defaultStructureNames: DEFAULT_JOURNAL_STRUCTURE_SETTINGS.structures.map(s => s.name)
@@ -385,6 +397,7 @@ export class UniversalMetricsCalculator {
      * Main entry point - maintains compatibility with MetricsProcessor.scrapeMetrics()
      */
     public async scrapeMetrics(): Promise<void> {
+        console.log('UniversalMetricsCalculator.scrapeMetrics() called');
         this.logger?.info('Scrape', 'Starting enhanced metrics scrape process with worker pool');
         
         new Notice('Scraping dream metrics with enhanced processing... This may take a moment.');
@@ -756,18 +769,47 @@ export class UniversalMetricsCalculator {
     private async getFilesToProcess(): Promise<string[]> {
         let files: string[] = [];
         
-        if (this.settings.selectionMode === 'folder' && this.settings.selectedFolder) {
+        this.logger?.info('FileGathering', 'Starting file gathering process', {
+            selectionMode: this.settings.selectionMode,
+            selectedFolder: this.settings.selectedFolder,
+            selectedNotes: this.settings.selectedNotes?.length || 0
+        });
+        
+        if (isFolderMode(this.settings.selectionMode) && this.settings.selectedFolder) {
+            this.logger?.info('FileGathering', 'Using folder mode', {
+                selectedFolder: this.settings.selectedFolder
+            });
+            
             const folder = this.app.vault.getAbstractFileByPath(this.settings.selectedFolder);
             if (folder && 'children' in folder) {
                 const excludedNotes = this.settings.excludedNotes || [];
                 const excludedSubfolders = this.settings.excludedSubfolders || [];
                 
-                const gatherFiles = (folder: any, acc: string[]) => {
+                this.logger?.info('FileGathering', 'Folder found, starting recursive search', {
+                    folderPath: this.settings.selectedFolder,
+                    excludedNotesCount: excludedNotes.length,
+                    excludedSubfoldersCount: excludedSubfolders.length,
+                    excludedNotes: excludedNotes,
+                    excludedSubfolders: excludedSubfolders
+                });
+                
+                const gatherFiles = (folder: any, acc: string[], currentPath: string = '') => {
+                    this.logger?.debug('FileGathering', `Scanning folder: ${currentPath}`, {
+                        childrenCount: folder.children?.length || 0
+                    });
+                    
                     for (const child of folder.children) {
                         if (child && 'extension' in child && child.extension === 'md') {
+                            this.logger?.debug('FileGathering', `Found markdown file: ${child.path}`, {
+                                isExcluded: excludedNotes.includes(child.path)
+                            });
+                            
                             // Check if this file is in the excluded notes list
                             if (!excludedNotes.includes(child.path)) {
                                 acc.push(child.path);
+                                this.logger?.debug('FileGathering', `✅ Added file: ${child.path}`);
+                            } else {
+                                this.logger?.debug('FileGathering', `❌ Excluded file: ${child.path}`);
                             }
                             
                             // Check performance testing settings for file limits
@@ -778,16 +820,25 @@ export class UniversalMetricsCalculator {
                             // Apply limits based on performance mode
                             if (!isPerformanceMode && acc.length >= 200) {
                                 // Normal mode: limit to 200 files
+                                this.logger?.info('FileGathering', 'Reached normal mode limit of 200 files');
                                 break;
                             } else if (isPerformanceMode && maxFiles > 0 && acc.length >= maxFiles) {
                                 // Performance mode with custom limit
+                                this.logger?.info('FileGathering', `Reached performance mode limit of ${maxFiles} files`);
                                 break;
                             }
                             // If performance mode with maxFiles = 0 (unlimited), no limit
                         } else if (child && 'children' in child) {
+                            this.logger?.debug('FileGathering', `Found subfolder: ${child.path}`, {
+                                isExcluded: excludedSubfolders.includes(child.path)
+                            });
+                            
                             // Check if this subfolder is excluded before recursing into it
                             if (!excludedSubfolders.includes(child.path)) {
-                                gatherFiles(child, acc);
+                                this.logger?.debug('FileGathering', `🔍 Recursing into subfolder: ${child.path}`);
+                                gatherFiles(child, acc, child.path);
+                            } else {
+                                this.logger?.debug('FileGathering', `🚫 Skipping excluded subfolder: ${child.path}`);
                             }
                             
                             // Check limits after recursive call too
@@ -801,7 +852,12 @@ export class UniversalMetricsCalculator {
                     }
                 };
                 const acc: string[] = [];
-                gatherFiles(folder, acc);
+                gatherFiles(folder, acc, this.settings.selectedFolder);
+                
+                this.logger?.info('FileGathering', 'Recursive search completed', {
+                    totalFilesFound: acc.length,
+                    files: acc.slice(0, 10) // Show first 10 files for debugging
+                });
                 
                 // Apply final slice based on performance mode
                 const perfSettings = this.settings.performanceTesting;
@@ -818,6 +874,13 @@ export class UniversalMetricsCalculator {
                     // Performance mode unlimited
                     files = acc;
                 }
+                
+                this.logger?.info('FileGathering', 'Applied performance limits', {
+                    isPerformanceMode,
+                    maxFiles,
+                    filesBeforeLimit: acc.length,
+                    filesAfterLimit: files.length
+                });
                 
                 // Log performance mode status
                 if (isPerformanceMode) {
@@ -838,15 +901,36 @@ export class UniversalMetricsCalculator {
                 if (excludedNotes.length > 0 || excludedSubfolders.length > 0) {
                     this.logger?.info('Exclusions', `Applied exclusions - Notes: ${excludedNotes.length}, Subfolders: ${excludedSubfolders.length}`);
                 }
+            } else {
+                this.logger?.error('FileGathering', 'Selected folder not found or invalid', {
+                    selectedFolder: this.settings.selectedFolder,
+                    folderExists: !!folder,
+                    hasChildren: folder && 'children' in folder
+                });
             }
             
             const pluginAny = this.plugin as any;
             if (Array.isArray(pluginAny._excludedFilesForNextScrape)) {
+                const beforeExclusion = files.length;
                 files = files.filter((f: string) => !pluginAny._excludedFilesForNextScrape.includes(f));
+                this.logger?.info('FileGathering', 'Applied preview exclusions', {
+                    beforeExclusion,
+                    afterExclusion: files.length,
+                    excluded: pluginAny._excludedFilesForNextScrape
+                });
             }
         } else {
+            this.logger?.info('FileGathering', 'Using notes mode', {
+                selectedNotesCount: this.settings.selectedNotes?.length || 0,
+                selectedNotes: this.settings.selectedNotes
+            });
             files = this.settings.selectedNotes || [];
         }
+        
+        this.logger?.info('FileGathering', 'File gathering completed', {
+            finalFileCount: files.length,
+            files: files.slice(0, 5) // Show first 5 files for debugging
+        });
         
         return files;
     }
@@ -957,6 +1041,11 @@ export class UniversalMetricsCalculator {
             
             if (calloutRole === 'root') {
                 // Handle root callout (journal-entry, av-journal, etc.)
+                this.logger?.info('Parse', `DEBUG: Found ROOT callout: ${calloutType} at line ${idx}`, {
+                    line: line.substring(0, 100),
+                    level: level,
+                    recognizedCallouts: this.getAllRecognizedCallouts()
+                });
                 currentJournal = {
                     lines: [line],
                     diaries: [],
@@ -970,6 +1059,13 @@ export class UniversalMetricsCalculator {
             } else if (calloutRole === 'child') {
                 // Handle child callout (dream-diary, etc.)
                 dreamDiaryCalloutsInFile++;
+                this.logger?.info('Parse', `DEBUG: Found CHILD callout: ${calloutType} at line ${idx}`, {
+                    line: line.substring(0, 100),
+                    level: level,
+                    stackLength: blockStack.length,
+                    stackTypes: blockStack.map(s => s.type),
+                    possibleParents: this.getParentCalloutType(calloutType)
+                });
                 currentDiary = {
                     lines: [line],
                     metrics: [],

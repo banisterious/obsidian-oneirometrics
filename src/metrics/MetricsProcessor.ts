@@ -12,6 +12,7 @@ import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { SettingsAdapter } from '../state/adapters/SettingsAdapter';
 import { getDreamEntryDate } from '../utils/date-utils';
+import { isFolderMode } from '../utils/selection-mode-helpers';
 
 export class MetricsProcessor {
     private readonly settings: DreamMetricsSettings;
@@ -28,6 +29,7 @@ export class MetricsProcessor {
      * Process dream journal entries to extract metrics
      */
     public async scrapeMetrics(): Promise<void> {
+        console.log('MetricsProcessor.scrapeMetrics() called');
         this.logger?.info('Scrape', 'Starting metrics scrape process');
         
         // Show a notice instead of a modal
@@ -50,19 +52,42 @@ export class MetricsProcessor {
             let files: string[] = [];
             const mode = getSelectionMode(this.settings);
             const selectedFolderPath = getSelectedFolder(this.settings);
-            if (mode === 'folder' && selectedFolderPath) {
+            if (isFolderMode(mode) && selectedFolderPath) {
+                this.logger?.info('FileGathering', 'Using folder mode', {
+                    selectedFolder: selectedFolderPath
+                });
+                
                 // Recursively gather markdown files from the selected folder
                 const folder = this.app.vault.getAbstractFileByPath(selectedFolderPath);
                 if (folder && folder instanceof TFolder) {
                     const excludedNotes = this.settings.excludedNotes || [];
                     const excludedSubfolders = this.settings.excludedSubfolders || [];
                     
+                    this.logger?.info('FileGathering', 'Folder found, starting recursive search', {
+                        folderPath: selectedFolderPath,
+                        excludedNotesCount: excludedNotes.length,
+                        excludedSubfoldersCount: excludedSubfolders.length,
+                        excludedNotes: excludedNotes,
+                        excludedSubfolders: excludedSubfolders
+                    });
+                    
                     const gatherFiles = (folder: TFolder, acc: string[]) => {
+                        this.logger?.debug('FileGathering', `Scanning folder: ${folder.path}`, {
+                            childrenCount: folder.children?.length || 0
+                        });
+                        
                         for (const child of folder.children) {
                             if (child instanceof TFile && child.extension === 'md') {
+                                this.logger?.debug('FileGathering', `Found markdown file: ${child.path}`, {
+                                    isExcluded: excludedNotes.includes(child.path)
+                                });
+                                
                                 // Check if this file is in the excluded notes list
                                 if (!excludedNotes.includes(child.path)) {
                                     acc.push(child.path);
+                                    this.logger?.debug('FileGathering', `✅ Added file: ${child.path}`);
+                                } else {
+                                    this.logger?.debug('FileGathering', `❌ Excluded file: ${child.path}`);
                                 }
                                 
                                 // Check performance testing settings for file limits
@@ -73,16 +98,25 @@ export class MetricsProcessor {
                                 // Apply limits based on performance mode
                                 if (!isPerformanceMode && acc.length >= 200) {
                                     // Normal mode: limit to 200 files
+                                    this.logger?.info('FileGathering', 'Reached normal mode limit of 200 files');
                                     break;
                                 } else if (isPerformanceMode && maxFiles > 0 && acc.length >= maxFiles) {
                                     // Performance mode with custom limit
+                                    this.logger?.info('FileGathering', `Reached performance mode limit of ${maxFiles} files`);
                                     break;
                                 }
                                 // If performance mode with maxFiles = 0 (unlimited), no limit
                             } else if (child instanceof TFolder) {
+                                this.logger?.debug('FileGathering', `Found subfolder: ${child.path}`, {
+                                    isExcluded: excludedSubfolders.includes(child.path)
+                                });
+                                
                                 // Check if this subfolder is excluded before recursing into it
                                 if (!excludedSubfolders.includes(child.path)) {
+                                    this.logger?.debug('FileGathering', `🔍 Recursing into subfolder: ${child.path}`);
                                     gatherFiles(child, acc);
+                                } else {
+                                    this.logger?.debug('FileGathering', `🚫 Skipping excluded subfolder: ${child.path}`);
                                 }
                                 
                                 // Check limits after recursive call too
@@ -97,6 +131,11 @@ export class MetricsProcessor {
                     };
                     const acc: string[] = [];
                     gatherFiles(folder, acc);
+                    
+                    this.logger?.info('FileGathering', 'Recursive search completed', {
+                        totalFilesFound: acc.length,
+                        files: acc.slice(0, 10) // Show first 10 files for debugging
+                    });
                     
                     // Apply final slice based on performance mode
                     const perfSettings = this.settings.performanceTesting;
@@ -113,6 +152,13 @@ export class MetricsProcessor {
                         // Performance mode unlimited
                         files = acc;
                     }
+                    
+                    this.logger?.info('FileGathering', 'Applied performance limits', {
+                        isPerformanceMode,
+                        maxFiles,
+                        filesBeforeLimit: acc.length,
+                        filesAfterLimit: files.length
+                    });
                     
                     // Log performance mode status
                     if (isPerformanceMode) {
@@ -133,16 +179,37 @@ export class MetricsProcessor {
                     if (excludedNotes.length > 0 || excludedSubfolders.length > 0) {
                         this.logger?.info('Exclusions', `Applied exclusions - Notes: ${excludedNotes.length}, Subfolders: ${excludedSubfolders.length}`);
                     }
+                } else {
+                    this.logger?.error('FileGathering', 'Selected folder not found or invalid', {
+                        selectedFolder: selectedFolderPath,
+                        folderExists: !!folder,
+                        isFolder: folder instanceof TFolder
+                    });
                 }
                 // Exclude files if user previewed and unchecked them
                 const pluginAny = this.plugin as any;
                 if (Array.isArray(pluginAny._excludedFilesForNextScrape)) {
+                    const beforeExclusion = files.length;
                     files = files.filter((f: string) => !pluginAny._excludedFilesForNextScrape.includes(f));
+                    this.logger?.info('FileGathering', 'Applied preview exclusions', {
+                        beforeExclusion,
+                        afterExclusion: files.length,
+                        excluded: pluginAny._excludedFilesForNextScrape
+                    });
                 }
             } else {
+                this.logger?.info('FileGathering', 'Using notes mode', {
+                    selectedNotesCount: this.settings.selectedNotes?.length || 0,
+                    selectedNotes: this.settings.selectedNotes
+                });
                 // Default: use selectedNotes
                 files = this.settings.selectedNotes || [];
             }
+
+            this.logger?.info('FileGathering', 'File gathering completed', {
+                finalFileCount: files.length,
+                files: files.slice(0, 5) // Show first 5 files for debugging
+            });
 
             if (!files || files.length === 0) {
                 new Notice('No notes selected. Please select at least one note or a folder to scrape.');
