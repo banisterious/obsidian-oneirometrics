@@ -174,6 +174,12 @@ export interface DreamMetricsSettings {
     /** Path to selected folder */
     selectedFolder: string;
     
+    /** List of notes to exclude when using folder selection mode */
+    excludedNotes?: string[];
+    
+    /** List of subfolders to exclude when using folder selection mode */
+    excludedSubfolders?: string[];
+    
     /** Folder options for automatic processing */
     folderOptions?: {
         /** Whether folder mode is enabled */

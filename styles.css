@@ -3681,8 +3681,8 @@ span.oom-chip-text {
 .oom-text-input-error,
 .oom-toggle-text {
     /* === STRUCTURAL PROPERTIES === */
-    font-size: var(--oom-input-description-size);
     line-height: 1.4;
+    font-size: var(--oom-input-description-size);
     
     /* NO VISUAL STYLING - Let theme handle description styling */
 }
@@ -3691,6 +3691,62 @@ span.oom-chip-text {
     /* === ERROR STATE === */
     margin-top: var(--oom-spacing-xxs);
     color: var(--text-error);
+}
+
+/* Folder Exclusion Fields Styling */
+.oom-exclude-notes-container {
+    margin-top: 0.5em;
+}
+
+.oom-exclude-notes-container .oom-multiselect-search-container {
+    width: 100%;
+}
+
+/* Exclusion field visual distinction */
+.oom-exclude-notes-container,
+.setting-item:has(.oom-exclude-notes-container) {
+    margin: 4px 0;
+    padding: 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background-color: var(--background-modifier-form-field);
+}
+
+/* Visual distinction for exclusion vs inclusion fields */
+.setting-item:has([placeholder*="exclude"]) .setting-item-name {
+    font-weight: 500;
+    color: var(--text-error);
+}
+
+.setting-item:has([placeholder*="exclude"]) .setting-item-description {
+    opacity: 0.8;
+    color: var(--text-error);
+}
+
+/* Subtle styling for excluded item chips */
+.oom-exclude-notes-container .selected-note-chip {
+    border-color: var(--text-error);
+    color: var(--text-error);
+    background-color: var(--background-modifier-error);
+}
+
+.oom-exclude-notes-container .selected-note-chip:hover {
+    color: var(--text-on-accent);
+    background-color: var(--text-error);
+}
+
+/* Placeholder text styling for exclusion fields */
+input[placeholder*="exclude"]::placeholder {
+    opacity: 0.6;
+    color: var(--text-error);
+}
+
+/* Responsive spacing for exclusion sections */
+@media (max-width: 768px) {
+    .oom-exclude-notes-container {
+        margin: 2px 0;
+        padding: 6px;
+    }
 }
 
 /* =============================================================================

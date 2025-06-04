@@ -98,6 +98,10 @@ export class HubModal extends Modal {
     private backupSelectedNotes: string[] = [];
     private backupSelectedFolder: string = '';
     
+    // Exclusion settings for folder mode
+    private excludedNotes: string[] = [];
+    private excludedSubfolders: string[] = [];
+    
     // Embedded wizard properties
     private journalStructureMode: 'normal' | 'wizard' = 'normal';
     private wizardState: TemplateWizardState | null = null;
@@ -125,6 +129,10 @@ export class HubModal extends Modal {
         // Initialize backup storage to preserve current selections
         this.backupSelectedNotes = [...(this.plugin.settings.selectedNotes || [])];
         this.backupSelectedFolder = this.plugin.settings.selectedFolder || '';
+        
+        // Initialize exclusion settings
+        this.excludedNotes = [...(this.plugin.settings.excludedNotes || [])];
+        this.excludedSubfolders = [...(this.plugin.settings.excludedSubfolders || [])];
     }
     
     onOpen() {
@@ -1232,13 +1240,43 @@ This metric assesses **how well your memory of the dream holds up and remains co
             });
 
             // Exclusion fields - only show in folder mode
+            
+            // Exclude Notes - multi-select autocomplete like selectedNotes
             const excludeNotesSection = new Setting(this.contentContainer)
                 .setName('Exclude Notes')
-                .setDesc('Skip specific notes within the selected folder (coming soon)');
+                .setDesc('Skip specific notes within the selected folder');
             
+            const excludeNotesContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container oom-exclude-notes-container' });
+            createSelectedNotesAutocomplete({
+                app: this.app,
+                plugin: this.plugin,
+                containerEl: excludeNotesContainer,
+                selectedNotes: this.plugin.settings.excludedNotes || [],
+                onChange: async (selected) => {
+                    this.plugin.settings.excludedNotes = selected;
+                    this.excludedNotes = [...selected];
+                    await this.plugin.saveSettings();
+                }
+            });
+            excludeNotesSection.controlEl.appendChild(excludeNotesContainer);
+            
+            // Exclude Subfolders - folder search like selectedFolder  
             const excludeSubfoldersSection = new Setting(this.contentContainer)
-                .setName('Exclude Subfolders') 
-                .setDesc('Skip specific subfolders within the selected folder (coming soon)');
+                .setName('Exclude Subfolders')
+                .setDesc('Skip specific subfolders within the selected folder')
+                .addSearch(search => {
+                    search.setPlaceholder('Choose subfolders to exclude...')
+                        .setValue((this.plugin.settings.excludedSubfolders || []).join(', '))
+                        .onChange(async (value) => {
+                            // Parse comma-separated folder paths
+                            const folders = value.split(',').map(f => f.trim()).filter(f => f.length > 0);
+                            this.plugin.settings.excludedSubfolders = folders;
+                            this.excludedSubfolders = [...folders];
+                            await this.plugin.saveSettings();
+                        });
+                    
+                    new FolderSuggest(this.app, search.inputEl);
+                });
         } else {
             // Multi-chip note autocomplete (identical to Settings)
             const searchFieldContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container' });
