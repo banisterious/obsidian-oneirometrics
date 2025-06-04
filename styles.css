@@ -4445,8 +4445,7 @@ input[placeholder*="exclude"]::placeholder {
 .oom-template-import-export h3,
 .oom-template-status h3,
 .oom-analysis-targets h3,
-.oom-analysis-targets h4,
-.oom-callout-settings h3 {
+.oom-metrics-tabs-content h3 {
     font-size: var(--font-ui-medium);
     font-weight: var(--font-semibold);
 }

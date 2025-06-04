@@ -12,6 +12,7 @@ import { DreamMetric, DateHandlingConfig, DatePlacement, SelectionMode } from '.
 import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../../types/journal-check';
 import safeLogger from '../../logging/safe-logger';
 import { getLogger } from '../../logging';
+import { format as formatDateWithFns } from 'date-fns';
 import { createSelectedNotesAutocomplete, createFolderAutocomplete, createSelectedFoldersAutocomplete } from '../../../autocomplete';
 import { 
     getProjectNotePath, 
@@ -1674,23 +1675,33 @@ This metric assesses **how well your memory of the dream holds up and remains co
             const config = getDateConfig();
             const format = config.headerFormat || 'MMMM d, yyyy';
             
-            // Simple date formatting - expand as needed
-            const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                           'July', 'August', 'September', 'October', 'November', 'December'];
-            const month = months[date.getMonth()];
-            const day = date.getDate();
-            const year = date.getFullYear();
-            
-            return format
-                .replace('MMMM', month)
-                .replace('MMM', month.substring(0, 3))
-                .replace('d', day.toString())
-                .replace('yyyy', year.toString());
+            try {
+                // Use date-fns for proper date formatting
+                return formatDateWithFns(date, format);
+            } catch (error) {
+                // Fallback to basic formatting if date-fns fails
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+                const month = months[date.getMonth()];
+                const day = date.getDate();
+                const year = date.getFullYear();
+                
+                return format
+                    .replace(/YYYY/g, year.toString())
+                    .replace(/yyyy/g, year.toString())
+                    .replace(/MMMM/g, month)
+                    .replace(/MMM/g, month.substring(0, 3))
+                    .replace(/MM/g, String(date.getMonth() + 1).padStart(2, '0'))
+                    .replace(/DD/g, String(day).padStart(2, '0'))
+                    .replace(/dd/g, String(day).padStart(2, '0'))
+                    .replace(/d/g, day.toString());
+            }
         };
 
         const formatBlockReference = (date: Date = new Date()): string => {
             const config = getDateConfig();
             const format = config.blockReferenceFormat || '^YYYYMMDD';
+            
             
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1947,9 +1958,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
         this.contentContainer.createEl('div', { cls: 'oom-section-border' });
 
         // Quick Copy Section Header
-        this.contentContainer.createEl('h2', { text: 'Quick Copy' });
-        
-        this.contentContainer.createEl('p', { 
+        this.contentContainer.createEl('h3', { text: 'Quick Copy' });
+        this.contentContainer.createEl('p', {
             text: 'Generate and customize callouts for quick copying into your journal entries using the settings above.'
         });
 
