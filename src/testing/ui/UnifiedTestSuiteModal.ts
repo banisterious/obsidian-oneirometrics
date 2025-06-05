@@ -137,7 +137,7 @@ export class UnifiedTestSuiteModal extends Modal {
         this.createTestGroup('Validation & Structure', [
             { id: 'test-journal-structure', name: 'Journal Structure', description: 'Validate journal structure and parsing' },
             { id: 'test-data-integrity', name: 'Data Integrity', description: 'Verify data consistency and accuracy' },
-            { id: 'test-settings', name: 'Settings Validation', description: 'Test plugin settings and configuration' }
+            { id: 'test-settings', name: 'Settings & Metrics Infrastructure', description: 'Test plugin settings, unified metrics, and Phase 1 infrastructure' }
         ]);
         
         // Utilities and tools
@@ -372,6 +372,12 @@ export class UnifiedTestSuiteModal extends Modal {
         // Special handling for logging tab
         if (testId === 'test-logging') {
             this.loadLoggingContent();
+            return;
+        }
+        
+        // Special handling for enhanced settings test
+        if (testId === 'test-settings') {
+            this.loadSettingsAndMetricsTestContent();
             return;
         }
         
@@ -1010,7 +1016,8 @@ export class UnifiedTestSuiteModal extends Modal {
                 const metrics = Object.entries(entry.metrics)
                     .map(([key, value]) => `**${key}**: ${value}`)
                     .join(' • ');
-                noteContent += `\n\n> ${expectedCallout} Dream Metrics\n> ${metrics}\n`;
+                noteContent += `\n\n> ${expectedCallout} Dream Metrics
+> ${metrics}\n`;
             }
             
             return noteContent;
@@ -1112,6 +1119,7 @@ ${entry.content}
             'performance-memory': 'Memory Analysis Test',
             'performance-scaling': 'Scaling Test',
             'test-logging': 'Logging System Test',
+            'test-settings': 'Settings & Metrics Infrastructure Test',
             'test-validation': 'Validation Test',
             'test-parsing': 'Parsing Test',
             'test-components': 'Component Test'
@@ -1372,5 +1380,477 @@ ${entry.content}
         
         // Placeholder content
         this.contentContainer.createEl('p', { text: 'Help documentation will be implemented here.' });
+    }
+
+    // Enhanced Settings and Metrics Test Content
+    private loadSettingsAndMetricsTestContent() {
+        this.contentContainer.createEl('p', {
+            text: 'Comprehensive testing for plugin settings, unified metrics infrastructure, and Phase 1 implementations.',
+            cls: 'unified-test-suite-content-description'
+        });
+        
+        // Phase 1 Infrastructure Tests
+        const phase1Container = this.contentContainer.createDiv({ cls: 'unified-test-suite-phase1-tests' });
+        phase1Container.createEl('h3', { text: '🔧 Phase 1 - Core Metrics Infrastructure' });
+        
+        this.createTestButton(phase1Container, 'Test MetricsDiscoveryService', () => {
+            this.runMetricsDiscoveryTest();
+        });
+        
+        this.createTestButton(phase1Container, 'Test Settings Migration', () => {
+            this.runSettingsMigrationTest();
+        });
+        
+        this.createTestButton(phase1Container, 'Test Unified Configuration', () => {
+            this.runUnifiedConfigurationTest();
+        });
+        
+        this.createTestButton(phase1Container, 'Test Component Metrics Selection', () => {
+            this.runComponentMetricsTest();
+        });
+        
+        this.createTestButton(phase1Container, 'Test Threshold Calculations', () => {
+            this.runThresholdCalculationTest();
+        });
+        
+        // Legacy Settings Tests
+        const legacyContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-legacy-tests' });
+        legacyContainer.createEl('h3', { text: '⚙️ Legacy Settings Validation' });
+        
+        this.createTestButton(legacyContainer, 'Test Backward Compatibility', () => {
+            this.runBackwardCompatibilityTest();
+        });
+        
+        this.createTestButton(legacyContainer, 'Test Settings Validation', () => {
+            this.runSettingsValidationTest();
+        });
+        
+        // Comprehensive Test Suite
+        const comprehensiveContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-comprehensive-tests' });
+        comprehensiveContainer.createEl('h3', { text: '🎯 Comprehensive Testing' });
+        
+        this.createTestButton(comprehensiveContainer, 'Run All Phase 1 Tests', () => {
+            this.runAllPhase1Tests();
+        });
+        
+        // Test results area
+        const resultsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-test-results' });
+        resultsContainer.createEl('h3', { text: 'Test Results' });
+        
+        this.testResultsArea = resultsContainer.createEl('div', { 
+            cls: 'unified-test-suite-results-area',
+            text: 'No tests run yet. Click any test button above to begin testing.'
+        });
+    }
+
+    // Phase 1 Test Implementations
+    private async runMetricsDiscoveryTest() {
+        this.updateTestResults('🔧 Testing MetricsDiscoveryService...', 'running');
+        
+        try {
+            // Import the required modules
+            const { MetricsDiscoveryService } = await import('../../metrics');
+            
+            // Create test data with proper typing
+            const testEntries: any[] = [
+                {
+                    date: '2024-01-01',
+                    title: 'Test Dream 1',
+                    content: 'A vivid dream with high sensory detail',
+                    source: 'test-file-1.md',
+                    metrics: {
+                        'Sensory Detail': 4,
+                        'Emotional Recall': 3,
+                        'Confidence Score': 5,
+                        'Custom Metric': 2
+                    }
+                },
+                {
+                    date: '2024-01-02', 
+                    title: 'Test Dream 2',
+                    content: 'Another dream entry',
+                    source: 'test-file-2.md',
+                    metrics: {
+                        'Sensory Detail': 2,
+                        'Lost Segments': 1,
+                        'New Metric': 3
+                    }
+                }
+            ];
+            
+            // Initialize MetricsDiscoveryService
+            const metricsService = MetricsDiscoveryService.getInstance(this.app, this.plugin.settings);
+            
+            // Test discovery
+            const discoveryResult = await metricsService.discoverMetrics(testEntries);
+            
+            // Validate results
+            let testResults = `✅ MetricsDiscoveryService Test Results:\n`;
+            testResults += `   • Discovered ${discoveryResult.discovered.length} total metrics\n`;
+            testResults += `   • Found ${discoveryResult.unknown.length} unknown metrics\n`;
+            testResults += `   • Validated ${discoveryResult.valid.length} valid metrics\n`;
+            testResults += `   • Detected ${discoveryResult.deprecated.length} deprecated metrics\n`;
+            
+            // Test configured metrics
+            const configuredMetrics = metricsService.getConfiguredMetrics();
+            testResults += `   • Retrieved ${configuredMetrics.length} configured metrics\n`;
+            
+            // Test component-specific metrics
+            const calendarMetrics = metricsService.getAvailableMetrics('calendar');
+            const chartMetrics = metricsService.getAvailableMetrics('charts');
+            testResults += `   • Calendar metrics: ${calendarMetrics.length}\n`;
+            testResults += `   • Chart metrics: ${chartMetrics.length}\n`;
+            
+            // Test metric validation
+            let validationPassed = 0;
+            let validationFailed = 0;
+            
+            for (const metric of discoveryResult.discovered) {
+                const validation = metricsService.validateMetric(metric);
+                if (validation.valid) {
+                    validationPassed++;
+                } else {
+                    validationFailed++;
+                }
+            }
+            
+            testResults += `   • Validation: ${validationPassed} passed, ${validationFailed} failed\n`;
+            
+            this.updateTestResults(testResults, 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ MetricsDiscoveryService test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runSettingsMigrationTest() {
+        this.updateTestResults('🔄 Testing Settings Migration...', 'running');
+        
+        try {
+            const { migrateToUnifiedMetrics, validateUnifiedMetricsConfig, CURRENT_CONFIG_VERSION } = await import('../../utils/settings-migration');
+            
+            // Create test settings (legacy format)
+            const legacySettings = {
+                ...this.plugin.settings,
+                unifiedMetrics: undefined // Remove to simulate legacy
+            };
+            
+            // Test migration
+            const migrationResult = migrateToUnifiedMetrics(legacySettings);
+            
+            let testResults = `✅ Settings Migration Test Results:\n`;
+            testResults += `   • Migration performed: ${migrationResult.migrated}\n`;
+            testResults += `   • From version: ${migrationResult.fromVersion || 'pre-unified'}\n`;
+            testResults += `   • To version: ${migrationResult.toVersion}\n`;
+            testResults += `   • Warnings: ${migrationResult.warnings.length}\n`;
+            
+            if (migrationResult.warnings.length > 0) {
+                testResults += `   • Warning details: ${migrationResult.warnings.join(', ')}\n`;
+            }
+            
+            // Test validation
+            if (legacySettings.unifiedMetrics) {
+                const validation = validateUnifiedMetricsConfig(legacySettings.unifiedMetrics);
+                testResults += `   • Configuration valid: ${validation.valid}\n`;
+                if (!validation.valid) {
+                    testResults += `   • Validation errors: ${validation.errors.join(', ')}\n`;
+                }
+            }
+            
+            // Test version matching
+            const versionMatches = legacySettings.unifiedMetrics?.configVersion === CURRENT_CONFIG_VERSION;
+            testResults += `   • Version matches current: ${versionMatches}\n`;
+            
+            this.updateTestResults(testResults, 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Settings migration test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runUnifiedConfigurationTest() {
+        this.updateTestResults('⚙️ Testing Unified Configuration...', 'running');
+        
+        try {
+            const { hasUnifiedMetricsConfig, DEFAULT_UNIFIED_METRICS_CONFIG } = await import('../../utils/settings-migration');
+            
+            let testResults = `✅ Unified Configuration Test Results:\n`;
+            
+            // Test if unified config exists
+            const hasConfig = hasUnifiedMetricsConfig(this.plugin.settings);
+            testResults += `   • Has unified configuration: ${hasConfig}\n`;
+            
+            // Test default configuration structure
+            const defaultConfig = DEFAULT_UNIFIED_METRICS_CONFIG;
+            testResults += `   • Default auto-discovery: ${defaultConfig.autoDiscovery}\n`;
+            testResults += `   • Default thresholds: low=${defaultConfig.visualizationThresholds.low}, medium=${defaultConfig.visualizationThresholds.medium}, high=${defaultConfig.visualizationThresholds.high}\n`;
+            testResults += `   • Default calendar metrics: ${defaultConfig.preferredMetrics.calendar.length}\n`;
+            testResults += `   • Default chart metrics: ${defaultConfig.preferredMetrics.charts.length}\n`;
+            testResults += `   • Max new metrics: ${defaultConfig.discovery.maxNewMetrics}\n`;
+            
+            // Test current configuration if it exists
+            if (this.plugin.settings.unifiedMetrics) {
+                const config = this.plugin.settings.unifiedMetrics;
+                testResults += `   • Current auto-discovery: ${config.autoDiscovery}\n`;
+                testResults += `   • Current version: ${config.configVersion}\n`;
+                testResults += `   • Calendar metrics configured: ${config.preferredMetrics.calendar.length}\n`;
+                testResults += `   • Chart metrics configured: ${config.preferredMetrics.charts.length}\n`;
+            }
+            
+            this.updateTestResults(testResults, 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Unified configuration test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runComponentMetricsTest() {
+        this.updateTestResults('📊 Testing Component Metrics Selection...', 'running');
+        
+        try {
+            const { getComponentMetrics } = await import('../../utils/settings-migration');
+            
+            let testResults = `✅ Component Metrics Selection Test Results:\n`;
+            
+            // Test each component type
+            const components = ['calendar', 'charts', 'table'] as const;
+            
+            for (const component of components) {
+                const metrics = getComponentMetrics(this.plugin.settings, component);
+                testResults += `   • ${component}: ${metrics.length} metrics available\n`;
+                
+                if (metrics.length > 0) {
+                    const metricNames = metrics.slice(0, 3).map(m => m.name).join(', ');
+                    testResults += `     └─ First 3: ${metricNames}\n`;
+                }
+            }
+            
+            // Test fallback behavior
+            const metricsWithFallback = getComponentMetrics(this.plugin.settings, 'calendar', true);
+            const metricsWithoutFallback = getComponentMetrics(this.plugin.settings, 'calendar', false);
+            
+            testResults += `   • Calendar with fallback: ${metricsWithFallback.length}\n`;
+            testResults += `   • Calendar without fallback: ${metricsWithoutFallback.length}\n`;
+            
+            this.updateTestResults(testResults, 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Component metrics test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runThresholdCalculationTest() {
+        this.updateTestResults('📏 Testing Threshold Calculations...', 'running');
+        
+        try {
+            const { getMetricThreshold } = await import('../../utils/settings-migration');
+            
+            // Test thresholds
+            const thresholds = {
+                low: 0.33,
+                medium: 0.67,
+                high: 1.0
+            };
+            
+            let testResults = `✅ Threshold Calculation Test Results:\n`;
+            
+            // Test various values
+            const testCases = [
+                { value: 1, min: 1, max: 5, expected: 'low' },    // 0.0 normalized -> low
+                { value: 2, min: 1, max: 5, expected: 'low' },    // 0.25 normalized -> low  
+                { value: 3, min: 1, max: 5, expected: 'medium' }, // 0.5 normalized -> medium
+                { value: 4, min: 1, max: 5, expected: 'high' },   // 0.75 normalized -> high
+                { value: 5, min: 1, max: 5, expected: 'high' }    // 1.0 normalized -> high
+            ];
+            
+            let passedTests = 0;
+            let totalTests = testCases.length;
+            
+            for (const testCase of testCases) {
+                const result = getMetricThreshold(testCase.value, testCase.min, testCase.max, thresholds);
+                const passed = result === testCase.expected;
+                
+                if (passed) {
+                    passedTests++;
+                }
+                
+                testResults += `   • Value ${testCase.value} (${testCase.min}-${testCase.max}): ${result} ${passed ? '✓' : '✗'}\n`;
+            }
+            
+            testResults += `   • Tests passed: ${passedTests}/${totalTests}\n`;
+            
+            const status = passedTests === totalTests ? 'success' : 'warning';
+            this.updateTestResults(testResults, status);
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Threshold calculation test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runBackwardCompatibilityTest() {
+        this.updateTestResults('🔄 Testing Backward Compatibility...', 'running');
+        
+        try {
+            let testResults = `✅ Backward Compatibility Test Results:\n`;
+            
+            // Test that existing metrics still work
+            const existingMetrics = this.plugin.settings.metrics;
+            if (existingMetrics) {
+                const metricCount = Object.keys(existingMetrics).length;
+                testResults += `   • Existing metrics preserved: ${metricCount}\n`;
+                
+                // Check for required properties with proper typing
+                let validMetrics = 0;
+                for (const [name, metric] of Object.entries(existingMetrics)) {
+                    if (metric && typeof metric === 'object' && 'name' in metric && 'enabled' in metric) {
+                        if (metric.name && typeof metric.enabled === 'boolean') {
+                            validMetrics++;
+                        }
+                    }
+                }
+                testResults += `   • Valid metric definitions: ${validMetrics}/${metricCount}\n`;
+            }
+            
+            // Test legacy settings properties
+            const hasProjectNote = !!this.plugin.settings.projectNote;
+            const hasSelectedNotes = Array.isArray(this.plugin.settings.selectedNotes);
+            const hasLogging = !!this.plugin.settings.logging;
+            
+            testResults += `   • Project note setting: ${hasProjectNote ? '✓' : '✗'}\n`;
+            testResults += `   • Selected notes array: ${hasSelectedNotes ? '✓' : '✗'}\n`;
+            testResults += `   • Logging configuration: ${hasLogging ? '✓' : '✗'}\n`;
+            
+            // Test that unified metrics don't break existing functionality
+            const unifiedMetricsExists = !!this.plugin.settings.unifiedMetrics;
+            testResults += `   • Unified metrics initialized: ${unifiedMetricsExists ? '✓' : '✗'}\n`;
+            
+            this.updateTestResults(testResults, 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Backward compatibility test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runSettingsValidationTest() {
+        this.updateTestResults('✅ Testing Settings Validation...', 'running');
+        
+        try {
+            let testResults = `✅ Settings Validation Test Results:\n`;
+            
+            // Validate core settings structure
+            const settings = this.plugin.settings;
+            const requiredProperties = ['projectNote', 'metrics', 'selectedNotes', 'selectionMode', 'calloutName'];
+            
+            let validProperties = 0;
+            for (const prop of requiredProperties) {
+                if (settings[prop] !== undefined) {
+                    validProperties++;
+                    testResults += `   • ${prop}: ✓\n`;
+                } else {
+                    testResults += `   • ${prop}: ✗ (missing)\n`;
+                }
+            }
+            
+            testResults += `   • Core properties valid: ${validProperties}/${requiredProperties.length}\n`;
+            
+            // Test metrics validation with proper typing
+            if (settings.metrics) {
+                const metricsArray = Object.values(settings.metrics);
+                let validMetrics = 0;
+                
+                for (const metric of metricsArray) {
+                    if (metric && typeof metric === 'object') {
+                        const hasName = 'name' in metric && !!metric.name;
+                        const hasEnabled = 'enabled' in metric && typeof metric.enabled === 'boolean';
+                        const hasIcon = 'icon' in metric && !!metric.icon;
+                        
+                        if (hasName && hasEnabled && hasIcon) {
+                            validMetrics++;
+                        }
+                    }
+                }
+                
+                testResults += `   • Valid metrics: ${validMetrics}/${metricsArray.length}\n`;
+            }
+            
+            // Test unified metrics validation if present
+            if (settings.unifiedMetrics) {
+                const unified = settings.unifiedMetrics;
+                const hasThresholds = unified.visualizationThresholds && 
+                                      typeof unified.visualizationThresholds.low === 'number';
+                const hasPreferredMetrics = unified.preferredMetrics && 
+                                            Array.isArray(unified.preferredMetrics.calendar);
+                const hasDiscovery = unified.discovery && 
+                                     typeof unified.discovery.autoEnable === 'boolean';
+                
+                testResults += `   • Unified thresholds: ${hasThresholds ? '✓' : '✗'}\n`;
+                testResults += `   • Preferred metrics: ${hasPreferredMetrics ? '✓' : '✗'}\n`;
+                testResults += `   • Discovery settings: ${hasDiscovery ? '✓' : '✗'}\n`;
+            }
+            
+            this.updateTestResults(testResults, 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Settings validation test failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    private async runAllPhase1Tests() {
+        this.updateTestResults('🎯 Running All Phase 1 Tests...', 'running');
+        
+        try {
+            // Run all tests in sequence
+            await this.runMetricsDiscoveryTest();
+            await new Promise(resolve => setTimeout(resolve, 500)); // Brief pause
+            
+            await this.runSettingsMigrationTest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await this.runUnifiedConfigurationTest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await this.runComponentMetricsTest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await this.runThresholdCalculationTest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await this.runBackwardCompatibilityTest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await this.runSettingsValidationTest();
+            
+            this.updateTestResults('🎉 All Phase 1 Tests Completed Successfully!', 'success');
+            
+        } catch (error) {
+            this.updateTestResults(`❌ Phase 1 test suite failed: ${error.message}`, 'failure');
+        }
+    }
+    
+    // Helper to update test results display
+    private testResultsArea: HTMLElement;
+    
+    private updateTestResults(message: string, status: 'success' | 'failure' | 'warning' | 'running') {
+        if (!this.testResultsArea) return;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const statusIcon = {
+            'success': '✅',
+            'failure': '❌', 
+            'warning': '⚠️',
+            'running': '⏳'
+        }[status];
+        
+        const resultDiv = this.testResultsArea.createDiv({ 
+            cls: `unified-test-suite-result unified-test-suite-result-${status}` 
+        });
+        
+        resultDiv.createEl('div', {
+            text: `${statusIcon} [${timestamp}] ${message}`,
+            cls: 'unified-test-suite-result-text'
+        });
+        
+        // Scroll to bottom
+        this.testResultsArea.scrollTop = this.testResultsArea.scrollHeight;
     }
 } 
