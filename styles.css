@@ -16969,6 +16969,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     display: flex;
     margin-bottom: var(--oom-spacing-md);
     border-bottom: 1px solid var(--background-modifier-border);
+    flex-shrink: 0; /* Prevent navigation from shrinking */
     
     /* NO VISUAL STYLING - Let theme handle navigation styling */
 }
@@ -16982,6 +16983,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     border-top-right-radius: 6px;
     cursor: pointer;
     background: transparent;
+    border: none;
     
     /* === VISUAL PROPERTIES === */
     transition: all 0.2s ease;
@@ -16999,8 +17001,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 
 .oom-metrics-chart-tab--active {
     /* === VISUAL PROPERTIES === */
-    /*border-bottom: 2px solid var(--text-accent);*/
-    font-weight:;
+    font-weight: 600;
     color: var(--text-accent);
     background-color: var(--background-primary);
 }
@@ -17016,6 +17017,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     /* === STRUCTURAL PROPERTIES === */
     flex: 1;
     overflow: auto;
+    min-height: 0; /* Important for flex child with overflow */
     
     /* NO VISUAL STYLING - Let theme handle content styling */
 }
@@ -17025,6 +17027,9 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     /* === STRUCTURAL PROPERTIES === */
     width: 100%;
     padding: var(--oom-spacing-md);
+    height: 500px; /* Fixed height to prevent stretching */
+    display: flex;
+    flex-direction: column;
     
     /* NO VISUAL STYLING - Let theme handle chart container styling */
 }
@@ -17032,6 +17037,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 .oom-chart-title {
     /* === STRUCTURAL PROPERTIES === */
     margin: 0 0 var(--oom-spacing-md) 0;
+    flex-shrink: 0; /* Prevent title from shrinking */
     
     /* === VISUAL PROPERTIES === */
     font-size: var(--font-ui-medium);
@@ -17041,8 +17047,12 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 
 .oom-chart-canvas {
     /* === STRUCTURAL PROPERTIES === */
-    height: 400px;
+    flex: 1;
+    width: 100% !important; /* Override Chart.js default */
+    height: 400px !important; /* Override Chart.js default */
     max-width: 100%;
+    max-height: 400px;
+    min-height: 300px;
     
     /* NO VISUAL STYLING - Chart.js handles canvas styling */
 }
@@ -17052,6 +17062,11 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     /* === STRUCTURAL PROPERTIES === */
     padding: var(--oom-spacing-xl);
     text-align: center;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     
     /* === VISUAL PROPERTIES === */
     background-color: var(--background-secondary);
@@ -17094,8 +17109,33 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
         text-align: center;
     }
     
+    .oom-chart-container {
+        /* === STRUCTURAL PROPERTIES === */
+        height: 400px; /* Smaller on mobile */
+    }
+    
     .oom-chart-canvas {
         /* === STRUCTURAL PROPERTIES === */
-        height: 300px;
+        height: 300px !important;
+        max-height: 300px;
     }
+    
+    .oom-chart-placeholder {
+        /* === STRUCTURAL PROPERTIES === */
+        height: 300px;
+        padding: var(--oom-spacing-lg);
+    }
+}
+
+/* Fix for Chart.js responsive behavior */
+.oom-chart-container canvas {
+    /* Prevent Chart.js from overriding our size constraints */
+    position: relative !important;
+}
+
+/* Animation prevention during initial render */
+.oom-chart-container--loading .oom-chart-canvas {
+    /* Prevent any animations during initial load */
+    animation: none !important;
+    transition: none !important;
 }

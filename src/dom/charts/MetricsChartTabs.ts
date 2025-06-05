@@ -158,7 +158,7 @@ export class MetricsChartTabs {
      */
     private renderTrendsTab(): void {
         const container = document.createElement('div');
-        container.className = 'oom-chart-container';
+        container.className = 'oom-chart-container oom-chart-container--loading';
         
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
@@ -171,8 +171,11 @@ export class MetricsChartTabs {
         container.appendChild(canvas);
         this.contentContainer.appendChild(container);
 
-        // Create line chart
-        this.createTrendsChart(canvas);
+        // Delay chart creation to ensure container is stable
+        setTimeout(() => {
+            container.classList.remove('oom-chart-container--loading');
+            this.createTrendsChart(canvas);
+        }, 50);
     }
 
     /**
@@ -180,7 +183,7 @@ export class MetricsChartTabs {
      */
     private renderCompareTab(): void {
         const container = document.createElement('div');
-        container.className = 'oom-chart-container';
+        container.className = 'oom-chart-container oom-chart-container--loading';
         
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
@@ -193,8 +196,11 @@ export class MetricsChartTabs {
         container.appendChild(canvas);
         this.contentContainer.appendChild(container);
 
-        // Create bar chart
-        this.createCompareChart(canvas);
+        // Delay chart creation to ensure container is stable
+        setTimeout(() => {
+            container.classList.remove('oom-chart-container--loading');
+            this.createCompareChart(canvas);
+        }, 50);
     }
 
     /**
@@ -202,7 +208,7 @@ export class MetricsChartTabs {
      */
     private renderCorrelationsTab(): void {
         const container = document.createElement('div');
-        container.className = 'oom-chart-container';
+        container.className = 'oom-chart-container oom-chart-container--loading';
         
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
@@ -215,8 +221,11 @@ export class MetricsChartTabs {
         container.appendChild(canvas);
         this.contentContainer.appendChild(container);
 
-        // Create scatter plot
-        this.createCorrelationsChart(canvas);
+        // Delay chart creation to ensure container is stable
+        setTimeout(() => {
+            container.classList.remove('oom-chart-container--loading');
+            this.createCorrelationsChart(canvas);
+        }, 50);
     }
 
     /**
@@ -275,6 +284,14 @@ export class MetricsChartTabs {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top'
@@ -284,6 +301,10 @@ export class MetricsChartTabs {
                     y: {
                         beginAtZero: true
                     }
+                },
+                // Prevent animation on initial render to avoid sizing issues
+                animation: {
+                    duration: 0
                 }
             }
         });
@@ -325,6 +346,14 @@ export class MetricsChartTabs {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         display: false
@@ -334,6 +363,10 @@ export class MetricsChartTabs {
                     y: {
                         beginAtZero: true
                     }
+                },
+                // Prevent animation on initial render to avoid sizing issues
+                animation: {
+                    duration: 0
                 }
             }
         });
@@ -382,6 +415,14 @@ export class MetricsChartTabs {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top'
@@ -400,6 +441,10 @@ export class MetricsChartTabs {
                             text: metricNames[1]
                         }
                     }
+                },
+                // Prevent animation on initial render to avoid sizing issues
+                animation: {
+                    duration: 0
                 }
             }
         });
