@@ -115,7 +115,10 @@ export class HubModal extends Modal {
     private detailsText: HTMLElement | null = null;
     private scrapeButton: HTMLButtonElement | null = null;
     private openNoteButton: HTMLButtonElement | null = null;
-    
+
+    // Dynamic feedback area for scraping status  
+    private feedbackArea: HTMLElement | null = null;
+
     // Smart preservation: backup storage for selections when switching modes
     private backupSelectedNotes: string[] = [];
     private backupSelectedFolder: string = '';
@@ -1331,6 +1334,12 @@ This metric assesses **how well your memory of the dream holds up and remains co
         this.progressFill = this.progressBar.createEl('div', { cls: 'oom-progress-fill' });
         this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
         
+        // Create dynamic feedback area above the sticky footer
+        this.feedbackArea = this.contentContainer.createDiv({ 
+            cls: 'oom-dream-scrape-feedback',
+            attr: { style: 'display: none;' }
+        });
+
         // Create the sticky footer for scrape actions
         const scrapeFooter = this.contentContainer.createDiv({ cls: 'oom-dream-scrape-sticky-footer' });
         
@@ -1352,21 +1361,41 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Set up event handlers
         
         // Scrape button click handler
-        this.scrapeButton.addEventListener('click', () => {
-            if (!this.isScraping) {
-                this.isScraping = true;
-                this.scrapeButton.disabled = true;
-                this.plugin.scrapeMetrics();
-                // Set timer to enable the open note button after scraping
-                setTimeout(() => {
-                    if (this.openNoteButton) {
-                        this.openNoteButton.disabled = false;
-                        this.openNoteButton.classList.add('enabled');
-                        this.hasScraped = true;
-                    }
-                }, 2000); // This is a placeholder, actual enabling would happen when scraping completes
+this.scrapeButton.addEventListener('click', async () => {
+    if (!this.isScraping) {
+        this.isScraping = true;
+        this.scrapeButton.disabled = true;
+        
+        // Show processing feedback
+        this.showScrapeFeedback('Scraping dream metrics with enhanced processing... This may take a moment.', 'info');
+        
+        try {
+            // Call the plugin's scrape method
+            await this.plugin.scrapeMetrics();
+            
+            // Show success feedback
+            this.showScrapeFeedback('Metrics processing completed successfully!', 'success');
+            
+            // Enable the open note button
+            if (this.openNoteButton) {
+                this.openNoteButton.disabled = false;
+                this.openNoteButton.classList.add('enabled');
+                this.hasScraped = true;
             }
-        });
+            
+            // Hide feedback after a few seconds
+            setTimeout(() => {
+                this.hideFeedback();
+            }, 3000);
+            
+        } catch (error) {
+            this.showScrapeFeedback(`Error scraping metrics: ${(error as Error).message}`, 'error');
+        } finally {
+            this.isScraping = false;
+            this.scrapeButton.disabled = false;
+        }
+    }
+});
         
         // Open note button click handler
         this.openNoteButton.addEventListener('click', () => {
@@ -6711,5 +6740,88 @@ Example:
             });
         }
     }
+
+    /**
+     * Show processing feedback in the Dream Scrape tab
+     */
+    public showScrapeFeedback(message: string, type: 'info' | 'warning' | 'success' | 'error' = 'info'): void {
+        if (!this.feedbackArea) return;
+        
+        this.feedbackArea.empty();
+        this.feedbackArea.style.display = 'block';
+        
+        const feedbackContent = this.feedbackArea.createDiv({ cls: `oom-feedback-content oom-feedback-${type}` });
+        
+        // Add icon based on type
+        const icon = feedbackContent.createSpan({ cls: 'oom-feedback-icon' });
+        switch (type) {
+            case 'info':
+                setIcon(icon, 'info');
+                break;
+            case 'warning':
+                setIcon(icon, 'alert-triangle');
+                break;
+            case 'success':
+                setIcon(icon, 'check-circle');
+                break;
+            case 'error':
+                setIcon(icon, 'x-circle');
+                break;
+        }
+        
+        // Add message
+        const messageEl = feedbackContent.createSpan({ cls: 'oom-feedback-message' });
+        messageEl.textContent = message;
+    }
+    
+    /**
+     * Show backup warning with action buttons in the Dream Scrape tab
+     */
+    public showBackupWarning(onProceed: () => void, onCancel: () => void): void {
+        if (!this.feedbackArea) return;
+        
+        this.feedbackArea.empty();
+        this.feedbackArea.style.display = 'block';
+        
+        const warningContent = this.feedbackArea.createDiv({ cls: 'oom-feedback-content oom-feedback-warning' });
+        
+        // Warning icon and message
+        const icon = warningContent.createSpan({ cls: 'oom-feedback-icon' });
+        setIcon(icon, 'alert-triangle');
+        
+        const messageEl = warningContent.createSpan({ cls: 'oom-feedback-message' });
+        messageEl.textContent = 'Warning: Backup is disabled. Updating the project note may overwrite existing content. Proceed?';
+        
+        // Action buttons
+        const buttonContainer = warningContent.createDiv({ cls: 'oom-feedback-buttons' });
+        
+        const cancelButton = buttonContainer.createEl('button', { 
+            text: 'Cancel',
+            cls: 'oom-button'
+        });
+        cancelButton.addEventListener('click', () => {
+            this.hideFeedback();
+            onCancel();
+        });
+        
+        const proceedButton = buttonContainer.createEl('button', { 
+            text: 'Proceed',
+            cls: 'oom-button mod-warning'
+        });
+        proceedButton.addEventListener('click', () => {
+            this.hideFeedback();
+            onProceed();
+        });
+    }
+    
+    /**
+     * Hide the feedback area
+     */
+    public hideFeedback(): void {
+        if (!this.feedbackArea) return;
+        this.feedbackArea.style.display = 'none';
+        this.feedbackArea.empty();
+    }
+
 }
 
