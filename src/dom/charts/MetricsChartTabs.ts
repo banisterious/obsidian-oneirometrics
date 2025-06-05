@@ -232,25 +232,287 @@ export class MetricsChartTabs {
      * Render heatmap tab
      */
     private renderHeatmapTab(): void {
-        this.renderPlaceholder('Heatmap', 'Heatmap visualization coming soon');
+        const container = document.createElement('div');
+        container.className = 'oom-chart-container oom-chart-container--loading';
+        
+        const title = document.createElement('h3');
+        title.className = 'oom-chart-title';
+        title.textContent = 'Metrics Heatmap';
+        
+        // Create metric selector
+        const selectorContainer = document.createElement('div');
+        selectorContainer.className = 'oom-heatmap-controls';
+        
+        const metricSelect = document.createElement('select');
+        metricSelect.className = 'oom-metric-selector';
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select a metric to visualize...';
+        metricSelect.appendChild(defaultOption);
+        
+        // Populate with available metrics
+        Object.keys(this.chartData.metrics).forEach(metricName => {
+            const option = document.createElement('option');
+            option.value = metricName;
+            option.textContent = metricName;
+            metricSelect.appendChild(option);
+        });
+        
+        const heatmapContainer = document.createElement('div');
+        heatmapContainer.className = 'oom-heatmap-container';
+        
+        selectorContainer.appendChild(metricSelect);
+        container.appendChild(title);
+        container.appendChild(selectorContainer);
+        container.appendChild(heatmapContainer);
+        this.contentContainer.appendChild(container);
+
+        // Handle metric selection
+        metricSelect.addEventListener('change', () => {
+            const selectedMetric = metricSelect.value;
+            if (selectedMetric) {
+                this.generateCalendarHeatmap(heatmapContainer, selectedMetric);
+            } else {
+                heatmapContainer.innerHTML = '<div class="oom-heatmap-placeholder">Select a metric to visualize the heatmap</div>';
+            }
+        });
+
+        // Remove loading state
+        setTimeout(() => {
+            container.classList.remove('oom-chart-container--loading');
+            if (Object.keys(this.chartData.metrics).length > 0) {
+                // Auto-select first metric
+                metricSelect.value = Object.keys(this.chartData.metrics)[0];
+                metricSelect.dispatchEvent(new Event('change'));
+            }
+        }, 50);
     }
 
     /**
-     * Render placeholder content
+     * Generate calendar-style heatmap for a specific metric
      */
-    private renderPlaceholder(title: string, description?: string): void {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'oom-chart-placeholder';
+    private generateCalendarHeatmap(container: HTMLElement, metricName: string): void {
+        container.innerHTML = '';
         
-        const titleElement = document.createElement('h3');
-        titleElement.textContent = title;
+        if (!this.chartData.dreamEntries || this.chartData.dreamEntries.length === 0) {
+            container.innerHTML = '<div class="oom-heatmap-placeholder">No data available for heatmap</div>';
+            return;
+        }
+
+        // Prepare data grouped by date
+        const dateMetrics = new Map<string, number[]>();
         
-        const descElement = document.createElement('p');
-        descElement.textContent = description || 'This chart type is not yet implemented.';
+        this.chartData.dreamEntries.forEach(entry => {
+            if (entry.metrics && entry.metrics[metricName] !== undefined) {
+                const dateKey = this.parseDateKey(entry.date);
+                if (dateKey) {
+                    if (!dateMetrics.has(dateKey)) {
+                        dateMetrics.set(dateKey, []);
+                    }
+                    const metricValue = Number(entry.metrics[metricName]);
+                    if (!isNaN(metricValue)) {
+                        dateMetrics.get(dateKey)!.push(metricValue);
+                    }
+                }
+            }
+        });
+
+        // Calculate averages and find min/max for color scaling
+        const dateAverages = new Map<string, number>();
+        let minValue = Infinity;
+        let maxValue = -Infinity;
         
-        placeholder.appendChild(titleElement);
-        placeholder.appendChild(descElement);
-        this.contentContainer.appendChild(placeholder);
+        dateMetrics.forEach((values, date) => {
+            const average = values.reduce((a, b) => a + b, 0) / values.length;
+            dateAverages.set(date, average);
+            minValue = Math.min(minValue, average);
+            maxValue = Math.max(maxValue, average);
+        });
+
+        if (dateAverages.size === 0) {
+            container.innerHTML = `<div class="oom-heatmap-placeholder">No data available for metric: ${metricName}</div>`;
+            return;
+        }
+
+        // Generate calendar grid
+        this.generateCalendarGrid(container, dateAverages, minValue, maxValue, metricName);
+    }
+
+    /**
+     * Parse date string to YYYY-MM-DD format
+     */
+    private parseDateKey(dateStr: string): string | null {
+        try {
+            // Handle various date formats
+            let date: Date;
+            
+            if (dateStr.includes('T') || dateStr.includes('Z')) {
+                // ISO format
+                date = new Date(dateStr);
+            } else if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // Already in YYYY-MM-DD format
+                return dateStr;
+            } else {
+                // Try parsing as general date
+                date = new Date(dateStr);
+            }
+            
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+            
+            // Format as YYYY-MM-DD
+            return date.toISOString().split('T')[0];
+        } catch (error) {
+            this.logger?.warn('MetricsChartTabs', 'Failed to parse date', { dateStr, error });
+            return null;
+        }
+    }
+
+    /**
+     * Generate calendar grid layout
+     */
+    private generateCalendarGrid(
+        container: HTMLElement,
+        dateAverages: Map<string, number>,
+        minValue: number,
+        maxValue: number,
+        metricName: string
+    ): void {
+        // Find date range
+        const dates = Array.from(dateAverages.keys()).sort();
+        if (dates.length === 0) return;
+
+        const startDate = new Date(dates[0]);
+        const endDate = new Date(dates[dates.length - 1]);
+        
+        // Create legend
+        const legend = document.createElement('div');
+        legend.className = 'oom-heatmap-legend';
+        legend.innerHTML = `
+            <div class="oom-heatmap-legend-title">Intensity Scale for ${metricName}</div>
+            <div class="oom-heatmap-legend-scale">
+                <span class="oom-heatmap-legend-min">${minValue.toFixed(1)}</span>
+                <div class="oom-heatmap-legend-gradient">
+                    <div class="oom-heatmap-legend-color-low"></div>
+                    <div class="oom-heatmap-legend-color-medium"></div>
+                    <div class="oom-heatmap-legend-color-high"></div>
+                </div>
+                <span class="oom-heatmap-legend-max">${maxValue.toFixed(1)}</span>
+            </div>
+        `;
+        
+        // Create months container
+        const monthsContainer = document.createElement('div');
+        monthsContainer.className = 'oom-heatmap-months';
+        
+        // Group dates by month
+        const monthGroups = new Map<string, string[]>();
+        dates.forEach(dateStr => {
+            const date = new Date(dateStr);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            if (!monthGroups.has(monthKey)) {
+                monthGroups.set(monthKey, []);
+            }
+            monthGroups.get(monthKey)!.push(dateStr);
+        });
+
+        // Generate each month
+        Array.from(monthGroups.keys()).sort().forEach(monthKey => {
+            const monthDates = monthGroups.get(monthKey)!;
+            const monthDiv = this.generateMonthGrid(monthKey, monthDates, dateAverages, minValue, maxValue, metricName);
+            monthsContainer.appendChild(monthDiv);
+        });
+
+        container.appendChild(legend);
+        container.appendChild(monthsContainer);
+    }
+
+    /**
+     * Generate grid for a single month
+     */
+    private generateMonthGrid(
+        monthKey: string,
+        monthDates: string[],
+        dateAverages: Map<string, number>,
+        minValue: number,
+        maxValue: number,
+        metricName: string
+    ): HTMLElement {
+        const monthDiv = document.createElement('div');
+        monthDiv.className = 'oom-heatmap-month';
+        
+        // Month header
+        const [year, month] = monthKey.split('-').map(Number);
+        const monthName = new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        const header = document.createElement('div');
+        header.className = 'oom-heatmap-month-header';
+        header.textContent = monthName;
+        
+        // Days grid
+        const daysGrid = document.createElement('div');
+        daysGrid.className = 'oom-heatmap-days-grid';
+        
+        // Add day labels
+        const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        dayLabels.forEach(label => {
+            const dayLabel = document.createElement('div');
+            dayLabel.className = 'oom-heatmap-day-label';
+            dayLabel.textContent = label;
+            daysGrid.appendChild(dayLabel);
+        });
+        
+        // Generate calendar days for the month
+        const firstDay = new Date(year, month - 1, 1);
+        const lastDay = new Date(year, month, 0);
+        const startOffset = firstDay.getDay(); // 0 = Sunday
+        
+        // Add empty cells for days before month starts
+        for (let i = 0; i < startOffset; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'oom-heatmap-day oom-heatmap-day-empty';
+            daysGrid.appendChild(emptyDay);
+        }
+        
+        // Add days of the month
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'oom-heatmap-day';
+            dayDiv.textContent = String(day);
+            
+            if (dateAverages.has(dateStr)) {
+                const value = dateAverages.get(dateStr)!;
+                const intensity = (value - minValue) / (maxValue - minValue);
+                
+                // Apply intensity-based styling
+                dayDiv.classList.add('oom-heatmap-day-data');
+                dayDiv.style.setProperty('--intensity', intensity.toString());
+                dayDiv.title = `${dateStr}: ${metricName} = ${value.toFixed(2)}`;
+                
+                // Add intensity class for CSS styling
+                if (intensity >= 0.7) {
+                    dayDiv.classList.add('oom-heatmap-intensity-high');
+                } else if (intensity >= 0.4) {
+                    dayDiv.classList.add('oom-heatmap-intensity-medium');
+                } else {
+                    dayDiv.classList.add('oom-heatmap-intensity-low');
+                }
+            } else {
+                dayDiv.classList.add('oom-heatmap-day-no-data');
+                dayDiv.title = `${dateStr}: No data for ${metricName}`;
+            }
+            
+            daysGrid.appendChild(dayDiv);
+        }
+        
+        monthDiv.appendChild(header);
+        monthDiv.appendChild(daysGrid);
+        
+        return monthDiv;
     }
 
     /**
@@ -514,5 +776,23 @@ export class MetricsChartTabs {
         }
 
         this.logger?.debug('MetricsChartTabs', 'Chart tabs destroyed');
+    }
+
+    /**
+     * Render placeholder content
+     */
+    private renderPlaceholder(title: string, description?: string): void {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'oom-chart-placeholder';
+        
+        const titleElement = document.createElement('h3');
+        titleElement.textContent = title;
+        
+        const descElement = document.createElement('p');
+        descElement.textContent = description || 'This chart type is not yet implemented.';
+        
+        placeholder.appendChild(titleElement);
+        placeholder.appendChild(descElement);
+        this.contentContainer.appendChild(placeholder);
     }
 } 
