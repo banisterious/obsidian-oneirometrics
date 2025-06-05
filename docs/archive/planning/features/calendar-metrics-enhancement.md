@@ -1,3 +1,14 @@
+# ⚠️ **DEPRECATED - MERGED INTO UNIFIED PLAN**
+
+> **📋 This document has been consolidated into the unified plan:**  
+> **[Metrics Visualization & Calendar Enhancement - Unified Plan](./metrics-visualization-unified.md)**
+>
+> **Date Merged**: 2025-06-05  
+> **Migration Status**: ✅ All content preserved and enhanced in unified document  
+> **Action Required**: Use the unified plan for all future metrics visualization work
+
+---
+
 # Calendar Metrics Visualization Enhancement
 
 ## 📑 Table of Contents
