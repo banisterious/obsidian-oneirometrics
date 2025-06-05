@@ -32,6 +32,26 @@ import {
 } from '../../utils/selection-mode-helpers';
 import { SettingsAdapter } from '../../state/adapters/SettingsAdapter';
 
+// Import metrics functionality from settings
+import { 
+    RECOMMENDED_METRICS_ORDER, 
+    DISABLED_METRICS_ORDER,
+    iconCategories,
+    lucideIconMap
+} from '../../../settings';
+import { 
+    isMetricEnabled,
+    setMetricEnabled,
+    getMetricMinValue,
+    getMetricMaxValue,
+    setMetricRange,
+    getMetricRange,
+    standardizeMetric,
+    createCompatibleMetric
+} from '../../utils/metric-helpers';
+import { DEFAULT_METRICS } from '../../types';
+import { debug } from '../../logging';
+
 // Interface for grouped metrics
 interface MetricGroup {
     name: string;
@@ -187,6 +207,7 @@ export class HubModal extends Modal {
         this.createJournalStructureTab(); // Now includes template management
         this.createDreamScrapeTab();
         this.createContentAnalysisTab(); // NEW: Content Analysis tab
+        this.createMetricsSettingsTab(); // NEW: Metrics Settings tab
         
         // Create Overview tab (renamed to Reference Overview)
         this.createOverviewTab();
@@ -263,6 +284,23 @@ export class HubModal extends Modal {
         
         contentAnalysisTab.addEventListener('click', () => {
             this.selectTab('content-analysis');
+        });
+    }
+    
+    // Create Metrics Settings tab
+    private createMetricsSettingsTab() {
+        const metricsSettingsTab = this.tabsContainer.createDiv({
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
+            attr: { 'data-tab-id': 'metrics-settings' }
+        });
+        
+        metricsSettingsTab.createDiv({ 
+            text: 'Metrics Settings', 
+            cls: 'oom-hub-tab-label' 
+        });
+        
+        metricsSettingsTab.addEventListener('click', () => {
+            this.selectTab('metrics-settings');
         });
     }
     
@@ -344,6 +382,8 @@ export class HubModal extends Modal {
             this.loadDreamScrapeContent();
         } else if (tabId === 'content-analysis') {
             this.loadContentAnalysisContent();
+        } else if (tabId === 'metrics-settings') {
+            this.loadMetricsSettingsContent();
         } else if (tabId === 'journal-structure') {
             this.loadJournalStructureContent();
         } else if (tabId === 'overview') {
@@ -4238,176 +4278,236 @@ Example:
     private loadContentAnalysisContent() {
         this.contentContainer.empty();
         
-        // Add header section
-        const headerSection = this.contentContainer.createDiv({ 
-            cls: 'oom-content-analysis-header' 
+        // Add title and description 
+        this.contentContainer.createEl('h2', { 
+            text: 'Content Analysis', 
+            cls: 'oom-hub-content-title' 
         });
         
-        headerSection.createEl('h2', { text: 'Content Analysis' });
-        
-        headerSection.createEl('p', { 
-            text: 'Analyze templates, folders, and notes to validate structure patterns, discover existing callout usage, and migrate between different journal formats.',
-            cls: 'oom-content-analysis-description'
+        this.contentContainer.createEl('p', { 
+            text: 'Analyze your content patterns, validate templates, and manage structure migrations.',
+            cls: 'oom-hub-content-description' 
+        });
+
+        // Template Validation Section
+        const templateValidationSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
         });
         
-        // Create main content container
-        const mainContainer = this.contentContainer.createDiv({ 
-            cls: 'oom-content-analysis-main' 
+        templateValidationSection.createEl('h3', { 
+            text: 'Template Validation',
+            cls: 'oom-hub-section-title' 
         });
-        
-        // Template Validation Section (Priority 1)
-        const templateValidationSection = mainContainer.createDiv({ cls: 'oom-analysis-section' });
-        templateValidationSection.createEl('h3', { text: 'Template Validation', cls: 'oom-section-header' });
         
         templateValidationSection.createEl('p', { 
-            text: 'Check if your Hub templates follow proper structure patterns and validate callout syntax.' 
+            text: 'Validate your Hub templates against structure patterns and check for common issues.',
+            cls: 'oom-hub-section-description' 
         });
-        
-        // Add recovery button for lost content
-        const recoveryContainer = templateValidationSection.createDiv({ cls: 'oom-recovery-container' });
-        recoveryContainer.style.marginBottom = '1em';
-        recoveryContainer.style.padding = '1em';
-        recoveryContainer.style.background = 'var(--background-secondary)';
-        recoveryContainer.style.borderRadius = '4px';
-        recoveryContainer.style.border = '1px solid var(--background-modifier-border)';
-        
-        const recoveryHeader = recoveryContainer.createEl('strong', { text: '🆘 Lost Template Content?' });
-        recoveryContainer.createEl('br');
-        recoveryContainer.createEl('span', { 
-            text: 'If your templates lost their content, use the recovery tool to attempt restoration.',
-            cls: 'oom-recovery-description'
+
+        // Template list container
+        const templateList = templateValidationSection.createDiv({ 
+            cls: 'oom-template-validation-list' 
         });
-        recoveryContainer.createEl('br');
-        const recoverBtn = recoveryContainer.createEl('button', {
-            text: '🔧 Open Template Recovery Tool',
-            cls: 'oom-recovery-launch-btn'
-        });
-        recoverBtn.style.marginTop = '0.5em';
-        recoverBtn.addEventListener('click', () => {
-            this.recoverLostTemplateContent();
-        });
-        
+
+        // Get available templates
         const templates = this.plugin.settings.linting?.templates || [];
         
-        if (templates.length > 0) {
-            const templatesList = templateValidationSection.createDiv({ cls: 'oom-templates-validation-list' });
-            
-            templates.forEach(template => {
-                const templateItem = templatesList.createDiv({ cls: 'oom-template-validation-item' });
-                templateItem.style.border = '1px solid var(--background-modifier-border)';
-                templateItem.style.borderRadius = '4px';
-                templateItem.style.padding = '1em';
-                templateItem.style.marginBottom = '0.5em';
-                
-                const templateHeader = templateItem.createDiv({ cls: 'oom-template-validation-header' });
-                templateHeader.style.display = 'flex';
-                templateHeader.style.justifyContent = 'space-between';
-                templateHeader.style.alignItems = 'center';
-                templateHeader.style.marginBottom = '0.5em';
-                
-                const templateInfo = templateHeader.createDiv();
-                templateInfo.createEl('strong', { text: template.name });
-                templateInfo.createEl('br');
-                templateInfo.createEl('span', { 
-                    text: template.description || 'No description',
-                    cls: 'oom-template-description'
-                });
-                
-                const validateBtn = templateHeader.createEl('button', {
-                    text: 'Validate',
-                    cls: 'oom-button-secondary'
-                });
-                validateBtn.addEventListener('click', () => {
-                    this.validateTemplate(template, templateItem);
-                });
-                
-                // Placeholder for validation results
-                const resultsContainer = templateItem.createDiv({ 
-                    cls: 'oom-template-validation-results'
-                });
-                resultsContainer.style.display = 'none';
-                resultsContainer.style.marginTop = '0.5em';
-                resultsContainer.style.padding = '0.5em';
-                resultsContainer.style.background = 'var(--background-secondary)';
-                resultsContainer.style.borderRadius = '3px';
+        if (templates.length === 0) {
+            templateList.createEl('p', { 
+                text: 'No templates found. Create templates in the Journal Structure tab first.',
+                cls: 'oom-hub-empty-state' 
             });
         } else {
-            templateValidationSection.createEl('p', { 
-                text: 'No templates available. Create templates first using the Template Wizard.',
-                cls: 'oom-empty-state'
+            templates.forEach(template => {
+                const templateItem = templateList.createDiv({ 
+                    cls: 'oom-template-validation-item' 
+                });
+                
+                // Template info
+                const templateInfo = templateItem.createDiv({ 
+                    cls: 'oom-template-info' 
+                });
+                
+                templateInfo.createEl('strong', { text: template.name });
+                templateInfo.createEl('span', { 
+                    text: ` (${template.structure})`,
+                    cls: 'oom-template-structure' 
+                });
+                
+                // Validate button
+                const validateButton = templateItem.createEl('button', {
+                    text: 'Validate',
+                    cls: 'mod-cta oom-validate-template-btn'
+                });
+                
+                validateButton.addEventListener('click', () => {
+                    this.validateTemplate(template, templateItem);
+                });
             });
         }
+
+        // Content Pattern Analysis Section  
+        const patternAnalysisSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
+        });
         
-        // Content Pattern Analysis Section (Priority 2)
-        const patternAnalysisSection = mainContainer.createDiv({ cls: 'oom-analysis-section' });
-        patternAnalysisSection.createEl('h3', { text: 'Content Pattern Analysis', cls: 'oom-section-header' });
+        patternAnalysisSection.createEl('h3', { 
+            text: 'Content Pattern Analysis',
+            cls: 'oom-hub-section-title' 
+        });
         
         patternAnalysisSection.createEl('p', { 
-            text: 'Analyze specific folders or notes to discover what callout patterns you\'re actually using in your existing journals.' 
+            text: 'Analyze your existing notes to discover patterns and suggest optimal structures.',
+            cls: 'oom-hub-section-description' 
         });
-        
-        // Analysis targets selection
-        const targetsContainer = patternAnalysisSection.createDiv({ cls: 'oom-analysis-targets' });
-        targetsContainer.createEl('h3', { text: 'Analysis Targets' });
-        
-        const targetsList = targetsContainer.createDiv({ cls: 'oom-targets-list' });
-        
-        const emptyState = targetsList.createDiv({ cls: 'oom-targets-empty-state' });
-        emptyState.textContent = 'No analysis targets selected. Use the buttons below to add folders or notes.';
-        
-        const targetsActions = targetsContainer.createDiv({ cls: 'oom-targets-actions' });
-        targetsActions.style.display = 'flex';
-        targetsActions.style.gap = '0.5em';
-        targetsActions.style.marginBottom = '1em';
-        
-        const addFolderBtn = targetsActions.createEl('button', {
-            text: '📁 Add Folder',
-            cls: 'oom-button-secondary'
+
+        // Analysis targets container
+        const analysisTargets = patternAnalysisSection.createDiv({ 
+            cls: 'oom-analysis-targets' 
         });
+
+        // Add target buttons
+        const addTargetButtons = analysisTargets.createDiv({ 
+            cls: 'oom-add-target-buttons' 
+        });
+
+        const addFolderBtn = addTargetButtons.createEl('button', {
+            text: 'Add Folder',
+            cls: 'mod-cta'
+        });
+
+        const addNotesBtn = addTargetButtons.createEl('button', {
+            text: 'Add Notes',
+            cls: 'mod-cta'
+        });
+
+        // Selected targets list
+        const targetsList = analysisTargets.createDiv({ 
+            cls: 'oom-targets-list' 
+        });
+
+        const emptyState = targetsList.createDiv({ 
+            cls: 'oom-hub-empty-state',
+            text: 'No analysis targets selected. Add folders or notes to analyze.'
+        });
+
+        // Analyze button (initially disabled)
+        const analyzeButton = analysisTargets.createEl('button', {
+            text: 'Analyze Selected Content',
+            cls: 'mod-cta oom-analyze-btn'
+        });
+        analyzeButton.disabled = true;
+
+        // Event listeners for target selection
         addFolderBtn.addEventListener('click', () => {
             this.showFolderSelectionDialog(targetsList, emptyState);
         });
-        
-        const addNoteBtn = targetsActions.createEl('button', {
-            text: '📄 Add Note',
-            cls: 'oom-button-secondary'
-        });
-        addNoteBtn.addEventListener('click', () => {
+
+        addNotesBtn.addEventListener('click', () => {
             this.showNoteSelectionDialog(targetsList, emptyState);
         });
-        
-        const analyzeBtn = targetsActions.createEl('button', {
-            text: 'Analyze Selected Content',
-            cls: 'oom-button-primary'
-        });
-        analyzeBtn.disabled = true;
-        analyzeBtn.addEventListener('click', () => {
-            this.logger.info('ContentAnalysis', 'ANALYZE BUTTON CLICKED - Starting analysis');
+
+        analyzeButton.addEventListener('click', () => {
             this.analyzeSelectedContent();
         });
+
+        // Migration Tools Section (Placeholder)
+        const migrationSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
+        });
         
-        // Structure Migration Section (Priority 3)
-        const migrationSection = mainContainer.createDiv({ cls: 'oom-analysis-section' });
-        migrationSection.createEl('h3', { text: 'Structure Migration Tools', cls: 'oom-section-header' });
+        migrationSection.createEl('h3', { 
+            text: 'Migration Tools',
+            cls: 'oom-hub-section-title' 
+        });
         
         migrationSection.createEl('p', { 
-            text: 'Convert content between different callout structures safely with previews and backups.' 
+            text: 'Tools for migrating content between different callout structures (coming soon).',
+            cls: 'oom-hub-section-description' 
+        });
+
+        const placeholderContent = migrationSection.createDiv({ 
+            cls: 'oom-hub-placeholder' 
         });
         
-        const migrationPlaceholder = migrationSection.createDiv({ cls: 'oom-migration-placeholder' });
-        migrationPlaceholder.style.padding = '2em';
-        migrationPlaceholder.style.textAlign = 'center';
-        migrationPlaceholder.style.border = '2px dashed var(--background-modifier-border)';
-        migrationPlaceholder.style.borderRadius = '8px';
-        migrationPlaceholder.style.color = 'var(--text-muted)';
-        
-        migrationPlaceholder.createEl('p', { text: '🚧 Migration tools coming soon!' });
-        const migrationDescription = migrationPlaceholder.createEl('p', { 
-            text: 'This will include structure conversion previews, bulk content migration, and backup/restore functionality.'
+        placeholderContent.createEl('p', { 
+            text: '🚧 Migration tools will be available in a future update.',
+            cls: 'oom-hub-placeholder-text' 
         });
-        migrationDescription.style.fontSize = '0.9em';
     }
     
+    // Load Metrics Settings content
+    private loadMetricsSettingsContent() {
+        this.contentContainer.empty();
+        
+        // Add title and description 
+        this.contentContainer.createEl('h2', { 
+            text: 'Metrics Settings', 
+            cls: 'oom-hub-content-title' 
+        });
+        
+        this.contentContainer.createEl('p', { 
+            text: 'Manage your dream metrics: add new metrics, enable/disable existing ones, and organize your tracking preferences.',
+            cls: 'oom-hub-content-description' 
+        });
+
+        // Add Metric Section
+        const addMetricSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
+        });
+        
+        addMetricSection.createEl('h3', { 
+            text: 'Add Metric',
+            cls: 'oom-hub-section-title' 
+        });
+        
+        addMetricSection.createEl('p', { 
+            text: 'Create a custom metric to track additional aspects of your dreams.',
+            cls: 'oom-hub-section-description' 
+        });
+
+        const addMetricButton = addMetricSection.createEl('button', {
+            text: 'Add New Metric',
+            cls: 'mod-cta oom-add-metric-btn'
+        });
+
+        addMetricButton.addEventListener('click', () => {
+            // TODO: Import and use MetricEditorModal
+            new Notice('Add Metric functionality will be implemented shortly');
+        });
+
+        // Enabled Metrics Section
+        const enabledSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
+        });
+        
+        enabledSection.createEl('h3', { 
+            text: 'Enabled Metrics',
+            cls: 'oom-hub-section-title' 
+        });
+
+        // Disabled Metrics Section  
+        const disabledSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
+        });
+        
+        disabledSection.createEl('h3', { 
+            text: 'Disabled Metrics',
+            cls: 'oom-hub-section-title' 
+        });
+
+        // Render metrics (placeholder for now)
+        enabledSection.createEl('p', { 
+            text: 'Enabled metrics will be displayed here.',
+            cls: 'oom-hub-placeholder-text' 
+        });
+
+        disabledSection.createEl('p', { 
+            text: 'Disabled metrics will be displayed here.',
+            cls: 'oom-hub-placeholder-text' 
+        });
+    }
+
     // Validate a template (placeholder implementation)
     private validateTemplate(template: JournalTemplate, templateItem: HTMLElement) {
         // Get the results container for this template
@@ -5297,9 +5397,9 @@ Example:
                 if (node.children.length > 0) {
                     traverse(node.children, currentDepth + 1);
                 }
-            });
-        };
-        
+                });
+            };
+
         traverse(nodes, 1);
         return depths;
     }
@@ -5484,8 +5584,8 @@ Example:
                     restoreBtn.addEventListener('click', () => {
                         this.restoreTemplateFromCache(item.value);
                     });
-                });
-            } else {
+            });
+        } else {
                 resultsEl.createEl('p', { text: 'No template-related content found in browser cache.' });
             }
             
@@ -5736,7 +5836,7 @@ Example:
                     parentDepth: parent.depth
                 });
                 parent.children.push(block);
-            } else {
+        } else {
                 console.log('🚨 Adding as root:', block.type, 'depth:', currentDepth);
                 this.logger.info('CalloutParser', 'Adding root level callout', {
                     type: block.type,
@@ -6286,3 +6386,4 @@ Example:
         codeBlock.textContent = previewContent || '(No content available)';
     }
 }
+
