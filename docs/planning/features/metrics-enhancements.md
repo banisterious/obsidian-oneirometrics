@@ -1,294 +1,218 @@
-# Metrics System Enhancements Plan
+# Metrics Charts Enhancement Plan
 
 ## 📑 Table of Contents
 
 - [Overview](#overview)
-- [Planned Features](#planned-features)
-  - [1. Enhanced Metrics Visualization](#1-enhanced-metrics-visualization)
-  - [2. Custom Metric Types](#2-custom-metric-types)
-  - [3. Metric Templates](#3-metric-templates)
-  - [4. Batch Operations](#4-batch-operations)
-  - [5. Lucide Icon Picker Integration](#5-lucide-icon-picker-integration)
+- [Core Feature: Chart Visualization](#core-feature-chart-visualization)
+- [Implementation Plan](#implementation-plan)
+- [Future Considerations](#future-considerations)
 
 ---
 
 ## Overview
-This document outlines the planned enhancements to the OneiroMetrics metrics system, detailing specifications, implementation phases, and technical requirements for each feature.
+This document outlines the plan to enhance OneiroMetrics with chart-based visualization, focusing on a tab-based interface that extends the existing Current Statistics table with interactive charts.
 
-## Planned Features
+## Core Feature: Chart Visualization
 
-### 1. Enhanced Metrics Visualization
+### UI Design
+**Tab-Based Navigation**
+- Horizontal tab navigation above the Current Statistics table
+- **"Statistics" tab**: Current table view (existing functionality)
+- **Chart tabs**: Various chart visualizations
+  - "Trends" tab: Line charts for time-based metrics
+  - "Compare" tab: Bar charts for metric comparison
+  - "Correlations" tab: Scatter plots for relationship analysis
+  - "Heatmap" tab: Heat map for pattern visualization
 
-#### Core Components
+### Chart Types
+
+#### 1. Trend Charts (Line Charts)
+**Purpose**: Visualize metric values over time
+- **Data**: Time series of individual metrics
+- **Features**:
+  - Multiple metric lines on same chart
+  - Date range selection
+  - Interactive tooltips showing exact values
+  - Zoom/pan functionality
+  - Legend toggle for showing/hiding metrics
+
+#### 2. Comparison Charts (Bar Charts)
+**Purpose**: Compare current values across metrics
+- **Data**: Current metric values or averages over selected period
+- **Features**:
+  - Horizontal or vertical bars
+  - Sorting options (value, alphabetical)
+  - Color coding by metric category
+  - Value labels on bars
+
+#### 3. Correlation Charts (Scatter Plots)
+**Purpose**: Analyze relationships between metrics
+- **Data**: Paired metric values across time
+- **Features**:
+  - X/Y axis metric selection
+  - Trend line overlay
+  - Point clustering
+  - Date-based color coding
+
+#### 4. Pattern Heatmaps
+**Purpose**: Visualize metric patterns over calendar periods
+- **Data**: Metric values mapped to calendar grid
+- **Features**:
+  - Month/week/day view options
+  - Color intensity based on values
+  - Hover details
+  - Multiple metric overlay
+
+### Technical Implementation
+
+#### Technology Stack
+- **Chart Library**: Chart.js (lightweight, good Obsidian integration)
+- **Responsive Design**: Mobile-friendly tabs and charts
+- **Theme Integration**: Automatic light/dark theme detection
+- **Export**: PNG/SVG export functionality
+
+#### Component Structure
+```typescript
+interface ChartTabConfig {
+    id: string;
+    label: string;
+    chartType: 'line' | 'bar' | 'scatter' | 'heatmap';
+    defaultMetrics: string[];
+    settings: ChartSettings;
+}
+
+interface ChartSettings {
+    dateRange: DateRange;
+    selectedMetrics: string[];
+    display: {
+        showLegend: boolean;
+        showTooltips: boolean;
+        responsive: boolean;
+    };
+    export: {
+        format: 'png' | 'svg';
+        filename: string;
+    };
+}
+```
+
+#### Integration Points
+- **Current Statistics Table**: Preserve existing functionality in "Statistics" tab
+- **Metrics Data**: Use existing DreamMetric data structure
+- **Date Filtering**: Integrate with existing date range filters
+- **Settings**: Extend existing settings for chart preferences
+
+## Implementation Plan
+
+### Phase 1: Core Infrastructure (2-3 weeks)
+1. **Tab Navigation System**
+   - Create horizontal tab component above statistics table
+   - Implement tab switching logic
+   - Preserve statistics table in first tab
+
+2. **Chart.js Integration**
+   - Add Chart.js dependency
+   - Create base chart component
+   - Implement theme integration
+
+3. **Basic Line Chart (Trends Tab)**
+   - Single metric trend visualization
+   - Date range integration
+   - Basic interactions (tooltips, legend)
+
+### Phase 2: Chart Expansion (2-3 weeks)
+1. **Multi-Metric Trends**
+   - Multiple lines on same chart
+   - Metric selection interface
+   - Color coding system
+
+2. **Bar Charts (Compare Tab)**
+   - Current values comparison
+   - Sorting and filtering
+   - Value labels and formatting
+
+3. **Basic Export Functionality**
+   - PNG export for charts
+   - Filename generation
+
+### Phase 3: Advanced Features (2-3 weeks)
+1. **Scatter Plots (Correlations Tab)**
+   - X/Y axis metric selection
+   - Trend line calculations
+   - Point interactions
+
+2. **Heatmaps (Pattern Tab)**
+   - Calendar-based visualization
+   - Color intensity mapping
+   - Period selection (month/week)
+
+3. **Enhanced Interactions**
+   - Zoom/pan for line charts
+   - Chart settings modal
+   - SVG export option
+
+### Phase 4: Polish & Optimization (1-2 weeks)
+1. **Mobile Optimization**
+   - Touch-friendly interactions
+   - Responsive tab navigation
+   - Chart scaling
+
+2. **Performance Optimization**
+   - Data caching
+   - Lazy loading
+   - Chart rendering optimization
+
+3. **User Testing & Refinement**
+   - Gather feedback
+   - UI/UX improvements
+   - Bug fixes
+
+## Future Considerations
+
+### Advanced Visualization Features
 - **Comparative Calendar Views**
   - Side-by-side calendar comparison
   - Overlapping date ranges
-  - Color-coded metric indicators
   - Interactive date selection
-  - Zoom levels (day/week/month)
 
-- **Metric Comparison Charts**
-  - Line charts for trend visualization
-  - Bar charts for categorical comparison
-  - Scatter plots for correlation analysis
-  - Heat maps for pattern visualization
-  - Interactive tooltips and legends
-
-- **Pattern Highlighting**
+- **Pattern Analysis**
   - Recurring theme detection
-  - Emotional pattern visualization
-  - Temporal pattern indicators
   - Statistical significance markers
-  - Custom pattern definitions
-
-- **Trend Indicators**
-  - Moving averages
-  - Trend lines
-  - Seasonal patterns
   - Anomaly detection
-  - Custom trend calculations
 
-#### Technical Requirements
-- Chart.js or D3.js integration
-- Responsive design support
-- Mobile-optimized views
-- Export capabilities
-- Theme compatibility
+- **Advanced Chart Types**
+  - Radar charts for multi-dimensional analysis
+  - Sankey diagrams for flow visualization
+  - Box plots for distribution analysis
 
-### 2. Custom Metric Types
-
-#### Features
-- **Category System**
-  - Custom category creation
-  - Category hierarchy
-  - Category-specific settings
-  - Category-based filtering
-  - Category visualization options
-
-- **Validation Rules**
-  - Range validation
-  - Pattern matching
-  - Custom validation functions
-  - Error messages
-  - Warning thresholds
-
-- **Data Types**
-  - Numeric (integer/float)
-  - Text
-  - Boolean
-  - Date/Time
-  - Custom enumerations
-  - Composite types
-
-- **Display Formats**
-  - Number formatting
-  - Date/time formatting
-  - Custom templates
-  - Conditional formatting
-  - Unit display
-
-#### Implementation
-```typescript
-interface CustomMetricType {
-    name: string;
-    category: string;
-    dataType: 'number' | 'text' | 'boolean' | 'date' | 'enum' | 'composite';
-    validation: {
-        rules: ValidationRule[];
-        errorMessages: Record<string, string>;
-    };
-    display: {
-        format: string;
-        template: string;
-        conditions: FormatCondition[];
-    };
-    options?: {
-        enumValues?: string[];
-        compositeFields?: CustomMetricType[];
-    };
-}
-```
-
-### 3. Metric Templates
-
-#### Template System
-- **Pre-configured Sets**
-  - Dream analysis templates
-  - Emotional tracking templates
-  - Character analysis templates
-  - Theme tracking templates
-  - Custom template creation
-
-- **Template Management**
-  - Template creation wizard
-  - Template editing
-  - Template duplication
-  - Template deletion
-  - Template versioning
-
-- **Import/Export**
-  - JSON format
-  - CSV format
-  - Template sharing
-  - Backup/restore
-  - Version control
-
-#### Template Structure
-```typescript
-interface MetricTemplate {
-    name: string;
-    description: string;
-    version: string;
-    metrics: DreamMetric[];
-    categories: string[];
-    settings: {
-        display: DisplaySettings;
-        validation: ValidationSettings;
-        export: ExportSettings;
-    };
-}
-```
-
-### 4. Batch Operations
-
-#### Operations
-- **Bulk Updates**
-  - Mass metric value updates
-  - Batch category changes
-  - Bulk enable/disable
-  - Template application
-  - Validation override
-
-- **Group Management**
-  - Group creation
-  - Group editing
-  - Group deletion
-  - Group reordering
-  - Group templates
-
-- **Import/Export**
-  - Bulk import
-  - Bulk export
-  - Format conversion
-  - Data validation
-  - Error handling
-
-#### Implementation
-```typescript
-interface BatchOperation {
-    type: 'update' | 'enable' | 'disable' | 'delete' | 'reorder';
-    target: string[];
-    changes: Record<string, any>;
-    options: {
-        validate: boolean;
-        backup: boolean;
-        notify: boolean;
-    };
-}
-```
-
-### 5. Lucide Icon Picker Integration
-
-#### Features
-- **Icon Selection**
-  - Visual picker interface
-  - Search functionality
-  - Category filtering
-  - Recent icons
-  - Favorites
-
-- **Icon Management**
-  - Custom icon upload
-  - Icon editing
-  - Icon deletion
-  - Icon categorization
-  - Icon metadata
-
-- **Integration**
-  - Theme compatibility
-  - Size customization
-  - Color options
-  - Animation support
-  - Accessibility features
-
-#### Implementation
-```typescript
-interface IconPickerConfig {
-    theme: 'light' | 'dark' | 'system';
-    size: number;
-    color: string;
-    categories: string[];
-    customIcons: CustomIcon[];
-    accessibility: {
-        labels: boolean;
-        keyboard: boolean;
-        screenReader: boolean;
-    };
-}
-```
-
-## Implementation Phases
-
-### Phase 1: Core Infrastructure
-1. Enhanced visualization base components
-2. Custom metric type system
-3. Basic template functionality
-4. Simple batch operations
-5. Icon picker integration
-
-### Phase 2: Advanced Features
-1. Advanced visualization options
-2. Complex metric types
-3. Template management system
-4. Advanced batch operations
-5. Custom icon support
-
-### Phase 3: Optimization
-1. Performance improvements
-2. Mobile optimization
-3. Accessibility enhancements
-4. Theme compatibility
-5. Export/import optimization
+### Extended Functionality
+- **Custom Metric Types** (from original plan)
+- **Metric Templates** (from original plan)
+- **Batch Operations** (from original plan)
+- **Lucide Icon Picker Integration** (from original plan)
 
 ## Testing Requirements
 
-### Unit Testing
-- Component testing
-- Integration testing
-- Performance testing
-- Accessibility testing
-- Mobile testing
+### Functional Testing
+- Tab navigation functionality
+- Chart rendering across themes
+- Data accuracy in visualizations
+- Export functionality
+- Mobile responsiveness
 
-### User Testing
-- Feature validation
-- Usability testing
-- Performance monitoring
-- Bug reporting
-- Feedback collection
-
-## Documentation
-
-### Technical Documentation
-- API documentation
-- Implementation guides
-- Performance guidelines
-- Testing procedures
-- Deployment instructions
-
-### User Documentation
-- Feature guides
-- Usage examples
-- Best practices
-- Troubleshooting
-- FAQ
+### User Experience Testing
+- Chart readability
+- Interaction intuitiveness
+- Performance with large datasets
+- Cross-browser compatibility
 
 ## Notes
-- All features are subject to change based on user feedback
-- Implementation order may be adjusted based on priorities
-- Mobile optimization is a key consideration throughout
-- Accessibility features are mandatory for all components
-- Performance impact must be monitored and optimized
+- **Backward Compatibility**: Statistics table functionality remains unchanged
+- **Progressive Enhancement**: Charts enhance but don't replace existing features
+- **Performance**: Monitor impact on plugin load times
+- **Accessibility**: Ensure charts work with screen readers where possible
+- **Mobile First**: All charts must work well on mobile devices
 
 ---
 
-*Last updated: May 2025* 
+*Last updated: January 2025* 
