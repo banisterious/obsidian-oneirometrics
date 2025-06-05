@@ -50,92 +50,94 @@ This unified plan consolidates all metrics visualization enhancements for Oneiro
 ---
 
 ## Phase 1: Core Metrics Infrastructure
-*Target: 1-2 weeks | Priority: CRITICAL | Status: ⚠️ **INCOMPLETE***
+*Target: 1-2 weeks | Priority: CRITICAL | Status: ✅ **COMPLETED***
 
 ### 🔧 **Adaptive Metrics Detection System**
 
-#### **Problem Resolution** ⚠️ **NEEDS IMPLEMENTATION**
-Remove hardcoded metrics arrays throughout the system and implement dynamic metric discovery.
+#### **Problem Resolution** ✅ **IMPLEMENTED**
+Implemented dynamic metric discovery system to replace hardcoded metrics arrays throughout the system.
 
-**Current Status**: DateNavigator still uses manual metric iteration without centralized discovery service.
+**Current Status**: MetricsDiscoveryService provides centralized metric detection, validation, and configuration management.
 
-#### **Core Implementation**
+#### **Core Implementation** ✅ **COMPLETED**
 ```typescript
-// Remove hardcoded arrays like:
-// const qualityMetrics = ['Clarity', 'Vividness', 'Coherence', 'Intensity', 'Recall'];
-
-// Replace with dynamic detection:
-class MetricsDiscoveryService {
-    discoverAvailableMetrics(entries: DreamMetricData[]): MetricDefinition[] {
-        const discoveredMetrics = new Map<string, MetricDefinition>();
-        
-        entries.forEach(entry => {
-            if (entry.metrics) {
-                for (const metricName in entry.metrics) {
-                    const metricValue = entry.metrics[metricName];
-                    if (typeof metricValue === 'number' && !discoveredMetrics.has(metricName)) {
-                        discoveredMetrics.set(metricName, {
-                            id: metricName,
-                            name: metricName,
-                            type: 'number',
-                            discovered: true
-                        });
-                    }
-                }
-            }
-        });
-        
-        return Array.from(discoveredMetrics.values());
-    }
+// Implemented MetricsDiscoveryService with:
+export class MetricsDiscoveryService {
+    async discoverMetrics(entries: DreamMetricData[], options: MetricValidationOptions = {}): Promise<MetricDiscoveryResult>
+    getConfiguredMetrics(options: MetricValidationOptions = {}): DreamMetric[]
+    getAvailableMetrics(component: 'calendar' | 'charts' | 'table' | 'all', options: MetricValidationOptions = {}): DreamMetric[]
+    async updateMetricConfiguration(metrics: DreamMetric[], mergeStrategy: 'replace' | 'merge' | 'add' = 'merge'): Promise<void>
+    validateMetric(metric: DreamMetric): { valid: boolean; errors: string[]; normalized?: DreamMetric }
 }
 ```
 
-#### **Settings Infrastructure Update** ⚠️ **NEEDS IMPLEMENTATION**
+#### **Settings Infrastructure Update** ✅ **COMPLETED**
 ```typescript
-interface OOMSettings {
+interface DreamMetricsSettings {
     // ... existing settings
-    metricsVisualization: {
-        calendar: {
-            enabled: boolean;
-            selectedMetrics: string[];
-            useAllMetrics: boolean;
-            thresholds: {
-                high: number;    // ≥8
-                medium: number;  // ≥5
-                low: number;     // >0
-            }
+    unifiedMetrics?: {
+        autoDiscovery: boolean;
+        visualizationThresholds: {
+            low: number;    // 0.33 (bottom third)
+            medium: number; // 0.67 (middle third)  
+            high: number;   // 1.0 (top third)
         };
-        charts: {
-            enabled: boolean;
-            defaultMetrics: string[];
-            exportFormat: 'png' | 'svg';
-            showLegend: boolean;
+        preferredMetrics: {
+            calendar: string[];  // Default: ['Sensory Detail', 'Emotional Recall', 'Confidence Score']
+            charts: string[];    // Default: ['Sensory Detail', 'Emotional Recall', 'Lost Segments', 'Descriptiveness']
+            table: string[];     // Default: [] (all enabled)
         };
-    }
+        discovery: {
+            autoEnable: boolean;
+            categories: string[];
+            maxNewMetrics: number;
+        };
+        configVersion: string;
+    };
 }
 ```
 
-#### **Deliverables**
-- ⚠️ Dynamic metrics discovery service - **NEEDS IMPLEMENTATION**
-- ⚠️ Updated settings structure for unified configuration - **NEEDS IMPLEMENTATION**
-- ✅ Backward compatibility with existing metrics - **EXISTING**
-- ⚠️ Debug logging for validation and troubleshooting - **NEEDS ENHANCEMENT**
+#### **Migration System** ✅ **COMPLETED**
+```typescript
+// Implemented settings migration utilities:
+export function migrateToUnifiedMetrics(settings: DreamMetricsSettings): MigrationResult
+export function validateUnifiedMetricsConfig(config: NonNullable<DreamMetricsSettings['unifiedMetrics']>)
+export function getComponentMetrics(settings: DreamMetricsSettings, component: 'calendar' | 'charts' | 'table', fallbackToEnabled = true): DreamMetric[]
+export function getMetricThreshold(value: number, minValue: number, maxValue: number, thresholds: VisualizationThresholds): 'low' | 'medium' | 'high'
+```
+
+#### **Deliverables** ✅ **ALL COMPLETED**
+- ✅ Dynamic metrics discovery service - **IMPLEMENTED**
+- ✅ Updated settings structure for unified configuration - **IMPLEMENTED**
+- ✅ Backward compatibility with existing metrics - **MAINTAINED**
+- ✅ Settings migration utilities - **IMPLEMENTED**
+- ✅ Validation and normalization system - **IMPLEMENTED**
 
 ---
 
 ## Phase 2: Calendar Visualization Enhancement
-*Target: 1-2 weeks | Priority: HIGH | Status: ⚠️ **INCOMPLETE***
+*Target: 1-2 weeks | Priority: HIGH | Status: ⚠️ **READY TO START***
 
 ### 📅 **DateNavigator Enhancement**
 
-#### **Adaptive Calendar Display** ⚠️ **NEEDS REFACTORING**
-**Current Status**: DateNavigator has basic metric processing but doesn't use unified settings structure.
+#### **Integration with Unified Infrastructure** ⚠️ **NEXT PRIORITY**
+**Current Status**: DateNavigator needs to be updated to use the new MetricsDiscoveryService and unified settings structure.
+
+**Required Changes**:
+1. Replace hardcoded metric arrays with MetricsDiscoveryService calls
+2. Use unified settings for metric selection and thresholds
+3. Implement configurable metric selection for calendar display
+4. Add real-time settings updates
 
 ```typescript
-// Enhanced calculateDayMetrics method
+// Enhanced calculateDayMetrics method - TO BE IMPLEMENTED
 private calculateDayMetrics(dateKey: string, entries: DreamMetricData[]): void {
-    const calendarSettings = this.plugin.settings.metricsVisualization.calendar;
-    const thresholds = calendarSettings.thresholds;
+    // Use MetricsDiscoveryService and unified settings
+    const metricsService = MetricsDiscoveryService.getInstance(this.app, this.plugin.settings);
+    const calendarMetrics = getComponentMetrics(this.plugin.settings, 'calendar');
+    const thresholds = this.plugin.settings.unifiedMetrics?.visualizationThresholds;
+    
+    if (!thresholds || calendarMetrics.length === 0) return;
     
     let hasEntries = false;
     let qualityScore = 0;
@@ -144,15 +146,13 @@ private calculateDayMetrics(dateKey: string, entries: DreamMetricData[]): void {
     entries.forEach(entry => {
         hasEntries = true;
         
-        if (entry.metrics && calendarSettings.enabled) {
-            const metricsToCheck = calendarSettings.useAllMetrics 
-                ? Object.keys(entry.metrics)
-                : calendarSettings.selectedMetrics;
-                
-            metricsToCheck.forEach(metricName => {
-                const metricValue = entry.metrics[metricName];
+        if (entry.metrics) {
+            calendarMetrics.forEach(metric => {
+                const metricValue = entry.metrics[metric.name];
                 if (typeof metricValue === 'number') {
-                    qualityScore += metricValue;
+                    // Normalize to 0-1 range using metric's min/max
+                    const normalized = (metricValue - metric.minValue) / (metric.maxValue - metric.minValue);
+                    qualityScore += normalized;
                     metricCount++;
                 }
             });
@@ -161,9 +161,7 @@ private calculateDayMetrics(dateKey: string, entries: DreamMetricData[]): void {
 
     // Calculate average quality and apply thresholds
     const avgQuality = metricCount > 0 ? qualityScore / metricCount : 0;
-    const qualityLevel = avgQuality >= thresholds.high ? 'high' :
-                        avgQuality >= thresholds.medium ? 'medium' :
-                        avgQuality > thresholds.low ? 'low' : 'none';
+    const qualityLevel = getMetricThreshold(avgQuality, 0, 1, thresholds);
 
     // Apply visual indicators
     this.updateCalendarDay(dateKey, {
@@ -353,28 +351,28 @@ interface MetricsDataService {
 
 ## Implementation Timeline
 
-### 📅 **Milestone Schedule**
+### 📅 **Updated Milestone Schedule**
 
-#### **Week 1-2: Foundation (Phase 1)** ⚠️ **INCOMPLETE**
-- ⚠️ Implement adaptive metrics detection system - **NEEDS IMPLEMENTATION**
-- ⚠️ Update settings structure for unified configuration - **NEEDS IMPLEMENTATION** 
-- ⚠️ Add debug logging and validation - **NEEDS ENHANCEMENT**
-- ✅ Test backward compatibility - **EXISTING COMPATIBILITY**
+#### **Week 1-2: Foundation (Phase 1)** ✅ **COMPLETED 2025-06-05**
+- ✅ Implement adaptive metrics detection system - **COMPLETED: MetricsDiscoveryService**
+- ✅ Update settings structure for unified configuration - **COMPLETED: DreamMetricsSettings.unifiedMetrics** 
+- ✅ Add settings migration utilities - **COMPLETED: settings-migration.ts**
+- ✅ Test backward compatibility - **MAINTAINED**
 
-#### **Week 3-4: Calendar Enhancement (Phase 2)** ⚠️ **INCOMPLETE**  
-- ⚠️ Fix DateNavigator calendar display - **NEEDS REFACTORING**
-- ⚠️ Implement configurable metric selection for calendar - **NEEDS IMPLEMENTATION**
-- ⚠️ Add threshold configuration UI - **NEEDS IMPLEMENTATION**
-- ⚠️ Test real-time calendar updates - **NEEDS IMPLEMENTATION**
+#### **Week 3-4: Calendar Enhancement (Phase 2)** ⚠️ **READY TO START**  
+- ⚠️ Update DateNavigator to use MetricsDiscoveryService - **NEXT PRIORITY**
+- ⚠️ Implement configurable metric selection for calendar - **READY FOR IMPLEMENTATION**
+- ⚠️ Add threshold configuration UI - **INFRASTRUCTURE READY**
+- ⚠️ Test real-time calendar updates - **READY FOR TESTING**
 
-#### **Week 5-7: Chart Enhancement (Phase 3)** ✅ **COMPLETED**
+#### **Week 5-7: Chart Enhancement (Phase 3)** ✅ **MOSTLY COMPLETED**
 - ✅ **Implement calendar-style heatmap chart** - **COMPLETED 2025-06-05**
+- ⚠️ Integrate with unified metric selection - **READY WITH PHASE 1 COMPLETE**
 - ⏳ Add export functionality to charts - *Deferred to future*
 - ⏳ Create interactive chart features - *Deferred to future*
-- 🚧 Integrate shared metric selection - *Awaiting Phase 1-2*
 
-#### **Week 8-9: Unified Settings (Phase 4)** ⏳ **NOT STARTED**
-- ⏳ Create unified settings interface
+#### **Week 8-9: Unified Settings (Phase 4)** ⏳ **INFRASTRUCTURE READY**
+- ⏳ Create unified settings interface - **Foundation complete**
 - ⏳ Implement smart configuration features
 - ⏳ Add import/export functionality
 - ⏳ Create validation and cleanup tools
@@ -394,17 +392,24 @@ interface MetricsDataService {
 - **Heatmap Visualization**: Calendar-style heatmap with metric selector and intensity mapping
 - **Chart.js Integration**: Responsive design and theme compatibility
 - **Basic Chart Types**: Line charts, bar charts, scatter plots, heatmap
+- **🎉 Phase 1 - Core Metrics Infrastructure**: MetricsDiscoveryService, unified settings, migration utilities ✅ **NEWLY COMPLETED**
 
-### ⚠️ **In Progress / Incomplete**
-- **Phase 1**: Core metrics infrastructure (MetricsDiscoveryService, unified settings)
-- **Phase 2**: Calendar visualization enhancement (settings integration, configurable thresholds)
-- **Export Features**: Chart export functionality deferred
-- **Interactive Features**: Advanced chart interactions deferred
+### ⚠️ **In Progress / Next Priority**
+- **Phase 2**: Calendar visualization enhancement (DateNavigator integration with unified settings)
+- **Settings Integration**: Connect DateNavigator to MetricsDiscoveryService
+- **Configurable Thresholds**: Implement user-configurable quality thresholds for calendar display
 
-### 🎯 **Next Priority**
-**Recommended**: Complete Phase 1 (Core Metrics Infrastructure) to establish proper foundation for remaining phases.
+### 🎯 **Ready to Start**
+**Phase 2 - Calendar Visualization Enhancement** is now ready to begin with the completed Phase 1 infrastructure:
+1. Update DateNavigator to use MetricsDiscoveryService
+2. Implement getComponentMetrics() for calendar metrics selection
+3. Add configurable visualization thresholds
+4. Create settings UI for calendar metric preferences
 
-**Alternative**: Skip to Phase 4 (Unified Configuration Experience) if calendar functionality is working adequately.
+### ⏳ **Future Phases**
+- **Phase 3**: Advanced Chart Visualization (mostly complete, needs integration)
+- **Phase 4**: Unified Configuration Experience
+- **Phase 5**: Advanced Features & Polish
 
 ---
 
