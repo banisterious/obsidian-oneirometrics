@@ -900,7 +900,7 @@ function createDefaultStructures(): CalloutStructure[] {
 - [ ] **Structure migration** - Tools for converting between different journal structures?
 - [ ] **Validation accuracy** - How to ensure scraping works correctly across decades of data?
 - [ ] **Performance with large datasets** - How does the system handle thousands of entries?
-- [ ] **Performance Testing: Dummy Data Generation** - Create system to generate realistic test datasets (500-10k+ entries) for performance benchmarking and scalability validation. See [Performance Testing Plan](./feature-requirements/performance-testing-dummy-data.md) for detailed specifications.
+- [ ] **Performance Testing: Dummy Data Generation** - Create system to generate realistic test datasets (500-10k+ entries) for performance benchmarking and scalability validation. See [Performance Testing Plan](../2025/performance-testing-dummy-data.md) for detailed specifications.
 
 ---
 
@@ -980,7 +980,7 @@ function createDefaultStructures(): CalloutStructure[] {
 - [ ] **Structure migration** - Tools for converting between different journal structures?
 - [ ] **Validation accuracy** - How to ensure scraping works correctly across decades of data?
 - [ ] **Performance with large datasets** - How does the system handle thousands of entries?
-- [ ] **Performance Testing: Dummy Data Generation** - Create system to generate realistic test datasets (500-10k+ entries) for performance benchmarking and scalability validation. See [Performance Testing Plan](./feature-requirements/performance-testing-dummy-data.md) for detailed specifications.
+- [ ] **Performance Testing: Dummy Data Generation** - Create system to generate realistic test datasets (500-10k+ entries) for performance benchmarking and scalability validation. See [Performance Testing Plan](../2025/performance-testing-dummy-data.md) for detailed specifications.
 
 ### **Testing & Quality Assurance Integration**
 - [ ] **Existing testing modals** - How to integrate new Developer Tools with current testing infrastructure?
