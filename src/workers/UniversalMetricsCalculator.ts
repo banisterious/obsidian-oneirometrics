@@ -48,6 +48,7 @@ import {
     getSelectionModeLabel,
     normalizeSelectionMode
 } from '../utils/selection-mode-helpers';
+import { createScrapeEvent, SCRAPE_EVENTS } from '../events/ScrapeEvents';
 
 // Cache configuration
 interface CacheEntry {
@@ -400,7 +401,11 @@ export class UniversalMetricsCalculator {
         console.log('UniversalMetricsCalculator.scrapeMetrics() called');
         this.logger?.info('Scrape', 'Starting enhanced metrics scrape process with worker pool');
         
-        new Notice('Scraping dream metrics with enhanced processing... This may take a moment.');
+        // Emit started event instead of showing notice
+        this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
+            SCRAPE_EVENTS.STARTED,
+            'Scraping dream metrics with enhanced processing... This may take a moment.'
+        ));
 
         const startTime = performance.now();
         let totalWords = 0;
@@ -458,9 +463,25 @@ export class UniversalMetricsCalculator {
             // Process with worker pool if available
             const metricsResult = await this.processMetricsWithWorkerPool(entries);
             
+            this.logger?.info('Scrape', 'Metrics result from worker pool:', {
+                entriesCount: metricsResult.entries.length,
+                firstEntry: metricsResult.entries[0] ? {
+                    date: metricsResult.entries[0].date,
+                    title: metricsResult.entries[0].title,
+                    calculatedMetrics: metricsResult.entries[0].calculatedMetrics
+                } : null
+            });
+            
             if (metricsResult.entries.length > 0) {
                 foundAnyMetrics = true;
                 for (const entry of metricsResult.entries) {
+                    this.logger?.info('Scrape', 'Processing entry:', {
+                        date: entry.date,
+                        title: entry.title,
+                        calculatedMetricsKeys: Object.keys(entry.calculatedMetrics || {}),
+                        calculatedMetrics: entry.calculatedMetrics
+                    });
+                    
                     const dreamData: DreamMetricData = {
                         date: entry.date,
                         title: entry.title || '',
@@ -477,21 +498,52 @@ export class UniversalMetricsCalculator {
                             metrics[metricName] = [];
                         }
                         metrics[metricName].push(value);
+                        this.logger?.info('Scrape', `Added metric: ${metricName} = ${value}`);
                     }
                     
                     totalWords += dreamData.wordCount || 0;
                 }
+                
+                this.logger?.info('Scrape', 'Final aggregated metrics:', {
+                    metricsKeys: Object.keys(metrics),
+                    metricsData: metrics
+                });
+            } else {
+                this.logger?.warn('Scrape', 'No entries returned from metrics processing');
             }
 
             // Update project note
-            await this.updateProjectNote(metrics, processedEntries);
+            console.log('🔍 DEBUG: About to call updateProjectNote with metrics:', Object.keys(metrics));
+            console.log('🔍 DEBUG: Metrics data sample:', {
+                totalMetrics: Object.keys(metrics).length,
+                wordsCount: metrics['Words']?.length || 0,
+                firstMetric: Object.keys(metrics)[0],
+                firstMetricSample: metrics[Object.keys(metrics)[0]]?.slice(0, 3)
+            });
+            
+            try {
+                await this.updateProjectNote(metrics, processedEntries);
+                console.log('✅ DEBUG: updateProjectNote completed successfully');
+            } catch (error) {
+                console.error('❌ DEBUG: updateProjectNote failed:', error);
+                throw error;
+            }
             
             const processingTime = performance.now() - startTime;
             this.stats.averageProcessingTime = (this.stats.averageProcessingTime + processingTime) / 2;
             
             // Show results
             if (foundAnyMetrics) {
-                new Notice(`Enhanced metrics updated from ${files.length} notes, processed ${entriesProcessed} entries in ${Math.round(processingTime)}ms.`);
+                // Emit completion event instead of showing notice
+                this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
+                    SCRAPE_EVENTS.COMPLETED,
+                    `Enhanced metrics updated from ${files.length} notes, processed ${entriesProcessed} entries in ${Math.round(processingTime)}ms.`,
+                    {
+                        filesProcessed: files.length,
+                        entriesFound: entriesProcessed,
+                        processingTime: Math.round(processingTime)
+                    }
+                ));
                 this.logger?.info('Scrape', 'Metrics processing completed', {
                     entriesProcessed,
                     totalWords,
@@ -500,13 +552,25 @@ export class UniversalMetricsCalculator {
                     workerPoolStats: this.workerPool.getStatistics()
                 });
             } else {
-                new Notice(`Found ${entriesProcessed} entries but no metrics were detected.`);
+                // Emit completion event for no metrics found
+                this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
+                    SCRAPE_EVENTS.COMPLETED,
+                    `Found ${entriesProcessed} entries but no metrics were detected.`,
+                    {
+                        entriesFound: entriesProcessed
+                    }
+                ));
                 this.logger?.warn('Scrape', `No metrics found in ${entriesProcessed} entries`);
             }
 
         } catch (error) {
             this.logger?.error('Scrape', 'Error during enhanced metrics scraping', error as Error);
-            new Notice(`Error scraping metrics: ${(error as Error).message}`);
+            // Emit error event instead of showing notice
+            this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
+                SCRAPE_EVENTS.ERROR,
+                `Error scraping metrics: ${(error as Error).message}`,
+                { error: error as Error }
+            ));
         }
     }
 
@@ -1374,13 +1438,13 @@ export class UniversalMetricsCalculator {
     }
 
     private processMetricsSync(entries: MetricsEntry[]): MetricsResult {
-        this.logger?.debug('SyncProcessing', `Processing ${entries.length} entries synchronously`);
+        this.logger?.info('SyncProcessing', `Processing ${entries.length} entries synchronously`);
         
         const processedEntries: ProcessedMetricsEntry[] = [];
         const aggregatedMetrics: Record<string, MetricsAggregation> = {};
 
         for (const entry of entries) {
-            this.logger?.debug('SyncProcessing', `Processing entry ${entry.id}`, {
+            this.logger?.info('SyncProcessing', `Processing entry ${entry.id}`, {
                 date: entry.date,
                 title: entry.title,
                 contentLength: entry.content?.length || 0,
@@ -1400,9 +1464,10 @@ export class UniversalMetricsCalculator {
                 calculatedMetrics['Words'] = wordCount;
             }
 
-            this.logger?.debug('SyncProcessing', `Final metrics for entry ${entry.id}`, {
+            this.logger?.info('SyncProcessing', `Final metrics for entry ${entry.id}`, {
                 originalMetricsKeys: Object.keys(entry.metrics || {}),
                 finalMetricsKeys: Object.keys(calculatedMetrics),
+                finalMetricsData: calculatedMetrics,
                 wordCount: wordCount,
                 preservedRealMetrics: Object.keys(entry.metrics || {}).length > 0
             });
@@ -1419,12 +1484,13 @@ export class UniversalMetricsCalculator {
             processedEntries.push(processedEntry);
         }
 
-        this.logger?.debug('SyncProcessing', `Sync processing completed`, {
+        this.logger?.info('SyncProcessing', `Sync processing completed`, {
             totalEntries: processedEntries.length,
             first3Entries: processedEntries.slice(0, 3).map(e => ({
                 id: e.id,
                 date: e.date,
                 metricsCount: Object.keys(e.calculatedMetrics).length,
+                metricsData: e.calculatedMetrics,
                 hasRealMetrics: Object.keys(e.calculatedMetrics).some(key => 
                     !['Words', 'Word Count', 'Sentences', 'Words per Sentence', 'Characters', 'Sentiment', 'Sentiment Confidence'].includes(key)
                 )

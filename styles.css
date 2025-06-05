@@ -16948,3 +16948,154 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     padding: 4px 12px;
     font-size: 13px;
 }
+
+/* =============================================================================
+   METRICS CHART TABS - Tab-based Visualization
+   ============================================================================= */
+
+.oom-metrics-chart-tabs-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    
+    /* NO VISUAL STYLING - Let theme handle container styling */
+}
+
+/* Tab Navigation */
+.oom-metrics-chart-tabs-nav {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    margin-bottom: var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    
+    /* NO VISUAL STYLING - Let theme handle navigation styling */
+}
+
+.oom-metrics-chart-tab {
+    /* === STRUCTURAL PROPERTIES === */
+    position: relative;
+    margin-right: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    
+    /* === VISUAL PROPERTIES === */
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-muted);
+    
+    /* === INTERACTION === */
+}
+
+.oom-metrics-chart-tab:hover {
+    /* === VISUAL PROPERTIES === */
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-metrics-chart-tab--active {
+    /* === VISUAL PROPERTIES === */
+    /*border-bottom: 2px solid var(--text-accent);*/
+    font-weight:;
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-chart-tab--active:hover {
+    /* === VISUAL PROPERTIES === */
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+/* Tab Content */
+.oom-metrics-chart-tabs-content {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    overflow: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle content styling */
+}
+
+/* Chart Containers */
+.oom-chart-container {
+    /* === STRUCTURAL PROPERTIES === */
+    width: 100%;
+    padding: var(--oom-spacing-md);
+    
+    /* NO VISUAL STYLING - Let theme handle chart container styling */
+}
+
+.oom-chart-title {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0 0 var(--oom-spacing-md) 0;
+    
+    /* === VISUAL PROPERTIES === */
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.oom-chart-canvas {
+    /* === STRUCTURAL PROPERTIES === */
+    height: 400px;
+    max-width: 100%;
+    
+    /* NO VISUAL STYLING - Chart.js handles canvas styling */
+}
+
+/* Chart Placeholders */
+.oom-chart-placeholder {
+    /* === STRUCTURAL PROPERTIES === */
+    padding: var(--oom-spacing-xl);
+    text-align: center;
+    
+    /* === VISUAL PROPERTIES === */
+    background-color: var(--background-secondary);
+    border-radius: var(--oom-border-radius);
+    border: 1px dashed var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.oom-chart-placeholder h3 {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0 0 var(--oom-spacing-sm) 0;
+    
+    /* === VISUAL PROPERTIES === */
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.oom-chart-placeholder p {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0;
+    
+    /* === VISUAL PROPERTIES === */
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .oom-metrics-chart-tabs-nav {
+        /* === STRUCTURAL PROPERTIES === */
+        flex-wrap: wrap;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-metrics-chart-tab {
+        /* === STRUCTURAL PROPERTIES === */
+        margin-right: 0;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .oom-chart-canvas {
+        /* === STRUCTURAL PROPERTIES === */
+        height: 300px;
+    }
+}

@@ -23,6 +23,9 @@ import { FilterPersistenceManager } from '../dom/filters/FilterPersistenceManage
 import { DateNavigatorManager } from '../dom/date-navigator/DateNavigatorManager';
 import { LogFileManager } from '../logging/LogFileManager';
 
+// Import ScrapeEventEmitter for real-time feedback
+import { ScrapeEventEmitter } from '../events/ScrapeEvents';
+
 // Import the safe logger for early logging
 import safeLogger from '../logging/safe-logger';
 
@@ -137,6 +140,9 @@ export class PluginInitializer {
         // Initialize MetricsCollector and TableStatisticsUpdater
         this.plugin.metricsCollector = new MetricsCollector(this.app, this.plugin, this.plugin.logger);
         this.plugin.tableStatisticsUpdater = new TableStatisticsUpdater(this.plugin.logger);
+
+        // Initialize ScrapeEventEmitter
+        this.plugin.scrapeEventEmitter = new ScrapeEventEmitter();
     }
 
     /**

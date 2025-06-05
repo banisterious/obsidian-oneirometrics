@@ -12,12 +12,15 @@ import { TableGenerator } from '../dom/tables/TableGenerator';
 import safeLogger from '../logging/safe-logger';
 import { getProjectNotePath } from '../utils/settings-helpers';
 import { isBackupEnabled, getBackupFolderPath } from '../utils/settings-helpers';
+import { createScrapeEvent, SCRAPE_EVENTS } from '../events/ScrapeEvents';
+import type DreamMetricsPlugin from '../../main';
 
 export class ProjectNoteManager {
     private tableGenerator: TableGenerator;
     
     constructor(
         private app: App,
+        private plugin: DreamMetricsPlugin,
         private settings: DreamMetricsSettings,
         private logger?: ILogger
     ) {
@@ -59,40 +62,30 @@ export class ProjectNoteManager {
             const shouldBackup = isBackupEnabled(this.settings);
             if (shouldBackup) {
                 await this.backupProjectNote(file);
+                // Continue with normal flow after backup
+                await this.finishUpdate(file, metrics, dreamEntries);
             } else {
-                // Confirm with user if they want to proceed without backup
-                const confirmed = await this.confirmProceedWithoutBackup();
-                if (!confirmed) {
-                    this.logger?.info('ProjectNote', 'User canceled update without backup');
-                    return;
-                }
-            }
-            
-            // Generate table content
-            const content = this.tableGenerator.generateMetricsTable(metrics, dreamEntries);
-            
-            // Update the file
-            await this.app.vault.modify(file, content);
-            this.logger?.info('ProjectNote', `Updated project note at ${notePath}`);
-            
-            // Open the file
-            const leaf = this.app.workspace.getLeaf();
-            await leaf.openFile(file);
-            
-            // Force re-render in a safer way
-            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (view) {
-                this.logger?.debug('ProjectNote', 'Refreshing view');
-                
-                try {
-                    // Simple approach - just re-open the file which will refresh the view
-                    setTimeout(() => {
-                        leaf.openFile(file, { active: true });
-                    }, 100);
-                } catch (refreshError) {
-                    this.logger?.warn('ProjectNote', 'Error refreshing view', refreshError as Error);
-                    // Non-critical error, continue execution
-                }
+                // Emit backup warning event instead of showing modal
+                return new Promise<void>((resolve, reject) => {
+                    this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
+                        SCRAPE_EVENTS.BACKUP_WARNING,
+                        'Warning: Backup is disabled. Updating the project note may overwrite existing content. Proceed?',
+                        {
+                            onProceed: async () => {
+                                try {
+                                    await this.finishUpdate(file, metrics, dreamEntries);
+                                    resolve();
+                                } catch (error) {
+                                    reject(error);
+                                }
+                            },
+                            onCancel: () => {
+                                this.logger?.info('ProjectNote', 'User canceled update without backup');
+                                resolve(); // Resolve without error, but don't proceed
+                            }
+                        }
+                    ));
+                });
             }
         } catch (error) {
             this.logger?.error('ProjectNote', 'Error updating project note', error as Error);
@@ -188,54 +181,76 @@ export class ProjectNoteManager {
     }
     
     /**
-     * Confirm with user if they want to proceed without backup
-     * 
-     * @returns Promise resolving to true if user confirms, false otherwise
-     */
-    private async confirmProceedWithoutBackup(): Promise<boolean> {
-        return new Promise<boolean>((resolve) => {
-            const notice = new Notice(
-                'Warning: Backup is disabled. Updating the project note may overwrite existing content. Proceed?',
-                0
-            );
-            
-            // Add buttons to the notice
-            const noticeEl = notice.noticeEl;
-            
-            // Add container for buttons
-            const buttonContainer = noticeEl.createDiv('notice-button-container');
-            buttonContainer.style.display = 'flex';
-            buttonContainer.style.justifyContent = 'flex-end';
-            buttonContainer.style.marginTop = '8px';
-            
-            // Add cancel button
-            const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
-            cancelButton.style.marginRight = '8px';
-            cancelButton.addEventListener('click', () => {
-                notice.hide();
-                resolve(false);
-            });
-            
-            // Add confirm button
-            const confirmButton = buttonContainer.createEl('button', { text: 'Proceed' });
-            confirmButton.addClass('mod-warning');
-            confirmButton.addEventListener('click', () => {
-                notice.hide();
-                resolve(true);
-            });
-            
-            // Auto-dismiss after 30 seconds
-            setTimeout(() => {
-                notice.hide();
-                resolve(false);
-            }, 30000);
-        });
-    }
-    
-    /**
      * Clear the table generator cache
      */
     public clearCache(): void {
         this.tableGenerator.clearCache();
+    }
+    
+    /**
+     * Complete the project note update process
+     * 
+     * @param file - The project note file
+     * @param metrics - Metrics data 
+     * @param dreamEntries - Dream entries data
+     */
+    private async finishUpdate(file: TFile, metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
+        // Generate table content
+        console.log('🎯 DEBUG: finishUpdate called!');
+        console.log('🎯 DEBUG: Received metrics keys:', Object.keys(metrics));
+        console.log('🎯 DEBUG: Metrics data:', {
+            totalKeys: Object.keys(metrics).length,
+            wordsCount: metrics['Words']?.length || 0,
+            sensoryCount: metrics['Sensory Detail']?.length || 0,
+            entriesCount: dreamEntries.length
+        });
+        
+        this.logger?.info('ProjectNote', 'finishUpdate called with metrics:', Object.keys(metrics));
+        this.logger?.info('ProjectNote', 'Dream entries count:', dreamEntries.length);
+        
+        // Check if metrics object has any data
+        const hasMetricsData = Object.keys(metrics).some(key => metrics[key] && metrics[key].length > 0);
+        this.logger?.info('ProjectNote', 'Has metrics data:', hasMetricsData);
+        
+        if (!hasMetricsData) {
+            this.logger?.warn('ProjectNote', 'No metrics data found - charts will be empty');
+            console.log('❌ DEBUG: No metrics data detected!');
+        } else {
+            console.log('✅ DEBUG: Metrics data confirmed present');
+        }
+        
+        const content = this.tableGenerator.generateMetricsTable(metrics, dreamEntries);
+        
+        // Update the file
+        await this.app.vault.modify(file, content);
+        this.logger?.info('ProjectNote', `Updated project note at ${file.path}`);
+        
+        // Open the file
+        const leaf = this.app.workspace.getLeaf();
+        await leaf.openFile(file);
+        
+        // Force re-render and initialize chart tabs
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (view) {
+            this.logger?.debug('ProjectNote', 'Refreshing view and initializing chart tabs');
+            
+            try {
+                // Simple approach - just re-open the file which will refresh the view
+                setTimeout(() => {
+                    leaf.openFile(file, { active: true });
+                    
+                    // Initialize chart tabs after content is rendered
+                    setTimeout(() => {
+                        this.logger?.debug('ProjectNote', 'Initializing chart tabs');
+                        this.tableGenerator.initializeChartTabs(metrics, dreamEntries);
+                    }, 500); // Give more time for DOM to be fully rendered
+                }, 100);
+            } catch (refreshError) {
+                this.logger?.warn('ProjectNote', 'Error refreshing view', refreshError as Error);
+                // Non-critical error, continue execution
+            }
+        }
+        
+        console.log('🎯 DEBUG: finishUpdate completed');
     }
 } 

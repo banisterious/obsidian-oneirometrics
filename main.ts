@@ -109,6 +109,9 @@ import { CustomDateRangeFilter, type DateRange } from './src/dom/filters/CustomD
 // In the imports section, add the EventHandler import
 import { EventHandler } from './src/events/EventHandler';
 
+// Import ScrapeEventEmitter for real-time feedback
+import { ScrapeEventEmitter } from './src/events/ScrapeEvents';
+
 // Import the globals and GlobalHelpers
 import { setGlobalLogger, setGlobalContentToggler } from './src/globals';
 import {
@@ -177,6 +180,9 @@ export default class DreamMetricsPlugin extends Plugin {
     public tableStatisticsUpdater: TableStatisticsUpdater;
     // In the class properties, add a property for the EventHandler
     public eventHandler: EventHandler;
+
+    // Event emitter for real-time scraping feedback
+    public scrapeEventEmitter: ScrapeEventEmitter;
 
     // Add these properties to the DreamMetricsPlugin class with the other properties
     public contentToggler: ContentToggler;

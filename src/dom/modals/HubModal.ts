@@ -1361,41 +1361,25 @@ This metric assesses **how well your memory of the dream holds up and remains co
         // Set up event handlers
         
         // Scrape button click handler
-this.scrapeButton.addEventListener('click', async () => {
-    if (!this.isScraping) {
-        this.isScraping = true;
-        this.scrapeButton.disabled = true;
-        
-        // Show processing feedback
-        this.showScrapeFeedback('Scraping dream metrics with enhanced processing... This may take a moment.', 'info');
-        
-        try {
-            // Call the plugin's scrape method
-            await this.plugin.scrapeMetrics();
-            
-            // Show success feedback
-            this.showScrapeFeedback('Metrics processing completed successfully!', 'success');
-            
-            // Enable the open note button
-            if (this.openNoteButton) {
-                this.openNoteButton.disabled = false;
-                this.openNoteButton.classList.add('enabled');
-                this.hasScraped = true;
+        this.scrapeButton.addEventListener('click', async () => {
+            if (!this.isScraping) {
+                this.isScraping = true;
+                this.scrapeButton.disabled = true;
+                
+                // Set up event listeners for real-time feedback
+                this.setupScrapeEventListeners();
+                
+                try {
+                    // Call the plugin's scrape method (events will provide feedback)
+                    await this.plugin.scrapeMetrics();
+                } catch (error) {
+                    this.showScrapeFeedback('Error: ' + (error as Error).message, 'error');
+                } finally {
+                    this.isScraping = false;
+                    this.scrapeButton.disabled = false;
+                }
             }
-            
-            // Hide feedback after a few seconds
-            setTimeout(() => {
-                this.hideFeedback();
-            }, 3000);
-            
-        } catch (error) {
-            this.showScrapeFeedback(`Error scraping metrics: ${(error as Error).message}`, 'error');
-        } finally {
-            this.isScraping = false;
-            this.scrapeButton.disabled = false;
-        }
-    }
-});
+        });
         
         // Open note button click handler
         this.openNoteButton.addEventListener('click', () => {
@@ -6822,6 +6806,53 @@ Example:
         this.feedbackArea.style.display = 'none';
         this.feedbackArea.empty();
     }
+
+/**
+ * Set up event listeners for scrape operations
+ */
+private setupScrapeEventListeners(): void {
+    // Remove any existing listeners to avoid duplicates
+    this.plugin.scrapeEventEmitter.removeAllListeners();
+    
+    // Listen for started events
+    this.plugin.scrapeEventEmitter.on('started', (event) => {
+        this.showScrapeFeedback(event.message, 'info');
+    });
+    
+    // Listen for progress events
+    this.plugin.scrapeEventEmitter.on('progress', (event) => {
+        this.showScrapeFeedback(event.message, 'info');
+    });
+    
+    // Listen for backup warning events
+    this.plugin.scrapeEventEmitter.on('backup-warning', (event) => {
+        if (event.data?.onProceed && event.data?.onCancel) {
+            this.showBackupWarning(event.data.onProceed, event.data.onCancel);
+        }
+    });
+    
+    // Listen for completion events
+    this.plugin.scrapeEventEmitter.on('completed', (event) => {
+        this.showScrapeFeedback(event.message, 'success');
+        
+        // Enable the open note button
+        if (this.openNoteButton) {
+            this.openNoteButton.disabled = false;
+            this.openNoteButton.classList.add('enabled');
+            this.hasScraped = true;
+        }
+        
+        // Hide feedback after a few seconds
+        setTimeout(() => {
+            this.hideFeedback();
+        }, 3000);
+    });
+    
+    // Listen for error events
+    this.plugin.scrapeEventEmitter.on('error', (event) => {
+        this.showScrapeFeedback(event.message, 'error');
+    });
+}
 
 }
 

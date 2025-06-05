@@ -10,14 +10,18 @@ import { ILogger } from '../../logging/LoggerTypes';
 import safeLogger from '../../logging/safe-logger';
 import { RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER, lucideIconMap } from '../../../settings';
 import { parseDate, formatDate } from '../../utils/date-utils';
+import { ChartTabsManager } from '../charts/ChartTabsManager';
 
 export class TableGenerator {
     private memoizedTableData = new Map<string, string>();
+    private chartTabsManager: ChartTabsManager;
     
     constructor(
         private readonly settings: DreamMetricsSettings,
         private logger?: ILogger
-    ) {}
+    ) {
+        this.chartTabsManager = new ChartTabsManager(this.logger);
+    }
     
     /**
      * Generate the complete metrics table content
@@ -44,10 +48,10 @@ export class TableGenerator {
         content += "<div data-render-html=\"true\">\n";
         content += '<h1 class="oneirometrics-title">OneiroMetrics (Dream Metrics)</h1>\n';
         
-        content += '<div class="oom-metrics-container">\n';
+        content += '<div class="oom-metrics-container" id="oom-metrics-container">\n';
         
-        // Add metrics summary table
-        content += this.generateSummaryTable(metrics);
+        // Add chart tabs container placeholder - this will be populated by initializeChartTabs
+        content += '<div id="oom-chart-tabs-placeholder"></div>\n';
         
         // Add Dream Entries heading
         content += '<h2 class="oom-dream-entries-title">Dream Entries</h2>\n';
@@ -181,6 +185,58 @@ export class TableGenerator {
         this.memoizedTableData.set(cacheKey, content);
         
         return content;
+    }
+    
+    /**
+     * Initialize chart tabs after the DOM content has been rendered
+     * This should be called after the HTML content is inserted into the DOM
+     */
+    public initializeChartTabs(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): void {
+        try {
+            // Find the metrics container
+            const metricsContainer = document.querySelector('#oom-metrics-container') as HTMLElement;
+            if (!metricsContainer) {
+                this.logger?.warn('Table', 'Metrics container not found, cannot initialize chart tabs');
+                return;
+            }
+
+            // Find the chart tabs placeholder
+            const placeholder = metricsContainer.querySelector('#oom-chart-tabs-placeholder') as HTMLElement;
+            if (!placeholder) {
+                this.logger?.warn('Table', 'Chart tabs placeholder not found');
+                return;
+            }
+
+            // Generate the statistics table HTML
+            const statisticsTableHTML = this.generateSummaryTable(metrics);
+
+            // Initialize chart tabs
+            this.chartTabsManager.initializeChartTabs(
+                placeholder,
+                { metrics, dreamEntries },
+                statisticsTableHTML
+            );
+
+            this.logger?.debug('Table', 'Chart tabs initialized successfully');
+        } catch (error) {
+            this.logger?.error('Table', 'Failed to initialize chart tabs', { error });
+        }
+    }
+
+    /**
+     * Update chart tabs with new data
+     */
+    public updateChartTabs(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): void {
+        try {
+            const statisticsTableHTML = this.generateSummaryTable(metrics);
+            this.chartTabsManager.updateChartData(
+                { metrics, dreamEntries },
+                statisticsTableHTML
+            );
+            this.logger?.debug('Table', 'Chart tabs updated successfully');
+        } catch (error) {
+            this.logger?.error('Table', 'Failed to update chart tabs', { error });
+        }
     }
     
     /**
@@ -323,6 +379,13 @@ export class TableGenerator {
      * @returns HTML content for the summary table
      */
     public generateSummaryTable(metrics: Record<string, number[]>): string {
+        console.log('📊 DEBUG: generateSummaryTable called with metrics:', Object.keys(metrics));
+        console.log('📊 DEBUG: Metrics data sample:', {
+            totalKeys: Object.keys(metrics).length,
+            wordsData: metrics['Words']?.slice(0, 3),
+            sensoryData: metrics['Sensory Detail']?.slice(0, 3)
+        });
+        
         let content = "";
         content += `<div class="oom-table-section oom-stats-section">`;
         content += '<h2 class="oom-table-title oom-stats-title">Statistics</h2>';
@@ -351,6 +414,9 @@ export class TableGenerator {
         // Track metrics we've processed to avoid duplicates
         const processedMetrics = new Set<string>();
         let hasMetrics = false;
+        let rowsAdded = 0;
+        
+        console.log('📊 DEBUG: Starting metrics processing loop...');
         
         // First, ALWAYS handle Words metric specially (even if not in enabled metrics)
         if (metrics["Words"] && metrics["Words"].length > 0) {
@@ -360,6 +426,8 @@ export class TableGenerator {
             const min = Math.min(...values);
             const max = Math.max(...values);
             const total = values.reduce((a, b) => a + b, 0);
+            
+            console.log('📊 DEBUG: Processing Words metric:', { avg, min, max, total, count: values.length });
             
             content += "<tr>\n";
             content += `<td>Words <span class="oom-words-total">(total: ${total})</span></td>\n`;
@@ -371,6 +439,7 @@ export class TableGenerator {
             
             // Mark Words as processed to avoid duplication
             processedMetrics.add("Words");
+            rowsAdded++;
         }
         
         // Then process the rest in the defined order, skipping Words which we already processed
@@ -380,6 +449,8 @@ export class TableGenerator {
             
             const values = metrics[name];
             if (!values || values.length === 0) continue;
+            
+            console.log('📊 DEBUG: Processing metric:', name, { count: values.length, firstFew: values.slice(0, 3) });
             
             hasMetrics = true;
             const avg = values.reduce((a, b) => a + b) / values.length;
@@ -416,6 +487,7 @@ export class TableGenerator {
             content += "</tr>\n";
             
             processedMetrics.add(name);
+            rowsAdded++;
         }
         
         // Finally, handle any metrics not covered by our predefined lists
@@ -425,6 +497,8 @@ export class TableGenerator {
             
             const values = metrics[name];
             if (!values || values.length === 0) continue;
+            
+            console.log('📊 DEBUG: Processing unlisted metric:', name, { count: values.length });
             
             hasMetrics = true;
             const avg = values.reduce((a, b) => a + b) / values.length;
@@ -456,16 +530,27 @@ export class TableGenerator {
             content += `<td class="metric-value">${max}</td>\n`;
             content += `<td class="metric-value">${values.length}</td>\n`;
             content += "</tr>\n";
+            
+            rowsAdded++;
         }
         
         if (!hasMetrics) {
+            console.log('📊 DEBUG: No metrics found, adding empty row');
             content += '<tr><td colspan="5" class="oom-no-metrics">No metrics available</td></tr>\n';
+            rowsAdded++;
         }
         
         content += "</tbody>\n";
         content += "</table>\n";
         content += "</div>\n"; // Close table-container
         content += "</div>\n"; // Close stats-section
+        
+        console.log('📊 DEBUG: generateSummaryTable completed', { 
+            hasMetrics, 
+            rowsAdded, 
+            contentLength: content.length,
+            contentPreview: content.substring(0, 200) + '...'
+        });
         
         return content;
     }

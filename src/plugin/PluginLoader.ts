@@ -445,7 +445,7 @@ export class PluginLoader {
         plugin.dateRangeService = new DateRangeService(this.app);
         
         // Initialize the ProjectNoteManager
-        plugin.projectNoteManager = new ProjectNoteManager(this.app, settings, plugin.logger);
+        plugin.projectNoteManager = new ProjectNoteManager(this.app, plugin, settings, plugin.logger);
         
         // Initialize the RibbonManager
         plugin.ribbonManager = new RibbonManager(this.app, settings, this.plugin as any, plugin.logger);
