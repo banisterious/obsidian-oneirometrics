@@ -15639,14 +15639,14 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 
 .template-stat-label {
     margin-bottom: var(--oom-spacing-xs);
-    color: var(--text-muted);
     font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
 }
 
 .template-stat-value {
-    color: var(--text-normal);
     font-size: var(--h3-size);
     font-weight: 600;
+    color: var(--text-normal);
 }
 
 .template-dashboard-actions {
@@ -15664,9 +15664,9 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     display: inline-flex;
     align-items: center;
     gap: var(--oom-spacing-sm);
-    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     margin-right: var(--oom-spacing-sm);
     margin-bottom: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     border: none;
     border-radius: var(--oom-radius-sm);
     cursor: pointer;
@@ -15682,19 +15682,19 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 .template-tool-button {
     display: block;
     width: 100%;
-    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     margin-bottom: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--oom-radius-sm);
     cursor: pointer;
     transition: all var(--oom-transition-fast);
-    background: var(--background-secondary);
     color: var(--text-normal);
+    background: var(--background-secondary);
 }
 
 .template-tool-button:hover {
-    background: var(--background-modifier-hover);
     border-color: var(--background-modifier-border-hover);
+    background: var(--background-modifier-hover);
 }
 
 /* Template Data Table */
@@ -15717,9 +15717,9 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 }
 
 .template-data-table th {
-    background: var(--background-secondary);
-    color: var(--text-normal);
     font-weight: 600;
+    color: var(--text-normal);
+    background: var(--background-secondary);
 }
 
 .template-data-table td {
@@ -15751,8 +15751,8 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 
 .template-tool-section h3 {
     margin-bottom: var(--oom-spacing-md);
-    color: var(--text-normal);
     font-size: var(--h4-size);
+    color: var(--text-normal);
 }
 
 /* Template Help Content */
@@ -15789,8 +15789,8 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 .template-help-content code {
     padding: 2px 4px;
     border-radius: var(--oom-radius-xs);
-    background: var(--background-primary-alt);
     font-family: var(--font-monospace);
+    background: var(--background-primary-alt);
 }
 
 /* Template Item Details */
@@ -15810,10 +15810,10 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--oom-radius-sm);
-    background: var(--background-secondary);
-    color: var(--text-normal);
     cursor: pointer;
     transition: all var(--oom-transition-fast);
+    color: var(--text-normal);
+    background: var(--background-secondary);
 }
 
 .template-item-actions button:hover {
@@ -16825,5 +16825,58 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 
     & .oom-callout-title {
         font-size: var(--font-ui-smaller);
+    }
+}
+
+/* Dream Scrape Tab Sticky Footer */
+.oom-dream-scrape-sticky-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--oom-z-dropdown);
+    margin-top: auto;
+    padding: var(--oom-spacing-md) var(--oom-spacing-lg);
+    box-shadow: 0 -2px 8px var(--background-modifier-box-shadow);
+    border-top: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+}
+
+.oom-dream-scrape-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.oom-dream-scrape-actions .oom-button {
+    flex: 0 0 auto;
+    min-width: 140px;
+}
+
+/* Ensure the content container has proper layout for sticky footer */
+.oom-metrics-tabs-content:has(.oom-dream-scrape-sticky-footer) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+/* Mobile responsive adjustments */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-dream-scrape-sticky-footer {
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    }
+    
+    .oom-dream-scrape-actions {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+        max-width: 100%;
+    }
+    
+    .oom-dream-scrape-actions .oom-button {
+        width: 100%;
+        min-width: unset;
     }
 }

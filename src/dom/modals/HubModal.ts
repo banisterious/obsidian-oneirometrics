@@ -1332,10 +1332,10 @@ This metric assesses **how well your memory of the dream holds up and remains co
         this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
         
         // Create the sticky footer for scrape actions
-        const scrapeFooter = this.contentContainer.createDiv({ cls: 'oom-dream-scrape-footer' });
+        const scrapeFooter = this.contentContainer.createDiv({ cls: 'oom-dream-scrape-sticky-footer' });
         
         // Scrape Action Section
-        const scrapeRow = scrapeFooter.createDiv({ cls: 'oom-actions-row' });
+        const scrapeRow = scrapeFooter.createDiv({ cls: 'oom-dream-scrape-actions' });
         
         this.scrapeButton = scrapeRow.createEl('button', {
             text: 'Scrape Notes',
