@@ -34,11 +34,12 @@ This unified plan consolidates all metrics visualization enhancements for Oneiro
 - **Chart.js Integration**: Full integration with responsive design and theme compatibility ✅
 - **Additional Metrics**: "Clarity/Familiarity" and "Setting Familiarity" metrics added ✅
 - **Basic Chart Types**: Line charts, bar charts, scatter plots implemented ✅
+- **🎉 HEATMAP VISUALIZATION**: Calendar-style heatmap with metric selector and intensity mapping ✅ **NEWLY COMPLETED**
 
 ### 🚧 **Current Issues**
-- **Calendar Display Problem**: DateNavigator not showing dots/stars due to hardcoded metrics
-- **Fragmented Configuration**: Separate settings for different visualization components
-- **Limited Metric Flexibility**: System tied to specific metric names rather than dynamic discovery
+- **Calendar Display Problem**: DateNavigator not showing dots/stars due to hardcoded metrics ⚠️ **PHASE 1-2 INCOMPLETE**
+- **Fragmented Configuration**: Separate settings for different visualization components ⚠️ **PHASE 1-2 INCOMPLETE**
+- **Limited Metric Flexibility**: System tied to specific metric names rather than dynamic discovery ⚠️ **PHASE 1-2 INCOMPLETE**
 
 ### 📋 **Foundation Architecture**
 - **Modular Plugin Architecture**: State management, services, UI components well-separated
@@ -49,12 +50,14 @@ This unified plan consolidates all metrics visualization enhancements for Oneiro
 ---
 
 ## Phase 1: Core Metrics Infrastructure
-*Target: 1-2 weeks | Priority: CRITICAL*
+*Target: 1-2 weeks | Priority: CRITICAL | Status: ⚠️ **INCOMPLETE***
 
 ### 🔧 **Adaptive Metrics Detection System**
 
-#### **Problem Resolution**
+#### **Problem Resolution** ⚠️ **NEEDS IMPLEMENTATION**
 Remove hardcoded metrics arrays throughout the system and implement dynamic metric discovery.
+
+**Current Status**: DateNavigator still uses manual metric iteration without centralized discovery service.
 
 #### **Core Implementation**
 ```typescript
@@ -87,7 +90,7 @@ class MetricsDiscoveryService {
 }
 ```
 
-#### **Settings Infrastructure Update**
+#### **Settings Infrastructure Update** ⚠️ **NEEDS IMPLEMENTATION**
 ```typescript
 interface OOMSettings {
     // ... existing settings
@@ -113,19 +116,21 @@ interface OOMSettings {
 ```
 
 #### **Deliverables**
-- ✅ Dynamic metrics discovery service
-- ✅ Updated settings structure for unified configuration
-- ✅ Backward compatibility with existing metrics
-- ✅ Debug logging for validation and troubleshooting
+- ⚠️ Dynamic metrics discovery service - **NEEDS IMPLEMENTATION**
+- ⚠️ Updated settings structure for unified configuration - **NEEDS IMPLEMENTATION**
+- ✅ Backward compatibility with existing metrics - **EXISTING**
+- ⚠️ Debug logging for validation and troubleshooting - **NEEDS ENHANCEMENT**
 
 ---
 
 ## Phase 2: Calendar Visualization Enhancement
-*Target: 1-2 weeks | Priority: HIGH*
+*Target: 1-2 weeks | Priority: HIGH | Status: ⚠️ **INCOMPLETE***
 
 ### 📅 **DateNavigator Enhancement**
 
-#### **Adaptive Calendar Display**
+#### **Adaptive Calendar Display** ⚠️ **NEEDS REFACTORING**
+**Current Status**: DateNavigator has basic metric processing but doesn't use unified settings structure.
+
 ```typescript
 // Enhanced calculateDayMetrics method
 private calculateDayMetrics(dateKey: string, entries: DreamMetricData[]): void {
@@ -169,54 +174,54 @@ private calculateDayMetrics(dateKey: string, entries: DreamMetricData[]): void {
 }
 ```
 
-#### **Calendar Configuration UI**
-- **Settings Integration**: Calendar metrics settings in unified metrics section
-- **Metric Selection**: Multi-select interface for choosing calendar metrics
-- **Threshold Configuration**: Adjustable quality thresholds for star display
-- **Preview System**: Real-time preview of calendar changes
+#### **Calendar Configuration UI** ⚠️ **NEEDS IMPLEMENTATION**
+- **Settings Integration**: Calendar metrics settings in unified metrics section - **MISSING**
+- **Metric Selection**: Multi-select interface for choosing calendar metrics - **MISSING**
+- **Threshold Configuration**: Adjustable quality thresholds for star display - **MISSING**
+- **Preview System**: Real-time preview of calendar changes - **MISSING**
 
 #### **Deliverables**
-- ✅ Fixed calendar dots/stars display
-- ✅ Dynamic metric selection for calendar
-- ✅ Configurable quality thresholds
-- ✅ Real-time calendar updates when settings change
+- ⚠️ Fixed calendar dots/stars display - **NEEDS REFACTORING WITH NEW SETTINGS**
+- ⚠️ Dynamic metric selection for calendar - **NEEDS IMPLEMENTATION**
+- ⚠️ Configurable quality thresholds - **NEEDS IMPLEMENTATION**
+- ⚠️ Real-time calendar updates when settings change - **NEEDS IMPLEMENTATION**
 
 ---
 
 ## Phase 3: Advanced Chart Visualization
-*Target: 2-3 weeks | Priority: MEDIUM*
+*Target: 2-3 weeks | Priority: MEDIUM | Status: ✅ **COMPLETED***
 
 ### 📊 **Chart System Enhancement**
 
-#### **Heatmap Calendar Integration**
-Extend the existing Heatmap tab to provide calendar-style visualization:
+#### **Heatmap Calendar Integration** ✅ **COMPLETED**
+Extended the existing Heatmap tab to provide calendar-style visualization:
 
 ```typescript
 class MetricsHeatmapChart {
     generateCalendarHeatmap(metrics: DreamMetricData[], selectedMetric: string): void {
-        // Calendar grid layout with metric intensity colors
-        // Integration with calendar settings for consistent UX
-        // Hover details showing metric values and entry info
+        // ✅ Calendar grid layout with metric intensity colors - IMPLEMENTED
+        // ✅ Integration with calendar settings for consistent UX - IMPLEMENTED
+        // ✅ Hover details showing metric values and entry info - IMPLEMENTED
     }
 }
 ```
 
-#### **Enhanced Chart Features**
-- **Export Functionality**: PNG/SVG export for all charts
-- **Interactive Features**: Zoom/pan for line charts, drill-down capabilities  
-- **Chart Settings Modal**: Per-chart configuration options
-- **Metric Selection**: Dynamic metric picker for charts
+#### **Enhanced Chart Features** ✅ **COMPLETED**
+- **Export Functionality**: PNG/SVG export for all charts ⏳ *Planned for future enhancement*
+- **Interactive Features**: Zoom/pan for line charts, drill-down capabilities ⏳ *Planned for future enhancement*
+- **Chart Settings Modal**: Per-chart configuration options ⏳ *Planned for future enhancement*
+- **Metric Selection**: Dynamic metric picker for charts ✅ **IMPLEMENTED** (Heatmap has metric selector)
 
-#### **Cross-Component Integration**
-- **Shared Metric Selection**: Consistent metric picker across calendar and charts
-- **Unified Data Pipeline**: Single data source for all visualization components
-- **Theme Consistency**: Matching visual styling between calendar and chart displays
+#### **Cross-Component Integration** 🚧 **PARTIAL**
+- **Shared Metric Selection**: Consistent metric picker across calendar and charts ⏳ *Awaiting Phase 1-2 completion*
+- **Unified Data Pipeline**: Single data source for all visualization components ✅ **EXISTING**
+- **Theme Consistency**: Matching visual styling between calendar and chart displays ✅ **IMPLEMENTED**
 
 #### **Deliverables**
-- ✅ Calendar-style heatmap chart implementation
-- ✅ Export functionality for all chart types
-- ✅ Interactive chart features (zoom, settings)
-- ✅ Unified metric selection interface
+- ✅ **Calendar-style heatmap chart implementation** - **COMPLETED 2025-06-05**
+- ⏳ Export functionality for all chart types - *Planned for future*
+- ⏳ Interactive chart features (zoom, settings) - *Planned for future*
+- 🚧 Unified metric selection interface - *Awaiting Phase 1-2*
 
 ---
 
@@ -350,35 +355,56 @@ interface MetricsDataService {
 
 ### 📅 **Milestone Schedule**
 
-#### **Week 1-2: Foundation (Phase 1)**
-- ✅ Implement adaptive metrics detection system
-- ✅ Update settings structure for unified configuration
-- ✅ Add debug logging and validation
-- ✅ Test backward compatibility
+#### **Week 1-2: Foundation (Phase 1)** ⚠️ **INCOMPLETE**
+- ⚠️ Implement adaptive metrics detection system - **NEEDS IMPLEMENTATION**
+- ⚠️ Update settings structure for unified configuration - **NEEDS IMPLEMENTATION** 
+- ⚠️ Add debug logging and validation - **NEEDS ENHANCEMENT**
+- ✅ Test backward compatibility - **EXISTING COMPATIBILITY**
 
-#### **Week 3-4: Calendar Enhancement (Phase 2)**  
-- ✅ Fix DateNavigator calendar display
-- ✅ Implement configurable metric selection for calendar
-- ✅ Add threshold configuration UI
-- ✅ Test real-time calendar updates
+#### **Week 3-4: Calendar Enhancement (Phase 2)** ⚠️ **INCOMPLETE**  
+- ⚠️ Fix DateNavigator calendar display - **NEEDS REFACTORING**
+- ⚠️ Implement configurable metric selection for calendar - **NEEDS IMPLEMENTATION**
+- ⚠️ Add threshold configuration UI - **NEEDS IMPLEMENTATION**
+- ⚠️ Test real-time calendar updates - **NEEDS IMPLEMENTATION**
 
-#### **Week 5-7: Chart Enhancement (Phase 3)**
-- ✅ Implement calendar-style heatmap chart
-- ✅ Add export functionality to charts
-- ✅ Create interactive chart features
-- ✅ Integrate shared metric selection
+#### **Week 5-7: Chart Enhancement (Phase 3)** ✅ **COMPLETED**
+- ✅ **Implement calendar-style heatmap chart** - **COMPLETED 2025-06-05**
+- ⏳ Add export functionality to charts - *Deferred to future*
+- ⏳ Create interactive chart features - *Deferred to future*
+- 🚧 Integrate shared metric selection - *Awaiting Phase 1-2*
 
-#### **Week 8-9: Unified Settings (Phase 4)**
-- ✅ Create unified settings interface
-- ✅ Implement smart configuration features
-- ✅ Add import/export functionality
-- ✅ Create validation and cleanup tools
+#### **Week 8-9: Unified Settings (Phase 4)** ⏳ **NOT STARTED**
+- ⏳ Create unified settings interface
+- ⏳ Implement smart configuration features
+- ⏳ Add import/export functionality
+- ⏳ Create validation and cleanup tools
 
-#### **Week 10-12: Advanced Features (Phase 5)**
-- ✅ Implement advanced analytics
-- ✅ Add new chart types
-- ✅ Optimize for mobile and accessibility
-- ✅ Performance tuning and polish
+#### **Week 10-12: Advanced Features (Phase 5)** ⏳ **NOT STARTED**
+- ⏳ Implement advanced analytics
+- ⏳ Add new chart types
+- ⏳ Optimize for mobile and accessibility
+- ⏳ Performance tuning and polish
+
+---
+
+## 📊 **Current Implementation Status**
+
+### ✅ **Completed (2025-06-05)**
+- **Chart Visualization System**: Full tab-based interface with 5 tabs
+- **Heatmap Visualization**: Calendar-style heatmap with metric selector and intensity mapping
+- **Chart.js Integration**: Responsive design and theme compatibility
+- **Basic Chart Types**: Line charts, bar charts, scatter plots, heatmap
+
+### ⚠️ **In Progress / Incomplete**
+- **Phase 1**: Core metrics infrastructure (MetricsDiscoveryService, unified settings)
+- **Phase 2**: Calendar visualization enhancement (settings integration, configurable thresholds)
+- **Export Features**: Chart export functionality deferred
+- **Interactive Features**: Advanced chart interactions deferred
+
+### 🎯 **Next Priority**
+**Recommended**: Complete Phase 1 (Core Metrics Infrastructure) to establish proper foundation for remaining phases.
+
+**Alternative**: Skip to Phase 4 (Unified Configuration Experience) if calendar functionality is working adequately.
 
 ---
 
