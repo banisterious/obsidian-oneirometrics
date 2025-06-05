@@ -168,6 +168,45 @@ export interface DreamMetricsSettings {
     /** Record of configured metrics */
     metrics: Record<string, DreamMetric>;
     
+    /** Unified metrics configuration for enhanced functionality */
+    unifiedMetrics?: {
+        /** Whether to enable auto-discovery of new metrics from content */
+        autoDiscovery: boolean;
+        
+        /** Thresholds for metric visualization in calendar and charts */
+        visualizationThresholds: {
+            /** Low threshold (0.0-1.0) - below this shows as low intensity */
+            low: number;
+            /** Medium threshold (0.0-1.0) - between low and medium shows as medium intensity */
+            medium: number;
+            /** High threshold (0.0-1.0) - above medium shows as high intensity */
+            high: number;
+        };
+        
+        /** Preferred metrics for different visualization components */
+        preferredMetrics: {
+            /** Metrics to display in calendar view by default */
+            calendar: string[];
+            /** Metrics to display in chart heatmap by default */
+            charts: string[];
+            /** Metrics to display in table view by default */
+            table: string[];
+        };
+        
+        /** Settings for metric discovery behavior */
+        discovery: {
+            /** Whether to automatically enable newly discovered metrics */
+            autoEnable: boolean;
+            /** Categories to auto-discover (empty array = all categories) */
+            categories: string[];
+            /** Maximum number of metrics to auto-discover per session */
+            maxNewMetrics: number;
+        };
+        
+        /** Configuration version for migration purposes */
+        configVersion: string;
+    };
+    
     /** List of selected note paths to include in processing */
     selectedNotes: string[];
     

@@ -6,3 +6,4 @@
 
 export { DebugTools } from './DebugTools';
 export * from './date-utils';
+export * from './settings-migration';
