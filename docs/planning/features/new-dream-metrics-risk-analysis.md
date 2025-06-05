@@ -1,5 +1,20 @@
 # New Dream Metrics: Risk Analysis
 
+## 📑 Table of Contents
+
+- [Proposed New Metrics](#proposed-new-metrics)
+- [Implementation Areas](#implementation-areas)
+  - [1. Settings Module](#1-settings-module)
+  - [2. Metrics Registration](#2-metrics-registration)
+  - [3. Scraping/Processing Module](#3-scrapingprocessing-module)
+  - [4. UI/Visualization](#4-uivisualization)
+- [Implementation Approach](#implementation-approach)
+  - [Phased Approach](#phased-approach)
+  - [Testing Strategy](#testing-strategy)
+- [Fallback Plan](#fallback-plan)
+
+---
+
 ## Proposed New Metrics
 1. **Clarity/Familiarity (1-5 score)** - A measure of how familiar or clear the dream environment/setting felt
 2. **Setting Familiarity (1-5 score)** - A measure of how familiar the physical setting/location was

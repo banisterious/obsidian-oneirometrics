@@ -1,5 +1,17 @@
 # Metrics System Enhancements Plan
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Planned Features](#planned-features)
+  - [1. Enhanced Metrics Visualization](#1-enhanced-metrics-visualization)
+  - [2. Custom Metric Types](#2-custom-metric-types)
+  - [3. Metric Templates](#3-metric-templates)
+  - [4. Batch Operations](#4-batch-operations)
+  - [5. Lucide Icon Picker Integration](#5-lucide-icon-picker-integration)
+
+---
+
 ## Overview
 This document outlines the planned enhancements to the OneiroMetrics metrics system, detailing specifications, implementation phases, and technical requirements for each feature.
 

@@ -1,5 +1,23 @@
 # Month View Implementation Plan
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+  - [Core Functionality](#core-functionality)
+  - [User Benefits](#user-benefits)
+- [Technical Specifications](#technical-specifications)
+  - [Data Structure](#data-structure)
+  - [Component Architecture](#component-architecture)
+  - [Event Handling](#event-handling)
+- [UI Implementation](#ui-implementation)
+  - [Month Grid Layout](#month-grid-layout)
+  - [Day Cell Design](#day-cell-design)
+  - [Enhanced Visual Design](#enhanced-visual-design)
+  - [CSS Implementation](#css-implementation)
+
+---
+
 ## Overview
 
 The Month View feature provides a calendar-style visualization of dream journal entries, allowing users to see their dream activity patterns at a glance and quickly filter data by selecting specific days. This document outlines the detailed implementation plan, technical specifications, and UI/UX considerations for the Month View feature within the OneiroMetrics plugin.

@@ -1,5 +1,23 @@
 # Calendar Metrics Visualization Enhancement
 
+## 📑 Table of Contents
+
+- [Current Issue](#current-issue)
+- [Phase 1: Adaptive Metrics Approach (Immediate Fix)](#phase-1-adaptive-metrics-approach-immediate-fix)
+  - [Implementation Steps](#implementation-steps)
+  - [Code Changes](#code-changes)
+- [Phase 2: Configurable Metrics Display (Future Enhancement)](#phase-2-configurable-metrics-display-future-enhancement)
+  - [Implementation Steps](#implementation-steps-1)
+  - [Detailed Implementation Plan](#detailed-implementation-plan)
+  - [User Experience Benefits](#user-experience-benefits)
+- [Additional Metric Additions](#additional-metric-additions)
+- [Implementation Timeline](#implementation-timeline)
+  - [Phase 1 (Immediate)](#phase-1-immediate)
+  - [Phase 2 (Next Release)](#phase-2-next-release)
+  - [Phase 3 (Future)](#phase-3-future)
+
+---
+
 ## Current Issue
 - The DateNavigator calendar is not displaying dots (entries) and stars (quality metrics) for actual user entries
 - The code is checking for hardcoded metrics (`Clarity`, `Vividness`, `Coherence`, `Intensity`, `Recall`) that don't match the actual metrics used in the plugin

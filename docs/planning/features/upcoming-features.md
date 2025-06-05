@@ -3,6 +3,23 @@
 > **Last Updated:** 2025-05-21  
 > This document outlines features planned for future releases of OneiroMetrics.
 
+## 📑 Table of Contents
+
+- [Feature Roadmap](#feature-roadmap)
+  - [Coming Soon (Next 1-2 Releases)](#coming-soon-next-1-2-releases)
+  - [Medium-Term Plans (3-6 Months)](#medium-term-plans-3-6-months)
+  - [Long-Term Vision (6+ Months)](#long-term-vision-6-months)
+- [Experimental Features](#experimental-features)
+  - [AI Integration (Experimental)](#ai-integration-experimental)
+  - [Virtual Reality Visualization (Concept)](#virtual-reality-visualization-concept)
+- [Feature Requests](#feature-requests)
+- [Implementation Notes](#implementation-notes)
+  - [Backward Compatibility](#backward-compatibility)
+  - [Performance Considerations](#performance-considerations)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Feature Roadmap
 
 The OneiroMetrics team is working on several exciting enhancements. While we can't guarantee specific timelines, this roadmap provides insight into our priorities and direction.

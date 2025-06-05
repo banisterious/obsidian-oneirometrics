@@ -1,5 +1,18 @@
 # New Metrics Implementation Plan
 
+## 📑 Table of Contents
+
+- [New Metrics to Add](#new-metrics-to-add)
+- [Implementation Steps](#implementation-steps)
+  - [Step 1: Add Metrics to DEFAULT_METRICS](#step-1-add-metrics-to-default_metrics)
+  - [Step 2: Add Migration Code](#step-2-add-migration-code)
+  - [Step 3: Update Documentation](#step-3-update-documentation)
+  - [Step 4: Testing](#step-4-testing)
+- [Implementation Risks and Mitigations](#implementation-risks-and-mitigations)
+- [Rollback Plan](#rollback-plan)
+
+---
+
 ## New Metrics to Add
 
 1. **Clarity/Familiarity (1-5 score)** - A measure of how familiar or clear the dream environment/setting felt
