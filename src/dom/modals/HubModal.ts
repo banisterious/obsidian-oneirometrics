@@ -51,6 +51,7 @@ import {
 } from '../../utils/metric-helpers';
 import { DEFAULT_METRICS } from '../../types';
 import { debug } from '../../logging';
+import { MetricEditorModal, ensureCompleteMetric } from '../../../settings';
 
 // Interface for grouped metrics
 interface MetricGroup {
@@ -4434,6 +4435,118 @@ Example:
             text: '🚧 Migration tools will be available in a future update.',
             cls: 'oom-hub-placeholder-text' 
         });
+
+        // Missing Metrics Section
+        // Import DEFAULT_METRICS from settings
+        const { DEFAULT_METRICS } = require('../../../settings');
+        
+        const missingMetrics = DEFAULT_METRICS
+            .filter(defaultMetric => 
+                !this.plugin.settings.metrics[defaultMetric.name]
+            )
+            .map(m => m.name);
+        
+        if (missingMetrics.length > 0) {
+            // Create Missing Metrics Section
+            const missingMetricsSection = this.contentContainer.createDiv({ 
+                cls: 'oom-hub-section oom-missing-metrics-section' 
+            });
+            
+            missingMetricsSection.createEl('h3', { 
+                text: 'Missing Metrics',
+                cls: 'oom-hub-section-title' 
+            });
+            
+            missingMetricsSection.createEl('p', { 
+                text: `Found ${missingMetrics.length} default metrics missing from your settings. Would you like to restore them?`,
+                cls: 'oom-hub-section-description' 
+            });
+
+            // Create button container
+            const buttonContainer = missingMetricsSection.createDiv({
+                cls: 'oom-missing-metrics-buttons'
+            });
+            
+            // Restore All button
+            const restoreAllButton = buttonContainer.createEl('button', {
+                text: 'Restore All Metrics',
+                cls: 'mod-cta oom-restore-all-btn'
+            });
+            
+            restoreAllButton.addEventListener('click', async () => {
+                // Loop through all missing metrics and restore them
+                const metricsToRestore = DEFAULT_METRICS.filter(defaultMetric => 
+                    !this.plugin.settings.metrics[defaultMetric.name]
+                );
+                
+                for (const metricToRestore of metricsToRestore) {
+                    const metricName = metricToRestore.name;
+                    
+                    // Create a new metric from the default
+                    this.plugin.settings.metrics[metricName] = {
+                        name: metricName,
+                        icon: metricToRestore.icon,
+                        minValue: metricToRestore.minValue,
+                        maxValue: metricToRestore.maxValue,
+                        description: metricToRestore.description || '',
+                        enabled: metricToRestore.enabled,
+                        category: metricToRestore.category || 'dream',
+                        type: metricToRestore.type || 'number',
+                        format: metricToRestore.format || 'number',
+                        options: metricToRestore.options || [],
+                        // Include legacy properties for backward compatibility
+                        min: metricToRestore.minValue,
+                        max: metricToRestore.maxValue,
+                        step: 1
+                    };
+                }
+                
+                // Save settings and refresh UI
+                await this.plugin.saveSettings();
+                this.loadMetricsSettingsContent(); // Refresh the content
+                new Notice(`Restored ${metricsToRestore.length} missing metrics`);
+            });
+            
+            // Create Manually button
+            const createManuallyButton = buttonContainer.createEl('button', {
+                text: 'Create Manually',
+                cls: 'mod-warning oom-create-manually-btn'
+            });
+            
+            createManuallyButton.addEventListener('click', async () => {
+                // Handle manual creation of missing metrics - just create an empty metric for each
+                const metricsToCreate = DEFAULT_METRICS.filter(defaultMetric => 
+                    !this.plugin.settings.metrics[defaultMetric.name]
+                );
+                
+                for (const metricToCreate of metricsToCreate) {
+                    const metricName = metricToCreate.name;
+                    
+                    // Create a minimal metric with just the name and default values
+                    this.plugin.settings.metrics[metricName] = {
+                        name: metricName,
+                        icon: '',
+                        minValue: 1,
+                        maxValue: 10,
+                        description: '',
+                        enabled: false,
+                        category: 'dream',
+                        type: 'number',
+                        format: 'number',
+                        options: [],
+                        // Include legacy properties for backward compatibility
+                        min: 1,
+                        max: 10,
+                        step: 1
+                    };
+                }
+                
+                // Save settings and refresh UI
+                await this.plugin.saveSettings();
+                this.loadMetricsSettingsContent(); // Refresh the content
+                new Notice(`Created ${metricsToCreate.length} missing metrics with default values`);
+            });
+        }
     }
     
     // Load Metrics Settings content
@@ -4447,8 +4560,33 @@ Example:
         });
         
         this.contentContainer.createEl('p', { 
-            text: 'Manage your dream metrics: add new metrics, enable/disable existing ones, and organize your tracking preferences.',
+            text: 'Manage your dream metrics: view descriptions, add new metrics, enable/disable existing ones, and restore missing defaults.',
             cls: 'oom-hub-content-description' 
+        });
+
+        // View Metrics Descriptions Section
+        const viewDescriptionsSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section' 
+        });
+        
+        viewDescriptionsSection.createEl('h3', { 
+            text: 'View Metrics Guide',
+            cls: 'oom-hub-section-title' 
+        });
+        
+        viewDescriptionsSection.createEl('p', { 
+            text: 'View detailed descriptions of all available metrics and understand what each metric measures.',
+            cls: 'oom-hub-section-description' 
+        });
+
+        const viewDescriptionsButton = viewDescriptionsSection.createEl('button', {
+            text: 'View Metrics Descriptions',
+            cls: 'mod-cta oom-view-descriptions-btn'
+        });
+
+        viewDescriptionsButton.addEventListener('click', () => {
+            // Navigate to the Reference Overview tab which contains metrics descriptions
+            this.selectTab('overview');
         });
 
         // Add Metric Section
@@ -4472,9 +4610,41 @@ Example:
         });
 
         addMetricButton.addEventListener('click', () => {
-            // TODO: Import and use MetricEditorModal
-            new Notice('Add Metric functionality will be implemented shortly');
+            new MetricEditorModal(
+                this.app,
+                {
+                    name: '',
+                    icon: '',
+                    minValue: 1,
+                    maxValue: 5,
+                    description: '',
+                    enabled: true
+                },
+                Object.values(this.plugin.settings.metrics),
+                async (metric) => {
+                    // Create a standardized metric with all required properties
+                    const metricTemplate = DEFAULT_METRICS[metric.name] || {};
+                    // Merge the template with our metric and ensure all required properties
+                    const metricData = {
+                        ...metricTemplate,
+                        name: metric.name,
+                        enabled: true,
+                        icon: metricTemplate.icon || 'help-circle',
+                        minValue: metricTemplate.minValue || 1,
+                        maxValue: metricTemplate.maxValue || 5,
+                        description: metricTemplate.description || ''
+                    };
+                    // Use our helper to ensure the metric is complete
+                    const completeMetric = ensureCompleteMetric(metricData);
+                    this.plugin.settings.metrics[completeMetric.name] = completeMetric;
+                    await this.plugin.saveSettings();
+                    this.loadMetricsSettingsContent(); // Refresh the content
+                }
+            ).open();
         });
+
+        // Missing Metrics Section
+        // this.addMissingMetricsSection(); // TODO: Implement inline
 
         // Enabled Metrics Section
         const enabledSection = this.contentContainer.createDiv({ 
@@ -4483,9 +4653,9 @@ Example:
         
         enabledSection.createEl('h3', { 
             text: 'Enabled Metrics',
-            cls: 'oom-hub-section-title' 
-        });
-
+                cls: 'oom-hub-section-title' 
+            });
+            
         // Disabled Metrics Section  
         const disabledSection = this.contentContainer.createDiv({ 
             cls: 'oom-hub-section' 
@@ -4496,16 +4666,8 @@ Example:
             cls: 'oom-hub-section-title' 
         });
 
-        // Render metrics (placeholder for now)
-        enabledSection.createEl('p', { 
-            text: 'Enabled metrics will be displayed here.',
-            cls: 'oom-hub-placeholder-text' 
-        });
-
-        disabledSection.createEl('p', { 
-            text: 'Disabled metrics will be displayed here.',
-            cls: 'oom-hub-placeholder-text' 
-        });
+        // Render metrics
+        this.renderMetricsLists(enabledSection, disabledSection);
     }
 
     // Validate a template (placeholder implementation)
@@ -6127,7 +6289,7 @@ Example:
                             importCount++;
                             break;
                     }
-                } else {
+        } else {
                     // No conflict, add new template
                     const newTemplate = {
                         ...importedTemplate,
@@ -6384,6 +6546,170 @@ Example:
         }
         
         codeBlock.textContent = previewContent || '(No content available)';
+    }
+
+    // Render metrics lists
+    private renderMetricsLists(enabledSection: HTMLElement, disabledSection: HTMLElement) {
+        // Helper function to add metric toggles with full functionality
+        const addMetricToggle = (metric: DreamMetric, key: string, container: HTMLElement) => {
+            const setting = new Setting(container)
+                .setName(metric.name)
+                .setDesc(metric.description || '')
+                .addToggle(toggle => {
+                    toggle.setValue(isMetricEnabled(metric))
+                        .onChange(async (value) => {
+                            setMetricEnabled(metric, value);
+                await this.plugin.saveSettings();
+                this.loadMetricsSettingsContent(); // Refresh the content
+                        });
+                })
+                .addExtraButton(button => {
+                    button.setIcon('pencil')
+                        .setTooltip('Edit metric')
+                        .onClick(() => {
+                            // Import MetricEditorModal from settings.ts
+                            const { MetricEditorModal } = require('../../../settings');
+                            new MetricEditorModal(
+                                this.app,
+                                { ...metric },
+                                Object.values(this.plugin.settings.metrics),
+                                async (updatedMetric) => {
+                                    // Use our helper to ensure the metric is complete
+                                    const { ensureCompleteMetric } = require('../../utils/metric-helpers');
+                                    const completeUpdatedMetric = ensureCompleteMetric(updatedMetric);
+                                    this.plugin.settings.metrics[updatedMetric.name] = completeUpdatedMetric;
+                                    // If the name was changed, remove the old key
+                                    if (updatedMetric.name !== key) {
+                                        delete this.plugin.settings.metrics[key];
+                                    }
+                                    await this.plugin.saveSettings();
+                                    this.loadMetricsSettingsContent(); // Refresh
+                                },
+                                true // isEditing
+                            ).open();
+                        });
+                })
+                .addExtraButton(button => {
+                    button.setIcon('trash')
+                        .setTooltip('Delete metric')
+                        .onClick(() => {
+                            delete this.plugin.settings.metrics[key];
+                            this.plugin.saveSettings();
+                            this.loadMetricsSettingsContent(); // Refresh the content
+                        });
+                });
+                
+            // Add drag handle
+            const dragHandle = setting.controlEl.createEl('div', {
+                cls: 'oom-drag-handle',
+                attr: { 'data-index': key }
+            });
+            dragHandle.innerHTML = '⋮⋮';
+        };
+
+        // Function to check if a metric should be displayed in settings
+        const shouldDisplayInSettings = (metric: DreamMetric): boolean => {
+            // Skip the Words metric as it's a calculated value
+            return metric.name !== 'Words';
+        };
+
+        // Get all metrics from settings
+        const allMetrics = Object.entries(this.plugin.settings.metrics || {});
+        
+        // Group metrics by enabled status
+        const groupedMetrics = {
+            enabled: [] as [string, DreamMetric][],
+            disabled: [] as [string, DreamMetric][]
+        };
+
+        // Sort into enabled/disabled groups
+        allMetrics.forEach(([key, metric]) => {
+            // Only include metrics that should be displayed in settings
+            if (shouldDisplayInSettings(metric)) {
+                const group = isMetricEnabled(metric) ? groupedMetrics.enabled : groupedMetrics.disabled;
+                group.push([key, metric]);
+            }
+        });
+
+        // Helper function to sort metrics by order
+        const sortMetricEntriesByOrder = (
+            metricEntries: [string, DreamMetric][],
+            orderArray: string[]
+        ): [string, DreamMetric][] => {
+            return metricEntries.sort(([keyA, metricA], [keyB, metricB]) => {
+                const indexA = orderArray.indexOf(metricA.name);
+                const indexB = orderArray.indexOf(metricB.name);
+                
+                // If both metrics are in the order array, sort by their position
+                if (indexA !== -1 && indexB !== -1) {
+                    return indexA - indexB;
+                }
+                
+                // If only A is in the order array, it comes first
+                if (indexA !== -1) return -1;
+                
+                // If only B is in the order array, it comes first
+                if (indexB !== -1) return 1;
+                
+                // If neither is in the order array, sort alphabetically
+                return metricA.name.localeCompare(metricB.name);
+            });
+        };
+
+        // Import the order arrays from settings
+        const { RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER } = require('../../../settings');
+
+        // Sort metrics by the predefined order
+        if (groupedMetrics.enabled.length > 0) {
+            groupedMetrics.enabled = sortMetricEntriesByOrder(
+                groupedMetrics.enabled, 
+                RECOMMENDED_METRICS_ORDER
+            );
+        }
+
+        if (groupedMetrics.disabled.length > 0) {
+            groupedMetrics.disabled = sortMetricEntriesByOrder(
+                groupedMetrics.disabled,
+                DISABLED_METRICS_ORDER
+            );
+        }
+
+        // Clear existing content
+        enabledSection.innerHTML = '';
+        enabledSection.createEl('h3', { 
+            text: 'Enabled Metrics',
+            cls: 'oom-hub-section-title' 
+        });
+
+        disabledSection.innerHTML = '';
+        disabledSection.createEl('h3', { 
+            text: 'Disabled Metrics',
+            cls: 'oom-hub-section-title' 
+        });
+
+        // Render enabled metrics
+        if (groupedMetrics.enabled.length > 0) {
+            groupedMetrics.enabled.forEach(([key, metric]) => {
+                addMetricToggle(metric, key, enabledSection);
+            });
+        } else {
+            enabledSection.createEl('p', { 
+                text: 'No metrics are currently enabled. Enable some metrics below or add new ones.',
+                cls: 'oom-hub-empty-state' 
+            });
+        }
+
+        // Render disabled metrics
+        if (groupedMetrics.disabled.length > 0) {
+            groupedMetrics.disabled.forEach(([key, metric]) => {
+                addMetricToggle(metric, key, disabledSection);
+            });
+        } else {
+            disabledSection.createEl('p', { 
+                text: 'All available metrics are currently enabled.',
+                cls: 'oom-hub-empty-state' 
+            });
+        }
     }
 }
 

@@ -268,7 +268,7 @@ Issues can be resolved in multiple ways:
 | UI-001 | "Show more" buttons missing in Content column | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
 | UI-002 | Date extraction issues in certain formats | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
 | UI-003 | Dream title extraction inconsistent | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
-| UI-004 | Table virtualization not working correctly | Medium | Known | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md) |
+| UI-004 | Table virtualization not working correctly | Medium | ✅ **RESOLVED** | [Implementation Details](../../archive/planning/features/2025/virtualization.md) |
 
 ### Dream Entry Detection
 

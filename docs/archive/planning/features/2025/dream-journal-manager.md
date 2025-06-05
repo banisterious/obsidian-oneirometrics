@@ -1,5 +1,10 @@
 # Dream Journal Manager - Consolidation Plan
 
+> **📁 ARCHIVED DOCUMENT** ✅  
+> **Date Archived**: January 2025  
+> **Status**: Superseded by HubModal implementation  
+> **Outcome**: Functionality consolidated into OneiroMetrics Hub with different architecture than originally planned  
+
 ## Overview
 
 This document outlines the plan to consolidate the Dream Scrape modal and the Journal Structure Settings modal into a single unified "Dream Journal Manager" modal with a tabbed interface.

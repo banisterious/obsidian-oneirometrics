@@ -200,9 +200,9 @@ Default metrics include:
 ### Performance Settings
 
 #### Virtualization Enabled
-- **Description**: Controls whether table virtualization is used for large tables
-- **Default**: Enabled
-- **Notes**: Virtualization improves performance by only rendering visible rows (about 12 at a time)
+- **Description**: Controls whether table virtualization is used for large tables ✅ **IMPLEMENTED**
+- **Default**: `true`
+- **Notes**: Virtualization improves performance by only rendering visible rows (about 12 at a time). See [Implementation Details](../../archive/planning/features/2025/virtualization.md) for technical information.
 
 #### Rows Per Page
 - **Description**: Number of visible rows to render at once when virtualized

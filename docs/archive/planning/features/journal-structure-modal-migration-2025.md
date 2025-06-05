@@ -2,12 +2,13 @@
 
 > **📁 ARCHIVED DOCUMENT**  
 > **Date Archived**: June 1, 2025  
-> **Reason**: Migration approach superseded by [Journal Structure Integration Project 2025](../../planning/features/journal-structure-integration-2025.md)  
+> **Reason**: Migration approach superseded by [Journal Structure Integration Project 2025](../../../archive/planning/features/journal-structure-integration-2025.md) (**COMPLETED January 2025**)  
 > **Status**: UI migration completed - archived to avoid planning confusion  
 > 
 > This document tracked the migration of Journal Structure Modal functionality into the OneiroMetrics Hub. The migration work described here has been completed, but the overall project approach has evolved to focus on **core parsing integration** rather than additional UI enhancements.
 > 
-> **Current Active Project**: [📋 Journal Structure Integration 2025](../../planning/features/journal-structure-integration-2025.md)
+> **Previous Project**: [📋 Journal Structure Integration 2025](../../../archive/planning/features/journal-structure-integration-2025.md) (**COMPLETED**)  
+> **Current Active Project**: [🧠 Smart Journal Analysis 2025](../../planning/features/smart-journal-analysis-2025.md) - Advanced intelligence features
 
 ---
 

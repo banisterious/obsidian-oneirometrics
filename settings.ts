@@ -108,7 +108,7 @@ export const lucideIconMap: Record<string, string> = Object.assign({},
 
 // Helper function to ensure a metric has all required properties
 // Uses standardizeMetric under the hood to ensure proper type compatibility
-function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric {
+export function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric {
     // Start with at least these required properties
     const metricWithRequired = {
         name: metric.name || '',
@@ -149,7 +149,7 @@ function validateMetricDescription(description: string): string | null {
 }
 
 // Metric Editor Modal
-class MetricEditorModal extends Modal {
+export class MetricEditorModal extends Modal {
     private metric: DreamMetric;
     private onSubmit: (metric: DreamMetric) => void;
     private existingMetrics: DreamMetric[];
@@ -569,182 +569,35 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                         
                         // Use ModalsManager instead of the removed showMetricsTabsModal method
                         const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                        modalsManager.openHubModal();
+                        const hubModal = modalsManager.openHubModal() as any;
+                        // Navigate to the overview tab
+                        setTimeout(() => {
+                            hubModal.selectTab('overview');
+                        }, 100);
                     });
             });
 
-        // Create a dedicated "Add Metric" section
-        const addMetricSection = new Setting(containerEl)
-            .setName('Add Metric')
-            .setDesc('Create a custom metric to track additional aspects of your dreams');
-        
-        // Add the button to the right side of the section
-        addMetricSection.addButton(button => {
-            button
-                .setButtonText('Add Metric')
-                .onClick(() => {
-                    new MetricEditorModal(
-                        this.app,
-                        {
-                            name: '',
-                            icon: '',
-                            minValue: 1,
-                            maxValue: 5,
-                            description: '',
-                            enabled: true
-                        },
-                        Object.values(this.plugin.settings.metrics),
-                        async (metric) => {
-                            // Create a standardized metric with all required properties
-                            const metricTemplate = DEFAULT_METRICS[metric.name] || {};
-                            // Merge the template with our metric and ensure all required properties
-                            const metricData = {
-                                ...metricTemplate,
-                                name: metric.name,
-                                enabled: true,
-                                icon: metricTemplate.icon || 'help-circle',
-                                minValue: metricTemplate.minValue || 1,
-                                maxValue: metricTemplate.maxValue || 5,
-                                description: metricTemplate.description || ''
-                            };
-                            // Use our helper to ensure the metric is complete
-                            metric = ensureCompleteMetric(metricData);
-                            this.plugin.settings.metrics[metric.name] = metric;
-                            await this.plugin.saveSettings();
-                            this.display();
-                        }
-                    ).open();
-                });
-        });
-        
-        // Helper function to add metric toggles
-        const addMetricToggle = (metric: DreamMetric, key: string, container: HTMLElement) => {
-            const metricSetting = new Setting(container)
-                .setName(metric.name)
-                .setDesc(metric.description || '')
-                .addToggle(toggle => {
-                    toggle.setValue(isMetricEnabled(metric))
-                        .onChange(async (value) => {
-                            setMetricEnabled(metric, value);
-                            await this.plugin.saveSettings();
-                            this.display();
-                        });
-                })
-                .addExtraButton(button => {
-                    button.setIcon('pencil')
-                        .setTooltip('Edit metric')
-                        .onClick(() => {
-                            new MetricEditorModal(
-                                this.app,
-                                { ...metric },
-                                Object.values(this.plugin.settings.metrics),
-                                async (updatedMetric) => {
-                                    // Use our helper to ensure the metric is complete
-                                    const completeUpdatedMetric = ensureCompleteMetric(updatedMetric);
-                                    this.plugin.settings.metrics[updatedMetric.name] = completeUpdatedMetric;
-                                    // If the name was changed, remove the old key
-                                    if (updatedMetric.name !== key) {
-                                        delete this.plugin.settings.metrics[key];
-                                    }
-                                    await this.plugin.saveSettings();
-                                    this.display();
-                                },
-                                true // isEditing
-                            ).open();
-                        });
-                })
-                .addExtraButton(button => {
-                    button.setIcon('trash')
-                        .setTooltip('Delete metric')
-                        .onClick(() => {
-                            delete this.plugin.settings.metrics[key];
-                            this.plugin.saveSettings();
-                            this.display();
-                        });
-                });
-                
-            // Add drag handle
-            const dragHandle = metricSetting.controlEl.createEl('div', {
-                cls: 'oom-drag-handle',
-                attr: { 'data-index': key }
+        // Metrics Management - Redirect to Hub
+        new Setting(containerEl)
+            .setName('Metrics Management')
+            .setDesc('Add, edit, enable/disable metrics in the OneiroMetrics Hub interface')
+            .addButton(button => {
+                button.setButtonText('Open Metrics Settings')
+                    .onClick(() => {
+                        // Close the settings modal first
+                        (this.app as any).setting.close();
+                        
+                        // Open Hub modal and navigate to Metrics Settings tab
+                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
+                        const hubModal = modalsManager.openHubModal() as any;
+                        // Navigate to the metrics-settings tab
+                        setTimeout(() => {
+                            hubModal.selectTab('metrics-settings');
+                        }, 100);
+                    });
             });
-            dragHandle.innerHTML = '⋮⋮';
-        };
 
-        // Group metrics by enabled status
-        const groupedMetrics = {
-            enabled: [] as [string, DreamMetric][],
-            disabled: [] as [string, DreamMetric][]
-        };
-
-        // Function to check if a metric should be displayed in settings
-        const shouldDisplayInSettings = (metric: DreamMetric): boolean => {
-            // Skip the Words metric as it's a calculated value
-            return metric.name !== 'Words';
-        };
-
-        // Sort into enabled/disabled groups
-        Object.entries(this.plugin.settings.metrics || {}).forEach(([key, metric]) => {
-            // Only include metrics that should be displayed in settings
-            if (shouldDisplayInSettings(metric)) {
-                const group = isMetricEnabled(metric) ? groupedMetrics.enabled : groupedMetrics.disabled;
-                group.push([key, metric]);
-            }
-        });
-
-        // Log metrics information
-        debug('Settings', 'Metrics summary', {
-            total: Object.keys(this.plugin.settings.metrics || {}).length,
-            enabled: groupedMetrics.enabled.length,
-            disabled: groupedMetrics.disabled.length,
-            enabledMetrics: groupedMetrics.enabled.map(([key, m]) => m.name).join(', '),
-            disabledMetrics: groupedMetrics.disabled.map(([key, m]) => m.name).join(', ')
-        });
-
-        // Debug logging for metric groups is redundant, already captured above
-
-        // Sort metrics by the predefined order rather than alphabetically
-        if (groupedMetrics.enabled.length > 0) {
-            groupedMetrics.enabled = sortMetricEntriesByOrder(
-                groupedMetrics.enabled, 
-                RECOMMENDED_METRICS_ORDER
-            );
-        }
-
-        if (groupedMetrics.disabled.length > 0) {
-            groupedMetrics.disabled = sortMetricEntriesByOrder(
-                groupedMetrics.disabled,
-                DISABLED_METRICS_ORDER
-            );
-        }
-
-        // Create container for metrics settings
-        const metricsContainer = containerEl.createDiv({ cls: 'oom-metrics-container' });
-
-        // Display enabled metrics
-        if (groupedMetrics.enabled.length > 0) {
-            metricsContainer.createEl('h2', { text: 'Enabled Metrics' });
-            groupedMetrics.enabled.forEach(([key, metric]) => {
-                addMetricToggle(metric, key, metricsContainer);
-            });
-        }
-
-        // Display disabled metrics
-        if (groupedMetrics.disabled.length > 0) {
-            metricsContainer.createEl('h2', { text: 'Disabled Metrics' });
-            groupedMetrics.disabled.forEach(([key, metric]) => {
-                addMetricToggle(metric, key, metricsContainer);
-            });
-        }
-
-        // Add section border after metrics settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
-        
-        // Check for missing metrics and add restore options
-        this.addMissingMetrics(containerEl);
-        
-        // Add section border after missing metrics section
-        containerEl.createEl('div', { cls: 'oom-section-border' });
+        // This functionality has been moved to the OneiroMetrics Hub - Metrics Settings tab
 
         // Add Backup Settings Section
         containerEl.createEl('h2', { text: 'Backup Settings' });

@@ -86,6 +86,8 @@ Successfully transformed the Date Navigator from a sidebar leaf view to a modal-
 
 The Apply Filter button was added to enable explicit filter application, which is particularly important for future multi-selection features:
 
+> **📋 Update**: Multi-selection functionality has been **completed** ✅ - see [Date Navigator Multi-Selection Plan](../../archive/planning/features/2025/date-navigator-multi-selection.md) for implementation details.
+
 1. **Purpose**
    - Creates a clear separation between date selection and filter application
    - Makes the filtering action deliberate and obvious to users
@@ -171,7 +173,7 @@ All critical issues have been resolved:
 
 ### Future Enhancements
 - Consider implementing year view navigation for easier date browsing
-- Add support for multi-date and date range selection
+- ✅ **COMPLETED**: Add support for multi-date and date range selection ([📋 Implementation Details](../../archive/planning/features/2025/date-navigator-multi-selection.md))
 - Explore the web worker architecture detailed in this document
 - Add tooltips and hover previews for entries on calendar view
 - Auto-apply filtering on day selection:
@@ -180,6 +182,7 @@ All critical issues have been resolved:
   - Add setting to control whether filter is auto-applied
   - Provide visual feedback during the filtering process
   - Estimated effort: Low (1-2 hours)
+- ✅ **COMPLETED**: Consider implementing virtualization for filtered tables ([📋 Implementation Details](../../archive/planning/features/2025/virtualization.md))
 
 ## Architectural Review and Open Questions
 
@@ -701,6 +704,6 @@ All critical issues have been resolved:
 
 ### Future Enhancements
 - Consider implementing year view navigation for easier date browsing
-- Add support for multi-date and date range selection
+- ✅ **COMPLETED**: Add support for multi-date and date range selection ([📋 Implementation Details](../../archive/planning/features/2025/date-navigator-multi-selection.md))
 - Explore the web worker architecture detailed in this document
 - Add tooltips and hover previews for entries on calendar view

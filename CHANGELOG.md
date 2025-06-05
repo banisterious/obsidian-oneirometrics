@@ -25,7 +25,7 @@
 
 ## [0.11.1] - 2025-06-03
 ### Added
-- **Unified Test Suite Modal**: Consolidated all testing functionality into a single comprehensive interface with integrated log viewer and export capabilities
+- **Unified Test Suite Modal**: Consolidated all testing functionality into a single comprehensive interface with integrated log viewer and export capabilities ✅ **COMPLETED** ([📋 Planning Document](docs/archive/planning/features/2025/unified-test-suite-modal-2025.md))
 
 ### Changed
 - **Streamlined Command Palette**: Reduced to just 2 essential commands ("Open Hub" and "Open Unified Test Suite") with cleaner naming
