@@ -68,6 +68,11 @@ export class SettingsAdapter {
       calloutName: settings.calloutName || 'dream',
       journalCalloutName: settings.journalCalloutName || 'journal',
       dreamDiaryCalloutName: settings.dreamDiaryCalloutName || 'dream-diary',
+      
+      // Add exclusion settings with proper defaults
+      excludedNotes: settings.excludedNotes || [],
+      excludedSubfolders: settings.excludedSubfolders || [],
+      
       dateHandling: this.getDateHandlingConfig(settings),
       showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || true),
       backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,
