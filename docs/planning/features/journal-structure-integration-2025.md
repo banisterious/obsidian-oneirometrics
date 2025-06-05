@@ -76,9 +76,10 @@
 | 3.2 | Migration tools | 🔄 **PLANNED** | Help users migrate between structures |
 | 3.3 | Custom structure creation | 🔄 **PLANNED** | UI for creating custom structures |
 | **Phase 3: UI/UX Enhancements** | | | |
-| 3.4 | Callout Settings consolidation | 🔄 **PLANNED** | Explore merging Callout Settings into Journal Structure tab |
-| 3.5 | Template icon buttons | 🔄 **PLANNED** | Replace text buttons with icons (pencil, eye, trashcan) |
-| 3.6 | Advanced validation | 🔄 **PLANNED** | Real-time structure validation with LintingEngine |
+| 3.4 | Callout Settings consolidation | ✅ **COMPLETE** | **2025-06-04** - Merged Callout Settings into Journal Structure tab with template management |
+| 3.5 | Template icon buttons | ✅ **COMPLETE** | **2025-06-04** - Modern icon buttons with click-to-expand preview |
+| 3.6 | Hub tab consolidation | ✅ **COMPLETE** | **2025-06-04** - Eliminated redundant Journal Structure tab, unified interface |
+| 3.7 | Advanced validation | 🔄 **PLANNED** | Real-time structure validation with LintingEngine |
 
 ### **File Modification Tracker**
 
@@ -87,9 +88,10 @@
 | `src/workers/UniversalMetricsCalculator.ts` | Core | High | ✅ **COMPLETE** | Structure-based callout recognition implemented | Settings system |
 | `src/types/journal-check.ts` | Types | High | ✅ **COMPLETE** | Default structures and type definitions | None |
 | `src/dom/modals/HubModal.ts` | UI | High | ✅ **COMPLETE** | **v0.12.0** - Unified Hub with consolidated settings | Modal components |
-| `src/utils/structure-helpers.ts` | Utils | Medium | ✅ **COMPLETE** | Structure helper functions implemented | Type definitions |
 | `src/dom/modals/HubModal.ts` (Date Fields) | UI | High | ✅ **COMPLETE** | **v0.12.0** - Complete date field system rebuild | date-fns integration |
 | `src/dom/modals/HubModal.ts` (Callout Settings) | UI | High | ✅ **COMPLETE** | **v0.12.0** - Callout Settings integrated into Hub | Settings persistence |
+| `src/dom/modals/HubModal.ts` (Template Interface) | UI | Medium | ✅ **COMPLETE** | **2025-06-04** - Template icon buttons & click-to-expand functionality | Template management |
+| `src/dom/modals/HubModal.ts` (Tab Consolidation) | UI | Medium | ✅ **COMPLETE** | **2025-06-04** - Merged Callout Settings into Journal Structure, eliminated redundant tabs | Hub interface |
 | Test files | Tests | Medium | 🔄 **PLANNED** | Unit and integration tests | Implementation complete |
 
 ### **Testing Progress**
@@ -494,8 +496,29 @@ The remaining work focuses on making the structure system fully functional and u
 - 🔄 **Implement real-time validation feedback in Hub**
 
 **Priority 3.3: UI/UX Enhancements (Medium Priority)**
-- 🔄 **Explore consolidating Callout Settings tab into Journal Structure tab** (with callout settings at the top)
-- 🔄 **Replace Existing Templates text buttons with icon buttons** (pencil for Edit, eye for View, trashcan for Delete)
+- ✅ **Consolidate Callout Settings into Journal Structure tab** (**COMPLETE 2025-06-04**)
+  - ✅ Moved all callout configuration settings from separate tab into Journal Structure
+  - ✅ Added comprehensive callout name settings (Journal, Dream Diary, Metrics)
+  - ✅ Integrated date formatting controls with live preview functionality
+  - ✅ Added date placement options (header vs field) with configuration controls
+  - ✅ Consolidated block reference settings and metadata configuration
+  - ✅ Merged template management functionality into unified interface
+  - ✅ Eliminated redundant "Callout Settings" tab for streamlined navigation
+  - ✅ Updated wizard breadcrumb navigation to reflect new structure
+  - ✅ Maintained all existing functionality while improving user experience
+- ✅ **Replace Existing Templates text buttons with icon buttons** (**COMPLETE 2025-06-04**) 
+  - ✅ Replaced text buttons with modern icon buttons (pencil, copy, download, trash)
+  - ✅ Added click-to-expand functionality for template rows with content preview
+  - ✅ Removed redundant View button (users click row to preview instead)
+  - ✅ Streamlined preview content (removed type/content labels for cleaner design)
+  - ✅ Migrated all inline styling to CSS classes for maintainability
+  - ✅ Enhanced accessibility with proper ARIA labels and keyboard navigation
+- ✅ **Hub tab consolidation and interface optimization** (**COMPLETE 2025-06-04**)
+  - ✅ Eliminated redundant Journal Structure tab after content migration
+  - ✅ Renamed "Callout Settings" to "Journal Structure" (poetic justice!)
+  - ✅ Optimized tab ordering: Dashboard → Journal Structure → Dream Scrape → Content Analysis
+  - ✅ Updated Template Management header from h2 to h3 for better hierarchy
+  - ✅ Improved visual organization and reduced cognitive load
 - 🔄 **Improve visual hierarchy and accessibility across Hub interface**
 - 🔄 **Add keyboard shortcuts for common Hub operations**
 

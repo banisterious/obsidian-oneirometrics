@@ -184,9 +184,8 @@ export class HubModal extends Modal {
     private createTabs() {
         // Create new management tabs first
         this.createDashboardTab();
-        this.createCalloutSettingsTab(); // Moved up and renamed
+        this.createJournalStructureTab(); // Now includes template management
         this.createDreamScrapeTab();
-        this.createJournalStructureTab();
         this.createContentAnalysisTab(); // NEW: Content Analysis tab
         
         // Create Overview tab (renamed to Reference Overview)
@@ -216,6 +215,23 @@ export class HubModal extends Modal {
         });
     }
     
+    // Create Journal Structure tab (renamed from Callout Settings)
+    private createJournalStructureTab() {
+        const journalStructureTab = this.tabsContainer.createDiv({
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
+            attr: { 'data-tab-id': 'journal-structure' }
+        });
+
+        journalStructureTab.createDiv({ 
+            text: 'Journal Structure', 
+            cls: 'oom-hub-tab-label' 
+        });
+
+        journalStructureTab.addEventListener('click', () => {
+            this.selectTab('journal-structure');
+        });
+    }
+    
     // Create Dream Scrape tab
     private createDreamScrapeTab() {
         const dreamScrapeTab = this.tabsContainer.createDiv({
@@ -233,23 +249,6 @@ export class HubModal extends Modal {
         });
     }
     
-    // Create Journal Structure tab
-    private createJournalStructureTab() {
-        const journalStructureTab = this.tabsContainer.createDiv({
-            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
-            attr: { 'data-tab-id': 'journal-structure' }
-        });
-        
-        journalStructureTab.createDiv({ 
-            text: 'Journal Structure', 
-            cls: 'oom-hub-tab-label' 
-        });
-        
-        journalStructureTab.addEventListener('click', () => {
-            this.selectTab('journal-structure');
-        });
-    }
-    
     // Create Content Analysis tab
     private createContentAnalysisTab() {
         const contentAnalysisTab = this.tabsContainer.createDiv({
@@ -264,23 +263,6 @@ export class HubModal extends Modal {
         
         contentAnalysisTab.addEventListener('click', () => {
             this.selectTab('content-analysis');
-        });
-    }
-    
-    // Create Callout Settings tab (renamed from Callout Quick Copy)
-    private createCalloutSettingsTab() {
-        const calloutSettingsTab = this.tabsContainer.createDiv({
-            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
-            attr: { 'data-tab-id': 'callout-settings' }
-        });
-
-        calloutSettingsTab.createDiv({ 
-            text: 'Callout Settings', 
-            cls: 'oom-hub-tab-label' 
-        });
-
-        calloutSettingsTab.addEventListener('click', () => {
-            this.selectTab('callout-settings');
         });
     }
     
@@ -360,12 +342,10 @@ export class HubModal extends Modal {
             this.loadDashboardContent();
         } else if (tabId === 'dream-scrape') {
             this.loadDreamScrapeContent();
-        } else if (tabId === 'journal-structure') {
-            this.loadJournalStructureContent();
         } else if (tabId === 'content-analysis') {
             this.loadContentAnalysisContent();
-        } else if (tabId === 'callout-settings') {
-            this.loadCalloutSettingsContent();
+        } else if (tabId === 'journal-structure') {
+            this.loadJournalStructureContent();
         } else if (tabId === 'overview') {
             this.loadOverviewContent();
         } else {
@@ -1364,290 +1344,15 @@ This metric assesses **how well your memory of the dream holds up and remains co
     private loadJournalStructureContent() {
         this.contentContainer.empty();
         
-        if (this.journalStructureMode === 'wizard' && this.wizardState) {
-            // Render wizard mode with preserved state
-            this.renderEmbeddedWizard();
-        } else {
-            // Render normal mode
-            this.renderNormalJournalStructureMode();
-        }
-    }
-    
-    /**
-     * Render normal Journal Structure mode
-     */
-    private renderNormalJournalStructureMode() {
-        // Add header section
-        const headerSection = this.contentContainer.createDiv({ 
-            cls: 'oom-journal-structure-header' 
-        });
-        
-        headerSection.createEl('h2', { text: 'Journal Structure' });
-        
-        headerSection.createEl('p', { 
-            text: 'Configure journal structure settings, templates, validation rules, and interface preferences.',
-            cls: 'oom-journal-structure-description'
-        });
-        
-        headerSection.createEl('p', { 
-            text: 'Structures define the organizational framework (what callout types are allowed, how they nest, validation rules), while Templates provide the actual content implementations that reference and conform to those structures. Each template must reference exactly one structure, but multiple templates can use the same structure for different content styles.',
-            cls: 'oom-journal-structure-description'
-        });
-        
-        // Create main content container - single page layout
-        const mainContainer = this.contentContainer.createDiv({ 
-            cls: 'oom-journal-structure-main' 
-        });
-        
-        // Simple Template Creation button - launches wizard
-        const templateSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
-        templateSection.createEl('h3', { text: 'Template Creation', cls: 'oom-section-header' });
-        
-        templateSection.createEl('p', { 
-            text: 'Create and manage journal templates using the unified template wizard.' 
-        });
-        
-        // Add placeholder documentation
-        templateSection.createEl('p', {
-            text: 'When creating templates, use placeholders for dynamic content: {{date}} (2025-01-15), {{date-long}} (January 15, 2025), {{date-month-day}} (January 15), {{date-compact}} / {{date-ref}} (20250115), {{title}}, {{content}}, {{metrics}}, or individual metric names like {{Sensory Detail}}.',
-            cls: 'oom-journal-structure-description'
-        });
-        
-        // Get existing templates for display
-        const templates = this.plugin.settings.linting?.templates || [];
-        
-        // Template creation button - switches to wizard mode
-        const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
-        createBtnContainer.style.marginTop = '1em';
-        const createBtn = createBtnContainer.createEl('button', { 
-            text: 'Open Template Wizard',
-            cls: 'oom-button-primary'
-        });
-        createBtn.addEventListener('click', () => {
-            this.enterWizardMode();
-        });
-        
-        // Template import/export section
-        const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
-        importExportSection.style.marginTop = '1.5em';
-        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
-        importExportSection.createEl('p', { 
-            text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
-            cls: 'oom-setting-desc'
-        });
-
-        const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.marginTop = '0.5em';
-
-        // Export button
-        const exportBtn = buttonContainer.createEl('button', {
-            text: 'Export Templates',
-            cls: 'oom-button'
-        });
-        exportBtn.addEventListener('click', () => {
-            this.exportTemplates();
-        });
-
-        // Import button  
-        const importBtn = buttonContainer.createEl('button', {
-            text: 'Import Templates',
-            cls: 'oom-button'
-        });
-        importBtn.addEventListener('click', () => {
-            this.importTemplates();
-        });
-
-        // Individual template export (if templates exist)
-        if (templates.length > 0) {
-            const individualExportBtn = buttonContainer.createEl('button', {
-                text: 'Export Selected',
-                cls: 'oom-button'
-            });
-            individualExportBtn.addEventListener('click', () => {
-                this.showTemplateExportDialog();
-            });
-        }
-        
-        // Show existing templates count if any
-        if (templates.length > 0) {
-            const statusEl = templateSection.createDiv({ cls: 'oom-template-status' });
-            statusEl.style.marginTop = '1em';
-            statusEl.createEl('h3', { text: 'Existing Templates' });
-            
-            // Create a table-like display for templates
-            const templatesContainer = statusEl.createDiv({ cls: 'oom-templates-list' });
-            templatesContainer.style.border = '1px solid var(--background-modifier-border)';
-            templatesContainer.style.borderRadius = '4px';
-            templatesContainer.style.marginTop = '0.5em';
-            
-            templates.forEach((template, index) => {
-                const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
-                templateRow.style.padding = '0.75em 1em';
-                templateRow.style.borderBottom = index < templates.length - 1 ? '1px solid var(--background-modifier-border)' : 'none';
-                templateRow.style.display = 'flex';
-                templateRow.style.justifyContent = 'space-between';
-                templateRow.style.alignItems = 'center';
-                
-                const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
-                templateInfo.createEl('strong', { text: template.name });
-                templateInfo.createEl('br');
-                
-                const detailsLine = templateInfo.createEl('span', { cls: 'oom-template-details' });
-                detailsLine.style.color = 'var(--text-muted)';
-                detailsLine.style.fontSize = '0.9em';
-                
-                if (template.isTemplaterTemplate && template.templaterFile) {
-                    detailsLine.textContent = `Templater: ${template.templaterFile}`;
-                } else if (template.structure) {
-                    detailsLine.textContent = `Structure: ${template.structure}`;
-                } else {
-                    detailsLine.textContent = 'Direct input template';
-                }
-                
-                const templateActions = templateRow.createDiv({ cls: 'oom-template-actions' });
-                templateActions.style.display = 'flex';
-                templateActions.style.gap = '0.5em';
-                
-                const editBtn = templateActions.createEl('button', {
-                    text: 'Edit',
-                    cls: 'oom-template-action-btn'
-                });
-                editBtn.style.padding = '0.25em 0.75em';
-                editBtn.style.fontSize = '0.85em';
-                editBtn.addEventListener('click', () => {
-                    this.editExistingTemplate(template);
-                });
-                
-                const viewBtn = templateActions.createEl('button', {
-                    text: 'View',
-                    cls: 'oom-template-action-btn'
-                });
-                viewBtn.style.padding = '0.25em 0.75em';
-                viewBtn.style.fontSize = '0.85em';
-                viewBtn.addEventListener('click', () => {
-                    this.viewTemplateContent(template);
-                });
-                
-                const deleteBtn = templateActions.createEl('button', {
-                    text: 'Delete',
-                    cls: 'oom-template-action-btn oom-template-delete-btn'
-                });
-                deleteBtn.style.padding = '0.25em 0.75em';
-                deleteBtn.style.fontSize = '0.85em';
-                deleteBtn.style.backgroundColor = 'var(--color-red)';
-                deleteBtn.style.color = 'var(--text-on-accent)';
-                deleteBtn.style.border = 'none';
-                deleteBtn.style.borderRadius = '3px';
-                deleteBtn.addEventListener('click', () => {
-                    this.deleteTemplate(template);
-                });
-            });
-        } else {
-            templateSection.createEl('p', { 
-                text: 'No templates configured yet. Use the Template Wizard to create your first template.',
-                cls: 'oom-empty-state'
-            });
-        }
-    }
-    
-    /**
-     * Render embedded wizard mode
-     */
-    private renderEmbeddedWizard() {
-        // Add wizard header
-        const headerSection = this.contentContainer.createDiv({ 
-            cls: 'oom-journal-structure-header oom-wizard-header' 
-        });
-        
-        const totalSteps = this.getWizardTotalSteps();
-        const titleText = `Journal Structure - Template Wizard (Step ${this.wizardState!.currentStep} of ${totalSteps})`;
-        headerSection.createEl('h2', { text: titleText });
-        
-        // Add breadcrumb with back button
-        const breadcrumbContainer = headerSection.createDiv({ cls: 'oom-wizard-breadcrumb' });
-        const backButton = breadcrumbContainer.createEl('button', {
-            text: '← Back to Overview',
-            cls: 'oom-wizard-back-button'
-        });
-        backButton.addEventListener('click', () => {
-            this.exitWizardMode();
-        });
-        
-        const templateName = this.wizardState!.templateName || 'New Template';
-        breadcrumbContainer.createEl('span', { 
-            text: ` | Creating: ${templateName}`,
-            cls: 'oom-wizard-breadcrumb-text'
-        });
-        
-        // Add description paragraphs for context (same as normal mode)
-        headerSection.createEl('p', { 
-            text: 'Configure journal structure settings, templates, validation rules, and interface preferences.',
-            cls: 'oom-journal-structure-description'
-        });
-        
-        headerSection.createEl('p', { 
-            text: 'Structures define the organizational framework (what callout types are allowed, how they nest, validation rules), while Templates provide the actual content implementations that reference and conform to those structures. Each template must reference exactly one structure, but multiple templates can use the same structure for different content styles.',
-            cls: 'oom-journal-structure-description'
-        });
-        
-        // Create wizard container
-        const wizardContainer = this.contentContainer.createDiv({ 
-            cls: 'oom-embedded-wizard-container' 
-        });
-        
-        // Create main wizard content area (scrollable)
-        const wizardMainContent = wizardContainer.createDiv({
-            cls: 'oom-wizard-main-content'
-        });
-        
-        // Clear previous step containers
-        this.wizardStepContainers = [];
-        
-        // Create step containers (max 3 steps)
-        for (let i = 1; i <= 3; i++) {
-            const stepContainer = wizardMainContent.createDiv({ 
-                cls: `oom-wizard-step step-${i}`,
-                attr: { 'data-step': i.toString() }
-            });
-            
-            if (i !== this.wizardState!.currentStep) {
-                stepContainer.style.display = 'none';
-            }
-            
-            this.wizardStepContainers.push(stepContainer);
-        }
-        
-        // Build current step
-        this.buildWizardStep(this.wizardState!.currentStep);
-        
-        // Create preview section in main content
-        this.createWizardPreviewSection(wizardMainContent);
-        
-        // Create sticky footer for navigation
-        const wizardFooter = wizardContainer.createDiv({ cls: 'oom-wizard-footer' });
-        
-        this.wizardNavigationEl = wizardFooter;
-        this.updateWizardNavigation();
-        
-        // Update preview
-        this.updateWizardPreview();
-    }
-
-    // Load Callout Quick Copy content with migrated functionality
-    private loadCalloutSettingsContent() {
-        this.contentContainer.empty();
-        
         // Add welcome text
         const welcomeText = this.contentContainer.createDiv({ 
             cls: 'oom-metrics-tabs-callout-settings-text' 
         });
         
-        welcomeText.createEl('h2', { text: 'Callout Settings' });
+        welcomeText.createEl('h2', { text: 'Journal Structure' });
         
         welcomeText.createEl('p', { 
-            text: 'Configure the callout names used throughout OneiroMetrics. These settings control how callouts are generated in Quick Copy and recognized during scraping.'
+            text: 'Configure callout names, date formatting, and template management for OneiroMetrics. These settings control how callouts are generated and recognized throughout the plugin, and include tools for creating and managing journal templates.'
         });
 
         // Global state for all sections
@@ -1752,7 +1457,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 .onChange(async (value) => {
                     this.plugin.settings.journalCalloutName = value.toLowerCase().replace(/\s+/g, '-');
                     await this.plugin.saveSettings();
-                    updateAllCallouts();
                 }));
 
         // Dream Diary Callout Name Setting
@@ -1765,7 +1469,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 .onChange(async (value) => {
                     this.plugin.settings.dreamDiaryCalloutName = value.toLowerCase().replace(/\s+/g, '-');
                     await this.plugin.saveSettings();
-                    updateAllCallouts();
                 }));
 
         // Metrics Callout Name Setting (moved from settings page)
@@ -1778,7 +1481,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 .onChange(async (value) => {
                     this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
                     await this.plugin.saveSettings();
-                    updateAllCallouts();
                 }));
 
         // Include Date Fields Setting (Master Toggle)
@@ -1809,7 +1511,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                         dateOptionsContainer.style.display = value ? 'block' : 'none';
                         
                         await this.plugin.saveSettings();
-                        updateAllCallouts();
                     });
             });
 
@@ -1839,7 +1540,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                         }
                         this.plugin.settings.dateHandling.placement = value;
                         await this.plugin.saveSettings();
-                        updateAllCallouts();
                     });
             });
 
@@ -1862,7 +1562,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                         }
                         this.plugin.settings.dateHandling.includeBlockReferences = value;
                         await this.plugin.saveSettings();
-                        updateAllCallouts();
                     });
             });
 
@@ -1890,7 +1589,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                         updateDateFormatPreview();
                         
                         await this.plugin.saveSettings();
-                        updateAllCallouts();
                     });
             });
 
@@ -1925,7 +1623,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 toggle.setValue(singleLine)
                     .onChange(async (value) => {
                         singleLine = value;
-                        updateAllCallouts();
                     });
             });
 
@@ -1937,7 +1634,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 toggle.setValue(flattenNested)
                     .onChange(async (value) => {
                         flattenNested = value;
-                        updateAllCallouts();
                     });
             });
 
@@ -1950,275 +1646,1011 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 .setValue(calloutMetadata)
                 .onChange(async (value) => {
                     calloutMetadata = value;
-                    updateAllCallouts();
                     await this.plugin.saveSettings();
                 }));
 
-        // Add section separator
+        // Add section separator before Template Management
         this.contentContainer.createEl('div', { cls: 'oom-section-border' });
 
-        // Quick Copy Section Header
-        this.contentContainer.createEl('h3', { text: 'Quick Copy' });
+        // Template Management Section
+        this.contentContainer.createEl('h3', { text: 'Template Management' });
+        
+        this.contentContainer.createEl('p', { 
+            text: 'Create and manage journal templates using the unified template wizard. Templates define the structure and content for your journal entries.',
+            cls: 'oom-journal-structure-description'
+        });
+        
         this.contentContainer.createEl('p', {
-            text: 'Generate and customize callouts for quick copying into your journal entries using the settings above.'
+            text: 'When creating templates, use placeholders for dynamic content: {{date}} (2025-01-15), {{date-long}} (January 15, 2025), {{date-month-day}} (January 15), {{date-compact}} / {{date-ref}} (20250115), {{title}}, {{content}}, {{metrics}}, or individual metric names like {{Sensory Detail}}.',
+            cls: 'oom-journal-structure-description'
         });
 
-        // Helper functions for callout generation
-        const buildDreamMetricsCallout = () => {
-            const meta = calloutMetadata.trim();
-            const metaStr = meta ? `|${meta}` : '';
-            const calloutName = getCalloutName();
-            const header = `> [!${calloutName}${metaStr}]`;
-            const metrics = [
-                '',
-                'Sensory Detail:',
-                'Emotional Recall:',
-                'Lost Segments:',
-                'Descriptiveness:',
-                'Confidence Score:'
-            ];
-            if (singleLine) {
-                return `${header}\n> ${metrics.slice(1).join(' , ')}`;
-            } else {
-                return `${header}\n> ${metrics.join(' \n> ')}`;
-            }
-        };
+        // Check if we're in wizard mode
+        if (this.journalStructureMode === 'wizard' && this.wizardState) {
+            // Render wizard mode
+            this.renderEmbeddedWizard();
+            return; // Exit early since wizard takes over the entire content area
+        }
 
-        // Helper to build journal callout
-        const buildJournalCallout = () => {
-            const meta = calloutMetadata.trim();
-            const calloutName = getJournalCalloutName();
-            const header = buildCalloutHeader(calloutName, meta, true);
-            const fields = [
-                '',
-                ...getDateFields(),
-                'Location:',
-                'Mood:',
-                'Key Events:',
-                'Reflections:'
-            ];
-            if (singleLine) {
-                return `${header}\n> ${fields.slice(1).join(' , ')}`;
-            } else {
-                return `${header}\n> ${fields.join(' \n> ')}`;
-            }
-        };
+        // Get existing templates for display
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        // Create main template container
+        const templateSection = this.contentContainer.createDiv({ cls: 'oom-journal-section' });
+        
+        // Template creation button - switches to wizard mode
+        const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
+        createBtnContainer.style.marginTop = '1em';
+        const createBtn = createBtnContainer.createEl('button', { 
+            text: 'Open Template Wizard',
+            cls: 'oom-button-primary'
+        });
+        createBtn.addEventListener('click', () => {
+            this.enterWizardMode();
+        });
+        
+        // Template import/export section
+        const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
+        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('p', { 
+            text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
+            cls: 'oom-setting-desc'
+        });
 
-        // Helper to build dream diary callout
-        const buildDreamDiaryCallout = () => {
-            const meta = calloutMetadata.trim();
-            const calloutName = getDreamDiaryCalloutName();
-            const header = buildCalloutHeader(calloutName, meta, true);
-            const fields = [
-                '',
-                ...getDateFields(),
-                'Dream Title:',
-                'Vividness:',
-                'Emotions:',
-                'Symbols:',
-                'Personal Meaning:'
-            ];
-            if (singleLine) {
-                return `${header}\n> ${fields.slice(1).join(' , ')}`;
-            } else {
-                return `${header}\n> ${fields.join(' \n> ')}`;
-            }
-        };
+        const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.marginTop = '0.5em';
 
-        // Helper to build nested callout
-        const buildNestedCallout = () => {
-            const meta = calloutMetadata.trim();
-            const journalCalloutName = getJournalCalloutName();
-            const dreamDiaryCalloutName = getDreamDiaryCalloutName();
-            const metricsCalloutName = getCalloutName();
+        // Export button
+        const exportBtn = buttonContainer.createEl('button', {
+            text: 'Export Templates',
+            cls: 'oom-button'
+        });
+        exportBtn.addEventListener('click', () => {
+            this.exportTemplates();
+        });
+
+        // Import button  
+        const importBtn = buttonContainer.createEl('button', {
+            text: 'Import Templates',
+            cls: 'oom-button'
+        });
+        importBtn.addEventListener('click', () => {
+            this.importTemplates();
+        });
+
+        // Individual template export (if templates exist)
+        if (templates.length > 0) {
+            const individualExportBtn = buttonContainer.createEl('button', {
+                text: 'Export Selected',
+                cls: 'oom-button'
+            });
+            individualExportBtn.addEventListener('click', () => {
+                this.showTemplateExportDialog();
+            });
+        }
+        
+        // Show existing templates count if any
+        if (templates.length > 0) {
+            const statusEl = templateSection.createDiv({ cls: 'oom-template-status' });
+            statusEl.createEl('h3', { text: 'Existing Templates' });
             
-            if (flattenNested) {
-                // Create separate callouts when flattened
-                const journalFields = [
-                    '',
-                    ...getDateFields(),
-                    'Location:',
-                    'Mood:',
-                    'Key Events:',
-                    'Reflections:'
-                ];
-                const journalContent = journalFields.join(' \n> ');
-                const journalHeader = buildCalloutHeader(journalCalloutName, meta, true);
-                const journalCallout = `${journalHeader}${journalContent}`;
+            // Create a table-like display for templates
+            const templatesContainer = statusEl.createDiv({ cls: 'oom-templates-list' });
+            
+            templates.forEach((template, index) => {
+                const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
                 
-                const dreamDiaryFields = [
-                    '',
-                    ...getDateFields(),
-                    'Dream Title:',
-                    'Vividness:',
-                    'Emotions:',
-                    'Symbols:',
-                    'Personal Meaning:'
-                ];
-                const dreamDiaryContent = dreamDiaryFields.join(' \n> ');
-                const dreamDiaryHeader = buildCalloutHeader(dreamDiaryCalloutName, meta, true);
-                const diaryCallout = `${dreamDiaryHeader}${dreamDiaryContent}`;
+                // Add hover effect
+                templateRow.addEventListener('mouseenter', () => {
+                    templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
+                });
+                templateRow.addEventListener('mouseleave', () => {
+                    if (!templateRow.classList.contains('oom-template-expanded')) {
+                        templateRow.style.backgroundColor = '';
+                    }
+                });
                 
-                const metricsFields = [
-                    '',
-                    'Sensory Detail: 1-5',
-                    'Emotional Recall: 1-5',
-                    'Lost Segments: 0-10',
-                    'Descriptiveness: 1-5',
-                    'Confidence Score: 1-5'
-                ];
-                const metricsHeader = buildCalloutHeader(metricsCalloutName, meta, false);
-                const metricsCallout = `${metricsHeader}\n> ${metricsFields.join(' \n> ')}`;
+                const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
+                templateInfo.createEl('strong', { text: template.name });
+                templateInfo.createEl('br');
                 
-                return `${journalCallout}\n\n${diaryCallout}\n\n${metricsCallout}`;
-            } else {
-                // Create nested structure with new date handling
-                const metricsFields = [
-                    'Sensory Detail: 1-5',
-                    'Emotional Recall: 1-5', 
-                    'Lost Segments: 0-10',
-                    'Descriptiveness: 1-5',
-                    'Confidence Score: 1-5'
-                ];
+                const detailsLine = templateInfo.createEl('span', { cls: 'oom-template-details' });
                 
-                // Apply single-line only to the metrics part
-                const metricsContent = singleLine 
-                    ? metricsFields.join(' , ')
-                    : metricsFields.join(' \n> > > ');
-                
-                // Build the nested structure with new date handling
-                const journalHeader = buildCalloutHeader(journalCalloutName, meta, true);
-                let nestedContent = `${journalHeader}\n> Enter your dream here.\n>\n`;
-                
-                // Add dream diary section with new date handling
-                const dreamDiaryHeader = buildCalloutHeader(dreamDiaryCalloutName, meta, true);
-                nestedContent += `> ${dreamDiaryHeader.substring(2)}\n`; // Remove first "> " since it's nested
-                
-                // Add date fields if configured for field placement
-                const dateFields = getDateFields();
-                if (dateFields.length > 0) {
-                    dateFields.forEach(field => {
-                        nestedContent += `> > ${field}\n`;
-                    });
+                if (template.isTemplaterTemplate && template.templaterFile) {
+                    detailsLine.textContent = `Templater: ${template.templaterFile}`;
+                } else if (template.structure) {
+                    detailsLine.textContent = `Structure: ${template.structure}`;
+                } else {
+                    detailsLine.textContent = 'Direct input template';
                 }
                 
-                nestedContent += `> > Dream Title:\n> > Vividness:\n> > Emotions:\n> > Symbols:\n> > Personal Meaning:\n> >\n`;
+                const templateActions = templateRow.createDiv({ cls: 'oom-template-actions' });
                 
-                // Add metrics section (no date handling needed)
-                const metricsHeader = buildCalloutHeader(metricsCalloutName, meta, false);
-                nestedContent += `> > ${metricsHeader.substring(2)}\n> > > ${metricsContent}`; // Remove "> " for nesting
+                // Replace text buttons with icon buttons
+                const editBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(editBtn, 'pencil');
+                editBtn.setAttribute('aria-label', 'Edit template');
+                editBtn.setAttribute('title', 'Edit template');
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.editExistingTemplate(template);
+                });
                 
-                return nestedContent;
+                const copyBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(copyBtn, 'copy');
+                copyBtn.setAttribute('aria-label', 'Copy template structure to clipboard');
+                copyBtn.setAttribute('title', 'Copy template structure to clipboard');
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.copyTemplateToClipboard(template);
+                });
+                
+                const exportBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(exportBtn, 'download');
+                exportBtn.setAttribute('aria-label', 'Export template as JSON file');
+                exportBtn.setAttribute('title', 'Export template as JSON file');
+                exportBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.exportTemplateAsJSON(template);
+                });
+                
+                const deleteBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-template-delete-btn oom-icon-button'
+                });
+                setIcon(deleteBtn, 'trash');
+                deleteBtn.setAttribute('aria-label', 'Delete template');
+                deleteBtn.setAttribute('title', 'Delete template');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.deleteTemplate(template);
+                });
+                
+                // Create preview container (initially hidden)
+                const previewContainer = templatesContainer.createDiv({ 
+                    cls: 'oom-template-preview-container',
+                    attr: { 'data-template-id': template.id }
+                });
+                previewContainer.style.display = 'none';
+                
+                // Add expand/collapse functionality to template row
+                templateRow.addEventListener('click', () => {
+                    const isExpanded = templateRow.classList.contains('oom-template-expanded');
+                    
+                    if (isExpanded) {
+                        // Collapse
+                        templateRow.classList.remove('oom-template-expanded');
+                        templateRow.style.backgroundColor = '';
+                        previewContainer.style.display = 'none';
+                    } else {
+                        // Expand
+                        templateRow.classList.add('oom-template-expanded');
+                        templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
+                        previewContainer.style.display = 'block';
+                        
+                        // Populate preview if not already done
+                        if (previewContainer.innerHTML === '') {
+                            this.populateTemplatePreview(previewContainer, template);
+                        }
+                    }
+                });
+            });
+        } else {
+            templateSection.createEl('p', { 
+                text: 'No templates configured yet. Use the Template Wizard to create your first template.',
+                cls: 'oom-empty-state'
+            });
+        }
+    }
+    
+    /**
+     * Render normal Journal Structure mode
+     */
+    private renderNormalJournalStructureMode() {
+        // Add header section
+        const headerSection = this.contentContainer.createDiv({ 
+            cls: 'oom-journal-structure-header' 
+        });
+        
+        headerSection.createEl('h2', { text: 'Journal Structure' });
+        
+        headerSection.createEl('p', { 
+            text: 'Configure journal structure settings, templates, validation rules, and interface preferences.',
+            cls: 'oom-journal-structure-description'
+        });
+        
+        headerSection.createEl('p', { 
+            text: 'Structures define the organizational framework (what callout types are allowed, how they nest, validation rules), while Templates provide the actual content implementations that reference and conform to those structures. Each template must reference exactly one structure, but multiple templates can use the same structure for different content styles.',
+            cls: 'oom-journal-structure-description'
+        });
+        
+        // Create main content container - single page layout
+        const mainContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-journal-structure-main' 
+        });
+        
+        // Simple Template Creation button - launches wizard
+        const templateSection = mainContainer.createDiv({ cls: 'oom-journal-section' });
+        templateSection.createEl('h3', { text: 'Template Creation', cls: 'oom-section-header' });
+        
+        templateSection.createEl('p', { 
+            text: 'Create and manage journal templates using the unified template wizard.' 
+        });
+        
+        // Add placeholder documentation
+        templateSection.createEl('p', {
+            text: 'When creating templates, use placeholders for dynamic content: {{date}} (2025-01-15), {{date-long}} (January 15, 2025), {{date-month-day}} (January 15), {{date-compact}} / {{date-ref}} (20250115), {{title}}, {{content}}, {{metrics}}, or individual metric names like {{Sensory Detail}}.',
+            cls: 'oom-journal-structure-description'
+        });
+        
+        // Get existing templates for display
+        const templates = this.plugin.settings.linting?.templates || [];
+        
+        // Template creation button - switches to wizard mode
+        const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
+        createBtnContainer.style.marginTop = '1em';
+        const createBtn = createBtnContainer.createEl('button', { 
+            text: 'Open Template Wizard',
+            cls: 'oom-button-primary'
+        });
+        createBtn.addEventListener('click', () => {
+            this.enterWizardMode();
+        });
+        
+        // Template import/export section
+        const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
+        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('p', { 
+            text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
+            cls: 'oom-setting-desc'
+        });
+
+        const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.marginTop = '0.5em';
+
+        // Export button
+        const exportBtn = buttonContainer.createEl('button', {
+            text: 'Export Templates',
+            cls: 'oom-button'
+        });
+        exportBtn.addEventListener('click', () => {
+            this.exportTemplates();
+        });
+
+        // Import button  
+        const importBtn = buttonContainer.createEl('button', {
+            text: 'Import Templates',
+            cls: 'oom-button'
+        });
+        importBtn.addEventListener('click', () => {
+            this.importTemplates();
+        });
+
+        // Individual template export (if templates exist)
+        if (templates.length > 0) {
+            const individualExportBtn = buttonContainer.createEl('button', {
+                text: 'Export Selected',
+                cls: 'oom-button'
+            });
+            individualExportBtn.addEventListener('click', () => {
+                this.showTemplateExportDialog();
+            });
+        }
+        
+        // Show existing templates count if any
+        if (templates.length > 0) {
+            const statusEl = templateSection.createDiv({ cls: 'oom-template-status' });
+            statusEl.createEl('h3', { text: 'Existing Templates' });
+            
+            // Create a table-like display for templates
+            const templatesContainer = statusEl.createDiv({ cls: 'oom-templates-list' });
+            
+            templates.forEach((template, index) => {
+                const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
+                
+                // Add hover effect
+                templateRow.addEventListener('mouseenter', () => {
+                    templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
+                });
+                templateRow.addEventListener('mouseleave', () => {
+                    if (!templateRow.classList.contains('oom-template-expanded')) {
+                        templateRow.style.backgroundColor = '';
+                    }
+                });
+                
+                const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
+                templateInfo.createEl('strong', { text: template.name });
+                templateInfo.createEl('br');
+                
+                const detailsLine = templateInfo.createEl('span', { cls: 'oom-template-details' });
+                
+                if (template.isTemplaterTemplate && template.templaterFile) {
+                    detailsLine.textContent = `Templater: ${template.templaterFile}`;
+                } else if (template.structure) {
+                    detailsLine.textContent = `Structure: ${template.structure}`;
+                } else {
+                    detailsLine.textContent = 'Direct input template';
+                }
+                
+                const templateActions = templateRow.createDiv({ cls: 'oom-template-actions' });
+                
+                // Replace text buttons with icon buttons
+                const editBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(editBtn, 'pencil');
+                editBtn.setAttribute('aria-label', 'Edit template');
+                editBtn.setAttribute('title', 'Edit template');
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.editExistingTemplate(template);
+                });
+                
+                const copyBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(copyBtn, 'copy');
+                copyBtn.setAttribute('aria-label', 'Copy template structure to clipboard');
+                copyBtn.setAttribute('title', 'Copy template structure to clipboard');
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.copyTemplateToClipboard(template);
+                });
+                
+                const exportBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(exportBtn, 'download');
+                exportBtn.setAttribute('aria-label', 'Export template as JSON file');
+                exportBtn.setAttribute('title', 'Export template as JSON file');
+                exportBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.exportTemplateAsJSON(template);
+                });
+                
+                const deleteBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-template-delete-btn oom-icon-button'
+                });
+                setIcon(deleteBtn, 'trash');
+                deleteBtn.setAttribute('aria-label', 'Delete template');
+                deleteBtn.setAttribute('title', 'Delete template');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.deleteTemplate(template);
+                });
+                
+                // Create preview container (initially hidden)
+                const previewContainer = templatesContainer.createDiv({ 
+                    cls: 'oom-template-preview-container',
+                    attr: { 'data-template-id': template.id }
+                });
+                previewContainer.style.display = 'none';
+                
+                // Add expand/collapse functionality to template row
+                templateRow.addEventListener('click', () => {
+                    const isExpanded = templateRow.classList.contains('oom-template-expanded');
+                    
+                    if (isExpanded) {
+                        // Collapse
+                        templateRow.classList.remove('oom-template-expanded');
+                        templateRow.style.backgroundColor = '';
+                        previewContainer.style.display = 'none';
+                    } else {
+                        // Expand
+                        templateRow.classList.add('oom-template-expanded');
+                        templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
+                        previewContainer.style.display = 'block';
+                        
+                        // Populate preview if not already done
+                        if (previewContainer.innerHTML === '') {
+                            this.populateTemplatePreview(previewContainer, template);
+                        }
+                    }
+                });
+            });
+        } else {
+            templateSection.createEl('p', { 
+                text: 'No templates configured yet. Use the Template Wizard to create your first template.',
+                cls: 'oom-empty-state'
+            });
+        }
+    }
+    
+    /**
+     * Render embedded wizard mode
+     */
+    private renderEmbeddedWizard() {
+        // Add wizard header
+        const headerSection = this.contentContainer.createDiv({ 
+            cls: 'oom-journal-structure-header oom-wizard-header' 
+        });
+        
+        const totalSteps = this.getWizardTotalSteps();
+        const titleText = `Template Wizard (Step ${this.wizardState!.currentStep} of ${totalSteps})`;
+        headerSection.createEl('h2', { text: titleText });
+        
+        // Add breadcrumb with back button
+        const breadcrumbContainer = headerSection.createDiv({ cls: 'oom-wizard-breadcrumb' });
+        const backButton = breadcrumbContainer.createEl('button', {
+            text: '← Back to Journal Structure',
+            cls: 'oom-wizard-back-button'
+        });
+        backButton.addEventListener('click', () => {
+            this.exitWizardMode();
+        });
+        
+        const templateName = this.wizardState!.templateName || 'New Template';
+        breadcrumbContainer.createEl('span', { 
+            text: ` | Creating: ${templateName}`,
+            cls: 'oom-wizard-breadcrumb-text'
+        });
+        
+        // Add description for context
+        headerSection.createEl('p', { 
+            text: 'Create and configure journal templates with dynamic content placeholders and structured layouts. Templates define how your callouts will be formatted and what information they contain.',
+            cls: 'oom-journal-structure-description'
+        });
+        
+        // Create wizard container
+        const wizardContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-embedded-wizard-container' 
+        });
+        
+        // Create main wizard content area (scrollable)
+        const wizardMainContent = wizardContainer.createDiv({
+            cls: 'oom-wizard-main-content'
+        });
+        
+        // Clear previous step containers
+        this.wizardStepContainers = [];
+        
+        // Create step containers (max 3 steps)
+        for (let i = 1; i <= 3; i++) {
+            const stepContainer = wizardMainContent.createDiv({ 
+                cls: `oom-wizard-step step-${i}`,
+                attr: { 'data-step': i.toString() }
+            });
+            
+            if (i !== this.wizardState!.currentStep) {
+                stepContainer.style.display = 'none';
+            }
+            
+            this.wizardStepContainers.push(stepContainer);
+        }
+        
+        // Build current step
+        this.buildWizardStep(this.wizardState!.currentStep);
+        
+        // Create preview section in main content
+        this.createWizardPreviewSection(wizardMainContent);
+        
+        // Create sticky footer for navigation
+        const wizardFooter = wizardContainer.createDiv({ cls: 'oom-wizard-footer' });
+        
+        this.wizardNavigationEl = wizardFooter;
+        this.updateWizardNavigation();
+        
+        // Update preview
+        this.updateWizardPreview();
+    }
+
+    // Load Callout Quick Copy content with migrated functionality
+    private loadCalloutSettingsContent() {
+        this.contentContainer.empty();
+        
+        // Add welcome text
+        const welcomeText = this.contentContainer.createDiv({ 
+            cls: 'oom-metrics-tabs-callout-settings-text' 
+        });
+        
+        welcomeText.createEl('h2', { text: 'Callout Settings' });
+        
+        welcomeText.createEl('p', { 
+            text: 'Configure callout names, date formatting, and template management for OneiroMetrics. These settings control how callouts are generated and recognized throughout the plugin, and include tools for creating and managing journal templates.'
+        });
+
+        // Global state for all sections
+        let calloutMetadata = '';
+        let singleLine = false;
+        let flattenNested = false;
+        
+        // Get dynamic callout names with fallbacks
+        const getJournalCalloutName = () => this.plugin.settings.journalCalloutName || 'journal';
+        const getDreamDiaryCalloutName = () => this.plugin.settings.dreamDiaryCalloutName || 'dream-diary';
+        const getCalloutName = () => this.plugin.settings.calloutName || 'dream-metrics';
+
+        // Date handling helpers
+        const getDateConfig = (): DateHandlingConfig => {
+            return this.plugin.settings.dateHandling || {
+                placement: 'field',
+                headerFormat: 'MMMM d, yyyy',
+                fieldFormat: 'Date:',
+                includeBlockReferences: false,
+                blockReferenceFormat: '^YYYYMMDD'
+            };
+        };
+
+        const formatDateForHeader = (date: Date = new Date()): string => {
+            const config = getDateConfig();
+            const format = config.headerFormat || 'MMMM d, yyyy';
+            
+            try {
+                // Use date-fns for proper date formatting
+                return formatDateWithFns(date, format);
+            } catch (error) {
+                // Fallback to basic formatting if date-fns fails
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+                const month = months[date.getMonth()];
+                const day = date.getDate();
+                const year = date.getFullYear();
+                
+                return format
+                    .replace(/YYYY/g, year.toString())
+                    .replace(/yyyy/g, year.toString())
+                    .replace(/MMMM/g, month)
+                    .replace(/MMM/g, month.substring(0, 3))
+                    .replace(/MM/g, String(date.getMonth() + 1).padStart(2, '0'))
+                    .replace(/DD/g, String(day).padStart(2, '0'))
+                    .replace(/dd/g, String(day).padStart(2, '0'))
+                    .replace(/d/g, day.toString());
             }
         };
 
-        // Function to update all callout previews
-        const updateAllCallouts = () => {
-            // Update Journal section
-            if (journalStructureEl) {
-                journalStructureEl.textContent = buildJournalCallout();
-                this.applyCalloutBoxStyles(journalStructureEl);
-            }
+        const formatBlockReference = (date: Date = new Date()): string => {
+            const config = getDateConfig();
+            const format = config.blockReferenceFormat || '^YYYYMMDD';
             
-            // Update Dream Diary section
-            if (dreamDiaryStructureEl) {
-                dreamDiaryStructureEl.textContent = buildDreamDiaryCallout();
-                this.applyCalloutBoxStyles(dreamDiaryStructureEl);
-            }
             
-            // Update Dream Metrics section
-            if (dreamMetricsStructureEl) {
-                dreamMetricsStructureEl.textContent = buildDreamMetricsCallout();
-                this.applyCalloutBoxStyles(dreamMetricsStructureEl);
-            }
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
             
-            // Update Nested section
-            if (nestedStructureEl) {
-                nestedStructureEl.textContent = buildNestedCallout();
-                this.applyCalloutBoxStyles(nestedStructureEl);
-            }
+            return format
+                .replace('YYYY', year.toString())
+                .replace('MM', month)
+                .replace('DD', day);
         };
 
-        // Create variables to hold the callout structure elements
-        let journalStructureEl: HTMLElement;
-        let dreamDiaryStructureEl: HTMLElement;
-        let dreamMetricsStructureEl: HTMLElement;
-        let nestedStructureEl: HTMLElement;
+        const buildCalloutHeader = (calloutName: string, metadata: string = '', includeDate: boolean = false): string => {
+            const config = getDateConfig();
+            const metaStr = metadata ? `|${metadata}` : '';
+            
+            if (includeDate && config.placement === 'header') {
+                const dateStr = formatDateForHeader();
+                const blockRef = config.includeBlockReferences ? ` ${formatBlockReference()}` : '';
+                return `> [!${calloutName}${metaStr}] ${dateStr}${blockRef}`;
+            }
+            
+            return `> [!${calloutName}${metaStr}]`;
+        };
 
-        // 1. Journal Section
-        const journalSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
-        journalSection.createEl('h3', { text: 'Journal' });
-        
-        journalStructureEl = journalSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        journalStructureEl.textContent = buildJournalCallout();
-        this.applyCalloutBoxStyles(journalStructureEl);
-        
-        const journalCopyBtn = journalSection.createEl('button', { 
-            text: 'Copy Journal Callout',
-            cls: 'oom-copy-button'
-        });
-        this.applyCopyButtonStyles(journalCopyBtn);
-        journalCopyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(buildJournalCallout());
-            new Notice('Journal callout copied to clipboard!');
-        });
+        const getDateFields = (): string[] => {
+            const config = getDateConfig();
+            
+            if (config.placement === 'field') {
+                const dateField = config.fieldFormat || 'Date:';
+                return [dateField];
+            }
+            
+            return [];
+        };
 
-        // 2. Dream Diary Section
-        const dreamDiarySection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
-        dreamDiarySection.createEl('h3', { text: 'Dream Diary' });
-        
-        dreamDiaryStructureEl = dreamDiarySection.createEl('div', { cls: 'oom-callout-structure-box' });
-        dreamDiaryStructureEl.textContent = buildDreamDiaryCallout();
-        this.applyCalloutBoxStyles(dreamDiaryStructureEl);
-        
-        const dreamDiaryCopyBtn = dreamDiarySection.createEl('button', { 
-            text: 'Copy Dream Diary Callout',
-            cls: 'oom-copy-button'
-        });
-        this.applyCopyButtonStyles(dreamDiaryCopyBtn);
-        dreamDiaryCopyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(buildDreamDiaryCallout());
-            new Notice('Dream Diary callout copied to clipboard!');
+        // Callout Settings Section (moved to top)
+        const settingsContainer = this.contentContainer.createDiv({ 
+            cls: 'oom-callout-settings' 
         });
 
-        // 3. Dream Metrics Section
-        const dreamMetricsSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
-        dreamMetricsSection.createEl('h3', { text: 'Dream Metrics' });
+        // Journal Callout Name Setting
+        new Setting(settingsContainer)
+            .setName('Journal Callout Name')
+            .setDesc('Name of the callout block used for journal entries (e.g., "journal")')
+            .addText(text => text
+                .setPlaceholder('journal')
+                .setValue(this.plugin.settings.journalCalloutName || 'journal')
+                .onChange(async (value) => {
+                    this.plugin.settings.journalCalloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                }));
+
+        // Dream Diary Callout Name Setting
+        new Setting(settingsContainer)
+            .setName('Dream Diary Callout Name')
+            .setDesc('Name of the callout block used for dream diary entries (e.g., "dream-diary")')
+            .addText(text => text
+                .setPlaceholder('dream-diary')
+                .setValue(this.plugin.settings.dreamDiaryCalloutName || 'dream-diary')
+                .onChange(async (value) => {
+                    this.plugin.settings.dreamDiaryCalloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                }));
+
+        // Metrics Callout Name Setting (moved from settings page)
+        new Setting(settingsContainer)
+            .setName('Metrics Callout Name')
+            .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
+            .addText(text => text
+                .setPlaceholder('dream-metrics')
+                .setValue(this.plugin.settings.calloutName)
+                .onChange(async (value) => {
+                    this.plugin.settings.calloutName = value.toLowerCase().replace(/\s+/g, '-');
+                    await this.plugin.saveSettings();
+                }));
+
+        // Include Date Fields Setting (Master Toggle)
+        let dateFieldsEnabled = false;
+        let dateOptionsContainer: HTMLElement;
         
-        dreamMetricsStructureEl = dreamMetricsSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        dreamMetricsStructureEl.textContent = buildDreamMetricsCallout();
-        this.applyCalloutBoxStyles(dreamMetricsStructureEl);
-        
-        const dreamMetricsCopyBtn = dreamMetricsSection.createEl('button', { 
-            text: 'Copy Dream Metrics Callout',
-            cls: 'oom-copy-button'
+        const dateFieldsSetting = new Setting(settingsContainer)
+            .setName('Include Date Fields')
+            .setDesc('Include date information in Journal and Dream Diary callouts. Disable this if you use daily notes with dates in filenames or headers.')
+            .addToggle(toggle => {
+                const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
+                dateFieldsEnabled = dateConfig.placement !== 'none';
+                toggle.setValue(dateFieldsEnabled)
+                    .onChange(async (value) => {
+                        dateFieldsEnabled = value;
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.placement = value ? 'field' : 'none';
+                        
+                        // Show/hide the date options
+                        dateOptionsContainer.style.display = value ? 'block' : 'none';
+                        
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        // Date Options Container (only visible when master toggle is ON)
+        dateOptionsContainer = settingsContainer.createDiv({ cls: 'oom-date-options-container' });
+        dateOptionsContainer.style.display = dateFieldsEnabled ? 'block' : 'none';
+
+        // Date Placement Dropdown
+        new Setting(dateOptionsContainer)
+            .setName('Date Placement')
+            .setDesc('Choose where to place date information in callouts')
+            .addDropdown(dropdown => {
+                dropdown.addOption('field', 'Field - "Date:" inside callout content');
+                dropdown.addOption('header', 'Header - In callout title "[!journal] June 2, 2025"');
+                
+                const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
+                dropdown.setValue(dateConfig.placement === 'none' ? 'field' : dateConfig.placement)
+                    .onChange(async (value: 'field' | 'header') => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.placement = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        // Block References Toggle
+        new Setting(dateOptionsContainer)
+            .setName('Include Block References')
+            .setDesc('Add block references like "^20250602" to date entries for easy linking')
+            .addToggle(toggle => {
+                const dateConfig = this.plugin.settings.dateHandling || { includeBlockReferences: false };
+                toggle.setValue(dateConfig.includeBlockReferences || false)
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.includeBlockReferences = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        // Date Format Setting
+        const dateFormatSetting = new Setting(dateOptionsContainer)
+            .setName('Date Format')
+            .setDesc('Format for dates using Moment.js syntax.')
+            .addText(text => {
+                const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
+                text.setPlaceholder('MMMM d, yyyy')
+                    .setValue(dateConfig.headerFormat || 'MMMM d, yyyy')
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.headerFormat = value || 'MMMM d, yyyy';
+                        
+                        // Update the preview
+                        updateDateFormatPreview();
+                        
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        // Add custom description with working link
+        const descEl = dateFormatSetting.descEl;
+        descEl.empty();
+        descEl.appendText('Format for dates using ');
+        const linkEl = descEl.createEl('a', {
+            text: 'Moment.js syntax',
+            href: 'https://momentjs.com/docs/#/displaying/format/'
         });
-        this.applyCopyButtonStyles(dreamMetricsCopyBtn);
-        dreamMetricsCopyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(buildDreamMetricsCallout());
-            new Notice('Dream Metrics callout copied to clipboard!');
+        descEl.appendText('. Your current syntax looks like this: ');
+        
+        const previewSpan = descEl.createEl('span', { cls: 'oom-date-format-preview-inline' });
+        previewSpan.style.fontWeight = 'bold';
+
+        const updateDateFormatPreview = () => {
+            const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
+            const format = dateConfig.headerFormat || 'MMMM d, yyyy';
+            const previewDate = formatDateForHeader(new Date());
+            previewSpan.textContent = previewDate;
+        };
+
+        // Initialize preview
+        updateDateFormatPreview();
+
+        // Single-Line Toggle (renamed)
+        new Setting(settingsContainer)
+            .setName('Single-Line Metrics Callout Structure')
+            .setDesc('Show all fields on a single line in all callout structures')
+            .addToggle(toggle => {
+                toggle.setValue(singleLine)
+                    .onChange(async (value) => {
+                        singleLine = value;
+                    });
+            });
+
+        // Flatten Nested Toggle
+        new Setting(settingsContainer)
+            .setName('Flatten Nested Structure')
+            .setDesc('Convert nested 3-level structure to flat format with all fields at the same level')
+            .addToggle(toggle => {
+                toggle.setValue(flattenNested)
+                    .onChange(async (value) => {
+                        flattenNested = value;
+                    });
+            });
+
+        // Callout Metadata Field
+        new Setting(settingsContainer)
+            .setName('Callout Metadata')
+            .setDesc('Default metadata to include in all callouts (applies to all sections below)')
+            .addText(text => text
+                .setPlaceholder('Enter metadata')
+                .setValue(calloutMetadata)
+                .onChange(async (value) => {
+                    calloutMetadata = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // Add section separator before Template Management
+        this.contentContainer.createEl('div', { cls: 'oom-section-border' });
+
+        // Template Management Section
+        this.contentContainer.createEl('h3', { text: 'Template Management' });
+        
+        this.contentContainer.createEl('p', { 
+            text: 'Create and manage journal templates using the unified template wizard. Templates define the structure and content for your journal entries.',
+            cls: 'oom-journal-structure-description'
+        });
+        
+        this.contentContainer.createEl('p', {
+            text: 'When creating templates, use placeholders for dynamic content: {{date}} (2025-01-15), {{date-long}} (January 15, 2025), {{date-month-day}} (January 15), {{date-compact}} / {{date-ref}} (20250115), {{title}}, {{content}}, {{metrics}}, or individual metric names like {{Sensory Detail}}.',
+            cls: 'oom-journal-structure-description'
         });
 
-        // 4. Nested (3-level) Section
-        const nestedSection = this.contentContainer.createDiv({ cls: 'oom-callout-section' });
-        nestedSection.createEl('h3', { text: 'Nested (3-level)' });
+        // Check if we're in wizard mode
+        if (this.journalStructureMode === 'wizard' && this.wizardState) {
+            // Render wizard mode
+            this.renderEmbeddedWizard();
+            return; // Exit early since wizard takes over the entire content area
+        }
+
+        // Get existing templates for display
+        const templates = this.plugin.settings.linting?.templates || [];
         
-        nestedStructureEl = nestedSection.createEl('div', { cls: 'oom-callout-structure-box' });
-        nestedStructureEl.textContent = buildNestedCallout();
-        this.applyCalloutBoxStyles(nestedStructureEl);
+        // Create main template container
+        const templateSection = this.contentContainer.createDiv({ cls: 'oom-journal-section' });
         
-        const nestedCopyBtn = nestedSection.createEl('button', { 
-            text: 'Copy Nested Callout',
-            cls: 'oom-copy-button'
+        // Template creation button - switches to wizard mode
+        const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
+        createBtnContainer.style.marginTop = '1em';
+        const createBtn = createBtnContainer.createEl('button', { 
+            text: 'Open Template Wizard',
+            cls: 'oom-button-primary'
         });
-        this.applyCopyButtonStyles(nestedCopyBtn);
-        nestedCopyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(buildNestedCallout());
-            new Notice('Nested callout copied to clipboard!');
+        createBtn.addEventListener('click', () => {
+            this.enterWizardMode();
+        });
+        
+        // Template import/export section
+        const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
+        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('p', { 
+            text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
+            cls: 'oom-setting-desc'
         });
 
-        // Initial update of all callouts
-        updateAllCallouts();
+        const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75em';
+        buttonContainer.style.marginTop = '0.5em';
+
+        // Export button
+        const exportBtn = buttonContainer.createEl('button', {
+            text: 'Export Templates',
+            cls: 'oom-button'
+        });
+        exportBtn.addEventListener('click', () => {
+            this.exportTemplates();
+        });
+
+        // Import button  
+        const importBtn = buttonContainer.createEl('button', {
+            text: 'Import Templates',
+            cls: 'oom-button'
+        });
+        importBtn.addEventListener('click', () => {
+            this.importTemplates();
+        });
+
+        // Individual template export (if templates exist)
+        if (templates.length > 0) {
+            const individualExportBtn = buttonContainer.createEl('button', {
+                text: 'Export Selected',
+                cls: 'oom-button'
+            });
+            individualExportBtn.addEventListener('click', () => {
+                this.showTemplateExportDialog();
+            });
+        }
+        
+        // Show existing templates count if any
+        if (templates.length > 0) {
+            const statusEl = templateSection.createDiv({ cls: 'oom-template-status' });
+            statusEl.createEl('h3', { text: 'Existing Templates' });
+            
+            // Create a table-like display for templates
+            const templatesContainer = statusEl.createDiv({ cls: 'oom-templates-list' });
+            
+            templates.forEach((template, index) => {
+                const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
+                
+                // Add hover effect
+                templateRow.addEventListener('mouseenter', () => {
+                    templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
+                });
+                templateRow.addEventListener('mouseleave', () => {
+                    if (!templateRow.classList.contains('oom-template-expanded')) {
+                        templateRow.style.backgroundColor = '';
+                    }
+                });
+                
+                const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
+                templateInfo.createEl('strong', { text: template.name });
+                templateInfo.createEl('br');
+                
+                const detailsLine = templateInfo.createEl('span', { cls: 'oom-template-details' });
+                
+                if (template.isTemplaterTemplate && template.templaterFile) {
+                    detailsLine.textContent = `Templater: ${template.templaterFile}`;
+                } else if (template.structure) {
+                    detailsLine.textContent = `Structure: ${template.structure}`;
+                } else {
+                    detailsLine.textContent = 'Direct input template';
+                }
+                
+                const templateActions = templateRow.createDiv({ cls: 'oom-template-actions' });
+                
+                // Replace text buttons with icon buttons
+                const editBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(editBtn, 'pencil');
+                editBtn.setAttribute('aria-label', 'Edit template');
+                editBtn.setAttribute('title', 'Edit template');
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.editExistingTemplate(template);
+                });
+                
+                const copyBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(copyBtn, 'copy');
+                copyBtn.setAttribute('aria-label', 'Copy template structure to clipboard');
+                copyBtn.setAttribute('title', 'Copy template structure to clipboard');
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.copyTemplateToClipboard(template);
+                });
+                
+                const exportBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-icon-button'
+                });
+                setIcon(exportBtn, 'download');
+                exportBtn.setAttribute('aria-label', 'Export template as JSON file');
+                exportBtn.setAttribute('title', 'Export template as JSON file');
+                exportBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.exportTemplateAsJSON(template);
+                });
+                
+                const deleteBtn = templateActions.createEl('button', {
+                    cls: 'oom-template-action-btn oom-template-delete-btn oom-icon-button'
+                });
+                setIcon(deleteBtn, 'trash');
+                deleteBtn.setAttribute('aria-label', 'Delete template');
+                deleteBtn.setAttribute('title', 'Delete template');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row expansion
+                    this.deleteTemplate(template);
+                });
+                
+                // Create preview container (initially hidden)
+                const previewContainer = templatesContainer.createDiv({ 
+                    cls: 'oom-template-preview-container',
+                    attr: { 'data-template-id': template.id }
+                });
+                previewContainer.style.display = 'none';
+                
+                // Add expand/collapse functionality to template row
+                templateRow.addEventListener('click', () => {
+                    const isExpanded = templateRow.classList.contains('oom-template-expanded');
+                    
+                    if (isExpanded) {
+                        // Collapse
+                        templateRow.classList.remove('oom-template-expanded');
+                        templateRow.style.backgroundColor = '';
+                        previewContainer.style.display = 'none';
+                    } else {
+                        // Expand
+                        templateRow.classList.add('oom-template-expanded');
+                        templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
+                        previewContainer.style.display = 'block';
+                        
+                        // Populate preview if not already done
+                        if (previewContainer.innerHTML === '') {
+                            this.populateTemplatePreview(previewContainer, template);
+                        }
+                    }
+                });
+            });
+        } else {
+            templateSection.createEl('p', { 
+                text: 'No templates configured yet. Use the Template Wizard to create your first template.',
+                cls: 'oom-empty-state'
+            });
+        }
     }
     
     /**
@@ -2501,7 +2933,6 @@ Full debug info in logs/console`);
         
         // Template import/export section
         const importExportSection = containerEl.createDiv({ cls: 'oom-template-import-export' });
-        importExportSection.style.marginTop = '1.5em';
         importExportSection.createEl('h3', { text: 'Import/Export Templates' });
         importExportSection.createEl('p', { 
             text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
@@ -5774,5 +6205,84 @@ Example:
             return 'Select a folder to recursively search for dream metrics';
         }
         return 'Choose how to select notes for metrics processing';
+    }
+
+    /**
+     * Copy template to clipboard
+     */
+    private copyTemplateToClipboard(template: JournalTemplate) {
+        try {
+            const content = template.content || '';
+            navigator.clipboard.writeText(content).then(() => {
+                new Notice(`Template "${template.name}" structure copied to clipboard!`);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                new Notice(`Template "${template.name}" structure copied to clipboard!`);
+            });
+        } catch (error) {
+            this.logger?.error('CopyTemplate', 'Error copying template to clipboard', error as Error);
+            new Notice('Failed to copy template to clipboard.');
+        }
+    }
+
+    /**
+     * Export template as JSON
+     */
+    private exportTemplateAsJSON(template: JournalTemplate) {
+        const content = template.content || '';
+        const jsonData = JSON.stringify({
+            name: template.name,
+            description: template.description,
+            content: content,
+            structure: template.structure,
+            isTemplaterTemplate: template.isTemplaterTemplate,
+            templaterFile: template.templaterFile
+        }, null, 2);
+        
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = `${template.name}.json`;
+        downloadLink.style.display = 'none';
+        
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+        
+        new Notice(`Template "${template.name}" exported as JSON.`);
+    }
+
+    /**
+     * Populate template preview container with structure and content
+     */
+    private populateTemplatePreview(container: HTMLElement, template: JournalTemplate) {
+        // Clear any existing content
+        container.empty();
+        
+        // Description if available
+        if (template.description) {
+            const descSection = container.createEl('div', { cls: 'oom-preview-section' });
+            descSection.createEl('span', { text: template.description });
+        }
+        
+        // Content preview
+        const codeBlock = container.createEl('pre', { cls: 'oom-template-preview-code' });
+        
+        // Get preview content
+        let previewContent = template.content || '';
+        if (previewContent.length > 500) {
+            previewContent = previewContent.substring(0, 500) + '\n\n... (content truncated)';
+        }
+        
+        codeBlock.textContent = previewContent || '(No content available)';
     }
 }
