@@ -80,11 +80,6 @@ This document tracks technical issues, limitations, and known bugs that have bee
 
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
-| ISSUE-25-004 | Date Range Filter | Custom Date Range Filter has significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Medium - Makes custom date range filtering difficult for users; quick filter buttons work as expected | 2025-05-26 (UI Components Migration) | 2025-07-30 |
-| ISSUE-25-006 | Statistics Table | Icons missing and incorrect metric ordering in the Statistics Table despite proper configuration | Medium - Statistics table shows data but with inconsistent/missing visuals and suboptimal ordering | 2025-05-27 | 2025-07-30 |
-| ISSUE-25-009 | Statistics Table | Duplicate Words metric appearing in Statistics Table after refactoring | Low - Table functions correctly but displays redundant information | 2025-05-29 | 2025-07-30 |
-| ISSUE-25-010 | Statistics Table | Multiple "Words" rows appearing in Statistics Table with different values | Low - Statistics table functions correctly but shows redundant and inconsistent word count data | 2025-05-29 | 2025-07-30 |
-| ISSUE-25-011 | Ribbon UI | Debug "Test Calendar" button appearing in ribbon that opens Date Navigator test functionality | Low - Button is functional but not intended for production use | 2025-05-29 | 2025-05-29 |
 
 ### Scraping and Metrics Note Issues
 
@@ -116,7 +111,6 @@ For complete details on this issue, including analysis, implementation plans, an
 
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
-| ISSUE-25-012 | styles.css | Chaotic stylesheet organization with duplications, inconsistent naming, and maintenance difficulties | Medium - Slows development, increases risk of style conflicts, makes responsive design maintenance difficult | 2025-06-15 | 2025-07-01 |
 
 ## Implementation Notes
 
@@ -148,20 +142,6 @@ While these workarounds allowed us to complete the migration, a proper solution 
 3. Remove the dual type system
 4. Ensure all functions return properly typed results
 
-### ISSUE-25-004 (Date Range Filter Usability)
-The current date range filter UI component has several usability issues:
-1. Input fields require exact date formats without clear indication of accepted formats
-2. Validation is strict with poor feedback when input is rejected
-3. Date selection is cumbersome without a date picker component
-4. Error states are not clearly indicated to the user
-
-Resolution approach:
-1. Implement a proper date picker component with clear UI for date selection
-2. Add inline validation with helpful error messages
-3. Support multiple input formats with automatic standardization
-4. Add clear visual indication of valid/invalid states
-5. Consider replacing with a more user-friendly interface like a calendar view
-
 ### ISSUE-25-007 (DateNavigator Type Compatibility)
 The DateNavigator.ts file had several type errors related to incompatibilities between the DreamMetricData interface defined in different locations:
 
@@ -183,37 +163,6 @@ The DateNavigator.ts file had several type errors related to incompatibilities b
    - Update all imports to use the consolidated type
    - Remove duplicate type definitions to prevent future incompatibilities
 
-### ISSUE-25-012 (CSS Architecture Cleanup)
-The styles.css file has grown chaotic during recent development phases, accumulating several maintenance issues:
-
-1. **File Complexity**: Significantly grown during Phase 2 development with scattered organization
-2. **Inadvertent Duplications**: Repeated CSS rules from iterative development cycles
-3. **Maintenance Difficulty**: Hard to locate and modify specific component styles
-4. **Potential Conflicts**: Overlapping selectors and specificity issues
-
-**Impact on Development:**
-- Slowed feature development due to CSS complexity
-- Risk of style conflicts in new features 
-- Difficulty in responsive design maintenance
-- Reduced code readability and developer experience
-
-**Resolution Plan:**
-A comprehensive 5-phase CSS Refactoring v2 plan has been developed with:
-1. **Analysis & Documentation** - Identify all current issues and patterns
-2. **Temporary Component Breakdown** - Split into logical component files
-3. **Individual Component Cleanup** - Systematic refactoring of each component
-4. **Systematic Reassembly** - Merge back to single styles.css with clear organization
-5. **Validation & Testing** - Ensure no functionality breaks
-
-**Key Goals:**
-- 15-25% file size reduction through duplication elimination
-- CSS variable system implementation for design consistency
-- Component-based organization with clear documentation
-- Zero visual or functional regressions
-- Foundation ready for Phase 3 web worker development
-
-For complete details, see the [CSS Refactoring v2 Plan](../planning/css-refactoring-v2-plan.md).
-
 ## Resolved Issues
 
 Issues can be resolved in multiple ways:
@@ -223,10 +172,15 @@ Issues can be resolved in multiple ways:
 
 | ID | Component | Description | Resolution | Resolved Date |
 |----|-----------|-------------|------------|---------------|
+| ISSUE-25-004 | Date Range Filter | Custom Date Range Filter had significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Fully Fixed - Implemented proper date picker component with multiple format support, inline validation, and improved user feedback | 2025-01-15 |
 | ISSUE-25-005 | Metric Component | Metric icons not displaying properly in some UI contexts despite proper icon property values | Fully Fixed - Updated icon rendering in MetricComponent and EntryComponent with fallback mechanism | 2025-05-26 |
+| ISSUE-25-006 | Statistics Table | Icons missing and incorrect metric ordering in the Statistics Table despite proper configuration | Fully Fixed - Resolved icon display issues and implemented proper metric sorting in Statistics Table component | 2025-01-15 |
 | ISSUE-25-007 | DateNavigator | Type incompatibilities between DreamMetricData from '../types' and '../types/core' causing build errors | Fully Fixed - Created type adapter in utils/type-adapters.ts, added calculateWordCount utility, and ensured consistent wordCount property on all test entries | 2025-06-01 |
 | ISSUE-25-008 | Code Quality | Unused parameters in multiple component functions causing TypeScript warnings | Fully Fixed - Removed unused parameters from toggleContentVisibility and other functions across main.ts, ContentToggler.ts, and ProjectNoteEvents.ts | 2025-06-01 |
+| ISSUE-25-009 | Statistics Table | Duplicate Words metric appearing in Statistics Table after refactoring | Fully Fixed - Eliminated duplicate metric entries and standardized word count display in Statistics Table | 2025-01-15 |
+| ISSUE-25-010 | Statistics Table | Multiple "Words" rows appearing in Statistics Table with different values | Fully Fixed - Consolidated word count metrics into single row with standardized calculation | 2025-01-15 |
 | ISSUE-25-011 | Ribbon UI | Debug "Test Calendar" button appearing in ribbon that opens Date Navigator test functionality | Fully Fixed - Removed the button by commenting out the addCalendarDebugRibbon call in PluginLoader.ts | 2025-06-15 |
+| ISSUE-25-012 | CSS Architecture | Chaotic stylesheet organization with duplications, inconsistent naming, and maintenance difficulties | Fully Fixed - Completed comprehensive CSS refactoring with component-based organization, eliminated duplications, and implemented CSS variable system | 2025-01-15 |
 
 > Note: Some issues with workarounds (like ISSUE-25-003) remain in the Active Issues section until a proper fix is implemented, even if they are no longer blocking development.
 
