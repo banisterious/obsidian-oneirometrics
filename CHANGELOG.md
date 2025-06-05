@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.13.0](#0130---2025-06-05)
   - [Version 0.11.1](#0111---2025-06-03)
   - [Version 0.11.0](#0110---2025-01-14)
   - [Version 0.10.1](#0101---2025-01-06)
@@ -22,6 +23,24 @@
 *No unreleased changes yet.*
 
 ## Released Versions
+
+## [0.13.0] - 2025-06-05
+
+### Added
+- **Chart Visualization**: 5-tab chart system (Statistics, Trends, Compare, Correlations, Heatmap)
+- **Inline Feedback**: Real-time scrape progress and backup warnings in Dream Scrape tab
+- **Sticky Footer**: Improved Dream Scrape tab layout with persistent action buttons
+
+### Changed
+- Replaced popup notifications with contextual inline feedback
+- Chart.js integration for responsive data visualization
+
+### Removed
+- Legacy progress section from Dream Scrape tab
+
+### Fixed
+- TypeScript compilation errors and syntax issues
+- Chart sizing glitches with proper CSS constraints
 
 ## [0.11.1] - 2025-06-03
 ### Added
