@@ -108,11 +108,6 @@ export class HubModal extends Modal {
     private selectedFolder: string = '';
     private isScraping: boolean = false;
     private hasScraped: boolean = false;
-    private progressContent: HTMLElement | null = null;
-    private statusText: HTMLElement | null = null;
-    private progressBar: HTMLElement | null = null;
-    private progressFill: HTMLElement | null = null;
-    private detailsText: HTMLElement | null = null;
     private scrapeButton: HTMLButtonElement | null = null;
     private openNoteButton: HTMLButtonElement | null = null;
 
@@ -1322,17 +1317,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
             // Fix: append the search field to the setting's control element
             selectionSetting.controlEl.appendChild(searchFieldContainer);
         }
-        
-        // Progress Section
-        const progressSection = this.contentContainer.createDiv({ cls: 'oom-modal-section oom-progress-section' });
-        
-        progressSection.createEl('h4', { text: 'Progress' });
-        
-        this.progressContent = progressSection.createDiv({ cls: 'oom-progress-content' });
-        this.statusText = this.progressContent.createEl('div', { cls: 'oom-status-text' });
-        this.progressBar = this.progressContent.createEl('div', { cls: 'oom-progress-bar' });
-        this.progressFill = this.progressBar.createEl('div', { cls: 'oom-progress-fill' });
-        this.detailsText = this.progressContent.createEl('div', { cls: 'oom-details-text' });
         
         // Create dynamic feedback area above the sticky footer
         this.feedbackArea = this.contentContainer.createDiv({ 
@@ -6807,52 +6791,52 @@ Example:
         this.feedbackArea.empty();
     }
 
-/**
- * Set up event listeners for scrape operations
- */
-private setupScrapeEventListeners(): void {
-    // Remove any existing listeners to avoid duplicates
-    this.plugin.scrapeEventEmitter.removeAllListeners();
-    
-    // Listen for started events
-    this.plugin.scrapeEventEmitter.on('started', (event) => {
-        this.showScrapeFeedback(event.message, 'info');
-    });
-    
-    // Listen for progress events
-    this.plugin.scrapeEventEmitter.on('progress', (event) => {
-        this.showScrapeFeedback(event.message, 'info');
-    });
-    
-    // Listen for backup warning events
-    this.plugin.scrapeEventEmitter.on('backup-warning', (event) => {
-        if (event.data?.onProceed && event.data?.onCancel) {
-            this.showBackupWarning(event.data.onProceed, event.data.onCancel);
-        }
-    });
-    
-    // Listen for completion events
-    this.plugin.scrapeEventEmitter.on('completed', (event) => {
-        this.showScrapeFeedback(event.message, 'success');
+    /**
+     * Set up event listeners for scrape operations
+     */
+    private setupScrapeEventListeners(): void {
+        // Remove any existing listeners to avoid duplicates
+        this.plugin.scrapeEventEmitter.removeAllListeners();
         
-        // Enable the open note button
-        if (this.openNoteButton) {
-            this.openNoteButton.disabled = false;
-            this.openNoteButton.classList.add('enabled');
-            this.hasScraped = true;
-        }
+        // Listen for started events
+        this.plugin.scrapeEventEmitter.on('started', (event) => {
+            this.showScrapeFeedback(event.message, 'info');
+        });
         
-        // Hide feedback after a few seconds
-        setTimeout(() => {
-            this.hideFeedback();
-        }, 3000);
-    });
-    
-    // Listen for error events
-    this.plugin.scrapeEventEmitter.on('error', (event) => {
-        this.showScrapeFeedback(event.message, 'error');
-    });
-}
+        // Listen for progress events
+        this.plugin.scrapeEventEmitter.on('progress', (event) => {
+            this.showScrapeFeedback(event.message, 'info');
+        });
+        
+        // Listen for backup warning events
+        this.plugin.scrapeEventEmitter.on('backup-warning', (event) => {
+            if (event.data?.onProceed && event.data?.onCancel) {
+                this.showBackupWarning(event.data.onProceed, event.data.onCancel);
+            }
+        });
+        
+        // Listen for completion events
+        this.plugin.scrapeEventEmitter.on('completed', (event) => {
+            this.showScrapeFeedback(event.message, 'success');
+            
+            // Enable the open note button
+            if (this.openNoteButton) {
+                this.openNoteButton.disabled = false;
+                this.openNoteButton.classList.add('enabled');
+                this.hasScraped = true;
+            }
+            
+            // Hide feedback after a few seconds
+            setTimeout(() => {
+                this.hideFeedback();
+            }, 3000);
+        });
+        
+        // Listen for error events
+        this.plugin.scrapeEventEmitter.on('error', (event) => {
+            this.showScrapeFeedback(event.message, 'error');
+        });
+    }
 
 }
 

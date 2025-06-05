@@ -984,17 +984,6 @@
     }
 }
 
-/* Progress Sections */
-.oom-progress-section {
-    /* NO VISUAL STYLING - Let theme handle section appearance */
-    /* Structural layout only */
-    margin-top: var(--oom-spacing-md);
-    
-    &:has(.oom-progress-content.active) {
-        margin-top: var(--oom-spacing-lg);
-    }
-}
-
 /* Journal Structure Sections */
 .oom-journal-structure-sections {
     /* NO VISUAL STYLING - Let theme handle sections appearance */
@@ -6657,17 +6646,6 @@ h2.oom-metrics-tabs-label {
 @media screen and (max-width: var(--oom-breakpoint-mobile)) {
     .oom-dashboard-info-grid {
         gap: var(--oom-spacing-sm);
-    }
-}
-
-/* Progress Sections */
-.oom-progress-section {
-    /* NO VISUAL STYLING - Let theme handle section appearance */
-    /* Structural layout only */
-    margin-top: var(--oom-spacing-md);
-    
-    &:has(.oom-progress-content.active) {
-        margin-top: var(--oom-spacing-lg);
     }
 }
 
