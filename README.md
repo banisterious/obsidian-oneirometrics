@@ -44,7 +44,7 @@ Your centralized dashboard for dream analysis and insights:
 - **Responsive Design:** Mobile-optimized interface with accessibility support
 
 <p align="center">
-  <img src="docs/images/oom-metrics-note-001.png" alt="A screenshot of the OneiroMetrics metrics view" width="600"/>
+  <img src="docs/images/OneiroMetrics-Note.gif" alt="Animated demonstration of the OneiroMetrics metrics view" width="600"/>
 </p>
 <p align="center"><em>OneiroMetrics metrics view showing dream journal analysis</em></p>
 

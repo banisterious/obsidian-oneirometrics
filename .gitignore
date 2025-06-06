@@ -50,6 +50,9 @@ oom-ribbon-test/
 # Backup files
 *.bak 
 
+# ScreenToGif project files
+*.stg
+
 # Refactoring cleanup scripts
 docs/developer/implementation/refactoring-cleanup.ps1
 docs/developer/implementation/refactoring-cleanup.sh
