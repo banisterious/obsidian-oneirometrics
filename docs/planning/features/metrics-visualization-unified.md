@@ -8,11 +8,13 @@
 - [Phase 2: Calendar Visualization Enhancement](#phase-2-calendar-visualization-enhancement)
 - [Phase 3: Advanced Chart Visualization](#phase-3-advanced-chart-visualization)
 - [Phase 4: Unified Configuration Experience](#phase-4-unified-configuration-experience)
-- [Phase 4.1: CSV Export System](#phase-4-1-csv-export-system)
+- [Phase 4.1: CSV Export System](#phase-41-csv-export-system)
 - [Phase 5: Advanced Features & Polish](#phase-5-advanced-features--polish)
 - [Technical Architecture](#technical-architecture)
 - [Implementation Timeline](#implementation-timeline)
+- [Current Implementation Status](#-current-implementation-status)
 - [Success Metrics](#success-metrics)
+- [Migration Notes](#migration-notes)
 
 ---
 
