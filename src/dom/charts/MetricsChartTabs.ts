@@ -1,6 +1,7 @@
 import { Chart, ChartConfiguration, ChartData, ChartOptions } from 'chart.js/auto';
 import { DreamMetricData } from '../../types/core';
 import { ILogger } from '../../logging/LoggerTypes';
+import { CSVExportPipeline, TabType, StatisticsExportOptions, TrendsExportOptions, CompareExportOptions, CorrelationsExportOptions, HeatmapExportOptions } from '../../utils/csv-export-service';
 
 export interface ChartTabData {
     metrics: Record<string, number[]>;
@@ -18,6 +19,7 @@ export class MetricsChartTabs {
     private activeTab: string = 'statistics';
     private charts: Map<string, Chart> = new Map();
     private isVisible: boolean = true;
+    private csvExportPipeline: CSVExportPipeline;
 
     constructor(
         container: HTMLElement,
@@ -31,6 +33,7 @@ export class MetricsChartTabs {
         this.statisticsTableHTML = statisticsTableHTML;
         this.logger = logger;
         this.activeTab = activeTab;
+        this.csvExportPipeline = new CSVExportPipeline('OneiroMetrics');
 
         this.initializeStructure();
         this.createTabs();
@@ -149,7 +152,21 @@ export class MetricsChartTabs {
     private renderStatisticsTab(): void {
         const container = document.createElement('div');
         container.className = 'oom-chart-container';
-        container.innerHTML = this.statisticsTableHTML;
+        
+        // Create toolbar with export button
+        const toolbar = document.createElement('div');
+        toolbar.className = 'oom-chart-toolbar';
+        
+        const exportButton = this.createExportButton('statistics', 'Export Table Data');
+        toolbar.appendChild(exportButton);
+        
+        // Create content wrapper
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'oom-chart-content';
+        contentWrapper.innerHTML = this.statisticsTableHTML;
+        
+        container.appendChild(toolbar);
+        container.appendChild(contentWrapper);
         this.contentContainer.appendChild(container);
     }
 
@@ -160,14 +177,23 @@ export class MetricsChartTabs {
         const container = document.createElement('div');
         container.className = 'oom-chart-container oom-chart-container--loading';
         
+        // Create toolbar with export button
+        const toolbar = document.createElement('div');
+        toolbar.className = 'oom-chart-toolbar';
+        
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
         title.textContent = 'Metric Trends Over Time';
         
+        const exportButton = this.createExportButton('trends', 'Export Time Series');
+        
+        toolbar.appendChild(title);
+        toolbar.appendChild(exportButton);
+        
         const canvas = document.createElement('canvas');
         canvas.className = 'oom-chart-canvas';
         
-        container.appendChild(title);
+        container.appendChild(toolbar);
         container.appendChild(canvas);
         this.contentContainer.appendChild(container);
 
@@ -185,14 +211,23 @@ export class MetricsChartTabs {
         const container = document.createElement('div');
         container.className = 'oom-chart-container oom-chart-container--loading';
         
+        // Create toolbar with export button
+        const toolbar = document.createElement('div');
+        toolbar.className = 'oom-chart-toolbar';
+        
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
         title.textContent = 'Metric Comparison';
         
+        const exportButton = this.createExportButton('compare', 'Export Comparison Data');
+        
+        toolbar.appendChild(title);
+        toolbar.appendChild(exportButton);
+        
         const canvas = document.createElement('canvas');
         canvas.className = 'oom-chart-canvas';
         
-        container.appendChild(title);
+        container.appendChild(toolbar);
         container.appendChild(canvas);
         this.contentContainer.appendChild(container);
 
@@ -204,20 +239,29 @@ export class MetricsChartTabs {
     }
 
     /**
-     * Render correlations tab with scatter plot
+     * Render correlations tab with scatter plots
      */
     private renderCorrelationsTab(): void {
         const container = document.createElement('div');
         container.className = 'oom-chart-container oom-chart-container--loading';
         
+        // Create toolbar with export button
+        const toolbar = document.createElement('div');
+        toolbar.className = 'oom-chart-toolbar';
+        
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
         title.textContent = 'Metric Correlations';
         
+        const exportButton = this.createExportButton('correlations', 'Export Correlation Matrix');
+        
+        toolbar.appendChild(title);
+        toolbar.appendChild(exportButton);
+        
         const canvas = document.createElement('canvas');
         canvas.className = 'oom-chart-canvas';
         
-        container.appendChild(title);
+        container.appendChild(toolbar);
         container.appendChild(canvas);
         this.contentContainer.appendChild(container);
 
@@ -260,10 +304,14 @@ export class MetricsChartTabs {
             metricSelect.appendChild(option);
         });
         
+        // Create export button for heatmap
+        const exportButton = this.createExportButton('heatmap', 'Export Calendar Data');
+        
         const heatmapContainer = document.createElement('div');
         heatmapContainer.className = 'oom-heatmap-container';
         
         selectorContainer.appendChild(metricSelect);
+        selectorContainer.appendChild(exportButton);
         container.appendChild(title);
         container.appendChild(selectorContainer);
         container.appendChild(heatmapContainer);
@@ -794,5 +842,153 @@ export class MetricsChartTabs {
         placeholder.appendChild(titleElement);
         placeholder.appendChild(descElement);
         this.contentContainer.appendChild(placeholder);
+    }
+
+    /**
+     * Create export button for a tab
+     */
+    private createExportButton(tabType: TabType, label: string): HTMLElement {
+        const exportButton = document.createElement('button');
+        exportButton.className = 'oom-export-button';
+        exportButton.innerHTML = `<span class="oom-export-icon">📊</span> ${label}`;
+        exportButton.title = `Export ${tabType} data as CSV`;
+        
+        exportButton.addEventListener('click', async () => {
+            await this.handleExportClick(tabType);
+        });
+        
+        return exportButton;
+    }
+
+    /**
+     * Handle export button click for a specific tab
+     */
+    private async handleExportClick(tabType: TabType): Promise<void> {
+        try {
+            this.logger?.debug('MetricsChartTabs', `Exporting ${tabType} data`);
+            
+            // Prepare tab-specific export options
+            const baseOptions = {
+                format: 'csv' as const,
+                includeMetadata: true,
+                normalization: 'none' as const,
+                includeCalculated: true
+            };
+
+            let csvContent: string;
+            let filename: string;
+
+            switch (tabType) {
+                case 'statistics':
+                    const statsOptions: StatisticsExportOptions = {
+                        ...baseOptions,
+                        includeQualityScore: true,
+                        includeEntryDetails: true,
+                        groupBy: 'date'
+                    };
+                    csvContent = await this.csvExportPipeline.exportStatisticsData(this.chartData.dreamEntries, statsOptions);
+                    filename = `oneirometrics-statistics-${new Date().toISOString().split('T')[0]}.csv`;
+                    break;
+
+                case 'trends':
+                    const trendsOptions: TrendsExportOptions = {
+                        ...baseOptions,
+                        includeMovingAverages: true,
+                        aggregationPeriod: 'daily',
+                        includeTrendAnalysis: true
+                    };
+                    csvContent = await this.csvExportPipeline.exportTrendsData(this.chartData.dreamEntries, trendsOptions);
+                    filename = `oneirometrics-trends-${new Date().toISOString().split('T')[0]}.csv`;
+                    break;
+
+                case 'compare':
+                    const compareOptions: CompareExportOptions = {
+                        ...baseOptions,
+                        comparisonMetrics: Object.keys(this.chartData.metrics),
+                        includeStatistics: true,
+                        includeCorrelations: true
+                    };
+                    csvContent = await this.csvExportPipeline.exportCompareData(this.chartData.dreamEntries, compareOptions);
+                    filename = `oneirometrics-compare-${new Date().toISOString().split('T')[0]}.csv`;
+                    break;
+
+                case 'correlations':
+                    const correlationsOptions: CorrelationsExportOptions = {
+                        ...baseOptions,
+                        includeConfidenceIntervals: true,
+                        minimumSampleSize: 5,
+                        includePValues: true
+                    };
+                    csvContent = await this.csvExportPipeline.exportCorrelationsData(this.chartData.dreamEntries, correlationsOptions);
+                    filename = `oneirometrics-correlations-${new Date().toISOString().split('T')[0]}.csv`;
+                    break;
+
+                case 'heatmap':
+                    const heatmapOptions: HeatmapExportOptions = {
+                        ...baseOptions,
+                        selectedMetric: this.getSelectedHeatmapMetric() || Object.keys(this.chartData.metrics)[0] || 'Unknown',
+                        includeIntensityLevels: true,
+                        includeDensityData: true
+                    };
+                    csvContent = await this.csvExportPipeline.exportHeatmapData(this.chartData.dreamEntries, heatmapOptions);
+                    filename = `oneirometrics-heatmap-${new Date().toISOString().split('T')[0]}.csv`;
+                    break;
+
+                default:
+                    throw new Error(`Unsupported export type: ${tabType}`);
+            }
+
+            // Trigger download
+            this.csvExportPipeline.triggerDownload(csvContent, filename, tabType);
+            
+            this.logger?.debug('MetricsChartTabs', `Export completed for ${tabType}`);
+            
+        } catch (error) {
+            this.logger?.error('MetricsChartTabs', `Export failed for ${tabType}`, { error });
+            // Show user-friendly error message
+            this.showExportError(tabType, error as Error);
+        }
+    }
+
+    /**
+     * Get the currently selected metric in the heatmap tab
+     */
+    private getSelectedHeatmapMetric(): string | null {
+        const metricSelect = this.contentContainer.querySelector('.oom-metric-selector') as HTMLSelectElement;
+        return metricSelect?.value || null;
+    }
+
+    /**
+     * Show error message for failed exports
+     */
+    private showExportError(tabType: TabType, error: Error): void {
+        // Create temporary error notification
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'oom-export-error';
+        errorDiv.innerHTML = `
+            <div class="oom-export-error-content">
+                <span class="oom-export-error-icon">❌</span>
+                <span class="oom-export-error-message">Export failed for ${tabType}: ${error.message}</span>
+                <button class="oom-export-error-close">×</button>
+            </div>
+        `;
+        
+        // Add to current tab content
+        this.contentContainer.appendChild(errorDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 5000);
+        
+        // Manual close button
+        const closeButton = errorDiv.querySelector('.oom-export-error-close');
+        closeButton?.addEventListener('click', () => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        });
     }
 } 
