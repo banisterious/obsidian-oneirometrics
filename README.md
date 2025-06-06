@@ -28,7 +28,6 @@ Access all plugin features through the main hub interface:
 
 - **Dream Scrape:** Extract and analyze metrics from your dream journal entries
 - **Metrics Settings:** Configure custom metrics, scoring systems, and display preferences
-- **Date Navigator:** Filter entries by date ranges with calendar picker and saved favorites
 - **Journal Structure:** Validate and maintain consistent dream journal entry formats
 - **Templates:** Create and manage dream journal templates with dynamic placeholders
 
@@ -36,11 +35,12 @@ Access all plugin features through the main hub interface:
 
 Your centralized dashboard for dream analysis and insights:
 
-- **Dream Entries Table:** Sortable, filterable table of all dream entries with expandable content
 - **Summary Statistics:** Overview of metrics averages, ranges, and entry counts
 - **Interactive Charts:** Multiple visualization tabs (Statistics, Trends, Compare, Correlations, Heatmap, Insights)
 - **Advanced Analytics:** Trend analysis, outlier detection, correlation analysis, and pattern recognition
 - **Data Export:** Export charts and data in CSV format with complete statistical metadata
+- **Dream Entries Table:** Sortable, filterable table of all dream entries with expandable content
+- **Date Navigator:** Filter entries by date ranges with calendar picker and saved favorites
 - **Responsive Design:** Mobile-optimized interface with accessibility support
 
 <p align="center">
