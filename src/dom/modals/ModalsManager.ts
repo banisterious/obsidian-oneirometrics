@@ -194,7 +194,7 @@ export class ModalsManager {
             return;
         }
         
-        const modal = new DateSelectionModal(this.app, this.plugin.timeFilterManager);
+        const modal = new DateSelectionModal(this.app, this.plugin.timeFilterManager, this.plugin);
         modal.open();
     }
 } 

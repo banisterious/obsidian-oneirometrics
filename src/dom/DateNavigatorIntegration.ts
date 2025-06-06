@@ -1,5 +1,5 @@
 import { App, Notice } from 'obsidian';
-import { DateNavigator } from './DateNavigator';
+import { DateNavigator } from './date-navigator/DateNavigator';
 import { TimeFilterManager, DateRange } from '../timeFilters';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DreamMetricData } from '../types';
@@ -37,12 +37,15 @@ export class DateNavigatorIntegration {
     private progressIndicator: ProgressIndicator | null = null;
     private isProcessing = false;
     private logger = getLogger('DateNavigatorIntegration');
+    private plugin: any = null; // Store reference to plugin for settings access
 
     constructor(app: App, state: DreamMetricsState | any, filterManager?: TimeFilterManager) {
         this.app = app;
         
         // Handle the case where the second parameter is actually the plugin
         if (state && !(state instanceof DreamMetricsState) && typeof state === 'object') {
+            // Store plugin reference for settings access
+            this.plugin = state;
             // Extract state and filter manager from plugin
             this.state = state.state || new DreamMetricsState();
             // Use the provided filter manager, or try to get from plugin, or from service registry
@@ -122,8 +125,34 @@ export class DateNavigatorIntegration {
     public initialize(container: HTMLElement): DateNavigator {
         this.container = container;
         
-        // Create the date navigator
-        this.dateNavigator = new DateNavigator(container, this.state);
+        // Create the date navigator with app and settings
+        // If no plugin settings available, create a minimal settings object
+        const settings = this.plugin?.settings || {
+            // Minimal settings fallback for compatibility
+            metrics: {},
+            enabledMetrics: {},
+            disabledMetrics: {},
+            metricRanges: {},
+            linting: { enabled: false, structures: [] },
+            journalStructure: { enabled: false, structures: [] },
+            templates: [],
+            calloutName: 'dream-metrics',
+            journalCalloutName: 'journal',
+            dreamDiaryCalloutName: 'dream-diary',
+            dateHandling: { 
+                placement: 'field' as const,
+                format: 'YYYY-MM-DD',
+                includeInCallout: false
+            },
+            logging: { level: 'info' as const, maxLogSize: 1024000, maxBackups: 5 },
+            scrapeOptions: {},
+            selectedNotes: [],
+            selectedFolder: '',
+            selectionMode: 'notes' as const,
+            unifiedMetrics: undefined // Will use legacy fallback if not configured
+        };
+        
+        this.dateNavigator = new DateNavigator(container, this.state, this.app, settings);
         
         // Create progress indicator for the container
         this.progressIndicator = new ProgressIndicator(container);

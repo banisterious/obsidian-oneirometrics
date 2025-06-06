@@ -1,5 +1,5 @@
 import { App, Modal, Notice } from 'obsidian';
-import { DateNavigator } from './DateNavigator';
+import { DateNavigator } from './date-navigator/DateNavigator';
 import { DreamMetricsState } from '../state/DreamMetricsState';
 import { DateNavigatorIntegration } from './DateNavigatorIntegration';
 import { TimeFilterManager } from '../timeFilters';

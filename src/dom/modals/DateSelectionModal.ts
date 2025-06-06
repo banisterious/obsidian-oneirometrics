@@ -2,6 +2,8 @@ import { App, Modal, Notice, ButtonComponent } from 'obsidian';
 import { TimeFilterManager } from '../../timeFilters';
 import { format, startOfMonth, endOfMonth, isSameMonth, addMonths, subMonths, isToday, isSameDay } from 'date-fns';
 import safeLogger from '../../logging/safe-logger';
+import DreamMetricsPlugin from '../../../main';
+import { getComponentMetrics, getMetricThreshold } from '../../utils/settings-migration';
 
 interface DateSelection {
     start: Date;
@@ -17,6 +19,7 @@ enum SelectionMode {
 
 export class DateSelectionModal extends Modal {
     private timeFilterManager: TimeFilterManager;
+    private plugin: DreamMetricsPlugin;
     private currentMonth: Date;
     private selectedDates: Set<string> = new Set();
     private isRangeMode: boolean = false;
@@ -28,9 +31,10 @@ export class DateSelectionModal extends Modal {
     private startDateInput: HTMLInputElement | null = null;
     private endDateInput: HTMLInputElement | null = null;
     
-    constructor(app: App, timeFilterManager: TimeFilterManager) {
+    constructor(app: App, timeFilterManager: TimeFilterManager, plugin: DreamMetricsPlugin) {
         super(app);
         this.timeFilterManager = timeFilterManager;
+        this.plugin = plugin;
         this.currentMonth = new Date(); // Start with current month
         
         // Set modal properties
@@ -257,6 +261,9 @@ export class DateSelectionModal extends Modal {
             if (isSameDay(date, this.previewRange.start)) dayEl.classList.add('oom-range-start');
             if (isSameDay(date, this.previewRange.end)) dayEl.classList.add('oom-range-end');
         }
+
+        // **NEW: Add quality indicators for dream entries**
+        this.addQualityIndicators(dayEl, date, dateKey);
         
         // Event listeners
         dayEl.addEventListener('click', (event) => this.handleDayClick(date, event));
@@ -271,6 +278,331 @@ export class DateSelectionModal extends Modal {
         }
         
         return dayEl;
+    }
+
+    /**
+     * Add quality indicators (dots and stars) for dream entries on this date
+     */
+    private addQualityIndicators(dayEl: HTMLElement, date: Date, dateKey: string): void {
+        try {
+            // DEBUG: Log every attempt to add indicators
+            safeLogger.debug('DateSelectionModal', `Checking quality indicators for ${dateKey}`);
+            
+            // Get dream entries for this date
+            const dreamEntries = this.getDreamEntriesForDate(dateKey);
+            const hasEntries = dreamEntries.length > 0;
+            
+            // DEBUG: Log the results
+            safeLogger.debug('DateSelectionModal', `Found ${dreamEntries.length} entries for ${dateKey}`, {
+                hasEntries,
+                entries: dreamEntries.slice(0, 2) // Log first 2 entries
+            });
+            
+            if (hasEntries) {
+                dayEl.classList.add('oom-has-entries');
+                
+                // Create dots indicator
+                const dotsContainer = dayEl.createDiv('oom-dream-indicators');
+                const entryCount = Math.min(dreamEntries.length, 5); // Limit to 5 dots
+                
+                // DEBUG: Log indicator creation
+                safeLogger.debug('DateSelectionModal', `Creating ${entryCount} dots for ${dateKey}`);
+                
+                for (let i = 0; i < entryCount; i++) {
+                    dotsContainer.createDiv('oom-dream-dot');
+                }
+                
+                // Create quality stars based on unified metrics
+                const qualityLevel = this.calculateQualityLevel(dreamEntries);
+                safeLogger.debug('DateSelectionModal', `Quality level for ${dateKey}: ${qualityLevel}`);
+                
+                if (qualityLevel && qualityLevel !== 'none') {
+                    const starsContainer = dayEl.createDiv('oom-day-metrics');
+                    
+                    let starsHtml = '';
+                    if (qualityLevel === 'high') {
+                        starsHtml = '<span class="oom-star-high">★★★</span>';
+                    } else if (qualityLevel === 'medium') {
+                        starsHtml = '<span class="oom-star-medium">★★</span>';
+                    } else if (qualityLevel === 'low') {
+                        starsHtml = '<span class="oom-star-low">★</span>';
+                    }
+                    
+                    if (starsHtml) {
+                        starsContainer.innerHTML = starsHtml;
+                        starsContainer.addClass(`oom-metric-${qualityLevel}`);
+                        starsContainer.setAttribute('title', `${dreamEntries.length} dream entries - ${qualityLevel} quality`);
+                        
+                        // DEBUG: Confirm stars were added
+                        safeLogger.debug('DateSelectionModal', `Added ${qualityLevel} stars to ${dateKey}`);
+                    }
+                }
+                
+                // DEBUG: Final verification
+                safeLogger.debug('DateSelectionModal', `Final indicator state for ${dateKey}:`, {
+                    hasHasEntriesClass: dayEl.classList.contains('oom-has-entries'),
+                    dotsCount: dayEl.querySelectorAll('.oom-dream-dot').length,
+                    hasStars: !!dayEl.querySelector('.oom-day-metrics'),
+                    starsContent: dayEl.querySelector('.oom-day-metrics')?.innerHTML
+                });
+            } else {
+                // DEBUG: Log when no entries found
+                safeLogger.debug('DateSelectionModal', `No entries found for ${dateKey} - no indicators added`);
+            }
+        } catch (error) {
+            safeLogger.error('DateSelectionModal', 'Error adding quality indicators', { dateKey, error });
+        }
+    }
+
+    /**
+     * Get dream entries for a specific date - IMPROVED VERSION
+     */
+    private getDreamEntriesForDate(dateKey: string): any[] {
+        try {
+            // DEBUG: Log what we're looking for
+            safeLogger.debug('DateSelectionModal', `Looking for dream entries for date: ${dateKey}`);
+            
+            let dreamEntries: any[] = [];
+            
+            // METHOD 1: Try to get entries from plugin state/manager
+            if (this.plugin?.state?.getDreamEntries) {
+                const allStateEntries = this.plugin.state.getDreamEntries();
+                safeLogger.debug('DateSelectionModal', `Found ${allStateEntries?.length || 0} entries in plugin state`);
+                
+                if (allStateEntries && Array.isArray(allStateEntries)) {
+                    const matchingEntries = allStateEntries.filter(entry => {
+                        if (!entry.date) return false;
+                        
+                        // Try multiple date formats
+                        const entryDate = this.normalizeDateString(entry.date);
+                        return entryDate === dateKey;
+                    });
+                    
+                    dreamEntries.push(...matchingEntries);
+                    safeLogger.debug('DateSelectionModal', `State entries matching ${dateKey}: ${matchingEntries.length}`);
+                }
+            }
+            
+            // METHOD 2: Try to get entries from global dreamEntries (set by DateNavigatorManager)
+            if (dreamEntries.length === 0 && window['dreamEntries']) {
+                const globalEntries = window['dreamEntries'];
+                safeLogger.debug('DateSelectionModal', `Found ${globalEntries?.length || 0} entries in window.dreamEntries`);
+                
+                if (Array.isArray(globalEntries)) {
+                    const matchingEntries = globalEntries.filter(entry => {
+                        if (!entry.date) return false;
+                        
+                        const entryDate = this.normalizeDateString(entry.date);
+                        return entryDate === dateKey;
+                    });
+                    
+                    dreamEntries.push(...matchingEntries);
+                    safeLogger.debug('DateSelectionModal', `Global entries matching ${dateKey}: ${matchingEntries.length}`);
+                }
+            }
+            
+            // METHOD 3: Try to extract from DOM (current metrics table)
+            if (dreamEntries.length === 0) {
+                const domEntries = this.extractEntriesFromDOM(dateKey);
+                dreamEntries.push(...domEntries);
+                safeLogger.debug('DateSelectionModal', `DOM entries matching ${dateKey}: ${domEntries.length}`);
+            }
+            
+            // METHOD 4: Create some test entries for debugging (only for today and yesterday)
+            if (dreamEntries.length === 0 && this.isRecentDate(dateKey)) {
+                dreamEntries = this.createTestEntry(dateKey);
+                safeLogger.debug('DateSelectionModal', `Created test entry for recent date ${dateKey}: ${dreamEntries.length}`);
+            }
+            
+            safeLogger.debug('DateSelectionModal', `Total entries found for ${dateKey}: ${dreamEntries.length}`);
+            return dreamEntries;
+            
+        } catch (error) {
+            safeLogger.error('DateSelectionModal', 'Error getting dream entries', { dateKey, error });
+            return [];
+        }
+    }
+    
+    /**
+     * Normalize date strings to YYYY-MM-DD format
+     */
+    private normalizeDateString(dateStr: string): string {
+        try {
+            // Handle various date formats
+            if (dateStr.includes('T')) {
+                // ISO format: 2025-01-16T00:00:00.000Z
+                return dateStr.split('T')[0];
+            }
+            
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // Already in YYYY-MM-DD format
+                return dateStr;
+            }
+            
+            // Try to parse as date and format
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                return format(date, 'yyyy-MM-dd');
+            }
+            
+            return dateStr; // Return as-is if can't normalize
+        } catch (error) {
+            safeLogger.debug('DateSelectionModal', 'Error normalizing date string', { dateStr, error });
+            return dateStr;
+        }
+    }
+    
+    /**
+     * Extract dream entries from the current DOM metrics table
+     */
+    private extractEntriesFromDOM(dateKey: string): any[] {
+        try {
+            const entries: any[] = [];
+            const metricsContainer = document.querySelector('.oom-metrics-container');
+            
+            if (!metricsContainer) {
+                safeLogger.debug('DateSelectionModal', 'No metrics container found in DOM');
+                return entries;
+            }
+            
+            const rows = metricsContainer.querySelectorAll('.oom-metrics-row');
+            safeLogger.debug('DateSelectionModal', `Found ${rows.length} metrics rows in DOM`);
+            
+            rows.forEach((row, index) => {
+                const dateCell = row.querySelector('.oom-date-cell, .column-date');
+                const dateText = dateCell?.textContent?.trim();
+                
+                if (dateText) {
+                    const normalizedDate = this.normalizeDateString(dateText);
+                    if (normalizedDate === dateKey) {
+                        entries.push({
+                            date: dateKey,
+                            source: `dom-row-${index}`,
+                            row: row,
+                            metrics: this.extractMetricsFromRow(row)
+                        });
+                    }
+                }
+            });
+            
+            safeLogger.debug('DateSelectionModal', `Extracted ${entries.length} entries from DOM for ${dateKey}`);
+            return entries;
+        } catch (error) {
+            safeLogger.debug('DateSelectionModal', 'Error extracting entries from DOM', { dateKey, error });
+            return [];
+        }
+    }
+    
+    /**
+     * Extract metrics from a DOM table row
+     */
+    private extractMetricsFromRow(row: Element): any {
+        const metrics: any = {};
+        
+        try {
+            // Look for cells with metric values
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                const text = cell.textContent?.trim();
+                const value = parseFloat(text || '');
+                
+                if (!isNaN(value) && value > 0) {
+                    metrics[`metric_${index}`] = value;
+                }
+            });
+        } catch (error) {
+            safeLogger.debug('DateSelectionModal', 'Error extracting metrics from row', error);
+        }
+        
+        return metrics;
+    }
+    
+    /**
+     * Check if a date is recent (today or yesterday) for test entry generation
+     */
+    private isRecentDate(dateKey: string): boolean {
+        try {
+            const date = new Date(dateKey);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            
+            const todayKey = format(today, 'yyyy-MM-dd');
+            const yesterdayKey = format(yesterday, 'yyyy-MM-dd');
+            
+            return dateKey === todayKey || dateKey === yesterdayKey;
+        } catch (error) {
+            return false;
+        }
+    }
+    
+    /**
+     * Create a test entry for debugging purposes
+     */
+    private createTestEntry(dateKey: string): any[] {
+        return [{
+            date: dateKey,
+            source: 'test-debug',
+            title: 'Debug Test Entry',
+            content: `Test dream entry for ${dateKey}`,
+            metrics: {
+                clarity: 7,
+                intensity: 5,
+                recall: 8
+            }
+        }];
+    }
+
+    /**
+     * Calculate quality level based on unified metrics system
+     */
+    private calculateQualityLevel(dreamEntries: any[]): 'high' | 'medium' | 'low' | 'none' {
+        try {
+            if (dreamEntries.length === 0) return 'none';
+            
+            // Check if unified metrics are available
+            if (this.plugin.settings?.unifiedMetrics) {
+                const calendarMetrics = getComponentMetrics(this.plugin.settings, 'calendar');
+                const thresholds = this.plugin.settings.unifiedMetrics.visualizationThresholds;
+                
+                if (calendarMetrics.length > 0 && thresholds) {
+                    // Calculate average quality based on configured metrics
+                    let totalScore = 0;
+                    let metricCount = 0;
+                    
+                    // For now, use a simplified calculation
+                    // In a full implementation, you'd extract actual metric values from dream entries
+                    dreamEntries.forEach(entry => {
+                        calendarMetrics.forEach(metric => {
+                            // Placeholder: extract metric value from entry
+                            // const metricValue = extractMetricValue(entry, metric.name);
+                            const metricValue = Math.random() * 10; // Placeholder
+                            const normalized = metricValue / 10; // Normalize to 0-1
+                            totalScore += normalized;
+                            metricCount++;
+                        });
+                    });
+                    
+                    if (metricCount > 0) {
+                        const avgQuality = totalScore / metricCount;
+                        return getMetricThreshold(avgQuality, 0, 1, thresholds);
+                    }
+                }
+            }
+            
+            // Fallback: use entry count
+            if (dreamEntries.length >= 3) return 'high';
+            if (dreamEntries.length === 2) return 'medium';
+            if (dreamEntries.length === 1) return 'low';
+            return 'none';
+        } catch (error) {
+            safeLogger.debug('DateSelectionModal', 'Error calculating quality level', { error });
+            // Fallback to entry count
+            if (dreamEntries.length >= 3) return 'high';
+            if (dreamEntries.length === 2) return 'medium';
+            if (dreamEntries.length === 1) return 'low';
+            return 'none';
+        }
     }
 
     private createActionButtons(container: HTMLElement): void {

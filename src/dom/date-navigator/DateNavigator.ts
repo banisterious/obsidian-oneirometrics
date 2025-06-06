@@ -1,7 +1,9 @@
 import { App } from 'obsidian';
 import { DreamMetricsState } from '../../state/DreamMetricsState';
-import { DreamMetricData } from '../../types/core';
+import { DreamMetricData, DreamMetricsSettings } from '../../types/core';
 import { getSourceFile, getSourceId, isObjectSource } from '../../utils/type-guards';
+import { MetricsDiscoveryService } from '../../metrics/MetricsDiscoveryService';
+import { getComponentMetrics, getMetricThreshold } from '../../utils/settings-migration';
 import {
     startOfMonth,
     endOfMonth,
@@ -67,10 +69,20 @@ export class DateNavigator {
     private metrics: Map<string, MetricSummary> = new Map();
     private filterActive: boolean = false;
     private dayElements: Map<string, HTMLElement> = new Map();
+    private app: App;
+    private settings: DreamMetricsSettings;
+    private metricsDiscoveryService: MetricsDiscoveryService;
     
-    constructor(container: HTMLElement, state: DreamMetricsState) {
+    constructor(container: HTMLElement, state: DreamMetricsState, app: App, settings: DreamMetricsSettings) {
         this.container = container;
         this.state = state;
+        this.app = app;
+        this.settings = settings;
+        
+        // Initialize MetricsDiscoveryService if we have app and settings
+        if (this.app && this.settings) {
+            this.metricsDiscoveryService = MetricsDiscoveryService.getInstance(this.app, this.settings);
+        }
         
         // Always start with the current month
         const today = new Date();
@@ -80,6 +92,9 @@ export class DateNavigator {
         try {
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                 window['globalLogger'].debug('DateNavigator', `Initializing with current month: ${format(this.currentMonth, 'MMMM yyyy')}`);
+                if (this.settings?.unifiedMetrics) {
+                    window['globalLogger'].debug('DateNavigator', 'Using unified metrics configuration for calendar display');
+                }
             }
         } catch (e) {
             // Silent failure - logging should never break functionality
@@ -930,150 +945,147 @@ export class DateNavigator {
             return;
         }
         
-        // For now, we'll use the entry count as a simple metric
-        // but also check for any quality metrics in the entries
-        
+        // Phase 2 Enhancement: Use unified metrics configuration
         let indicator: 'high' | 'medium' | 'low' | 'none' = 'none';
         let value = 0;
         let metricKey = 'entries';
         
-        // First, check entry count
-        if (entries.length >= 3) {
-            indicator = 'high';
-            value = entries.length;
-        } else if (entries.length === 2) {
-            indicator = 'medium';
-            value = entries.length;
-        } else if (entries.length === 1) {
-            indicator = 'low';
-            value = entries.length;
-        }
-        
-        try {
-            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Initial indicator based on count (${entries.length}): ${indicator}`);
+        // Check if we have unified metrics configuration
+        if (this.settings?.unifiedMetrics && this.metricsDiscoveryService) {
+            try {
+                // Get calendar-specific metrics from unified configuration
+                const calendarMetrics = getComponentMetrics(this.settings, 'calendar');
+                const thresholds = this.settings.unifiedMetrics.visualizationThresholds;
                 
-                // Extra debug - dump the full entries to log
-                window['globalLogger'].debug('DateNavigator', 'Full entries for day:', { 
-                    dateKey: dateKey, 
-                    entriesCount: entries.length, 
-                    entriesSummary: entries.map(e => ({ date: e.date, title: e.title }))
-                });
+                if (calendarMetrics.length > 0 && thresholds) {
+                    try {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigator', `Using ${calendarMetrics.length} configured calendar metrics:`, calendarMetrics.map(m => m.name));
+                        }
+                    } catch (e) {
+                        // Silent failure
+                    }
+                    
+                    let totalScore = 0;
+                    let metricCount = 0;
+                    let bestMetricName = '';
+                    let bestMetricScore = 0;
+                    
+                    // Process each entry for the day
+                    entries.forEach(entry => {
+                        if (entry.metrics) {
+                            // Calculate score only for configured calendar metrics
+                            calendarMetrics.forEach(metric => {
+                                const metricValue = entry.metrics[metric.name];
+                                if (typeof metricValue === 'number') {
+                                    // Normalize to 0-1 range using metric's min/max
+                                    const normalized = (metricValue - metric.minValue) / (metric.maxValue - metric.minValue);
+                                    const clampedNormalized = Math.max(0, Math.min(1, normalized));
+                                    
+                                    totalScore += clampedNormalized;
+                                    metricCount++;
+                                    
+                                    // Track the best individual metric for display
+                                    if (clampedNormalized > bestMetricScore) {
+                                        bestMetricScore = clampedNormalized;
+                                        bestMetricName = metric.name;
+                                    }
+                                    
+                                    try {
+                                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                            window['globalLogger'].debug('DateNavigator', `Metric ${metric.name}: ${metricValue} -> normalized ${clampedNormalized.toFixed(2)}`);
+                                        }
+                                    } catch (e) {
+                                        // Silent failure
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Calculate average quality score
+                    if (metricCount > 0) {
+                        const avgQuality = totalScore / metricCount;
+                        
+                        // Apply configurable thresholds
+                        const qualityLevel = getMetricThreshold(avgQuality, 0, 1, thresholds);
+                        
+                        // Map quality level to indicator
+                        indicator = qualityLevel;
+                        value = avgQuality;
+                        metricKey = bestMetricName || 'average';
+                        
+                        try {
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('DateNavigator', `Calendar metrics result: avgQuality=${avgQuality.toFixed(2)}, level=${qualityLevel}, bestMetric=${bestMetricName}`);
+                            }
+                        } catch (e) {
+                            // Silent failure
+                        }
+                    } else {
+                        // No metrics found, fall back to entry count
+                        indicator = entries.length >= 2 ? 'medium' : 'low';
+                        value = entries.length;
+                        metricKey = 'entries';
+                        
+                        try {
+                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                                window['globalLogger'].debug('DateNavigator', `No calendar metrics found, using entry count: ${entries.length} entries -> ${indicator}`);
+                            }
+                        } catch (e) {
+                            // Silent failure
+                        }
+                    }
+                } else {
+                    // No calendar metrics configured, fall back to entry count
+                    indicator = entries.length >= 2 ? 'medium' : 'low';
+                    value = entries.length;
+                    metricKey = 'entries';
+                    
+                    try {
+                        if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                            window['globalLogger'].debug('DateNavigator', `No calendar metrics configured, using entry count fallback: ${entries.length} entries -> ${indicator}`);
+                        }
+                    } catch (e) {
+                        // Silent failure
+                    }
+                }
+            } catch (error) {
+                // Error in unified metrics processing, fall back to legacy logic
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].warn('DateNavigator', 'Error processing unified metrics, falling back to legacy logic:', error);
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
+                
+                // Legacy fallback: use entry count
+                indicator = entries.length >= 2 ? 'medium' : 'low';
+                value = entries.length;
+                metricKey = 'entries';
             }
-        } catch (e) {
-            // Silent failure
-        }
-        
-        // Look for any numerical metrics in the entries
-        entries.forEach((entry, idx) => {
+        } else {
+            // Legacy fallback: No unified metrics configuration, use entry count
+            if (entries.length >= 3) {
+                indicator = 'high';
+                value = entries.length;
+            } else if (entries.length === 2) {
+                indicator = 'medium';
+                value = entries.length;
+            } else if (entries.length === 1) {
+                indicator = 'low';
+                value = entries.length;
+            }
+            
             try {
                 if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                    window['globalLogger'].debug('DateNavigator', `Processing entry ${idx+1}/${entries.length} for ${dateKey}`);
-                    window['globalLogger'].debug('DateNavigator', `Entry date: ${entry.date}, source: ${typeof entry.source === 'string' ? entry.source : JSON.stringify(entry.source)}`);
+                    window['globalLogger'].debug('DateNavigator', `Using legacy entry count logic: ${entries.length} entries -> ${indicator}`);
                 }
             } catch (e) {
                 // Silent failure
             }
-            
-            if (entry.metrics) {
-                // Log found metrics for debugging
-                try {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('DateNavigator', 'Entry metrics found:', entry.metrics);
-                    }
-                } catch (e) {
-                    // Silent failure
-                }
-                
-                // Count numeric metrics
-                let numericMetricsCount = 0;
-                
-                // Process all metrics in the entry
-                for (const metricName in entry.metrics) {
-                    const metricValue = entry.metrics[metricName];
-                    
-                    // Only process numeric metrics
-                    if (typeof metricValue === 'number') {
-                        numericMetricsCount++;
-                        
-                        try {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].debug('DateNavigator', `Processing metric ${metricName}=${metricValue}`);
-                            }
-                        } catch (e) {
-                            // Silent failure
-                        }
-                        
-                        // Convert any numeric scale to our 0-10 scale
-                        // This helps handle metrics that might use different scales (like 1-5)
-                        const normalizedValue = this.normalizeMetricValue(metricValue);
-                        
-                        // If we find a high quality metric value, upgrade the indicator
-                        if (normalizedValue >= 8) {
-                            indicator = 'high';
-                            value = normalizedValue;
-                            metricKey = metricName;
-                            
-                            try {
-                                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                    window['globalLogger'].debug('DateNavigator', `Found high metric: ${metricName}=${normalizedValue}, setting indicator to 'high'`);
-                                }
-                            } catch (e) {
-                                // Silent failure
-                            }
-                        } else if (normalizedValue >= 5 && indicator !== 'high') {
-                            indicator = 'medium';
-                            value = normalizedValue;
-                            metricKey = metricName;
-                            
-                            try {
-                                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                    window['globalLogger'].debug('DateNavigator', `Found medium metric: ${metricName}=${normalizedValue}, setting indicator to 'medium'`);
-                                }
-                            } catch (e) {
-                                // Silent failure
-                            }
-                        } else if (normalizedValue > 0 && indicator === 'none') {
-                            indicator = 'low';
-                            value = normalizedValue;
-                            metricKey = metricName;
-                            
-                            try {
-                                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                    window['globalLogger'].debug('DateNavigator', `Found low metric: ${metricName}=${normalizedValue}, setting indicator to 'low'`);
-                                }
-                            } catch (e) {
-                                // Silent failure
-                            }
-                        }
-                    } else {
-                        try {
-                            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                                window['globalLogger'].debug('DateNavigator', `Skipping non-numeric metric ${metricName}=${metricValue} (type: ${typeof metricValue})`);
-                            }
-                        } catch (e) {
-                            // Silent failure
-                        }
-                    }
-                }
-                
-                try {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('DateNavigator', `Found ${numericMetricsCount} numeric metrics in entry`);
-                    }
-                } catch (e) {
-                    // Silent failure
-                }
-            } else {
-                try {
-                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                        window['globalLogger'].debug('DateNavigator', `Entry has no metrics property`);
-                    }
-                } catch (e) {
-                    // Silent failure
-                }
-            }
-        });
+        }
         
         // Ensure the indicator is not 'none' if we have entries
         if (indicator === 'none' && entries.length > 0) {
@@ -1092,7 +1104,7 @@ export class DateNavigator {
         // Final log for the calculated metrics
         try {
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Final metrics for ${dateKey}: ${entries.length} entries, indicator: ${indicator}, value: ${value}, key: ${metricKey}`);
+                window['globalLogger'].debug('DateNavigator', `Final metrics for ${dateKey}: ${entries.length} entries, indicator: ${indicator}, value: ${value.toFixed(2)}, key: ${metricKey}`);
             }
         } catch (e) {
             // Silent failure

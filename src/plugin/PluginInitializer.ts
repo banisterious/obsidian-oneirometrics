@@ -212,6 +212,7 @@ export class PluginInitializer {
         // Initialize DateNavigatorManager
         this.plugin.dateNavigatorManager = new DateNavigatorManager(
             this.app,
+            this.plugin,
             this.plugin.state,
             this.plugin.timeFilterManager,
             this.plugin.memoizedTableData,

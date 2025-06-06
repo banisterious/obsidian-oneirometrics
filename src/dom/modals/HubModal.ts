@@ -4799,8 +4799,7 @@ Example:
                 .addButton(button => {
                     button.setButtonText('Configure')
                         .onClick(() => {
-                            // Future: Open component metrics configuration modal
-                            new Notice('Component metrics configuration will be available in Phase 2');
+                            this.showComponentMetricsConfig('calendar');
                         });
                 });
 
@@ -4815,8 +4814,7 @@ Example:
                 .addButton(button => {
                     button.setButtonText('Configure')
                         .onClick(() => {
-                            // Future: Open component metrics configuration modal
-                            new Notice('Component metrics configuration will be available in Phase 2');
+                            this.showComponentMetricsConfig('charts');
                         });
                 });
 
@@ -7071,6 +7069,22 @@ Example:
         this.plugin.scrapeEventEmitter.on('error', (event) => {
             this.showScrapeFeedback(event.message, 'error');
         });
+    }
+    /**
+     * Show component metrics configuration modal
+     */
+    private async showComponentMetricsConfig(component: 'calendar' | 'charts'): Promise<void> {
+        const { ComponentMetricsModal } = await import('../modals/ComponentMetricsModal');
+        const modal = new ComponentMetricsModal(
+            this.app, 
+            this.plugin, 
+            component,
+            () => {
+                // Refresh the metrics settings content when modal closes
+                this.loadMetricsSettingsContent();
+            }
+        );
+        modal.open();
     }
 
 }

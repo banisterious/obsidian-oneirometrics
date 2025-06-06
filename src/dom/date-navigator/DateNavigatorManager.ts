@@ -13,6 +13,7 @@ declare const globalLogger: ILogger | undefined;
 export class DateNavigatorManager {
     constructor(
         private app: App,
+        private plugin: any,
         private state: DreamMetricsState,
         private timeFilterManager: TimeFilterManager,
         private memoizedTableData: Map<string, any>,
@@ -281,12 +282,13 @@ export class DateNavigatorManager {
             window['globalLogger'].debug('DateNavigatorManager', 'Modal dependencies check', {
                 hasApp: !!this.app,
                 hasTimeFilterManager: !!this.timeFilterManager,
+                hasPlugin: !!this.plugin,
                 timeFilterManagerType: typeof this.timeFilterManager
             });
         }
         
         // Create a new DateSelectionModal instance (clean and simple)
-        const modal = new DateSelectionModal(this.app, this.timeFilterManager);
+        const modal = new DateSelectionModal(this.app, this.timeFilterManager, this.plugin);
         
         // Verify that the modal was created successfully
         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
