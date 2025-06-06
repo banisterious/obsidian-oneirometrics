@@ -4665,6 +4665,241 @@ Example:
 
         // Render metrics
         this.renderMetricsLists(enabledSection, disabledSection);
+
+        // Advanced Configuration Section (Phase 1)
+        const advancedSection = this.contentContainer.createDiv({ 
+            cls: 'oom-hub-section oom-advanced-section' 
+        });
+        
+        advancedSection.createEl('h3', { 
+            text: 'Advanced Configuration',
+            cls: 'oom-hub-section-title oom-advanced-title' 
+        });
+        
+        advancedSection.createEl('p', { 
+            text: 'Advanced settings for the unified metrics infrastructure (Phase 1 enhancement).',
+            cls: 'oom-hub-section-description' 
+        });
+
+        // Check if unified metrics are configured
+        const hasUnifiedConfig = this.plugin.settings.unifiedMetrics;
+        
+        if (hasUnifiedConfig) {
+            const config = this.plugin.settings.unifiedMetrics;
+            
+            // Unified Metrics Infrastructure Section
+            const infrastructureSection = advancedSection.createDiv({ 
+                cls: 'oom-hub-subsection' 
+            });
+            
+            infrastructureSection.createEl('h3', { 
+                text: 'Unified Metrics Infrastructure',
+                cls: 'oom-hub-subsection-title' 
+            });
+            
+            infrastructureSection.createEl('p', { 
+                text: 'Centralized metric discovery, component-specific configurations, and enhanced visualization settings.',
+                cls: 'oom-hub-subsection-description' 
+            });
+
+            // Configuration Status
+            new Setting(infrastructureSection)
+                .setName('Configuration Status')
+                .setDesc(`Version ${config.configVersion} • Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`)
+                .addButton(button => {
+                    button.setButtonText('Test Infrastructure')
+                        .onClick(() => {
+                            // Close the hub modal first
+                            this.close();
+                            
+                            // Open the test suite and navigate to settings test
+                            const { UnifiedTestSuiteModal } = require('../../testing/ui/UnifiedTestSuiteModal');
+                            const testModal = new UnifiedTestSuiteModal(this.app, this.plugin);
+                            testModal.open();
+                            setTimeout(() => {
+                                testModal.selectTab('test-settings');
+                            }, 100);
+                        });
+                });
+
+            // Visualization Thresholds Subsection
+            const thresholdsSection = advancedSection.createDiv({ 
+                cls: 'oom-hub-subsection' 
+            });
+            
+            thresholdsSection.createEl('h3', { 
+                text: 'Visualization Thresholds',
+                cls: 'oom-hub-subsection-title' 
+            });
+            
+            thresholdsSection.createEl('p', { 
+                text: 'Control how metric values are categorized for visualization intensity.',
+                cls: 'oom-hub-subsection-description' 
+            });
+            
+            new Setting(thresholdsSection)
+                .setName('Low Threshold')
+                .setDesc('Values below this normalized threshold are considered "low" intensity')
+                .addSlider(slider => slider
+                    .setLimits(0, 1, 0.05)
+                    .setValue(config.visualizationThresholds.low)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.unifiedMetrics!.visualizationThresholds.low = value;
+                        await this.plugin.saveSettings();
+                    }));
+
+            new Setting(thresholdsSection)
+                .setName('Medium Threshold') 
+                .setDesc('Values below this normalized threshold are considered "medium" intensity')
+                .addSlider(slider => slider
+                    .setLimits(0, 1, 0.05)
+                    .setValue(config.visualizationThresholds.medium)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.unifiedMetrics!.visualizationThresholds.medium = value;
+                        await this.plugin.saveSettings();
+                    }));
+
+            new Setting(thresholdsSection)
+                .setName('High Threshold')
+                .setDesc('Values at or above this normalized threshold are considered "high" intensity')
+                .addSlider(slider => slider
+                    .setLimits(0, 1, 0.05)
+                    .setValue(config.visualizationThresholds.high)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.unifiedMetrics!.visualizationThresholds.high = value;
+                        await this.plugin.saveSettings();
+                    }));
+
+            // Component Metric Preferences Subsection
+            const preferencesSection = advancedSection.createDiv({ 
+                cls: 'oom-hub-subsection' 
+            });
+            
+            preferencesSection.createEl('h3', { 
+                text: 'Component Metric Preferences',
+                cls: 'oom-hub-subsection-title' 
+            });
+            
+            preferencesSection.createEl('p', { 
+                text: 'Configure which metrics are preferred for different components.',
+                cls: 'oom-hub-subsection-description' 
+            });
+            
+            // Calendar metrics
+            const calendarMetricsText = config.preferredMetrics.calendar.length > 0 
+                ? config.preferredMetrics.calendar.join(', ')
+                : 'Using defaults';
+            
+            new Setting(preferencesSection)
+                .setName('Calendar Metrics')
+                .setDesc(`Preferred metrics for calendar visualization: ${calendarMetricsText}`)
+                .addButton(button => {
+                    button.setButtonText('Configure')
+                        .onClick(() => {
+                            // Future: Open component metrics configuration modal
+                            new Notice('Component metrics configuration will be available in Phase 2');
+                        });
+                });
+
+            // Charts metrics  
+            const chartMetricsText = config.preferredMetrics.charts.length > 0
+                ? config.preferredMetrics.charts.join(', ')
+                : 'Using defaults';
+                
+            new Setting(preferencesSection)
+                .setName('Chart Metrics')
+                .setDesc(`Preferred metrics for chart visualization: ${chartMetricsText}`)
+                .addButton(button => {
+                    button.setButtonText('Configure')
+                        .onClick(() => {
+                            // Future: Open component metrics configuration modal
+                            new Notice('Component metrics configuration will be available in Phase 2');
+                        });
+                });
+
+            // Metric Discovery Settings Subsection
+            const discoverySection = advancedSection.createDiv({ 
+                cls: 'oom-hub-subsection' 
+            });
+            
+            discoverySection.createEl('h3', { 
+                text: 'Metric Discovery Settings',
+                cls: 'oom-hub-subsection-title' 
+            });
+            
+            discoverySection.createEl('p', { 
+                text: 'Configure how new metrics are automatically discovered from your dream entries.',
+                cls: 'oom-hub-subsection-description' 
+            });
+            
+            new Setting(discoverySection)
+                .setName('Auto-Discovery')
+                .setDesc('Automatically discover and suggest new metrics from dream entries')
+                .addToggle(toggle => toggle
+                    .setValue(config.autoDiscovery)
+                    .onChange(async (value) => {
+                        this.plugin.settings.unifiedMetrics!.autoDiscovery = value;
+                        await this.plugin.saveSettings();
+                    }));
+
+            new Setting(discoverySection)
+                .setName('Max New Metrics')
+                .setDesc('Maximum number of new metrics to discover per session')
+                .addText(text => text
+                    .setValue(String(config.discovery.maxNewMetrics))
+                    .onChange(async (value) => {
+                        const maxMetrics = parseInt(value) || 10;
+                        this.plugin.settings.unifiedMetrics!.discovery.maxNewMetrics = maxMetrics;
+                        await this.plugin.saveSettings();
+                    }));
+
+        } else {
+            // Migration prompt for users without unified config
+            const migrationSection = advancedSection.createDiv({ 
+                cls: 'oom-hub-subsection oom-migration-prompt' 
+            });
+            
+            migrationSection.createEl('h3', { 
+                text: 'Unified Metrics Infrastructure',
+                cls: 'oom-hub-subsection-title' 
+            });
+
+            const migrationPromptEl = migrationSection.createEl('div', {
+                cls: 'oom-notice oom-notice--warning'
+            });
+            migrationPromptEl.createEl('strong', { text: 'Migration Available: ' });
+            migrationPromptEl.createEl('span', { 
+                text: 'Your settings can be upgraded to use the new unified metrics infrastructure.'
+            });
+
+            new Setting(migrationSection)
+                .setName('Upgrade to Unified Metrics')
+                .setDesc('Migrate your current settings to the new unified metrics configuration format')
+                .addButton(button => {
+                    button.setButtonText('Migrate Now')
+                        .onClick(async () => {
+                            try {
+                                const { migrateToUnifiedMetrics } = await import('../../utils/settings-migration');
+                                const result = migrateToUnifiedMetrics(this.plugin.settings);
+                                
+                                if (result.migrated) {
+                                    await this.plugin.saveSettings();
+                                    new Notice('✅ Settings migrated to unified metrics format');
+                                    this.loadMetricsSettingsContent(); // Refresh the content
+                                } else {
+                                    new Notice('ℹ️ Settings are already up to date');
+                                }
+                            } catch (error) {
+                                new Notice(`❌ Migration failed: ${(error as Error).message}`);
+                                console.error('Settings migration error:', error);
+                            }
+                        });
+                });
+        }
+
     }
 
     // Validate a template (placeholder implementation)
