@@ -64,6 +64,14 @@ export interface HeatmapExportOptions extends BaseExportOptions {
     includeDensityData: boolean;
 }
 
+export interface InsightsExportOptions extends BaseExportOptions {
+    includeDataOverview: boolean;
+    includeTrendAnalysis: boolean;
+    includeOutlierDetection: boolean;
+    includeCorrelations: boolean;
+    includePatterns: boolean;
+}
+
 // Export result structure
 export interface ExportResult {
     content: string;
@@ -114,6 +122,7 @@ export interface TabSpecificExporter {
     exportCompareData(data: DreamMetricData[], options: CompareExportOptions): Promise<string>;
     exportCorrelationsData(data: DreamMetricData[], options: CorrelationsExportOptions): Promise<string>;
     exportHeatmapData(data: DreamMetricData[], options: HeatmapExportOptions): Promise<string>;
+    exportInsightsData(data: DreamMetricData[], options: InsightsExportOptions): Promise<string>;
 }
 
 /**
@@ -196,6 +205,11 @@ export class CSVExportPipeline implements CSVExportService, TabSpecificExporter 
         return this.formatAsCSV(exportData, 'heatmap');
     }
 
+    async exportInsightsData(data: DreamMetricData[], options: InsightsExportOptions): Promise<string> {
+        const exportData = await this.prepareInsightsData(data, options);
+        return this.formatAsCSV(exportData, 'insights');
+    }
+
     // Helper methods (implementation stubs for now)
     private async prepareExportData(data: DreamMetricData[], options: BaseExportOptions): Promise<ExportData> {
         // TODO: Implement generic data preparation
@@ -219,6 +233,8 @@ export class CSVExportPipeline implements CSVExportService, TabSpecificExporter 
                 return this.prepareCorrelationsData(data, options as unknown as CorrelationsExportOptions);
             case 'heatmap':
                 return this.prepareHeatmapData(data, options as unknown as HeatmapExportOptions);
+            case 'insights':
+                return this.prepareInsightsData(data, options as unknown as InsightsExportOptions);
             default:
                 throw new Error(`Unsupported tab type: ${tabType}`);
         }
@@ -1164,5 +1180,323 @@ export class CSVExportPipeline implements CSVExportService, TabSpecificExporter 
         
         // Clean up
         URL.revokeObjectURL(url);
+    }
+
+    private async prepareInsightsData(data: DreamMetricData[], options: InsightsExportOptions): Promise<ExportData> {
+        // Prepare headers based on what insights are included
+        const headers: string[] = ['Insight_Category', 'Insight_Type', 'Description', 'Value'];
+        
+        if (options.includeMetadata) {
+            headers.push('Sample_Size', 'Confidence', 'Notes');
+        }
+        
+        // Prepare rows
+        const rows: string[][] = [];
+        
+        if (data.length === 0) {
+            // Add empty data message
+            rows.push(['General', 'No Data', 'No dream entries available for analysis', 'N/A']);
+            
+            const metadata: ExportMetadata = {
+                exportDate: new Date().toISOString(),
+                exportType: 'insights',
+                dataSource: 'Enhanced Analytics',
+                rowCount: rows.length,
+                selectedMetrics: [],
+                dateRange: options.dateRange,
+                normalization: options.normalization,
+                version: '1.0'
+            };
+            
+            return { headers, rows, metadata };
+        }
+        
+        // Collect all metrics
+        const metricData = new Map<string, number[]>();
+        data.forEach(entry => {
+            if (!entry.metrics) return;
+            Object.entries(entry.metrics).forEach(([metric, value]) => {
+                const numValue = Number(value);
+                if (isNaN(numValue)) return;
+                if (!metricData.has(metric)) {
+                    metricData.set(metric, []);
+                }
+                metricData.get(metric)!.push(numValue);
+            });
+        });
+        
+        const metricNames = Array.from(metricData.keys()).sort();
+        
+        // Data Overview
+        if (options.includeDataOverview) {
+            const totalEntries = data.length;
+            const totalMetrics = metricNames.length;
+            const dateRange = this.getInsightsDateRange(data);
+            const avgEntriesPerWeek = this.calculateInsightsAverageEntriesPerWeek(data);
+            
+            if (options.includeMetadata) {
+                rows.push(['Data Overview', 'Total Entries', `${totalEntries} dream entries analyzed`, String(totalEntries), String(totalEntries), 'High', 'Complete dataset']);
+                rows.push(['Data Overview', 'Tracked Metrics', `${totalMetrics} unique metrics tracked`, String(totalMetrics), String(totalMetrics), 'High', 'All metrics included']);
+                rows.push(['Data Overview', 'Date Range', dateRange, 'N/A', String(totalEntries), 'High', 'Full date span']);
+                rows.push(['Data Overview', 'Entry Frequency', `${avgEntriesPerWeek.toFixed(1)} entries per week average`, avgEntriesPerWeek.toFixed(1), String(totalEntries), 'High', 'Frequency analysis']);
+            } else {
+                rows.push(['Data Overview', 'Total Entries', `${totalEntries} dream entries analyzed`, String(totalEntries)]);
+                rows.push(['Data Overview', 'Tracked Metrics', `${totalMetrics} unique metrics tracked`, String(totalMetrics)]);
+                rows.push(['Data Overview', 'Date Range', dateRange, 'N/A']);
+                rows.push(['Data Overview', 'Entry Frequency', `${avgEntriesPerWeek.toFixed(1)} entries per week average`, avgEntriesPerWeek.toFixed(1)]);
+            }
+        }
+        
+        // Trend Analysis
+        if (options.includeTrendAnalysis) {
+            const trends = this.calculateInsightsTrends(metricData);
+            trends.forEach(trend => {
+                if (options.includeMetadata) {
+                    const confidence = Math.abs(trend.slope) > 0.1 ? 'Medium' : 'Low';
+                    const sampleSize = metricData.get(trend.metric)?.length || 0;
+                    rows.push(['Trend Analysis', trend.metric, trend.description, trend.slope.toFixed(4), String(sampleSize), confidence, `Direction: ${trend.direction}`]);
+                } else {
+                    rows.push(['Trend Analysis', trend.metric, trend.description, trend.slope.toFixed(4)]);
+                }
+            });
+        }
+        
+        // Outlier Detection
+        if (options.includeOutlierDetection) {
+            const outliers = this.calculateInsightsOutliers(data, metricData);
+            outliers.forEach(outlier => {
+                if (options.includeMetadata) {
+                    const confidence = outlier.zScore > 3.0 ? 'High' : 'Medium';
+                    rows.push(['Outlier Detection', outlier.metric, `${outlier.date}: ${outlier.description}`, outlier.value.toFixed(2), '1', confidence, `Z-score: ${outlier.zScore.toFixed(2)}`]);
+                } else {
+                    rows.push(['Outlier Detection', outlier.metric, `${outlier.date}: ${outlier.description}`, outlier.value.toFixed(2)]);
+                }
+            });
+        }
+        
+        // Correlations
+        if (options.includeCorrelations) {
+            const correlations = this.calculateInsightsCorrelations(metricData);
+            correlations.forEach(corr => {
+                if (options.includeMetadata) {
+                    const confidence = Math.abs(corr.coefficient) > 0.7 ? 'High' : 'Medium';
+                    const sampleSize = Math.min(metricData.get(corr.metric1)?.length || 0, metricData.get(corr.metric2)?.length || 0);
+                    rows.push(['Correlations', `${corr.metric1} ↔ ${corr.metric2}`, corr.description, corr.coefficient.toFixed(3), String(sampleSize), confidence, `Strength: ${corr.strength}`]);
+                } else {
+                    rows.push(['Correlations', `${corr.metric1} ↔ ${corr.metric2}`, corr.description, corr.coefficient.toFixed(3)]);
+                }
+            });
+        }
+        
+        // Patterns
+        if (options.includePatterns) {
+            const patterns = this.calculateInsightsPatterns(data, metricData);
+            patterns.forEach(pattern => {
+                if (options.includeMetadata) {
+                    const sampleSize = data.length;
+                    const confidence = sampleSize >= 30 ? 'High' : sampleSize >= 10 ? 'Medium' : 'Low';
+                    rows.push(['Pattern Analysis', pattern.type, pattern.description, 'N/A', String(sampleSize), confidence, 'Behavioral pattern']);
+                } else {
+                    rows.push(['Pattern Analysis', pattern.type, pattern.description, 'N/A']);
+                }
+            });
+        }
+        
+        // Create metadata
+        const metadata: ExportMetadata = {
+            exportDate: new Date().toISOString(),
+            exportType: 'insights',
+            dataSource: 'Enhanced Analytics',
+            rowCount: rows.length,
+            selectedMetrics: metricNames,
+            dateRange: options.dateRange,
+            normalization: options.normalization,
+            version: '1.0'
+        };
+        
+        return { headers, rows, metadata };
+    }
+
+    // Helper methods for insights calculations
+    private getInsightsDateRange(data: DreamMetricData[]): string {
+        if (data.length === 0) return 'No data';
+        
+        const dates = data
+            .map(entry => new Date(entry.date))
+            .filter(date => !isNaN(date.getTime()))
+            .sort((a, b) => a.getTime() - b.getTime());
+        
+        if (dates.length === 0) return 'Invalid dates';
+        
+        const firstDate = dates[0].toLocaleDateString();
+        const lastDate = dates[dates.length - 1].toLocaleDateString();
+        
+        return firstDate === lastDate ? firstDate : `${firstDate} to ${lastDate}`;
+    }
+
+    private calculateInsightsAverageEntriesPerWeek(data: DreamMetricData[]): number {
+        if (data.length === 0) return 0;
+        
+        const dates = data
+            .map(entry => new Date(entry.date))
+            .filter(date => !isNaN(date.getTime()))
+            .sort((a, b) => a.getTime() - b.getTime());
+        
+        if (dates.length === 0) return 0;
+        
+        const daysBetween = (dates[dates.length - 1].getTime() - dates[0].getTime()) / (1000 * 60 * 60 * 24);
+        const weeks = Math.max(daysBetween / 7, 1);
+        
+        return data.length / weeks;
+    }
+
+    private calculateInsightsTrends(metricData: Map<string, number[]>): Array<{metric: string, direction: string, description: string, slope: number}> {
+        const trends: Array<{metric: string, direction: string, description: string, slope: number}> = [];
+        
+        metricData.forEach((values, metricName) => {
+            if (values.length < 3) return;
+            
+            const slope = this.calculateInsightsSlope(values);
+            const recent = values.slice(-5);
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const older = values.slice(0, Math.min(5, values.length - 5));
+            const olderAvg = older.length > 0 ? older.reduce((a, b) => a + b, 0) / older.length : recentAvg;
+            
+            let direction = 'stable';
+            let description = 'No significant trend';
+            
+            if (Math.abs(slope) > 0.1) {
+                if (slope > 0) {
+                    direction = 'improving';
+                    description = `Improving trend (+${(recentAvg - olderAvg).toFixed(2)} recently)`;
+                } else {
+                    direction = 'declining';
+                    description = `Declining trend (${(recentAvg - olderAvg).toFixed(2)} recently)`;
+                }
+            }
+            
+            trends.push({ metric: metricName, direction, description, slope });
+        });
+        
+        return trends;
+    }
+
+    private calculateInsightsSlope(values: number[]): number {
+        const n = values.length;
+        const sumX = (n * (n - 1)) / 2;
+        const sumY = values.reduce((a, b) => a + b, 0);
+        const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
+        const sumXX = values.reduce((sum, _, x) => sum + x * x, 0);
+        
+        return (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    }
+
+    private calculateInsightsOutliers(data: DreamMetricData[], metricData: Map<string, number[]>): Array<{date: string, metric: string, type: string, description: string, value: number, zScore: number}> {
+        const outliers: Array<{date: string, metric: string, type: string, description: string, value: number, zScore: number}> = [];
+        
+        metricData.forEach((values, metricName) => {
+            if (values.length < 5) return;
+            
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const stdDev = Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / values.length);
+            
+            values.forEach((value, index) => {
+                const zScore = Math.abs((value - mean) / stdDev);
+                if (zScore > 2.5) {
+                    const entryDate = data[index]?.date || `Entry ${index + 1}`;
+                    const type = value > mean ? 'high' : 'low';
+                    const description = `Unusually ${type} value (${value.toFixed(2)})`;
+                    outliers.push({ date: entryDate, metric: metricName, type, description, value, zScore });
+                }
+            });
+        });
+        
+        return outliers.slice(0, 10);
+    }
+
+    private calculateInsightsCorrelations(metricData: Map<string, number[]>): Array<{metric1: string, metric2: string, strength: string, description: string, coefficient: number}> {
+        const correlations: Array<{metric1: string, metric2: string, strength: string, description: string, coefficient: number}> = [];
+        const metricNames = Array.from(metricData.keys());
+        
+        for (let i = 0; i < metricNames.length; i++) {
+            for (let j = i + 1; j < metricNames.length; j++) {
+                const metric1 = metricNames[i];
+                const metric2 = metricNames[j];
+                const values1 = metricData.get(metric1)!;
+                const values2 = metricData.get(metric2)!;
+                
+                if (values1.length !== values2.length || values1.length < 3) continue;
+                
+                const correlation = this.calculateInsightsPearsonCorrelation(values1, values2);
+                const absCorr = Math.abs(correlation);
+                
+                if (absCorr > 0.5) {
+                    const strength = absCorr > 0.7 ? 'strong' : 'moderate';
+                    const direction = correlation > 0 ? 'positive' : 'negative';
+                    const description = `${strength} ${direction} correlation (r=${correlation.toFixed(3)})`;
+                    correlations.push({ metric1, metric2, strength, description, coefficient: correlation });
+                }
+            }
+        }
+        
+        return correlations.slice(0, 8);
+    }
+
+    private calculateInsightsPearsonCorrelation(x: number[], y: number[]): number {
+        const n = x.length;
+        const sumX = x.reduce((a, b) => a + b, 0);
+        const sumY = y.reduce((a, b) => a + b, 0);
+        const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+        const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+        const sumYY = y.reduce((sum, yi) => sum + yi * yi, 0);
+        
+        const numerator = n * sumXY - sumX * sumY;
+        const denominator = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+        
+        return denominator === 0 ? 0 : numerator / denominator;
+    }
+
+    private calculateInsightsPatterns(data: DreamMetricData[], metricData: Map<string, number[]>): Array<{type: string, description: string}> {
+        const patterns: Array<{type: string, description: string}> = [];
+        
+        // Entry frequency analysis
+        if (data.length >= 7) {
+            const dates = data.map(entry => new Date(entry.date).getDay());
+            const dayCounts = Array(7).fill(0);
+            dates.forEach(day => dayCounts[day]++);
+            
+            const maxDay = dayCounts.indexOf(Math.max(...dayCounts));
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            patterns.push({
+                type: 'Entry Frequency',
+                description: `Most dreams recorded on ${dayNames[maxDay]}s (${dayCounts[maxDay]} entries)`
+            });
+        }
+        
+        // Metric consistency analysis
+        if (metricData.size > 0) {
+            const consistencyScores = Array.from(metricData.entries()).map(([metricName, values]) => {
+                if (values.length < 3) return { metric: metricName, score: 0 };
+                
+                const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                const variance = values.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / values.length;
+                const cv = Math.sqrt(variance) / mean;
+                const consistency = Math.max(0, 1 - cv);
+                
+                return { metric: metricName, score: consistency };
+            });
+            
+            const mostConsistent = consistencyScores.reduce((best, current) => 
+                current.score > best.score ? current : best
+            );
+            
+            patterns.push({
+                type: 'Metric Consistency',
+                description: `${mostConsistent.metric} shows highest consistency (${(mostConsistent.score * 100).toFixed(1)}%)`
+            });
+        }
+        
+        return patterns;
     }
 } 

@@ -13968,7 +13968,6 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     background: transparent !important;
     appearance: none !important;
     -webkit-appearance: none !important;
-    -moz-appearance: none !important;
 }
 
 /* Alternative: Move the input outside the visual flow completely */
@@ -14746,8 +14745,6 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 .oom-drag-active {
     user-select: none;
     -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 } 
 
 /* ==========================================================================
@@ -17828,5 +17825,371 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     
     .oom-insights-header {
         font-size: 15px;
+    }
+}
+
+/* Advanced Chart Controls with Nesting and :has() */
+.oom-chart-container {
+    /* Chart type selector */
+    .oom-chart-type-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 12px;
+
+        .oom-chart-selector-label {
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .oom-chart-selector {
+            min-width: 120px;
+            padding: 4px 8px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-normal);
+            background: var(--background-primary);
+
+            &:hover {
+                border-color: var(--background-modifier-border-hover);
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: var(--interactive-accent);
+                box-shadow: 0 0 0 2px var(--interactive-accent-rgb), 0.2);
+            }
+        }
+    }
+
+    /* Smoothing toggle */
+    .oom-chart-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 12px;
+
+        input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            accent-color: var(--interactive-accent);
+        }
+
+        label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        &:hover label {
+            color: var(--text-normal);
+        }
+    }
+
+    /* Correlation threshold controls */
+    .oom-correlation-threshold {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 12px;
+
+        .oom-threshold-label {
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .oom-threshold-slider {
+            width: 80px;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--background-modifier-border);
+
+            &:hover {
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+            &::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid var(--background-primary);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                background: var(--interactive-accent);
+            }
+        }
+
+        .oom-threshold-value {
+            min-width: 24px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--background-modifier-border);
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-normal);
+            background: var(--background-modifier-form-field);
+        }
+    }
+
+    /* Chart toolbar */
+    .oom-chart-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 48px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--background-modifier-border);
+        background: var(--background-secondary);
+
+        .oom-chart-title {
+            flex-shrink: 0;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-normal);
+        }
+
+        .oom-chart-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Enhanced chart canvas */
+    .oom-chart-canvas {
+        min-height: 400px;
+        max-height: 600px;
+    }
+
+    /* Loading state */
+    &.oom-chart-container--loading {
+        .oom-chart-canvas {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        &::after {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 10;
+            padding: 8px 16px;
+            content: "Loading chart...";
+            transform: translate(-50%, -50%);
+            border-radius: 4px;
+            border: 1px solid var(--background-modifier-border);
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--background-primary);
+        }
+    }
+
+    /* Special styling when container has correlation controls */
+    &:has(.oom-correlation-threshold) {
+        .oom-chart-toolbar {
+            background: linear-gradient(135deg, var(--background-secondary), var(--background-modifier-hover));
+        }
+    }
+
+    /* Box plot info styling when box plot is present */
+    &:has(.oom-chart-selector option[value="box"]:checked) {
+        .oom-box-plot-info {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 8px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 10px;
+            color: var(--text-muted);
+            background: var(--background-primary);
+        }
+    }
+}
+
+/* Correlation matrix specific styles */
+.oom-correlation-matrix {
+    position: relative;
+
+    .oom-correlation-legend {
+        display: flex;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: var(--text-muted);
+
+        .oom-correlation-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .oom-correlation-legend-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 2px;
+
+                &.oom-correlation-legend-positive {
+                    background: rgba(0, 100, 255, 0.7);
+                }
+
+                &.oom-correlation-legend-negative {
+                    background: rgba(255, 100, 0, 0.7);
+                }
+            }
+        }
+    }
+}
+
+/* Trend decomposition styling */
+.oom-trend-decomposition {
+    .oom-trend-decomposition-legend {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 8px;
+        font-size: 11px;
+
+        .oom-trend-decomposition-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .oom-trend-line-original {
+                height: 2px;
+                width: 12px;
+                background: var(--color-blue);
+            }
+
+            .oom-trend-line-trend {
+                height: 3px;
+                width: 12px;
+                background: var(--color-red);
+            }
+
+            .oom-trend-line-residual {
+                height: 2px;
+                width: 12px;
+                background: var(--color-yellow);
+            }
+        }
+    }
+}
+
+/* Chart transition effects */
+.oom-chart-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .oom-chart-container {
+        .oom-chart-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+
+            .oom-chart-controls {
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+            }
+        }
+
+        .oom-chart-type-selector,
+        .oom-chart-toggle,
+        .oom-correlation-threshold {
+            margin: 0;
+            justify-content: space-between;
+
+            .oom-chart-selector {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .oom-threshold-slider {
+                flex: 1;
+                max-width: 120px;
+            }
+        }
+    }
+}
+
+/* Dark theme adjustments */
+.theme-dark {
+    .oom-chart-container {
+        .oom-threshold-slider {
+            background: var(--background-modifier-border);
+
+            &::-webkit-slider-thumb {
+                border-color: var(--background-primary);
+                background: var(--interactive-accent);
+            }
+        }
+
+        .oom-correlation-legend-positive {
+            background: rgba(100, 150, 255, 0.8);
+        }
+
+        .oom-correlation-legend-negative {
+            background: rgba(255, 150, 100, 0.8);
+        }
+    }
+}
+
+/* Advanced interactions using :has() */
+.oom-chart-tabs-container:has(.oom-chart-selector:focus) {
+    .oom-chart-canvas {
+        filter: brightness(1.05);
+        transition: filter 0.3s ease;
+    }
+}
+
+.oom-chart-tabs-container:has(.oom-threshold-slider:hover) {
+    .oom-correlation-threshold .oom-threshold-value {
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+        color: var(--text-on-accent);
+        background: var(--interactive-accent);
+    }
+}
+
+/* Enhanced hover states for charts with specific selectors */
+.oom-chart-container:has(.oom-chart-selector[value="matrix"]) {
+    .oom-chart-canvas {
+        cursor: crosshair;
+    }
+}
+
+.oom-chart-container:has(.oom-chart-selector[value="network"]) {
+    .oom-chart-canvas {
+        cursor: grab;
+
+        &:active {
+            cursor: grabbing;
+        }
     }
 }

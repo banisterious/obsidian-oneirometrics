@@ -1,7 +1,7 @@
 import { Chart, ChartConfiguration, ChartData, ChartOptions } from 'chart.js/auto';
 import { DreamMetricData } from '../../types/core';
 import { ILogger } from '../../logging/LoggerTypes';
-import { CSVExportPipeline, TabType, StatisticsExportOptions, TrendsExportOptions, CompareExportOptions, CorrelationsExportOptions, HeatmapExportOptions } from '../../utils/csv-export-service';
+import { CSVExportPipeline, TabType, StatisticsExportOptions, TrendsExportOptions, CompareExportOptions, CorrelationsExportOptions, HeatmapExportOptions, InsightsExportOptions } from '../../utils/csv-export-service';
 
 export interface ChartTabData {
     metrics: Record<string, number[]>;
@@ -181,7 +181,7 @@ export class MetricsChartTabs {
         const container = document.createElement('div');
         container.className = 'oom-chart-container oom-chart-container--loading';
         
-        // Create toolbar with export button
+        // Create toolbar with export button and chart options
         const toolbar = document.createElement('div');
         toolbar.className = 'oom-chart-toolbar';
         
@@ -189,9 +189,47 @@ export class MetricsChartTabs {
         title.className = 'oom-chart-title';
         title.textContent = 'Metric Trends Over Time';
         
+        // Add chart type selector
+        const chartTypeSelector = document.createElement('div');
+        chartTypeSelector.className = 'oom-chart-type-selector';
+        
+        const selectorLabel = document.createElement('label');
+        selectorLabel.textContent = 'View: ';
+        selectorLabel.className = 'oom-chart-selector-label';
+        
+        const selector = document.createElement('select');
+        selector.className = 'oom-chart-selector';
+        selector.innerHTML = `
+            <option value="line">Line Chart</option>
+            <option value="area">Area Chart</option>
+            <option value="scatter">Scatter with Trends</option>
+            <option value="decomposition">Trend Decomposition</option>
+        `;
+        
+        chartTypeSelector.appendChild(selectorLabel);
+        chartTypeSelector.appendChild(selector);
+        
+        // Add smoothing toggle
+        const smoothingToggle = document.createElement('div');
+        smoothingToggle.className = 'oom-chart-toggle';
+        
+        const smoothingCheckbox = document.createElement('input');
+        smoothingCheckbox.type = 'checkbox';
+        smoothingCheckbox.id = 'oom-trends-smoothing';
+        smoothingCheckbox.checked = true;
+        
+        const smoothingLabel = document.createElement('label');
+        smoothingLabel.htmlFor = 'oom-trends-smoothing';
+        smoothingLabel.textContent = 'Smooth Lines';
+        
+        smoothingToggle.appendChild(smoothingCheckbox);
+        smoothingToggle.appendChild(smoothingLabel);
+        
         const exportButton = this.createExportButton('trends', 'Export Time Series');
         
         toolbar.appendChild(title);
+        toolbar.appendChild(chartTypeSelector);
+        toolbar.appendChild(smoothingToggle);
         toolbar.appendChild(exportButton);
         
         const canvas = document.createElement('canvas');
@@ -204,8 +242,17 @@ export class MetricsChartTabs {
         // Delay chart creation to ensure container is stable
         setTimeout(() => {
             container.classList.remove('oom-chart-container--loading');
-            this.createTrendsChart(canvas);
+            this.createTrendsChart(canvas, selector.value as 'line' | 'area' | 'scatter' | 'decomposition', smoothingCheckbox.checked);
         }, 50);
+        
+        // Add event listeners
+        selector.addEventListener('change', () => {
+            this.createTrendsChart(canvas, selector.value as 'line' | 'area' | 'scatter' | 'decomposition', smoothingCheckbox.checked);
+        });
+        
+        smoothingCheckbox.addEventListener('change', () => {
+            this.createTrendsChart(canvas, selector.value as 'line' | 'area' | 'scatter' | 'decomposition', smoothingCheckbox.checked);
+        });
     }
 
     /**
@@ -215,7 +262,7 @@ export class MetricsChartTabs {
         const container = document.createElement('div');
         container.className = 'oom-chart-container oom-chart-container--loading';
         
-        // Create toolbar with export button
+        // Create toolbar with export button and chart type selector
         const toolbar = document.createElement('div');
         toolbar.className = 'oom-chart-toolbar';
         
@@ -223,9 +270,29 @@ export class MetricsChartTabs {
         title.className = 'oom-chart-title';
         title.textContent = 'Metric Comparison';
         
+        // Add chart type selector
+        const chartTypeSelector = document.createElement('div');
+        chartTypeSelector.className = 'oom-chart-type-selector';
+        
+        const selectorLabel = document.createElement('label');
+        selectorLabel.textContent = 'Chart Type: ';
+        selectorLabel.className = 'oom-chart-selector-label';
+        
+        const selector = document.createElement('select');
+        selector.className = 'oom-chart-selector';
+        selector.innerHTML = `
+            <option value="bar">Bar Chart (Averages)</option>
+            <option value="box">Box Plot (Distributions)</option>
+            <option value="violin">Violin Plot (Density)</option>
+        `;
+        
+        chartTypeSelector.appendChild(selectorLabel);
+        chartTypeSelector.appendChild(selector);
+        
         const exportButton = this.createExportButton('compare', 'Export Comparison Data');
         
         toolbar.appendChild(title);
+        toolbar.appendChild(chartTypeSelector);
         toolbar.appendChild(exportButton);
         
         const canvas = document.createElement('canvas');
@@ -238,8 +305,13 @@ export class MetricsChartTabs {
         // Delay chart creation to ensure container is stable
         setTimeout(() => {
             container.classList.remove('oom-chart-container--loading');
-            this.createCompareChart(canvas);
+            this.createCompareChart(canvas, selector.value as 'bar' | 'box' | 'violin');
         }, 50);
+        
+        // Add event listener for chart type changes
+        selector.addEventListener('change', () => {
+            this.createCompareChart(canvas, selector.value as 'bar' | 'box' | 'violin');
+        });
     }
 
     /**
@@ -249,7 +321,7 @@ export class MetricsChartTabs {
         const container = document.createElement('div');
         container.className = 'oom-chart-container oom-chart-container--loading';
         
-        // Create toolbar with export button
+        // Create toolbar with export button and visualization options
         const toolbar = document.createElement('div');
         toolbar.className = 'oom-chart-toolbar';
         
@@ -257,9 +329,54 @@ export class MetricsChartTabs {
         title.className = 'oom-chart-title';
         title.textContent = 'Metric Correlations';
         
+        // Add visualization type selector
+        const vizTypeSelector = document.createElement('div');
+        vizTypeSelector.className = 'oom-chart-type-selector';
+        
+        const vizLabel = document.createElement('label');
+        vizLabel.textContent = 'Visualization: ';
+        vizLabel.className = 'oom-chart-selector-label';
+        
+        const vizSelector = document.createElement('select');
+        vizSelector.className = 'oom-chart-selector';
+        vizSelector.innerHTML = `
+            <option value="matrix">Correlation Matrix</option>
+            <option value="scatter">Scatter Plots</option>
+            <option value="network">Network Graph</option>
+        `;
+        
+        vizTypeSelector.appendChild(vizLabel);
+        vizTypeSelector.appendChild(vizSelector);
+        
+        // Add correlation threshold slider
+        const thresholdControl = document.createElement('div');
+        thresholdControl.className = 'oom-correlation-threshold';
+        
+        const thresholdLabel = document.createElement('label');
+        thresholdLabel.textContent = 'Min Correlation: ';
+        thresholdLabel.className = 'oom-threshold-label';
+        
+        const thresholdSlider = document.createElement('input');
+        thresholdSlider.type = 'range';
+        thresholdSlider.min = '0';
+        thresholdSlider.max = '1';
+        thresholdSlider.step = '0.1';
+        thresholdSlider.value = '0.3';
+        thresholdSlider.className = 'oom-threshold-slider';
+        
+        const thresholdValue = document.createElement('span');
+        thresholdValue.className = 'oom-threshold-value';
+        thresholdValue.textContent = '0.3';
+        
+        thresholdControl.appendChild(thresholdLabel);
+        thresholdControl.appendChild(thresholdSlider);
+        thresholdControl.appendChild(thresholdValue);
+        
         const exportButton = this.createExportButton('correlations', 'Export Correlation Matrix');
         
         toolbar.appendChild(title);
+        toolbar.appendChild(vizTypeSelector);
+        toolbar.appendChild(thresholdControl);
         toolbar.appendChild(exportButton);
         
         const canvas = document.createElement('canvas');
@@ -272,8 +389,18 @@ export class MetricsChartTabs {
         // Delay chart creation to ensure container is stable
         setTimeout(() => {
             container.classList.remove('oom-chart-container--loading');
-            this.createCorrelationsChart(canvas);
+            this.createCorrelationsChart(canvas, vizSelector.value as 'matrix' | 'scatter' | 'network', parseFloat(thresholdSlider.value));
         }, 50);
+        
+        // Add event listeners
+        vizSelector.addEventListener('change', () => {
+            this.createCorrelationsChart(canvas, vizSelector.value as 'matrix' | 'scatter' | 'network', parseFloat(thresholdSlider.value));
+        });
+        
+        thresholdSlider.addEventListener('input', () => {
+            thresholdValue.textContent = thresholdSlider.value;
+            this.createCorrelationsChart(canvas, vizSelector.value as 'matrix' | 'scatter' | 'network', parseFloat(thresholdSlider.value));
+        });
     }
 
     /**
@@ -575,7 +702,7 @@ export class MetricsChartTabs {
     /**
      * Create trends line chart
      */
-    private createTrendsChart(canvas: HTMLCanvasElement): void {
+    private createTrendsChart(canvas: HTMLCanvasElement, chartType: 'line' | 'area' | 'scatter' | 'decomposition', smoothLines: boolean): void {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -585,13 +712,36 @@ export class MetricsChartTabs {
             existingChart.destroy();
         }
 
+        switch (chartType) {
+            case 'line':
+                this.createLineChart(ctx, smoothLines, false);
+                break;
+            case 'area':
+                this.createLineChart(ctx, smoothLines, true);
+                break;
+            case 'scatter':
+                this.createScatterWithTrendsChart(ctx);
+                break;
+            case 'decomposition':
+                this.createTrendDecompositionChart(ctx);
+                break;
+        }
+    }
+
+    /**
+     * Create line/area chart for trends
+     */
+    private createLineChart(ctx: CanvasRenderingContext2D, smoothLines: boolean, fillArea: boolean): void {
         // Prepare data for trends chart
         const datasets = Object.entries(this.chartData.metrics).map(([metricName, values], index) => ({
             label: metricName,
             data: values,
             borderColor: this.getColorForIndex(index),
-            backgroundColor: this.getColorForIndex(index, 0.1),
-            tension: 0.4
+            backgroundColor: fillArea ? this.getColorForIndex(index, 0.3) : this.getColorForIndex(index, 0.1),
+            tension: smoothLines ? 0.4 : 0,
+            fill: fillArea,
+            pointRadius: smoothLines ? 2 : 4,
+            pointHoverRadius: 6
         }));
 
         const chart = new Chart(ctx, {
@@ -618,10 +768,19 @@ export class MetricsChartTabs {
                 },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Entries'
+                        }
                     }
                 },
-                // Prevent animation on initial render to avoid sizing issues
                 animation: {
                     duration: 0
                 }
@@ -632,9 +791,218 @@ export class MetricsChartTabs {
     }
 
     /**
+     * Create scatter plot with trend lines
+     */
+    private createScatterWithTrendsChart(ctx: CanvasRenderingContext2D): void {
+        const datasets: any[] = [];
+        
+        Object.entries(this.chartData.metrics).forEach(([metricName, values], index) => {
+            // Scatter points
+            const scatterData = values.map((value, entryIndex) => ({
+                x: entryIndex + 1,
+                y: value
+            }));
+            
+            datasets.push({
+                label: `${metricName} (Data)`,
+                data: scatterData,
+                backgroundColor: this.getColorForIndex(index, 0.6),
+                borderColor: this.getColorForIndex(index),
+                type: 'scatter',
+                pointRadius: 4,
+                showLine: false
+            });
+            
+            // Trend line
+            const trendLine = this.calculateTrendLine(values);
+            datasets.push({
+                label: `${metricName} (Trend)`,
+                data: trendLine.map((value, entryIndex) => ({
+                    x: entryIndex + 1,
+                    y: value
+                })),
+                borderColor: this.getColorForIndex(index),
+                backgroundColor: 'transparent',
+                type: 'line',
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0
+            });
+        });
+
+        const chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Entry Number'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }
+        });
+
+        this.charts.set('trends', chart);
+    }
+
+    /**
+     * Create trend decomposition chart showing original, trend, and residuals
+     */
+    private createTrendDecompositionChart(ctx: CanvasRenderingContext2D): void {
+        // For simplicity, we'll show the first metric's decomposition
+        const metricNames = Object.keys(this.chartData.metrics);
+        if (metricNames.length === 0) return;
+        
+        const firstMetric = metricNames[0];
+        const values = this.chartData.metrics[firstMetric];
+        
+        // Calculate trend using moving average
+        const trend = this.calculateMovingAverageTrend(values, 5);
+        const residuals = values.map((value, index) => value - trend[index]);
+        
+        const datasets = [
+            {
+                label: 'Original',
+                data: values,
+                borderColor: this.getColorForIndex(0),
+                backgroundColor: this.getColorForIndex(0, 0.1),
+                tension: 0.4
+            },
+            {
+                label: 'Trend',
+                data: trend,
+                borderColor: this.getColorForIndex(1),
+                backgroundColor: this.getColorForIndex(1, 0.1),
+                tension: 0.4,
+                borderWidth: 3
+            },
+            {
+                label: 'Residuals',
+                data: residuals,
+                borderColor: this.getColorForIndex(2),
+                backgroundColor: this.getColorForIndex(2, 0.1),
+                tension: 0.2
+            }
+        ];
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: this.chartData.dreamEntries.map((_, index) => `Entry ${index + 1}`),
+                datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: `Trend Decomposition: ${firstMetric}`
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Entries'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }
+        });
+
+        this.charts.set('trends', chart);
+    }
+
+    /**
+     * Calculate linear trend line for a series of values
+     */
+    private calculateTrendLine(values: number[]): number[] {
+        const n = values.length;
+        const sumX = (n * (n - 1)) / 2;
+        const sumY = values.reduce((a, b) => a + b, 0);
+        const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
+        const sumXX = values.reduce((sum, _, x) => sum + x * x, 0);
+        
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+        
+        return values.map((_, index) => slope * index + intercept);
+    }
+
+    /**
+     * Calculate moving average trend
+     */
+    private calculateMovingAverageTrend(values: number[], windowSize: number): number[] {
+        const trend: number[] = [];
+        const halfWindow = Math.floor(windowSize / 2);
+        
+        for (let i = 0; i < values.length; i++) {
+            const start = Math.max(0, i - halfWindow);
+            const end = Math.min(values.length - 1, i + halfWindow);
+            const window = values.slice(start, end + 1);
+            const average = window.reduce((a, b) => a + b, 0) / window.length;
+            trend.push(average);
+        }
+        
+        return trend;
+    }
+
+    /**
      * Create compare bar chart
      */
-    private createCompareChart(canvas: HTMLCanvasElement): void {
+    private createCompareChart(canvas: HTMLCanvasElement, chartType: 'bar' | 'box' | 'violin'): void {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -644,6 +1012,19 @@ export class MetricsChartTabs {
             existingChart.destroy();
         }
 
+        if (chartType === 'bar') {
+            this.createBarChart(ctx);
+        } else if (chartType === 'box') {
+            this.createBoxPlotChart(ctx);
+        } else if (chartType === 'violin') {
+            this.createViolinPlotChart(ctx);
+        }
+    }
+
+    /**
+     * Create standard bar chart for comparison
+     */
+    private createBarChart(ctx: CanvasRenderingContext2D): void {
         // Calculate averages for comparison
         const averages = Object.entries(this.chartData.metrics).map(([metricName, values]) => ({
             label: metricName,
@@ -683,7 +1064,6 @@ export class MetricsChartTabs {
                         beginAtZero: true
                     }
                 },
-                // Prevent animation on initial render to avoid sizing issues
                 animation: {
                     duration: 0
                 }
@@ -694,9 +1074,254 @@ export class MetricsChartTabs {
     }
 
     /**
+     * Create box plot visualization using multiple bar datasets
+     */
+    private createBoxPlotChart(ctx: CanvasRenderingContext2D): void {
+        const boxPlotData = Object.entries(this.chartData.metrics).map(([metricName, values]) => {
+            const sortedValues = [...values].sort((a, b) => a - b);
+            const q1 = this.calculateQuantile(sortedValues, 0.25);
+            const median = this.calculateQuantile(sortedValues, 0.5);
+            const q3 = this.calculateQuantile(sortedValues, 0.75);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const iqr = q3 - q1;
+            
+            // Calculate outliers (values beyond 1.5 * IQR from Q1/Q3)
+            const lowerFence = q1 - 1.5 * iqr;
+            const upperFence = q3 + 1.5 * iqr;
+            const outliers = values.filter(v => v < lowerFence || v > upperFence);
+            
+            return {
+                label: metricName,
+                min: min,
+                q1: q1,
+                median: median,
+                q3: q3,
+                max: max,
+                outliers: outliers
+            };
+        });
+
+        const labels = boxPlotData.map(item => item.label);
+        
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Q1-Q3 (IQR)',
+                        data: boxPlotData.map(item => item.q3 - item.q1),
+                        backgroundColor: labels.map((_, index) => this.getColorForIndex(index, 0.6)),
+                        borderColor: labels.map((_, index) => this.getColorForIndex(index)),
+                        borderWidth: 2,
+                        base: boxPlotData.map(item => item.q1)
+                    },
+                    {
+                        label: 'Median',
+                        data: boxPlotData.map(item => 0.1), // Small height for median line
+                        backgroundColor: '#000000',
+                        borderColor: '#000000',
+                        borderWidth: 3,
+                        base: boxPlotData.map(item => item.median - 0.05)
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: (context) => {
+                                const index = context[0].dataIndex;
+                                const item = boxPlotData[index];
+                                return [
+                                    `Min: ${item.min.toFixed(2)}`,
+                                    `Q1: ${item.q1.toFixed(2)}`,
+                                    `Median: ${item.median.toFixed(2)}`,
+                                    `Q3: ${item.q3.toFixed(2)}`,
+                                    `Max: ${item.max.toFixed(2)}`,
+                                    `Outliers: ${item.outliers.length}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Metrics'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }
+        });
+
+        this.charts.set('compare', chart);
+    }
+
+    /**
+     * Create violin plot visualization using line chart
+     */
+    private createViolinPlotChart(ctx: CanvasRenderingContext2D): void {
+        // For violin plots, we'll create a density distribution for each metric
+        const violinData = Object.entries(this.chartData.metrics).map(([metricName, values], index) => {
+            const densityData = this.calculateKernelDensity(values);
+            return {
+                label: metricName,
+                data: densityData,
+                borderColor: this.getColorForIndex(index),
+                backgroundColor: this.getColorForIndex(index, 0.3),
+                fill: true,
+                tension: 0.4
+            };
+        });
+
+        // Create value range for x-axis
+        const allValues = Object.values(this.chartData.metrics).flat();
+        const minVal = Math.min(...allValues);
+        const maxVal = Math.max(...allValues);
+        const range = maxVal - minVal;
+        const step = range / 50;
+        const xLabels = Array.from({length: 51}, (_, i) => (minVal + i * step).toFixed(2));
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: xLabels,
+                datasets: violinData
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Density'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Value Range'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }
+        });
+
+        this.charts.set('compare', chart);
+    }
+
+    /**
+     * Calculate quantile value for box plots
+     */
+    private calculateQuantile(sortedValues: number[], quantile: number): number {
+        const index = quantile * (sortedValues.length - 1);
+        const lower = Math.floor(index);
+        const upper = Math.ceil(index);
+        
+        if (lower === upper) {
+            return sortedValues[lower];
+        }
+        
+        const weight = index - lower;
+        return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
+    }
+
+    /**
+     * Calculate kernel density estimation for violin plots
+     */
+    private calculateKernelDensity(values: number[]): number[] {
+        const bandwidth = this.calculateBandwidth(values);
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        const range = maxVal - minVal;
+        const step = range / 50;
+        
+        const densityPoints: number[] = [];
+        
+        for (let i = 0; i <= 50; i++) {
+            const x = minVal + i * step;
+            let density = 0;
+            
+            for (const value of values) {
+                const u = (x - value) / bandwidth;
+                density += this.gaussianKernel(u);
+            }
+            
+            density = density / (values.length * bandwidth);
+            densityPoints.push(density);
+        }
+        
+        return densityPoints;
+    }
+
+    /**
+     * Calculate bandwidth for kernel density estimation
+     */
+    private calculateBandwidth(values: number[]): number {
+        const n = values.length;
+        const mean = values.reduce((a, b) => a + b, 0) / n;
+        const variance = values.reduce((sq, val) => sq + Math.pow(val - mean, 2), 0) / n;
+        const stdDev = Math.sqrt(variance);
+        
+        // Silverman's rule of thumb
+        return 1.06 * stdDev * Math.pow(n, -1/5);
+    }
+
+    /**
+     * Gaussian kernel function
+     */
+    private gaussianKernel(u: number): number {
+        return Math.exp(-0.5 * u * u) / Math.sqrt(2 * Math.PI);
+    }
+
+    /**
      * Create correlations scatter plot
      */
-    private createCorrelationsChart(canvas: HTMLCanvasElement): void {
+    private createCorrelationsChart(canvas: HTMLCanvasElement, vizType: 'matrix' | 'scatter' | 'network', minCorrelation: number): void {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -706,13 +1331,163 @@ export class MetricsChartTabs {
             existingChart.destroy();
         }
 
-        // For now, create a simple scatter plot between first two metrics
+        switch (vizType) {
+            case 'matrix':
+                this.createCorrelationMatrixChart(ctx, minCorrelation);
+                break;
+            case 'scatter':
+                this.createCorrelationScatterChart(ctx);
+                break;
+            case 'network':
+                this.createCorrelationNetworkChart(ctx, minCorrelation);
+                break;
+        }
+    }
+
+    /**
+     * Create correlation matrix heatmap
+     */
+    private createCorrelationMatrixChart(ctx: CanvasRenderingContext2D, minCorrelation: number): void {
         const metricNames = Object.keys(this.chartData.metrics);
         if (metricNames.length < 2) {
             this.renderPlaceholder('Correlations', 'Need at least 2 metrics for correlation analysis');
             return;
         }
 
+        // Calculate correlation matrix
+        const correlationMatrix: number[][] = [];
+        const labels: string[] = [];
+        const data: Array<{x: number, y: number, v: number}> = [];
+        
+        for (let i = 0; i < metricNames.length; i++) {
+            correlationMatrix[i] = [];
+            for (let j = 0; j < metricNames.length; j++) {
+                const values1 = this.chartData.metrics[metricNames[i]];
+                const values2 = this.chartData.metrics[metricNames[j]];
+                
+                if (i === j) {
+                    correlationMatrix[i][j] = 1.0;
+                } else {
+                    const minLength = Math.min(values1.length, values2.length);
+                    const pairedValues1 = values1.slice(0, minLength);
+                    const pairedValues2 = values2.slice(0, minLength);
+                    
+                    if (pairedValues1.length >= 3) {
+                        correlationMatrix[i][j] = this.calculatePearsonCorrelation(pairedValues1, pairedValues2);
+                    } else {
+                        correlationMatrix[i][j] = 0;
+                    }
+                }
+                
+                // Only include correlations above threshold
+                if (Math.abs(correlationMatrix[i][j]) >= minCorrelation || i === j) {
+                    data.push({
+                        x: j,
+                        y: metricNames.length - 1 - i, // Flip Y to match matrix orientation
+                        v: correlationMatrix[i][j]
+                    });
+                }
+            }
+        }
+
+        // Create matrix visualization using scatter plot with sized points
+        const datasets = [{
+            label: 'Correlation Strength',
+            data: data.map(point => ({
+                x: point.x,
+                y: point.y,
+                correlation: point.v
+            })),
+            backgroundColor: data.map(point => {
+                const intensity = Math.abs(point.v);
+                const red = point.v < 0 ? Math.floor(255 * intensity) : 0;
+                const blue = point.v > 0 ? Math.floor(255 * intensity) : 0;
+                return `rgba(${red}, 0, ${blue}, 0.7)`;
+            }),
+            borderColor: '#333333',
+            pointRadius: data.map(point => Math.abs(point.v) * 15 + 5), // Size based on correlation strength
+        }];
+
+        const chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        right: 20,
+                        bottom: 20,
+                        left: 20
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context: any) => {
+                                const point = context.raw;
+                                const metric1 = metricNames[Math.round(point.x)];
+                                const metric2 = metricNames[metricNames.length - 1 - Math.round(point.y)];
+                                return `${metric1} ↔ ${metric2}: r = ${point.correlation.toFixed(3)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        min: -0.5,
+                        max: metricNames.length - 0.5,
+                        ticks: {
+                            stepSize: 1,
+                            callback: (value) => metricNames[value as number] || ''
+                        },
+                        title: {
+                            display: true,
+                            text: 'Metrics'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        min: -0.5,
+                        max: metricNames.length - 0.5,
+                        ticks: {
+                            stepSize: 1,
+                            callback: (value) => metricNames[metricNames.length - 1 - (value as number)] || ''
+                        },
+                        title: {
+                            display: true,
+                            text: 'Metrics'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }
+        });
+
+        this.charts.set('correlations', chart);
+    }
+
+    /**
+     * Create scatter plot visualization for correlations
+     */
+    private createCorrelationScatterChart(ctx: CanvasRenderingContext2D): void {
+        const metricNames = Object.keys(this.chartData.metrics);
+        if (metricNames.length < 2) {
+            this.renderPlaceholder('Correlations', 'Need at least 2 metrics for correlation analysis');
+            return;
+        }
+
+        // For now, create a scatter plot between first two metrics
         const xMetric = this.chartData.metrics[metricNames[0]];
         const yMetric = this.chartData.metrics[metricNames[1]];
 
@@ -721,15 +1496,37 @@ export class MetricsChartTabs {
             y: yMetric[index] || 0
         }));
 
+        // Calculate trend line
+        const trendLine = this.calculateTrendLine(yMetric);
+        const trendData = xMetric.map((x, index) => ({
+            x: x,
+            y: trendLine[index]
+        }));
+
+        const correlation = this.calculatePearsonCorrelation(xMetric, yMetric);
+
         const chart = new Chart(ctx, {
             type: 'scatter',
             data: {
-                datasets: [{
-                    label: `${metricNames[0]} vs ${metricNames[1]}`,
-                    data: scatterData,
-                    backgroundColor: this.getColorForIndex(0, 0.6),
-                    borderColor: this.getColorForIndex(0),
-                }]
+                datasets: [
+                    {
+                        label: `${metricNames[0]} vs ${metricNames[1]}`,
+                        data: scatterData,
+                        backgroundColor: this.getColorForIndex(0, 0.6),
+                        borderColor: this.getColorForIndex(0),
+                        pointRadius: 4
+                    },
+                    {
+                        label: `Trend Line (r=${correlation.toFixed(3)})`,
+                        data: trendData,
+                        type: 'line',
+                        borderColor: this.getColorForIndex(1),
+                        backgroundColor: 'transparent',
+                        pointRadius: 0,
+                        borderWidth: 2,
+                        tension: 0
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -761,7 +1558,140 @@ export class MetricsChartTabs {
                         }
                     }
                 },
-                // Prevent animation on initial render to avoid sizing issues
+                animation: {
+                    duration: 0
+                }
+            }
+        });
+
+        this.charts.set('correlations', chart);
+    }
+
+    /**
+     * Create network graph visualization for correlations
+     */
+    private createCorrelationNetworkChart(ctx: CanvasRenderingContext2D, minCorrelation: number): void {
+        const metricNames = Object.keys(this.chartData.metrics);
+        if (metricNames.length < 2) {
+            this.renderPlaceholder('Correlations', 'Need at least 2 metrics for correlation analysis');
+            return;
+        }
+
+        // Calculate significant correlations
+        const connections: Array<{x1: number, y1: number, x2: number, y2: number, strength: number}> = [];
+        const nodePositions: Array<{x: number, y: number, label: string}> = [];
+        
+        // Position nodes in a circle
+        const centerX = 50;
+        const centerY = 50;
+        const radius = 30;
+        
+        metricNames.forEach((metricName, index) => {
+            const angle = (index / metricNames.length) * 2 * Math.PI;
+            nodePositions.push({
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle),
+                label: metricName
+            });
+        });
+
+        // Calculate correlations and create connections
+        for (let i = 0; i < metricNames.length; i++) {
+            for (let j = i + 1; j < metricNames.length; j++) {
+                const values1 = this.chartData.metrics[metricNames[i]];
+                const values2 = this.chartData.metrics[metricNames[j]];
+                
+                const minLength = Math.min(values1.length, values2.length);
+                const pairedValues1 = values1.slice(0, minLength);
+                const pairedValues2 = values2.slice(0, minLength);
+                
+                if (pairedValues1.length >= 3) {
+                    const correlation = this.calculatePearsonCorrelation(pairedValues1, pairedValues2);
+                    
+                    if (Math.abs(correlation) >= minCorrelation) {
+                        connections.push({
+                            x1: nodePositions[i].x,
+                            y1: nodePositions[i].y,
+                            x2: nodePositions[j].x,
+                            y2: nodePositions[j].y,
+                            strength: correlation
+                        });
+                    }
+                }
+            }
+        }
+
+        // Create network visualization using line chart with custom drawing
+        const connectionDatasets = connections.map((conn, index) => ({
+            label: `Connection ${index}`,
+            data: [
+                { x: conn.x1, y: conn.y1 },
+                { x: conn.x2, y: conn.y2 }
+            ],
+            borderColor: conn.strength > 0 ? 'rgba(0, 100, 255, 0.7)' : 'rgba(255, 100, 0, 0.7)',
+            borderWidth: Math.abs(conn.strength) * 5,
+            pointRadius: 0,
+            showLine: true,
+            fill: false,
+            tension: 0
+        }));
+
+        // Add nodes as scatter points
+        const nodeDataset = {
+            label: 'Metrics',
+            data: nodePositions.map(pos => ({ x: pos.x, y: pos.y })),
+            backgroundColor: nodePositions.map((_, index) => this.getColorForIndex(index, 0.8)),
+            borderColor: '#333333',
+            pointRadius: 8,
+            pointHoverRadius: 10,
+            showLine: false
+        };
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [...connectionDatasets, nodeDataset]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        right: 20,
+                        bottom: 20,
+                        left: 20
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        filter: (tooltipItem) => {
+                            // Only show tooltips for nodes (last dataset)
+                            return tooltipItem.datasetIndex === connectionDatasets.length;
+                        },
+                        callbacks: {
+                            label: (context) => {
+                                const nodeIndex = context.dataIndex;
+                                return nodePositions[nodeIndex]?.label || '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        min: 0,
+                        max: 100
+                    },
+                    y: {
+                        display: false,
+                        min: 0,
+                        max: 100
+                    }
+                },
                 animation: {
                     duration: 0
                 }
@@ -941,6 +1871,19 @@ export class MetricsChartTabs {
                     };
                     csvContent = await this.csvExportPipeline.exportHeatmapData(this.chartData.dreamEntries, heatmapOptions);
                     filename = `oneirometrics-heatmap-${new Date().toISOString().split('T')[0]}.csv`;
+                    break;
+
+                case 'insights':
+                    const insightsOptions: InsightsExportOptions = {
+                        ...baseOptions,
+                        includeDataOverview: true,
+                        includeTrendAnalysis: true,
+                        includeOutlierDetection: true,
+                        includeCorrelations: true,
+                        includePatterns: true
+                    };
+                    csvContent = await this.csvExportPipeline.exportInsightsData(this.chartData.dreamEntries, insightsOptions);
+                    filename = `oneirometrics-insights-${new Date().toISOString().split('T')[0]}.csv`;
                     break;
 
                 default:
@@ -1339,8 +2282,8 @@ export class MetricsChartTabs {
             for (let j = i + 1; j < metricNames.length; j++) {
                 const metric1 = metricNames[i];
                 const metric2 = metricNames[j];
-                const values1 = this.chartData.metrics[metric1].filter(v => typeof v === 'number') as number[];
-                const values2 = this.chartData.metrics[metric2].filter(v => typeof v === 'number') as number[];
+                const values1 = this.chartData.metrics[metric1];
+                const values2 = this.chartData.metrics[metric2];
                 
                 if (values1.length !== values2.length || values1.length < 3) continue;
                 

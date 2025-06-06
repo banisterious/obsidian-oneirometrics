@@ -30,7 +30,9 @@
 - **Advanced Date Filtering:** Filter entries by date with intuitive dropdowns, calendar selection, and custom date ranges
 - **Favorites System:** Save and quickly access your most-used date ranges and filtering preferences
 - **Rich Visualizations:** Summary tables, charts, and statistical analysis of your dream patterns
-- **Data Export:** Export filtered data for further analysis in external tools
+- **Advanced Chart Types:** Interactive visualizations including box plots, violin plots, correlation matrices, network graphs, and trend decomposition with customizable chart options
+- **Enhanced Analytics:** Comprehensive data insights with trend analysis, outlier detection, correlation analysis, and pattern recognition through dedicated Insights tab
+- **Data Export:** Export filtered data and analytics insights for further analysis in external tools (CSV format with full statistical metadata)
 - **High-Performance Processing:** Efficiently handles large datasets - tested at 564 entries/second with thousands of dream entries
 - **Template System:** Create sophisticated dream journal templates with dynamic placeholders like `{{date}}`, `{{date-long}}`, `{{date-month-day}}`, and `{{date-ref}}`
 - **Templater Integration:** Full support for [Templater](https://github.com/SilentVoid13/Templater) plugin with fallback compatibility
@@ -44,6 +46,34 @@
   <img src="docs/images/oom-metrics-note-001.png" alt="A screenshot of the OneiroMetrics metrics view" width="600"/>
 </p>
 <p align="center"><em>OneiroMetrics metrics view showing dream journal analysis</em></p>
+
+### Advanced Analytics & Visualizations
+
+> **✅ PHASE 5A & 5B COMPLETED**: Enhanced Analytics and Advanced Chart Types now available
+
+OneiroMetrics now includes powerful analytical capabilities and sophisticated chart visualizations:
+
+#### Enhanced Analytics (Insights Tab)
+- **📊 Data Overview:** Total entries, tracked metrics, date ranges, and frequency analysis
+- **📈 Trend Analysis:** Linear regression analysis with trend direction detection and recent vs. historical comparisons
+- **🎯 Outlier Detection:** Statistical outlier identification using Z-score analysis (>2.5 standard deviations)
+- **🔗 Correlation Analysis:** Pearson correlation coefficients with strength classification and correlation matrices
+- **🔍 Pattern Recognition:** Entry frequency patterns, cyclical analysis, and metric consistency scoring
+
+#### Advanced Chart Types
+- **Compare Tab:** Bar charts, box plots (with quartiles and outliers), and violin plots (density distributions)
+- **Trends Tab:** Line charts, area charts, scatter plots with trend lines, and trend decomposition analysis
+- **Correlations Tab:** Interactive correlation matrix heatmaps, scatter plot analysis, and network graph visualizations
+- **Interactive Controls:** Chart type selectors, smoothing toggles, and correlation threshold sliders
+- **Export Integration:** All visualizations support CSV export with complete statistical metadata
+
+#### Analytics Export
+All insights and statistical analyses can be exported as structured CSV files including:
+- Data overview with sample sizes and confidence levels
+- Trend analysis with slopes and direction indicators  
+- Outlier detection with Z-scores and dates
+- Correlation matrices with significance testing
+- Pattern analysis with behavioral insights
 
 ### Ribbon Button
 - The plugin now uses a single ribbon button to access journal management features. This streamlined interface replaces the previous multiple-button approach for a cleaner user experience.
