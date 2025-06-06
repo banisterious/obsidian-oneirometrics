@@ -71,10 +71,22 @@ export class SettingsManager {
             // Load data from storage
             const data = await this.plugin.loadData();
             
+            // DEBUG: Log loaded data
+            safeLogger.debug('SettingsManager', 'loadSettings() - Raw data loaded', {
+                hasUnifiedMetrics: !!data?.unifiedMetrics,
+                unifiedMetrics: data?.unifiedMetrics
+            });
+            
             // Apply adapter to ensure all properties exist with correct types
             const settingsAdapter = new SettingsAdapter(data || {});
             this._settings = settingsAdapter.toCoreSettings();
             this._loadedSettings = true;
+            
+            // DEBUG: Log after adapter processing
+            safeLogger.debug('SettingsManager', 'loadSettings() - After adapter processing', {
+                hasUnifiedMetrics: !!this._settings.unifiedMetrics,
+                unifiedMetrics: this._settings.unifiedMetrics
+            });
             
             // Initialize expanded states from settings
             this.initializeExpandedStates();
@@ -84,6 +96,15 @@ export class SettingsManager {
             
             // Ensure all default metrics exist
             this.ensureDefaultMetrics();
+            
+            // Automatically migrate to unified metrics if needed
+            await this.ensureUnifiedMetricsConfig();
+            
+            // DEBUG: Log after migration
+            safeLogger.debug('SettingsManager', 'loadSettings() - After migration', {
+                hasUnifiedMetrics: !!this._settings.unifiedMetrics,
+                unifiedMetrics: this._settings.unifiedMetrics
+            });
             
             // Log successful loading
             safeLogger.log('Settings', 'Settings loaded successfully');
@@ -101,11 +122,19 @@ export class SettingsManager {
      */
     async saveSettings(): Promise<void> {
         try {
+            // DEBUG: Log unified metrics before saving
+            safeLogger.debug('SettingsManager', 'saveSettings() - Before save', {
+                unifiedMetrics: this._settings.unifiedMetrics
+            });
+            
             // Save expandedStates from set to settings object
             this.saveExpandedStates();
             
             // Save settings to storage
             await this.plugin.saveData(this._settings);
+            
+            // DEBUG: Log after saving
+            safeLogger.debug('SettingsManager', 'saveSettings() - After save completed');
             
             // Log successful saving
             safeLogger.log('Settings', 'Settings saved successfully');
@@ -315,6 +344,41 @@ export class SettingsManager {
                     };
                 }
             });
+        }
+    }
+
+    /**
+     * Ensure unified metrics configuration exists and migrate if necessary
+     */
+    private async ensureUnifiedMetricsConfig(): Promise<void> {
+        try {
+            // Import migration utilities
+            const { migrateToUnifiedMetrics, hasUnifiedMetricsConfig } = await import('../utils/settings-migration');
+            
+            // Check if migration is needed
+            if (!hasUnifiedMetricsConfig(this._settings)) {
+                safeLogger.log('Settings', 'Unified metrics config not found, performing automatic migration');
+                
+                // Perform migration
+                const migrationResult = migrateToUnifiedMetrics(this._settings);
+                
+                if (migrationResult.migrated) {
+                    safeLogger.log('Settings', 'Automatic unified metrics migration completed successfully');
+                    
+                    // Save the migrated settings immediately
+                    await this.saveSettings();
+                    
+                    if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+                        safeLogger.warn('Settings', 'Migration completed with warnings', { warnings: migrationResult.warnings });
+                    }
+                } else {
+                    safeLogger.debug('Settings', 'No migration needed for unified metrics');
+                }
+            } else {
+                safeLogger.debug('Settings', 'Unified metrics configuration already exists');
+            }
+        } catch (error) {
+            safeLogger.error('Settings', 'Error ensuring unified metrics configuration', error instanceof Error ? error : new Error(String(error)));
         }
     }
 } 

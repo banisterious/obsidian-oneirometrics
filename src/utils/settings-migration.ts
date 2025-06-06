@@ -80,35 +80,36 @@ export function migrateToUnifiedMetrics(settings: DreamMetricsSettings): Migrati
         settings.unifiedMetrics = { ...DEFAULT_UNIFIED_METRICS_CONFIG };
         result.migrated = true;
         logger.debug('Settings', 'Created new unified metrics configuration');
+        
+        // Migrate preferred metrics from existing enabled metrics
+        if (settings.metrics && Object.keys(settings.metrics).length > 0) {
+            const enabledMetrics = Object.values(settings.metrics)
+                .filter(metric => metric.enabled)
+                .map(metric => metric.name);
+            
+            // Populate preferred metrics for new configuration
+            if (settings.unifiedMetrics.preferredMetrics.calendar.length === 0) {
+                // Use first 3 enabled metrics for calendar
+                settings.unifiedMetrics.preferredMetrics.calendar = enabledMetrics.slice(0, 3);
+            }
+            
+            if (settings.unifiedMetrics.preferredMetrics.charts.length === 0) {
+                // Use first 4 enabled metrics for charts
+                settings.unifiedMetrics.preferredMetrics.charts = enabledMetrics.slice(0, 4);
+            }
+            
+            logger.debug('Settings', `Migrated ${enabledMetrics.length} enabled metrics to preferred metrics`);
+        }
     } else {
-        // Merge with defaults to ensure all properties exist
-        settings.unifiedMetrics = {
-            ...DEFAULT_UNIFIED_METRICS_CONFIG,
-            ...settings.unifiedMetrics,
-            configVersion: CURRENT_CONFIG_VERSION
-        };
-        result.migrated = true;
-        logger.debug('Settings', 'Updated existing unified metrics configuration');
-    }
-    
-    // Migrate preferred metrics from existing enabled metrics
-    if (settings.metrics && Object.keys(settings.metrics).length > 0) {
-        const enabledMetrics = Object.values(settings.metrics)
-            .filter(metric => metric.enabled)
-            .map(metric => metric.name);
-        
-        // Populate preferred metrics if not already set
-        if (settings.unifiedMetrics.preferredMetrics.calendar.length === 0) {
-            // Use first 3 enabled metrics for calendar
-            settings.unifiedMetrics.preferredMetrics.calendar = enabledMetrics.slice(0, 3);
+        // Configuration exists - only update version if needed, DON'T merge with defaults
+        const needsVersionUpdate = settings.unifiedMetrics.configVersion !== CURRENT_CONFIG_VERSION;
+        if (needsVersionUpdate) {
+            settings.unifiedMetrics.configVersion = CURRENT_CONFIG_VERSION;
+            result.migrated = true;
+            logger.debug('Settings', 'Updated unified metrics configuration version');
+        } else {
+            logger.debug('Settings', 'Unified metrics configuration is up to date');
         }
-        
-        if (settings.unifiedMetrics.preferredMetrics.charts.length === 0) {
-            // Use first 4 enabled metrics for charts
-            settings.unifiedMetrics.preferredMetrics.charts = enabledMetrics.slice(0, 4);
-        }
-        
-        logger.debug('Settings', `Migrated ${enabledMetrics.length} enabled metrics to preferred metrics`);
     }
     
     // Validate migrated configuration

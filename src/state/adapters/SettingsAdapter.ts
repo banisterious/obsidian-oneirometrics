@@ -73,6 +73,9 @@ export class SettingsAdapter {
       excludedNotes: settings.excludedNotes || [],
       excludedSubfolders: settings.excludedSubfolders || [],
       
+      // Preserve unifiedMetrics if it exists
+      unifiedMetrics: settings.unifiedMetrics,
+      
       dateHandling: this.getDateHandlingConfig(settings),
       showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || true),
       backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,

@@ -4677,7 +4677,7 @@ Example:
         });
         
         advancedSection.createEl('p', { 
-            text: 'Advanced settings for the unified metrics infrastructure (Phase 1 enhancement).',
+            text: 'Advanced settings for the unified metrics infrastructure.',
             cls: 'oom-hub-section-description' 
         });
 
@@ -4687,6 +4687,8 @@ Example:
         if (hasUnifiedConfig) {
             const config = this.plugin.settings.unifiedMetrics;
             
+            console.log('Calendar metrics:', config.preferredMetrics.calendar);
+            console.log('Charts metrics:', config.preferredMetrics.charts);
             // Unified Metrics Infrastructure Section
             const infrastructureSection = advancedSection.createDiv({ 
                 cls: 'oom-hub-subsection' 
@@ -4790,7 +4792,7 @@ Example:
             
             // Calendar metrics
             const calendarMetricsText = config.preferredMetrics.calendar.length > 0 
-                ? config.preferredMetrics.calendar.join(', ')
+                ? config.preferredMetrics.calendar.map(metric => (metric as any).name).join(', ')
                 : 'Using defaults';
             
             new Setting(preferencesSection)
@@ -4805,7 +4807,7 @@ Example:
 
             // Charts metrics  
             const chartMetricsText = config.preferredMetrics.charts.length > 0
-                ? config.preferredMetrics.charts.join(', ')
+                ? config.preferredMetrics.charts.map(metric => (metric as any).name).join(', ')
                 : 'Using defaults';
                 
             new Setting(preferencesSection)
