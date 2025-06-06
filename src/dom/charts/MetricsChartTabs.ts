@@ -75,19 +75,104 @@ export class MetricsChartTabs {
             { id: 'insights', label: 'Insights', icon: '💡' }
         ];
 
-        tabs.forEach(tab => {
+        // Add ARIA attributes to navigation container
+        this.navContainer.setAttribute('role', 'tablist');
+
+        // Add ARIA attributes to content container
+        this.contentContainer.setAttribute('role', 'tabpanel');
+        this.contentContainer.setAttribute('aria-live', 'polite');
+
+        tabs.forEach((tab, index) => {
             const tabElement = document.createElement('button');
             tabElement.className = 'oom-metrics-chart-tab';
             tabElement.textContent = `${tab.icon} ${tab.label}`;
             tabElement.dataset.tab = tab.id;
             
+            // Add accessibility attributes
+            tabElement.setAttribute('role', 'tab');
+            tabElement.setAttribute('aria-controls', `oom-tabpanel-${tab.id}`);
+            tabElement.setAttribute('aria-selected', tab.id === this.activeTab ? 'true' : 'false');
+            tabElement.setAttribute('aria-describedby', `oom-tab-desc-${tab.id}`);
+            tabElement.setAttribute('tabindex', tab.id === this.activeTab ? '0' : '-1');
+            tabElement.id = `oom-tab-${tab.id}`;
+            
+            // Add screen reader description
+            const description = this.getTabDescription(tab.id);
+            tabElement.title = description;
+            
             if (tab.id === this.activeTab) {
                 tabElement.classList.add('oom-metrics-chart-tab--active');
             }
 
+            // Add click handler
             tabElement.addEventListener('click', () => this.switchToTab(tab.id));
+            
+            // Add keyboard navigation
+            tabElement.addEventListener('keydown', (event) => this.handleTabKeydown(event, tabs, index));
+            
             this.navContainer.appendChild(tabElement);
         });
+
+        // Set up content container with proper ARIA attributes
+        this.contentContainer.id = `oom-tabpanel-${this.activeTab}`;
+        this.contentContainer.setAttribute('aria-labelledby', `oom-tab-${this.activeTab}`);
+    }
+
+    /**
+     * Get descriptive text for screen readers
+     */
+    private getTabDescription(tabId: string): string {
+        const descriptions = {
+            'statistics': 'View statistical summary table of dream metrics with sortable columns and export options',
+            'trends': 'Analyze metric trends over time with line charts, area charts, and trend decomposition',
+            'compare': 'Compare metrics using bar charts, box plots, and violin plots to understand distributions',
+            'correlations': 'Explore relationships between metrics using correlation matrices, scatter plots, and network graphs',
+            'heatmap': 'View metric intensity over time using calendar heatmap visualization',
+            'insights': 'Access comprehensive analytics including trend analysis, outlier detection, and pattern recognition'
+        };
+        return descriptions[tabId] || `View ${tabId} analysis`;
+    }
+
+    /**
+     * Handle keyboard navigation for tabs
+     */
+    private handleTabKeydown(event: KeyboardEvent, tabs: Array<{id: string, label: string, icon: string}>, currentIndex: number): void {
+        let targetIndex = currentIndex;
+        
+        switch (event.key) {
+            case 'ArrowLeft':
+            case 'ArrowUp':
+                event.preventDefault();
+                targetIndex = currentIndex > 0 ? currentIndex - 1 : tabs.length - 1;
+                break;
+            case 'ArrowRight':
+            case 'ArrowDown':
+                event.preventDefault();
+                targetIndex = currentIndex < tabs.length - 1 ? currentIndex + 1 : 0;
+                break;
+            case 'Home':
+                event.preventDefault();
+                targetIndex = 0;
+                break;
+            case 'End':
+                event.preventDefault();
+                targetIndex = tabs.length - 1;
+                break;
+            case 'Enter':
+            case ' ':
+                event.preventDefault();
+                this.switchToTab(tabs[currentIndex].id);
+                return;
+            default:
+                return;
+        }
+        
+        // Focus and activate the target tab
+        this.switchToTab(tabs[targetIndex].id);
+        const targetTab = this.navContainer.querySelector(`[data-tab="${tabs[targetIndex].id}"]`) as HTMLElement;
+        if (targetTab) {
+            targetTab.focus();
+        }
     }
 
     /**
@@ -99,24 +184,60 @@ export class MetricsChartTabs {
         // Update active tab
         this.activeTab = tabId;
         
-        // Update tab appearance
+        // Update tab appearance and accessibility
         this.updateTabAppearance();
+        
+        // Update content container ARIA attributes
+        this.contentContainer.id = `oom-tabpanel-${tabId}`;
+        this.contentContainer.setAttribute('aria-labelledby', `oom-tab-${tabId}`);
         
         // Render tab content
         this.renderActiveTab();
+        
+        // Announce tab change to screen readers
+        this.announceTabChange(tabId);
     }
 
     /**
-     * Update tab button appearance
+     * Update tab button appearance and accessibility
      */
     private updateTabAppearance(): void {
         this.navContainer.querySelectorAll('.oom-metrics-chart-tab').forEach(tab => {
-            tab.classList.remove('oom-metrics-chart-tab--active');
+            const tabElement = tab as HTMLElement;
+            const isActive = tabElement.dataset.tab === this.activeTab;
+            
+            // Update visual state
+            tabElement.classList.toggle('oom-metrics-chart-tab--active', isActive);
+            
+            // Update accessibility attributes
+            tabElement.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            tabElement.setAttribute('tabindex', isActive ? '0' : '-1');
         });
+    }
 
-        const activeTabButton = this.navContainer.querySelector(`[data-tab="${this.activeTab}"]`);
-        if (activeTabButton) {
-            activeTabButton.classList.add('oom-metrics-chart-tab--active');
+    /**
+     * Announce tab change to screen readers
+     */
+    private announceTabChange(tabId: string): void {
+        const tabElement = this.navContainer.querySelector(`[data-tab="${tabId}"]`) as HTMLElement;
+        if (tabElement) {
+            const announcement = `Switched to ${tabElement.textContent?.replace(/[^\w\s]/g, '').trim()} tab. ${this.getTabDescription(tabId)}`;
+            
+            // Create temporary announcement element
+            const announcer = document.createElement('div');
+            announcer.setAttribute('aria-live', 'assertive');
+            announcer.setAttribute('aria-atomic', 'true');
+            announcer.className = 'oom-sr-only';
+            announcer.textContent = announcement;
+            
+            document.body.appendChild(announcer);
+            
+            // Remove after announcement
+            setTimeout(() => {
+                if (announcer.parentNode) {
+                    announcer.parentNode.removeChild(announcer);
+                }
+            }, 1000);
         }
     }
 
@@ -148,6 +269,11 @@ export class MetricsChartTabs {
             default:
                 this.renderPlaceholder('Unknown Tab');
         }
+
+        // Announce data summary after a brief delay to allow content to render
+        setTimeout(() => {
+            this.announceChartDataSummary(this.activeTab);
+        }, 500);
     }
 
     /**
@@ -196,9 +322,12 @@ export class MetricsChartTabs {
         const selectorLabel = document.createElement('label');
         selectorLabel.textContent = 'View: ';
         selectorLabel.className = 'oom-chart-selector-label';
+        selectorLabel.htmlFor = 'oom-trends-chart-selector';
         
         const selector = document.createElement('select');
         selector.className = 'oom-chart-selector';
+        selector.id = 'oom-trends-chart-selector';
+        selector.setAttribute('aria-describedby', 'oom-trends-selector-desc');
         selector.innerHTML = `
             <option value="line">Line Chart</option>
             <option value="area">Area Chart</option>
@@ -206,8 +335,15 @@ export class MetricsChartTabs {
             <option value="decomposition">Trend Decomposition</option>
         `;
         
+        // Add screen reader description
+        const selectorDesc = document.createElement('div');
+        selectorDesc.id = 'oom-trends-selector-desc';
+        selectorDesc.className = 'oom-sr-only';
+        selectorDesc.textContent = 'Choose how to visualize metric trends over time. Use arrow keys to change selection.';
+        
         chartTypeSelector.appendChild(selectorLabel);
         chartTypeSelector.appendChild(selector);
+        chartTypeSelector.appendChild(selectorDesc);
         
         // Add smoothing toggle
         const smoothingToggle = document.createElement('div');
@@ -217,13 +353,21 @@ export class MetricsChartTabs {
         smoothingCheckbox.type = 'checkbox';
         smoothingCheckbox.id = 'oom-trends-smoothing';
         smoothingCheckbox.checked = true;
+        smoothingCheckbox.setAttribute('aria-describedby', 'oom-smoothing-desc');
         
         const smoothingLabel = document.createElement('label');
         smoothingLabel.htmlFor = 'oom-trends-smoothing';
         smoothingLabel.textContent = 'Smooth Lines';
         
+        // Add description for smoothing toggle
+        const smoothingDesc = document.createElement('div');
+        smoothingDesc.id = 'oom-smoothing-desc';
+        smoothingDesc.className = 'oom-sr-only';
+        smoothingDesc.textContent = 'Toggle smooth curved lines versus sharp angular lines in chart visualization.';
+        
         smoothingToggle.appendChild(smoothingCheckbox);
         smoothingToggle.appendChild(smoothingLabel);
+        smoothingToggle.appendChild(smoothingDesc);
         
         const exportButton = this.createExportButton('trends', 'Export Time Series');
         
@@ -234,9 +378,19 @@ export class MetricsChartTabs {
         
         const canvas = document.createElement('canvas');
         canvas.className = 'oom-chart-canvas';
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', 'Metric trends over time chart');
+        canvas.setAttribute('aria-describedby', 'oom-trends-chart-desc');
+        
+        // Add chart description for screen readers
+        const chartDesc = document.createElement('div');
+        chartDesc.id = 'oom-trends-chart-desc';
+        chartDesc.className = 'oom-sr-only';
+        chartDesc.textContent = 'Interactive chart showing how your dream metrics change over time. Chart type and smoothing can be adjusted using controls above.';
         
         container.appendChild(toolbar);
         container.appendChild(canvas);
+        container.appendChild(chartDesc);
         this.contentContainer.appendChild(container);
 
         // Delay chart creation to ensure container is stable
@@ -248,6 +402,9 @@ export class MetricsChartTabs {
         // Add event listeners
         selector.addEventListener('change', () => {
             this.createTrendsChart(canvas, selector.value as 'line' | 'area' | 'scatter' | 'decomposition', smoothingCheckbox.checked);
+            // Announce chart type change
+            const selectedOption = selector.options[selector.selectedIndex];
+            this.createAccessibilityAnnouncement(`Chart changed to ${selectedOption.text}. ${this.createChartDataSummary('trends')}`, 'polite');
         });
         
         smoothingCheckbox.addEventListener('change', () => {
@@ -277,17 +434,27 @@ export class MetricsChartTabs {
         const selectorLabel = document.createElement('label');
         selectorLabel.textContent = 'Chart Type: ';
         selectorLabel.className = 'oom-chart-selector-label';
+        selectorLabel.htmlFor = 'oom-compare-chart-selector';
         
         const selector = document.createElement('select');
         selector.className = 'oom-chart-selector';
+        selector.id = 'oom-compare-chart-selector';
+        selector.setAttribute('aria-describedby', 'oom-compare-selector-desc');
         selector.innerHTML = `
             <option value="bar">Bar Chart (Averages)</option>
             <option value="box">Box Plot (Distributions)</option>
             <option value="violin">Violin Plot (Density)</option>
         `;
         
+        // Add screen reader description
+        const selectorDesc = document.createElement('div');
+        selectorDesc.id = 'oom-compare-selector-desc';
+        selectorDesc.className = 'oom-sr-only';
+        selectorDesc.textContent = 'Choose comparison visualization type. Bar charts show averages, box plots show quartiles and outliers, violin plots show data density distributions.';
+        
         chartTypeSelector.appendChild(selectorLabel);
         chartTypeSelector.appendChild(selector);
+        chartTypeSelector.appendChild(selectorDesc);
         
         const exportButton = this.createExportButton('compare', 'Export Comparison Data');
         
@@ -297,9 +464,19 @@ export class MetricsChartTabs {
         
         const canvas = document.createElement('canvas');
         canvas.className = 'oom-chart-canvas';
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', 'Metric comparison chart');
+        canvas.setAttribute('aria-describedby', 'oom-compare-chart-desc');
+        
+        // Add chart description for screen readers
+        const chartDesc = document.createElement('div');
+        chartDesc.id = 'oom-compare-chart-desc';
+        chartDesc.className = 'oom-sr-only';
+        chartDesc.textContent = 'Interactive chart comparing dream metrics using different visualization types. Chart type can be changed using the selector above to show averages, distributions, or density plots.';
         
         container.appendChild(toolbar);
         container.appendChild(canvas);
+        container.appendChild(chartDesc);
         this.contentContainer.appendChild(container);
 
         // Delay chart creation to ensure container is stable
@@ -311,6 +488,9 @@ export class MetricsChartTabs {
         // Add event listener for chart type changes
         selector.addEventListener('change', () => {
             this.createCompareChart(canvas, selector.value as 'bar' | 'box' | 'violin');
+            // Announce chart type change
+            const selectedOption = selector.options[selector.selectedIndex];
+            this.createAccessibilityAnnouncement(`Chart changed to ${selectedOption.text}. ${this.createChartDataSummary('compare')}`, 'polite');
         });
     }
 
@@ -336,17 +516,27 @@ export class MetricsChartTabs {
         const vizLabel = document.createElement('label');
         vizLabel.textContent = 'Visualization: ';
         vizLabel.className = 'oom-chart-selector-label';
+        vizLabel.htmlFor = 'oom-correlations-viz-selector';
         
         const vizSelector = document.createElement('select');
         vizSelector.className = 'oom-chart-selector';
+        vizSelector.id = 'oom-correlations-viz-selector';
+        vizSelector.setAttribute('aria-describedby', 'oom-viz-selector-desc');
         vizSelector.innerHTML = `
             <option value="matrix">Correlation Matrix</option>
             <option value="scatter">Scatter Plots</option>
             <option value="network">Network Graph</option>
         `;
         
+        // Add description for visualization selector
+        const vizSelectorDesc = document.createElement('div');
+        vizSelectorDesc.id = 'oom-viz-selector-desc';
+        vizSelectorDesc.className = 'oom-sr-only';
+        vizSelectorDesc.textContent = 'Choose visualization type for correlation analysis. Matrix shows all correlations, scatter shows pairwise relationships, network shows connections.';
+        
         vizTypeSelector.appendChild(vizLabel);
         vizTypeSelector.appendChild(vizSelector);
+        vizTypeSelector.appendChild(vizSelectorDesc);
         
         // Add correlation threshold slider
         const thresholdControl = document.createElement('div');
@@ -355,6 +545,7 @@ export class MetricsChartTabs {
         const thresholdLabel = document.createElement('label');
         thresholdLabel.textContent = 'Min Correlation: ';
         thresholdLabel.className = 'oom-threshold-label';
+        thresholdLabel.htmlFor = 'oom-correlation-threshold-slider';
         
         const thresholdSlider = document.createElement('input');
         thresholdSlider.type = 'range';
@@ -363,14 +554,29 @@ export class MetricsChartTabs {
         thresholdSlider.step = '0.1';
         thresholdSlider.value = '0.3';
         thresholdSlider.className = 'oom-threshold-slider';
+        thresholdSlider.id = 'oom-correlation-threshold-slider';
+        thresholdSlider.setAttribute('aria-describedby', 'oom-threshold-desc');
+        thresholdSlider.setAttribute('aria-valuemin', '0');
+        thresholdSlider.setAttribute('aria-valuemax', '1');
+        thresholdSlider.setAttribute('aria-valuenow', '0.3');
+        thresholdSlider.setAttribute('aria-valuetext', 'Minimum correlation threshold: 0.3');
         
         const thresholdValue = document.createElement('span');
         thresholdValue.className = 'oom-threshold-value';
         thresholdValue.textContent = '0.3';
+        thresholdValue.setAttribute('aria-live', 'polite');
+        thresholdValue.id = 'oom-threshold-value-display';
+        
+        // Add description for threshold slider
+        const thresholdDesc = document.createElement('div');
+        thresholdDesc.id = 'oom-threshold-desc';
+        thresholdDesc.className = 'oom-sr-only';
+        thresholdDesc.textContent = 'Set minimum correlation strength to display. Range from 0 (show all) to 1 (only perfect correlations). Use left and right arrow keys to adjust.';
         
         thresholdControl.appendChild(thresholdLabel);
         thresholdControl.appendChild(thresholdSlider);
         thresholdControl.appendChild(thresholdValue);
+        thresholdControl.appendChild(thresholdDesc);
         
         const exportButton = this.createExportButton('correlations', 'Export Correlation Matrix');
         
@@ -381,9 +587,19 @@ export class MetricsChartTabs {
         
         const canvas = document.createElement('canvas');
         canvas.className = 'oom-chart-canvas';
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', 'Metric correlations visualization');
+        canvas.setAttribute('aria-describedby', 'oom-correlations-chart-desc');
+        
+        // Add chart description for screen readers
+        const chartDesc = document.createElement('div');
+        chartDesc.id = 'oom-correlations-chart-desc';
+        chartDesc.className = 'oom-sr-only';
+        chartDesc.textContent = 'Interactive visualization showing relationships between dream metrics. Visualization type and correlation threshold can be adjusted using controls above.';
         
         container.appendChild(toolbar);
         container.appendChild(canvas);
+        container.appendChild(chartDesc);
         this.contentContainer.appendChild(container);
 
         // Delay chart creation to ensure container is stable
@@ -395,11 +611,24 @@ export class MetricsChartTabs {
         // Add event listeners
         vizSelector.addEventListener('change', () => {
             this.createCorrelationsChart(canvas, vizSelector.value as 'matrix' | 'scatter' | 'network', parseFloat(thresholdSlider.value));
+            // Announce visualization change
+            const selectedOption = vizSelector.options[vizSelector.selectedIndex];
+            this.createAccessibilityAnnouncement(`Visualization changed to ${selectedOption.text}. ${this.createChartDataSummary('correlations')}`, 'polite');
         });
         
         thresholdSlider.addEventListener('input', () => {
-            thresholdValue.textContent = thresholdSlider.value;
-            this.createCorrelationsChart(canvas, vizSelector.value as 'matrix' | 'scatter' | 'network', parseFloat(thresholdSlider.value));
+            const newValue = thresholdSlider.value;
+            thresholdValue.textContent = newValue;
+            
+            // Update ARIA attributes
+            thresholdSlider.setAttribute('aria-valuenow', newValue);
+            thresholdSlider.setAttribute('aria-valuetext', `Minimum correlation threshold: ${newValue}`);
+            
+            // Update the chart
+            this.createCorrelationsChart(canvas, vizSelector.value as 'matrix' | 'scatter' | 'network', parseFloat(newValue));
+            
+            // Announce threshold change
+            this.createAccessibilityAnnouncement(`Correlation threshold set to ${newValue}. Showing correlations above this threshold.`, 'polite');
         });
     }
 
@@ -430,10 +659,12 @@ export class MetricsChartTabs {
         const label = document.createElement('label');
         label.textContent = 'Select Metric: ';
         label.className = 'oom-heatmap-label';
+        label.htmlFor = 'oom-heatmap-metric-selector';
         
         const selector = document.createElement('select');
         selector.className = 'oom-heatmap-selector';
         selector.id = 'oom-heatmap-metric-selector';
+        selector.setAttribute('aria-describedby', 'oom-heatmap-selector-desc');
         
         // Add options for each metric
         const metricNames = Object.keys(this.chartData.metrics);
@@ -449,16 +680,34 @@ export class MetricsChartTabs {
             selector.value = metricNames[0];
         }
         
+        // Add screen reader description
+        const selectorDesc = document.createElement('div');
+        selectorDesc.id = 'oom-heatmap-selector-desc';
+        selectorDesc.className = 'oom-sr-only';
+        selectorDesc.textContent = 'Choose which metric to display in the calendar heatmap. The heatmap shows metric intensity over time with color coding.';
+        
         selectorWrapper.appendChild(label);
         selectorWrapper.appendChild(selector);
+        selectorWrapper.appendChild(selectorDesc);
         
         // Create calendar container
         const calendarContainer = document.createElement('div');
         calendarContainer.className = 'oom-heatmap-calendar';
+        calendarContainer.setAttribute('role', 'img');
+        calendarContainer.setAttribute('aria-label', 'Calendar heatmap visualization');
+        calendarContainer.setAttribute('aria-describedby', 'oom-heatmap-desc');
+        calendarContainer.setAttribute('aria-live', 'polite');
+        
+        // Add heatmap description for screen readers
+        const heatmapDesc = document.createElement('div');
+        heatmapDesc.id = 'oom-heatmap-desc';
+        heatmapDesc.className = 'oom-sr-only';
+        heatmapDesc.textContent = 'Calendar heatmap showing metric intensity by date. Darker colors indicate higher values. Hover over dates for specific values.';
         
         container.appendChild(toolbar);
         container.appendChild(selectorWrapper);
         container.appendChild(calendarContainer);
+        container.appendChild(heatmapDesc);
         this.contentContainer.appendChild(container);
         
         // Generate initial heatmap
@@ -471,6 +720,9 @@ export class MetricsChartTabs {
             const target = event.target as HTMLSelectElement;
             calendarContainer.innerHTML = '';
             this.generateCalendarHeatmap(calendarContainer, target.value);
+            
+            // Announce metric change
+            this.createAccessibilityAnnouncement(`Heatmap changed to show ${target.value} metric. ${this.createChartDataSummary('heatmap')}`, 'polite');
         });
     }
 
@@ -788,6 +1040,10 @@ export class MetricsChartTabs {
         });
 
         this.charts.set('trends', chart);
+        
+        // Update chart accessibility
+        const chartType = fillArea ? 'area' : smoothLines ? 'smooth line' : 'line';
+        this.updateChartAccessibility(ctx.canvas, 'trends', chartType);
     }
 
     /**
@@ -1071,6 +1327,9 @@ export class MetricsChartTabs {
         });
 
         this.charts.set('compare', chart);
+        
+        // Update chart accessibility
+        this.updateChartAccessibility(ctx.canvas, 'compare', 'bar');
     }
 
     /**
@@ -1181,6 +1440,9 @@ export class MetricsChartTabs {
         });
 
         this.charts.set('compare', chart);
+        
+        // Update chart accessibility
+        this.updateChartAccessibility(ctx.canvas, 'compare', 'box plot');
     }
 
     /**
@@ -1252,6 +1514,9 @@ export class MetricsChartTabs {
         });
 
         this.charts.set('compare', chart);
+        
+        // Update chart accessibility
+        this.updateChartAccessibility(ctx.canvas, 'compare', 'violin plot');
     }
 
     /**
@@ -1789,14 +2054,79 @@ export class MetricsChartTabs {
     private createExportButton(tabType: TabType, label: string): HTMLElement {
         const exportButton = document.createElement('button');
         exportButton.className = 'oom-export-button';
-        exportButton.innerHTML = `<span class="oom-export-icon">📊</span> ${label}`;
+        exportButton.innerHTML = `<span class="oom-export-icon" aria-hidden="true">📊</span> ${label}`;
         exportButton.title = `Export ${tabType} data as CSV`;
+        exportButton.setAttribute('aria-describedby', `oom-export-desc-${tabType}`);
+        
+        // Add screen reader description
+        const exportDesc = document.createElement('div');
+        exportDesc.id = `oom-export-desc-${tabType}`;
+        exportDesc.className = 'oom-sr-only';
+        exportDesc.textContent = `Export current ${tabType} data and analysis as a CSV file for use in external applications.`;
         
         exportButton.addEventListener('click', async () => {
-            await this.handleExportClick(tabType);
+            // Add loading state for accessibility
+            exportButton.setAttribute('aria-busy', 'true');
+            exportButton.textContent = 'Exporting...';
+            
+            try {
+                await this.handleExportClick(tabType);
+                
+                // Announce successful export
+                this.announceExportSuccess(tabType);
+            } catch (error) {
+                // Announce export error
+                this.announceExportError(tabType, error as Error);
+            } finally {
+                // Reset button state
+                exportButton.setAttribute('aria-busy', 'false');
+                exportButton.innerHTML = `<span class="oom-export-icon" aria-hidden="true">📊</span> ${label}`;
+            }
         });
         
-        return exportButton;
+        // Create container for button and description
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'oom-export-button-container';
+        buttonContainer.appendChild(exportButton);
+        buttonContainer.appendChild(exportDesc);
+        
+        return buttonContainer;
+    }
+
+    /**
+     * Announce successful export to screen readers
+     */
+    private announceExportSuccess(tabType: TabType): void {
+        const announcement = `${tabType} data exported successfully. CSV file should be available in your downloads.`;
+        this.createAccessibilityAnnouncement(announcement, 'polite');
+    }
+
+    /**
+     * Announce export error to screen readers
+     */
+    private announceExportError(tabType: TabType, error: Error): void {
+        const announcement = `Export failed for ${tabType} data. Error: ${error.message}`;
+        this.createAccessibilityAnnouncement(announcement, 'assertive');
+    }
+
+    /**
+     * Create accessibility announcement
+     */
+    private createAccessibilityAnnouncement(message: string, priority: 'polite' | 'assertive'): void {
+        const announcer = document.createElement('div');
+        announcer.setAttribute('aria-live', priority);
+        announcer.setAttribute('aria-atomic', 'true');
+        announcer.className = 'oom-sr-only';
+        announcer.textContent = message;
+        
+        document.body.appendChild(announcer);
+        
+        // Remove after announcement
+        setTimeout(() => {
+            if (announcer.parentNode) {
+                announcer.parentNode.removeChild(announcer);
+            }
+        }, 3000);
     }
 
     /**
@@ -2418,5 +2748,208 @@ export class MetricsChartTabs {
             type: 'Metric Consistency',
             description: `${mostConsistent.metric} shows highest consistency (${(mostConsistent.score * 100).toFixed(1)}%)`
         };
+    }
+
+    /**
+     * Create accessibility data summary for charts
+     */
+    private createChartDataSummary(tabId: string): string {
+        try {
+            const metricNames = Object.keys(this.chartData.metrics);
+            const totalEntries = this.chartData.dreamEntries.length;
+            
+            if (metricNames.length === 0 || totalEntries === 0) {
+                return `No data available for ${tabId} analysis.`;
+            }
+            
+            let summary = `${tabId} data summary: ${totalEntries} dream entries with ${metricNames.length} metrics. `;
+            
+            switch (tabId) {
+                case 'trends':
+                    const trendingSummary = this.getTrendsSummary();
+                    summary += trendingSummary;
+                    break;
+                    
+                case 'compare':
+                    const compareSummary = this.getCompareSummary();
+                    summary += compareSummary;
+                    break;
+                    
+                case 'correlations':
+                    const correlationsSummary = this.getCorrelationsSummary();
+                    summary += correlationsSummary;
+                    break;
+                    
+                case 'heatmap':
+                    const heatmapSummary = this.getHeatmapSummary();
+                    summary += heatmapSummary;
+                    break;
+                    
+                case 'insights':
+                    const insightsSummary = this.getInsightsSummary();
+                    summary += insightsSummary;
+                    break;
+                    
+                default:
+                    summary += `Metrics tracked: ${metricNames.join(', ')}.`;
+            }
+            
+            return summary;
+        } catch (error) {
+            this.logger?.warn('MetricsChartTabs', 'Error creating chart data summary', error);
+            return `Chart data summary unavailable for ${tabId}.`;
+        }
+    }
+
+    /**
+     * Get trends data summary for accessibility
+     */
+    private getTrendsSummary(): string {
+        const trends = this.analyzeTrends();
+        if (trends.length === 0) return 'No trend data available.';
+        
+        const improving = trends.filter(t => t.direction === 'improving').length;
+        const declining = trends.filter(t => t.direction === 'declining').length;
+        const stable = trends.filter(t => t.direction === 'stable').length;
+        
+        return `Trend analysis shows ${improving} improving metrics, ${declining} declining metrics, and ${stable} stable metrics.`;
+    }
+
+    /**
+     * Get compare data summary for accessibility
+     */
+    private getCompareSummary(): string {
+        const metricNames = Object.keys(this.chartData.metrics);
+        const averages = metricNames.map(name => {
+            const values = this.chartData.metrics[name];
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            return { name, avg };
+        });
+        
+        const highest = averages.reduce((max, current) => current.avg > max.avg ? current : max);
+        const lowest = averages.reduce((min, current) => current.avg < min.avg ? current : min);
+        
+        return `Comparison shows ${highest.name} has highest average (${highest.avg.toFixed(2)}), ${lowest.name} has lowest (${lowest.avg.toFixed(2)}).`;
+    }
+
+    /**
+     * Get correlations data summary for accessibility
+     */
+    private getCorrelationsSummary(): string {
+        const correlations = this.findStrongCorrelations();
+        if (correlations.length === 0) {
+            return 'No strong correlations found between metrics.';
+        }
+        
+        const strongCount = correlations.filter(c => c.strength === 'strong').length;
+        const moderateCount = correlations.filter(c => c.strength === 'moderate').length;
+        
+        return `Found ${strongCount} strong and ${moderateCount} moderate correlations between metrics.`;
+    }
+
+    /**
+     * Get heatmap data summary for accessibility
+     */
+    private getHeatmapSummary(): string {
+        const selectedMetric = this.getSelectedHeatmapMetric() || Object.keys(this.chartData.metrics)[0];
+        if (!selectedMetric) return 'No metric selected for heatmap.';
+        
+        const values = this.chartData.metrics[selectedMetric];
+        if (!values || values.length === 0) return `No data for ${selectedMetric} metric.`;
+        
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        
+        return `Heatmap for ${selectedMetric}: range ${min.toFixed(2)} to ${max.toFixed(2)}, average ${avg.toFixed(2)}.`;
+    }
+
+    /**
+     * Get insights data summary for accessibility
+     */
+    private getInsightsSummary(): string {
+        const outliers = this.detectOutliers();
+        const correlations = this.findStrongCorrelations();
+        const trends = this.analyzeTrends();
+        
+        return `Insights analysis found ${outliers.length} outliers, ${correlations.length} significant correlations, analyzed trends for ${trends.length} metrics.`;
+    }
+
+    /**
+     * Announce chart data summary to screen readers
+     */
+    private announceChartDataSummary(tabId: string): void {
+        const summary = this.createChartDataSummary(tabId);
+        this.createAccessibilityAnnouncement(summary, 'polite');
+    }
+
+    /**
+     * Update chart canvas accessibility attributes
+     */
+    private updateChartAccessibility(canvas: HTMLCanvasElement, tabId: string, chartType?: string): void {
+        if (!canvas) return;
+        
+        try {
+            // Update aria-label based on tab and chart type
+            let ariaLabel = `${tabId} chart`;
+            if (chartType) {
+                ariaLabel = `${tabId} ${chartType} chart`;
+            }
+            
+            canvas.setAttribute('aria-label', ariaLabel);
+            
+            // Create dynamic description based on current data
+            const summary = this.createChartDataSummary(tabId);
+            const description = `${ariaLabel}. ${summary}`;
+            
+            // Update or create description element
+            const descId = `${canvas.id || tabId}-chart-desc`;
+            let descElement = document.getElementById(descId);
+            
+            if (!descElement) {
+                descElement = document.createElement('div');
+                descElement.id = descId;
+                descElement.className = 'oom-sr-only';
+                canvas.parentNode?.appendChild(descElement);
+            }
+            
+            descElement.textContent = description;
+            canvas.setAttribute('aria-describedby', descId);
+            
+        } catch (error) {
+            this.logger?.warn('MetricsChartTabs', 'Error updating chart accessibility', error);
+        }
+    }
+
+    /**
+     * Set focus to the active tab for keyboard users
+     */
+    public focusActiveTab(): void {
+        const activeTabElement = this.navContainer.querySelector(`[data-tab="${this.activeTab}"]`) as HTMLElement;
+        if (activeTabElement) {
+            activeTabElement.focus();
+        }
+    }
+
+    /**
+     * Set focus to the main content area of the active tab
+     */
+    public focusTabContent(): void {
+        // Find the first focusable element in the content area
+        const focusableElements = this.contentContainer.querySelectorAll(
+            'button, select, input, canvas, [tabindex]:not([tabindex="-1"])'
+        );
+        
+        if (focusableElements.length > 0) {
+            (focusableElements[0] as HTMLElement).focus();
+        } else {
+            // If no focusable elements, focus the content container itself
+            this.contentContainer.setAttribute('tabindex', '0');
+            this.contentContainer.focus();
+            // Remove tabindex after focus to avoid affecting tab order
+            setTimeout(() => {
+                this.contentContainer.removeAttribute('tabindex');
+            }, 100);
+        }
     }
 } 
