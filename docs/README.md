@@ -46,7 +46,7 @@ Welcome to the OneiroMetrics documentation. This index will help you find the in
 
 ### Features
 - [Dream Journal Manager Plan](planning/features/dream-journal-manager.md)
-- [Metrics Enhancements Plan](planning/features/metrics-enhancements.md)
+- [Metrics Visualization & Calendar Enhancement](archive/features/metrics-visualization-unified-completed.md) ✅ **COMPLETED 2025-06-06**
 - [Templater Integration Plan](planning/features/templater-integration.md)
 - [Virtualization Plan](archive/planning/features/2025/virtualization.md) ✅ **COMPLETED**
 - [Upcoming Features](planning/features/upcoming-features.md)

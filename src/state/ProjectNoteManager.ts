@@ -24,7 +24,7 @@ export class ProjectNoteManager {
         private settings: DreamMetricsSettings,
         private logger?: ILogger
     ) {
-        this.tableGenerator = new TableGenerator(settings, logger);
+        this.tableGenerator = new TableGenerator(settings, logger, app, plugin);
     }
     
     /**
@@ -196,15 +196,6 @@ export class ProjectNoteManager {
      */
     private async finishUpdate(file: TFile, metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         // Generate table content
-        console.log('🎯 DEBUG: finishUpdate called!');
-        console.log('🎯 DEBUG: Received metrics keys:', Object.keys(metrics));
-        console.log('🎯 DEBUG: Metrics data:', {
-            totalKeys: Object.keys(metrics).length,
-            wordsCount: metrics['Words']?.length || 0,
-            sensoryCount: metrics['Sensory Detail']?.length || 0,
-            entriesCount: dreamEntries.length
-        });
-        
         this.logger?.info('ProjectNote', 'finishUpdate called with metrics:', Object.keys(metrics));
         this.logger?.info('ProjectNote', 'Dream entries count:', dreamEntries.length);
         
@@ -214,9 +205,6 @@ export class ProjectNoteManager {
         
         if (!hasMetricsData) {
             this.logger?.warn('ProjectNote', 'No metrics data found - charts will be empty');
-            console.log('❌ DEBUG: No metrics data detected!');
-        } else {
-            console.log('✅ DEBUG: Metrics data confirmed present');
         }
         
         const content = this.tableGenerator.generateMetricsTable(metrics, dreamEntries);
@@ -229,28 +217,42 @@ export class ProjectNoteManager {
         const leaf = this.app.workspace.getLeaf();
         await leaf.openFile(file);
         
-        // Force re-render and initialize chart tabs
-        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (view) {
-            this.logger?.debug('ProjectNote', 'Refreshing view and initializing chart tabs');
-            
-            try {
-                // Simple approach - just re-open the file which will refresh the view
-                setTimeout(() => {
-                    leaf.openFile(file, { active: true });
-                    
-                    // Initialize chart tabs after content is rendered
-                    setTimeout(() => {
-                        this.logger?.debug('ProjectNote', 'Initializing chart tabs');
-                        this.tableGenerator.initializeChartTabs(metrics, dreamEntries);
-                    }, 500); // Give more time for DOM to be fully rendered
-                }, 100);
-            } catch (refreshError) {
-                this.logger?.warn('ProjectNote', 'Error refreshing view', refreshError as Error);
-                // Non-critical error, continue execution
-            }
-        }
+        // Initialize chart tabs after content is rendered with better timing
+        this.initializeChartsWithRetry(metrics, dreamEntries, 0);
+    }
+    
+    /**
+     * Initialize charts with retry logic for DOM readiness
+     */
+    private async initializeChartsWithRetry(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[], attempt: number): Promise<void> {
+        const maxAttempts = 5;
+        const baseDelay = 300;
+        const currentDelay = baseDelay * Math.pow(1.5, attempt); // Exponential backoff
         
-        console.log('🎯 DEBUG: finishUpdate completed');
+        setTimeout(async () => {
+            this.logger?.debug('ProjectNote', `Chart initialization attempt ${attempt + 1}/${maxAttempts}`);
+            
+            // Check if the metrics container exists
+            const metricsContainer = document.querySelector('#oom-metrics-container') as HTMLElement;
+            if (metricsContainer) {
+                this.logger?.debug('ProjectNote', 'Metrics container found, initializing chart tabs');
+                try {
+                    await this.tableGenerator.initializeChartTabs(metrics, dreamEntries);
+                    this.logger?.info('ProjectNote', 'Chart tabs initialized successfully');
+                    return;
+                } catch (error) {
+                    this.logger?.error('ProjectNote', 'Error initializing chart tabs', error as Error);
+                }
+            } else {
+                this.logger?.debug('ProjectNote', `Metrics container not found on attempt ${attempt + 1}`);
+                
+                // Retry if we haven't exceeded max attempts
+                if (attempt < maxAttempts - 1) {
+                    this.initializeChartsWithRetry(metrics, dreamEntries, attempt + 1);
+                } else {
+                    this.logger?.warn('ProjectNote', 'Failed to find metrics container after all attempts');
+                }
+            }
+        }, currentDelay);
     }
 } 

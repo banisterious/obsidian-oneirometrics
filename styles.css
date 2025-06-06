@@ -18523,3 +18523,10 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
         top: 6px;
     }
 }
+
+.oom-metrics-tabs-content h2 {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    line-height: var(--line-height-tight);
+    font-family: var(--font-interface);
+}

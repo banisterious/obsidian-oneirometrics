@@ -130,8 +130,15 @@ export class SettingsManager {
             // Save expandedStates from set to settings object
             this.saveExpandedStates();
             
-            // Save settings to storage
-            await this.plugin.saveData(this._settings);
+            // CRITICAL FIX: Preserve existing plugin data (like chart cache) when saving settings
+            // Load existing plugin data and merge with settings instead of overwriting
+            const existingData = await this.plugin.loadData() || {};
+            
+            // Merge settings into existing data to preserve other keys (like chart data)
+            const dataToSave = { ...existingData, ...this._settings };
+            
+            // Save merged data to storage
+            await this.plugin.saveData(dataToSave);
             
             // DEBUG: Log after saving
             safeLogger.debug('SettingsManager', 'saveSettings() - After save completed');

@@ -68,7 +68,7 @@ This file tracks the status of documentation files during the reorganization pro
 | Original File | New Location | Status | Notes |
 |---------------|--------------|--------|-------|
 | DREAM_JOURNAL_MANAGER_PLAN.md | docs/planning/features/dream-journal-manager.md | ✅ | Migrated and archived |
-| METRICS_ENHANCEMENTS_PLAN.md | docs/planning/features/metrics-enhancements.md | ✅ | Migrated and archived |
+| METRICS_ENHANCEMENTS_PLAN.md | docs/archive/features/metrics-visualization-unified-completed.md | ✅ | **COMPLETED 2025-06-06** - Consolidated into unified plan and archived |
 | TEMPLATER_INTEGRATION_PLAN.md | docs/planning/features/templater-integration.md | ✅ | Migrated and archived |
 | VIRTUALIZATION_PLAN.md | docs/archive/planning/features/2025/virtualization.md | ✅ | **COMPLETED** - Archived with full implementation details |
 | (New) | docs/planning/features/upcoming-features.md | ✅ | Created as part of reorganization |

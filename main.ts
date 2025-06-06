@@ -422,6 +422,19 @@ export default class DreamMetricsPlugin extends Plugin {
         } else {
             document.body.removeClass('oom-debug-mode');
         }
+
+        // **Attempt to restore charts if viewing OneiroMetrics project note**
+        if (isProjectNote) {
+            console.log('🔄 PROJECT NOTE DEBUG: OneiroMetrics note detected, attempting chart restoration');
+            setTimeout(async () => {
+                try {
+                    await this.attemptChartRestoration();
+                } catch (error) {
+                    console.error('🔄 PROJECT NOTE DEBUG: Chart restoration failed', error);
+                    this.logger?.error('UI', 'Chart restoration failed', error as Error);
+                }
+            }, 500); // Give DOM time to render
+        }
     }
     
 
@@ -657,6 +670,168 @@ export default class DreamMetricsPlugin extends Plugin {
             this.debugTools.debugDateNavigator();
         });
         this.ribbonIcons.push(ribbonEl);
+    }
+
+    /**
+     * Attempt to restore charts from cached data when OneiroMetrics note is viewed
+     */
+    private async attemptChartRestoration(): Promise<void> {
+        console.log('🔄 RESTORATION DEBUG: attemptChartRestoration called');
+        
+        try {
+            // Check if chart tabs placeholder exists (indicates the note has the right structure)
+            const placeholder = document.querySelector('#oom-chart-tabs-placeholder') as HTMLElement;
+            if (!placeholder) {
+                console.log('🔄 RESTORATION DEBUG: No chart placeholder found, note may not have chart structure');
+                return;
+            }
+
+            // Extract dream entries from the DOM table to validate cache
+            const dreamEntries = this.extractDreamEntriesFromDOM();
+            if (!dreamEntries || dreamEntries.length === 0) {
+                console.log('🔄 RESTORATION DEBUG: No dream entries found in DOM');
+                this.showChartPlaceholder(placeholder);
+                return;
+            }
+
+            console.log('🔄 RESTORATION DEBUG: Found', dreamEntries.length, 'dream entries in DOM');
+
+            // Try to restore charts from cache
+            const { ChartDataPersistence } = await import('./src/state/ChartDataPersistence');
+            const persistence = new ChartDataPersistence(this.app, this, this.logger);
+            
+            const cacheStatus = await persistence.getCacheStatus(dreamEntries);
+            console.log('🔄 RESTORATION DEBUG: Cache status:', cacheStatus);
+
+            if (cacheStatus.hasCache && cacheStatus.isValid) {
+                console.log('🔄 RESTORATION DEBUG: Attempting to restore charts from cache');
+                const cachedData = await persistence.restoreChartData(dreamEntries);
+                
+                if (cachedData) {
+                    console.log('🔄 RESTORATION DEBUG: Successfully restored cached chart data');
+                    // Initialize charts with cached data via TableGenerator
+                    const tableGenerator = new (await import('./src/dom/tables/TableGenerator')).TableGenerator(
+                        this.settings, 
+                        this.logger, 
+                        this.app, 
+                        this
+                    );
+                    await tableGenerator.initializeChartTabs(cachedData.metrics, dreamEntries);
+                    console.log('🔄 RESTORATION DEBUG: Charts restored successfully');
+                    return;
+                }
+            }
+
+            // If we get here, cache is invalid or missing
+            console.log('🔄 RESTORATION DEBUG: No valid cache found, showing placeholder');
+            this.showChartPlaceholder(placeholder);
+
+        } catch (error) {
+            console.error('🔄 RESTORATION DEBUG: Error during chart restoration:', error);
+            this.logger?.error('UI', 'Chart restoration failed', error as Error);
+            
+            // Show placeholder on error
+            const placeholder = document.querySelector('#oom-chart-tabs-placeholder') as HTMLElement;
+            if (placeholder) {
+                this.showChartPlaceholder(placeholder);
+            }
+        }
+    }
+
+    /**
+     * Extract dream entries from the DOM table for cache validation
+     */
+    private extractDreamEntriesFromDOM(): DreamMetricData[] {
+        console.log('🔄 EXTRACTION DEBUG: Extracting dream entries from DOM');
+        
+        try {
+            const dreamEntries: DreamMetricData[] = [];
+            const tableRows = document.querySelectorAll('#oom-dream-entries-table tbody tr.oom-dream-row');
+            
+            console.log('🔄 EXTRACTION DEBUG: Found', tableRows.length, 'table rows');
+
+            tableRows.forEach((row, index) => {
+                try {
+                    const dateCell = row.querySelector('.column-date');
+                    const titleCell = row.querySelector('.oom-dream-title a');
+                    const contentCell = row.querySelector('.oom-dream-content');
+                    
+                    if (!dateCell || !titleCell) {
+                        console.log('🔄 EXTRACTION DEBUG: Skipping row', index, '- missing date or title');
+                        return;
+                    }
+
+                    const dateAttr = row.getAttribute('data-date');
+                    const title = titleCell.textContent?.trim() || '';
+                    
+                    if (!dateAttr || !title) {
+                        console.log('🔄 EXTRACTION DEBUG: Skipping row', index, '- invalid date or title');
+                        return;
+                    }
+
+                    // Extract metrics from the row
+                    const metrics: Record<string, number> = {};
+                    const metricCells = row.querySelectorAll('.metric-value');
+                    metricCells.forEach(cell => {
+                        const metricName = cell.getAttribute('data-metric');
+                        const metricValue = cell.textContent?.trim();
+                        
+                        if (metricName && metricValue && metricValue !== '') {
+                            const numValue = parseInt(metricValue, 10);
+                            if (!isNaN(numValue)) {
+                                metrics[metricName] = numValue;
+                            }
+                        }
+                    });
+
+                    // Extract content (simplified for cache validation)
+                    const content = contentCell?.textContent?.trim() || '';
+
+                    const entry: DreamMetricData = {
+                        date: dateAttr,
+                        title: title,
+                        content: content,
+                        metrics: metrics,
+                        wordCount: metrics['Words'] || 0,
+                        source: `extracted-from-dom#entry-${dateAttr}`
+                    };
+
+                    dreamEntries.push(entry);
+                    
+                } catch (error) {
+                    console.error('🔄 EXTRACTION DEBUG: Error processing row', index, ':', error);
+                }
+            });
+
+            console.log('🔄 EXTRACTION DEBUG: Successfully extracted', dreamEntries.length, 'entries');
+            return dreamEntries;
+            
+        } catch (error) {
+            console.error('🔄 EXTRACTION DEBUG: Error extracting dream entries:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Show a placeholder message when no charts are available
+     */
+    private showChartPlaceholder(placeholder: HTMLElement): void {
+        console.log('🔄 PLACEHOLDER DEBUG: Showing chart placeholder');
+        
+        placeholder.innerHTML = `
+            <div class="oom-chart-placeholder">
+                <div class="oom-placeholder-content">
+                    <h3>📊 Chart Data Not Available</h3>
+                    <p>Charts will appear here after running a metrics scrape.</p>
+                    <p><strong>To generate charts:</strong></p>
+                    <ol>
+                        <li>Click the "Rescrape Metrics" button below</li>
+                        <li>Or use the OneiroMetrics Hub (ribbon icon)</li>
+                    </ol>
+                    <p><em>Charts are automatically cached and will persist between reloads once generated.</em></p>
+                </div>
+            </div>
+        `;
     }
 }
 

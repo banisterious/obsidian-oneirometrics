@@ -11,16 +11,19 @@ import safeLogger from '../../logging/safe-logger';
 import { RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER, lucideIconMap } from '../../../settings';
 import { parseDate, formatDate } from '../../utils/date-utils';
 import { ChartTabsManager } from '../charts/ChartTabsManager';
+import { App, Plugin } from 'obsidian';
 
 export class TableGenerator {
     private memoizedTableData = new Map<string, string>();
     private chartTabsManager: ChartTabsManager;
     
     constructor(
-        private readonly settings: DreamMetricsSettings,
-        private logger?: ILogger
+        private settings: DreamMetricsSettings,
+        private logger?: ILogger,
+        private app?: App,
+        private plugin?: Plugin
     ) {
-        this.chartTabsManager = new ChartTabsManager(this.logger);
+        this.chartTabsManager = new ChartTabsManager(logger, app, plugin);
     }
     
     /**
@@ -188,10 +191,10 @@ export class TableGenerator {
     }
     
     /**
-     * Initialize chart tabs after the DOM content has been rendered
+     * Initialize chart tabs in the metrics container
      * This should be called after the HTML content is inserted into the DOM
      */
-    public initializeChartTabs(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): void {
+    public async initializeChartTabs(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
             // Find the metrics container
             const metricsContainer = document.querySelector('#oom-metrics-container') as HTMLElement;
@@ -200,7 +203,7 @@ export class TableGenerator {
                 return;
             }
 
-            // Find the chart tabs placeholder
+            // Find the chart tabs placeholder (for validation)
             const placeholder = metricsContainer.querySelector('#oom-chart-tabs-placeholder') as HTMLElement;
             if (!placeholder) {
                 this.logger?.warn('Table', 'Chart tabs placeholder not found');
@@ -210,9 +213,9 @@ export class TableGenerator {
             // Generate the statistics table HTML
             const statisticsTableHTML = this.generateSummaryTable(metrics);
 
-            // Initialize chart tabs
-            this.chartTabsManager.initializeChartTabs(
-                placeholder,
+            // Initialize chart tabs - pass metricsContainer instead of placeholder
+            await this.chartTabsManager.initializeChartTabs(
+                metricsContainer,
                 { metrics, dreamEntries },
                 statisticsTableHTML
             );
@@ -226,10 +229,10 @@ export class TableGenerator {
     /**
      * Update chart tabs with new data
      */
-    public updateChartTabs(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): void {
+    public async updateChartTabs(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
             const statisticsTableHTML = this.generateSummaryTable(metrics);
-            this.chartTabsManager.updateChartData(
+            await this.chartTabsManager.updateChartData(
                 { metrics, dreamEntries },
                 statisticsTableHTML
             );
