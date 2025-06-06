@@ -47,8 +47,11 @@ test-read-more.html
 docs/TODO_NPM_UPGRADE.md
 oom-ribbon-test/
 
+# Temporary files
+temp/
+
 # Backup files
-*.bak 
+*.bak
 
 # ScreenToGif project files
 *.stg
