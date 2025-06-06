@@ -20,7 +20,14 @@
 
 ## [Unreleased]
 
-*No unreleased changes yet.*
+### Added
+- **CSV Export System**: Comprehensive data export functionality across all chart visualizations
+  - Export buttons integrated into all 5 chart tabs (Statistics, Trends, Compare, Correlations, Heatmap)
+  - Context-aware export options with tab-specific data structures and formatting
+  - Professional CSV output with metadata headers, proper escaping, and meaningful filenames
+  - Advanced statistical analysis in exports including moving averages, correlation matrices, trend analysis, and confidence intervals
+  - Error handling with user-friendly notifications and robust data validation
+  - Responsive design with styled export buttons and mobile compatibility
 
 ## Released Versions
 
