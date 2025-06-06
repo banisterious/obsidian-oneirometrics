@@ -71,7 +71,8 @@ export class MetricsChartTabs {
             { id: 'trends', label: 'Trends', icon: '📈' },
             { id: 'compare', label: 'Compare', icon: '📋' },
             { id: 'correlations', label: 'Correlations', icon: '🔗' },
-            { id: 'heatmap', label: 'Heatmap', icon: '🗺️' }
+            { id: 'heatmap', label: 'Heatmap', icon: '🗺️' },
+            { id: 'insights', label: 'Insights', icon: '💡' }
         ];
 
         tabs.forEach(tab => {
@@ -140,6 +141,9 @@ export class MetricsChartTabs {
                 break;
             case 'heatmap':
                 this.renderHeatmapTab();
+                break;
+            case 'insights':
+                this.renderInsightsTab();
                 break;
             default:
                 this.renderPlaceholder('Unknown Tab');
@@ -273,69 +277,74 @@ export class MetricsChartTabs {
     }
 
     /**
-     * Render heatmap tab
+     * Render heatmap tab with calendar view
      */
     private renderHeatmapTab(): void {
         const container = document.createElement('div');
-        container.className = 'oom-chart-container oom-chart-container--loading';
+        container.className = 'oom-chart-container';
+        
+        // Create toolbar with export button
+        const toolbar = document.createElement('div');
+        toolbar.className = 'oom-chart-toolbar';
         
         const title = document.createElement('h3');
         title.className = 'oom-chart-title';
-        title.textContent = 'Metrics Heatmap';
+        title.textContent = 'Metric Heatmap';
+        
+        const exportButton = this.createExportButton('heatmap', 'Export Calendar Data');
+        
+        toolbar.appendChild(title);
+        toolbar.appendChild(exportButton);
         
         // Create metric selector
-        const selectorContainer = document.createElement('div');
-        selectorContainer.className = 'oom-heatmap-controls';
+        const selectorWrapper = document.createElement('div');
+        selectorWrapper.className = 'oom-heatmap-controls';
         
-        const metricSelect = document.createElement('select');
-        metricSelect.className = 'oom-metric-selector';
+        const label = document.createElement('label');
+        label.textContent = 'Select Metric: ';
+        label.className = 'oom-heatmap-label';
         
-        // Add default option
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Select a metric to visualize...';
-        metricSelect.appendChild(defaultOption);
+        const selector = document.createElement('select');
+        selector.className = 'oom-heatmap-selector';
+        selector.id = 'oom-heatmap-metric-selector';
         
-        // Populate with available metrics
-        Object.keys(this.chartData.metrics).forEach(metricName => {
+        // Add options for each metric
+        const metricNames = Object.keys(this.chartData.metrics);
+        metricNames.forEach(metricName => {
             const option = document.createElement('option');
             option.value = metricName;
             option.textContent = metricName;
-            metricSelect.appendChild(option);
+            selector.appendChild(option);
         });
         
-        // Create export button for heatmap
-        const exportButton = this.createExportButton('heatmap', 'Export Calendar Data');
+        // Set default selection
+        if (metricNames.length > 0) {
+            selector.value = metricNames[0];
+        }
         
-        const heatmapContainer = document.createElement('div');
-        heatmapContainer.className = 'oom-heatmap-container';
+        selectorWrapper.appendChild(label);
+        selectorWrapper.appendChild(selector);
         
-        selectorContainer.appendChild(metricSelect);
-        selectorContainer.appendChild(exportButton);
-        container.appendChild(title);
-        container.appendChild(selectorContainer);
-        container.appendChild(heatmapContainer);
+        // Create calendar container
+        const calendarContainer = document.createElement('div');
+        calendarContainer.className = 'oom-heatmap-calendar';
+        
+        container.appendChild(toolbar);
+        container.appendChild(selectorWrapper);
+        container.appendChild(calendarContainer);
         this.contentContainer.appendChild(container);
-
-        // Handle metric selection
-        metricSelect.addEventListener('change', () => {
-            const selectedMetric = metricSelect.value;
-            if (selectedMetric) {
-                this.generateCalendarHeatmap(heatmapContainer, selectedMetric);
-            } else {
-                heatmapContainer.innerHTML = '<div class="oom-heatmap-placeholder">Select a metric to visualize the heatmap</div>';
-            }
+        
+        // Generate initial heatmap
+        if (metricNames.length > 0) {
+            this.generateCalendarHeatmap(calendarContainer, metricNames[0]);
+        }
+        
+        // Add event listener for metric selection changes
+        selector.addEventListener('change', (event) => {
+            const target = event.target as HTMLSelectElement;
+            calendarContainer.innerHTML = '';
+            this.generateCalendarHeatmap(calendarContainer, target.value);
         });
-
-        // Remove loading state
-        setTimeout(() => {
-            container.classList.remove('oom-chart-container--loading');
-            if (Object.keys(this.chartData.metrics).length > 0) {
-                // Auto-select first metric
-                metricSelect.value = Object.keys(this.chartData.metrics)[0];
-                metricSelect.dispatchEvent(new Event('change'));
-            }
-        }, 50);
     }
 
     /**
@@ -954,7 +963,7 @@ export class MetricsChartTabs {
      * Get the currently selected metric in the heatmap tab
      */
     private getSelectedHeatmapMetric(): string | null {
-        const metricSelect = this.contentContainer.querySelector('.oom-metric-selector') as HTMLSelectElement;
+        const metricSelect = this.contentContainer.querySelector('.oom-heatmap-selector') as HTMLSelectElement;
         return metricSelect?.value || null;
     }
 
@@ -990,5 +999,481 @@ export class MetricsChartTabs {
                 errorDiv.parentNode.removeChild(errorDiv);
             }
         });
+    }
+
+    /**
+     * Render insights tab with enhanced analytics
+     */
+    private renderInsightsTab(): void {
+        const container = document.createElement('div');
+        container.className = 'oom-chart-container';
+        
+        // Create toolbar with export button
+        const toolbar = document.createElement('div');
+        toolbar.className = 'oom-chart-toolbar';
+        
+        const title = document.createElement('h3');
+        title.className = 'oom-chart-title';
+        title.textContent = 'Data Insights & Analytics';
+        
+        const exportButton = this.createExportButton('insights', 'Export Insights');
+        
+        toolbar.appendChild(title);
+        toolbar.appendChild(exportButton);
+        
+        // Create insights content
+        const insightsContent = document.createElement('div');
+        insightsContent.className = 'oom-insights-content';
+        
+        // Generate insights
+        this.generateInsights(insightsContent);
+        
+        container.appendChild(toolbar);
+        container.appendChild(insightsContent);
+        this.contentContainer.appendChild(container);
+    }
+
+    /**
+     * Generate insights content with enhanced analytics
+     */
+    private generateInsights(container: HTMLElement): void {
+        try {
+            // Clear container
+            container.innerHTML = '';
+            
+            if (!this.chartData.dreamEntries || this.chartData.dreamEntries.length === 0) {
+                container.innerHTML = '<div class="oom-insights-empty">No data available for analysis</div>';
+                return;
+            }
+
+            // Create insights sections
+            const sections = [
+                this.createDataOverviewSection(),
+                this.createTrendInsightsSection(),
+                this.createOutlierAnalysisSection(),
+                this.createCorrelationInsightsSection(),
+                this.createPatternRecognitionSection()
+            ];
+
+            sections.forEach(section => {
+                if (section) {
+                    container.appendChild(section);
+                }
+            });
+
+        } catch (error) {
+            this.logger?.error('MetricsChartTabs', 'Error generating insights', error);
+            container.innerHTML = '<div class="oom-insights-error">Error generating insights. Please try again.</div>';
+        }
+    }
+
+    /**
+     * Create data overview section
+     */
+    private createDataOverviewSection(): HTMLElement {
+        const section = document.createElement('div');
+        section.className = 'oom-insights-section';
+        
+        const header = document.createElement('h4');
+        header.className = 'oom-insights-header';
+        header.textContent = '📊 Data Overview';
+        
+        const content = document.createElement('div');
+        content.className = 'oom-insights-content';
+        
+        const totalEntries = this.chartData.dreamEntries.length;
+        const totalMetrics = Object.keys(this.chartData.metrics).length;
+        const dateRange = this.getDateRange();
+        const avgEntriesPerWeek = this.calculateAverageEntriesPerWeek();
+        
+        content.innerHTML = `
+            <div class="oom-insight-item">
+                <span class="oom-insight-label">Total Dream Entries:</span>
+                <span class="oom-insight-value">${totalEntries}</span>
+            </div>
+            <div class="oom-insight-item">
+                <span class="oom-insight-label">Tracked Metrics:</span>
+                <span class="oom-insight-value">${totalMetrics}</span>
+            </div>
+            <div class="oom-insight-item">
+                <span class="oom-insight-label">Date Range:</span>
+                <span class="oom-insight-value">${dateRange}</span>
+            </div>
+            <div class="oom-insight-item">
+                <span class="oom-insight-label">Average Entries per Week:</span>
+                <span class="oom-insight-value">${avgEntriesPerWeek.toFixed(1)}</span>
+            </div>
+        `;
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        return section;
+    }
+
+    /**
+     * Create trend insights section
+     */
+    private createTrendInsightsSection(): HTMLElement {
+        const section = document.createElement('div');
+        section.className = 'oom-insights-section';
+        
+        const header = document.createElement('h4');
+        header.className = 'oom-insights-header';
+        header.textContent = '📈 Trend Analysis';
+        
+        const content = document.createElement('div');
+        content.className = 'oom-insights-content';
+        
+        const trendAnalysis = this.analyzeTrends();
+        
+        content.innerHTML = trendAnalysis.map(trend => `
+            <div class="oom-insight-item">
+                <span class="oom-insight-label">${trend.metric}:</span>
+                <span class="oom-insight-value ${trend.direction === 'improving' ? 'oom-trend-positive' : trend.direction === 'declining' ? 'oom-trend-negative' : 'oom-trend-stable'}">${trend.description}</span>
+            </div>
+        `).join('');
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        return section;
+    }
+
+    /**
+     * Create outlier analysis section
+     */
+    private createOutlierAnalysisSection(): HTMLElement {
+        const section = document.createElement('div');
+        section.className = 'oom-insights-section';
+        
+        const header = document.createElement('h4');
+        header.className = 'oom-insights-header';
+        header.textContent = '🎯 Outlier Detection';
+        
+        const content = document.createElement('div');
+        content.className = 'oom-insights-content';
+        
+        const outliers = this.detectOutliers();
+        
+        if (outliers.length === 0) {
+            content.innerHTML = '<div class="oom-insight-item">No significant outliers detected</div>';
+        } else {
+            content.innerHTML = outliers.map(outlier => `
+                <div class="oom-insight-item">
+                    <span class="oom-insight-label">${outlier.date} (${outlier.metric}):</span>
+                    <span class="oom-insight-value oom-outlier-${outlier.type}">${outlier.description}</span>
+                </div>
+            `).join('');
+        }
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        return section;
+    }
+
+    /**
+     * Create correlation insights section
+     */
+    private createCorrelationInsightsSection(): HTMLElement {
+        const section = document.createElement('div');
+        section.className = 'oom-insights-section';
+        
+        const header = document.createElement('h4');
+        header.className = 'oom-insights-header';
+        header.textContent = '🔗 Key Correlations';
+        
+        const content = document.createElement('div');
+        content.className = 'oom-insights-content';
+        
+        const correlations = this.findStrongCorrelations();
+        
+        if (correlations.length === 0) {
+            content.innerHTML = '<div class="oom-insight-item">No strong correlations found</div>';
+        } else {
+            content.innerHTML = correlations.map(corr => `
+                <div class="oom-insight-item">
+                    <span class="oom-insight-label">${corr.metric1} ↔ ${corr.metric2}:</span>
+                    <span class="oom-insight-value oom-correlation-${corr.strength}">${corr.description}</span>
+                </div>
+            `).join('');
+        }
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        return section;
+    }
+
+    /**
+     * Create pattern recognition section
+     */
+    private createPatternRecognitionSection(): HTMLElement {
+        const section = document.createElement('div');
+        section.className = 'oom-insights-section';
+        
+        const header = document.createElement('h4');
+        header.className = 'oom-insights-header';
+        header.textContent = '🔍 Pattern Analysis';
+        
+        const content = document.createElement('div');
+        content.className = 'oom-insights-content';
+        
+        const patterns = this.recognizePatterns();
+        
+        content.innerHTML = patterns.map(pattern => `
+            <div class="oom-insight-item">
+                <span class="oom-insight-label">${pattern.type}:</span>
+                <span class="oom-insight-value">${pattern.description}</span>
+            </div>
+        `).join('');
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        return section;
+    }
+
+    // Helper methods for insights generation
+    private getDateRange(): string {
+        if (this.chartData.dreamEntries.length === 0) return 'No data';
+        
+        const dates = this.chartData.dreamEntries
+            .map(entry => new Date(entry.date))
+            .filter(date => !isNaN(date.getTime()))
+            .sort((a, b) => a.getTime() - b.getTime());
+        
+        if (dates.length === 0) return 'Invalid dates';
+        
+        const firstDate = dates[0].toLocaleDateString();
+        const lastDate = dates[dates.length - 1].toLocaleDateString();
+        
+        return firstDate === lastDate ? firstDate : `${firstDate} to ${lastDate}`;
+    }
+
+    private calculateAverageEntriesPerWeek(): number {
+        if (this.chartData.dreamEntries.length === 0) return 0;
+        
+        const dates = this.chartData.dreamEntries
+            .map(entry => new Date(entry.date))
+            .filter(date => !isNaN(date.getTime()))
+            .sort((a, b) => a.getTime() - b.getTime());
+        
+        if (dates.length === 0) return 0;
+        
+        const daysBetween = (dates[dates.length - 1].getTime() - dates[0].getTime()) / (1000 * 60 * 60 * 24);
+        const weeks = Math.max(daysBetween / 7, 1); // At least 1 week
+        
+        return this.chartData.dreamEntries.length / weeks;
+    }
+
+    private analyzeTrends(): Array<{metric: string, direction: string, description: string}> {
+        const trends: Array<{metric: string, direction: string, description: string}> = [];
+        
+        Object.entries(this.chartData.metrics).forEach(([metricName, values]) => {
+            if (values.length < 3) return; // Need at least 3 points for trend
+            
+            const numericValues = values.filter(v => typeof v === 'number') as number[];
+            if (numericValues.length < 3) return;
+            
+            const slope = this.calculateSlope(numericValues);
+            const recent = numericValues.slice(-5); // Last 5 values
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const older = numericValues.slice(0, Math.min(5, numericValues.length - 5));
+            const olderAvg = older.length > 0 ? older.reduce((a, b) => a + b, 0) / older.length : recentAvg;
+            
+            let direction = 'stable';
+            let description = 'No significant trend';
+            
+            if (Math.abs(slope) > 0.1) { // Threshold for significant trend
+                if (slope > 0) {
+                    direction = 'improving';
+                    description = `Improving trend (+${(recentAvg - olderAvg).toFixed(2)} recently)`;
+                } else {
+                    direction = 'declining';
+                    description = `Declining trend (${(recentAvg - olderAvg).toFixed(2)} recently)`;
+                }
+            }
+            
+            trends.push({ metric: metricName, direction, description });
+        });
+        
+        return trends;
+    }
+
+    private calculateSlope(values: number[]): number {
+        const n = values.length;
+        const sumX = (n * (n - 1)) / 2; // Sum of indices 0,1,2...n-1
+        const sumY = values.reduce((a, b) => a + b, 0);
+        const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
+        const sumXX = values.reduce((sum, _, x) => sum + x * x, 0);
+        
+        return (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    }
+
+    private detectOutliers(): Array<{date: string, metric: string, type: string, description: string}> {
+        const outliers: Array<{date: string, metric: string, type: string, description: string}> = [];
+        
+        Object.entries(this.chartData.metrics).forEach(([metricName, values]) => {
+            const numericValues = values.filter(v => typeof v === 'number') as number[];
+            if (numericValues.length < 5) return; // Need enough data points
+            
+            const mean = numericValues.reduce((a, b) => a + b, 0) / numericValues.length;
+            const stdDev = Math.sqrt(numericValues.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / numericValues.length);
+            
+            numericValues.forEach((value, index) => {
+                const zScore = Math.abs((value - mean) / stdDev);
+                if (zScore > 2.5) { // 2.5 standard deviations
+                    const entryDate = this.chartData.dreamEntries[index]?.date || `Entry ${index + 1}`;
+                    const type = value > mean ? 'high' : 'low';
+                    const description = `Unusually ${type} value (${value.toFixed(2)})`;
+                    outliers.push({ date: entryDate, metric: metricName, type, description });
+                }
+            });
+        });
+        
+        return outliers.slice(0, 10); // Limit to top 10 outliers
+    }
+
+    private findStrongCorrelations(): Array<{metric1: string, metric2: string, strength: string, description: string}> {
+        const correlations: Array<{metric1: string, metric2: string, strength: string, description: string}> = [];
+        const metricNames = Object.keys(this.chartData.metrics);
+        
+        for (let i = 0; i < metricNames.length; i++) {
+            for (let j = i + 1; j < metricNames.length; j++) {
+                const metric1 = metricNames[i];
+                const metric2 = metricNames[j];
+                const values1 = this.chartData.metrics[metric1].filter(v => typeof v === 'number') as number[];
+                const values2 = this.chartData.metrics[metric2].filter(v => typeof v === 'number') as number[];
+                
+                if (values1.length !== values2.length || values1.length < 3) continue;
+                
+                const correlation = this.calculatePearsonCorrelation(values1, values2);
+                const absCorr = Math.abs(correlation);
+                
+                if (absCorr > 0.5) { // Strong correlation threshold
+                    const strength = absCorr > 0.7 ? 'strong' : 'moderate';
+                    const direction = correlation > 0 ? 'positive' : 'negative';
+                    const description = `${strength} ${direction} correlation (r=${correlation.toFixed(3)})`;
+                    correlations.push({ metric1, metric2, strength, description });
+                }
+            }
+        }
+        
+        return correlations.slice(0, 8); // Limit to top 8 correlations
+    }
+
+    private calculatePearsonCorrelation(x: number[], y: number[]): number {
+        const n = x.length;
+        const sumX = x.reduce((a, b) => a + b, 0);
+        const sumY = y.reduce((a, b) => a + b, 0);
+        const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+        const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+        const sumYY = y.reduce((sum, yi) => sum + yi * yi, 0);
+        
+        const numerator = n * sumXY - sumX * sumY;
+        const denominator = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+        
+        return denominator === 0 ? 0 : numerator / denominator;
+    }
+
+    private recognizePatterns(): Array<{type: string, description: string}> {
+        const patterns: Array<{type: string, description: string}> = [];
+        
+        // Analyze entry frequency patterns
+        const entryFrequency = this.analyzeEntryFrequency();
+        if (entryFrequency) patterns.push(entryFrequency);
+        
+        // Analyze cyclical patterns
+        const cyclicalPatterns = this.analyzeCyclicalPatterns();
+        patterns.push(...cyclicalPatterns);
+        
+        // Analyze metric consistency
+        const consistencyPattern = this.analyzeMetricConsistency();
+        if (consistencyPattern) patterns.push(consistencyPattern);
+        
+        return patterns;
+    }
+
+    private analyzeEntryFrequency(): {type: string, description: string} | null {
+        if (this.chartData.dreamEntries.length < 7) return null;
+        
+        const dates = this.chartData.dreamEntries.map(entry => new Date(entry.date).getDay());
+        const dayCounts = Array(7).fill(0);
+        dates.forEach(day => dayCounts[day]++);
+        
+        const maxDay = dayCounts.indexOf(Math.max(...dayCounts));
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        return {
+            type: 'Entry Frequency',
+            description: `Most dreams recorded on ${dayNames[maxDay]}s (${dayCounts[maxDay]} entries)`
+        };
+    }
+
+    private analyzeCyclicalPatterns(): Array<{type: string, description: string}> {
+        const patterns: Array<{type: string, description: string}> = [];
+        
+        Object.entries(this.chartData.metrics).forEach(([metricName, values]) => {
+            const numericValues = values.filter(v => typeof v === 'number') as number[];
+            if (numericValues.length < 14) return; // Need at least 2 weeks of data
+            
+            // Simple pattern detection: check for weekly cycles
+            const weeklyPattern = this.detectWeeklyPattern(numericValues);
+            if (weeklyPattern) {
+                patterns.push({
+                    type: `${metricName} Weekly Pattern`,
+                    description: weeklyPattern
+                });
+            }
+        });
+        
+        return patterns.slice(0, 3); // Limit to 3 patterns
+    }
+
+    private detectWeeklyPattern(values: number[]): string | null {
+        if (values.length < 14) return null;
+        
+        // Group by week day (assuming daily entries)
+        const weeks = Math.floor(values.length / 7);
+        if (weeks < 2) return null;
+        
+        const weeklyAverages: number[] = [];
+        for (let week = 0; week < weeks; week++) {
+            const weekValues = values.slice(week * 7, (week + 1) * 7);
+            const avg = weekValues.reduce((a, b) => a + b, 0) / weekValues.length;
+            weeklyAverages.push(avg);
+        }
+        
+        const overallAvg = weeklyAverages.reduce((a, b) => a + b, 0) / weeklyAverages.length;
+        const variation = Math.sqrt(weeklyAverages.reduce((sq, avg) => sq + Math.pow(avg - overallAvg, 2), 0) / weeklyAverages.length);
+        
+        if (variation > overallAvg * 0.2) { // 20% variation threshold
+            return `Shows weekly variation (CV: ${(variation / overallAvg * 100).toFixed(1)}%)`;
+        }
+        
+        return null;
+    }
+
+    private analyzeMetricConsistency(): {type: string, description: string} | null {
+        const metricNames = Object.keys(this.chartData.metrics);
+        if (metricNames.length === 0) return null;
+        
+        const consistencyScores = metricNames.map(metricName => {
+            const values = this.chartData.metrics[metricName].filter(v => typeof v === 'number') as number[];
+            if (values.length < 3) return { metric: metricName, score: 0 };
+            
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const variance = values.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / values.length;
+            const cv = Math.sqrt(variance) / mean; // Coefficient of variation
+            const consistency = Math.max(0, 1 - cv); // Higher = more consistent
+            
+            return { metric: metricName, score: consistency };
+        });
+        
+        const mostConsistent = consistencyScores.reduce((best, current) => 
+            current.score > best.score ? current : best
+        );
+        
+        return {
+            type: 'Metric Consistency',
+            description: `${mostConsistent.metric} shows highest consistency (${(mostConsistent.score * 100).toFixed(1)}%)`
+        };
     }
 } 

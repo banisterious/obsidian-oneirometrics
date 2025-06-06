@@ -7,7 +7,7 @@ import { DreamMetricData } from '../types/core';
 
 // Export format options
 export type ExportFormat = 'csv' | 'json' | 'xlsx';
-export type TabType = 'statistics' | 'trends' | 'compare' | 'correlations' | 'heatmap';
+export type TabType = 'statistics' | 'trends' | 'compare' | 'correlations' | 'heatmap' | 'insights';
 export type DataStructure = 'raw' | 'aggregated' | 'statistical' | 'calendar';
 export type NormalizationType = 'none' | 'minMax' | 'zScore';
 

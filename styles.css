@@ -17668,3 +17668,165 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* =============================================================================
+   INSIGHTS TAB STYLES - Enhanced Analytics
+   ============================================================================= */
+
+.oom-insights-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.oom-insights-section {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.oom-insights-section:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.oom-insights-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-normal);
+    border-bottom: 2px solid var(--background-modifier-border);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oom-insight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    gap: 12px;
+}
+
+.oom-insight-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.oom-insight-label {
+    font-weight: 500;
+    color: var(--text-muted);
+    flex: 1;
+    font-size: 14px;
+}
+
+.oom-insight-value {
+    max-width: 60%;
+    font-weight: 600;
+    text-align: right;
+    font-size: 14px;
+    word-wrap: break-word;
+    color: var(--text-normal);
+}
+
+/* Trend indicators */
+.oom-trend-positive {
+    color: var(--color-green);
+}
+
+.oom-trend-negative {
+    color: var(--color-red);
+}
+
+.oom-trend-stable {
+    color: var(--text-muted);
+}
+
+/* Outlier indicators */
+.oom-outlier-high {
+    font-weight: 700;
+    color: var(--color-orange);
+}
+
+.oom-outlier-low {
+    font-weight: 700;
+    color: var(--color-blue);
+}
+
+/* Correlation strength indicators */
+.oom-correlation-strong {
+    font-weight: 700;
+    color: var(--color-purple);
+}
+
+.oom-correlation-moderate {
+    font-weight: 600;
+    color: var(--color-cyan);
+}
+
+/* Empty and error states */
+.oom-insights-empty,
+.oom-insights-error {
+    padding: 40px 20px;
+    border-radius: 8px;
+    border: 2px dashed var(--background-modifier-border);
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+    background: var(--background-secondary);
+}
+
+.oom-insights-error {
+    border-color: var(--color-red);
+    color: var(--color-red);
+    background: rgba(var(--color-red-rgb), 0.1);
+}
+
+/* Dark theme adjustments for insights */
+.theme-dark .oom-insights-section {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark .oom-insights-section:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive design for insights */
+@media (max-width: 768px) {
+    .oom-insights-content {
+        gap: 16px;
+        max-height: 60vh;
+    }
+    
+    .oom-insights-section {
+        padding: 12px;
+    }
+    
+    .oom-insight-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .oom-insight-value {
+        text-align: left;
+        max-width: 100%;
+        font-size: 13px;
+    }
+    
+    .oom-insight-label {
+        font-size: 13px;
+    }
+    
+    .oom-insights-header {
+        font-size: 15px;
+    }
+}
