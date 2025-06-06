@@ -37,9 +37,9 @@ This unified plan consolidates all metrics visualization enhancements for Oneiro
 - **🎉 HEATMAP VISUALIZATION**: Calendar-style heatmap with metric selector and intensity mapping ✅ **NEWLY COMPLETED**
 
 ### 🚧 **Current Issues**
-- **Calendar Display Problem**: DateNavigator not showing dots/stars due to hardcoded metrics ⚠️ **PHASE 1-2 INCOMPLETE**
-- **Fragmented Configuration**: Separate settings for different visualization components ⚠️ **PHASE 1-2 INCOMPLETE**
-- **Limited Metric Flexibility**: System tied to specific metric names rather than dynamic discovery ⚠️ **PHASE 1-2 INCOMPLETE**
+- **✅ Calendar Display Problem**: DateSelectionModal now correctly showing dots/stars with real data access ✅ **PHASE 2 COMPLETED 2025-06-05**
+- **Fragmented Configuration**: Separate settings for different visualization components ⚠️ **PHASE 4 PENDING**
+- **Limited Metric Flexibility**: System tied to specific metric names rather than dynamic discovery ⚠️ **PHASE 4 PENDING**
 
 ### 📋 **Foundation Architecture**
 - **Modular Plugin Architecture**: State management, services, UI components well-separated
@@ -120,69 +120,60 @@ export function getMetricThreshold(value: number, minValue: number, maxValue: nu
 
 ### 📅 **DateNavigator Enhancement**
 
-#### **Integration with Unified Infrastructure** ⚠️ **NEXT PRIORITY**
-**Current Status**: DateNavigator needs to be updated to use the new MetricsDiscoveryService and unified settings structure.
+#### **Integration with Unified Infrastructure** ✅ **COMPLETED 2025-06-05**
+**Current Status**: DateSelectionModal successfully enhanced with real data access and quality indicators.
 
-**Required Changes**:
-1. Replace hardcoded metric arrays with MetricsDiscoveryService calls
-2. Use unified settings for metric selection and thresholds
-3. Implement configurable metric selection for calendar display
-4. Add real-time settings updates
+**Completed Changes**:
+1. ✅ Fixed data source mismatch - DateSelectionModal now extracts from DOM table (where real data is displayed)
+2. ✅ Implemented robust date normalization for "YYYYMMDD" and "Month DD" formats  
+3. ✅ Added comprehensive debugging and logging for data access
+4. ✅ Fixed duplicate dots issue by clearing calendar grid before regeneration
+5. ✅ Implemented quality level calculation with star indicators (★, ★★, ★★★)
+6. ✅ Added proper quantity indicators with dots (1 dot per dream entry, max 5)
 
+**Technical Implementation**:
 ```typescript
-// Enhanced calculateDayMetrics method - TO BE IMPLEMENTED
-private calculateDayMetrics(dateKey: string, entries: DreamMetricData[]): void {
-    // Use MetricsDiscoveryService and unified settings
-    const metricsService = MetricsDiscoveryService.getInstance(this.app, this.plugin.settings);
-    const calendarMetrics = getComponentMetrics(this.plugin.settings, 'calendar');
-    const thresholds = this.plugin.settings.unifiedMetrics?.visualizationThresholds;
-    
-    if (!thresholds || calendarMetrics.length === 0) return;
-    
-    let hasEntries = false;
-    let qualityScore = 0;
-    let metricCount = 0;
+// ✅ IMPLEMENTED - DateSelectionModal now correctly accesses real data
+private getDreamEntriesForDate(dateKey: string): any[] {
+    // APPROACH 1: Extract from the current DOM table (primary approach)
+    const domEntries = this.extractEntriesFromCurrentTable(dateKey);
+    if (domEntries.length > 0) {
+        return domEntries; // Uses same data source as results table
+    }
+    // Fallback approaches for plugin state and global state
+}
 
-    entries.forEach(entry => {
-        hasEntries = true;
-        
-        if (entry.metrics) {
-            calendarMetrics.forEach(metric => {
-                const metricValue = entry.metrics[metric.name];
-                if (typeof metricValue === 'number') {
-                    // Normalize to 0-1 range using metric's min/max
-                    const normalized = (metricValue - metric.minValue) / (metric.maxValue - metric.minValue);
-                    qualityScore += normalized;
-                    metricCount++;
-                }
-            });
-        }
-    });
-
-    // Calculate average quality and apply thresholds
-    const avgQuality = metricCount > 0 ? qualityScore / metricCount : 0;
-    const qualityLevel = getMetricThreshold(avgQuality, 0, 1, thresholds);
-
-    // Apply visual indicators
-    this.updateCalendarDay(dateKey, {
-        hasEntries,
-        qualityLevel,
-        entryCount: entries.length
-    });
+private updateCalendar(): void {
+    const calendarGrid = this.contentEl.querySelector('.oom-calendar-grid');
+    if (calendarGrid) {
+        // FIXED: Clear existing day elements before regenerating to prevent duplicates
+        calendarGrid.empty();
+        this.generateCalendarDays(calendarGrid as HTMLElement);
+    }
 }
 ```
 
-#### **Calendar Configuration UI** ⚠️ **NEEDS IMPLEMENTATION**
-- **Settings Integration**: Calendar metrics settings in unified metrics section - **MISSING**
-- **Metric Selection**: Multi-select interface for choosing calendar metrics - **MISSING**
-- **Threshold Configuration**: Adjustable quality thresholds for star display - **MISSING**
-- **Preview System**: Real-time preview of calendar changes - **MISSING**
+#### **Calendar Quality Indicators** ✅ **COMPLETED 2025-06-05**
+- ✅ **Dots Display**: Shows 1 dot per dream entry (max 5 dots)
+- ✅ **Stars Display**: Quality indicators based on metrics (★ low, ★★ medium, ★★★ high)
+- ✅ **Date Format Support**: Handles "20250507" and "May 7" formats correctly
+- ✅ **Real Data Access**: Extracts from same source as visible results table
+- ✅ **Duplicate Prevention**: Fixed calendar regeneration to prevent duplicate indicators
+
+#### **Calendar Configuration UI** ⚠️ **NEEDS IMPLEMENTATION (FUTURE PHASE)**
+- **Settings Integration**: Calendar metrics settings in unified metrics section - **PLANNED FOR PHASE 4**
+- **Metric Selection**: Multi-select interface for choosing calendar metrics - **PLANNED FOR PHASE 4**  
+- **Threshold Configuration**: Adjustable quality thresholds for star display - **PLANNED FOR PHASE 4**
+- **Preview System**: Real-time preview of calendar changes - **PLANNED FOR PHASE 4**
 
 #### **Deliverables**
-- ⚠️ Fixed calendar dots/stars display - **NEEDS REFACTORING WITH NEW SETTINGS**
-- ⚠️ Dynamic metric selection for calendar - **NEEDS IMPLEMENTATION**
-- ⚠️ Configurable quality thresholds - **NEEDS IMPLEMENTATION**
-- ⚠️ Real-time calendar updates when settings change - **NEEDS IMPLEMENTATION**
+- ✅ **Fixed calendar dots/stars display** - **COMPLETED 2025-06-05**
+- ✅ **Real data source integration** - **COMPLETED 2025-06-05**
+- ✅ **Date format normalization** - **COMPLETED 2025-06-05**
+- ✅ **Duplicate indicators bug fix** - **COMPLETED 2025-06-05**
+- ⚠️ Dynamic metric selection for calendar - **PLANNED FOR PHASE 4**
+- ⚠️ Configurable quality thresholds - **PLANNED FOR PHASE 4**
+- ⚠️ Real-time calendar updates when settings change - **PLANNED FOR PHASE 4**
 
 ---
 
@@ -359,7 +350,7 @@ interface MetricsDataService {
 - ✅ Add settings migration utilities - **COMPLETED: settings-migration.ts**
 - ✅ Test backward compatibility - **MAINTAINED**
 
-#### **Week 3-4: Calendar Enhancement (Phase 2)** ✅ **COMPLETED 2025-01-16**  
+#### **Week 3-4: Calendar Enhancement (Phase 2)** ✅ **COMPLETED 2025-05-05**  
 - ✅ Update DateNavigator to use MetricsDiscoveryService - **COMPLETED: DateSelectionModal enhanced**
 - ✅ Implement configurable metric selection for calendar - **COMPLETED: ComponentMetricsModal**
 - ✅ Add threshold configuration UI - **COMPLETED: Hub Modal integration**
@@ -388,7 +379,7 @@ interface MetricsDataService {
 
 ## 📊 **Current Implementation Status**
 
-### ✅ **Completed (2025-01-16)**
+### ✅ **Completed (2025-06-05)**
 - **Chart Visualization System**: Full tab-based interface with 5 tabs
 - **Heatmap Visualization**: Calendar-style heatmap with metric selector and intensity mapping
 - **Chart.js Integration**: Responsive design and theme compatibility

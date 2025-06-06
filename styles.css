@@ -12796,6 +12796,7 @@ div#oom-time-filter-display {
     width: 4px;
     height: 4px;
     border-radius: 50%;
+    background-color: var(--text-accent);
     
     /* NO VISUAL STYLING - Let theme handle dot colors */
 }

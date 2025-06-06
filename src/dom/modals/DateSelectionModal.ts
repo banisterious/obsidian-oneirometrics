@@ -355,204 +355,299 @@ export class DateSelectionModal extends Modal {
     }
 
     /**
-     * Get dream entries for a specific date - IMPROVED VERSION
+     * Get dream entries for a specific date - FIXED TO ACCESS REAL DATA SOURCE
      */
     private getDreamEntriesForDate(dateKey: string): any[] {
         try {
-            // DEBUG: Log what we're looking for
             safeLogger.debug('DateSelectionModal', `Looking for dream entries for date: ${dateKey}`);
             
-            let dreamEntries: any[] = [];
+            // APPROACH 1: Extract from the current DOM table (primary approach)
+            // This is where the results table gets its data and where the real data is displayed
+            const domEntries = this.extractEntriesFromCurrentTable(dateKey);
+            if (domEntries.length > 0) {
+                safeLogger.debug('DateSelectionModal', `Found ${domEntries.length} matching entries from DOM table`);
+                return domEntries;
+            }
             
-            // METHOD 1: Try to get entries from plugin state/manager
+            // APPROACH 2: Try plugin state entries (fallback)
             if (this.plugin?.state?.getDreamEntries) {
-                const allStateEntries = this.plugin.state.getDreamEntries();
-                safeLogger.debug('DateSelectionModal', `Found ${allStateEntries?.length || 0} entries in plugin state`);
-                
-                if (allStateEntries && Array.isArray(allStateEntries)) {
-                    const matchingEntries = allStateEntries.filter(entry => {
-                        if (!entry.date) return false;
+                const stateEntries = this.plugin.state.getDreamEntries();
+                if (stateEntries && Array.isArray(stateEntries)) {
+                    safeLogger.debug('DateSelectionModal', `Found ${stateEntries.length} entries in plugin state`);
+                    
+                    // ENHANCED DEBUG: Show what's actually in plugin state entries
+                    if (stateEntries.length > 0) {
+                        const sampleStateEntries = stateEntries.slice(0, 3).map((entry, index) => ({
+                            index,
+                            date: entry?.date,
+                            dateType: typeof entry?.date,
+                            normalized: entry?.date ? this.normalizeDateString(entry.date) : null,
+                            hasMetrics: !!entry?.metrics,
+                            keys: entry ? Object.keys(entry).slice(0, 8) : 'null/undefined',
+                            title: entry?.title ? entry.title.substring(0, 50) : 'no title'
+                        }));
+                        safeLogger.debug('DateSelectionModal', 'Sample plugin state entries:', sampleStateEntries);
                         
-                        // Try multiple date formats
+                        // Show all unique dates in plugin state
+                        const allStateDates = stateEntries.map(e => e?.date).filter(Boolean);
+                        const uniqueStateDates = [...new Set(allStateDates)];
+                        safeLogger.debug('DateSelectionModal', 'All unique dates in plugin state:', uniqueStateDates);
+                    }
+                    
+                    const matchingStateEntries = stateEntries.filter((entry: any) => {
+                        if (!entry || !entry.date) return false;
                         const entryDate = this.normalizeDateString(entry.date);
-                        return entryDate === dateKey;
+                        const isMatch = entryDate === dateKey;
+                        
+                        // DEBUG: Log detailed comparison for May 2025 entries
+                        if (entry.date && (entry.date.includes('2025-05') || entry.date.includes('May') || entryDate.includes('2025-05'))) {
+                            safeLogger.debug('DateSelectionModal', `Plugin state date comparison for ${dateKey}:`, {
+                                originalDate: entry.date,
+                                normalizedDate: entryDate,
+                                targetDate: dateKey,
+                                isMatch: isMatch,
+                                entryTitle: entry.title ? entry.title.substring(0, 30) : 'no title'
+                            });
+                        }
+                        
+                        return isMatch;
                     });
                     
-                    dreamEntries.push(...matchingEntries);
-                    safeLogger.debug('DateSelectionModal', `State entries matching ${dateKey}: ${matchingEntries.length}`);
+                    if (matchingStateEntries.length > 0) {
+                        safeLogger.debug('DateSelectionModal', `Found ${matchingStateEntries.length} matching entries in plugin state`);
+                        return matchingStateEntries;
+                    } else {
+                        safeLogger.debug('DateSelectionModal', `No matching entries found in plugin state for ${dateKey}`);
+                    }
                 }
             }
             
-            // METHOD 2: Try to get entries from global dreamEntries (set by DateNavigatorManager)
-            if (dreamEntries.length === 0 && window['dreamEntries']) {
-                const globalEntries = window['dreamEntries'];
-                safeLogger.debug('DateSelectionModal', `Found ${globalEntries?.length || 0} entries in window.dreamEntries`);
-                
+            // APPROACH 3: Try global entries (another fallback)
+            if ((window as any).dreamEntries) {
+                const globalEntries = (window as any).dreamEntries;
                 if (Array.isArray(globalEntries)) {
-                    const matchingEntries = globalEntries.filter(entry => {
-                        if (!entry.date) return false;
+                    safeLogger.debug('DateSelectionModal', `Found ${globalEntries.length} entries in global state`);
+                    
+                    // ENHANCED DEBUG: Show what's actually in global entries
+                    if (globalEntries.length > 0) {
+                        const sampleGlobalEntries = globalEntries.slice(0, 3).map((entry, index) => ({
+                            index,
+                            date: entry?.date,
+                            dateType: typeof entry?.date,
+                            normalized: entry?.date ? this.normalizeDateString(entry.date) : null,
+                            hasMetrics: !!entry?.metrics,
+                            keys: entry ? Object.keys(entry).slice(0, 8) : 'null/undefined',
+                            title: entry?.title ? entry.title.substring(0, 50) : 'no title'
+                        }));
+                        safeLogger.debug('DateSelectionModal', 'Sample global entries:', sampleGlobalEntries);
                         
+                        // Show all unique dates in global state
+                        const allGlobalDates = globalEntries.map(e => e?.date).filter(Boolean);
+                        const uniqueGlobalDates = [...new Set(allGlobalDates)];
+                        safeLogger.debug('DateSelectionModal', 'All unique dates in global state:', uniqueGlobalDates);
+                    }
+                    
+                    const matchingGlobalEntries = globalEntries.filter((entry: any) => {
+                        if (!entry || !entry.date) return false;
                         const entryDate = this.normalizeDateString(entry.date);
-                        return entryDate === dateKey;
+                        const isMatch = entryDate === dateKey;
+                        
+                        // DEBUG: Log detailed comparison for May 2025 entries
+                        if (entry.date && (entry.date.includes('2025-05') || entry.date.includes('May') || entryDate.includes('2025-05'))) {
+                            safeLogger.debug('DateSelectionModal', `Global state date comparison for ${dateKey}:`, {
+                                originalDate: entry.date,
+                                normalizedDate: entryDate,
+                                targetDate: dateKey,
+                                isMatch: isMatch,
+                                entryTitle: entry.title ? entry.title.substring(0, 30) : 'no title'
+                            });
+                        }
+                        
+                        return isMatch;
                     });
                     
-                    dreamEntries.push(...matchingEntries);
-                    safeLogger.debug('DateSelectionModal', `Global entries matching ${dateKey}: ${matchingEntries.length}`);
+                    if (matchingGlobalEntries.length > 0) {
+                        safeLogger.debug('DateSelectionModal', `Found ${matchingGlobalEntries.length} matching entries in global state`);
+                        return matchingGlobalEntries;
+                    } else {
+                        safeLogger.debug('DateSelectionModal', `No matching entries found in global state for ${dateKey}`);
+                    }
                 }
             }
             
-            // METHOD 3: Try to extract from DOM (current metrics table)
-            if (dreamEntries.length === 0) {
-                const domEntries = this.extractEntriesFromDOM(dateKey);
-                dreamEntries.push(...domEntries);
-                safeLogger.debug('DateSelectionModal', `DOM entries matching ${dateKey}: ${domEntries.length}`);
-            }
-            
-            // METHOD 4: Create some test entries for debugging (only for today and yesterday)
-            if (dreamEntries.length === 0 && this.isRecentDate(dateKey)) {
-                dreamEntries = this.createTestEntry(dateKey);
-                safeLogger.debug('DateSelectionModal', `Created test entry for recent date ${dateKey}: ${dreamEntries.length}`);
-            }
-            
-            safeLogger.debug('DateSelectionModal', `Total entries found for ${dateKey}: ${dreamEntries.length}`);
-            return dreamEntries;
+            safeLogger.debug('DateSelectionModal', `No entries found for ${dateKey} in any data source`);
+            return [];
             
         } catch (error) {
-            safeLogger.error('DateSelectionModal', 'Error getting dream entries', { dateKey, error });
+            safeLogger.error('DateSelectionModal', 'Error getting dream entries for date', { dateKey, error });
             return [];
         }
     }
     
     /**
-     * Normalize date strings to YYYY-MM-DD format
+     * Extract dream entries directly from the current DOM table (where real data is displayed)
      */
-    private normalizeDateString(dateStr: string): string {
-        try {
-            // Handle various date formats
-            if (dateStr.includes('T')) {
-                // ISO format: 2025-01-16T00:00:00.000Z
-                return dateStr.split('T')[0];
-            }
-            
-            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                // Already in YYYY-MM-DD format
-                return dateStr;
-            }
-            
-            // Try to parse as date and format
-            const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) {
-                return format(date, 'yyyy-MM-dd');
-            }
-            
-            return dateStr; // Return as-is if can't normalize
-        } catch (error) {
-            safeLogger.debug('DateSelectionModal', 'Error normalizing date string', { dateStr, error });
-            return dateStr;
-        }
-    }
-    
-    /**
-     * Extract dream entries from the current DOM metrics table
-     */
-    private extractEntriesFromDOM(dateKey: string): any[] {
+    private extractEntriesFromCurrentTable(dateKey: string): any[] {
         try {
             const entries: any[] = [];
-            const metricsContainer = document.querySelector('.oom-metrics-container');
             
-            if (!metricsContainer) {
-                safeLogger.debug('DateSelectionModal', 'No metrics container found in DOM');
+            // Look for the main metrics table in the current document
+            const metricsTable = document.querySelector('#oom-dream-entries-table') || 
+                                 document.querySelector('table.oom-table:not(.oom-stats-table)') ||
+                                 document.querySelector('.oom-metrics-container table');
+            
+            if (!metricsTable) {
+                safeLogger.debug('DateSelectionModal', 'No main metrics table found in DOM');
                 return entries;
             }
             
-            const rows = metricsContainer.querySelectorAll('.oom-metrics-row');
-            safeLogger.debug('DateSelectionModal', `Found ${rows.length} metrics rows in DOM`);
+            const rows = metricsTable.querySelectorAll('tbody tr.oom-dream-row');
+            safeLogger.debug('DateSelectionModal', `Found ${rows.length} dream rows in DOM table`);
             
             rows.forEach((row, index) => {
-                const dateCell = row.querySelector('.oom-date-cell, .column-date');
-                const dateText = dateCell?.textContent?.trim();
+                const dateCell = row.querySelector('.column-date');
+                const titleCell = row.querySelector('.oom-dream-title, .column-dream-title');
+                const contentCell = row.querySelector('.oom-dream-content, .column-content');
                 
-                if (dateText) {
-                    const normalizedDate = this.normalizeDateString(dateText);
-                    if (normalizedDate === dateKey) {
-                        entries.push({
-                            date: dateKey,
-                            source: `dom-row-${index}`,
-                            row: row,
-                            metrics: this.extractMetricsFromRow(row)
-                        });
+                if (dateCell) {
+                    const dateText = dateCell.textContent?.trim();
+                    const rowDate = row.getAttribute('data-date') || 
+                                   row.getAttribute('data-date-raw') || 
+                                   row.getAttribute('data-iso-date');
+                    
+                    // Use row date attribute first, fallback to cell text
+                    const entryDate = rowDate || dateText;
+                    
+                    if (entryDate) {
+                        const normalizedDate = this.normalizeDateString(entryDate);
+                        const matches = normalizedDate === dateKey;
+                        
+                        // DEBUG: Log comparison
+                        if (entryDate.includes('2025-05') || entryDate.includes('May') || normalizedDate.includes('2025-05')) {
+                            safeLogger.debug('DateSelectionModal', `DOM table date comparison for ${dateKey}:`, {
+                                rowIndex: index,
+                                originalDate: entryDate,
+                                cellText: dateText,
+                                rowDataDate: rowDate,
+                                normalizedDate: normalizedDate,
+                                targetDate: dateKey,
+                                matches: matches
+                            });
+                        }
+                        
+                        if (matches) {
+                            const entry: any = {
+                                date: dateKey,
+                                title: titleCell?.textContent?.trim() || 'Unknown Dream',
+                                content: contentCell?.textContent?.trim() || '',
+                                source: `dom-table-row-${index}`,
+                                metrics: {}
+                            };
+                            
+                            // Extract metrics from metric columns
+                            const metricCells = row.querySelectorAll('.metric-value');
+                            metricCells.forEach((cell) => {
+                                const metricName = cell.getAttribute('data-metric');
+                                const value = parseFloat(cell.textContent?.trim() || '');
+                                if (metricName && !isNaN(value)) {
+                                    entry.metrics[metricName] = value;
+                                }
+                            });
+                            
+                            entries.push(entry);
+                            safeLogger.debug('DateSelectionModal', `Extracted entry from DOM table for ${dateKey}:`, {
+                                title: entry.title.substring(0, 30),
+                                metricsCount: Object.keys(entry.metrics).length
+                            });
+                        }
                     }
                 }
             });
             
-            safeLogger.debug('DateSelectionModal', `Extracted ${entries.length} entries from DOM for ${dateKey}`);
+            safeLogger.debug('DateSelectionModal', `Extracted ${entries.length} entries from DOM table for ${dateKey}`);
             return entries;
         } catch (error) {
-            safeLogger.debug('DateSelectionModal', 'Error extracting entries from DOM', { dateKey, error });
+            safeLogger.debug('DateSelectionModal', 'Error extracting entries from DOM table', { dateKey, error });
             return [];
         }
     }
-    
-    /**
-     * Extract metrics from a DOM table row
-     */
-    private extractMetricsFromRow(row: Element): any {
-        const metrics: any = {};
-        
-        try {
-            // Look for cells with metric values
-            const cells = row.querySelectorAll('td');
-            cells.forEach((cell, index) => {
-                const text = cell.textContent?.trim();
-                const value = parseFloat(text || '');
-                
-                if (!isNaN(value) && value > 0) {
-                    metrics[`metric_${index}`] = value;
-                }
-            });
-        } catch (error) {
-            safeLogger.debug('DateSelectionModal', 'Error extracting metrics from row', error);
-        }
-        
-        return metrics;
-    }
-    
-    /**
-     * Check if a date is recent (today or yesterday) for test entry generation
-     */
-    private isRecentDate(dateKey: string): boolean {
-        try {
-            const date = new Date(dateKey);
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
-            
-            const todayKey = format(today, 'yyyy-MM-dd');
-            const yesterdayKey = format(yesterday, 'yyyy-MM-dd');
-            
-            return dateKey === todayKey || dateKey === yesterdayKey;
-        } catch (error) {
-            return false;
-        }
-    }
-    
-    /**
-     * Create a test entry for debugging purposes
-     */
-    private createTestEntry(dateKey: string): any[] {
-        return [{
-            date: dateKey,
-            source: 'test-debug',
-            title: 'Debug Test Entry',
-            content: `Test dream entry for ${dateKey}`,
-            metrics: {
-                clarity: 7,
-                intensity: 5,
-                recall: 8
-            }
-        }];
-    }
 
+    /**
+     * Normalize date strings to YYYY-MM-DD format - FIXED FOR ACTUAL FORMATS
+     */
+    private normalizeDateString(dateStr: string): string {
+        try {
+            // Handle YYYYMMDD format (e.g., "20250507")
+            if (dateStr.match(/^\d{8}$/)) {
+                const year = dateStr.substring(0, 4);
+                const month = dateStr.substring(4, 6);
+                const day = dateStr.substring(6, 8);
+                const normalized = `${year}-${month}-${day}`;
+                safeLogger.debug('DateSelectionModal', `YYYYMMDD format: "${dateStr}" -> "${normalized}"`);
+                return normalized;
+            }
+            
+            // Handle "Month DD" format without year (e.g., "May 7")
+            if (dateStr.match(/^[A-Za-z]+ \d{1,2}$/)) {
+                // Assume current year
+                const currentYear = new Date().getFullYear();
+                const fullDateStr = `${dateStr}, ${currentYear}`;
+                const date = new Date(fullDateStr);
+                if (!isNaN(date.getTime())) {
+                    const normalized = format(date, 'yyyy-MM-dd');
+                    safeLogger.debug('DateSelectionModal', `Month DD format: "${dateStr}" -> "${normalized}" (assumed year ${currentYear})`);
+                    return normalized;
+                }
+            }
+            
+            // Handle ISO format: 2025-01-16T00:00:00.000Z
+            if (dateStr.includes('T')) {
+                const normalized = dateStr.split('T')[0];
+                safeLogger.debug('DateSelectionModal', `ISO format: "${dateStr}" -> "${normalized}"`);
+                return normalized;
+            }
+            
+            // Handle YYYY-MM-DD format (already correct)
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return dateStr;
+            }
+            
+            // Handle "Month DD, YYYY" format (e.g., "May 7, 2025")
+            if (dateStr.match(/^[A-Za-z]+ \d{1,2}, \d{4}$/)) {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    const normalized = format(date, 'yyyy-MM-dd');
+                    safeLogger.debug('DateSelectionModal', `Month DD, YYYY format: "${dateStr}" -> "${normalized}"`);
+                    return normalized;
+                }
+            }
+            
+            // Handle MM/DD/YYYY format
+            if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    const normalized = format(date, 'yyyy-MM-dd');
+                    return normalized;
+                }
+            }
+            
+            // Generic fallback
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                const normalized = format(date, 'yyyy-MM-dd');
+                safeLogger.debug('DateSelectionModal', `Generic parse: "${dateStr}" -> "${normalized}"`);
+                return normalized;
+            }
+            
+            // If all else fails, return as-is with warning
+            safeLogger.warn('DateSelectionModal', `Could not normalize date: "${dateStr}"`);
+            return dateStr;
+        } catch (error) {
+            safeLogger.error('DateSelectionModal', 'Error normalizing date string', { dateStr, error });
+            return dateStr;
+        }
+    }
+    
     /**
      * Calculate quality level based on unified metrics system
      */
@@ -1214,6 +1309,8 @@ export class DateSelectionModal extends Modal {
         try {
             const calendarGrid = this.contentEl.querySelector('.oom-calendar-grid');
             if (calendarGrid) {
+                // FIXED: Clear existing day elements before regenerating to prevent duplicates
+                calendarGrid.empty();
                 this.generateCalendarDays(calendarGrid as HTMLElement);
             }
             
@@ -1517,4 +1614,4 @@ export class DateSelectionModal extends Modal {
             return null;
         }
     }
-} 
+}
