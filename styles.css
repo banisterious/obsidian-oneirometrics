@@ -5580,7 +5580,7 @@ h2.oom-metrics-tabs-label {
     /* === TABLE CELLS === */
     td {
         /* Structural properties only */
-        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+        padding: 4px 8px;
         vertical-align: top;
         
         /* NO VISUAL STYLING - Let theme handle cell styling */
@@ -11082,7 +11082,7 @@ h2.oom-metrics-tabs-label {
     /* === TABLE CELLS === */
     td {
         /* Structural properties only */
-        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+        padding: 4px 8px;
         vertical-align: top;
         
         /* NO VISUAL STYLING - Let theme handle cell styling */
@@ -17013,7 +17013,8 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     /* === STRUCTURAL PROPERTIES === */
     width: 100%;
     padding: var(--oom-spacing-md);
-    height: 500px; /* Fixed height to prevent stretching */
+    height: auto; /* Fixed height to prevent stretching */
+    max-height:500px;
     display: flex;
     flex-direction: column;
     
