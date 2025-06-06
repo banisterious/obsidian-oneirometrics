@@ -8,6 +8,7 @@
 - [Phase 2: Calendar Visualization Enhancement](#phase-2-calendar-visualization-enhancement)
 - [Phase 3: Advanced Chart Visualization](#phase-3-advanced-chart-visualization)
 - [Phase 4: Unified Configuration Experience](#phase-4-unified-configuration-experience)
+- [Phase 4.1: CSV Export System](#phase-4-1-csv-export-system)
 - [Phase 5: Advanced Features & Polish](#phase-5-advanced-features--polish)
 - [Technical Architecture](#technical-architecture)
 - [Implementation Timeline](#implementation-timeline)
@@ -215,55 +216,246 @@ class MetricsHeatmapChart {
 ---
 
 ## Phase 4: Unified Configuration Experience  
-*Target: 1-2 weeks | Priority: MEDIUM*
+*Target: 1-2 weeks | Priority: MEDIUM | Status: ✅ **MOSTLY COMPLETED***
 
 ### ⚙️ **Settings Consolidation**
 
-#### **Unified Metrics Visualization Hub**
+#### **Unified Metrics Visualization Hub** ✅ **COMPLETED**
+Successfully integrated unified metrics configuration into Hub Modal:
+- **📍 Location**: Hub Modal > Metrics Settings tab > Advanced Configuration section
+- **🔧 Features Implemented**:
+  - ✅ Infrastructure status display with test suite integration
+  - ✅ Interactive visualization threshold sliders (Low/Medium/High)
+  - ✅ Component metric preferences display (Calendar/Charts)
+  - ✅ ComponentMetricsModal for selecting calendar and chart metrics
+  - ✅ Metric discovery settings (Auto-discovery toggle, max new metrics)
+  - ✅ Automatic migration prompt for legacy settings
+  - ✅ Real-time settings updates with plugin state synchronization
+
+#### **Smart Configuration Features** ✅ **COMPLETED**
+- ✅ **Auto-Discovery Display**: Shows discovered metrics with usage statistics
+- ✅ **Component Configuration**: Apply metric selections across calendar and charts
+- ✅ **Configuration Management**: Settings migration and validation system
+- ✅ **Validation & Cleanup**: Unified metrics validation with error recovery
+
+#### **Deliverables** ✅ **ALL COMPLETED**
+- ✅ Unified settings interface for all metrics visualization
+- ✅ Smart metric discovery and management tools
+- ✅ Configuration migration functionality
+- ✅ Validation and cleanup utilities
+
+---
+
+## Phase 4.1: CSV Export System
+*Target: 3-5 days | Priority: HIGH | Status: ⏳ **PLANNED***
+
+### 📊 **Comprehensive Data Export**
+
+#### **Export Interface Design**
 ```typescript
-// Single interface for all metrics visualization settings
-class MetricsVisualizationSettings {
-    private containerEl: HTMLElement;
+interface CSVExportService {
+    // Core export functionality
+    exportMetricsData(options: MetricsExportOptions): Promise<string>;
+    exportCalendarData(dateRange: DateRange, options: CalendarExportOptions): Promise<string>;
+    exportChartData(chartType: ChartType, metrics: string[], options: ChartExportOptions): Promise<string>;
     
-    display(): void {
-        // Tabbed interface within settings:
-        // - "Calendar Display" tab
-        // - "Chart Configuration" tab  
-        // - "Metric Management" tab
-        // - "Export & Sharing" tab
-    }
+    // Batch export capabilities
+    exportAllData(options: FullExportOptions): Promise<ExportBundle>;
+    exportFilteredData(filters: MetricsFilter[], options: FilteredExportOptions): Promise<string>;
+}
+
+interface MetricsExportOptions {
+    format: 'csv' | 'json' | 'xlsx';
+    includeMetadata: boolean;
+    dateRange?: DateRange;
+    selectedMetrics?: string[];
+    normalization: 'none' | 'minMax' | 'zScore';
+    includeCalculated: boolean; // Quality scores, derived metrics
+    groupBy?: 'date' | 'metric' | 'category';
+}
+```
+
+#### **Export Locations & Integration**
+**🎯 Tab-Integrated Export Strategy**: Each chart tab gets its own contextual export button for optimal user experience and data clarity.
+
+**📊 Export Implementation by Tab**:
+1. **Statistics Tab**: "Export Table Data" - Raw tabular metrics data
+   ```csv
+   Date,Entry_ID,Words,Sensory_Detail,Emotional_Recall,Lost_Segments,Descriptiveness,Confidence_Score,Quality_Score
+   2025-05-17,entry_001,156,7,8,2,6,9,7.6
+   2025-05-18,entry_002,203,9,7,1,8,8,8.2
+   ```
+
+2. **Trends Tab**: "Export Time Series" - Temporal analysis with aggregations
+   ```csv
+   Date,Metric,Daily_Average,7Day_Moving_Avg,Monthly_Average,Entry_Count
+   2025-05-17,Sensory_Detail,7.5,7.2,7.8,2
+   2025-05-17,Emotional_Recall,8.0,7.9,8.1,2
+   ```
+
+3. **Compare Tab**: "Export Comparison Data" - Comparative analysis results
+   ```csv
+   Metric_A,Metric_B,Period,Avg_A,Avg_B,Std_Dev_A,Std_Dev_B,Correlation,Entries
+   Sensory_Detail,Emotional_Recall,May_2025,7.8,8.1,1.2,0.9,0.73,15
+   ```
+
+4. **Correlations Tab**: "Export Correlation Matrix" - Statistical correlation data
+   ```csv
+   Metric_1,Metric_2,Correlation_Coefficient,P_Value,Sample_Size,Confidence_Interval
+   Sensory_Detail,Emotional_Recall,0.73,0.001,45,"[0.58, 0.84]"
+   ```
+
+5. **Heatmap Tab**: "Export Calendar Data" - Calendar-based metric intensity
+   ```csv
+   Date,Metric,Normalized_Value,Raw_Value,Intensity_Level,Entry_Count
+   2025-05-17,Sensory_Detail,0.75,7.5,high,2
+   ```
+
+**🎨 Additional Integration Points**:
+- **Hub Modal > Metrics Settings > Data Export**: Global export options and batch operations
+- **Date Navigator**: "Export Range" for calendar-filtered data
+- **Dream Scrape tab**: "Export Results" after scraping operations
+
+#### **Export Options & Formats**
+
+**📋 Standard CSV Exports**:
+```csv
+# Dreams Metrics Export - Generated 2025-06-06
+Date,Entry_ID,Words,Sensory_Detail,Emotional_Recall,Lost_Segments,Descriptiveness,Confidence_Score,Quality_Score
+2025-05-17,entry_001,156,7,8,2,6,9,7.6
+2025-05-18,entry_002,203,9,7,1,8,8,8.2
+```
+
+**📊 Advanced Export Features**:
+- **Calculated Metrics**: Include quality scores and derived values
+- **Metadata Export**: Settings, thresholds, calculation methods
+- **Filtered Exports**: Based on current view/filters
+- **Batch Processing**: Multiple date ranges or metric combinations
+- **Format Options**: CSV, JSON, Excel-compatible
+
+#### **UI Implementation**
+
+**🎛️ Export Modal Design**:
+```typescript
+class MetricsExportModal extends Modal {
+    private exportType: 'current' | 'filtered' | 'dateRange' | 'all';
+    private selectedMetrics: string[];
+    private exportFormat: 'csv' | 'json' | 'xlsx';
+    private includeOptions: ExportIncludeOptions;
     
-    private renderCalendarSettings(): void {
-        // Calendar-specific metric selection
-        // Quality threshold configuration
-        // Display preferences
-    }
-    
-    private renderChartSettings(): void {
-        // Default chart metrics
-        // Export preferences
-        // Chart interaction settings
-    }
-    
-    private renderMetricManagement(): void {
-        // Discovered metrics display
-        // Custom metric definitions
-        // Metric validation and cleanup
+    private renderExportOptions(): void {
+        // Export scope selection (current view, date range, all data)
+        // Metric selection with unified metrics picker
+        // Format and options (metadata, calculations, normalization)
+        // Preview of export structure
+        // Download/save options
     }
 }
 ```
 
-#### **Smart Configuration Features**
-- **Auto-Discovery Display**: Show all discovered metrics with usage statistics
-- **Bulk Configuration**: Apply metric selections across multiple components
-- **Configuration Import/Export**: Share settings between installations
-- **Validation & Cleanup**: Identify unused or problematic metric configurations
+**📍 Integration Points**:
+1. **Hub Modal > Metrics Settings > Data Export** section
+2. **Chart tabs**: "Export" button in toolbar
+3. **Date Navigator**: "Export Range" in calendar modal
+4. **Dream Scrape tab**: "Export Results" after scraping
+
+#### **Technical Implementation**
+
+**🔧 Tab-Specific Export Pipeline**:
+```typescript
+interface TabExportOptions {
+    tabType: 'statistics' | 'trends' | 'compare' | 'correlations' | 'heatmap';
+    dataStructure: 'raw' | 'aggregated' | 'statistical' | 'calendar';
+    includeMeta: boolean;
+    dateRange?: DateRange;
+    selectedMetrics?: string[];
+}
+
+class TabSpecificExporter {
+    async exportStatisticsData(options: StatisticsExportOptions): Promise<string> {
+        // Raw metrics table with calculated quality scores
+    }
+    
+    async exportTrendsData(options: TrendsExportOptions): Promise<string> {
+        // Time series with moving averages and trend analysis
+    }
+    
+    async exportCompareData(options: CompareExportOptions): Promise<string> {
+        // Comparative analysis with statistical summaries
+    }
+    
+    async exportCorrelationsData(options: CorrelationsExportOptions): Promise<string> {
+        // Correlation matrix with confidence intervals
+    }
+    
+    async exportHeatmapData(options: HeatmapExportOptions): Promise<string> {
+        // Calendar data with intensity classifications
+    }
+}
+```
+
+**🎯 Integration Benefits**:
+- **Contextual Discovery**: Export button appears exactly when viewing relevant data
+- **Clear Data Scope**: Button labels indicate specific data being exported
+- **Workflow Efficiency**: No context switching - analyze and export in same view
+- **Unified Service**: Same `CSVExportService` with tab-aware data preparation
+
+**🔧 Core Export Pipeline**:
+```typescript
+class CSVExportPipeline {
+    async prepareExportData(options: MetricsExportOptions): Promise<ExportData> {
+        // 1. Data Collection: Gather from MetricsDiscoveryService
+        // 2. Tab-Specific Filtering: Apply current tab's data structure
+        // 3. Normalization: Apply scaling/normalization if requested
+        // 4. Calculation: Include derived metrics (quality scores, correlations)
+        // 5. Formatting: Structure for chosen export format and tab context
+        // 6. Metadata: Include export settings and generation info
+    }
+    
+    formatAsCSV(data: ExportData, tabContext: TabType): string {
+        // Headers with tab-specific structure
+        // Context-aware CSV formatting
+        // Tab-appropriate metadata comments
+    }
+    
+    triggerDownload(csvContent: string, filename: string, tabType: TabType): void {
+        // Browser download with tab-specific filename
+        // Format: "oneirometrics-{tabType}-{timestamp}.csv"
+    }
+}
+```
+
+**🎯 Data Sources Integration**:
+- **MetricsDiscoveryService**: Use existing unified metrics system
+- **Current View Data**: Export exactly what user sees in tables/charts
+- **Raw Entry Data**: Access to original dream entries with metrics
+- **Calculated Data**: Quality indicators, normalized values, trends
+
+#### **Export Scope Options**
+
+**📅 Scope Selection**:
+- **Current View**: Export data from active chart/table
+- **Date Range**: Custom date picker for specific periods
+- **Filtered Data**: Based on current filters (metrics, thresholds)
+- **All Data**: Complete metrics database export
+- **Selected Entries**: Manual selection from data tables
+
+**📊 Content Options**:
+- **Raw Metrics**: Original values as entered
+- **Normalized Values**: Scaled values (0-1 or z-score)
+- **Quality Scores**: Calculated quality indicators
+- **Statistical Summary**: Averages, trends, correlations
+- **Metadata**: Settings, calculation methods, export timestamp
 
 #### **Deliverables**
-- ✅ Unified settings interface for all metrics visualization
-- ✅ Smart metric discovery and management tools
-- ✅ Configuration import/export functionality
-- ✅ Validation and cleanup utilities
+- ⏳ **CSV Export Service**: Core export functionality with multiple formats
+- ⏳ **Export Modal Interface**: User-friendly export configuration
+- ⏳ **Hub Modal Integration**: Export section in Metrics Settings
+- ⏳ **Chart Integration**: Export buttons in all chart tabs
+- ⏳ **Calendar Export**: Date range export from calendar modal
+- ⏳ **Batch Export**: Multiple scope and format combinations
+- ⏳ **Export Preview**: Show export structure before download
+- ⏳ **Error Handling**: Robust error recovery and user feedback
 
 ---
 
