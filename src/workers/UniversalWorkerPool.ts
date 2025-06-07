@@ -675,7 +675,7 @@ class UniversalWorker {
             this.sendCapabilities(message);
             break;
           default:
-            this.sendError(message.id, \`Unknown message type: \${message.type}\`);
+            this.sendError(message.id, 'Unknown message type: ' + message.type);
         }
       } catch (error) {
         this.sendError(message.id, error.message);
@@ -737,7 +737,7 @@ class UniversalWorker {
         this.processContentAnalysis(task);
         break;
       default:
-        this.sendTaskError(task.taskId, \`Unsupported task type: \${task.taskType}\`);
+        this.sendTaskError(task.taskId, 'Unsupported task type: ' + task.taskType);
         return;
     }
   }
@@ -1287,13 +1287,13 @@ class UniversalWorker {
     let negativeCount = 0;
     
     positiveWords.forEach(word => {
-      const regex = new RegExp(\`\\b\${word}\\b\`, 'g');
+      const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
       const matches = lowerContent.match(regex);
       if (matches) positiveCount += matches.length;
     });
     
     negativeWords.forEach(word => {
-      const regex = new RegExp(\`\\b\${word}\\b\`, 'g');
+      const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
       const matches = lowerContent.match(regex);
       if (matches) negativeCount += matches.length;
     });
@@ -1347,7 +1347,7 @@ class UniversalWorker {
       if (!entry.date) return;
       
       const date = new Date(entry.date);
-      const monthKey = \`\${date.getFullYear()}-\${date.getMonth() + 1}\`;
+      const monthKey = date.getFullYear() + '-' + (date.getMonth() + 1);
       const dayKey = date.getDay();
       const hourKey = date.getHours();
       

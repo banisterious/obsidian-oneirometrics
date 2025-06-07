@@ -1,5 +1,6 @@
 import { TestRunner } from './TestRunner';
-import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from '../../types';
+import { DEFAULT_METRICS, DreamMetricsSettings } from '../types/core';
+import { LogLevel } from '../types/logging';
 import { getLogger } from '../logging';
 
 // Define an extended settings interface for testing

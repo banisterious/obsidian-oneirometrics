@@ -6,7 +6,7 @@
  */
 
 import { Plugin } from 'obsidian';
-import { DreamMetricsSettings } from '../../types';
+import { DreamMetricsSettings } from '../types/core';
 import { DEFAULT_METRICS } from '../constants';
 import { LogLevel } from '../types/logging';
 import { SettingsAdapter } from './adapters/SettingsAdapter';

@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent, Scope } from "obsidian";
-import { DEFAULT_METRICS, DreamMetricsSettings, LogLevel } from "./types";
+import { DEFAULT_METRICS, DreamMetricsSettings } from "./src/types/core";
+import { LogLevel } from "./src/types/logging";
 import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';

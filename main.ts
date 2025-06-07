@@ -643,7 +643,9 @@ export default class DreamMetricsPlugin extends Plugin {
         try {
             // Check if filterPersistenceManager is initialized
             if (!this.filterPersistenceManager) {
-                this.logger?.warn('Filter', 'FilterPersistenceManager not initialized, skipping initial filters');
+                this.logger?.warn('Filter', 'FilterPersistenceManager not initialized, retrying in 100ms');
+                // Retry after a short delay to allow initialization to complete
+                setTimeout(() => this.applyInitialFilters(), 100);
                 return;
             }
             

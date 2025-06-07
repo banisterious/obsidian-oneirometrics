@@ -7,7 +7,7 @@
 
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../main';
-import { DreamMetricData, DreamMetricsSettings } from '../../types';
+import { DreamMetricData, DreamMetricsSettings } from '../types/core';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { SettingsAdapter } from '../state/adapters/SettingsAdapter';
@@ -577,8 +577,13 @@ Missing: ${dreamDiaryCalloutsFound - dreamEntriesCreated} entries
      */
     public async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
+            // Convert new DreamMetricData to legacy format for compatibility
+            const legacyEntries = dreamEntries.map(entry => ({
+                ...entry,
+                source: typeof entry.source === 'string' ? entry.source : entry.source?.file || 'unknown'
+            }));
             // Call the plugin's method
-            await this.plugin.updateProjectNote(metrics, dreamEntries);
+            await this.plugin.updateProjectNote(metrics, legacyEntries as any);
         } catch (error) {
             this.logger?.error('MetricsNote', 'Error updating project note', error as Error);
             throw error;

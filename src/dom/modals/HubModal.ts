@@ -49,7 +49,7 @@ import {
     standardizeMetric,
     createCompatibleMetric
 } from '../../utils/metric-helpers';
-import { DEFAULT_METRICS } from '../../types';
+import { DEFAULT_METRICS } from '../../types/core';
 import { debug } from '../../logging';
 import { MetricEditorModal, ensureCompleteMetric } from '../../../settings';
 
@@ -4434,8 +4434,8 @@ Example:
         });
 
         // Missing Metrics Section
-        // Import DEFAULT_METRICS from settings
-        const { DEFAULT_METRICS } = require('../../../settings');
+        // Import DEFAULT_METRICS from types/core
+        const { DEFAULT_METRICS } = require('../../types/core');
         
         const missingMetrics = DEFAULT_METRICS
             .filter(defaultMetric => 

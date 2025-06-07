@@ -4,7 +4,7 @@
 import { App } from 'obsidian';
 import { getLogger } from '../logging';
 import type { ContextualLogger } from '../logging';
-import { DreamMetricData } from '../types';
+import { DreamMetricData } from '../types/core';
 import { UniversalWorkerPool } from './UniversalWorkerPool';
 import { 
   UniversalTask,
@@ -148,7 +148,7 @@ export class UniversalDateNavigatorManager {
       
       if (!entry.date) {
         results.push({
-          id: entry.source || `entry-${i}`,
+          id: typeof entry.source === 'string' ? entry.source : (entry.source?.file || `entry-${i}`),
           visible: false,
           matchReason: 'no-date'
         });
@@ -159,7 +159,7 @@ export class UniversalDateNavigatorManager {
       const visible = entryTime >= start && entryTime <= end;
       
       results.push({
-        id: entry.source || `entry-${i}`,
+        id: typeof entry.source === 'string' ? entry.source : (entry.source?.file || `entry-${i}`),
         visible,
         matchReason: visible ? 'date-range-match' : 'date-range-exclude'
       });
@@ -322,7 +322,7 @@ export class UniversalDateNavigatorManager {
         
         if (!entry.date) {
           results.push({
-            id: entry.source || `entry-${i}`,
+            id: typeof entry.source === 'string' ? entry.source : (entry.source?.file || `entry-${i}`),
             visible: mode === 'exclude',
             matchReason: 'no-date'
           });
@@ -333,7 +333,7 @@ export class UniversalDateNavigatorManager {
         const visible = mode === 'include' ? isSelected : !isSelected;
         
         results.push({
-          id: entry.source || `entry-${i}`,
+          id: typeof entry.source === 'string' ? entry.source : (entry.source?.file || `entry-${i}`),
           visible,
           matchReason: visible ? `multi-date-${mode}` : `multi-date-${mode}-exclude`
         });
@@ -396,7 +396,7 @@ export class UniversalDateNavigatorManager {
       // Simple fallback - just return empty results for now
       const fallbackResult = {
         visibilityMap: entries.map((entry, i) => ({
-          id: entry.source || `entry-${i}`,
+          id: typeof entry.source === 'string' ? entry.source : (entry.source?.file || `entry-${i}`),
           visible: true, // Show all entries as fallback
           matchReason: 'pattern-fallback'
         })),

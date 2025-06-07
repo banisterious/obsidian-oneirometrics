@@ -16,7 +16,7 @@
 
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../main';
-import { DreamMetricData, DreamMetricsSettings } from '../../types';
+import { DreamMetricData, DreamMetricsSettings } from '../types/core';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { getDreamEntryDate } from '../utils/date-utils';
@@ -461,6 +461,15 @@ export class UniversalMetricsCalculator {
             let foundAnyMetrics = false;
             
             // Process with worker pool if available
+            this.logger?.info('Scrape', 'About to call processMetricsWithWorkerPool with entries:', {
+                entriesCount: entries.length,
+                firstEntry: entries[0] ? {
+                    id: entries[0].id,
+                    date: entries[0].date,
+                    title: entries[0].title
+                } : null
+            });
+            
             const metricsResult = await this.processMetricsWithWorkerPool(entries);
             
             this.logger?.info('Scrape', 'Metrics result from worker pool:', {
@@ -657,7 +666,12 @@ export class UniversalMetricsCalculator {
      */
     public async updateProjectNote(metrics: Record<string, number[]>, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
-            await this.plugin.updateProjectNote(metrics, dreamEntries);
+            // Convert new DreamMetricData to legacy format for compatibility
+            const legacyEntries = dreamEntries.map(entry => ({
+                ...entry,
+                source: typeof entry.source === 'string' ? entry.source : entry.source?.file || 'unknown'
+            }));
+            await this.plugin.updateProjectNote(metrics, legacyEntries as any);
         } catch (error) {
             this.logger?.error('MetricsNote', 'Error updating project note', error as Error);
             throw error;
@@ -792,7 +806,7 @@ export class UniversalMetricsCalculator {
                 title: entry.title,
                 content: entry.content,
                 wordCount: entry.wordCount,
-                metrics: entry.metrics
+                metrics: entry.metrics as Record<string, number>
             }));
 
             const task: UniversalTask = {
@@ -1377,6 +1391,7 @@ export class UniversalMetricsCalculator {
 
     private async processMetricsWithWorkerPool(entries: MetricsEntry[]): Promise<MetricsResult> {
         this.logger?.debug('WorkerPool', `Processing ${entries.length} entries with worker pool`);
+        console.log('🔥 processMetricsWithWorkerPool called with', entries.length, 'entries');
         
         try {
             const task: UniversalTask = {
@@ -1405,7 +1420,25 @@ export class UniversalMetricsCalculator {
                 } : null
             });
 
-            const result = await this.workerPool.processTask(task);
+            console.log('🔥 About to call workerPool.processTask with task:', task.taskId);
+            
+            // Add timeout to prevent hanging - fallback to sync if worker pool is broken
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Worker pool timeout after 10 seconds')), 10000);
+            });
+            
+            const result = await Promise.race([
+                this.workerPool.processTask(task),
+                timeoutPromise
+            ]) as any;
+            
+            console.log('🔥 Worker pool returned result:', {
+                success: result.success,
+                dataExists: !!result.data,
+                entriesCount: result.data?.entries?.length || 0,
+                error: result.error
+            });
+            
             this.logger?.debug('WorkerPool', `Worker pool returned result`, {
                 success: result.success,
                 dataExists: !!result.data,
@@ -1421,10 +1454,12 @@ export class UniversalMetricsCalculator {
                 });
             }
         } catch (error) {
+            console.log('🔥 Worker pool failed with error:', error);
             this.logger?.error('WorkerPool', 'Worker pool failed, falling back to sync processing', error as Error);
         }
 
         // Fallback to sync processing
+        console.log('🔥 Falling back to sync processing');
         this.stats.fallbackUsage++;
         return this.processMetricsSync(entries);
     }

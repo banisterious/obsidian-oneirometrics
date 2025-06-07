@@ -7,7 +7,7 @@
 
 import { App, Notice, TFile, TFolder } from 'obsidian';
 import DreamMetricsPlugin from '../../main';
-import { DreamMetricData, DreamMetricsSettings } from '../../types';
+import { DreamMetricData, DreamMetricsSettings } from '../types/core';
 import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { MetricsProcessor } from './MetricsProcessor';
