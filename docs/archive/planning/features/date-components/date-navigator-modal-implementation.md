@@ -1,3 +1,16 @@
+# ⚠️ **ARCHIVED DOCUMENT** ⚠️
+
+**Archive Date**: 2025-01-06  
+**Status**: This document has been **ARCHIVED** and consolidated into a unified planning document.
+
+**🔗 Current Document**: [`docs/planning/features/date-calendar-unified.md`](../../../planning/features/date-calendar-unified.md)
+
+**⚠️ DO NOT USE for current planning.** This archived document contains implementation details and architectural decisions that have been incorporated into the unified document. Most features described as "planned" in this document are now completed.
+
+**📚 Historical Value**: This document remains available for historical reference regarding the modal implementation approach, architectural decisions, and implementation process details.
+
+---
+
 # Date Navigator Modal Implementation Summary
 
 ## Table of Contents
