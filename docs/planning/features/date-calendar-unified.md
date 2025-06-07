@@ -149,7 +149,252 @@
 - **Reduced Motion Support**: Animation preferences
 - **Voice Control**: Enhanced voice navigation support
 
-#### **Implementation Priority**: High (Phase 4 enhancement)
+#### **🔧 Detailed Implementation Plan**
+
+**Status**: 🚧 **IN PROGRESS** - Phase 4 Enhancement  
+**Branch**: `feature/enhanced-accessibility`  
+**Target**: Complete remaining 35% of Enhanced Accessibility features
+
+##### **Enhanced Command Palette Integration**
+
+**Conditional Availability Strategy**: Commands should only be available when they're actually useful
+
+**Prerequisites for Command Activation:**
+1. **OneiroMetrics Note is active** (`this.app.workspace.getActiveFile()?.path === this.settings.projectNote`)
+2. **Dream data is available** (`this.dreamData?.length > 0`)
+3. **Date Navigator is ready** (`!this.isScrapingInProgress && this.dateNavigator !== null`)
+
+**Command Structure Implementation:**
+```typescript
+// Primary accessibility entry point
+this.addCommand({
+    id: 'date-nav-open-accessible',
+    name: 'Date Navigator: Open (Accessible Entry Point)',
+    hotkeys: [{ modifiers: ['Ctrl', 'Shift'], key: 'd' }],
+    checkCallback: (checking: boolean) => {
+        const isReady = this.validateAccessibilityContext();
+        
+        if (isReady && !checking) {
+            this.openDateNavigatorAccessible();
+        }
+        
+        return isReady;
+    }
+});
+
+// Navigation commands (only when modal is open)
+this.addCommand({
+    id: 'date-nav-go-today',
+    name: 'Date Navigator: Go to Today',
+    hotkeys: [{ modifiers: ['Ctrl', 'Shift'], key: 't' }],
+    checkCallback: (checking: boolean) => {
+        const isActive = this.isDateNavigatorActive();
+        
+        if (isActive && !checking) {
+            this.dateNavigator.goToToday();
+            this.announceToScreenReader('Navigated to today');
+        }
+        
+        return isActive;
+    }
+});
+
+// Additional commands for next/prev month, apply filter, clear selection...
+```
+
+**Validation Methods:**
+```typescript
+/**
+ * Validates if accessibility commands should be available
+ */
+private validateAccessibilityContext(): boolean {
+    const activeFile = this.app.workspace.getActiveFile();
+    const isOneiroNoteActive = activeFile?.path === this.settings.projectNote;
+    const hasScrapedData = this.dreamData && this.dreamData.length > 0;
+    const isNavigatorReady = !this.isScrapingInProgress;
+    
+    return isOneiroNoteActive && hasScrapedData && isNavigatorReady;
+}
+
+/**
+ * Announces actions to screen readers
+ */
+private announceToScreenReader(message: string): void {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    setTimeout(() => document.body.removeChild(announcement), 1000);
+}
+```
+
+##### **Advanced Keyboard Navigation**
+
+**Arrow Key Navigation Implementation:**
+```typescript
+/**
+ * Enhanced keyboard navigation for calendar grid
+ */
+private setupAdvancedKeyboardNavigation(calendarContainer: HTMLElement): void {
+    calendarContainer.addEventListener('keydown', (event: KeyboardEvent) => {
+        if (!this.isCalendarFocused()) return;
+        
+        const currentDate = this.getCurrentFocusedDate();
+        let newDate: Date | null = null;
+        
+        switch (event.key) {
+            case 'ArrowUp':
+                newDate = this.getDateOffset(currentDate, -7); // Previous week
+                break;
+            case 'ArrowDown':
+                newDate = this.getDateOffset(currentDate, 7); // Next week
+                break;
+            case 'ArrowLeft':
+                newDate = this.getDateOffset(currentDate, -1); // Previous day
+                break;
+            case 'ArrowRight':
+                newDate = this.getDateOffset(currentDate, 1); // Next day
+                break;
+            case 'Home':
+                newDate = this.getMonthStart(currentDate);
+                break;
+            case 'End':
+                newDate = this.getMonthEnd(currentDate);
+                break;
+            case 'PageUp':
+                newDate = this.getDateOffset(currentDate, 0, -1); // Previous month
+                break;
+            case 'PageDown':
+                newDate = this.getDateOffset(currentDate, 0, 1); // Next month
+                break;
+        }
+        
+        if (newDate) {
+            event.preventDefault();
+            this.focusDate(newDate);
+            this.announceToScreenReader(this.getDateAnnouncement(newDate));
+        }
+    });
+}
+```
+
+##### **Comprehensive Screen Reader Support**
+
+**Enhanced ARIA Implementation:**
+```typescript
+private enhanceScreenReaderSupport(calendarElement: HTMLElement): void {
+    // Calendar container
+    calendarElement.setAttribute('role', 'grid');
+    calendarElement.setAttribute('aria-label', 'Dream journal calendar');
+    calendarElement.setAttribute('aria-describedby', 'calendar-instructions');
+    
+    // Add instructions for screen readers
+    const instructions = document.createElement('div');
+    instructions.id = 'calendar-instructions';
+    instructions.className = 'sr-only';
+    instructions.textContent = 'Navigate with arrow keys. Press Enter to select a date. Press Space for multi-selection.';
+    calendarElement.appendChild(instructions);
+    
+    // Enhance each calendar cell with detailed labels
+    const dateCells = calendarElement.querySelectorAll('.calendar-day');
+    dateCells.forEach(cell => this.enhanceDateCell(cell as HTMLElement));
+}
+
+private getDetailedCellLabel(date: Date, dreamEntries: any[]): string {
+    const baseLabel = date.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    if (dreamEntries.length === 0) {
+        return `${baseLabel}, no dreams`;
+    }
+    
+    const entryCount = `${dreamEntries.length} dream${dreamEntries.length !== 1 ? 's' : ''}`;
+    const qualityInfo = this.getQualityInfo(dreamEntries);
+    const lucidInfo = this.getLucidInfo(dreamEntries);
+    
+    return `${baseLabel}, ${entryCount}${qualityInfo}${lucidInfo}`;
+}
+```
+
+##### **High Contrast Mode & Reduced Motion Support**
+
+**CSS Media Query Implementation:**
+```css
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .date-navigator-modal {
+        --calendar-bg: #000000;
+        --calendar-text: #ffffff;
+        --calendar-border: #ffffff;
+        --selected-bg: #ffff00;
+        --selected-text: #000000;
+        --dream-indicator: #00ff00;
+    }
+    
+    .calendar-day {
+        background-color: var(--calendar-bg);
+        color: var(--calendar-text);
+        border: 2px solid var(--calendar-border);
+        font-weight: bold;
+    }
+    
+    .calendar-day--selected {
+        background-color: var(--selected-bg);
+        color: var(--selected-text);
+        border: 3px solid var(--selected-text);
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .date-navigator-modal * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .calendar-day {
+        transition: none;
+    }
+    
+    .modal-fade-in,
+    .calendar-slide-transition {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+```
+
+##### **Implementation Timeline**
+
+**4-Week Implementation Plan:**
+- **Week 1**: Foundation - validation methods, basic command structure, screen reader announcements
+- **Week 2**: Navigation - advanced keyboard navigation, enhanced ARIA labels  
+- **Week 3**: Visual Accessibility - high contrast mode CSS, reduced motion support
+- **Week 4**: Integration & Testing - voice control testing, screen reader testing, user feedback
+
+##### **Testing Strategy**
+
+**Accessibility Testing Tools:**
+- **NVDA** (Windows screen reader)
+- **VoiceOver** (macOS screen reader)  
+- **axe-core** (accessibility testing)
+- **Dragon NaturallySpeaking** (voice control)
+
+**Success Criteria:**
+- [ ] All commands work only when appropriate conditions are met
+- [ ] Screen readers can navigate and understand all interface elements
+- [ ] Keyboard navigation works without mouse interaction
+- [ ] High contrast mode provides clear visual distinctions
+- [ ] Voice control software can reliably trigger all commands
+
+#### **Implementation Priority**: High (Essential for accessible entry point)
 
 ### **2. Advanced Visual Features (30% Complete)**
 
