@@ -31,6 +31,9 @@ export class DateSelectionModal extends Modal {
     private startDateInput: HTMLInputElement | null = null;
     private endDateInput: HTMLInputElement | null = null;
     
+    // ✅ ACCESSIBILITY: Track which cell should have focus for keyboard navigation
+    private focusedDate: Date | null = null;
+    
     constructor(app: App, timeFilterManager: TimeFilterManager, plugin: DreamMetricsPlugin) {
         super(app);
         this.timeFilterManager = timeFilterManager;
@@ -44,6 +47,9 @@ export class DateSelectionModal extends Modal {
     onOpen(): void {
         this.buildInterface();
         safeLogger.info('DateSelectionModal', 'Modal opened');
+        
+        // ✅ ACCESSIBILITY: Announce modal opening to screen readers
+        this.announceToScreenReader('Date Navigator opened. Use Tab to navigate, Arrow keys to navigate calendar days, Enter or Space to select, Escape to close.');
     }
 
     onClose(): void {
@@ -202,16 +208,25 @@ export class DateSelectionModal extends Modal {
     private createCalendarGrid(container: HTMLElement): void {
         const calendarContainer = container.createDiv('oom-calendar-container');
         
+        // ✅ ACCESSIBILITY: Add ARIA grid attributes for screen readers
+        calendarContainer.setAttribute('role', 'grid');
+        calendarContainer.setAttribute('aria-label', `Calendar for ${this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
+        
         // Days of week header
         const daysHeader = calendarContainer.createDiv('oom-days-header');
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         dayNames.forEach(day => {
-            daysHeader.createEl('div', { text: day, cls: 'oom-day-header' });
+            const dayHeader = daysHeader.createEl('div', { text: day, cls: 'oom-day-header' });
+            // ✅ ACCESSIBILITY: Add ARIA columnheader role
+            dayHeader.setAttribute('role', 'columnheader');
         });
         
         // Calendar grid
         const calendarGrid = calendarContainer.createDiv('oom-calendar-grid');
         this.generateCalendarDays(calendarGrid);
+        
+        // ✅ ACCESSIBILITY: Add keyboard navigation to the calendar grid
+        this.addCalendarKeyboardNavigation(calendarContainer);
     }
 
     private generateCalendarDays(container: HTMLElement): void {
@@ -229,12 +244,12 @@ export class DateSelectionModal extends Modal {
             const currentDate = new Date(startDate);
             currentDate.setDate(startDate.getDate() + i);
             
-            const dayElement = this.createDayElement(currentDate);
+            const dayElement = this.createDayElement(currentDate, i);
             container.appendChild(dayElement);
         }
     }
 
-    private createDayElement(date: Date): HTMLElement {
+    private createDayElement(date: Date, index: number = 0): HTMLElement {
         const dayEl = document.createElement('div');
         dayEl.className = 'oom-calendar-day';
         dayEl.textContent = date.getDate().toString();
@@ -243,6 +258,30 @@ export class DateSelectionModal extends Modal {
         const isCurrentMonth = isSameMonth(date, this.currentMonth);
         const isSelected = this.selectedDates.has(dateKey);
         const isTodayDate = isToday(date);
+        
+        // ✅ ACCESSIBILITY: Add ARIA gridcell attributes and position data
+        dayEl.setAttribute('role', 'gridcell');
+        dayEl.setAttribute('data-date', dateKey);
+        dayEl.setAttribute('data-row', Math.floor(index / 7).toString());
+        dayEl.setAttribute('data-col', (index % 7).toString());
+        
+        // ✅ ACCESSIBILITY: Set up roving tabindex pattern (only one cell focusable at a time)
+        let shouldFocus = false;
+        if (this.focusedDate && this.isSameDay(date, this.focusedDate)) {
+            // Restore focus to the previously focused date
+            shouldFocus = true;
+        } else if (!this.focusedDate && isTodayDate) {
+            // Default to today if no focused date is tracked
+            shouldFocus = true;
+        } else if (!this.focusedDate && index === 0) {
+            // Fall back to first cell if no today visible and no tracked focus
+            const hasToday = this.generateDaysForCurrentView().some(d => isToday(d));
+            if (!hasToday) {
+                shouldFocus = true;
+            }
+        }
+        
+        dayEl.setAttribute('tabindex', shouldFocus ? '0' : '-1');
         
         // Apply classes based on state
         if (!isCurrentMonth) dayEl.classList.add('oom-other-month');
@@ -1613,5 +1652,176 @@ export class DateSelectionModal extends Modal {
             safeLogger.warn('DateSelectionModal', 'Failed to parse date key', { dateKey, error });
             return null;
         }
+    }
+    
+    // ✅ ACCESSIBILITY: Helper method to check if two dates are the same day
+    private isSameDay(date1: Date, date2: Date): boolean {
+        return isSameDay(date1, date2);
+    }
+    
+    // ✅ ACCESSIBILITY: Generate current view days for today check
+    private generateDaysForCurrentView(): Date[] {
+        const days: Date[] = [];
+        const firstDay = startOfMonth(this.currentMonth);
+        const startDate = new Date(firstDay);
+        startDate.setDate(firstDay.getDate() - firstDay.getDay());
+        
+        for (let i = 0; i < 42; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            days.push(currentDate);
+        }
+        return days;
+    }
+    
+    /**
+     * ✅ ACCESSIBILITY: Add standard ARIA grid keyboard navigation to the calendar
+     * Implements the roving tabindex pattern for accessibility
+     */
+    private addCalendarKeyboardNavigation(gridContainer: HTMLElement): void {
+        // Add event delegation to the grid container for all day cell key events
+        gridContainer.addEventListener('keydown', (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement;
+            
+            // Only handle if the target is a day cell with tabindex="0" (currently focused cell)
+            if (!target.hasAttribute('data-date') || target.getAttribute('tabindex') !== '0') {
+                return;
+            }
+            
+            const currentRow = parseInt(target.getAttribute('data-row') || '0');
+            const currentCol = parseInt(target.getAttribute('data-col') || '0');
+            
+            let newRow = currentRow;
+            let newCol = currentCol;
+            let preventDefault = true;
+            
+            switch (event.key) {
+                case 'ArrowUp':
+                    newRow = Math.max(0, currentRow - 1);
+                    break;
+                case 'ArrowDown':
+                    newRow = Math.min(5, currentRow + 1); // Max 6 rows in calendar grid
+                    break;
+                case 'ArrowLeft':
+                    newCol = Math.max(0, currentCol - 1);
+                    break;
+                case 'ArrowRight':
+                    newCol = Math.min(6, currentCol + 1); // Max 7 columns (Sunday-Saturday)
+                    break;
+                case 'Home':
+                    newCol = 0; // Go to start of row (Sunday)
+                    break;
+                case 'End':
+                    newCol = 6; // Go to end of row (Saturday)
+                    break;
+                case 'Enter':
+                case ' ':
+                    // Select the focused date
+                    const dateStr = target.getAttribute('data-date');
+                    if (dateStr) {
+                        const date = this.parseDateKey(dateStr);
+                        if (date) {
+                            // ✅ ACCESSIBILITY: Track focus when user selects with Enter/Space
+                            this.focusedDate = date;
+                            this.handleDayClick(date);
+                        }
+                    }
+                    break;
+                default:
+                    preventDefault = false;
+            }
+            
+            if (preventDefault) {
+                event.preventDefault();
+                
+                // Find the new cell to focus
+                const newCell = gridContainer.querySelector(
+                    `[data-row="${newRow}"][data-col="${newCol}"]`
+                ) as HTMLElement;
+                
+                if (newCell) {
+                    // Update roving tabindex pattern
+                    target.setAttribute('tabindex', '-1');
+                    newCell.setAttribute('tabindex', '0');
+                    newCell.focus();
+                    
+                    // ✅ ACCESSIBILITY: Track the focused date
+                    const newDateStr = newCell.getAttribute('data-date');
+                    if (newDateStr) {
+                        this.focusedDate = this.parseDateKey(newDateStr);
+                    }
+                    
+                    // Announce to screen readers
+                    this.announceCalendarNavigation(newCell);
+                }
+            }
+        });
+    }
+    
+    /**
+     * ✅ ACCESSIBILITY: Announce calendar navigation to screen readers
+     */
+    private announceCalendarNavigation(cell: HTMLElement): void {
+        const dateStr = cell.getAttribute('data-date');
+        if (!dateStr) return;
+        
+        const date = this.parseDateKey(dateStr);
+        if (!date) return;
+        
+        const hasEntries = cell.classList.contains('oom-has-entries');
+        const isTodayDate = cell.classList.contains('oom-today');
+        const isCurrentMonth = !cell.classList.contains('oom-other-month');
+        
+        // Build announcement
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+        const dateFormatted = date.toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric',
+            year: isCurrentMonth ? undefined : 'numeric' // Include year for other months
+        });
+        
+        let announcement = `${dayName}, ${dateFormatted}`;
+        
+        if (isTodayDate) {
+            announcement += ', today';
+        }
+        
+        if (hasEntries) {
+            announcement += ', has dream entries';
+        } else {
+            announcement += ', no entries';
+        }
+        
+        if (!isCurrentMonth) {
+            announcement += ', previous or next month';
+        }
+        
+        // Create live region announcement for screen readers
+        this.announceToScreenReader(announcement);
+    }
+    
+    /**
+     * ✅ ACCESSIBILITY: Helper method to announce messages to screen readers
+     */
+    private announceToScreenReader(message: string): void {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.setAttribute('aria-atomic', 'true');
+        announcement.className = 'sr-only';
+        announcement.style.position = 'absolute';
+        announcement.style.left = '-10000px';
+        announcement.style.width = '1px';
+        announcement.style.height = '1px';
+        announcement.style.overflow = 'hidden';
+        announcement.textContent = message;
+        
+        document.body.appendChild(announcement);
+        
+        // Clean up after announcement
+        setTimeout(() => {
+            if (announcement.parentNode) {
+                document.body.removeChild(announcement);
+            }
+        }, 1000);
     }
 }

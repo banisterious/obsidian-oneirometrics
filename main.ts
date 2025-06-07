@@ -315,21 +315,20 @@ export default class DreamMetricsPlugin extends Plugin {
     }
 
     async scrapeMetrics() {
-        // DEBUGGING: Temporarily switch back to UniversalMetricsCalculator to reproduce data corruption issue
-        // This will likely produce incorrect results - for debugging purposes only
+        // Use the enhanced UniversalMetricsCalculator with fixed worker pool regex bug
         try {
             // Import the UniversalMetricsCalculator
             const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
             
-            // Use UniversalMetricsCalculator with extensive debug logging
+            // Use UniversalMetricsCalculator with fixed worker pool implementation
             const universalCalculator = new UniversalMetricsCalculator(
                 this.app,
                 this,
-                undefined, // Use default worker pool config (temporarily disabled anyway)
+                undefined, // Use default worker pool config
                 this.logger
             );
             
-            this.logger?.warn('DEBUG', 'Using UniversalMetricsCalculator for issue reproduction - EXPECT INCORRECT DATA');
+            this.logger?.info('Scrape', 'Using enhanced UniversalMetricsCalculator with worker pool fixes');
             await universalCalculator.scrapeMetrics();
             this.logger?.info('Scrape', 'UniversalMetricsCalculator scraping completed');
             
@@ -338,8 +337,8 @@ export default class DreamMetricsPlugin extends Plugin {
             new Notice(`Error scraping metrics: ${error.message}`);
         }
         
-        /* WORKING VERSION - temporarily commented out
-        // TEMPORARY REVERSION: Use original MetricsCollector due to data parsing issues
+        /* FALLBACK VERSION - MetricsCollector (stable but less advanced)
+        // Use the stable MetricsCollector implementation as fallback
         try {
             const metricsCollector = new MetricsCollector(
                 this.app,
@@ -929,8 +928,7 @@ export default class DreamMetricsPlugin extends Plugin {
 // Functions removed: saveLastCustomRange, loadLastCustomRange, saveFavoriteRange, loadFavoriteRanges, deleteFavoriteRange
 // These functions are now imported from src/utils/storage-helpers.ts
 
-// Find the DateNavigatorModal's Apply button click handler
-// In src/dom/DateNavigatorModal.ts, replace with this direct implementation in main.ts
+// Legacy comment - DateNavigatorModal has been removed and consolidated into DateSelectionModal
 
 // Utility function to force filtering - REMOVED: now handled by DateFilter class
 // The forceApplyDateFilter function has been moved to DateFilter class

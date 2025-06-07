@@ -18531,3 +18531,9 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     line-height: var(--line-height-tight);
     font-family: var(--font-interface);
 }
+
+/* DEBUG: Visual indicator for focusable day cells in Date Navigator */
+.oom-day-cell.oom-focusable-day {
+    border: 3px dashed #ff6b6b !important;
+    background-color: rgba(255, 107, 107, 0.1) !important;
+}

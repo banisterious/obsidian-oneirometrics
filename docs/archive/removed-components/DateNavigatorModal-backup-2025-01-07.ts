@@ -51,12 +51,16 @@ export class DateNavigatorModal extends Modal {
     }
 
     onOpen(): void {
+        console.log('🔍 DateNavigatorModal: onOpen() called!');
+        
         // Set as active modal
         DateNavigatorModal.activeModal = this;
         
         const { contentEl } = this;
         contentEl.empty();
         contentEl.addClass('oom-date-navigator-modal');
+
+        console.log('🔍 DateNavigatorModal: Modal container prepared');
 
         try {
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
@@ -65,6 +69,8 @@ export class DateNavigatorModal extends Modal {
         } catch (e) {
             // Silent failure - logging should never break functionality
         }
+        
+        console.log('🔍 DateNavigatorModal: About to start state inspection');
         
         // Debug log of the state
         try {
@@ -75,6 +81,13 @@ export class DateNavigatorModal extends Modal {
                     timeFilterManagerType: typeof this.timeFilterManager
                 });
             }
+            
+            console.log('🔍 DateNavigatorModal: State types:', {
+                stateType: typeof this.state,
+                timeFilterManagerType: typeof this.timeFilterManager,
+                hasState: !!this.state,
+                hasTimeFilterManager: !!this.timeFilterManager
+            });
             
             // CRITICAL: Find entries from all possible sources
             this.allPossibleEntries = [];
@@ -129,7 +142,7 @@ export class DateNavigatorModal extends Modal {
                 
                 // Try to access entries via plugin state
                 if (plugin.state) {
-                    if (typeof plugin.state.getDreamEntries === 'function') {
+                    if (plugin.state.getDreamEntries === 'function') {
                         const pluginEntries = plugin.state.getDreamEntries();
                         if (pluginEntries && Array.isArray(pluginEntries)) {
                             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
@@ -266,6 +279,8 @@ export class DateNavigatorModal extends Modal {
 
         // Initialize the integration and date navigator
         try {
+            console.log('🔍 DateNavigatorModal: About to create DateNavigatorIntegration');
+            
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                 window['globalLogger'].debug('DateNavigatorModal', 'Creating DateNavigatorIntegration');
             }
@@ -276,11 +291,17 @@ export class DateNavigatorModal extends Modal {
                 this.timeFilterManager
             );
             
+            console.log('🔍 DateNavigatorModal: DateNavigatorIntegration created successfully:', !!this.integration);
+            
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                 window['globalLogger'].debug('DateNavigatorModal', 'Initializing DateNavigator');
             }
             
+            console.log('🔍 DateNavigatorModal: About to call integration.initialize()');
+            
             this.dateNavigator = this.integration.initialize(container);
+            
+            console.log('🔍 DateNavigatorModal: integration.initialize() completed. DateNavigator:', !!this.dateNavigator);
             
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
                 window['globalLogger'].debug('DateNavigatorModal', 'DateNavigator initialized successfully');

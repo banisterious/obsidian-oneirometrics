@@ -101,6 +101,12 @@
     border: 1px solid transparent;
 }
 
+/* ✅ DEBUG: Visual indicator for focusable day cells */
+.oom-day-cell.oom-focusable-day {
+    border: 3px dashed #ff6b6b !important;
+    background-color: rgba(255, 107, 107, 0.1) !important;
+}
+
 .oom-day-cell:hover {
     background-color: var(--day-hover);
     transform: translateY(-1px);

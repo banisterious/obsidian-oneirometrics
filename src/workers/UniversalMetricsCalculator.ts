@@ -1378,13 +1378,6 @@ export class UniversalMetricsCalculator {
     private async processMetricsWithWorkerPool(entries: MetricsEntry[]): Promise<MetricsResult> {
         this.logger?.debug('WorkerPool', `Processing ${entries.length} entries with worker pool`);
         
-        // TEMPORARY FIX: Disable worker pool to fix data corruption issue
-        // Force immediate fallback to sync processing which works correctly
-        this.logger?.warn('WorkerPool', 'Worker pool temporarily disabled due to data corruption - falling back to sync processing');
-        this.stats.fallbackUsage++;
-        return this.processMetricsSync(entries);
-        
-        /* COMMENTED OUT UNTIL WORKER POOL DATA CORRUPTION IS FIXED
         try {
             const task: UniversalTask = {
                 taskType: UniversalTaskType.DREAM_METRICS_PROCESSING,
@@ -1434,7 +1427,6 @@ export class UniversalMetricsCalculator {
         // Fallback to sync processing
         this.stats.fallbackUsage++;
         return this.processMetricsSync(entries);
-        */
     }
 
     private processMetricsSync(entries: MetricsEntry[]): MetricsResult {

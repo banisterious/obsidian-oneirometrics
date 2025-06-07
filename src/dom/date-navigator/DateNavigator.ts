@@ -1,6 +1,7 @@
 import { App } from 'obsidian';
 import { DreamMetricsState } from '../../state/DreamMetricsState';
 import { DreamMetricData, DreamMetricsSettings } from '../../types/core';
+import { DEFAULT_JOURNAL_STRUCTURE_SETTINGS } from '../../types/journal-check';
 import { getSourceFile, getSourceId, isObjectSource } from '../../utils/type-guards';
 import { MetricsDiscoveryService } from '../../metrics/MetricsDiscoveryService';
 import { getComponentMetrics, getMetricThreshold } from '../../utils/settings-migration';
@@ -73,11 +74,16 @@ export class DateNavigator {
     private settings: DreamMetricsSettings;
     private metricsDiscoveryService: MetricsDiscoveryService;
     
-    constructor(container: HTMLElement, state: DreamMetricsState, app: App, settings: DreamMetricsSettings) {
+    // ✅ NEW: Track which cell should have focus for keyboard navigation
+    private focusedDate: Date | null = null;
+    
+    constructor(container: HTMLElement, state: DreamMetricsState, app?: App, settings?: DreamMetricsSettings) {
+        console.log('🔍 DateNavigator: Constructor called!', { container, state, app, settings });
+        
         this.container = container;
         this.state = state;
-        this.app = app;
-        this.settings = settings;
+        this.app = app || (window as any).oneiroMetricsPlugin?.app;
+        this.settings = settings || (window as any).oneiroMetricsPlugin?.settings || this.createDefaultSettings();
         
         // Initialize MetricsDiscoveryService if we have app and settings
         if (this.app && this.settings) {
@@ -101,19 +107,67 @@ export class DateNavigator {
         }
         
         // Initialize the date navigator
+        console.log('🔍 DateNavigator: About to call initialize()');
         this.initialize();
+        console.log('🔍 DateNavigator: Constructor completed successfully');
+    }
+    
+    /**
+     * Create default settings for backward compatibility when app/settings aren't provided
+     */
+    private createDefaultSettings(): DreamMetricsSettings {
+        return {
+            projectNote: '',
+            metrics: {},
+            selectedNotes: [],
+            selectedFolder: '',
+            selectionMode: 'notes' as const,
+            calloutName: 'dream-metrics',
+            journalCalloutName: 'journal',
+            dreamDiaryCalloutName: 'dream-diary',
+            dateHandling: { 
+                placement: 'field' as const,
+                fieldFormat: 'YYYY-MM-DD',
+                includeBlockReferences: false
+            },
+            showRibbonButtons: false,
+            backupEnabled: false,
+            backupFolderPath: '',
+            logging: { level: 'info' as const, maxSize: 1024000, maxBackups: 5 },
+            journalStructure: DEFAULT_JOURNAL_STRUCTURE_SETTINGS,
+            linting: DEFAULT_JOURNAL_STRUCTURE_SETTINGS
+        };
     }
     
     private initialize(): void {
+        console.log('🔍 DateNavigator: initialize() method called');
+        
         // Clear the container
         this.container.empty();
         this.container.addClass('oom-date-navigator');
         
+        console.log('🔍 DateNavigator: Container cleared and class added');
+        
         // Create the month header
+        console.log('🔍 DateNavigator: About to create month header');
         this.createMonthHeader();
+        console.log('🔍 DateNavigator: Month header created');
+        
+        // ✅ DEBUG: Add a test focusable element to verify tab order
+        const testButton = this.container.createEl('button', {
+            text: '🔍 DEBUG: Test Focusable Element',
+            attr: { 'tabindex': '0' }
+        });
+        testButton.style.backgroundColor = '#ff6b6b';
+        testButton.style.color = 'white';
+        testButton.style.padding = '10px';
+        testButton.style.margin = '10px';
+        console.log('🔍 DateNavigator: Added debug test button');
         
         // Create the month grid
+        console.log('🔍 DateNavigator: About to create month grid');
         this.createMonthGrid();
+        console.log('🔍 DateNavigator: Month grid created');
         
         // Ensure we're using the current month
         const today = new Date();
@@ -192,24 +246,228 @@ export class DateNavigator {
     }
     
     private createMonthGrid(): void {
+        console.log('🔍 DateNavigator: createMonthGrid() called for month:', this.currentMonth);
+        
         const gridContainer = this.container.createDiv('oom-month-grid');
+        
+        // ✅ NEW: Add ARIA grid attributes for screen readers
+        gridContainer.setAttribute('role', 'grid');
+        gridContainer.setAttribute('aria-label', `Calendar for ${this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
         
         // Create weekday headers
         const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
         weekdays.forEach(day => {
             const dayHeader = gridContainer.createDiv('oom-day-header');
             dayHeader.textContent = day;
+            dayHeader.setAttribute('role', 'columnheader');
         });
         
         // Generate days for the current month view
         const days = this.generateDaysForMonth(this.currentMonth);
-        days.forEach(day => {
+        console.log('🔍 DateNavigator: Generated', days.length, 'days for calendar');
+        console.log('🔍 DateNavigator: focusedDate is:', this.focusedDate);
+        console.log('🔍 DateNavigator: Today is:', new Date().toDateString());
+        
+        days.forEach((day, index) => {
             const dayCell = this.createDayCell(day);
+            
+            // ✅ NEW: Add ARIA gridcell attributes and position data
+            dayCell.setAttribute('role', 'gridcell');
+            dayCell.setAttribute('data-date', this.formatDateKey(day.date));
+            dayCell.setAttribute('data-row', Math.floor(index / 7).toString());
+            dayCell.setAttribute('data-col', (index % 7).toString());
+            
+            // Set up roving tabindex pattern (only one cell focusable at a time)
+            let shouldFocus = false;
+            
+            console.log('🔍 DateNavigator: Processing day:', this.formatDateKey(day.date), {
+                isToday: day.isToday,
+                focusedDate: this.focusedDate,
+                index: index,
+                hasToday: days.some(d => d.isToday)
+            });
+            
+            if (this.focusedDate && this.isSameDay(day.date, this.focusedDate)) {
+                // Restore focus to the previously focused date
+                shouldFocus = true;
+                console.log('🔍 DateNavigator: shouldFocus=true (matches focusedDate)');
+            } else if (!this.focusedDate && day.isToday) {
+                // Default to today if no focused date is tracked
+                shouldFocus = true;
+                console.log('🔍 DateNavigator: shouldFocus=true (is today, no focusedDate)');
+            } else if (!this.focusedDate && index === 0 && !days.some(d => d.isToday)) {
+                // Fall back to first cell if no today visible and no tracked focus
+                shouldFocus = true;
+                console.log('🔍 DateNavigator: shouldFocus=true (first cell, no today visible)');
+            }
+            
+            dayCell.setAttribute('tabindex', shouldFocus ? '0' : '-1');
+            
+            // ✅ DEBUG: Add a distinctive class to cells that should be focusable
+            if (shouldFocus) {
+                dayCell.addClass('oom-focusable-day');
+                console.log('🔍 DateNavigator: ✅ Setting tabindex="0" and oom-focusable-day class on date:', this.formatDateKey(day.date));
+            }
+            
             gridContainer.appendChild(dayCell);
             
             // Store reference to the element for later updates
             this.dayElements.set(this.formatDateKey(day.date), dayCell);
         });
+        
+        // ✅ NEW: Add keyboard navigation to all day cells
+        this.addCalendarKeyboardNavigation(gridContainer);
+    }
+    
+    /**
+     * ✅ NEW: Add standard ARIA grid keyboard navigation to the calendar
+     * Implements the roving tabindex pattern for accessibility
+     */
+    private addCalendarKeyboardNavigation(gridContainer: HTMLElement): void {
+        // Add event delegation to the grid container for all day cell key events
+        gridContainer.addEventListener('keydown', (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement;
+            
+            // Only handle if the target is a day cell with tabindex="0" (currently focused cell)
+            if (!target.hasAttribute('data-date') || target.getAttribute('tabindex') !== '0') {
+                return;
+            }
+            
+            const currentRow = parseInt(target.getAttribute('data-row') || '0');
+            const currentCol = parseInt(target.getAttribute('data-col') || '0');
+            
+            let newRow = currentRow;
+            let newCol = currentCol;
+            let preventDefault = true;
+            
+            switch (event.key) {
+                case 'ArrowUp':
+                    newRow = Math.max(0, currentRow - 1);
+                    break;
+                case 'ArrowDown':
+                    newRow = Math.min(5, currentRow + 1); // Max 6 rows in calendar grid
+                    break;
+                case 'ArrowLeft':
+                    newCol = Math.max(0, currentCol - 1);
+                    break;
+                case 'ArrowRight':
+                    newCol = Math.min(6, currentCol + 1); // Max 7 columns (Sunday-Saturday)
+                    break;
+                case 'Home':
+                    newCol = 0; // Go to start of row (Sunday)
+                    break;
+                case 'End':
+                    newCol = 6; // Go to end of row (Saturday)
+                    break;
+                case 'Enter':
+                case ' ':
+                    // Select the focused date
+                    const dateStr = target.getAttribute('data-date');
+                    if (dateStr) {
+                        const date = this.parseDateKey(dateStr);
+                        if (date) {
+                            // ✅ NEW: Track focus when user selects with Enter/Space
+                            this.focusedDate = date;
+                            this.selectDay(date);
+                        }
+                    }
+                    break;
+                default:
+                    preventDefault = false;
+            }
+            
+            if (preventDefault) {
+                event.preventDefault();
+                
+                // Find the new cell to focus
+                const newCell = gridContainer.querySelector(
+                    `[data-row="${newRow}"][data-col="${newCol}"]`
+                ) as HTMLElement;
+                
+                if (newCell) {
+                    // Update roving tabindex pattern
+                    target.setAttribute('tabindex', '-1');
+                    newCell.setAttribute('tabindex', '0');
+                    newCell.focus();
+                    
+                    // ✅ NEW: Track the focused date
+                    const newDateStr = newCell.getAttribute('data-date');
+                    if (newDateStr) {
+                        this.focusedDate = this.parseDateKey(newDateStr);
+                    }
+                    
+                    // Announce to screen readers
+                    this.announceCalendarNavigation(newCell);
+                }
+            }
+        });
+    }
+    
+    /**
+     * ✅ NEW: Announce calendar navigation to screen readers
+     */
+    private announceCalendarNavigation(cell: HTMLElement): void {
+        const dateStr = cell.getAttribute('data-date');
+        if (!dateStr) return;
+        
+        const date = this.parseDateKey(dateStr);
+        if (!date) return;
+        
+        const hasEntries = cell.hasClass('has-entries');
+        const isToday = cell.hasClass('is-today');
+        const isCurrentMonth = !cell.hasClass('other-month');
+        
+        // Build announcement
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+        const dateFormatted = date.toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric',
+            year: isCurrentMonth ? undefined : 'numeric' // Include year for other months
+        });
+        
+        let announcement = `${dayName}, ${dateFormatted}`;
+        
+        if (isToday) {
+            announcement += ', today';
+        }
+        
+        if (hasEntries) {
+            announcement += ', has dream entries';
+        } else {
+            announcement += ', no entries';
+        }
+        
+        if (!isCurrentMonth) {
+            announcement += ', previous or next month';
+        }
+        
+        // Create live region announcement for screen readers
+        this.announceToScreenReader(announcement);
+    }
+    
+    /**
+     * ✅ NEW: Helper method to announce messages to screen readers
+     */
+    private announceToScreenReader(message: string): void {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.setAttribute('aria-atomic', 'true');
+        announcement.className = 'sr-only';
+        announcement.style.position = 'absolute';
+        announcement.style.left = '-10000px';
+        announcement.style.width = '1px';
+        announcement.style.height = '1px';
+        announcement.style.overflow = 'hidden';
+        announcement.textContent = message;
+        
+        document.body.appendChild(announcement);
+        
+        // Clean up after announcement
+        setTimeout(() => {
+            if (announcement.parentNode) {
+                document.body.removeChild(announcement);
+            }
+        }, 1000);
     }
     
     private createDayCell(day: Day): HTMLElement {
@@ -305,25 +563,23 @@ export class DateNavigator {
             }
         }
         
-        // Make cell interactive
-        dayCell.setAttribute('tabindex', '0');
-        dayCell.setAttribute('role', 'button');
+        // Set ARIA label for accessibility (role and tabindex set by grid navigation)
         dayCell.setAttribute('aria-label', this.generateDayAriaLabel(day));
         
         // Click event for day selection
         dayCell.addEventListener('click', () => {
+            // ✅ NEW: Track focus when user clicks on a day
+            this.focusedDate = day.date;
             // Let the selectDayInternal method handle the assignment
             this.selectDayInternal(day);
         });
         
-        // Keyboard event for accessibility
-        dayCell.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                // Let the selectDayInternal method handle the assignment
-                this.selectDayInternal(day);
-            }
+        // ✅ DEBUG: Add focus event listener to track if cells are receiving focus
+        dayCell.addEventListener('focus', () => {
+            console.log('🔍 DateNavigator: Day cell received focus:', this.formatDateKey(day.date));
         });
+        
+        // Note: Keyboard events (Enter/Space) are now handled by the grid-level navigation
         
         return dayCell;
     }

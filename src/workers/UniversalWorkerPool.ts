@@ -1046,7 +1046,7 @@ class UniversalWorker {
         const calculatedMetrics = { ...entry.metrics || {} };
         
         // Basic word count
-        const wordCount = entry.content ? entry.content.trim().split(/\\s+/).length : 0;
+        const wordCount = entry.content ? entry.content.trim().split(/\s+/).length : 0;
         calculatedMetrics['Words'] = wordCount;
         
         // Sentiment analysis if enabled
@@ -1287,13 +1287,13 @@ class UniversalWorker {
     let negativeCount = 0;
     
     positiveWords.forEach(word => {
-      const regex = new RegExp(\`\\\\b\${word}\\\\b\`, 'g');
+      const regex = new RegExp(\`\\b\${word}\\b\`, 'g');
       const matches = lowerContent.match(regex);
       if (matches) positiveCount += matches.length;
     });
     
     negativeWords.forEach(word => {
-      const regex = new RegExp(\`\\\\b\${word}\\\\b\`, 'g');
+      const regex = new RegExp(\`\\b\${word}\\b\`, 'g');
       const matches = lowerContent.match(regex);
       if (matches) negativeCount += matches.length;
     });
@@ -1319,20 +1319,20 @@ class UniversalWorker {
   calculateAdvancedMetricsWorker(content) {
     const metrics = {};
     
-    const wordCount = content.trim().split(/\\s+/).length;
+    const wordCount = content.trim().split(/\s+/).length;
     metrics['Words'] = wordCount;
     
-    const sentenceCount = (content.match(/[.!?]+\\s/g) || []).length + 1;
+    const sentenceCount = (content.match(/[.!?]+\s/g) || []).length + 1;
     metrics['Sentences'] = sentenceCount;
     
     if (sentenceCount > 0) {
       metrics['Words per Sentence'] = Math.round((wordCount / sentenceCount) * 10) / 10;
     }
     
-    metrics['Characters'] = content.replace(/\\s/g, '').length;
+    metrics['Characters'] = content.replace(/\s/g, '').length;
     
     // Additional metrics
-    const paragraphCount = content.split(/\\n\\s*\\n/).length;
+    const paragraphCount = content.split(/\n\s*\n/).length;
     metrics['Paragraphs'] = paragraphCount;
     
     return metrics;
@@ -1432,10 +1432,10 @@ class UniversalWorker {
   }
 
   analyzeContent(content) {
-    const wordCount = content.trim().split(/\\s+/).length;
-    const sentenceCount = (content.match(/[.!?]+\\s/g) || []).length + 1;
-    const paragraphCount = content.split(/\\n\\s*\\n/).length;
-    const characterCount = content.replace(/\\s/g, '').length;
+    const wordCount = content.trim().split(/\s+/).length;
+    const sentenceCount = (content.match(/[.!?]+\s/g) || []).length + 1;
+    const paragraphCount = content.split(/\n\s*\n/).length;
+    const characterCount = content.replace(/\s/g, '').length;
     
     return {
       wordCount,
