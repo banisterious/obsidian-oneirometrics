@@ -15,6 +15,7 @@
 - [Key Interfaces](#key-interfaces)
 - [Performance Considerations](#performance-considerations)
 - [Security and Error Handling](#security-and-error-handling)
+- [v0.14.0 Architecture Enhancements](#v0140-architecture-enhancements)
 - [Next Steps](#next-steps)
 - [OneiroMetrics Plugin Overview](#oneirometrics-plugin-overview)
 - [Core Features](#core-features)
@@ -172,6 +173,147 @@ The architecture implements:
 3. **Safe File Operations**: File operations use transactions where possible
 4. **Data Validation**: Input validation at service boundaries
 5. **Secure Data Storage**: Sensitive settings stored securely
+
+## v0.14.0 Architecture Enhancements
+
+This section documents the major architectural improvements introduced in version 0.14.0, representing significant enhancements to data persistence, configuration management, and analytics capabilities.
+
+### Unified Configuration System
+
+The v0.14.0 release introduces a comprehensive unified configuration system that consolidates all metrics visualization settings into a cohesive, centralized architecture.
+
+![Unified Configuration Architecture](./diagrams/Oom-Unified-Configuration-Architecture.png)
+
+#### Key Components:
+- **MetricsDiscoveryService**: Dynamic metric discovery and validation system
+- **Unified Settings Infrastructure**: Component-specific metric preferences with intelligent defaults
+- **Settings Migration System**: Automatic migration from legacy configurations
+- **Interactive Threshold Controls**: Visual slider controls for Low/Medium/High visualization thresholds
+
+#### Architecture Benefits:
+- **Single Source of Truth**: All visualization settings managed through unified interface
+- **Component Isolation**: Separate metric preferences for Calendar, Charts, and Tables
+- **Backward Compatibility**: Seamless migration from previous settings formats
+- **Smart Auto-Discovery**: Automatic detection of new metrics with usage statistics
+
+### Chart Data Persistence System
+
+A revolutionary chart data persistence system ensures chart data survives note reloads, eliminating the need for users to re-scrape data.
+
+![Chart Data Persistence Architecture](./diagrams/Oom-Chart-Data-Persistence-Architecture.png)
+
+#### Core Architecture:
+- **ChartDataPersistence Class**: Handles save/restore operations with intelligent cache validation
+- **Content-Based Cache Keys**: Scrape ID generation using dream entries data signature
+- **Automatic Cache Management**: 7-day expiry with comprehensive validation checks
+- **Seamless Integration**: Transparent to user experience with graceful fallbacks
+
+#### Technical Implementation:
+```typescript
+interface PersistedChartData {
+    data: ChartTabData;           // Chart metrics and dream entries
+    scrapeId: string;             // Content-based cache key  
+    timestamp: number;            // Creation time for expiry
+    version: string;              // Plugin version compatibility
+    entryCount: number;           // Validation metadata
+    metricsCount: number;         // Additional validation
+}
+```
+
+#### Performance Metrics:
+- **Save Time**: < 100ms for typical chart data (147 entries, 6 metrics)
+- **Restore Time**: < 200ms for cache validation and chart recreation
+- **Storage Efficiency**: Content-based cache invalidation prevents stale data
+
+### Advanced Analytics Framework
+
+The analytics framework provides professional-grade statistical analysis capabilities through a modular, extensible architecture.
+
+![Advanced Analytics Architecture](./diagrams/Oom-Advanced-Analytics-Architecture.png)
+
+#### Analytics Components:
+- **Insights Tab**: Comprehensive data overview with 6 distinct analysis categories
+- **Trend Analysis Engine**: Linear regression with direction detection and significance testing
+- **Outlier Detection System**: Z-score analysis (>2.5 standard deviations) with date identification
+- **Correlation Analysis**: Pearson correlation coefficients with strength classification
+- **Pattern Recognition**: Entry frequency analysis and metric consistency scoring
+
+#### Statistical Methods:
+- **Linear Regression Analysis**: Trend direction detection with statistical significance
+- **Z-Score Outlier Detection**: Identification of statistically significant outliers
+- **Correlation Matrix**: Comprehensive correlation analysis with confidence intervals
+- **Kernel Density Estimation**: Advanced distribution analysis for violin plots
+- **Time Series Analysis**: Frequency patterns and cyclical trend detection
+
+### Export System Architecture
+
+A comprehensive export system provides contextual data export capabilities across all visualization components.
+
+![Export System Architecture](./diagrams/Oom-Export-System-Architecture.png)
+
+#### Export Architecture Features:
+- **Tab-Contextual Exports**: Each chart tab has dedicated export functionality
+- **Multiple Format Support**: CSV, JSON, and Excel-compatible outputs
+- **Smart Data Scoping**: Export current view, date ranges, filtered data, or complete datasets
+- **Statistical Metadata**: Comprehensive metadata including calculation methods and quality scores
+
+#### Export Data Pipeline:
+```
+Dream Journal Entries (Markdown)
+           ↓
+    Dream Scraping Process
+           ↓
+    DreamMetricData[] Array
+           ↓
+    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+    │   Chart Tabs    │    │  Date Navigator │    │   Hub Modal     │
+    │   Visualization │    │   Calendar      │    │   Settings      │
+    └─────────────────┘    └─────────────────┘    └─────────────────┘
+           ↓                        ↓                        ↓
+    Tab-Specific Processing    Calendar Filtering    Global Export Options
+           ↓                        ↓                        ↓
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                  CSV Export Pipeline                            │
+    │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+    │  │ Statistics  │  │   Trends    │  │  Heatmap    │   + More    │
+    │  │   Export    │  │   Export    │  │   Export    │             │
+    │  └─────────────┘  └─────────────┘  └─────────────┘             │
+    └─────────────────────────────────────────────────────────────────┘
+           ↓
+    CSV/JSON/Excel Files (Download)
+```
+
+### Mobile & Accessibility Architecture
+
+Comprehensive accessibility and mobile optimization ensuring WCAG 2.1 AA compliance across all components.
+
+#### Accessibility Features:
+- **WCAG 2.1 AA Compliance**: Full keyboard navigation and screen reader support
+- **Mobile Responsive Design**: Touch-optimized controls with 44px minimum targets
+- **Dynamic Accessibility**: Real-time chart descriptions and data summaries
+- **Universal Access**: High contrast support and reduced motion preferences
+
+### Integration with Existing Architecture
+
+The v0.14.0 enhancements integrate seamlessly with the existing modular architecture:
+
+#### Service Layer Integration:
+- **MetricsDiscoveryService** extends the existing services architecture
+- **ChartDataPersistence** integrates with StateManager for data consistency
+- **Export System** leverages existing data flow patterns
+- **Analytics Framework** builds on existing MetricsService foundation
+
+#### State Management Enhancement:
+- Unified configuration state managed through enhanced StateManager
+- Chart cache state isolated from core plugin data
+- Export state managed through dedicated export services
+- Analytics state computed dynamically from existing metrics data
+
+#### UI Component Evolution:
+- Hub Modal enhanced with unified configuration interface
+- Chart tabs extended with contextual export capabilities
+- Date Navigator integrated with enhanced calendar filtering
+- Settings components upgraded with advanced configuration options
 
 ## Next Steps
 

@@ -1,0 +1,228 @@
+@startuml Advanced Analytics Architecture
+
+'******************************************************************************
+' v0.14.0 Advanced Analytics Framework
+' Shows the professional-grade statistical analysis capabilities through a
+' modular, extensible architecture including the new Insights tab
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Advanced Analytics Architecture"
+
+package "v0.14.0 Advanced Analytics Framework" {
+    
+    package "Insights Tab - New 6th Chart Tab" {
+        class InsightsTabController {
+            +renderDataOverview(): void
+            +performTrendAnalysis(): TrendAnalysisResult
+            +detectOutliers(): OutlierAnalysisResult
+            +analyzeCorrelations(): CorrelationInsights
+            +recognizePatterns(): PatternAnalysisResult
+            --
+            -dataOverviewGeneration()
+            -comprehensiveStatistics()
+            -visualInsightCreation()
+        }
+        
+        class DataOverviewEngine {
+            +calculateTotalEntries(): number
+            +getMetricsCount(): number
+            +analyzeDateRange(): DateRangeAnalysis
+            +computeFrequencyMetrics(): FrequencyStats
+            --
+            -entryCountAnalysis()
+            -timeSpanCalculation()
+            -averageEntriesPerWeek()
+        }
+        
+        class TrendAnalysisEngine {
+            +performLinearRegression(metric): RegressionResult
+            +detectTrendDirection(data): TrendDirection
+            +calculateStatisticalSignificance(): SignificanceTest
+            +compareTrendStrength(): TrendComparison
+            --
+            -linearRegressionCalculation()
+            -trendDirectionDetection()
+            -statisticalSignificanceTesting()
+        }
+        
+        class OutlierDetectionEngine {
+            +performZScoreAnalysis(metric): OutlierResult[]
+            +identifyStatisticalOutliers(): OutlierEntry[]
+            +calculateStandardDeviations(): StatisticalMetrics
+            --
+            -zScoreCalculation(>2.5StdDev)
+            -outlierDateIdentification()
+            -deviationAnalysis()
+        }
+        
+        class CorrelationAnalysisEngine {
+            +calculatePearsonCorrelations(): CorrelationMatrix
+            +classifyCorrelationStrength(): StrengthClassification
+            +generateCorrelationInsights(): CorrelationInsights
+            --
+            -pearsonCoefficientCalculation()
+            -strengthClassification()
+            -correlationInterpretation()
+        }
+        
+        class PatternRecognitionEngine {
+            +analyzeEntryFrequency(): FrequencyPatterns
+            +detectCyclicalPatterns(): CyclicalAnalysis
+            +scoreMetricConsistency(): ConsistencyScores
+            --
+            -frequencyPatternDetection()
+            -cyclicalTrendAnalysis()
+            -consistencyScoring()
+        }
+    }
+    
+    package "Enhanced Chart Types" {
+        class CompareTabEnhancements {
+            +renderBarCharts(): Chart
+            +createBoxPlots(): BoxPlotChart
+            +generateViolinPlots(): ViolinPlotChart
+            --
+            -quartileCalculations()
+            -outlierVisualization()
+            -densityDistributionAnalysis()
+        }
+        
+        class TrendsTabEnhancements {
+            +createAreaCharts(): AreaChart
+            +generateScatterPlotsWithTrendLines(): ScatterChart
+            +performTrendDecomposition(): DecompositionChart
+            --
+            -temporalVisualization()
+            -trendLineCalculation()
+            -timeSeriesDecomposition()
+        }
+        
+        class CorrelationsTabEnhancements {
+            +createCorrelationHeatmaps(): HeatmapChart
+            +generateScatterAnalysis(): ScatterMatrix
+            +buildNetworkGraphs(): NetworkChart
+            --
+            -correlationMatrixVisualization()
+            -scatterPlotMatrix()
+            -networkCorrelationMapping()
+        }
+        
+        class InteractiveControlsSystem {
+            +renderChartTypeSelectors(): HTMLElement
+            +handleRealTimeSwitching(): void
+            +manageStatisticalMethods(): void
+            --
+            -chartTypeSwitching()
+            -realTimeVisualizationUpdate()
+            -statisticalMethodSelection()
+        }
+    }
+    
+    package "Statistical Analysis Core" {
+        class StatisticalMethodsLibrary {
+            +performLinearRegression(data): RegressionResult
+            +calculateZScores(values): number[]
+            +computePearsonCorrelation(x, y): number
+            +performKernelDensityEstimation(data): DensityResult
+            +calculateIQR(data): QuartileData
+            --
+            -regressionAlgorithms()
+            -statisticalCalculations()
+            -densityEstimation()
+        }
+        
+        class VisualizationMathEngine {
+            +generateTrendLines(data): TrendLine
+            +calculateQuartiles(data): Quartiles
+            +computeDensityDistributions(data): Density[]
+            +createCorrelationMatrix(metrics): Matrix
+            --
+            -mathematicalVisualizationSupport()
+            -chartDataTransformation()
+            -statisticalVisualizationPrep()
+        }
+    }
+    
+    package "Chart Integration Layer" {
+        class ChartTabsManager {
+            +initializeInsightsTab(): void
+            +enhanceExistingTabs(): void
+            +coordinateTabSwitching(): void
+            --
+            -insightsTabIntegration()
+            -chartEnhancementCoordination()
+            -tabNavigationManagement()
+        }
+        
+        class MetricsChartTabs {
+            +statisticsTab: StatisticsChart
+            +trendsTab: TrendsChartEnhanced
+            +compareTab: CompareChartEnhanced
+            +correlationsTab: CorrelationsChartEnhanced
+            +heatmapTab: HeatmapChart
+            +insightsTab: InsightsTabController
+            --
+            -6TabArchitecture()
+            -enhancedChartTypes()
+            -unifiedChartInterface()
+        }
+    }
+    
+    package "Data Pipeline" {
+        class AnalyticsDataPipeline {
+            +preprocessDreamEntries(entries): ProcessedData
+            +prepareStatisticalAnalysis(data): AnalysisReadyData
+            +transformForVisualization(data): ChartData
+            --
+            -dataPreprocessing()
+            -statisticalDataPreparation()
+            -visualizationDataTransformation()
+        }
+    }
+}
+
+' Analytics Processing Flow Description
+note as AnalyticsFlow
+**Analytics Processing Flow:**
+1. DreamEntries → AnalyticsDataPipeline: processEntries()
+2. AnalyticsDataPipeline → StatisticalMethodsLibrary: performAnalysis()
+3. StatisticalMethodsLibrary → InsightsTabController: analysisResults
+4. InsightsTabController → VisualizationEngine: renderInsights()
+end note
+
+' Relationships
+InsightsTabController ||--|| DataOverviewEngine : uses
+InsightsTabController ||--|| TrendAnalysisEngine : uses
+InsightsTabController ||--|| OutlierDetectionEngine : uses
+InsightsTabController ||--|| CorrelationAnalysisEngine : uses
+InsightsTabController ||--|| PatternRecognitionEngine : uses
+
+TrendAnalysisEngine ||--|| StatisticalMethodsLibrary : uses
+OutlierDetectionEngine ||--|| StatisticalMethodsLibrary : uses
+CorrelationAnalysisEngine ||--|| StatisticalMethodsLibrary : uses
+
+CompareTabEnhancements ||--|| VisualizationMathEngine : uses
+TrendsTabEnhancements ||--|| VisualizationMathEngine : uses
+CorrelationsTabEnhancements ||--|| VisualizationMathEngine : uses
+
+ChartTabsManager ||--|| MetricsChartTabs : manages
+MetricsChartTabs ||--|| InsightsTabController : contains
+MetricsChartTabs ||--|| CompareTabEnhancements : contains
+MetricsChartTabs ||--|| TrendsTabEnhancements : contains
+MetricsChartTabs ||--|| CorrelationsTabEnhancements : contains
+
+AnalyticsDataPipeline ||--|| StatisticalMethodsLibrary : feeds
+AnalyticsDataPipeline ||--|| InsightsTabController : provides data
+
+note top of InsightsTabController : "New 6th tab providing\ncomprehensive data analytics\nwith 6 analysis categories"
+
+note top of StatisticalMethodsLibrary : "Professional-grade statistical\nmethods: regression, z-score,\ncorrelation, KDE, IQR"
+
+note top of InteractiveControlsSystem : "Real-time chart type switching\nwith statistical method\nselection controls"
+
+note bottom of MetricsChartTabs : "Enhanced from 5 to 6 tabs:\nStatistics, Trends, Compare,\nCorrelations, Heatmap, Insights"
+
+@enduml 

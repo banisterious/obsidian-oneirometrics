@@ -1,0 +1,256 @@
+@startuml Export System Architecture
+
+'******************************************************************************
+' v0.14.0 Export System Architecture
+' Shows the comprehensive export system that provides contextual data export
+' capabilities across all visualization components with multiple formats
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Export System Architecture"
+
+package "v0.14.0 Export System Architecture" {
+    
+    package "Core Export Services" {
+        class CSVExportService {
+            +exportMetricsData(options): Promise<string>
+            +exportCalendarData(dateRange, options): Promise<string>
+            +exportChartData(chartType, metrics, options): Promise<string>
+            +exportAllData(options): Promise<ExportBundle>
+            +exportFilteredData(filters, options): Promise<string>
+            --
+            -formatData()
+            -generateHeaders()
+            -applyNormalization()
+        }
+        
+        class ExportFormatManager {
+            +formatAsCSV(data, context): string
+            +formatAsJSON(data, context): string
+            +formatAsExcel(data, context): ArrayBuffer
+            --
+            -csvFormatting()
+            -jsonSerialization()
+            -excelGeneration()
+        }
+        
+        class MetadataManager {
+            +generateExportMetadata(options): ExportMetadata
+            +includeCalculationMethods(data): EnrichedData
+            +addQualityScores(data): ScoredData
+            --
+            -metadataGeneration()
+            -calculationDocumentation()
+            -qualityScoreCalculation()
+        }
+    }
+    
+    package "Tab-Contextual Export Integration" {
+        class StatisticsTabExport {
+            +exportTableData(): Promise<string>
+            +includeQualityScores(): boolean
+            +generateMetadata(): StatisticsMetadata
+            --
+            -rawTableDataExtraction()
+            -entryDetailsInclusion()
+            -qualityScoreIntegration()
+        }
+        
+        class TrendsTabExport {
+            +exportTimeSeries(): Promise<string>
+            +includeMovingAverages(): boolean
+            +exportTrendAnalysis(): Promise<string>
+            --
+            -temporalDataAggregation()
+            -movingAverageCalculation()
+            -trendStatisticsInclusion()
+        }
+        
+        class CompareTabExport {
+            +exportComparisonData(): Promise<string>
+            +includeStatisticalTests(): boolean
+            +exportDescriptiveStats(): Promise<string>
+            --
+            -comparativeAnalysisData()
+            -statisticalTestResults()
+            -descriptiveStatistics()
+        }
+        
+        class CorrelationsTabExport {
+            +exportCorrelationMatrix(): Promise<string>
+            +includeConfidenceIntervals(): boolean
+            +exportScatterData(): Promise<string>
+            --
+            -correlationMatrixData()
+            -confidenceIntervalCalculation()
+            -scatterPlotDataExtraction()
+        }
+        
+        class HeatmapTabExport {
+            +exportCalendarData(): Promise<string>
+            +includeIntensityLevels(): boolean
+            +exportDensityMetrics(): Promise<string>
+            --
+            -calendarIntensityData()
+            -densityCalculations()
+            -intensityLevelMapping()
+        }
+        
+        class InsightsTabExport {
+            +exportInsightsData(): Promise<string>
+            +includeAnalyticsResults(): boolean
+            +exportStatisticalSummary(): Promise<string>
+            --
+            -comprehensiveAnalyticsData()
+            -insightGenerationResults()
+            -statisticalSummaryCompilation()
+        }
+    }
+    
+    package "Export Data Pipeline" {
+        class ExportDataPipeline {
+            +preprocessDreamEntries(entries): ProcessedData
+            +applyTabSpecificFiltering(data, tab): FilteredData
+            +prepareExportData(data, options): ExportReadyData
+            --
+            -dataPreprocessing()
+            -tabContextFiltering()
+            -exportFormatPreparation()
+        }
+        
+        class DataScopeManager {
+            +getCurrentViewData(tab): ViewData
+            +getDateRangeData(range): RangeData
+            +getFilteredData(filters): FilteredData
+            +getAllData(): CompleteData
+            --
+            -currentViewExtraction()
+            -dateRangeFiltering()
+            -customFilterApplication()
+        }
+        
+        class ExportValidationEngine {
+            +validateExportData(data): ValidationResult
+            +sanitizeForExport(data): SanitizedData
+            +verifyDataIntegrity(data): IntegrityCheck
+            --
+            -dataValidation()
+            -sanitizationProcess()
+            -integrityVerification()
+        }
+    }
+    
+    package "Export UI Components" {
+        class ExportButton {
+            +renderTabExportButton(tabType): HTMLElement
+            +handleExportClick(tabType): void
+            +showExportProgress(): void
+            --
+            -contextualButtonRendering()
+            -exportTriggerHandling()
+            -progressIndicatorManagement()
+        }
+        
+        class ExportOptionsModal {
+            +showExportOptions(tabType): void
+            +renderFormatSelection(): HTMLElement
+            +renderScopeSelection(): HTMLElement
+            --
+            -modalConfiguration()
+            -formatOptionsRendering()
+            -scopeSelectionInterface()
+        }
+        
+        class DownloadManager {
+            +triggerDownload(content, filename, format): void
+            +generateFilename(tabType, timestamp): string
+            +handleDownloadError(error): void
+            --
+            -browserDownloadTrigger()
+            -filenameGeneration()
+            -errorHandling()
+        }
+    }
+    
+    package "Integration Points" {
+        class ChartTabsIntegration {
+            +integrateExportButtons(): void
+            +coordinateTabExports(): void
+            +handleExportStateChanges(): void
+            --
+            -exportButtonIntegration()
+            -tabExportCoordination()
+            -stateChangeHandling()
+        }
+        
+        class HubModalIntegration {
+            +addGlobalExportOptions(): void
+            +provideBatchExportCapabilities(): void
+            --
+            -globalExportInterface()
+            -batchExportFunctionality()
+        }
+        
+        class DateNavigatorIntegration {
+            +addDateRangeExport(): void
+            +provideCalendarExportOptions(): void
+            --
+            -dateRangeExportInterface()
+            -calendarSpecificExports()
+        }
+    }
+}
+
+' Export Data Flow Description
+note as ExportFlow
+**Export Data Flow:**
+1. User clicks tab-specific export button
+2. ExportButton → ExportDataPipeline: gatherTabData()
+3. ExportDataPipeline → DataScopeManager: getCurrentViewData()
+4. DataScopeManager → ExportValidationEngine: validateData()
+5. ExportValidationEngine → CSVExportService: processExport()
+6. CSVExportService → ExportFormatManager: formatData()
+7. ExportFormatManager → DownloadManager: triggerDownload()
+end note
+
+' Relationships
+CSVExportService ||--|| ExportFormatManager : uses
+CSVExportService ||--|| MetadataManager : uses
+CSVExportService ||--|| ExportDataPipeline : coordinates with
+
+StatisticsTabExport ||--|| CSVExportService : uses
+TrendsTabExport ||--|| CSVExportService : uses
+CompareTabExport ||--|| CSVExportService : uses
+CorrelationsTabExport ||--|| CSVExportService : uses
+HeatmapTabExport ||--|| CSVExportService : uses
+InsightsTabExport ||--|| CSVExportService : uses
+
+ExportDataPipeline ||--|| DataScopeManager : uses
+ExportDataPipeline ||--|| ExportValidationEngine : uses
+
+ExportButton ||--|| ExportOptionsModal : opens
+ExportButton ||--|| CSVExportService : triggers
+ExportOptionsModal ||--|| DownloadManager : uses
+
+ChartTabsIntegration ||--|| ExportButton : manages
+ChartTabsIntegration ||--|| StatisticsTabExport : coordinates
+ChartTabsIntegration ||--|| TrendsTabExport : coordinates
+ChartTabsIntegration ||--|| CompareTabExport : coordinates
+ChartTabsIntegration ||--|| CorrelationsTabExport : coordinates
+ChartTabsIntegration ||--|| HeatmapTabExport : coordinates
+ChartTabsIntegration ||--|| InsightsTabExport : coordinates
+
+HubModalIntegration ||--|| CSVExportService : provides access
+DateNavigatorIntegration ||--|| HeatmapTabExport : specializes
+
+note top of CSVExportService : "Core export functionality\nwith multiple formats:\nCSV, JSON, Excel-compatible"
+
+note top of ExportDataPipeline : "Tab-specific data processing\nwith context-aware filtering\nand format preparation"
+
+note top of ChartTabsIntegration : "Contextual export buttons\nin each chart tab for\noptimal user experience"
+
+note bottom of MetadataManager : "Comprehensive metadata:\ncalculation methods,\nquality scores, timestamps"
+
+@enduml 

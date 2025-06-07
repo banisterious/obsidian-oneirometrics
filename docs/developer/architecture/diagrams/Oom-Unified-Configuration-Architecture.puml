@@ -1,0 +1,153 @@
+@startuml Unified Configuration Architecture
+
+'******************************************************************************
+' v0.14.0 Unified Configuration Architecture
+' Shows the comprehensive unified configuration system that consolidates
+' all metrics visualization settings into a cohesive, centralized architecture
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Unified Configuration Architecture"
+
+package "v0.14.0 Unified Configuration System" {
+    
+    package "Core Services" {
+        class MetricsDiscoveryService {
+            +discoverMetrics(entries, options): Promise<MetricDiscoveryResult>
+            +getConfiguredMetrics(options): DreamMetric[]
+            +getAvailableMetrics(component, options): DreamMetric[]
+            +updateMetricConfiguration(metrics, strategy): Promise<void>
+            +validateMetric(metric): ValidationResult
+            --
+            -dynamicMetricDetection()
+            -metricNormalization()
+            -usageStatisticsTracking()
+        }
+        
+        class SettingsManager {
+            +saveSettings(settings): Promise<void>
+            +loadSettings(): Promise<DreamMetricsSettings>
+            +migrateSettings(): Promise<MigrationResult>
+            --
+            -preserveExistingData()
+            -validateConfiguration()
+            -handleMigrationErrors()
+        }
+        
+        class MetricsMigrationService {
+            +migrateToUnifiedMetrics(settings): MigrationResult
+            +validateUnifiedMetricsConfig(config): ValidationResult
+            +getComponentMetrics(settings, component): DreamMetric[]
+            --
+            -detectLegacySettings()
+            -performDataMigration()
+            -ensureBackwardCompatibility()
+        }
+    }
+    
+    package "Settings Infrastructure" {
+        class DreamMetricsSettings {
+            +unifiedMetrics?: UnifiedMetricsConfig
+            +metricsNote: string
+            +selectedNotes: string[]
+            +calloutName: string
+            --
+            +getUnifiedMetrics(): UnifiedMetricsConfig
+            +setUnifiedMetrics(config): void
+        }
+        
+        class UnifiedMetricsConfig {
+            +autoDiscovery: boolean
+            +visualizationThresholds: VisualizationThresholds
+            +preferredMetrics: ComponentMetrics
+            +discovery: DiscoveryConfig
+            +configVersion: string
+        }
+        
+        class ComponentMetrics {
+            +calendar: string[]
+            +charts: string[]
+            +table: string[]
+        }
+        
+        class VisualizationThresholds {
+            +low: number
+            +medium: number
+            +high: number
+        }
+        
+        class DiscoveryConfig {
+            +autoEnable: boolean
+            +categories: string[]
+            +maxNewMetrics: number
+        }
+    }
+    
+    package "UI Components" {
+        class HubModal {
+            +openMetricsSettings()
+            +renderAdvancedConfiguration()
+            --
+            -thresholdSliders
+            -componentMetricsDisplay
+            -migrationPrompts
+        }
+        
+        class ComponentMetricsModal {
+            +selectCalendarMetrics()
+            +selectChartMetrics()
+            +applySelections()
+            --
+            -metricCheckboxes
+            -previewChanges
+            -validateSelections
+        }
+        
+        class ThresholdSliderComponent {
+            +renderSliders()
+            +handleValueChange()
+            +updateVisualization()
+            --
+            -lowThreshold
+            -mediumThreshold
+            -highThreshold
+        }
+    }
+    
+    package "Data Flow" {
+        class UnifiedConfigurationFlow {
+            <<control>>
+            +initializeConfiguration()
+            +handleUserChanges()
+            +synchronizeComponents()
+        }
+    }
+}
+
+' Relationships
+MetricsDiscoveryService ||--|| SettingsManager : manages settings
+SettingsManager ||--|| MetricsMigrationService : uses migration
+SettingsManager ||--|| DreamMetricsSettings : persists
+DreamMetricsSettings ||--|| UnifiedMetricsConfig : contains
+UnifiedMetricsConfig ||--|| ComponentMetrics : contains
+UnifiedMetricsConfig ||--|| VisualizationThresholds : contains
+UnifiedMetricsConfig ||--|| DiscoveryConfig : contains
+
+HubModal ||--|| ComponentMetricsModal : opens
+HubModal ||--|| ThresholdSliderComponent : contains
+HubModal ||--|| MetricsDiscoveryService : uses
+ComponentMetricsModal ||--|| MetricsDiscoveryService : queries
+
+UnifiedConfigurationFlow ||--|| MetricsDiscoveryService : orchestrates
+UnifiedConfigurationFlow ||--|| SettingsManager : coordinates
+UnifiedConfigurationFlow ||--|| HubModal : updates
+
+note top of MetricsDiscoveryService : "Dynamic metric discovery\nwith validation and\nusage statistics"
+
+note top of SettingsManager : "Critical fix: preserves\nexisting plugin data\nwhen saving settings"
+
+note top of HubModal : "Centralized configuration\ninterface in Hub Modal >\nMetrics Settings tab"
+
+@enduml 

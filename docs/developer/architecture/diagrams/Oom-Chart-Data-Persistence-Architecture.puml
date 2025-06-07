@@ -1,0 +1,173 @@
+@startuml Chart Data Persistence Architecture
+
+'******************************************************************************
+' v0.14.0 Chart Data Persistence System
+' Shows the revolutionary chart data persistence system that ensures chart data
+' survives note reloads, eliminating the need for users to re-scrape data
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Chart Data Persistence Architecture"
+
+package "v0.14.0 Chart Data Persistence System" {
+    
+    package "Core Persistence Layer" {
+        class ChartDataPersistence {
+            +saveChartData(metrics, dreamEntries): Promise<void>
+            +restoreChartData(): Promise<ChartTabData | null>
+            +getCacheStatus(dreamEntries): Promise<CacheStatusResult>
+            +generateScrapeId(dreamEntries): string
+            --
+            -validateCacheIntegrity()
+            -performExpiryCheck()
+            -handleCacheInvalidation()
+        }
+        
+        interface PersistedChartData {
+            data: ChartTabData
+            scrapeId: string
+            timestamp: number
+            version: string
+            entryCount: number
+            metricsCount: number
+        }
+        
+        class CacheValidationEngine {
+            +validateScrapeId(current, cached): boolean
+            +checkExpiry(timestamp): boolean
+            +verifyDataIntegrity(data): ValidationResult
+            +performVersionCheck(version): boolean
+            --
+            -contentSignatureMatching()
+            -7DayExpiryEnforcement()
+            -entryCountValidation()
+        }
+    }
+    
+    package "Chart Management" {
+        class ChartTabsManager {
+            +initializeChartTabs(container, data, html): Promise<void>
+            +attemptCacheRestoration(): Promise<boolean>
+            +saveChartsAutomatically(): Promise<void>
+            --
+            -chartCreationFlow()
+            -cacheRestorationFlow()
+            -gracefulFallbacks()
+        }
+        
+        class MetricsChartTabs {
+            +createAllTabs(): void
+            +restoreFromCache(data): void
+            +handleDataUpdate(): void
+            --
+            -statisticsTab
+            -trendsTab
+            -compareTab
+            -correlationsTab
+            -heatmapTab
+            -insightsTab
+        }
+        
+        class TableGenerator {
+            +initializeChartTabs(container): Promise<void>
+            +extractDreamEntries(): DreamMetricData[]
+            --
+            -domDataExtraction()
+            -chartContainerManagement()
+            -placeholderHandling()
+        }
+    }
+    
+    package "Integration Points" {
+        class ProjectNoteManager {
+            +attemptChartRestoration(): Promise<void>
+            +handleNoteReload(): void
+            --
+            -noteLoadDetection()
+            -chartContainerValidation()
+            -userFeedbackManagement()
+        }
+        
+        class ObsidianPluginIntegration {
+            +plugin.saveData(data): Promise<void>
+            +plugin.loadData(): Promise<any>
+            --
+            -dataIsolation()
+            -settingsPreservation()
+            -pluginDataManagement()
+        }
+    }
+    
+    package "Cache Management" {
+        class ContentBasedCaching {
+            +generateScrapeId(entries): string
+            +validateContentSignature(id): boolean
+            --
+            -dataSignatureGeneration()
+            -contentHashingAlgorithm()
+            -changeDetection()
+        }
+        
+        class CacheLifecycleManager {
+            +scheduleCacheCleanup(): void
+            +handleCacheExpiry(): void
+            +performCacheInvalidation(): void
+            --
+            -automaticExpiryManagement()
+            -staleDataRemoval()
+            -storageOptimization()
+        }
+    }
+    
+    package "Performance Monitoring" {
+        class PerformanceMetrics {
+            +trackSaveTime(): number
+            +trackRestoreTime(): number
+            +measureCacheEfficiency(): CacheStats
+            --
+            -saveTimeTracking(<100ms)
+            -restoreTimeTracking(<200ms)
+            -storageEfficiencyAnalysis()
+        }
+    }
+}
+
+' Cache Restoration Flow Description
+note as CacheFlow
+**Cache Restoration Flow:**
+1. NoteReload → ProjectNoteManager: attemptChartRestoration()
+2. ProjectNoteManager → ChartDataPersistence: restoreChartData()
+3. ChartDataPersistence → CacheValidationEngine: validateCache()
+4. CacheValidationEngine → ChartDataPersistence: validationResult
+5. ChartDataPersistence → ChartTabsManager: restoreCharts(data)
+6. ChartTabsManager → ProjectNoteManager: restorationComplete
+end note
+
+' Relationships
+ChartDataPersistence ||--|| PersistedChartData : manages
+ChartDataPersistence ||--|| CacheValidationEngine : uses
+ChartDataPersistence ||--|| ObsidianPluginIntegration : persists through
+
+ChartTabsManager ||--|| ChartDataPersistence : coordinates with
+ChartTabsManager ||--|| MetricsChartTabs : manages
+TableGenerator ||--|| ChartTabsManager : initializes
+
+ProjectNoteManager ||--|| ChartTabsManager : orchestrates
+ProjectNoteManager ||--|| ChartDataPersistence : triggers
+
+ContentBasedCaching ||--|| CacheValidationEngine : provides keys
+CacheLifecycleManager ||--|| ChartDataPersistence : manages lifecycle
+
+PerformanceMetrics ||--|| ChartDataPersistence : monitors
+
+note top of ChartDataPersistence : "Revolutionary persistence system\nensures charts survive note reloads\nwithout re-scraping"
+
+note top of CacheValidationEngine : "Content-based validation with\n7-day expiry and comprehensive\nintegrity checks"
+
+note top of ObsidianPluginIntegration : "Critical fix: Settings Manager\npreserves existing plugin data\nwhen saving settings"
+
+note bottom of PerformanceMetrics : "Save: <100ms\nRestore: <200ms\nStorage: Efficient"
+
+@enduml 
