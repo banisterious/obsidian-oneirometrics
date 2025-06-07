@@ -44,7 +44,7 @@
 - [ ] Date range comparison
 - [ ] Advanced filtering options
 
-See [Date Tools Plan](./features/date-tools.md) for detailed implementation specifications.
+See [Date & Calendar Features](./features/date-calendar-unified.md) for detailed implementation specifications.
 
 ### Journal Structure Check
 - [x] ~~Basic structure validation~~ (**COMPLETED in Journal Structure Integration 2025**)
@@ -163,7 +163,7 @@ These features are under consideration but not yet planned for implementation. T
 - Some features may be combined or split during development
 - All features are subject to change
 
-For details about the date tools implementation, see [Date Tools Plan](./features/date-tools.md).
+For details about the date tools implementation, see [Date & Calendar Features](./features/date-calendar-unified.md).
 
 ### Custom Date Filter Improvements
 - [ ] Multi-month view

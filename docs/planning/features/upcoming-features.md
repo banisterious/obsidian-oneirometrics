@@ -137,6 +137,6 @@ As we add features, we remain committed to excellent performance:
 ## Related Documentation
 
 - [Project Roadmap](../roadmap.md): High-level project direction
-- [Date Tools Plan](./date-tools.md): Detailed plan for date tools implementation
+- [Date & Calendar Features](./date-calendar-unified.md): Unified plan for date-related functionality
 - [Metrics Enhancements Plan](./metrics-enhancements.md): Metrics system improvements
 - [Dream Journal Manager Plan](./dream-journal-manager.md): Dream Journal Manager enhancements 

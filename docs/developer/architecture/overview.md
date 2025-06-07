@@ -672,7 +672,7 @@ This approach helps pinpoint where the update process may be breaking down and e
 - [State Persistence](../implementation/state.md) for user preference management
 
 ## Future Features and Planning
-- See [Date Tools Plan](../../planning/features/date-tools.md) for the current plan and open questions regarding the custom date range picker feature.
+- See [Date & Calendar Features](../../planning/features/date-calendar-unified.md) for the current plan and open questions regarding the custom date range picker feature.
 
 ## Filters Expansion Progress
 

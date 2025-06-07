@@ -363,7 +363,7 @@ The Date Tools feature helps analyze dream entries across different time periods
   - Identify trends and patterns
   - Track changes in dream characteristics
 
-For detailed information on date handling, see the [Date Tools Plan](../../planning/features/date-tools.md).
+For detailed information on date handling, see the [Date & Calendar Features](../../planning/features/date-calendar-unified.md).
 
 ## Customizing the Plugin
 
