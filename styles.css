@@ -18526,14 +18526,28 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 }
 
 .oom-metrics-tabs-content h2 {
+    line-height: var(--line-height-tight);
     font-size: var(--font-ui-medium);
     font-weight: var(--font-semibold);
-    line-height: var(--line-height-tight);
     font-family: var(--font-interface);
 }
 
-/* DEBUG: Visual indicator for focusable day cells in Date Navigator */
-.oom-day-cell.oom-focusable-day {
-    border: 3px dashed #ff6b6b !important;
-    background-color: rgba(255, 107, 107, 0.1) !important;
+/* ACCESSIBILITY: Focus styling for calendar day cells */
+.oom-date-selection-modal .oom-calendar-day:focus {
+    z-index: 10;
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+    transform: scale(1.05);
+    transition: all 0.15s ease;
+    background-color: var(--background-modifier-hover);
+}
+
+/* Ensure focus is visible even on selected days */
+.oom-date-selection-modal .oom-calendar-day.oom-selected:focus {
+    box-shadow: 0 0 0 2px var(--interactive-accent), 0 0 0 4px var(--background-primary);
+}
+
+/* Focus styling for today when focused */
+.oom-date-selection-modal .oom-calendar-day.oom-today:focus {
+    box-shadow: 0 0 0 2px var(--interactive-accent), 0 0 0 4px var(--text-accent);
 }
