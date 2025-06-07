@@ -1049,7 +1049,7 @@ ${entry.content}
 `;
     }
     
-    private countTestFiles() {
+    private countTestFiles(): number {
         const plugin = this.plugin as any;
         const testDataFolder = plugin.settings?.testDataFolder || 'Test Data/Dreams';
         
@@ -1057,30 +1057,25 @@ ${entry.content}
             const folder = this.app.vault.getAbstractFileByPath(testDataFolder);
             
             if (!folder || !('children' in folder)) {
-                new Notice(`Test data folder "${testDataFolder}" not found`);
-                return;
+                return 0;
             }
             
             const folderChildren = folder.children;
-            let fileCount = 0;
             let markdownCount = 0;
             
             if (folderChildren && Array.isArray(folderChildren)) {
                 for (const child of folderChildren) {
-                    if ('extension' in child) {
-                        fileCount++;
-                        if (child.extension === 'md') {
-                            markdownCount++;
-                        }
+                    if ('extension' in child && child.extension === 'md') {
+                        markdownCount++;
                     }
                 }
             }
             
-            new Notice(`📊 Test data folder contains ${markdownCount} markdown files (${fileCount} total files)`);
+            return markdownCount;
             
         } catch (error) {
-            new Notice(`❌ Failed to count test files: ${(error as Error).message}`);
             this.logger.error('TestData', 'Failed to count test files', error as Error);
+            return 0;
         }
     }
 
@@ -1359,9 +1354,101 @@ ${entry.content}
             text: 'Utility tools for test data generation, cleanup, and analysis.',
             cls: 'unified-test-suite-content-description'
         });
+
+        // Test Data Generation Section
+        const dataGenSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
+        dataGenSection.createEl('h3', { text: '📊 Test Data Generation' });
+        dataGenSection.createEl('p', {
+            text: 'Generate realistic dummy dream journal entries for performance testing and validation.',
+            cls: 'unified-test-suite-section-description'
+        });
+
+        // Quick Generation Buttons
+        const quickGenContainer = dataGenSection.createDiv({ cls: 'unified-test-suite-button-row' });
         
-        // Placeholder content
-        this.contentContainer.createEl('p', { text: 'Utilities functionality will be implemented here.' });
+        this.createUtilityButton(quickGenContainer, 'Generate 500 entries (Small)', '📝', async () => {
+            await this.generateCustomTestData({
+                count: 500,
+                realistic: true,
+                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+                endDate: new Date()
+            });
+        });
+
+        this.createUtilityButton(quickGenContainer, 'Generate 1K entries (Medium)', '📄', async () => {
+            await this.generateCustomTestData({
+                count: 1000,
+                realistic: true,
+                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+                endDate: new Date()
+            });
+        });
+
+        this.createUtilityButton(quickGenContainer, 'Generate 5K entries (Large)', '📚', async () => {
+            await this.generateCustomTestData({
+                count: 5000,
+                realistic: true,
+                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+                endDate: new Date()
+            });
+        });
+
+        // Custom Generation Button
+        this.createUtilityButton(dataGenSection, 'Custom Dataset Configuration', '⚙️', () => {
+            this.showCustomDatasetDialog();
+        });
+
+        // Cleanup Section
+        const cleanupSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
+        cleanupSection.createEl('h3', { text: '🧹 Test Data Cleanup' });
+        cleanupSection.createEl('p', {
+            text: 'Manage and clean up test data files.',
+            cls: 'unified-test-suite-section-description'
+        });
+
+        this.createUtilityButton(cleanupSection, 'Clear Test Data Folder', '🗑️', () => {
+            this.clearTestDataFolder();
+        });
+
+        // Analysis Tools Section
+        const analysisSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
+        analysisSection.createEl('h3', { text: '📈 Analysis Tools' });
+        analysisSection.createEl('p', {
+            text: 'Export and analyze test results.',
+            cls: 'unified-test-suite-section-description'
+        });
+
+        const analysisContainer = analysisSection.createDiv({ cls: 'unified-test-suite-button-row' });
+        
+        this.createUtilityButton(analysisContainer, 'Export Test Results', '📊', () => {
+            this.exportTestResults();
+        });
+
+        this.createUtilityButton(analysisContainer, 'Clear All Caches', '💾', () => {
+            this.clearAllCaches();
+        });
+
+        this.createUtilityButton(analysisContainer, 'Reset Test Environment', '🔄', () => {
+            this.resetTestEnvironment();
+        });
+
+        // Test File Statistics
+        const statsSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
+        statsSection.createEl('h3', { text: '📋 Test Data Statistics' });
+        
+        const statsContainer = statsSection.createDiv({ cls: 'unified-test-suite-stats-grid' });
+        
+        // File count
+        const fileCount = this.countTestFiles();
+        this.createStatWidget(statsContainer, 'Test Files', fileCount.toString());
+        
+        // Last test time
+        const lastTest = this.getLastTestTime();
+        this.createStatWidget(statsContainer, 'Last Test', lastTest);
+        
+        // Success rate
+        const successRate = this.getSuccessRate();
+        this.createStatWidget(statsContainer, 'Success Rate', successRate);
     }
     
     // Help content
