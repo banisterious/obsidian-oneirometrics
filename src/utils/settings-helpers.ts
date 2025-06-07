@@ -160,7 +160,7 @@ export function setJournalStructure(settings: DreamMetricsSettings, structure: J
 }
 
 /**
- * Gets whether to show ribbon buttons
+ * Gets whether to show ribbon button
  */
 export function shouldShowRibbonButtons(settings: DreamMetricsSettings): boolean {
     // First check the new property, then fall back to legacy
@@ -172,7 +172,7 @@ export function shouldShowRibbonButtons(settings: DreamMetricsSettings): boolean
 }
 
 /**
- * Sets whether to show ribbon buttons
+ * Sets whether to show ribbon button
  */
 export function setShowRibbonButtons(settings: DreamMetricsSettings, show: boolean): void {
     settings.showRibbonButtons = show;

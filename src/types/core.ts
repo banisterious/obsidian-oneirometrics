@@ -255,7 +255,7 @@ export interface DreamMetricsSettings {
     /** Date handling configuration */
     dateHandling?: DateHandlingConfig;
     
-    /** Whether to show ribbon buttons in the sidebar */
+    /** Whether to show ribbon button in the sidebar */
     showRibbonButtons: boolean;
     
     /** @deprecated Use showRibbonButtons instead */

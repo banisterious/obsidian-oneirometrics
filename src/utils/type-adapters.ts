@@ -68,7 +68,7 @@ export function getSelectedFolderSafe(settings: any): string {
 /**
  * Check if ribbon buttons should be shown safely
  * @param settings Settings object
- * @returns Whether to show ribbon buttons
+ * @returns Whether to show ribbon button
  * @deprecated Use shouldShowRibbonButtons from settings-helpers
  */
 export function shouldShowRibbonButtonsSafe(settings: any): boolean {

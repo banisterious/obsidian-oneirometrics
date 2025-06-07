@@ -4273,8 +4273,10 @@ input[placeholder*="exclude"]::placeholder {
 .oom-collapsible-section {
     /* === STRUCTURAL PROPERTIES === */
     margin-bottom: var(--oom-spacing-md);
-    border-radius: var(--oom-radius-sm);
+    padding: .5em 0 0 .5em;
     overflow: hidden;
+    border-radius: var(--oom-radius-sm);
+    border: 1px solid var(--background-modifier-border);
     
     /* NO VISUAL STYLING - Let theme handle section borders and backgrounds */
 }
