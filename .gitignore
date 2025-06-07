@@ -43,9 +43,11 @@ Journals/
 
 # Testing
 css-analysis.md
-test-read-more.html
 docs/TODO_NPM_UPGRADE.md
 oom-ribbon-test/
+
+# HTML files (mockups, prototypes, testing)
+*.html
 
 # Temporary files
 temp/
@@ -68,4 +70,4 @@ styles-original-backup.css
 merge-components.js
 
 # UI/UX Mockups and Prototypes
-material-multi-month-calendar.html 
+# (All HTML files now covered by *.html pattern above) 
