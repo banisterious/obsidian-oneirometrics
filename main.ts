@@ -220,6 +220,9 @@ export default class DreamMetricsPlugin extends Plugin {
                 return true;
             }
         });
+
+        // Enhanced Accessibility Commands - Phase 1 Foundation
+        this.addAccessibilityCommands();
     }
 
     onunload() {
@@ -833,6 +836,88 @@ export default class DreamMetricsPlugin extends Plugin {
             </div>
         `;
     }
+
+    /**
+     * Add essential accessibility command for Date Navigator
+     * Simplified implementation focusing on core functionality
+     */
+    private addAccessibilityCommands(): void {
+        console.log('🔍 Registering essential accessibility command...');
+        
+        // Essential Date Navigator opening command
+        this.addCommand({
+            id: 'date-nav-open-accessible',
+            name: 'Date Navigator: Open',
+            hotkeys: [{ modifiers: ['Ctrl', 'Shift'], key: 'd' }],
+            checkCallback: (checking: boolean) => {
+                const isReady = this.validateAccessibilityContext();
+                
+                if (isReady && !checking) {
+                    console.log('🔍 Opening Date Navigator');
+                    this.openDateNavigatorAccessible();
+                }
+                
+                return isReady;
+            }
+        });
+        
+        console.log('🔍 Essential accessibility command registered successfully');
+    }
+
+    /**
+     * Validates if the Date Navigator opening command should be available
+     * Simplified validation for essential accessibility
+     */
+    private validateAccessibilityContext(): boolean {
+        const activeFile = this.app.workspace.getActiveFile();
+        const isOneiroNoteActive = activeFile?.path === this.settings.projectNote;
+        const isNavigatorReady = !this.isCurrentlyScraping();
+        
+        // Only require OneiroNote to be active and not scraping
+        const isValid = isOneiroNoteActive && isNavigatorReady;
+        
+        // DEBUG: Log validation details
+        console.log('🔍 Date Navigator Accessibility Check:', {
+            activeFile: activeFile?.path,
+            projectNote: this.settings.projectNote,
+            isOneiroNoteActive,
+            isNavigatorReady,
+            isValid
+        });
+        
+        return isValid;
+    }
+
+
+
+    /**
+     * Checks if scraping is currently in progress
+     */
+    private isCurrentlyScraping(): boolean {
+        // Check for scraping indicators
+        return document.querySelector('.oom-progress-container') !== null ||
+               document.querySelector('.scraping-in-progress') !== null;
+    }
+
+    /**
+     * Opens Date Navigator with essential accessibility enhancements
+     * Simplified implementation focusing on core functionality
+     */
+    private openDateNavigatorAccessible(): void {
+        try {
+            // Provide helpful guidance to screen reader users
+            this.announceToScreenReader('Date Navigator opened. Use Tab to navigate buttons, Enter to select, Escape to close.');
+            
+            // Open the standard date navigator
+            this.showDateNavigator();
+            
+        } catch (error) {
+            this.logger?.error('Accessibility', 'Error opening Date Navigator', error as Error);
+            new Notice('Error opening Date Navigator');
+        }
+    }
+
+
 }
 
 // Helper to extract date for a dream entry
