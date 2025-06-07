@@ -212,6 +212,11 @@ export class DateSelectionModal extends Modal {
         calendarContainer.setAttribute('role', 'grid');
         calendarContainer.setAttribute('aria-label', `Calendar for ${this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
         
+        // ✅ ACCESSIBILITY: Make calendar container focusable with Tab key
+        // This allows Tab navigation to reach the calendar, then arrow keys work within it
+        calendarContainer.setAttribute('tabindex', '0');
+        calendarContainer.style.outline = 'none'; // Remove default focus outline (we'll style the focused cell instead)
+        
         // Days of week header
         const daysHeader = calendarContainer.createDiv('oom-days-header');
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1679,13 +1684,57 @@ export class DateSelectionModal extends Modal {
      * Implements the roving tabindex pattern for accessibility
      */
     private addCalendarKeyboardNavigation(gridContainer: HTMLElement): void {
+        // ✅ ACCESSIBILITY: Handle focus on the grid container itself (from Tab navigation)
+        gridContainer.addEventListener('focus', (event: FocusEvent) => {
+            const target = event.target as HTMLElement;
+            
+            // If focus is on the grid container itself, move it to the appropriate day cell
+            if (target === gridContainer) {
+                // Find the currently focused cell or default to today/first cell
+                let cellToFocus = gridContainer.querySelector('[tabindex="0"]') as HTMLElement;
+                if (!cellToFocus) {
+                    // Fallback: find today or first cell
+                    cellToFocus = gridContainer.querySelector('.oom-today[data-date]') as HTMLElement;
+                    if (!cellToFocus) {
+                        cellToFocus = gridContainer.querySelector('[data-date]') as HTMLElement;
+                    }
+                    
+                    // Set up roving tabindex on the fallback cell
+                    if (cellToFocus) {
+                        // Remove tabindex="0" from any other cells
+                        gridContainer.querySelectorAll('[tabindex="0"]').forEach(cell => {
+                            cell.setAttribute('tabindex', '-1');
+                        });
+                        cellToFocus.setAttribute('tabindex', '0');
+                    }
+                }
+                
+                if (cellToFocus) {
+                    cellToFocus.focus();
+                    this.announceCalendarNavigation(cellToFocus);
+                }
+            }
+        });
+        
         // Add event delegation to the grid container for all day cell key events
         gridContainer.addEventListener('keydown', (event: KeyboardEvent) => {
             const target = event.target as HTMLElement;
             
-            // Only handle if the target is a day cell with tabindex="0" (currently focused cell)
-            if (!target.hasAttribute('data-date') || target.getAttribute('tabindex') !== '0') {
+            // Handle both day cells and the grid container itself
+            const isGridContainer = target === gridContainer;
+            const isDayCell = target.hasAttribute('data-date') && target.getAttribute('tabindex') === '0';
+            
+            if (!isGridContainer && !isDayCell) {
                 return;
+            }
+            
+            // If focus is on grid container, move to first focusable cell
+            if (isGridContainer) {
+                const firstFocusableCell = gridContainer.querySelector('[tabindex="0"]') as HTMLElement;
+                if (firstFocusableCell) {
+                    firstFocusableCell.focus();
+                    return;
+                }
             }
             
             const currentRow = parseInt(target.getAttribute('data-row') || '0');
