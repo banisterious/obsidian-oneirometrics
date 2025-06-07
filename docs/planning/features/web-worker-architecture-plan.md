@@ -248,7 +248,7 @@ const worker = new Worker('./date-filter-worker.ts');
 ┌───────────────────────┐           ┌──────────────────────┐
 │   UI Components       │           │  Filter Processing   │
 │   - DateNavigator     │           │  - Date Comparison   │
-│   - DateNavigatorModal│           │  - Range Calculation │
+│   - DateSelectionModal│           │  - Range Calculation │
 │   - TimeFilterManager │           │  - Results Caching   │
 └───────────────────────┘           └──────────────────────┘
 ```
@@ -1882,7 +1882,7 @@ This validation approach:
 ### 1. Multi-Date Selection Integration
 
 ```typescript
-// Inside DateNavigatorModal.ts
+// Inside DateSelectionModal.ts
 private applyMultiDateFilter() {
   if (!this.selectedDates.length) {
     new Notice('Please select at least one date');
@@ -1926,7 +1926,7 @@ private applyMultiDateFilter() {
 ### 2. Pattern-Based Selection Integration
 
 ```typescript
-// Inside DateNavigatorModal.ts
+// Inside DateSelectionModal.ts
 private applyPatternFilter(pattern: DatePattern) {
   // Show loading UI
   this.showFilteringProgress();
@@ -2194,7 +2194,7 @@ export class ProgressIndicator {
 
 **Integration Points**:
 1. **DateNavigator**: Add progress overlay during filtering operations
-2. **DateNavigatorModal**: Show processing status for large datasets
+2. **DateSelectionModal**: Show processing status for large datasets
 3. **TimeFilterManager**: Display filter application progress
 
 ##### **2.5 Error Handling & Recovery** ⏳ **Priority 2**
@@ -2386,7 +2386,7 @@ The **UI integration layer** is missing. Backend can handle multi-date filtering
    - Visual indicators for multi-selected dates (distinct from range selection)
    - Selection count and summary information
 
-2. **DateNavigatorModal Integration**
+2. **DateSelectionModal Integration**
    - Connect `DateSelectionModal.selectedDates` to worker `filterByMultipleDates()` calls
    - Progress indicators for multi-date operations using existing `ProgressIndicator` component
    - Result handling for non-contiguous date selections
@@ -2425,7 +2425,7 @@ private handleMultiSelectClick(date: Date): void {
 }
 ```
 
-**DateNavigatorModal Integration**:
+**DateSelectionModal Integration**:
 ```typescript
 private async applyMultiDateFilter(): Promise<void> {
     const selectedDatesArray = Array.from(this.dateSelectionModal.selectedDates);

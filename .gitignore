@@ -65,4 +65,7 @@ archive-additional-refactoring-docs.ps1
 # CSS Refactoring v2 - Development Files (Phase 2 complete)
 css-components/
 styles-original-backup.css
-merge-components.js 
+merge-components.js
+
+# UI/UX Mockups and Prototypes
+material-multi-month-calendar.html 

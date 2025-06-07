@@ -621,7 +621,7 @@ These issues have been identified and fixed during testing:
 4. "Read More" button not working on first load - Fixed by implementing MutationObserver to detect content on 2023-10-25.
 5. Visual indicator for active filters - Added accent-colored borders and animation on 2023-10-25.
 6. Summary table not updating when filters are applied - Fixed by properly calling collectVisibleRowMetrics and updateSummaryTable functions after filtering completes on 2023-10-26. This ensures statistics are correctly calculated based on currently visible rows only.
-7. Date Navigator buttons missing - Fixed by properly initializing button container elements in the DateNavigatorModal and ensuring proper DOM structure and styling on 2025-05-24. This resolved an issue where the modal would appear but without any action buttons.
+7. Date Navigator buttons missing - Fixed by properly initializing button container elements in the DateSelectionModal and ensuring proper DOM structure and styling on 2025-05-24. This resolved an issue where the modal would appear but without any action buttons.
 
 ### Column Sorting Implementation Approach
 
@@ -650,7 +650,7 @@ This hybrid approach addresses architectural concerns while focusing on getting 
 **Description**: Fixed the Date Navigator modal not opening correctly and buttons not appearing.
 
 **Issues Fixed**:
-1. DateNavigatorModal not opening properly due to getDreamEntries() being undefined
+1. DateSelectionModal not opening properly due to getDreamEntries() being undefined
 2. Buttons not visible in the modal when it did open
 3. Error handling was minimal, with unhelpful error messages
 4. Modal would fail completely when no dream entries were available
