@@ -1,6 +1,7 @@
 import { App, Modal, Notice } from 'obsidian';
 import type DreamMetricsPlugin from '../../../main';
 import type { TimeFilterManager } from '../../timeFilters';
+import safeLogger from '../../logging/safe-logger';
 
 export interface EnhancedNavigationState {
     currentDate: Date;
@@ -67,6 +68,7 @@ export class EnhancedDateNavigatorModal extends Modal {
 
             // Build sections
             this.buildNavigationSection();
+            this.buildSelectionModeControls();
             this.buildCalendarSection();
             this.buildActionSection();
 
@@ -93,6 +95,55 @@ export class EnhancedDateNavigatorModal extends Modal {
         this.buildQuarterToggle(navHeader);
         this.buildGoToDate(navHeader);
         this.buildNavigationMemory(navHeader);
+    }
+
+    private buildSelectionModeControls(): void {
+        // Selection mode controls section
+        const selectionModeSection = this.mainContainer.createDiv({
+            cls: 'selection-mode-section'
+        });
+
+        const modeLabel = selectionModeSection.createDiv({
+            cls: 'mode-label',
+            text: 'Selection Mode:'
+        });
+
+        const modeButtons = selectionModeSection.createDiv({
+            cls: 'mode-buttons'
+        });
+
+        const singleBtn = modeButtons.createEl('button', {
+            cls: 'selection-mode-btn active',
+            text: 'Single',
+            attr: { 
+                'data-mode': 'single',
+                'aria-pressed': 'true',
+                'title': 'Select individual dates'
+            }
+        });
+        singleBtn.addEventListener('click', () => this.setSelectionMode('single'));
+
+        const rangeBtn = modeButtons.createEl('button', {
+            cls: 'selection-mode-btn',
+            text: 'Range',
+            attr: { 
+                'data-mode': 'range',
+                'aria-pressed': 'false',
+                'title': 'Click and drag to select date ranges'
+            }
+        });
+        rangeBtn.addEventListener('click', () => this.setSelectionMode('range'));
+
+        const multiBtn = modeButtons.createEl('button', {
+            cls: 'selection-mode-btn',
+            text: 'Multi',
+            attr: { 
+                'data-mode': 'multi',
+                'aria-pressed': 'false',
+                'title': 'Ctrl+click to select multiple individual dates'
+            }
+        });
+        multiBtn.addEventListener('click', () => this.setSelectionMode('multi'));
     }
 
     private buildCalendarSection(): void {
@@ -144,7 +195,8 @@ export class EnhancedDateNavigatorModal extends Modal {
 
         // Selection info
         const selectionInfo = this.actionSection.createDiv({
-            cls: 'selection-info'
+            cls: 'selection-info',
+            text: 'No dates selected'
         });
 
         // Action buttons
@@ -607,7 +659,21 @@ export class EnhancedDateNavigatorModal extends Modal {
                 }
 
                 // Add click handler for date selection
-                dayEl.addEventListener('click', () => this.handleDateClick(currentDate));
+                // Add click handler
+                dayEl.addEventListener('click', (e) => {
+                    // Handle multi-select with Ctrl key
+                    if (e.ctrlKey || e.metaKey) {
+                        const originalMode = this.state.selectionMode;
+                        this.state.selectionMode = 'multi';
+                        this.handleDateClick(currentDate);
+                        this.state.selectionMode = originalMode;
+                    } else {
+                        this.handleDateClick(currentDate);
+                    }
+                });
+
+                // Add drag selection support
+                this.setupDragSelection(dayEl, currentDate);
             }
         } finally {
             this.isUpdating = false;
@@ -620,10 +686,185 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     private handleDateClick(date: Date): void {
-        // Basic single date selection for now
-        this.state.selectedDates = [date];
+        const isSameAsSelected = this.state.selectedDates.some(selected => 
+            this.isSameDay(selected, date));
+
+        if (this.state.selectionMode === 'single') {
+            this.state.selectedDates = [date];
+        } else if (this.state.selectionMode === 'range') {
+            // Handle range selection with click-drag support
+            this.handleRangeSelection(date);
+        } else if (this.state.selectionMode === 'multi') {
+            // Handle multi-select with Ctrl+click
+            this.handleMultiSelection(date);
+        }
+
         this.updateCalendarVisualState();
-        this.plugin.logger?.info('EnhancedDateNavigator', 'Date selected', { date: date.toISOString() });
+        this.updateSelectionInfo();
+    }
+
+    private handleRangeSelection(date: Date): void {
+        if (this.state.selectedDates.length === 0) {
+            // First click - start range
+            this.state.selectedDates = [date];
+            this.rangeStart = date;
+        } else if (this.state.selectedDates.length === 1) {
+            // Second click - complete range
+            const startDate = this.state.selectedDates[0];
+            const endDate = date;
+            
+            if (this.isSameDay(startDate, endDate)) {
+                // Same date clicked - keep single selection
+                this.state.selectedDates = [date];
+            } else {
+                // Create date range
+                this.state.selectedDates = this.createDateRange(startDate, endDate);
+            }
+            this.rangeStart = null;
+        } else {
+            // Multiple dates selected - start new range
+            this.state.selectedDates = [date];
+            this.rangeStart = date;
+        }
+    }
+
+    private handleMultiSelection(date: Date): void {
+        const existingIndex = this.state.selectedDates.findIndex(selected => 
+            this.isSameDay(selected, date));
+
+        if (existingIndex >= 0) {
+            // Remove if already selected
+            this.state.selectedDates.splice(existingIndex, 1);
+        } else {
+            // Add to selection
+            this.state.selectedDates.push(date);
+            // Sort dates for consistent ordering
+            this.state.selectedDates.sort((a, b) => a.getTime() - b.getTime());
+        }
+    }
+
+    private createDateRange(startDate: Date, endDate: Date): Date[] {
+        const dates: Date[] = [];
+        const start = new Date(Math.min(startDate.getTime(), endDate.getTime()));
+        const end = new Date(Math.max(startDate.getTime(), endDate.getTime()));
+        
+        const current = new Date(start);
+        while (current <= end) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        
+        return dates;
+    }
+
+    // Add drag selection support
+    private isDragging: boolean = false;
+    private dragStartDate: Date | null = null;
+    private rangeStart: Date | null = null;
+
+    private setupDragSelection(dayElement: HTMLElement, date: Date): void {
+        // Mouse down - start drag
+        dayElement.addEventListener('mousedown', (e) => {
+            if (this.state.selectionMode !== 'range') return;
+            
+            e.preventDefault();
+            this.isDragging = true;
+            this.dragStartDate = date;
+            this.rangeStart = date;
+            
+            // Temporarily set selection to start date
+            this.state.selectedDates = [date];
+            this.updateCalendarVisualState();
+            
+            // Add document listeners for drag completion
+            document.addEventListener('mouseup', this.handleDragEnd);
+        });
+
+        // Mouse enter - update drag selection
+        dayElement.addEventListener('mouseenter', () => {
+            if (!this.isDragging || !this.dragStartDate || this.state.selectionMode !== 'range') return;
+            
+            // Update selection to show current drag range
+            this.state.selectedDates = this.createDateRange(this.dragStartDate, date);
+            this.updateCalendarVisualState();
+        });
+    }
+
+    private handleDragEnd = () => {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        this.dragStartDate = null;
+        
+        // Remove document listeners
+        document.removeEventListener('mouseup', this.handleDragEnd);
+        
+        // Final visual update
+        this.updateCalendarVisualState();
+        this.updateSelectionInfo();
+    };
+
+    // Add selection mode switching
+    private setSelectionMode(mode: 'single' | 'range' | 'multi'): void {
+        if (this.state.selectionMode === mode) return;
+        
+        this.state.selectionMode = mode;
+        
+        // Clear selection when changing modes
+        this.state.selectedDates = [];
+        this.rangeStart = null;
+        
+        this.updateCalendarVisualState();
+        this.updateSelectionInfo();
+        this.updateSelectionModeUI();
+    }
+
+    private updateSelectionModeUI(): void {
+        // Update selection mode buttons/indicators
+        const modeButtons = this.contentEl.querySelectorAll('.selection-mode-btn');
+        modeButtons.forEach(btn => {
+            const btnMode = btn.getAttribute('data-mode');
+            if (btnMode === this.state.selectionMode) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+            } else {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    }
+
+    private updateSelectionInfo(): void {
+        const selectionInfo = this.contentEl.querySelector('.selection-info');
+        if (!selectionInfo) return;
+        
+        const count = this.state.selectedDates.length;
+        let infoText = '';
+        
+        if (count === 0) {
+            infoText = 'No dates selected';
+        } else if (count === 1) {
+            const date = this.state.selectedDates[0];
+            infoText = `Selected: ${date.toLocaleDateString()}`;
+        } else {
+            const sortedDates = [...this.state.selectedDates].sort((a, b) => a.getTime() - b.getTime());
+            const startDate = sortedDates[0];
+            const endDate = sortedDates[sortedDates.length - 1];
+            
+            if (this.state.selectionMode === 'range') {
+                infoText = `Range: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()} (${count} days)`;
+            } else {
+                infoText = `Selected: ${count} dates`;
+            }
+        }
+        
+        selectionInfo.textContent = infoText;
+    }
+
+    private isSameDay(date1: Date, date2: Date): boolean {
+        return date1.getFullYear() === date2.getFullYear() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getDate() === date2.getDate();
     }
 
     private updateCalendarVisualState(): void {
@@ -698,25 +939,178 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     private applySelection(): void {
+        if (this.state.selectedDates.length === 0) {
+            new Notice('No dates selected');
+            return;
+        }
+
         try {
-            if (this.state.selectedDates.length === 0) {
-                new Notice('Please select at least one date');
-                return;
+            if (this.state.selectedDates.length === 1) {
+                this.applySingleDateFilter();
+            } else {
+                this.applyDateRangeFilter();
             }
-
-            // Apply the date selection to the time filter
-            // Implementation will integrate with existing filter system
-            
-            this.plugin.logger?.info('EnhancedDateNavigator', 'Selection applied', {
-                selectedDates: this.state.selectedDates.length,
-                mode: this.state.selectionMode
-            });
-
-            new Notice(`Applied selection: ${this.state.selectedDates.length} date(s)`);
-            this.close();
         } catch (error) {
-            this.plugin.logger?.error('EnhancedDateNavigator', 'Error applying selection', error);
-            new Notice('Error applying date selection');
+            safeLogger.error('EnhancedDateNavigatorModal', 'Error applying selection', error);
+            new Notice('Error applying filter. Please try again.');
+        }
+    }
+
+    private applySingleDateFilter(): void {
+        const date = this.state.selectedDates[0];
+        
+        if (!date) {
+            new Notice('Invalid date selection');
+            return;
+        }
+
+        // Format as YYYY-MM-DD string for consistent filtering
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Apply filter through TimeFilterManager
+        if (this.timeFilterManager) {
+            this.timeFilterManager.setCustomRange(date, date);
+        }
+        
+        // Apply filter through FilterUI directly
+        this.applyFilterToUI(dateStr, dateStr);
+        
+        new Notice(`Filtered for ${dateStr}`);
+        this.close();
+    }
+
+    private applyDateRangeFilter(): void {
+        const dates = [...this.state.selectedDates]
+            .sort((a, b) => a.getTime() - b.getTime());
+
+        if (dates.length < 2) {
+            new Notice('Invalid date range selection');
+            return;
+        }
+
+        const startDate = dates[0];
+        const endDate = dates[dates.length - 1];
+        
+        // Format as YYYY-MM-DD strings for consistent filtering
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+        
+        // Apply filter through TimeFilterManager
+        if (this.timeFilterManager) {
+            this.timeFilterManager.setCustomRange(startDate, endDate);
+        }
+        
+        // Apply filter through FilterUI directly
+        this.applyFilterToUI(startDateStr, endDateStr);
+        
+        const dayCount = dates.length;
+        new Notice(`Filtered for ${dayCount} selected dates (${startDateStr} to ${endDateStr})`);
+        this.close();
+    }
+
+    private applyFilterToUI(startDateStr: string, endDateStr: string): void {
+        // Get the metrics container
+        const metricsContainer = document.querySelector('.oom-metrics-container') as HTMLElement;
+        if (!metricsContainer) {
+            safeLogger.warn('EnhancedDateNavigatorModal', 'Metrics container not found');
+            return;
+        }
+
+        // Get the FilterUI instance from the global plugin
+        const plugin = (window as any).oneiroMetricsPlugin;
+        if (!plugin || !plugin.filterUI) {
+            safeLogger.warn('EnhancedDateNavigatorModal', 'FilterUI not available, using fallback');
+            this.applyFilterFallback(metricsContainer, startDateStr, endDateStr);
+            return;
+        }
+
+        try {
+            // Set the custom date range in FilterUI
+            plugin.filterUI.setCustomDateRange({ start: startDateStr, end: endDateStr });
+            
+            // Update the filter dropdown to show 'custom' selection
+            const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+            if (filterDropdown) {
+                // Ensure 'custom' option exists
+                if (!Array.from(filterDropdown.options).find(opt => opt.value === 'custom')) {
+                    const customOption = document.createElement('option');
+                    customOption.value = 'custom';
+                    customOption.textContent = 'Custom Range';
+                    filterDropdown.appendChild(customOption);
+                }
+                
+                filterDropdown.value = 'custom';
+                
+                // Apply filters through FilterUI
+                plugin.filterUI.applyFilters(metricsContainer);
+                
+                // Update the filter display with a small delay to ensure it happens after automatic update
+                setTimeout(() => {
+                    const filterDisplayManager = plugin.filterDisplayManager;
+                    if (filterDisplayManager) {
+                        const visibleRows = metricsContainer.querySelectorAll('.oom-metrics-row:not([style*="display: none"])').length;
+                        filterDisplayManager.updateCustomRangeDisplay(
+                            metricsContainer, 
+                            startDateStr, 
+                            endDateStr,
+                            visibleRows
+                        );
+                    } else {
+                        // Fallback: Update the filter display directly
+                        this.updateFilterDisplay(metricsContainer, startDateStr, endDateStr);
+                    }
+                }, 100);
+            }
+        } catch (error) {
+            safeLogger.error('EnhancedDateNavigatorModal', 'Error applying filter through FilterUI', error);
+            this.applyFilterFallback(metricsContainer, startDateStr, endDateStr);
+        }
+    }
+
+    private applyFilterFallback(metricsContainer: HTMLElement, startDateStr: string, endDateStr: string): void {
+        // Set global custom date range for filtering
+        (window as any).customDateRange = { start: startDateStr, end: endDateStr };
+        
+        // Trigger filter change through dropdown
+        const filterDropdown = metricsContainer.querySelector('#oom-date-range-filter') as HTMLSelectElement;
+        if (filterDropdown) {
+            // Ensure 'custom' option exists
+            if (!Array.from(filterDropdown.options).find(opt => opt.value === 'custom')) {
+                const customOption = document.createElement('option');
+                customOption.value = 'custom';
+                customOption.textContent = 'Custom Range';
+                filterDropdown.appendChild(customOption);
+            }
+            
+            filterDropdown.value = 'custom';
+            filterDropdown.dispatchEvent(new Event('change'));
+        }
+        
+        // Update the filter display
+        this.updateFilterDisplay(metricsContainer, startDateStr, endDateStr);
+    }
+
+    private updateFilterDisplay(metricsContainer: HTMLElement, startDateStr: string, endDateStr: string): void {
+        const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display');
+        if (filterDisplay) {
+            const displayText = startDateStr === endDateStr 
+                ? `Single Date: ${startDateStr}`
+                : `Custom Range: ${startDateStr} to ${endDateStr}`;
+                
+            filterDisplay.innerHTML = `
+                <span class="oom-filter-icon">🗓️</span>
+                <span class="oom-filter-text oom-filter--custom">${displayText}</span>
+            `;
+            filterDisplay.classList.add('oom-filter-active');
+        }
+    }
+
+    private parseDateKey(dateKey: string): Date | null {
+        try {
+            const [year, month, day] = dateKey.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        } catch {
+            return null;
         }
     }
 
@@ -788,7 +1182,18 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     private cleanup(): void {
-        // Clean up any resources
-        this.isUpdating = false;
+        // Clean up any active drag operations
+        if (this.isDragging) {
+            this.isDragging = false;
+            this.dragStartDate = null;
+            document.removeEventListener('mouseup', this.handleDragEnd);
+        }
+        
+        // Clean up state
+        this.state.selectedDates = [];
+        this.state.navigationMemory = [];
+        this.state.dreamEntries.clear();
+        
+        this.plugin.logger?.info('EnhancedDateNavigator', 'Modal cleanup completed');
     }
 } 
