@@ -77,7 +77,7 @@ export class SettingsAdapter {
       unifiedMetrics: settings.unifiedMetrics,
       
       dateHandling: this.getDateHandlingConfig(settings),
-      showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || true),
+      showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || false),
       backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,
       backupFolderPath: settings.backup?.folderPath ?? settings.backupFolderPath ?? './backups',
       

@@ -512,7 +512,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // Ribbon buttons setting
         new Setting(containerEl)
-            .setName('Show Ribbon Buttons')
+            .setName('Show ribbon button')
             .setDesc('Add ribbon button for opening the Dream Journal Manager')
             .addToggle(toggle => toggle
                 .setValue(shouldShowRibbonButtons(this.plugin.settings))
