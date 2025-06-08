@@ -15995,7 +15995,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--oom-spacing-lg);
+    padding: 0 1em;
     scrollbar-width: thin;
 }
 

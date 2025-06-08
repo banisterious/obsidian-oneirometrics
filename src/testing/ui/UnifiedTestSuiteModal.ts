@@ -115,33 +115,33 @@ export class UnifiedTestSuiteModal extends Modal {
         this.createDashboardTab();
         
         // Core testing categories
-        this.createTestGroup('System Diagnostics', [
+        this.createTestGroup('System diagnostics', [
             { id: 'test-logging', name: 'Logging', description: 'Test logging infrastructure and manage log data' },
-            { id: 'test-web-workers', name: 'Web Workers', description: 'Test web worker functionality' },
-            { id: 'test-state-management', name: 'State Management', description: 'Test plugin state handling' }
+            { id: 'test-web-workers', name: 'Web workers', description: 'Test web worker functionality' },
+            { id: 'test-state-management', name: 'State management', description: 'Test plugin state handling' }
         ]);
         
-        this.createTestGroup('Performance Testing', [
-            { id: 'performance-scraping', name: 'Scraping Performance', description: 'Test data scraping performance with various dataset sizes' },
-            { id: 'performance-memory', name: 'Memory Analysis', description: 'Memory usage and leak detection' },
-            { id: 'performance-scaling', name: 'Scaling Tests', description: 'Test performance across different data scales' }
-        ]);
-        
-        this.createTestGroup('Component Testing', [
-            { id: 'test-date-navigator', name: 'Date Navigator', description: 'Test date navigation and selection functionality' },
-            { id: 'test-worker-pool', name: 'Worker Pool', description: 'Test universal worker pool operations' },
-            { id: 'test-filter-manager', name: 'Filter Manager', description: 'Test universal filter management' },
-            { id: 'test-metrics-calculator', name: 'Metrics Calculator', description: 'Test universal metrics calculation' }
-        ]);
-        
-        this.createTestGroup('Validation & Structure', [
-            { id: 'test-journal-structure', name: 'Journal Structure', description: 'Validate journal structure and parsing' },
-            { id: 'test-data-integrity', name: 'Data Integrity', description: 'Verify data consistency and accuracy' },
-            { id: 'test-settings', name: 'Settings & Metrics Infrastructure', description: 'Test plugin settings, unified metrics, and Phase 1 infrastructure' }
+        this.createTestGroup('Performance testing', [
+            { id: 'performance-scraping', name: 'Scraping performance', description: 'Test data scraping performance with various dataset sizes' },
+            { id: 'performance-memory', name: 'Memory analysis', description: 'Memory usage and leak detection' },
+            { id: 'performance-scaling', name: 'Scaling tests', description: 'Test performance across different data scales' }
         ]);
         
         // Utilities and tools
         this.createUtilitiesTab();
+        
+        this.createTestGroup('Component testing', [
+            { id: 'test-date-navigator', name: 'Date navigator', description: 'Test date navigation and selection functionality' },
+            { id: 'test-worker-pool', name: 'Worker pool', description: 'Test universal worker pool operations' },
+            { id: 'test-filter-manager', name: 'Filter manager', description: 'Test universal filter management' },
+            { id: 'test-metrics-calculator', name: 'Metrics calculator', description: 'Test universal metrics calculation' }
+        ]);
+        
+        this.createTestGroup('Validation & structure', [
+            { id: 'test-journal-structure', name: 'Journal structure', description: 'Validate journal structure and parsing' },
+            { id: 'test-data-integrity', name: 'Data integrity', description: 'Verify data consistency and accuracy' },
+            { id: 'test-settings', name: 'Settings & metrics infrastructure', description: 'Test plugin settings, unified metrics, and Phase 1 infrastructure' }
+        ]);
         this.createHelpTab();
     }
     
@@ -153,7 +153,7 @@ export class UnifiedTestSuiteModal extends Modal {
         });
         
         dashboardTab.createDiv({ 
-            text: 'Test Dashboard', 
+            text: 'Test dashboard', 
             cls: 'unified-test-suite-tab-label' 
         });
         
@@ -170,7 +170,7 @@ export class UnifiedTestSuiteModal extends Modal {
         });
         
         utilitiesTab.createDiv({ 
-            text: 'Test Utilities', 
+            text: 'Test utilities', 
             cls: 'unified-test-suite-tab-label' 
         });
         
@@ -187,7 +187,7 @@ export class UnifiedTestSuiteModal extends Modal {
         });
         
         helpTab.createDiv({ 
-            text: 'Help & Documentation', 
+            text: 'Help & documentation', 
             cls: 'unified-test-suite-tab-label' 
         });
         
@@ -286,10 +286,7 @@ export class UnifiedTestSuiteModal extends Modal {
     private loadDashboardContent() {
         this.contentContainer.empty();
         
-        this.contentContainer.createEl('h2', { 
-            text: 'Test Suite Dashboard', 
-            cls: 'unified-test-suite-content-header' 
-        });
+
         
         this.contentContainer.createEl('p', {
             text: 'Welcome to the OneiroMetrics Test Suite. Monitor overall test status and run comprehensive test suites.',
@@ -306,7 +303,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Quick actions
         const actionsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-dashboard-actions' });
-        actionsContainer.createEl('h3', { text: 'Quick Actions' });
+        new Setting(actionsContainer).setName('Quick Actions');
         
         this.createActionButton(actionsContainer, 'Run All Performance Tests', 'zap', () => {
             this.runTestSuite('performance');
@@ -333,10 +330,6 @@ export class UnifiedTestSuiteModal extends Modal {
         this.contentContainer.empty();
         
         const testTitle = this.getTestTitle(testId);
-        this.contentContainer.createEl('h2', { 
-            text: testTitle, 
-            cls: 'unified-test-suite-content-header' 
-        });
         
         if (testId === 'performance-scraping') {
             this.loadScrapingPerformanceTest();
@@ -364,10 +357,7 @@ export class UnifiedTestSuiteModal extends Modal {
         this.contentContainer.empty();
         
         const testTitle = this.getTestTitle(testId);
-        this.contentContainer.createEl('h2', { 
-            text: testTitle, 
-            cls: 'unified-test-suite-content-header' 
-        });
+
         
         // Special handling for logging tab
         if (testId === 'test-logging') {
@@ -398,7 +388,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Test results area
         const resultsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-test-results' });
-        resultsContainer.createEl('h3', { text: 'Test Results' });
+        new Setting(resultsContainer).setName('Test Results');
         
         const resultsArea = resultsContainer.createEl('div', { cls: 'unified-test-suite-results-area' });
         resultsArea.createEl('p', { text: 'No test results yet. Click "Run Test" to begin.' });
@@ -413,7 +403,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Folder selection section
         const folderSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-folder-section' });
-        folderSection.createEl('h3', { text: 'Target Folder Configuration' });
+        new Setting(folderSection).setName('Target Folder Configuration');
         
         const folderContainer = folderSection.createDiv({ cls: 'unified-test-suite-setting-item' });
         folderContainer.createEl('label', { 
@@ -487,7 +477,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Quick test buttons
         const quickTestsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-quick-tests' });
-        quickTestsContainer.createEl('h3', { text: 'Performance Tests' });
+        new Setting(quickTestsContainer).setName('Performance Tests');
         
         const testSizes = [
             { name: 'Small (500 entries)', size: 500 },
@@ -509,7 +499,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Results display area
         const resultsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-results-container' });
-        resultsContainer.createEl('h3', { text: 'Test Results' });
+        new Setting(resultsContainer).setName('Test Results');
         
         const resultsArea = resultsContainer.createDiv({ 
             cls: 'unified-test-suite-results-area',
@@ -530,7 +520,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Memory test options
         const memoryTestsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-memory-tests' });
-        memoryTestsContainer.createEl('h3', { text: 'Memory Analysis Tests' });
+        new Setting(memoryTestsContainer).setHeading().setName('Memory analysis tests');
         
         this.createTestButton(memoryTestsContainer, 'Memory Usage Baseline', () => {
             this.runMemoryTest('baseline');
@@ -554,7 +544,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Scaling test configurations
         const scalingContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-scaling-tests' });
-        scalingContainer.createEl('h3', { text: 'Scaling Test Configurations' });
+        new Setting(scalingContainer).setHeading().setName('Scaling test configurations');
         
         this.createTestButton(scalingContainer, 'Linear Scaling Test', () => {
             this.runScalingTest('linear');
@@ -578,7 +568,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Logging settings section
         const settingsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-logging-settings' });
-        settingsContainer.createEl('h3', { text: 'Logging Settings' });
+        new Setting(settingsContainer).setName('Logging Settings');
         
         // Log level setting
         const logLevelContainer = settingsContainer.createDiv({ cls: 'unified-test-suite-setting-item' });
@@ -629,7 +619,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Logging test controls
         const testingContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-logging-testing' });
-        testingContainer.createEl('h3', { text: 'Logging System Tests' });
+        new Setting(testingContainer).setName('Logging System Tests');
         
         this.createTestButton(testingContainer, 'Test Log Levels', () => {
             this.testLogLevels();
@@ -645,7 +635,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Log management utilities
         const managementContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-log-management' });
-        managementContainer.createEl('h3', { text: 'Log Management' });
+        new Setting(managementContainer).setName('Log Management');
         
         this.createUtilityButton(managementContainer, 'Open Log Viewer', 'file-text', () => {
             this.openLogViewer();
@@ -665,7 +655,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Log statistics
         const statsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-log-stats' });
-        statsContainer.createEl('h3', { text: 'Log Statistics' });
+        new Setting(statsContainer).setName('Log Statistics');
         
         this.loadLogStatistics(statsContainer);
     }
@@ -1529,7 +1519,7 @@ ${entry.content}
     // Load recent test results
     private loadRecentTestResults() {
         const resultsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-recent-results' });
-        resultsContainer.createEl('h3', { text: 'Recent Test Results' });
+        new Setting(resultsContainer).setHeading().setName('Recent test results');
         
         if (this.testState.results.length === 0) {
             resultsContainer.createEl('p', { text: 'No test results yet. Run some tests to see results here.' });
@@ -1567,11 +1557,6 @@ ${entry.content}
     private loadUtilitiesContent() {
         this.contentContainer.empty();
         
-        this.contentContainer.createEl('h2', { 
-            text: 'Test Utilities & Tools', 
-            cls: 'unified-test-suite-content-header' 
-        });
-        
         this.contentContainer.createEl('p', {
             text: 'Utility tools for test data generation, cleanup, and analysis.',
             cls: 'unified-test-suite-content-description'
@@ -1579,7 +1564,7 @@ ${entry.content}
 
         // Test Data Generation Section
         const dataGenSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        dataGenSection.createEl('h3', { text: '📊 Test Data Generation' });
+        new Setting(dataGenSection).setHeading().setName('📊 Test data generation');
         dataGenSection.createEl('p', {
             text: 'Generate realistic dummy dream journal entries for performance testing and validation.',
             cls: 'unified-test-suite-section-description'
@@ -1622,7 +1607,7 @@ ${entry.content}
 
         // Cleanup Section
         const cleanupSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        cleanupSection.createEl('h3', { text: '🧹 Test Data Cleanup' });
+        new Setting(cleanupSection).setHeading().setName('🧹 Test data cleanup');
         cleanupSection.createEl('p', {
             text: 'Manage and clean up test data files.',
             cls: 'unified-test-suite-section-description'
@@ -1634,7 +1619,7 @@ ${entry.content}
 
         // Analysis Tools Section
         const analysisSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        analysisSection.createEl('h3', { text: '📈 Analysis Tools' });
+        new Setting(analysisSection).setHeading().setName('📈 Analysis tools');
         analysisSection.createEl('p', {
             text: 'Export and analyze test results.',
             cls: 'unified-test-suite-section-description'
@@ -1656,7 +1641,7 @@ ${entry.content}
 
         // Test File Statistics
         const statsSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        statsSection.createEl('h3', { text: '📋 Test Data Statistics' });
+        new Setting(statsSection).setHeading().setName('📋 Test data statistics');
         
         const statsContainer = statsSection.createDiv({ cls: 'unified-test-suite-stats-grid' });
         
@@ -1677,11 +1662,6 @@ ${entry.content}
     private loadHelpContent() {
         this.contentContainer.empty();
         
-        this.contentContainer.createEl('h2', { 
-            text: 'Test Suite Documentation', 
-            cls: 'unified-test-suite-content-header' 
-        });
-        
         this.contentContainer.createEl('p', {
             text: 'Documentation and help for using the test suite.',
             cls: 'unified-test-suite-content-description'
@@ -1700,7 +1680,7 @@ ${entry.content}
         
         // Phase 1 Infrastructure Tests
         const phase1Container = this.contentContainer.createDiv({ cls: 'unified-test-suite-phase1-tests' });
-        phase1Container.createEl('h3', { text: '🔧 Phase 1 - Core Metrics Infrastructure' });
+        new Setting(phase1Container).setHeading().setName('🔧 Phase 1 - Core metrics infrastructure');
         
         this.createTestButton(phase1Container, 'Test MetricsDiscoveryService', () => {
             this.runMetricsDiscoveryTest();
@@ -1724,7 +1704,7 @@ ${entry.content}
         
         // Legacy Settings Tests
         const legacyContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-legacy-tests' });
-        legacyContainer.createEl('h3', { text: '⚙️ Legacy Settings Validation' });
+        new Setting(legacyContainer).setHeading().setName('⚙️ Legacy settings validation');
         
         this.createTestButton(legacyContainer, 'Test Backward Compatibility', () => {
             this.runBackwardCompatibilityTest();
@@ -1736,7 +1716,7 @@ ${entry.content}
         
         // Comprehensive Test Suite
         const comprehensiveContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-comprehensive-tests' });
-        comprehensiveContainer.createEl('h3', { text: '🎯 Comprehensive Testing' });
+        new Setting(comprehensiveContainer).setHeading().setName('🎯 Comprehensive testing');
         
         this.createTestButton(comprehensiveContainer, 'Run All Phase 1 Tests', () => {
             this.runAllPhase1Tests();
@@ -1744,7 +1724,7 @@ ${entry.content}
         
         // Test results area
         const resultsContainer = this.contentContainer.createDiv({ cls: 'unified-test-suite-test-results' });
-        resultsContainer.createEl('h3', { text: 'Test Results' });
+        new Setting(resultsContainer).setHeading().setName('Test results');
         
         this.testResultsArea = resultsContainer.createEl('div', { 
             cls: 'unified-test-suite-results-area',

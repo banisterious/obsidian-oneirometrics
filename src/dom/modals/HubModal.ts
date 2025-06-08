@@ -243,7 +243,7 @@ export class HubModal extends Modal {
         });
 
         journalStructureTab.createDiv({ 
-            text: 'Journal Structure', 
+            text: 'Journal structure', 
             cls: 'oom-hub-tab-label' 
         });
 
@@ -260,7 +260,7 @@ export class HubModal extends Modal {
         });
         
         dreamScrapeTab.createDiv({ 
-            text: 'Dream Scrape', 
+            text: 'Dream scrape', 
             cls: 'oom-hub-tab-label' 
         });
         
@@ -277,7 +277,7 @@ export class HubModal extends Modal {
         });
         
         contentAnalysisTab.createDiv({ 
-            text: 'Content Analysis', 
+            text: 'Content analysis', 
             cls: 'oom-hub-tab-label' 
         });
         
@@ -294,7 +294,7 @@ export class HubModal extends Modal {
         });
         
         metricsSettingsTab.createDiv({ 
-            text: 'Metrics Settings', 
+            text: 'Metrics settings', 
             cls: 'oom-hub-tab-label' 
         });
         
@@ -311,7 +311,7 @@ export class HubModal extends Modal {
         });
         
         overviewTab.createDiv({ 
-            text: 'Reference Overview', 
+            text: 'Reference overview', 
             cls: 'oom-hub-tab-label' 
         });
         
@@ -524,10 +524,11 @@ The plugin does not prescribe any particular interpretation or meaning to dream 
         this.contentContainer.empty();
         
         // Metric header
-        this.contentContainer.createEl('h3', { 
-            text: `${metric.name} (Score ${metric.minValue}-${metric.maxValue})`,
-            cls: 'oom-metrics-tabs-metric-header' 
-        });
+        const headerContainer = this.contentContainer.createDiv();
+        new Setting(headerContainer)
+            .setHeading()
+            .setName(`${metric.name} (Score ${metric.minValue}-${metric.maxValue})`)
+            .setClass('oom-metrics-tabs-metric-header');
         
         // Detailed description (not helper text)
         const description = this.getDetailedDescription(metric);
@@ -1009,15 +1010,13 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-metrics-tabs-dashboard-text' 
         });
         
-        welcomeText.createEl('h2', { text: 'Dashboard' });
-        
         welcomeText.createEl('p', { 
             text: 'Welcome to Dream Metrics! Manage all aspects of your dream journal from this central hub.'
         });
         
         // Quick Actions Section
         const quickActionsSection = this.contentContainer.createDiv({ cls: 'oom-dashboard-section' });
-        quickActionsSection.createEl('h3', { text: 'Quick Actions' });
+        new Setting(quickActionsSection).setName('Quick Actions');
         
         const quickActionsGrid = quickActionsSection.createDiv({ cls: 'oom-quick-actions-grid' });
         
@@ -1067,7 +1066,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         // Recent Activity Section
         const recentActivitySection = infoGridContainer.createDiv({ cls: 'oom-dashboard-section' });
-        recentActivitySection.createEl('h3', { text: 'Recent Activity' });
+        new Setting(recentActivitySection).setName('Recent Activity');
         
         const recentActivityList = recentActivitySection.createEl('ul', { cls: 'oom-recent-activity-list' });
         
@@ -1086,7 +1085,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         
         // Status Overview Section
         const statusSection = infoGridContainer.createDiv({ cls: 'oom-dashboard-section' });
-        statusSection.createEl('h3', { text: 'Status Overview' });
+        new Setting(statusSection).setName('Status Overview');
         
         const statusList = statusSection.createEl('ul', { cls: 'oom-status-list' });
         
@@ -1136,8 +1135,6 @@ This metric assesses **how well your memory of the dream holds up and remains co
         const welcomeText = this.contentContainer.createDiv({ 
             cls: 'oom-metrics-tabs-dream-scrape-text' 
         });
-        
-        welcomeText.createEl('h2', { text: 'Dream Scrape' });
         
         welcomeText.createEl('p', { 
             text: 'Extract dream metrics from journal entries.'
@@ -1387,11 +1384,21 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-metrics-tabs-callout-settings-text' 
         });
         
-        welcomeText.createEl('h2', { text: 'Journal Structure' });
+
         
+        // First paragraph
         welcomeText.createEl('p', { 
-            text: 'Configure callout names, date formatting, and template management for OneiroMetrics. These settings control how callouts are generated and recognized throughout the plugin, and include tools for creating and managing journal templates.'
+            text: 'The settings below control how callouts are generated and recognized throughout the plugin, and include tools for creating and managing journal templates.'
         });
+        
+        // Second paragraph with link
+        const secondPara = welcomeText.createEl('p');
+        const calloutsLink = secondPara.createEl('a', {
+            text: 'Callouts',
+            href: 'https://help.obsidian.md/callouts'
+        });
+        calloutsLink.setAttribute('target', '_blank');
+        secondPara.appendText(' are used here in order to identify the journal, dream entry, and dream metrics sections for the Dream Scrape tool and other plugin features.');
 
         // Global state for all sections
         let calloutMetadata = '';
@@ -1691,7 +1698,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
         this.contentContainer.createEl('div', { cls: 'oom-section-border' });
 
         // Template Management Section
-        this.contentContainer.createEl('h3', { text: 'Template Management' });
+        new Setting(this.contentContainer).setName('Template Management');
         
         this.contentContainer.createEl('p', { 
             text: 'Create and manage journal templates using the unified template wizard. Templates define the structure and content for your journal entries.',
@@ -1897,7 +1904,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-journal-structure-header' 
         });
         
-        headerSection.createEl('h2', { text: 'Journal Structure' });
+
         
         headerSection.createEl('p', { 
             text: 'Configure journal structure settings, templates, validation rules, and interface preferences.',
@@ -2190,7 +2197,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-metrics-tabs-callout-settings-text' 
         });
         
-        welcomeText.createEl('h2', { text: 'Callout Settings' });
+        new Setting(welcomeText).setHeading().setName('Callout Settings');
         
         welcomeText.createEl('p', { 
             text: 'Configure callout names, date formatting, and template management for OneiroMetrics. These settings control how callouts are generated and recognized throughout the plugin, and include tools for creating and managing journal templates.'
@@ -4276,11 +4283,7 @@ Example:
     private loadContentAnalysisContent() {
         this.contentContainer.empty();
         
-        // Add title and description 
-        this.contentContainer.createEl('h2', { 
-            text: 'Content Analysis', 
-            cls: 'oom-hub-content-title' 
-        });
+        // Add title and description
         
         this.contentContainer.createEl('p', { 
             text: 'Analyze your content patterns, validate templates, and manage structure migrations.',
@@ -4550,11 +4553,7 @@ Example:
     private loadMetricsSettingsContent() {
         this.contentContainer.empty();
         
-        // Add title and description 
-        this.contentContainer.createEl('h2', { 
-            text: 'Metrics Settings', 
-            cls: 'oom-hub-content-title' 
-        });
+        // Add title and description
         
         this.contentContainer.createEl('p', { 
             text: 'Manage your dream metrics: view descriptions, add new metrics, enable/disable existing ones, and restore missing defaults.',
