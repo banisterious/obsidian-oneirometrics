@@ -277,6 +277,13 @@ export class UniversalWorkerPool {
       case 'WORKER_LOG':
         this.handleWorkerLog(workerId, message);
         break;
+      case 'WORKER_HEALTH_CHECK':
+        // Health checks are normal - log at trace level only
+        this.logger.trace('Message', `Health check from worker: ${workerId}`, {
+          workerId,
+          messageType: message.type
+        });
+        break;
       default:
         this.logger.debug('Message', `Unknown message type from worker: ${workerId}`, {
           workerId,

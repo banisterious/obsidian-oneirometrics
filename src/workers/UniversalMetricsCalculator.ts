@@ -399,7 +399,8 @@ export class UniversalMetricsCalculator {
      */
     public async scrapeMetrics(): Promise<void> {
         console.log('UniversalMetricsCalculator.scrapeMetrics() called');
-        this.logger?.info('Scrape', 'Starting enhanced metrics scrape process with worker pool');
+        this.logger?.info('Scrape', '🚀 ===== STARTING METRICS SCRAPING PROCESS =====');
+        this.logger?.info('Scrape', 'Using UniversalMetricsCalculator with worker pool support');
         
         // Emit started event instead of showing notice
         this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
@@ -474,8 +475,16 @@ export class UniversalMetricsCalculator {
             
             if (metricsResult.entries.length > 0) {
                 foundAnyMetrics = true;
-                for (const entry of metricsResult.entries) {
-                    this.logger?.info('Scrape', 'Processing entry:', {
+                for (let i = 0; i < metricsResult.entries.length; i++) {
+                    const entry = metricsResult.entries[i];
+                    
+                    // Progress summary every 25 entries (at info level)
+                    if (i % 25 === 0 || i === metricsResult.entries.length - 1) {
+                        this.logger?.info('Scrape', `Progress: ${i + 1}/${metricsResult.entries.length} entries processed (${Math.round((i + 1)/metricsResult.entries.length*100)}%)`);
+                    }
+                    
+                    // Detailed per-entry logging (at trace level)
+                    this.logger?.trace('Scrape', 'Processing entry:', {
                         date: entry.date,
                         title: entry.title,
                         calculatedMetricsKeys: Object.keys(entry.calculatedMetrics || {}),
@@ -498,7 +507,8 @@ export class UniversalMetricsCalculator {
                             metrics[metricName] = [];
                         }
                         metrics[metricName].push(value);
-                        this.logger?.info('Scrape', `Added metric: ${metricName} = ${value}`);
+                        // Individual metric logging (at trace level)
+                        this.logger?.trace('Scrape', `Added metric: ${metricName} = ${value}`);
                     }
                     
                     totalWords += dreamData.wordCount || 0;
@@ -544,10 +554,11 @@ export class UniversalMetricsCalculator {
                         processingTime: Math.round(processingTime)
                     }
                 ));
-                this.logger?.info('Scrape', 'Metrics processing completed', {
+                this.logger?.info('Scrape', '✅ ===== METRICS SCRAPING COMPLETED SUCCESSFULLY =====');
+                this.logger?.info('Scrape', 'Final Results Summary', {
                     entriesProcessed,
                     totalWords,
-                    processingTime,
+                    processingTime: `${Math.round(processingTime)}ms`,
                     cacheHitRate: this.getCacheHitRate(),
                     workerPoolStats: this.workerPool.getStatistics()
                 });
@@ -560,10 +571,12 @@ export class UniversalMetricsCalculator {
                         entriesFound: entriesProcessed
                     }
                 ));
+                this.logger?.info('Scrape', '⚠️ ===== METRICS SCRAPING COMPLETED - NO METRICS FOUND =====');
                 this.logger?.warn('Scrape', `No metrics found in ${entriesProcessed} entries`);
             }
 
         } catch (error) {
+            this.logger?.info('Scrape', '❌ ===== METRICS SCRAPING FAILED =====');
             this.logger?.error('Scrape', 'Error during enhanced metrics scraping', error as Error);
             // Emit error event instead of showing notice
             this.plugin.scrapeEventEmitter.emit(createScrapeEvent(
@@ -1049,6 +1062,10 @@ export class UniversalMetricsCalculator {
         const entries: MetricsEntry[] = [];
         const lines = content.split('\n');
         
+        // Parsing timeout (30 seconds)
+        const parseStartTime = performance.now();
+        const PARSE_TIMEOUT = 30000; // 30 seconds
+        
         // Stack-based parser to handle nested callouts properly
         const blockStack: any[] = [];
         const journals: any[] = [];
@@ -1075,6 +1092,30 @@ export class UniversalMetricsCalculator {
             const line = lines[idx];
             const calloutType = getCalloutType(line);
             const level = getBlockLevel(line);
+            
+            // Timeout check every 100 lines
+            if (idx % 100 === 0) {
+                const elapsedTime = performance.now() - parseStartTime;
+                if (elapsedTime > PARSE_TIMEOUT) {
+                    this.logger?.error('Parse', `Parser timeout after ${Math.round(elapsedTime)}ms on file: ${filePath}`, {
+                        processedLines: idx,
+                        totalLines: lines.length,
+                        stackDepth: blockStack.length
+                    });
+                    break; // Exit parsing loop, return what we have
+                }
+            }
+            
+            // State validation - detect corrupted parser state
+            if (blockStack.length > 100) {
+                this.logger?.error('Parse', 'Parser stack corruption detected - resetting stack', {
+                    stackDepth: blockStack.length,
+                    filePath,
+                    lineNumber: idx,
+                    currentLine: line.substring(0, 100)
+                });
+                blockStack.length = 0; // Reset stack
+            }
             
             // Debug logging for dream-diary detection
             if (line.toLowerCase().includes('dream-diary')) {
@@ -1443,8 +1484,16 @@ export class UniversalMetricsCalculator {
         const processedEntries: ProcessedMetricsEntry[] = [];
         const aggregatedMetrics: Record<string, MetricsAggregation> = {};
 
-        for (const entry of entries) {
-            this.logger?.info('SyncProcessing', `Processing entry ${entry.id}`, {
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            
+            // Progress summary every 25 entries (at info level)
+            if (i % 25 === 0 || i === entries.length - 1) {
+                this.logger?.info('SyncProcessing', `Progress: ${i + 1}/${entries.length} entries processed (${Math.round((i + 1)/entries.length*100)}%)`);
+            }
+            
+            // Detailed per-entry logging (at trace level)
+            this.logger?.trace('SyncProcessing', `Processing entry ${entry.id}`, {
                 date: entry.date,
                 title: entry.title,
                 contentLength: entry.content?.length || 0,
@@ -1464,7 +1513,7 @@ export class UniversalMetricsCalculator {
                 calculatedMetrics['Words'] = wordCount;
             }
 
-            this.logger?.info('SyncProcessing', `Final metrics for entry ${entry.id}`, {
+            this.logger?.trace('SyncProcessing', `Final metrics for entry ${entry.id}`, {
                 originalMetricsKeys: Object.keys(entry.metrics || {}),
                 finalMetricsKeys: Object.keys(calculatedMetrics),
                 finalMetricsData: calculatedMetrics,

@@ -25,7 +25,7 @@ export class LegacyLoggerAdapter {
     private constructor(app: App) {
         this.logManager = LogManager.getInstance();
         this.logManager.setApp(app);
-        this.logger = this.logManager.getLogger('Legacy');
+        this.logger = this.logManager.getLogger('OneiroMetrics');
     }
 
     /**
