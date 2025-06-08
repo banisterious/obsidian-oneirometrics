@@ -380,13 +380,27 @@ export class EnhancedDateNavigatorModal extends Modal {
 
         toggleInput.checked = this.state.viewMode === 'quarter';
 
-        toggleSwitch.addEventListener('click', () => {
-            toggleInput.checked = !toggleInput.checked;
-            this.state.viewMode = toggleInput.checked ? 'quarter' : 'month';
+        // Make the entire toggle area clickable (not just the checkbox)
+        quarterToggle.addEventListener('click', () => {
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'Quarter toggle clicked', {
+                currentViewMode: this.state.viewMode,
+                checkboxStateBefore: toggleInput.checked
+            });
+            
+            // Toggle the view mode directly rather than relying on checkbox state
+            this.state.viewMode = this.state.viewMode === 'month' ? 'quarter' : 'month';
+            toggleInput.checked = this.state.viewMode === 'quarter';
+            
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'View mode toggled', {
+                newViewMode: this.state.viewMode,
+                checkboxStateAfter: toggleInput.checked
+            });
             
             if (this.state.viewMode === 'quarter') {
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to quarter view');
                 this.updateQuarterView();
             } else {
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to month view');
                 this.updateCalendar();
             }
             
@@ -402,17 +416,35 @@ export class EnhancedDateNavigatorModal extends Modal {
 
     private updateQuarterView(): void {
         // Quarter view implementation - shows 3 months at once
-        if (this.isUpdating) return;
+        this.plugin.logger?.trace('EnhancedDateNavigator', 'updateQuarterView() called', {
+            isUpdating: this.isUpdating,
+            currentDate: this.state.currentDate.toISOString()
+        });
+        
+        if (this.isUpdating) {
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'Skipping quarter view update - already updating');
+            return;
+        }
         this.isUpdating = true;
 
         try {
             const existingDaysGrid = this.calendarSection.querySelector('.calendar-days-grid');
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'DOM cleanup for quarter view', {
+                existingDaysGrid: !!existingDaysGrid
+            });
+            
             if (existingDaysGrid) {
                 existingDaysGrid.remove();
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Removed existing calendar days grid');
             }
 
             const calendarGrid = this.calendarSection.querySelector('.calendar-grid');
-            if (!calendarGrid) return;
+            if (!calendarGrid) {
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Calendar grid not found - aborting quarter view update');
+                return;
+            }
+            
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'Building quarter view grid');
 
             const quarterGrid = calendarGrid.createDiv({ cls: 'calendar-days-grid quarter-view' });
             

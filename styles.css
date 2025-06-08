@@ -5289,7 +5289,8 @@ h2.oom-metrics-tabs-label {
    TABLE CONTAINERS - Theme Integrated & Modernized
    ============================================================================= */
 
-.markdown-preview-view.markdown-rendered.oom-project-note-view .inline-title {
+.markdown-preview-view.markdown-rendered.oom-project-note-view .inline-title,
+.markdown-preview-view:has(.oneirometrics-title) .inline-title {
     display: none;
 }
 
@@ -18294,4 +18295,208 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     gap: 1.5px; /* Small reduction from 2px */
     max-width: none;
     width:100%;
+}
+
+/* Quarter View Layout */
+.oomp-enhanced-date-navigator-modal .quarter-view {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 8px;
+    width: 100%;
+}
+
+/* Individual Month Containers in Quarter View */
+.oomp-enhanced-date-navigator-modal .oomp-quarter-month {
+    display: flex;
+    flex-direction: column;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 8px;
+    min-width: 0; /* Prevent overflow */
+}
+
+/* Quarter Month Headers */
+.oomp-enhanced-date-navigator-modal .oomp-quarter-month-header {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-normal);
+    margin-bottom: 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Compact Month Grid */
+.oomp-enhanced-date-navigator-modal .oomp-compact-month-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Compact Header Row (Weekdays) */
+.oomp-enhanced-date-navigator-modal .oomp-compact-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    margin-bottom: 2px;
+}
+
+/* Compact Weekday Headers */
+.oomp-enhanced-date-navigator-modal .oomp-compact-weekday {
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2px;
+    min-height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Compact Days Container */
+.oomp-enhanced-date-navigator-modal .oomp-compact-days-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+}
+
+/* Compact Day Cells */
+.oomp-enhanced-date-navigator-modal .oomp-compact-day {
+    position: relative;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background-color 0.15s ease;
+    background: var(--background-primary);
+}
+
+.oomp-enhanced-date-navigator-modal .oomp-compact-day:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oomp-enhanced-date-navigator-modal .oomp-compact-day.today {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.oomp-enhanced-date-navigator-modal .oomp-compact-day.other-month {
+    opacity: 0.4;
+}
+
+/* Compact Day Numbers */
+.oomp-enhanced-date-navigator-modal .oomp-compact-day-number {
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1;
+    z-index: 1;
+}
+
+/* Compact Dream Indicators */
+.oomp-enhanced-date-navigator-modal .oomp-compact-dream-indicator {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    font-size: 6px;
+    color: var(--color-green);
+    line-height: 1;
+    z-index: 2;
+}
+
+/* Quarter View Responsive Design */
+@media (max-width: 768px) {
+    .oomp-enhanced-date-navigator-modal .quarter-view {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-quarter-month {
+        padding: 6px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day {
+        min-height: 24px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day-number {
+        font-size: 11px;
+    }
+}
+
+/* Quarter Toggle Enhancement - Visual Feedback */
+.oomp-enhanced-date-navigator-modal .quarter-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none; /* Prevent text selection when clicking */
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:hover {
+    border-color: var(--background-modifier-border-hover);
+    background: var(--background-modifier-hover);
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:active {
+    transform: translateY(1px);
+    background: var(--background-modifier-active);
+}
+
+/* Make checkbox non-interactive since the parent handles clicks */
+.oomp-enhanced-date-navigator-modal .toggle-switch input[type="checkbox"] {
+    height: 14px;
+    width: 14px;
+    margin: 0;
+    pointer-events: none; /* Disable direct checkbox interaction */
+    accent-color: var(--interactive-accent);
+}
+
+/* Make label non-interactive and improve styling */
+.oomp-enhanced-date-navigator-modal .toggle-label {
+    pointer-events: none; /* Disable direct label interaction */
+    user-select: none;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+/* Visual feedback when toggle is active */
+.oomp-enhanced-date-navigator-modal .quarter-toggle:has(input:checked) {
+    border-color: var(--interactive-accent);
+    background: var(--interactive-accent-hover);
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:has(input:checked) .toggle-label {
+    font-weight: 600;
+    color: var(--text-on-accent);
+}
+
+/* Dark Mode Adjustments */
+.theme-dark .oomp-enhanced-date-navigator-modal .oomp-quarter-month {
+    background: var(--background-primary-alt);
+}
+
+.theme-dark .oomp-enhanced-date-navigator-modal .oomp-compact-day {
+    background: var(--background-secondary);
+}
+
+.theme-dark .oomp-enhanced-date-navigator-modal .oomp-compact-dream-indicator {
+    color: var(--color-green-rgb);
 }
