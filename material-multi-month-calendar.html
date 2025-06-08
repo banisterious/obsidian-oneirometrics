@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneiroMetrics - Material Design Multi-Month Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Material Design 3 Color Tokens */
+        :root {
+            /* Surface Colors */
+            --md-sys-color-surface: #fffbfe;
+            --md-sys-color-surface-variant: #f0edf1;
+            --md-sys-color-surface-container: #f4f0f4;
+            --md-sys-color-surface-container-high: #ebe8ec;
+            --md-sys-color-surface-container-highest: #e5e2e6;
+            
+            /* Primary Colors */
+            --md-sys-color-primary: #6750a4;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #e9ddff;
+            --md-sys-color-on-primary-container: #22005d;
+            
+            /* Secondary Colors */
+            --md-sys-color-secondary: #625b71;
+            --md-sys-color-on-secondary: #ffffff;
+            --md-sys-color-secondary-container: #e8def8;
+            --md-sys-color-on-secondary-container: #1e182b;
+            
+            /* Text Colors */
+            --md-sys-color-on-surface: #1c1b1f;
+            --md-sys-color-on-surface-variant: #49454f;
+            --md-sys-color-outline: #79747e;
+            --md-sys-color-outline-variant: #cac4d0;
+            
+            /* State Colors */
+            --md-sys-color-error: #ba1a1a;
+            --md-sys-color-error-container: #ffdad6;
+            
+            /* OneiroMetrics Custom */
+            --oom-dream-indicator: var(--md-sys-color-primary);
+            --oom-quality-high: #2e7d32;
+            --oom-quality-medium: #f57c00;
+            --oom-quality-low: var(--md-sys-color-error);
+            
+            /* Elevation Shadows (Material Design) */
+            --md-sys-elevation-2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+            --md-sys-elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+            --md-sys-elevation-4: 0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --md-sys-color-surface: #141218;
+            --md-sys-color-surface-variant: #29272c;
+            --md-sys-color-surface-container: #211f26;
+            --md-sys-color-surface-container-high: #2b2930;
+            --md-sys-color-surface-container-highest: #36343b;
+            
+            --md-sys-color-primary: #cfbcff;
+            --md-sys-color-on-primary: #381e72;
+            --md-sys-color-primary-container: #4f378b;
+            --md-sys-color-on-primary-container: #e9ddff;
+            
+            --md-sys-color-secondary: #ccc2dc;
+            --md-sys-color-on-secondary: #332d41;
+            --md-sys-color-secondary-container: #4a4458;
+            --md-sys-color-on-secondary-container: #e8def8;
+            
+            --md-sys-color-on-surface: #e6e0e9;
+            --md-sys-color-on-surface-variant: #cac4d0;
+            --md-sys-color-outline: #938f99;
+            --md-sys-color-outline-variant: #49454f;
+            
+            --md-sys-color-error: #ffb4ab;
+            --md-sys-color-error-container: #93000a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* Material Dialog Container */
+        .md-dialog-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.32);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 1000;
+        }
+
+        .md-dialog {
+            background: var(--md-sys-color-surface-container-high);
+            border-radius: 28px;
+            box-shadow: var(--md-sys-elevation-3);
+            max-width: 1200px;
+            max-height: 90vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Dialog Header */
+        .md-dialog-header {
+            padding: 24px 24px 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .md-dialog-title {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+            letter-spacing: 0;
+        }
+
+        .md-icon-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+            border: none;
+            background: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            transition: background-color 0.2s ease;
+        }
+
+        .md-icon-button:hover {
+            background: rgba(103, 80, 164, 0.08);
+        }
+
+        /* Navigation Section */
+        .md-navigation {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--md-sys-color-surface-variant);
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .md-nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .md-year-display {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--md-sys-color-primary);
+            letter-spacing: 0.1px;
+        }
+
+        .md-button {
+            height: 40px;
+            padding: 0 16px;
+            border-radius: 20px;
+            border: 1px solid var(--md-sys-color-outline);
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .md-button:hover {
+            background: var(--md-sys-color-secondary-container);
+            border-color: var(--md-sys-color-outline-variant);
+        }
+
+        .md-button.filled {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border-color: var(--md-sys-color-primary);
+        }
+
+        .md-button.filled:hover {
+            background: var(--md-sys-color-primary);
+            box-shadow: var(--md-sys-elevation-2);
+        }
+
+        /* View Toggle Chips */
+        .md-chip-set {
+            display: flex;
+            gap: 8px;
+        }
+
+        .md-chip {
+            height: 32px;
+            padding: 0 16px;
+            border-radius: 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .md-chip:hover {
+            background: var(--md-sys-color-secondary-container);
+        }
+
+        .md-chip.selected {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            border-color: var(--md-sys-color-secondary);
+        }
+
+        /* Dialog Content */
+        .md-dialog-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Multi-Month Grid */
+        .md-multi-month-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            min-height: 400px;
+        }
+
+        /* Material Calendar Card */
+        .md-calendar-card {
+            background: var(--md-sys-color-surface);
+            border-radius: 16px;
+            box-shadow: var(--md-sys-elevation-2);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .md-calendar-card:hover {
+            box-shadow: var(--md-sys-elevation-3);
+        }
+
+        .md-calendar-header {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            letter-spacing: 0.1px;
+        }
+
+        .md-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .md-day-header {
+            padding: 12px 4px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+            background: var(--md-sys-color-surface-variant);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .md-day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            cursor: pointer;
+            position: relative;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            background: var(--md-sys-color-surface);
+        }
+
+        .md-day-cell:hover {
+            background: var(--md-sys-color-secondary-container);
+        }
+
+        .md-day-cell.other-month {
+            color: var(--md-sys-color-outline);
+            opacity: 0.6;
+        }
+
+        .md-day-cell.today {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            font-weight: 500;
+        }
+
+        .md-day-cell.selected {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            border-color: var(--md-sys-color-secondary);
+            font-weight: 500;
+        }
+
+        .md-day-cell.has-dreams {
+            background: rgba(103, 80, 164, 0.08);
+        }
+
+        .md-day-cell.has-dreams.selected {
+            background: var(--md-sys-color-secondary-container);
+        }
+
+        /* Dream Indicators */
+        .md-dream-indicators {
+            display: flex;
+            gap: 2px;
+            margin-top: 2px;
+            align-items: center;
+        }
+
+        .md-dream-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--oom-dream-indicator);
+        }
+
+        .md-quality-star {
+            font-size: 8px;
+            line-height: 1;
+        }
+
+        .md-quality-high { color: var(--oom-quality-high); }
+        .md-quality-medium { color: var(--oom-quality-medium); }
+        .md-quality-low { color: var(--oom-quality-low); }
+
+        /* Dialog Actions */
+        .md-dialog-actions {
+            padding: 16px 24px 24px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+            background: var(--md-sys-color-surface-container-high);
+        }
+
+        .md-selection-info {
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .md-selection-count {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .md-action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .md-text-button {
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 20px;
+            border: none;
+            background: none;
+            color: var(--md-sys-color-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .md-text-button:hover {
+            background: rgba(103, 80, 164, 0.08);
+        }
+
+        .md-filled-button {
+            height: 40px;
+            padding: 0 24px;
+            border-radius: 20px;
+            border: none;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .md-filled-button:hover {
+            box-shadow: var(--md-sys-elevation-2);
+        }
+
+        /* Floating Action Button */
+        .md-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            border: none;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            box-shadow: var(--md-sys-elevation-3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+
+        .md-fab:hover {
+            box-shadow: var(--md-sys-elevation-4);
+        }
+
+        .md-fab .material-icons {
+            font-size: 24px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1002;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .md-dialog {
+                margin: 16px;
+                border-radius: 16px;
+            }
+            
+            .md-multi-month-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .md-navigation {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+            
+            .md-nav-controls {
+                justify-content: center;
+            }
+            
+            .md-chip-set {
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .md-multi-month-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Accessibility */
+        .md-day-cell:focus {
+            outline: 2px solid var(--md-sys-color-primary);
+            outline-offset: -2px;
+        }
+
+        .md-button:focus,
+        .md-icon-button:focus,
+        .md-chip:focus {
+            outline: 2px solid var(--md-sys-color-primary);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="md-button theme-toggle" onclick="toggleTheme()">
+        <span class="material-icons">dark_mode</span>
+        Toggle Theme
+    </button>
+
+    <div class="md-dialog-container">
+        <div class="md-dialog">
+            <div class="md-dialog-header">
+                <h1 class="md-dialog-title">Select dates - OneiroMetrics</h1>
+                <button class="md-icon-button" onclick="closeDialog()" aria-label="Close">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div class="md-navigation">
+                <div class="md-nav-controls">
+                    <button class="md-button">
+                        <span class="material-icons">chevron_left</span>
+                        Previous
+                    </button>
+                    <div class="md-year-display">2025</div>
+                    <button class="md-button">
+                        Next
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+                
+                <div class="md-chip-set">
+                    <button class="md-chip">1 Month</button>
+                    <button class="md-chip selected">3 Months</button>
+                    <button class="md-chip">Year View</button>
+                </div>
+            </div>
+
+            <div class="md-dialog-content">
+                <div class="md-multi-month-grid">
+                    <!-- January 2025 -->
+                    <div class="md-calendar-card">
+                        <div class="md-calendar-header">January 2025</div>
+                        <div class="md-calendar-grid">
+                            <div class="md-day-header">Sun</div>
+                            <div class="md-day-header">Mon</div>
+                            <div class="md-day-header">Tue</div>
+                            <div class="md-day-header">Wed</div>
+                            <div class="md-day-header">Thu</div>
+                            <div class="md-day-header">Fri</div>
+                            <div class="md-day-header">Sat</div>
+                            
+                            <div class="md-day-cell other-month">29</div>
+                            <div class="md-day-cell other-month">30</div>
+                            <div class="md-day-cell other-month">31</div>
+                            <div class="md-day-cell">1</div>
+                            <div class="md-day-cell has-dreams" onclick="selectDay(this)" tabindex="0">
+                                2
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-high">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">3</div>
+                            <div class="md-day-cell">4</div>
+                            
+                            <div class="md-day-cell">5</div>
+                            <div class="md-day-cell">6</div>
+                            <div class="md-day-cell today">7</div>
+                            <div class="md-day-cell has-dreams selected" onclick="selectDay(this)" tabindex="0">
+                                8
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-medium">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">9</div>
+                            <div class="md-day-cell has-dreams" onclick="selectDay(this)" tabindex="0">
+                                10
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">11</div>
+                            
+                            <div class="md-day-cell">12</div>
+                            <div class="md-day-cell">13</div>
+                            <div class="md-day-cell">14</div>
+                            <div class="md-day-cell has-dreams selected" onclick="selectDay(this)" tabindex="0">
+                                15
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-high">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">16</div>
+                            <div class="md-day-cell">17</div>
+                            <div class="md-day-cell">18</div>
+                            
+                            <div class="md-day-cell">19</div>
+                            <div class="md-day-cell">20</div>
+                            <div class="md-day-cell">21</div>
+                            <div class="md-day-cell">22</div>
+                            <div class="md-day-cell has-dreams" onclick="selectDay(this)" tabindex="0">
+                                23
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-low">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">24</div>
+                            <div class="md-day-cell">25</div>
+                            
+                            <div class="md-day-cell">26</div>
+                            <div class="md-day-cell">27</div>
+                            <div class="md-day-cell">28</div>
+                            <div class="md-day-cell">29</div>
+                            <div class="md-day-cell">30</div>
+                            <div class="md-day-cell">31</div>
+                            <div class="md-day-cell other-month">1</div>
+                        </div>
+                    </div>
+
+                    <!-- February 2025 -->
+                    <div class="md-calendar-card">
+                        <div class="md-calendar-header">February 2025</div>
+                        <div class="md-calendar-grid">
+                            <div class="md-day-header">Sun</div>
+                            <div class="md-day-header">Mon</div>
+                            <div class="md-day-header">Tue</div>
+                            <div class="md-day-header">Wed</div>
+                            <div class="md-day-header">Thu</div>
+                            <div class="md-day-header">Fri</div>
+                            <div class="md-day-header">Sat</div>
+                            
+                            <div class="md-day-cell other-month">26</div>
+                            <div class="md-day-cell other-month">27</div>
+                            <div class="md-day-cell other-month">28</div>
+                            <div class="md-day-cell other-month">29</div>
+                            <div class="md-day-cell other-month">30</div>
+                            <div class="md-day-cell other-month">31</div>
+                            <div class="md-day-cell">1</div>
+                            
+                            <div class="md-day-cell">2</div>
+                            <div class="md-day-cell has-dreams" onclick="selectDay(this)" tabindex="0">
+                                3
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-high">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">4</div>
+                            <div class="md-day-cell">5</div>
+                            <div class="md-day-cell">6</div>
+                            <div class="md-day-cell">7</div>
+                            <div class="md-day-cell">8</div>
+                            
+                            <div class="md-day-cell">9</div>
+                            <div class="md-day-cell">10</div>
+                            <div class="md-day-cell">11</div>
+                            <div class="md-day-cell has-dreams selected" onclick="selectDay(this)" tabindex="0">
+                                12
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-medium">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">13</div>
+                            <div class="md-day-cell">14</div>
+                            <div class="md-day-cell has-dreams" onclick="selectDay(this)" tabindex="0">
+                                15
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-high">★</div>
+                                </div>
+                            </div>
+                            
+                            <div class="md-day-cell">16</div>
+                            <div class="md-day-cell">17</div>
+                            <div class="md-day-cell">18</div>
+                            <div class="md-day-cell">19</div>
+                            <div class="md-day-cell">20</div>
+                            <div class="md-day-cell">21</div>
+                            <div class="md-day-cell">22</div>
+                            
+                            <div class="md-day-cell">23</div>
+                            <div class="md-day-cell">24</div>
+                            <div class="md-day-cell">25</div>
+                            <div class="md-day-cell">26</div>
+                            <div class="md-day-cell">27</div>
+                            <div class="md-day-cell">28</div>
+                            <div class="md-day-cell other-month">1</div>
+                        </div>
+                    </div>
+
+                    <!-- March 2025 -->
+                    <div class="md-calendar-card">
+                        <div class="md-calendar-header">March 2025</div>
+                        <div class="md-calendar-grid">
+                            <div class="md-day-header">Sun</div>
+                            <div class="md-day-header">Mon</div>
+                            <div class="md-day-header">Tue</div>
+                            <div class="md-day-header">Wed</div>
+                            <div class="md-day-header">Thu</div>
+                            <div class="md-day-header">Fri</div>
+                            <div class="md-day-header">Sat</div>
+                            
+                            <div class="md-day-cell other-month">23</div>
+                            <div class="md-day-cell other-month">24</div>
+                            <div class="md-day-cell other-month">25</div>
+                            <div class="md-day-cell other-month">26</div>
+                            <div class="md-day-cell other-month">27</div>
+                            <div class="md-day-cell other-month">28</div>
+                            <div class="md-day-cell">1</div>
+                            
+                            <div class="md-day-cell">2</div>
+                            <div class="md-day-cell has-dreams" onclick="selectDay(this)" tabindex="0">
+                                3
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-medium">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">4</div>
+                            <div class="md-day-cell">5</div>
+                            <div class="md-day-cell">6</div>
+                            <div class="md-day-cell">7</div>
+                            <div class="md-day-cell">8</div>
+                            
+                            <div class="md-day-cell">9</div>
+                            <div class="md-day-cell">10</div>
+                            <div class="md-day-cell">11</div>
+                            <div class="md-day-cell">12</div>
+                            <div class="md-day-cell">13</div>
+                            <div class="md-day-cell">14</div>
+                            <div class="md-day-cell">15</div>
+                            
+                            <div class="md-day-cell">16</div>
+                            <div class="md-day-cell">17</div>
+                            <div class="md-day-cell">18</div>
+                            <div class="md-day-cell">19</div>
+                            <div class="md-day-cell has-dreams selected" onclick="selectDay(this)" tabindex="0">
+                                20
+                                <div class="md-dream-indicators">
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-dream-dot"></div>
+                                    <div class="md-quality-star md-quality-high">★</div>
+                                </div>
+                            </div>
+                            <div class="md-day-cell">21</div>
+                            <div class="md-day-cell">22</div>
+                            
+                            <div class="md-day-cell">23</div>
+                            <div class="md-day-cell">24</div>
+                            <div class="md-day-cell">25</div>
+                            <div class="md-day-cell">26</div>
+                            <div class="md-day-cell">27</div>
+                            <div class="md-day-cell">28</div>
+                            <div class="md-day-cell">29</div>
+                            
+                            <div class="md-day-cell">30</div>
+                            <div class="md-day-cell">31</div>
+                            <div class="md-day-cell other-month">1</div>
+                            <div class="md-day-cell other-month">2</div>
+                            <div class="md-day-cell other-month">3</div>
+                            <div class="md-day-cell other-month">4</div>
+                            <div class="md-day-cell other-month">5</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md-dialog-actions">
+                <div class="md-selection-info">
+                    <span class="material-icons" style="font-size: 16px;">event</span>
+                    <span class="md-selection-count">4 dates</span>
+                    selected across 3 months
+                </div>
+                
+                <div class="md-action-buttons">
+                    <button class="md-text-button">Clear</button>
+                    <button class="md-text-button">Save Pattern</button>
+                    <button class="md-filled-button">Apply Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Material FAB for "Today" -->
+    <button class="md-fab" onclick="goToToday()" aria-label="Go to today">
+        <span class="material-icons">today</span>
+    </button>
+
+    <script>
+        function toggleTheme() {
+            document.body.toggleAttribute('data-theme');
+            const isDark = document.body.hasAttribute('data-theme');
+            const toggle = document.querySelector('.theme-toggle');
+            const icon = toggle.querySelector('.material-icons');
+            icon.textContent = isDark ? 'light_mode' : 'dark_mode';
+            toggle.lastChild.textContent = isDark ? ' Light Theme' : ' Toggle Theme';
+        }
+
+        function selectDay(dayElement) {
+            dayElement.classList.toggle('selected');
+            updateSelectionCount();
+        }
+
+        function updateSelectionCount() {
+            const selectedDays = document.querySelectorAll('.md-day-cell.selected').length;
+            document.querySelector('.md-selection-count').textContent = `${selectedDays} dates`;
+        }
+
+        function closeDialog() {
+            console.log('Dialog would close');
+        }
+
+        function goToToday() {
+            console.log('Navigate to today');
+        }
+
+        // Initialize selection count
+        updateSelectionCount();
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDialog();
+            }
+        });
+
+        // Focus management for accessibility
+        document.querySelectorAll('.md-day-cell[tabindex="0"]').forEach(cell => {
+            cell.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectDay(cell);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

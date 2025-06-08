@@ -1155,42 +1155,264 @@ ${entry.content}
 
     // Missing logging test methods
     private testLogLevels(): void {
-        new Notice('Testing log levels');
-        // Placeholder implementation
+        new Notice('Testing log levels...');
+        
+        // Test each log level to see if it's working properly
+        const logger = this.plugin.logger;
+        if (!logger) {
+            new Notice('Logger not available');
+            return;
+        }
+        
+        // Test different log levels
+        logger.error('LogLevelTest', 'ERROR level test message', { testType: 'logLevel' });
+        logger.warn('LogLevelTest', 'WARN level test message', { testType: 'logLevel' });
+        logger.info('LogLevelTest', 'INFO level test message', { testType: 'logLevel' });
+        logger.debug('LogLevelTest', 'DEBUG level test message', { testType: 'logLevel' });
+        logger.trace('LogLevelTest', 'TRACE level test message', { testType: 'logLevel' });
+        
+        new Notice('Log level test completed - check log viewer to see results');
     }
 
     private testMemoryAdapter(): void {
-        new Notice('Testing memory adapter');
-        // Placeholder implementation
+        new Notice('Testing memory adapter...');
+        
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available');
+            return;
+        }
+        
+        // Test basic memory adapter functionality
+        const testEntry = {
+            timestamp: new Date(),
+            level: 'info' as any,
+            category: 'MemoryAdapterTest',
+            message: 'Test message for memory adapter',
+            data: { testType: 'memoryAdapter', userId: 'test-user' }
+        };
+        
+        memoryAdapter.log(testEntry);
+        
+        // Check if entry was stored
+        const entries = memoryAdapter.getEntries();
+        const found = entries.some(entry => 
+            entry.category === 'MemoryAdapterTest' && 
+            entry.message === 'Test message for memory adapter'
+        );
+        
+        if (found) {
+            new Notice('Memory adapter test passed - entry stored successfully');
+        } else {
+            new Notice('Memory adapter test failed - entry not found');
+        }
     }
 
     private testLogPersistence(): void {
-        new Notice('Testing log persistence');
-        // Placeholder implementation
+        new Notice('Testing log persistence...');
+        
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available');
+            return;
+        }
+        
+        // Add a test log entry
+        const testEntry = {
+            timestamp: new Date(),
+            level: 'info' as any,
+            category: 'PersistenceTest',
+            message: 'Log persistence test entry',
+            data: { persistenceTest: true, timestamp: Date.now() }
+        };
+        
+        memoryAdapter.log(testEntry);
+        
+        // Test that entries persist
+        setTimeout(() => {
+            const entries = memoryAdapter.getEntries();
+            const found = entries.some(entry => 
+                entry.category === 'PersistenceTest' && 
+                entry.data?.persistenceTest === true
+            );
+            
+            if (found) {
+                new Notice('Log persistence test passed');
+            } else {
+                new Notice('Log persistence test failed');
+            }
+        }, 100);
     }
 
     private openLogViewer(): void {
-        new Notice('Opening log viewer');
-        // Placeholder implementation
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available - cannot open log viewer');
+            return;
+        }
+        
+        // Import and open LogViewerModal
+        import('../../logging/ui/LogViewerModal').then(({ LogViewerModal }) => {
+            new LogViewerModal(this.app, memoryAdapter).open();
+        }).catch(error => {
+            new Notice('Failed to open log viewer');
+            console.error('Error opening log viewer:', error);
+        });
     }
 
     private exportLogsToFile(): void {
-        new Notice('Exporting logs to file');
-        // Placeholder implementation
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available');
+            return;
+        }
+        
+        const entries = memoryAdapter.getEntries();
+        if (entries.length === 0) {
+            new Notice('No logs to export');
+            return;
+        }
+        
+        // Format logs as JSON
+        const exportData = {
+            exportedAt: new Date().toISOString(),
+            totalEntries: entries.length,
+            entries: entries.map(entry => ({
+                timestamp: entry.timestamp.toISOString(),
+                level: entry.level,
+                category: entry.category,
+                message: entry.message,
+                data: entry.data
+            }))
+        };
+        
+        // Create downloadable file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `oneirometrics-logs-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        new Notice(`Exported ${entries.length} log entries to file`);
     }
 
     private copyRecentLogsToClipboard(): void {
-        new Notice('Copying recent logs to clipboard');
-        // Placeholder implementation
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available');
+            return;
+        }
+        
+        const entries = memoryAdapter.getEntries().slice(0, 50); // Get most recent 50 logs
+        if (entries.length === 0) {
+            new Notice('No logs to copy');
+            return;
+        }
+        
+        // Format logs as readable text
+        const logText = entries.map(entry => {
+            const timestamp = entry.timestamp.toISOString().replace('T', ' ').split('.')[0];
+            const data = entry.data ? ` | ${JSON.stringify(entry.data)}` : '';
+            return `[${timestamp}] ${entry.level.toUpperCase()} ${entry.category}: ${entry.message}${data}`;
+        }).join('\n');
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(logText).then(() => {
+            new Notice(`Copied ${entries.length} recent log entries to clipboard`);
+        }).catch(error => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = logText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            new Notice(`Copied ${entries.length} recent log entries to clipboard`);
+        });
     }
 
     private clearLogs(): void {
-        new Notice('Clearing logs');
-        // Placeholder implementation
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available');
+            return;
+        }
+        
+        const entryCount = memoryAdapter.getEntries().length;
+        memoryAdapter.clear();
+        new Notice(`Cleared ${entryCount} log entries`);
     }
 
     private loadLogStatistics(container: HTMLElement): void {
-        container.createEl('p', { text: 'Log statistics will be displayed here' });
+        const memoryAdapter = this.plugin.logger?.memoryAdapter;
+        if (!memoryAdapter) {
+            container.createEl('p', { text: 'Memory adapter not available - cannot load log statistics' });
+            return;
+        }
+        
+        const entries = memoryAdapter.getEntries();
+        const totalEntries = entries.length;
+        
+        if (totalEntries === 0) {
+            container.createEl('p', { text: 'No log entries found' });
+            return;
+        }
+        
+        // Calculate statistics
+        const levels = entries.reduce((acc, entry) => {
+            acc[entry.level] = (acc[entry.level] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        
+        const categories = entries.reduce((acc, entry) => {
+            acc[entry.category] = (acc[entry.category] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        
+        const oldestEntry = entries[entries.length - 1]?.timestamp;
+        const newestEntry = entries[0]?.timestamp;
+        
+        // Create statistics display
+        const statsGrid = container.createDiv({ cls: 'unified-test-suite-stats-grid' });
+        
+        // Total entries
+        this.createStatWidget(statsGrid, 'Total Entries', totalEntries.toString());
+        
+        // Time range
+        if (oldestEntry && newestEntry) {
+            const timeSpanMs = Math.abs(newestEntry.valueOf() - oldestEntry.valueOf());
+            const timeSpanText = timeSpanMs > 86400000 ? 
+                `${Math.round(timeSpanMs / 86400000)} days` : 
+                `${Math.round(timeSpanMs / 3600000)} hours`;
+            this.createStatWidget(statsGrid, 'Time Span', timeSpanText);
+        }
+        
+        // Log levels breakdown
+        const levelsContainer = container.createDiv({ cls: 'unified-test-suite-log-levels' });
+        levelsContainer.createEl('h4', { text: 'Log Levels' });
+        const levelsList = levelsContainer.createEl('ul');
+        Object.entries(levels).forEach(([level, count]) => {
+            const li = levelsList.createEl('li');
+            li.createEl('span', { text: level.toUpperCase(), cls: `unified-test-suite-log-level-${level}` });
+            li.createEl('span', { text: `: ${count}` });
+        });
+        
+        // Top categories
+        const categoriesContainer = container.createDiv({ cls: 'unified-test-suite-log-categories' });
+        categoriesContainer.createEl('h4', { text: 'Top Categories' });
+        const categoriesList = categoriesContainer.createEl('ul');
+        Object.entries(categories)
+            .sort(([,a], [,b]) => (b as number) - (a as number))
+            .slice(0, 10)
+            .forEach(([category, count]) => {
+                const li = categoriesList.createEl('li');
+                li.createEl('span', { text: category });
+                li.createEl('span', { text: `: ${count}` });
+            });
     }
 
     // Missing utility methods
