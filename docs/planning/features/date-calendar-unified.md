@@ -137,15 +137,69 @@
 ### **1. Enhanced Single-Month Navigation (0% Complete)**
 
 #### **🎯 High-Impact Navigation Improvements**
-Focus on making the existing single-month calendar more powerful and efficient.
+Focus on making the existing single-month calendar more powerful and efficient based on the `enhanced-single-month-mockup.html` design.
 
-#### **📋 Planned Features:**
+#### **📋 Core Enhancement Features:**
+
+##### **1. Enhanced Navigation Section**
+- **Year Picker**: Dropdown showing years with dream entry indicators (dots for years with entries)
+- **Month Jump Menu**: Quick dropdown for month selection with entry indicators
 - **Quarter View Toggle**: Switch between month/quarter view within existing calendar
-- **Year Picker**: Quick jump to any year with visual entry indicators
-- **Smart Month Navigation**: Enhanced previous/next with keyboard shortcuts
-- **Month Jump Menu**: Dropdown or modal for quick month selection
-- **"Go to Date" Function**: Direct date input for precise navigation
-- **Navigation Memory**: Remember and return to previously viewed dates
+- **Go to Date**: Direct date input field with "Go" button for precise navigation
+- **Navigation Memory**: Recent dates as removable chips for quick access
+
+##### **2. Pattern Visualization Improvements**
+- **Enhanced Dream Indicators**: Different shapes for dream types:
+  - Regular dreams: Square indicators
+  - Lucid dreams: Circle indicators  
+  - Nightmares: Triangle indicators
+  - Vivid dreams: Diamond/rotated square indicators
+- **Quality Gradient Overlays**: Visual intensity based on dream quality scores (high/medium/low)
+- **Multiple Indicators**: Support showing multiple dreams per day with different indicators
+- **Color Coding**: Consistent color scheme matching dream types and quality levels
+
+##### **3. Keyboard Shortcuts System**
+- `←→` Navigate months
+- `↑↓` Navigate years  
+- `T` Today
+- `G` Go to date
+- `Q` Quarter view toggle
+- `Ctrl+M` Month jump menu
+- Full keyboard navigation with proper focus management
+
+##### **4. Modern UI Design Integration**
+- Material Design 3 styling with proper Obsidian theming compatibility
+- Improved responsive layout for mobile and desktop
+- Better visual hierarchy and accessibility compliance
+- Enhanced hover states and interactive feedback
+
+#### **🚀 Implementation Plan:**
+
+##### **Phase 1: Enhanced Navigation Components (Week 1-2)**
+- Add year picker dropdown with dream entry indicators
+- Implement month jump menu with visual feedback
+- Add "Go to Date" input field with validation and navigation
+- Create navigation memory system with persistent storage
+- Update existing navigation controls with enhanced styling
+
+##### **Phase 2: Pattern Visualization (Week 2-3)**
+- Enhance dream indicators with different shapes for dream types
+- Add quality gradient overlays with proper opacity levels
+- Support multiple indicators per day with proper spacing
+- Implement hover previews for dream details
+- Add legend system for visual indicators
+
+##### **Phase 3: Quarter View & Advanced Features (Week 3-4)**
+- Implement quarter view toggle functionality
+- Add comprehensive keyboard shortcuts system
+- Enhance responsive design for mobile optimization
+- Implement advanced accessibility features
+
+##### **Phase 4: Polish & Integration (Week 4-5)**
+- Material Design 3 styling integration with Obsidian themes
+- Performance optimization for large datasets
+- Comprehensive testing and bug fixes
+- Documentation and user guide updates
 
 #### **💡 Technical Implementation:**
 ```typescript
@@ -155,22 +209,85 @@ interface EnhancedNavigationOptions {
     quickJumpEnabled: boolean;
     navigationMemory: Date[];
     keyboardShortcuts: boolean;
+    patternVisualization: {
+        dreamTypes: boolean;
+        qualityGradients: boolean;
+        multipleIndicators: boolean;
+    };
+}
+
+interface DreamIndicatorConfig {
+    type: 'regular' | 'lucid' | 'nightmare' | 'vivid';
+    quality: 'high' | 'medium' | 'low' | 'none';
+    shape: 'square' | 'circle' | 'triangle' | 'diamond';
+    color: string;
+    gradientIntensity: number;
 }
 
 class EnhancedDateNavigator extends DateNavigator {
-    showQuarterView(): void;
+    // Navigation enhancements
     showYearPicker(): void;
-    jumpToDate(date: Date): void;
-    navigateByKeyboard(direction: 'prev' | 'next' | 'today'): void;
+    showMonthJumpMenu(): void;
+    showQuarterView(): void;
+    goToDate(dateString: string): boolean;
+    
+    // Navigation memory
+    addToNavigationMemory(date: Date): void;
+    getNavigationMemory(): Date[];
+    clearNavigationMemory(): void;
+    
+    // Pattern visualization
+    renderDreamIndicators(entry: DreamEntry, cell: HTMLElement): void;
+    applyQualityGradient(quality: number, cell: HTMLElement): void;
+    generateHoverPreview(entry: DreamEntry): string;
+    
+    // Keyboard navigation
+    initializeKeyboardShortcuts(): void;
+    navigateByKeyboard(direction: 'prev' | 'next' | 'today' | 'quarter'): void;
+    handleGoToDateShortcut(): void;
+}
+
+interface NavigationMemoryEntry {
+    date: Date;
+    label: string;
+    timestamp: number;
+}
+
+class NavigationMemoryManager {
+    private maxEntries: number = 5;
+    private storage: NavigationMemoryEntry[] = [];
+    
+    addEntry(date: Date): void;
+    removeEntry(date: Date): void;
+    getEntries(): NavigationMemoryEntry[];
+    clearAll(): void;
+    persistToStorage(): void;
+    loadFromStorage(): void;
 }
 ```
 
 #### **🎯 Success Metrics:**
 - **Navigation Speed**: <2 seconds to reach any date
-- **User Adoption**: 80%+ of users utilize enhanced navigation
-- **Keyboard Usage**: 40%+ use keyboard shortcuts
+- **User Adoption**: 80%+ of users utilize enhanced navigation features
+- **Keyboard Usage**: 40%+ use keyboard shortcuts regularly
+- **Pattern Recognition**: Users identify dream patterns 60% faster
+- **Mobile Usage**: 90%+ compatibility on mobile devices
 
-#### **Implementation Priority**: **High** (Next immediate feature)
+#### **📁 File Structure:**
+```
+src/dom/date-navigator/
+├── EnhancedDateNavigator.ts          # Main enhanced navigator class
+├── NavigationMemoryManager.ts        # Recent dates management
+├── PatternVisualizer.ts              # Dream indicator rendering
+├── KeyboardNavigationHandler.ts      # Keyboard shortcuts
+└── components/
+    ├── YearPickerDropdown.ts         # Year selection component
+    ├── MonthJumpMenu.ts              # Month selection component
+    ├── GoToDateInput.ts              # Direct date input
+    └── QuarterViewToggle.ts          # View mode switcher
+```
+
+#### **Implementation Priority**: **High** (Next immediate feature - Start with Phase 1)
 
 ---
 
