@@ -17,6 +17,7 @@
 
 import { App, Modal, Setting, ButtonComponent, Notice } from 'obsidian';
 import { getLogger } from '../../logging';
+import { FolderSuggest } from '../../../settings';
 
 // Import existing test functionality
 import { DummyDataGenerator } from '../utils/DummyDataGenerator';
@@ -682,12 +683,16 @@ export class UnifiedTestSuiteModal extends Modal {
     }
     
     private showCustomDatasetDialog() {
-        // Create a simple dialog for custom dataset configuration
-        const dialog = this.contentContainer.createDiv({ cls: 'unified-test-suite-custom-dialog' });
-        dialog.createEl('h4', { text: 'Custom Dataset Configuration' });
+        // Create enhanced dialog for custom dataset configuration
+        const dialog = this.contentContainer.createDiv({ cls: 'oomp-unified-test-suite-custom-dialog' });
+        dialog.createEl('h4', { text: 'Enhanced Custom Dataset Configuration' });
+        
+        // Basic Configuration Section
+        const basicSection = dialog.createDiv({ cls: 'oomp-unified-test-suite-config-section' });
+        basicSection.createEl('h5', { text: 'Basic Configuration' });
         
         // Entry count setting
-        const countContainer = dialog.createDiv({ cls: 'unified-test-suite-setting-item' });
+        const countContainer = basicSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
         countContainer.createEl('label', { text: 'Number of entries:' });
         const countInput = countContainer.createEl('input', { 
             type: 'number',
@@ -696,14 +701,8 @@ export class UnifiedTestSuiteModal extends Modal {
         countInput.setAttribute('min', '1');
         countInput.setAttribute('max', '50000');
         
-        // Realistic content setting
-        const realisticContainer = dialog.createDiv({ cls: 'unified-test-suite-setting-item' });
-        realisticContainer.createEl('label', { text: 'Realistic content:' });
-        const realisticCheckbox = realisticContainer.createEl('input', { type: 'checkbox' });
-        realisticCheckbox.checked = true;
-        
         // Date range settings
-        const dateContainer = dialog.createDiv({ cls: 'unified-test-suite-setting-item' });
+        const dateContainer = basicSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
         dateContainer.createEl('label', { text: 'Date range (months back):' });
         const dateInput = dateContainer.createEl('input', { 
             type: 'number',
@@ -712,12 +711,188 @@ export class UnifiedTestSuiteModal extends Modal {
         dateInput.setAttribute('min', '1');
         dateInput.setAttribute('max', '60');
         
+        // Realistic content setting
+        const realisticContainer = basicSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        realisticContainer.createEl('label', { text: 'Realistic content:' });
+        const realisticCheckbox = realisticContainer.createEl('input', { type: 'checkbox' });
+        realisticCheckbox.checked = true;
+        
+        // Even distribution setting
+        const distributionContainer = basicSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        distributionContainer.createEl('label', { text: 'Even distribution across dates:' });
+        const distributionCheckbox = distributionContainer.createEl('input', { type: 'checkbox' });
+        distributionCheckbox.checked = true;
+        
+        // Output folder setting
+        const folderContainer = basicSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        folderContainer.createEl('label', { text: 'Output folder:' });
+        const folderInput = folderContainer.createEl('input', { 
+            type: 'text',
+            value: (this.plugin as any).settings?.testDataFolder || 'Test Data/Dreams',
+            placeholder: 'Test Data/Dreams'
+        });
+        
+        // Add folder suggester
+        new FolderSuggest(this.app, folderInput);
+        
+        // Template Selection Section
+        const templateSection = dialog.createDiv({ cls: 'oomp-unified-test-suite-config-section' });
+        templateSection.createEl('h5', { text: 'Template Selection' });
+        
+        const templateContainer = templateSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        templateContainer.createEl('label', { text: 'Journal Template:' });
+        const templateSelect = templateContainer.createEl('select');
+        
+        // Populate template options
+        const templates = this.getAvailableTemplates();
+        templateSelect.createEl('option', { value: 'default', text: 'Default Template' });
+        templates.forEach(template => {
+            const option = templateSelect.createEl('option', { 
+                value: template.id, 
+                text: template.name 
+            });
+            if (template.description) {
+                option.title = template.description;
+            }
+        });
+        
+        // Template preview
+        const templatePreview = templateContainer.createDiv({ cls: 'oomp-unified-test-suite-template-preview' });
+        templatePreview.style.display = 'none';
+        
+        templateSelect.addEventListener('change', () => {
+            this.updateTemplatePreview(templateSelect.value, templatePreview, templates);
+        });
+        
+        // Metrics Selection Section
+        const metricsSection = dialog.createDiv({ cls: 'oomp-unified-test-suite-config-section' });
+        metricsSection.createEl('h5', { text: 'Metrics Selection' });
+        
+        const metricsInfo = metricsSection.createDiv({ cls: 'oomp-unified-test-suite-metrics-info' });
+        metricsInfo.createEl('p', { 
+            text: 'Select which metrics to include in generated entries. Default metrics provide base patterns for visualization testing.',
+            cls: 'oomp-unified-test-suite-help-text'
+        });
+        
+        // Default metrics group
+        const defaultMetricsGroup = metricsSection.createDiv({ cls: 'oomp-unified-test-suite-metrics-group' });
+        defaultMetricsGroup.createEl('h6', { text: 'Default Metrics (Recommended)' });
+        
+        const defaultMetrics = this.getDefaultMetrics();
+        const defaultMetricsContainer = defaultMetricsGroup.createDiv({ cls: 'oomp-unified-test-suite-metrics-container' });
+        
+        const defaultMetricsCheckboxes: Record<string, HTMLInputElement> = {};
+        defaultMetrics.forEach(metric => {
+            const metricItem = defaultMetricsContainer.createDiv({ cls: 'oomp-unified-test-suite-metric-item' });
+            const checkbox = metricItem.createEl('input', { type: 'checkbox' });
+            checkbox.checked = true; // Default metrics enabled by default
+            checkbox.id = `metric-${metric.name}`;
+            defaultMetricsCheckboxes[metric.name] = checkbox;
+            
+            const label = metricItem.createEl('label', { 
+                text: metric.name,
+                attr: { for: checkbox.id }
+            });
+            
+            if (metric.description) {
+                const description = metricItem.createDiv({ 
+                    cls: 'oomp-unified-test-suite-metric-description',
+                    text: metric.description
+                });
+            }
+        });
+        
+        // Optional metrics group
+        const optionalMetricsGroup = metricsSection.createDiv({ cls: 'oomp-unified-test-suite-metrics-group' });
+        optionalMetricsGroup.createEl('h6', { text: 'Optional Metrics' });
+        
+        const optionalMetrics = this.getOptionalMetrics();
+        const optionalMetricsContainer = optionalMetricsGroup.createDiv({ cls: 'oomp-unified-test-suite-metrics-container' });
+        
+        const optionalMetricsCheckboxes: Record<string, HTMLInputElement> = {};
+        optionalMetrics.forEach(metric => {
+            const metricItem = optionalMetricsContainer.createDiv({ cls: 'oomp-unified-test-suite-metric-item' });
+            const checkbox = metricItem.createEl('input', { type: 'checkbox' });
+            checkbox.checked = false; // Optional metrics disabled by default
+            checkbox.id = `metric-${metric.name}`;
+            optionalMetricsCheckboxes[metric.name] = checkbox;
+            
+            const label = metricItem.createEl('label', { 
+                text: metric.name,
+                attr: { for: checkbox.id }
+            });
+            
+            if (metric.description) {
+                const description = metricItem.createDiv({ 
+                    cls: 'oomp-unified-test-suite-metric-description',
+                    text: metric.description
+                });
+            }
+        });
+        
+        // Quick selection buttons
+        const quickSelectContainer = metricsSection.createDiv({ cls: 'oomp-unified-test-suite-quick-select' });
+        
+        const selectAllDefaultBtn = quickSelectContainer.createEl('button', { 
+            text: 'All Default',
+            cls: 'oomp-unified-test-suite-quick-btn'
+        });
+        selectAllDefaultBtn.onclick = () => {
+            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = true);
+            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = false);
+        };
+        
+        const selectAllBtn = quickSelectContainer.createEl('button', { 
+            text: 'All Metrics',
+            cls: 'oomp-unified-test-suite-quick-btn'
+        });
+        selectAllBtn.onclick = () => {
+            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = true);
+            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = true);
+        };
+        
+        const selectNoneBtn = quickSelectContainer.createEl('button', { 
+            text: 'None',
+            cls: 'oomp-unified-test-suite-quick-btn'
+        });
+        selectNoneBtn.onclick = () => {
+            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = false);
+            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = false);
+        };
+        
+        // Advanced Options Section
+        const advancedSection = dialog.createDiv({ cls: 'oomp-unified-test-suite-config-section' });
+        advancedSection.createEl('h5', { text: 'Advanced Options' });
+        
+        // Seed setting for reproducible results
+        const seedContainer = advancedSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        seedContainer.createEl('label', { text: 'Random seed (for reproducible results):' });
+        const seedInput = seedContainer.createEl('input', { 
+            type: 'number',
+            value: Math.floor(Math.random() * 10000).toString(),
+            placeholder: 'Leave empty for random'
+        });
+        
+        // Source prefix setting
+        const prefixContainer = advancedSection.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        prefixContainer.createEl('label', { text: 'Source prefix:' });
+        const prefixInput = prefixContainer.createEl('input', { 
+            type: 'text',
+            value: 'pattern-test',
+            placeholder: 'pattern-test'
+        });
+        
         // Buttons
-        const buttonContainer = dialog.createDiv({ cls: 'unified-test-suite-dialog-buttons' });
+        const buttonContainer = dialog.createDiv({ cls: 'oomp-unified-test-suite-dialog-buttons' });
         
         const generateButton = buttonContainer.createEl('button', { 
-            text: 'Generate Custom Dataset',
+            text: 'Generate Enhanced Dataset',
             cls: 'mod-cta'
+        });
+        
+        const previewButton = buttonContainer.createEl('button', { 
+            text: 'Preview Configuration',
+            cls: 'oomp-unified-test-suite-preview-btn'
         });
         
         const cancelButton = buttonContainer.createEl('button', { 
@@ -725,21 +900,24 @@ export class UnifiedTestSuiteModal extends Modal {
         });
         
         generateButton.onclick = async () => {
-            const count = parseInt(countInput.value);
-            const realistic = realisticCheckbox.checked;
-            const monthsBack = parseInt(dateInput.value);
+            const config = this.buildDatasetConfig(
+                countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
+                templateSelect, templates,
+                defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+                seedInput, prefixInput
+            );
             
-            const startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - monthsBack);
-            
-            await this.generateCustomTestData({
-                count,
-                realistic,
-                startDate,
-                endDate: new Date()
-            });
-            
+            await this.generateEnhancedTestData(config);
             dialog.remove();
+        };
+        
+        previewButton.onclick = () => {
+            this.showConfigurationPreview(
+                countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
+                templateSelect, templates,
+                defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+                seedInput, prefixInput
+            );
         };
         
         cancelButton.onclick = () => {
@@ -747,6 +925,315 @@ export class UnifiedTestSuiteModal extends Modal {
         };
     }
     
+    // Helper methods for Enhanced Custom Dataset Configuration
+    
+    private getAvailableTemplates(): any[] {
+        try {
+            const plugin = this.plugin as any;
+            const templates = plugin.settings?.journalStructure?.templates || [];
+            return templates.filter((template: any) => template && template.id && template.name);
+        } catch (error) {
+            this.logger.warn('Templates', 'Failed to load templates', error as Error);
+            return [];
+        }
+    }
+    
+    private updateTemplatePreview(templateId: string, previewElement: HTMLElement, templates: any[]) {
+        previewElement.empty();
+        
+        if (templateId === 'default') {
+            previewElement.style.display = 'none';
+            return;
+        }
+        
+        const template = templates.find(t => t.id === templateId);
+        if (!template) {
+            previewElement.style.display = 'none';
+            return;
+        }
+        
+        previewElement.style.display = 'block';
+        previewElement.createEl('strong', { text: 'Preview:' });
+        
+        const previewContent = previewElement.createEl('pre', { cls: 'unified-test-suite-template-preview-content' });
+        const content = template.content || template.staticContent || 'No content available';
+        previewContent.textContent = content.length > 300 ? content.substring(0, 300) + '...' : content;
+    }
+    
+    private getDefaultMetrics(): any[] {
+        // Based on docs/user/reference/metrics.md - Default metrics enabled by default
+        return [
+            { name: 'Sensory Detail', description: 'Richness of sensory experiences (1-5)' },
+            { name: 'Emotional Recall', description: 'Emotional content and intensity (1-5)' },
+            { name: 'Lost Segments', description: 'Number of forgotten or unclear parts' },
+            { name: 'Descriptiveness', description: 'Level of detail in dream description (1-5)' },
+            { name: 'Confidence Score', description: 'Confidence in dream recall accuracy (1-5)' }
+        ];
+    }
+    
+    private getOptionalMetrics(): any[] {
+        // Based on docs/user/reference/metrics.md - Optional metrics
+        return [
+            { name: 'Lucidity Level', description: 'Level of lucid awareness (0-3)' },
+            { name: 'Character Roles', description: 'Types of characters encountered' },
+            { name: 'Character Count', description: 'Number of distinct characters' },
+            { name: 'Dream Coherence', description: 'Logical consistency of dream events (1-5)' },
+            { name: 'Environmental Familiarity', description: 'How familiar dream locations are (1-5)' },
+            { name: 'Symbolic Content', description: 'Presence of symbolic elements (1-5)' },
+            { name: 'Time Distortion', description: 'Perception of time within dream (1-5)' }
+        ];
+    }
+    
+    private buildDatasetConfig(
+        countInput: HTMLInputElement,
+        dateInput: HTMLInputElement, 
+        realisticCheckbox: HTMLInputElement,
+        distributionCheckbox: HTMLInputElement,
+        folderInput: HTMLInputElement,
+        templateSelect: HTMLSelectElement,
+        templates: any[],
+        defaultMetricsCheckboxes: Record<string, HTMLInputElement>,
+        optionalMetricsCheckboxes: Record<string, HTMLInputElement>,
+        seedInput: HTMLInputElement,
+        prefixInput: HTMLInputElement
+    ) {
+        const count = parseInt(countInput.value);
+        const monthsBack = parseInt(dateInput.value);
+        const realistic = realisticCheckbox.checked;
+        const evenDistribution = distributionCheckbox.checked;
+        
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - monthsBack);
+        
+        // Collect selected metrics
+        const selectedMetrics: string[] = [];
+        Object.entries(defaultMetricsCheckboxes).forEach(([name, checkbox]) => {
+            if (checkbox.checked) selectedMetrics.push(name);
+        });
+        Object.entries(optionalMetricsCheckboxes).forEach(([name, checkbox]) => {
+            if (checkbox.checked) selectedMetrics.push(name);
+        });
+        
+        // Get selected template
+        const selectedTemplate = templateSelect.value === 'default' ? null : 
+            templates.find(t => t.id === templateSelect.value);
+        
+        return {
+            count,
+            realistic,
+            startDate,
+            endDate: new Date(),
+            evenDistribution,
+            outputFolder: folderInput.value || 'Test Data/Dreams',
+            selectedTemplate,
+            includeMetrics: selectedMetrics,
+            seed: seedInput.value ? parseInt(seedInput.value) : undefined,
+            sourcePrefix: prefixInput.value || 'pattern-test'
+        };
+    }
+    
+    private showConfigurationPreview(
+        countInput: HTMLInputElement,
+        dateInput: HTMLInputElement, 
+        realisticCheckbox: HTMLInputElement,
+        distributionCheckbox: HTMLInputElement,
+        folderInput: HTMLInputElement,
+        templateSelect: HTMLSelectElement,
+        templates: any[],
+        defaultMetricsCheckboxes: Record<string, HTMLInputElement>,
+        optionalMetricsCheckboxes: Record<string, HTMLInputElement>,
+        seedInput: HTMLInputElement,
+        prefixInput: HTMLInputElement
+    ) {
+        const config = this.buildDatasetConfig(
+            countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
+            templateSelect, templates,
+            defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+            seedInput, prefixInput
+        );
+        
+        const previewContent = [
+            `📊 Dataset Configuration Preview`,
+            ``,
+            `📈 Basic Settings:`,
+            `• Entries: ${config.count.toLocaleString()}`,
+            `• Date Range: ${config.startDate.toLocaleDateString()} to ${config.endDate.toLocaleDateString()}`,
+            `• Realistic Content: ${config.realistic ? 'Yes' : 'No'}`,
+            `• Even Distribution: ${config.evenDistribution ? 'Yes' : 'No'}`,
+            `• Output Folder: ${config.outputFolder}`,
+            ``,
+            `📝 Template:`,
+            `• ${config.selectedTemplate ? config.selectedTemplate.name : 'Default Template'}`,
+            ``,
+            `🎯 Metrics (${config.includeMetrics.length}):`,
+            ...config.includeMetrics.map(metric => `• ${metric}`),
+            ``,
+            `⚙️ Advanced:`,
+            `• Source Prefix: ${config.sourcePrefix}`,
+            `• Random Seed: ${config.seed || 'Random'}`,
+            ``,
+            `💡 This configuration will test ${config.includeMetrics.length > 4 ? 'enhanced pattern' : 'base pattern'} visualization scenarios.`
+        ].join('\n');
+        
+        // Show preview in a notice or modal
+        new Notice(`Configuration Preview:\n${previewContent}`, 10000);
+    }
+    
+    private async generateEnhancedTestData(config: any) {
+        if (this.testState.isRunning) {
+            new Notice('A test is already running. Please wait for it to complete.');
+            return;
+        }
+        
+        this.testState.isRunning = true;
+        new Notice(`Generating enhanced dataset with ${config.count} entries...`);
+        
+        try {
+            const plugin = this.plugin as any;
+            const testDataFolder = config.outputFolder || plugin.settings?.testDataFolder || 'Test Data/Dreams';
+            
+            const { DummyDataGenerator } = require('../utils/DummyDataGenerator');
+            const generator = new DummyDataGenerator();
+            
+            const generationOptions = {
+                count: config.count,
+                realistic: config.realistic,
+                startDate: config.startDate,
+                endDate: config.endDate,
+                evenDistribution: config.evenDistribution,
+                includeMetrics: config.includeMetrics,
+                seed: config.seed,
+                sourcePrefix: config.sourcePrefix
+            };
+            
+            const { data, stats } = await generator.generateDreamDataset(generationOptions);
+            
+            await this.ensureFolderExists(testDataFolder);
+            
+            let createdCount = 0;
+            const calloutName = plugin.settings?.calloutName || 'dream-diary';
+            
+            for (const entry of data) {
+                const noteContent = await this.createEnhancedDreamNoteContent(entry, calloutName, config.selectedTemplate);
+                const fileName = `${entry.title.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')}.md`;
+                const filePath = `${testDataFolder}/${fileName}`;
+                
+                try {
+                    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+                    if (!existingFile) {
+                        await this.app.vault.create(filePath, noteContent);
+                        createdCount++;
+                        if (createdCount <= 3) {
+                            console.log(`[OneiroMetrics] Created enhanced note: ${filePath}`);
+                        }
+                    } else {
+                        console.log(`[OneiroMetrics] Skipped existing file: ${filePath}`);
+                    }
+                } catch (error) {
+                    console.error(`[OneiroMetrics] Failed to create note: ${filePath}`, error);
+                    this.logger.warn('TestData', `Failed to create test note: ${filePath} - ${(error as Error).message}`);
+                }
+            }
+            
+            console.log(`[OneiroMetrics] Enhanced note creation complete. Created: ${createdCount}, Total generated: ${data.length}`);
+            
+            // Update test results
+            const result = {
+                testName: `Generate enhanced dataset`,
+                status: 'success' as const,
+                duration: stats.generationTime,
+                details: `Created ${createdCount} enhanced dream journal notes in ${testDataFolder}. Generated ${stats.totalGenerated} entries with ${config.includeMetrics.length} metrics in ${stats.generationTime.toFixed(0)}ms. Template: ${config.selectedTemplate?.name || 'Default'}`,
+                timestamp: new Date()
+            };
+            
+            this.testState.results.push(result);
+            new Notice(`✅ Generated ${createdCount} enhanced test dream notes with ${config.includeMetrics.length} metrics`);
+            
+        } catch (error) {
+            console.error(`[OneiroMetrics] Enhanced test data generation failed:`, error);
+            
+            const result = {
+                testName: `Generate enhanced dataset`,
+                status: 'failure' as const,
+                details: `${(error as Error).message} (Check console for details)`,
+                timestamp: new Date()
+            };
+            
+            this.testState.results.push(result);
+            new Notice(`❌ Failed to generate enhanced test data: ${(error as Error).message}`);
+            this.logger.error('TestData', 'Enhanced test data generation failed', error as Error);
+            
+        } finally {
+            this.testState.isRunning = false;
+            
+            if (this.selectedTab === 'dashboard') {
+                this.loadDashboardContent();
+            }
+        }
+    }
+    
+    private async createEnhancedDreamNoteContent(entry: any, calloutName: string, template: any): Promise<string> {
+        try {
+            if (template && template.content) {
+                // Use the selected template and populate it with entry data
+                return this.populateTemplate(template.content, entry, calloutName);
+            } else {
+                // Fall back to standard dream note content
+                return this.createDreamNoteContent(entry, calloutName);
+            }
+        } catch (error) {
+            this.logger.warn('TestData', 'Failed to use custom template, falling back to default', error as Error);
+            return this.createDreamNoteContent(entry, calloutName);
+        }
+    }
+    
+    private populateTemplate(templateContent: string, entry: any, calloutName: string): string {
+        // Simple template variable replacement
+        let content = templateContent;
+        
+        // Parse the entry date
+        const today = new Date().toISOString().split('T')[0];
+        const entryDateStr = entry.date || today;
+        const entryDate = new Date(entryDateStr);
+        
+        // Format dates in various formats
+        const dateISO = entryDateStr; // YYYY-MM-DD
+        const dateCompact = entryDateStr.replace(/-/g, ''); // YYYYMMDD
+        const dateMonthDay = entryDate.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        }); // e.g., "June 8, 2025"
+        
+        const replacements = {
+            '{{date}}': dateISO,
+            '{{date-compact}}': dateCompact,
+            '{{date-month-day}}': dateMonthDay,
+            '{{title}}': entry.title || 'Dream Entry',
+            '{{content}}': entry.content || 'Dream content...',
+            '{{callout}}': calloutName,
+            '{{metrics}}': this.formatMetricsForTemplate(entry.metrics || {})
+        };
+        
+        Object.entries(replacements).forEach(([variable, value]) => {
+            content = content.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), value);
+        });
+        
+        return content;
+    }
+    
+    private formatMetricsForTemplate(metrics: Record<string, number | string>): string {
+        if (Object.keys(metrics).length === 0) {
+            return '';
+        }
+        
+        const metricLines = Object.entries(metrics).map(([name, value]) => {
+            return `**${name}**: ${value}`;
+        });
+        
+        return metricLines.join('\n');
+    }
+
     private async generateCustomTestData(options: {
         count: number;
         realistic: boolean;
