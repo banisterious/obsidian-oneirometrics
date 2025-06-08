@@ -325,10 +325,23 @@ export class EnhancedDateNavigatorModal extends Modal {
                 const newDate = new Date(this.state.currentDate);
                 newDate.setMonth(index);
                 this.state.currentDate = newDate;
+                
+                // Switch to month view and update quarter toggle
+                this.state.viewMode = 'month';
+                const toggleInput = this.mainContainer.querySelector('.toggle-switch input') as HTMLInputElement;
+                if (toggleInput) {
+                    toggleInput.checked = false;
+                }
+                
                 this.updateCalendar();
                 this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
                 this.addToNavigationMemory(new Date(newDate));
                 menu.remove();
+                
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Month jump - switched to month view', {
+                    selectedMonth: index,
+                    newDate: newDate.toISOString()
+                });
             });
         });
 
@@ -567,11 +580,23 @@ export class EnhancedDateNavigatorModal extends Modal {
                 }
 
                 this.state.currentDate = targetDate;
+                
+                // Switch to month view and update quarter toggle
+                this.state.viewMode = 'month';
+                const toggleInput = this.mainContainer.querySelector('.toggle-switch input') as HTMLInputElement;
+                if (toggleInput) {
+                    toggleInput.checked = false;
+                }
+                
                 this.updateCalendar();
                 this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
                 this.addToNavigationMemory(new Date(targetDate));
                 
                 new Notice(`Navigated to ${targetDate.toLocaleDateString()}`);
+                
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Go to date - switched to month view', {
+                    targetDate: targetDate.toISOString()
+                });
             } catch (error) {
                 new Notice('Error parsing date');
                 this.plugin.logger?.error('EnhancedDateNavigator', 'Error parsing date', error);
@@ -1209,8 +1234,20 @@ export class EnhancedDateNavigatorModal extends Modal {
 
     private navigateToMemoryDate(date: Date): void {
         this.state.currentDate = new Date(date);
+        
+        // Switch to month view and update quarter toggle
+        this.state.viewMode = 'month';
+        const toggleInput = this.mainContainer.querySelector('.toggle-switch input') as HTMLInputElement;
+        if (toggleInput) {
+            toggleInput.checked = false;
+        }
+        
         this.updateCalendar();
         this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
+        
+        this.plugin.logger?.trace('EnhancedDateNavigator', 'Navigation memory - switched to month view', {
+            memoryDate: date.toISOString()
+        });
     }
 
     private cleanup(): void {
