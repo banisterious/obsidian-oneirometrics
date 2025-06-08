@@ -4274,38 +4274,50 @@ input[placeholder*="exclude"]::placeholder {
     /* === STRUCTURAL PROPERTIES === */
     margin-bottom: var(--oom-spacing-md);
     border-radius: var(--oom-radius-sm);
-    overflow: hidden;
+    overflow: hiddenv;
     
     /* NO VISUAL STYLING - Let theme handle section borders and backgrounds */
 }
 
-.oom-collapsible-header {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+/* Advanced Settings Collapsible Section */
+.oom-advanced-settings {
+    margin: 16px 0;
+    padding: .5em .5em 0 .5em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-secondary);
+}
+
+.oom-advanced-settings-header {
+    margin-bottom: 8px;
+    /*padding: 8px 12px;*/
     cursor: pointer;
-    
-    /* NO VISUAL STYLING - Let theme handle header styling */
-    
-    /* === NESTED HEADING === */
-    h3 {
-        margin: 0;
-        font-size: var(--font-ui-large);
-        font-weight: 600;
-        
-        /* NO VISUAL STYLING - Let theme handle heading colors */
-    }
-    
-    &:hover {
-        /* Let theme handle hover styling */
-    }
-    
-    &:focus {
-        /* Let theme handle focus styling */
-        outline: none;
-    }
+    /*border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;*/
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /*background: var(--background-secondary);*/
+}
+
+.oom-advanced-settings-header:hover {
+    /*background: var(--background-modifier-hover);*/
+}
+
+.oom-advanced-settings-title {
+    font-weight: 600;
+    font-size: 1em;
+}
+
+.oom-collapse-arrow {
+    margin-left: 8px;
+    transition: transform 0.2s ease;
+    font-size: 0.8em;
+    color: var(--text-muted);
+}
+
+.oom-advanced-settings-container {
+    padding-left: 0;
 }
 
 .oom-collapsible-toggle {

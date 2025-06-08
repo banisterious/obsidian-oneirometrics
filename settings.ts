@@ -5,6 +5,7 @@ import DreamMetricsPlugin from "./main";
 import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 import { debug, info, error } from './src/logging';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
+import { UnifiedTestSuiteModal } from './src/testing/ui/UnifiedTestSuiteModal';
 import { defaultLintingSettings } from './src/types/journal-check-defaults';
 
 // Define the correct order for recommended metrics
@@ -498,7 +499,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             }
         }
 
-        containerEl.createEl('h2', { text: 'OneiroMetrics Settings' });
+
 
         // Add Reading View requirement notice with contextual styling
         const noticeEl = containerEl.createEl('div', {
@@ -546,65 +547,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add section border after journal structure settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
-        // Add Metrics Settings Section
-        containerEl.createEl('h2', { text: 'Metrics Settings' });
 
-        // Add explanatory note about metrics
-        const metricsInfoEl = containerEl.createEl('div', {
-            cls: 'oom-notice oom-notice--info'
-        });
-        metricsInfoEl.createEl('span', { 
-            text: 'Metrics allow you to track and analyze various aspects of your dreams over time. Enable the metrics you want to track, and customize them to suit your needs.'
-        });
-
-        // Add button to view metrics descriptions
-        new Setting(containerEl)
-            .setName('View Metrics Descriptions')
-            .setDesc('View detailed descriptions of all available metrics')
-            .addButton(button => {
-                button.setButtonText('View Metrics Guide')
-                    .onClick(() => {
-                        // Close the settings modal first
-                        (this.app as any).setting.close();
-                        
-                        // Use ModalsManager instead of the removed showMetricsTabsModal method
-                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                        const hubModal = modalsManager.openHubModal() as any;
-                        // Navigate to the overview tab
-                        setTimeout(() => {
-                            hubModal.selectTab('overview');
-                        }, 100);
-                    });
-            });
-
-        // Metrics Management - Redirect to Hub
-        new Setting(containerEl)
-            .setName('Metrics Management')
-            .setDesc('Add, edit, enable/disable metrics in the OneiroMetrics Hub interface')
-            .addButton(button => {
-                button.setButtonText('Open Metrics Settings')
-                    .onClick(() => {
-                        // Close the settings modal first
-                        (this.app as any).setting.close();
-                        
-                        // Open Hub modal and navigate to Metrics Settings tab
-                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                        const hubModal = modalsManager.openHubModal() as any;
-                        // Navigate to the metrics-settings tab
-                        setTimeout(() => {
-                            hubModal.selectTab('metrics-settings');
-                        }, 100);
-                    });
-            });
-
-        // This functionality has been moved to the OneiroMetrics Hub - Metrics Settings tab
-
-        // Add Backup Settings Section
-        containerEl.createEl('h2', { text: 'Backup Settings' });
 
         // Backup Enabled toggle
         const backupToggleSetting = new Setting(containerEl)
-            .setName('Create Backups')
+            .setName('Create backups')
             .setDesc('Create backups of the project note before making changes')
             .addToggle(toggle => toggle
                 .setValue(isBackupEnabled(this.plugin.settings))
@@ -623,7 +570,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         
         if (true) { // Always create the setting, just hide the container if needed
             const backupFolderSetting = new Setting(backupFolderContainer)
-                .setName('Backup Folder')
+                .setName('Backup folder')
                 .setDesc('Select an existing folder where backups will be stored')
                 .addSearch(search => {
                     search.setPlaceholder('Choose backup folder...')
@@ -641,13 +588,35 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add section border after backup settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
-        // Add Logging Settings Section
-        containerEl.createEl('h2', { text: 'Logging Settings' });
+        // Advanced settings section (collapsible) - custom DOM structure
+        const advancedWrapper = containerEl.createDiv({ cls: 'oom-advanced-settings' });
+        
+        // Create the clickable header
+        const advancedHeader = advancedWrapper.createDiv({ cls: 'oom-advanced-settings-header' });
+        advancedHeader.createSpan({ text: 'Advanced settings', cls: 'oom-advanced-settings-title' });
+        const arrow = advancedHeader.createEl('span', { 
+            cls: 'oom-collapse-arrow',
+            text: '▶'
+        });
+        
+        // Create collapsible container for actual settings (separate from header)
+        const advancedContainer = advancedWrapper.createDiv({ cls: 'oom-advanced-settings-container' });
+        advancedContainer.style.display = 'none'; // Collapsed by default
+        
+        // Add toggle functionality to the header only
+        advancedHeader.addEventListener('click', () => {
+            const isVisible = advancedContainer.style.display !== 'none';
+            advancedContainer.style.display = isVisible ? 'none' : 'block';
+            
+            // Update arrow indicator
+            arrow.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
+        });
         
         // Store references to conditional settings for showing/hiding
         let maxSizeSetting: Setting;
         let maxBackupsSetting: Setting;
-        let performanceSection: HTMLElement;
+        let logManagementSetting: Setting;
+        let performanceSetting: Setting;
         
         const updateLoggingSettingsVisibility = (logLevel: string) => {
             const shouldShow = logLevel !== 'off';
@@ -657,13 +626,13 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             if (maxBackupsSetting) {
                 maxBackupsSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
             }
-            if (performanceSection) {
-                performanceSection.style.display = shouldShow ? 'block' : 'none';
+            if (logManagementSetting) {
+                logManagementSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
             }
         };
         
-        new Setting(containerEl)
-            .setName('Logging Level')
+        new Setting(advancedContainer)
+            .setName('Logging level')
             .setDesc('Control the verbosity of logging. Set to "Off" for normal operation, "Errors Only" for minimal logging, or "Debug" for detailed logging.')
             .addDropdown(dropdown => dropdown
                 .addOption('off', 'Off')
@@ -680,8 +649,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     updateLoggingSettingsVisibility(value);
                 }));
 
-        maxSizeSetting = new Setting(containerEl)
-            .setName('Maximum Log Size')
+        maxSizeSetting = new Setting(advancedContainer)
+            .setName('Maximum log size')
             .setDesc('Maximum size of the log file in MB before rotation.')
             .addText(text => text
                 .setValue(String(this.plugin.settings.logging.maxSize / (1024 * 1024)))
@@ -698,8 +667,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        maxBackupsSetting = new Setting(containerEl)
-            .setName('Maximum Backups')
+        maxBackupsSetting = new Setting(advancedContainer)
+            .setName('Maximum log backups')
             .setDesc('Number of backup log files to keep.')
             .addText(text => text
                 .setValue(String(this.plugin.settings.logging.maxBackups))
@@ -716,25 +685,27 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        // Add section border after logging settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
+        // Log management setting (only visible when logging is not "Off")
+        logManagementSetting = new Setting(advancedContainer)
+            .setName('Log management')
+            .setDesc('Open the OneiroMetrics Test Suite Logging tab to manage logs and view statistics.')
+            .addButton(button => button
+                .setButtonText('Logging management')
+                .onClick(() => {
+                    // Close the settings modal first
+                    (this.app as any).setting.close();
+                    
+                    // Open the UnifiedTestSuiteModal with 'test-logging' tab
+                    const testSuiteModal = new UnifiedTestSuiteModal(this.app, this.plugin);
+                    testSuiteModal.open();
+                    testSuiteModal.selectTab('test-logging');
+                }));
 
-        // Create Performance Testing Settings Section (conditionally visible)
-        performanceSection = containerEl.createDiv();
-        performanceSection.createEl('h2', { text: 'Performance Testing Settings' });
-        
-        // Add explanatory note about performance testing
-        const perfTestingInfoEl = performanceSection.createEl('div', {
-            cls: 'oom-notice oom-notice--warning'
-        });
-        perfTestingInfoEl.createEl('strong', { text: 'Performance Testing Mode: ' });
-        perfTestingInfoEl.createEl('span', { 
-            text: 'Removes or increases the normal 200-file limit for scraping operations. Enable this only for testing with large datasets.'
-        });
 
-        // Performance mode toggle
-        new Setting(performanceSection)
-            .setName('Enable Performance Testing Mode')
+
+        // Performance mode toggle (moved to advanced section)
+        performanceSetting = new Setting(advancedContainer)
+            .setName('Enable performance testing mode')
             .setDesc('Removes the normal 200-file limit during scraping operations. Use for testing with large datasets.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.performanceTesting?.enabled ?? false)
@@ -754,8 +725,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Show dependent settings only when performance mode is enabled
         if (this.plugin.settings.performanceTesting?.enabled) {
             // Max files setting
-            new Setting(performanceSection)
-                .setName('Maximum Files to Process')
+            new Setting(advancedContainer)
+                .setName('Maximum files to process')
                 .setDesc('Maximum number of files to process in performance mode. Set to 0 for unlimited.')
                 .addText(text => text
                     .setPlaceholder('0')
@@ -774,8 +745,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     }));
 
             // Show warnings toggle
-            new Setting(performanceSection)
-                .setName('Show Performance Warnings')
+            new Setting(advancedContainer)
+                .setName('Show performance warnings')
                 .setDesc('Display console warnings when performance testing mode is active.')
                 .addToggle(toggle => toggle
                     .setValue(this.plugin.settings.performanceTesting?.showWarnings ?? true)
@@ -796,7 +767,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 ? `Processing up to ${this.plugin.settings.performanceTesting.maxFiles} files`
                 : 'Processing unlimited files';
             
-            const statusEl = performanceSection.createEl('div', {
+            const statusEl = advancedContainer.createEl('div', {
                 cls: 'oom-notice oom-notice--info'
             });
             statusEl.createEl('span', { 
@@ -804,8 +775,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
         }
 
-        // Add section border after performance testing settings
-        performanceSection.createEl('div', { cls: 'oom-section-border' });
+        // Add section border after advanced settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
         
         // Initialize visibility based on current logging level
         const currentLogLevel = this.plugin.settings.logging.level || 'off';
@@ -819,12 +790,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     }
 
     private addJournalStructureSettings(containerEl: HTMLElement) {
-        // Journal Structure settings button
+        // Journal structure settings button
         new Setting(containerEl)
-            .setName('Journal Structure Settings')
+            .setName('Journal structure settings')
             .setDesc('Configure and manage all journal structure settings')
             .addButton(button => button
-                .setButtonText('Open Settings')
+                .setButtonText('Open settings')
                 .onClick(() => {
                     // Close the current settings modal first
                     (this.app as any).setting.close();
