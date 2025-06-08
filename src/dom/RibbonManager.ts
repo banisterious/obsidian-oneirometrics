@@ -53,9 +53,6 @@ export class RibbonManager {
         // Remove existing icons first
         this.removeRibbonIcons();
         
-        // Ensure plugin compatibility - check if folders exist before adding buttons
-        this.ensurePluginCompatibility();
-        
         // Add OneiroMetrics Hub button with lucide-shell icon
         // @ts-ignore - Obsidian typings aren't fully accurate
         const metricsHubRibbonEl = this.plugin.addRibbonIcon(
@@ -76,99 +73,7 @@ export class RibbonManager {
         this.logger?.debug('UI', 'Added ribbon icons');
     }
     
-    /**
-     * Ensure compatibility with other plugins like folder-notes
-     * by ensuring required folders exist in the vault
-     */
-    private ensurePluginCompatibility(): void {
-        try {
-            // Get project note path and ensure parent folders exist
-            const projectNotePath = getProjectNotePath(this.settings);
-            if (projectNotePath) {
-                // Extract folder path from the full path
-                const folderPath = projectNotePath.substring(0, projectNotePath.lastIndexOf('/'));
-                if (folderPath) {
-                    // Check if folder exists and create if needed
-                    this.ensureFolderExists(folderPath);
-                }
-            }
-            
-            // For folder-notes compatibility, ensure known paths referenced in errors exist
-            // This helps prevent "Cannot read properties of undefined" errors
-            const knownPaths = [
-                'Journals',
-                'Journals/Dream Diary',
-                'Journals/Dream Diary/Metrics'
-            ];
-            
-            for (const path of knownPaths) {
-                this.ensureFolderExists(path);
-            }
-        } catch (e) {
-            this.logger?.warn('Compatibility', 'Error ensuring plugin compatibility', e instanceof Error ? e : new Error(String(e)));
-        }
-    }
     
-    /**
-     * Ensure a folder exists in the vault, creating it if necessary
-     */
-    private ensureFolderExists(folderPath: string): void {
-        try {
-            const folder = this.app.vault.getAbstractFileByPath(folderPath);
-            if (!folder) {
-                // Create folder if it doesn't exist
-                this.logger?.debug('Compatibility', `Creating folder: ${folderPath}`);
-                // Use recursive creation to handle nested paths
-                this.createFolderRecursively(folderPath);
-            }
-        } catch (e) {
-            // Check if error is due to folder already existing (which is fine)
-            const errorMessage = e instanceof Error ? e.message : String(e);
-            if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
-                // This is expected and safe to ignore
-                this.logger?.debug('Compatibility', `Folder already exists: ${folderPath}`);
-            } else {
-                // Log other errors as warnings
-                this.logger?.warn('Compatibility', `Error ensuring folder exists: ${folderPath}`, e instanceof Error ? e : new Error(String(e)));
-            }
-        }
-    }
-    
-    /**
-     * Create a folder recursively, handling parent folders if needed
-     */
-    private async createFolderRecursively(folderPath: string): Promise<void> {
-        try {
-            await this.app.vault.createFolder(folderPath);
-        } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : String(e);
-            
-            // If folder already exists, that's fine - just return
-            if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
-                return;
-            }
-            
-            // If folder creation failed, it might be because the parent folder doesn't exist
-            const lastSlashIndex = folderPath.lastIndexOf('/');
-            if (lastSlashIndex > 0) {
-                const parentFolder = folderPath.substring(0, lastSlashIndex);
-                // Create parent folder first
-                await this.createFolderRecursively(parentFolder);
-                // Then try creating the original folder again
-                try {
-                    await this.app.vault.createFolder(folderPath);
-                } catch (retryError) {
-                    const retryErrorMessage = retryError instanceof Error ? retryError.message : String(retryError);
-                    // If it still fails due to already existing, that's fine
-                    if (!(retryErrorMessage.includes('Folder already exists') || retryErrorMessage.includes('already exists'))) {
-                        throw retryError;
-                    }
-                }
-            } else {
-                throw e;
-            }
-        }
-    }
     
     /**
      * Add a test ribbon icon for debugging

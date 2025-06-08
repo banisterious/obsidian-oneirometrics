@@ -18553,3 +18553,83 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 .oom-date-selection-modal .oom-calendar-day.oom-today:focus {
     box-shadow: 0 0 0 2px var(--interactive-accent), 0 0 0 4px var(--text-accent);
 }
+
+/* ==========================================
+   FOLDER VALIDATION MODAL
+   ========================================== */
+
+.oom-folder-prompt-modal .modal-content {
+    max-width: 500px;
+    padding: 1.5rem;
+}
+
+.oom-folder-prompt-title {
+    margin-bottom: 1rem;
+    color: var(--text-accent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.oom-folder-prompt-description {
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.oom-folder-prompt-description p {
+    margin-bottom: 0.5rem;
+}
+
+.oom-folder-path {
+    display: block;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-family: var(--font-monospace);
+    color: var(--text-accent);
+    background: var(--background-secondary);
+}
+
+.oom-folder-prompt-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.oom-folder-option-button {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    font-size: 0.95rem;
+    color: var(--text-normal);
+    background: var(--background-primary);
+}
+
+.oom-folder-option-button:hover {
+    border-color: var(--text-accent);
+    background: var(--background-secondary);
+}
+
+.oom-folder-option-button.oom-cancel-button {
+    color: var(--text-error);
+    border-color: var(--text-error);
+}
+
+.oom-folder-option-button.oom-cancel-button:hover {
+    background: var(--background-modifier-error);
+}
+
+.oom-folder-selector {
+    margin-top: 1rem;
+}
+
+.oom-folder-selector-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+}

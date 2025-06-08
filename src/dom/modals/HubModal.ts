@@ -1153,6 +1153,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
                     .onChange(async (value) => {
                         setProjectNotePath(this.plugin.settings, value);
                         await this.plugin.saveSettings();
+                        // Re-validate configuration when setting changes
+                        this.validateProjectNoteConfiguration();
                     });
                 
                 // Add file suggestions - now exactly matches Settings implementation
@@ -1320,6 +1322,9 @@ This metric assesses **how well your memory of the dream holds up and remains co
             cls: 'oom-dream-scrape-feedback',
             attr: { style: 'display: none;' }
         });
+
+        // Check project note validation and show feedback if needed
+        this.validateProjectNoteConfiguration();
 
         // Create the sticky footer for scrape actions
         const scrapeFooter = this.contentContainer.createDiv({ cls: 'oom-dream-scrape-sticky-footer' });
@@ -7086,6 +7091,33 @@ Example:
             }
         );
         modal.open();
+    }
+
+    /**
+     * Validate project note configuration and show feedback if there are issues
+     */
+    private validateProjectNoteConfiguration(): void {
+        const projectNotePath = this.plugin.settings.projectNote;
+        
+        if (!projectNotePath) {
+            this.showScrapeFeedback(
+                '⚠️ Please select your OneiroMetrics note above before scraping.',
+                'warning'
+            );
+            return;
+        }
+        
+        const projectFile = this.app.vault.getAbstractFileByPath(projectNotePath);
+        if (!projectFile) {
+            this.showScrapeFeedback(
+                `⚠️ OneiroMetrics note not found: "${projectNotePath}". Please select an existing file above.`,
+                'warning'
+            );
+            return;
+        }
+        
+        // If we get here, configuration is valid - hide any existing feedback
+        this.hideFeedback();
     }
 
 }

@@ -321,10 +321,26 @@ export default class DreamMetricsPlugin extends Plugin {
      * 1. Primary: UniversalMetricsCalculator (modern system with worker pool)
      * 2. Fallback: MetricsCollector (legacy system, known stable)
      * 
-     * Includes timeout protection and comprehensive error handling.
+     * Includes timeout protection, folder validation, and comprehensive error handling.
      */
     async scrapeMetrics() {
-        // Primary attempt: UniversalMetricsCalculator with timeout protection
+        // Step 1: Validate project note configuration and existence
+        const projectNotePath = this.settings.projectNote;
+        
+        if (!projectNotePath) {
+            this.logger?.warn('Scrape', 'No project note configured - scraping cannot proceed');
+            new Notice('⚠️ Please configure your OneiroMetrics note before scraping.');
+            return;
+        }
+        
+        const projectFile = this.app.vault.getAbstractFileByPath(projectNotePath);
+        if (!projectFile) {
+            this.logger?.warn('Scrape', `Project note not found: ${projectNotePath}`);
+            new Notice(`⚠️ Project note not found: ${projectNotePath}. Please select an existing file in settings.`);
+            return;
+        }
+        
+        // Step 2: Proceed with scraping - Primary attempt: UniversalMetricsCalculator with timeout protection
         let universalSuccess = false;
         
         try {
