@@ -493,6 +493,17 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         format: "tags"
     },
     {
+        name: "Symbolic Content",
+        description: "Note specific objects, figures, actions, or animals in the dream that felt meaningful or symbolic.",
+        icon: "sparkles",
+        minValue: 0,
+        maxValue: 0,
+        enabled: false,
+        category: "dream",
+        type: "string",
+        format: "text"
+    },
+    {
         name: "Character Clarity/Familiarity",
         description: "The distinctness and recognizability of the individual characters (both familiar and unfamiliar) appearing in your dream.",
         icon: "glasses",
@@ -529,6 +540,17 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         name: "Environmental Familiarity",
         description: "Tracks the degree to which the locations and environments in your dream are recognizable from your waking life.",
         icon: "glasses",
+        minValue: 1,
+        maxValue: 5,
+        enabled: false,
+        category: "dream",
+        type: "number",
+        format: "number"
+    },
+    {
+        name: "Time Distortion",
+        description: "Rate how unusually time behaved in the dream's narrative.",
+        icon: "clock",
         minValue: 1,
         maxValue: 5,
         enabled: false,

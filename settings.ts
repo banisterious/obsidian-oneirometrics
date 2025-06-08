@@ -21,15 +21,17 @@ export const RECOMMENDED_METRICS_ORDER = [
 export const DISABLED_METRICS_ORDER = [
   'Words',
   'Dream Theme',
-  'Dream Coherence',
+  'Symbolic Content',
   'Lucidity Level',
+  'Dream Coherence',
+  'Environmental Familiarity',
+  'Time Distortion',
   'Character Roles',
   'Characters Count',
   'Characters List',
   'Familiar Count',
   'Unfamiliar Count',
   'Character Clarity/Familiarity',
-  'Environmental Familiarity',
   'Ease of Recall',
   'Recall Stability'
 ];
