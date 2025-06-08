@@ -314,13 +314,26 @@ export default class DreamMetricsPlugin extends Plugin {
         this.scrapeMetrics();
     }
 
+    /**
+     * Scrape metrics using the modern UniversalMetricsCalculator with automatic fallback
+     * 
+     * Uses a robust dual-system approach:
+     * 1. Primary: UniversalMetricsCalculator (modern system with worker pool)
+     * 2. Fallback: MetricsCollector (legacy system, known stable)
+     * 
+     * Includes timeout protection and comprehensive error handling.
+     */
     async scrapeMetrics() {
-        // Use the enhanced UniversalMetricsCalculator with fixed worker pool regex bug
+        // Primary attempt: UniversalMetricsCalculator with timeout protection
+        let universalSuccess = false;
+        
         try {
+            this.logger?.info('Scrape', '🔧 Attempting scraping with UniversalMetricsCalculator (modern system)');
+            
             // Import the UniversalMetricsCalculator
             const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
             
-            // Use UniversalMetricsCalculator with fixed worker pool implementation
+            // Create universal calculator
             const universalCalculator = new UniversalMetricsCalculator(
                 this.app,
                 this,
@@ -328,32 +341,49 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.logger
             );
             
-            this.logger?.info('Scrape', 'Using enhanced UniversalMetricsCalculator with worker pool fixes');
-            await universalCalculator.scrapeMetrics();
-            this.logger?.info('Scrape', 'UniversalMetricsCalculator scraping completed');
+            // Wrap in timeout to prevent hanging
+            const SCRAPE_TIMEOUT = 120000; // 2 minutes timeout
+            const scrapePromise = universalCalculator.scrapeMetrics();
+            
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error(`UniversalMetricsCalculator timeout after ${SCRAPE_TIMEOUT / 1000} seconds`));
+                }, SCRAPE_TIMEOUT);
+            });
+            
+            // Race between scraping and timeout
+            await Promise.race([scrapePromise, timeoutPromise]);
+            
+            this.logger?.info('Scrape', '✅ UniversalMetricsCalculator completed successfully');
+            universalSuccess = true;
             
         } catch (error) {
-            this.logger?.error('Scrape', 'Error in scrapeMetrics with UniversalMetricsCalculator', error as Error);
-            new Notice(`Error scraping metrics: ${error.message}`);
+            this.logger?.warn('Scrape', '⚠️ UniversalMetricsCalculator failed, will fallback to legacy system', {
+                error: (error as Error).message,
+                wasTimeout: (error as Error).message.includes('timeout')
+            });
+            
+            // Don't show error notice yet - we'll try fallback first
+            universalSuccess = false;
         }
         
-        /* FALLBACK VERSION - MetricsCollector (stable but less advanced)
-        // Use the stable MetricsCollector implementation as fallback
-        try {
-            const metricsCollector = new MetricsCollector(
-                this.app,
-                this,
-                this.logger
-            );
-            
-            await metricsCollector.scrapeMetrics();
-            this.logger?.info('Scrape', 'MetricsCollector scraping completed');
-            
-        } catch (error) {
-            this.logger?.error('Scrape', 'Error in scrapeMetrics with MetricsCollector', error as Error);
-            new Notice(`Error scraping metrics: ${error.message}`);
+        // Fallback to legacy system if Universal failed
+        if (!universalSuccess) {
+            try {
+                this.logger?.info('Scrape', '🔄 Falling back to MetricsCollector (legacy system)');
+                this.logger?.info('Scrape', 'Legacy system is known to be stable and reliable');
+                
+                // Use the existing MetricsCollector instance
+                await this.metricsCollector.scrapeMetrics();
+                
+                this.logger?.info('Scrape', '✅ MetricsCollector (legacy) completed successfully');
+                this.logger?.info('Scrape', '💡 Consider investigating UniversalMetricsCalculator issues for future improvements');
+                
+            } catch (fallbackError) {
+                this.logger?.error('Scrape', '❌ Both Universal and Legacy systems failed!', fallbackError as Error);
+                new Notice(`Critical Error: Both scraping systems failed. Please check logs for details.`);
+            }
         }
-        */
     }
 
     /**
@@ -427,12 +457,10 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // **Attempt to restore charts if viewing OneiroMetrics project note**
         if (isProjectNote) {
-            console.log('🔄 PROJECT NOTE DEBUG: OneiroMetrics note detected, attempting chart restoration');
             setTimeout(async () => {
                 try {
                     await this.attemptChartRestoration();
                 } catch (error) {
-                    console.error('🔄 PROJECT NOTE DEBUG: Chart restoration failed', error);
                     this.logger?.error('UI', 'Chart restoration failed', error as Error);
                 }
             }, 500); // Give DOM time to render

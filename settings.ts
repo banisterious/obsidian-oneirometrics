@@ -714,13 +714,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         
         new Setting(advancedContent)
             .setName('Logging level')
-            .setDesc('Control the verbosity of logging. Set to "Off" for normal operation, "Errors Only" for minimal logging, or "Debug" for detailed logging.')
+            .setDesc('Control the verbosity of logging. Set to "Off" for normal operation, "Info" for basic progress, "Debug" for detailed logging, or "Trace" for maximum verbosity.')
             .addDropdown(dropdown => dropdown
                 .addOption('off', 'Off')
                 .addOption('errors', 'Errors Only')
                 .addOption('warn', 'Warnings')
                 .addOption('info', 'Info')
                 .addOption('debug', 'Debug')
+                .addOption('trace', 'Trace')
                 // Cast to any to avoid type issues with LogLevel
                 .setValue((this.plugin.settings.logging.level || 'off') as any)
                 .onChange(async (value) => {
