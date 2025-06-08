@@ -610,6 +610,8 @@ export class UnifiedTestSuiteModal extends Modal {
             this.updateLogLevel(logLevelSelect.value as any);
         });
         
+
+
         // Helper text
         const helperText = settingsContainer.createDiv({ cls: 'unified-test-suite-setting-helper' });
         helperText.createEl('p', {

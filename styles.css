@@ -18500,3 +18500,7 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
 .theme-dark .oomp-enhanced-date-navigator-modal .oomp-compact-dream-indicator {
     color: var(--color-green-rgb);
 }
+
+.oomp-note-backup-folder {
+    margin-left: 1em;
+}
