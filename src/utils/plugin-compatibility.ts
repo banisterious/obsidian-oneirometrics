@@ -73,7 +73,15 @@ async function ensureFolderExists(app: App, folderPath: string): Promise<void> {
             await createFolderRecursively(app, folderPath);
         }
     } catch (e) {
-        console.warn(`OneiroMetrics: Error ensuring folder exists: ${folderPath}`, e);
+        // Check if error is due to folder already existing (which is fine)
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
+            // This is expected and safe to ignore
+            console.debug(`OneiroMetrics: Folder already exists: ${folderPath}`);
+        } else {
+            // Log other errors as warnings
+            console.warn(`OneiroMetrics: Error ensuring folder exists: ${folderPath}`, e);
+        }
     }
 }
 
@@ -84,6 +92,13 @@ async function createFolderRecursively(app: App, folderPath: string): Promise<vo
     try {
         await app.vault.createFolder(folderPath);
     } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        
+        // If folder already exists, that's fine - just return
+        if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
+            return;
+        }
+        
         // If folder creation failed, it might be because the parent folder doesn't exist
         const lastSlashIndex = folderPath.lastIndexOf('/');
         if (lastSlashIndex > 0) {
@@ -91,7 +106,17 @@ async function createFolderRecursively(app: App, folderPath: string): Promise<vo
             // Create parent folder first
             await createFolderRecursively(app, parentFolder);
             // Then try creating the original folder again
-            await app.vault.createFolder(folderPath);
+            try {
+                await app.vault.createFolder(folderPath);
+            } catch (retryError) {
+                const retryErrorMessage = retryError instanceof Error ? retryError.message : String(retryError);
+                // If it still fails due to already existing, that's fine
+                if (!(retryErrorMessage.includes('Folder already exists') || retryErrorMessage.includes('already exists'))) {
+                    throw retryError;
+                }
+            }
+        } else {
+            throw e;
         }
     }
 }

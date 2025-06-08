@@ -151,7 +151,13 @@ export class LoggingService implements ILoggingService {
             await this.app.vault.createFolder(logsDir);
             this.logInternalError(`Created logs directory using Obsidian API: ${logsDir}`);
           } catch (folderError) {
-            this.logInternalError(`Failed to create logs directory using Obsidian API: ${logsDir}`, folderError);
+            const errorMessage = folderError instanceof Error ? folderError.message : String(folderError);
+            if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
+              // This is expected and safe to ignore
+              this.logInternalError(`Logs directory already exists: ${logsDir}`);
+            } else {
+              this.logInternalError(`Failed to create logs directory using Obsidian API: ${logsDir}`, folderError);
+            }
           }
         }
       }
@@ -406,7 +412,13 @@ export class LoggingService implements ILoggingService {
               await this.app.vault.createFolder(logsDir);
               console.log(`[LoggingService] Created logs directory using Obsidian API: ${logsDir}`);
             } catch (folderError) {
-              console.error(`[LoggingService] Failed to create logs directory using Obsidian API: ${logsDir}`, folderError);
+              const errorMessage = folderError instanceof Error ? folderError.message : String(folderError);
+              if (errorMessage.includes('Folder already exists') || errorMessage.includes('already exists')) {
+                // This is expected and safe to ignore
+                console.log(`[LoggingService] Logs directory already exists: ${logsDir}`);
+              } else {
+                console.error(`[LoggingService] Failed to create logs directory using Obsidian API: ${logsDir}`, folderError);
+              }
             }
           }
         }
