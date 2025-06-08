@@ -358,45 +358,110 @@ src/dom/date-navigator/
 
 ---
 
-### **2. Pattern Visualization Improvements (0% Complete)**
+### **2. Pattern Visualization Improvements (Phase 2 - Ready to Begin)**
+
+#### **📋 Latest Planning Session Results (Jan 2025)**
+
+**Context**: Following completion of Enhanced Date Navigator Phase 1, detailed planning session conducted to design Phase 2 pattern visualization features.
+
+##### **🔍 Key Decisions Made:**
+
+1. **Reality Check on Metrics System**
+   - Discovered actual system uses metrics from `docs/user/reference/metrics.md`
+   - **Default metrics** (enabled by default): Sensory Detail, Emotional Recall, Lost Segments, Descriptiveness, Confidence Score
+   - **Optional metrics**: Lucidity Level, Character Roles, Dream Coherence, Environmental Familiarity, etc.
+   - Most users likely use only default metrics - need to design for this scenario
+
+2. **Hybrid Visualization Approach Selected**
+   - **Base layer for all users**: Composite patterns from default metrics (High Quality Dreams, Fragmented Dreams, Rich Narrative Dreams, Basic Recall)
+   - **Dynamic enhancement**: When optional metrics enabled (Lucidity indicators, Character density, etc.)
+   - **Adaptive system**: For custom metrics
+   - **Formula-based patterns**: Using existing UniversalMetricsCalculator infrastructure
+
+3. **Technical Architecture Insights**
+   - System already has sophisticated `UniversalMetricsCalculator.ts` with worker pool support, caching, advanced metrics calculation
+   - `EnhancedDateNavigatorModal.ts` already uses cached DreamMetricData via `this.plugin.state?.getDreamEntries()`
+   - Phase 2 will build on existing infrastructure rather than create new processing
+
+4. **Integration with Existing Settings**
+   - Identified 7 relevant settings in HubModal Metrics tab:
+     - **Visualization Thresholds**: Low/Medium/High sliders (0-1 scale) for intensity mapping
+     - **Component Preferences**: Calendar/Chart metrics configuration  
+     - **Discovery Settings**: Auto-discovery toggle, Max new metrics
+   - These settings provide perfect foundation for Phase 2 integration
+
+5. **File Size & Architecture Concerns**
+   - `EnhancedDateNavigatorModal.ts` currently 1268 lines, Phase 2 may add 500+ lines
+   - **Decision**: Modular architecture - extract pattern logic into separate focused modules
+   - Proposed: `PatternCalculator.ts`, `PatternRenderer.ts`, `PatternTooltips.ts`
+   - Keep single modal but with clean separation of concerns
+
+6. **Enhanced Dummy Data Generator Priority**
+   - Current Custom Dataset Configuration needs expansion
+   - Add template selection and metric selection capabilities
+   - Critical for testing various visualization scenarios with realistic data
+
+##### **🎯 Phase 2 Implementation Order:**
+1. **Enhanced Custom Dataset Configuration** - Template/metric selections for testing
+2. **Modular Architecture Design** - Pattern visualization components
+3. **Settings Integration Plan** - Connect with existing 7 settings
+4. **Data Format Examination** - How metrics are stored in dream entries
 
 #### **🎨 Enhanced Visual Feedback for Dream Patterns**
-Improve the existing calendar to better show dream patterns and insights.
+Improve the existing calendar to better show dream patterns and insights based on actual metrics system.
 
-#### **📋 Planned Features:**
-- **Enhanced Dream Indicators**: Different shapes/colors for dream types
-- **Quality Gradients**: Visual intensity based on dream quality scores
-- **Pattern Highlighting**: Automatic highlighting of recurring patterns
-- **Hover Previews**: Quick preview of dream content on hover
-- **Legend System**: Clear visual guide for all indicators
-- **Density Visualization**: Visual feedback for high/low activity periods
+#### **📋 Phase 2 Features (Updated Based on Real Metrics):**
+- **Composite Pattern Indicators**: Base patterns from default metrics (High Quality, Fragmented, Rich Narrative, Basic Recall)
+- **Dynamic Enhancement**: Additional indicators when optional metrics enabled (Lucidity, Character density)
+- **Quality Gradients**: Visual intensity using existing visualization threshold settings (Low/Medium/High)
+- **Hover Tooltips**: Rich preview showing actual metric values and calculated patterns
+- **Adaptive Legend**: Dynamic legend system that shows only relevant patterns for current user's metrics
+- **Integration with Settings**: Use existing 7 metrics settings for configuration
 
-#### **💡 Technical Implementation:**
+#### **💡 Technical Implementation (Updated):**
 ```typescript
+// Build on existing UniversalMetricsCalculator
 interface PatternVisualization {
-    dreamType: 'lucid' | 'nightmare' | 'regular' | 'vivid';
-    qualityScore: number; // 1-10 scale
-    themes: string[];
+    // Based on actual default metrics
+    basePattern: 'high-quality' | 'fragmented' | 'rich-narrative' | 'basic-recall';
+    qualityScore: number; // From Sensory Detail + Emotional Recall + Confidence Score
+    fragmentationLevel: number; // From Lost Segments + Confidence Score
+    descriptiveness: number; // From Descriptiveness metric
+    
+    // Dynamic enhancements when available
+    lucidity?: boolean; // When Lucidity Level metric enabled
+    characterDensity?: 'low' | 'medium' | 'high'; // When character metrics enabled
+    
     visualStyle: {
-        indicator: 'dot' | 'star' | 'square' | 'triangle';
-        color: string;
-        intensity: number;
+        indicator: PatternIndicatorType;
+        backgroundGradient?: string; // Quality-based
+        opacity: number; // Based on threshold settings
     };
 }
 
-class PatternVisualizer {
-    renderDreamIndicator(entry: DreamEntry): HTMLElement;
-    generateHoverPreview(entry: DreamEntry): string;
-    highlightPatterns(entries: DreamEntry[]): void;
+// Modular architecture
+class PatternCalculator {
+    calculateBasePatterns(metrics: DreamMetricData): PatternVisualization;
+    enhanceWithOptionalMetrics(base: PatternVisualization, metrics: DreamMetricData): PatternVisualization;
+}
+
+class PatternRenderer {
+    renderDayIndicators(day: HTMLElement, patterns: PatternVisualization[]): void;
+    createLegend(activePatterns: Set<string>): HTMLElement;
+}
+
+class PatternTooltips {
+    generateTooltip(entry: DreamMetricData, patterns: PatternVisualization): string;
 }
 ```
 
 #### **🎯 Success Metrics:**
-- **Pattern Recognition**: Users identify patterns 60% faster
+- **Pattern Recognition**: Users identify patterns 60% faster with base metrics
 - **Visual Clarity**: 90%+ understand indicators without help
-- **Engagement**: Increased time spent reviewing calendar
+- **Metric Utilization**: Increased engagement with existing metrics system
+- **Performance**: No degradation to existing modal performance
 
-#### **Implementation Priority**: **High** (Core value proposition)
+#### **Implementation Priority**: **High** (Builds on completed Phase 1 foundation)
 
 ---
 
