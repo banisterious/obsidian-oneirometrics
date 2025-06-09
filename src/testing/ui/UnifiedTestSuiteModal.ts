@@ -1013,8 +1013,8 @@ export class UnifiedTestSuiteModal extends Modal {
         folderInput: HTMLInputElement,
         templateSelect: HTMLSelectElement,
         templates: any[],
-        defaultMetricsCheckboxes: Record<string, HTMLInputElement>,
-        optionalMetricsCheckboxes: Record<string, HTMLInputElement>,
+        defaultMetricsToggles: Record<string, any>,
+        optionalMetricsToggles: Record<string, any>,
         seedInput: HTMLInputElement,
         prefixInput: HTMLInputElement
     ) {
@@ -1029,11 +1029,33 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Collect selected metrics
         const selectedMetrics: string[] = [];
-        Object.entries(defaultMetricsCheckboxes).forEach(([name, checkbox]) => {
-            if (checkbox.checked) selectedMetrics.push(name);
+        
+        // TRACE: Debug toggle states
+        this.logger.trace('TemplateDebug', 'Collecting metrics from toggles', {
+            defaultMetricsCount: Object.keys(defaultMetricsToggles).length,
+            optionalMetricsCount: Object.keys(optionalMetricsToggles).length
         });
-        Object.entries(optionalMetricsCheckboxes).forEach(([name, checkbox]) => {
-            if (checkbox.checked) selectedMetrics.push(name);
+        
+        Object.entries(defaultMetricsToggles).forEach(([name, toggle]) => {
+            const isChecked = toggle.getValue();
+            this.logger.trace('TemplateDebug', 'Default metric toggle state', {
+                metricName: name,
+                isChecked: isChecked
+            });
+            if (isChecked) selectedMetrics.push(name);
+        });
+        Object.entries(optionalMetricsToggles).forEach(([name, toggle]) => {
+            const isChecked = toggle.getValue();
+            this.logger.trace('TemplateDebug', 'Optional metric toggle state', {
+                metricName: name,
+                isChecked: isChecked
+            });
+            if (isChecked) selectedMetrics.push(name);
+        });
+        
+        this.logger.trace('TemplateDebug', 'Final selected metrics', {
+            selectedMetrics,
+            totalSelected: selectedMetrics.length
         });
         
         // Get selected template
@@ -1128,7 +1150,24 @@ export class UnifiedTestSuiteModal extends Modal {
                 sourcePrefix: config.sourcePrefix
             };
             
+            // TRACE: Log the generation options to see what metrics are being requested
+            this.logger.trace('TemplateDebug', 'Dummy data generation options', {
+                generationOptions,
+                includeMetricsCount: config.includeMetrics ? config.includeMetrics.length : 0,
+                includeMetricsList: config.includeMetrics || []
+            });
+            
             const { data, stats } = await generator.generateDreamDataset(generationOptions);
+            
+            // TRACE: Log a sample of the generated data to see if metrics are created
+            if (data.length > 0) {
+                this.logger.trace('TemplateDebug', 'Sample generated entry', {
+                    sampleEntry: data[0],
+                    hasMetrics: !!data[0].metrics,
+                    metricsKeys: data[0].metrics ? Object.keys(data[0].metrics) : [],
+                    metricsData: data[0].metrics || {}
+                });
+            }
             
             await this.ensureFolderExists(testDataFolder);
             
@@ -1197,6 +1236,16 @@ export class UnifiedTestSuiteModal extends Modal {
     private async createEnhancedDreamNoteContent(entry: any, calloutName: string, template: any): Promise<string> {
         try {
             if (template && template.content) {
+                // TRACE: Log the entry data structure
+                this.logger.trace('TemplateDebug', 'Entry data received', {
+                    entryHasMetrics: !!entry.metrics,
+                    entryMetricsKeys: entry.metrics ? Object.keys(entry.metrics) : [],
+                    entryMetricsCount: entry.metrics ? Object.keys(entry.metrics).length : 0,
+                    entryMetricsData: entry.metrics || {},
+                    entryTitle: entry.title,
+                    entryDate: entry.date
+                });
+                
                 // TRACE: Log the raw template content before any processing
                 this.logger.trace('TemplateDebug', 'Raw template content received', {
                     templateId: template.id,
@@ -1290,7 +1339,23 @@ export class UnifiedTestSuiteModal extends Modal {
         // Handle {{metrics}} with context-aware replacement to preserve nesting
         const metricsPlaceholderRegex = /^(\s*>+\s*){{metrics}}\s*$/gm;
         content = content.replace(metricsPlaceholderRegex, (match, prefix) => {
+            // TRACE: Debug metrics data
+            this.logger.trace('TemplateDebug', 'Processing {{metrics}} placeholder', {
+                entryHasMetrics: !!entry.metrics,
+                metricsKeys: entry.metrics ? Object.keys(entry.metrics) : [],
+                metricsData: entry.metrics || {},
+                matchedPattern: match,
+                prefix: prefix
+            });
+            
             const formattedMetrics = this.formatMetricsForTemplate(entry.metrics || {});
+            
+            this.logger.trace('TemplateDebug', 'Formatted metrics result', {
+                formattedMetrics,
+                formattedLength: formattedMetrics.length,
+                isEmpty: !formattedMetrics
+            });
+            
             if (!formattedMetrics) return match;
             
             // Check if we're using single line format
@@ -2463,14 +2528,14 @@ ${entry.content}
         new Setting(defaultMetricsGroup).setHeading().setName('Default Metrics (Recommended)');
         
         const defaultMetrics = this.getDefaultMetrics();
-        const defaultMetricsCheckboxes: Record<string, HTMLInputElement> = {};
+        const defaultMetricsToggles: Record<string, any> = {};
         
         defaultMetrics.forEach(metric => {
             new Setting(defaultMetricsGroup)
                 .setName(metric.name)
                 .setDesc(metric.description)
                 .addToggle(toggle => {
-                    defaultMetricsCheckboxes[metric.name] = toggle.toggleEl as HTMLInputElement;
+                    defaultMetricsToggles[metric.name] = toggle; // Store the toggle component, not the DOM element
                     toggle.setValue(true); // Default metrics are enabled by default
                 });
         });
@@ -2480,14 +2545,14 @@ ${entry.content}
         new Setting(optionalMetricsGroup).setHeading().setName('Optional Metrics');
         
         const optionalMetrics = this.getOptionalMetrics();
-        const optionalMetricsCheckboxes: Record<string, HTMLInputElement> = {};
+        const optionalMetricsToggles: Record<string, any> = {};
         
         optionalMetrics.forEach(metric => {
             new Setting(optionalMetricsGroup)
                 .setName(metric.name)
                 .setDesc(metric.description)
                 .addToggle(toggle => {
-                    optionalMetricsCheckboxes[metric.name] = toggle.toggleEl as HTMLInputElement;
+                    optionalMetricsToggles[metric.name] = toggle; // Store the toggle component, not the DOM element
                     toggle.setValue(false); // Optional metrics are disabled by default
                 });
         });
@@ -2501,8 +2566,8 @@ ${entry.content}
             cls: 'oomp-unified-test-suite-quick-btn'
         });
         selectAllBtn.onclick = () => {
-            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = true);
-            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = true);
+            Object.values(defaultMetricsToggles).forEach(toggle => toggle.setValue(true));
+            Object.values(optionalMetricsToggles).forEach(toggle => toggle.setValue(true));
         };
         
         const selectDefaultBtn = quickSelectContainer.createEl('button', { 
@@ -2510,8 +2575,8 @@ ${entry.content}
             cls: 'oomp-unified-test-suite-quick-btn'
         });
         selectDefaultBtn.onclick = () => {
-            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = true);
-            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = false);
+            Object.values(defaultMetricsToggles).forEach(toggle => toggle.setValue(true));
+            Object.values(optionalMetricsToggles).forEach(toggle => toggle.setValue(false));
         };
         
         const selectNoneBtn = quickSelectContainer.createEl('button', { 
@@ -2519,8 +2584,8 @@ ${entry.content}
             cls: 'oomp-unified-test-suite-quick-btn'
         });
         selectNoneBtn.onclick = () => {
-            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = false);
-            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = false);
+            Object.values(defaultMetricsToggles).forEach(toggle => toggle.setValue(false));
+            Object.values(optionalMetricsToggles).forEach(toggle => toggle.setValue(false));
         };
         
         // Advanced Options Collapsible Section
@@ -2569,7 +2634,7 @@ ${entry.content}
                         const config = this.buildDatasetConfig(
                             countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
                             templateSelect, templates,
-                            defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+                            defaultMetricsToggles, optionalMetricsToggles,
                             seedInput, prefixInput
                         );
                         
@@ -2586,7 +2651,7 @@ ${entry.content}
                         this.showConfigurationPreview(
                             countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
                             templateSelect, templates,
-                            defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+                            defaultMetricsToggles, optionalMetricsToggles,
                             seedInput, prefixInput
                         );
                     });
