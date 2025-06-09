@@ -324,35 +324,35 @@ cls: 'oom-validation-error u-state--error'
 
 **Overview**: These are pre-existing specificity order issues where selectors with lower specificity appear after selectors with higher specificity. They don't break functionality but could cause unexpected style conflicts.
 
-| Component | Line | Selector Issue | Type | Priority |
-|-----------|------|----------------|------|----------|
-| **base.css** | 11 | `.markdown-preview-view:has(.oneirometrics-title) .inline-title` should come before `.markdown-preview-view.markdown-rendered.oom-project-note-view .inline-title` | Descending specificity | Low |
-| **buttons.css** | 285 | `.oom-button-icon` should come before `.oom-button--expand:has(+ .oom-content-wrapper.expanded) .oom-button-icon` | Descending specificity | Medium |
-| **buttons.css** | 285 | `.oom-button-icon` should come before `.oom-button--expand:has(+ .oom-content-wrapper.expanded) .oom-button-icon` | Descending specificity | Medium |
-| **buttons.css** | 714 | `.oom-test-modal-actions-section button` should come before `.oom-log-actions button:hover` | Descending specificity | Low |
-| **forms.css** | 122 | `.oom-toggle-container` should come before `.oom-form-field .oom-toggle-container` | Descending specificity | Medium |
-| **forms.css** | 261 | `.oom-text-input-row` should come before `.oom-text-input-section .oom-text-input-row` | Descending specificity | Medium |
-| **forms.css** | 920 | `input[type="date"]:focus-visible` should come before `.oom-date-input-container input[type="date"]:focus` | Descending specificity | Low |
-| **forms.css** | 943 | `.theme-dark .oom-toggle-slider` should come before `.oom-toggle-switch.oom-toggle-on .oom-toggle-slider` | Descending specificity | Medium |
-| **icons.css** | 69 | `.oom-button-icon svg` should come before `span.oom-metric-header svg` | Descending specificity | Low |
-| **icons.css** | 136 | `.oom-hub-tab-icon svg` should come before `span.oom-metric-header svg` | Descending specificity | Low |
-| **icons.css** | 222 | `.oom-icon-picker-btn svg` should come before `span.oom-metric-header svg` | Descending specificity | Low |
-| **modals.css** | 353 | `.oom-section-helper` should come before `.oom-modal .oom-section-helper` | Descending specificity | Low |
-| **navigation.css** | 94 | `.oom-nav-icon` should come before `.oom-nav-item .oom-nav-icon` | Descending specificity | High |
-| **navigation.css** | 106 | `svg` should come before `.oom-nav-item .oom-nav-icon svg` | Descending specificity | High |
-| **navigation.css** | 121 | `.oom-metrics-tabs-icon` should come before `.oom-nav-item .oom-metrics-tabs-icon` | Descending specificity | High |
-| **navigation.css** | 122 | `.oom-hub-tab-icon` should come before `.oom-nav-item .oom-hub-tab-icon` | Descending specificity | High |
-| **navigation.css** | 135 | `svg` should come before `.oom-nav-item .oom-nav-icon svg` | Descending specificity | High |
-| **navigation.css** | 135 | `svg` should come before `.oom-nav-item .oom-nav-icon svg` | Descending specificity | High |
-| **navigation.css** | 150 | `.oom-hub-tab-icon` should come before `.oom-nav-item .oom-hub-tab-icon` | Descending specificity | High |
-| **navigation.css** | 158 | `.oom-nav-label` should come before `.oom-nav-item .oom-nav-label` | Descending specificity | High |
-| **navigation.css** | 159 | `.oom-hub-tab-label` should come before `.oom-nav-item .oom-hub-tab-label` | Descending specificity | High |
-| **navigation.css** | 160 | `.oom-metrics-tabs-label` should come before `.oom-nav-item .oom-metrics-tabs-label` | Descending specificity | High |
-| **navigation.css** | 345 | `.oom-metrics-tabs-button` should come before `.oom-metrics-tabs-button:hover` | Descending specificity | Medium |
-| **navigation.css** | 346 | `.oom-hub-tab-nav-item` should come before `.oom-hub-tab-nav-item:hover` | Descending specificity | Medium |
-| **navigation.css** | 476 | `h2` should come before `.oom-metrics-tabs-button[data-tab-id="overview"] h2` | Descending specificity | Low |
-| **tables.css** | 47 | `.oom-table-wrapper` should come before `.oom-table-container .oom-table-wrapper` | Descending specificity | Medium |
-| **tables.css** | 59 | `.oom-table` should come before `.oom-table-container.loading .oom-table` | Descending specificity | Medium |
+| Component | Line | Selector Issue | Type | Priority | Functions/Components Affected |
+|-----------|------|----------------|------|----------|-------------------------------|
+| **base.css** | 11 | `.markdown-preview-view:has(.oneirometrics-title) .inline-title` should come before `.markdown-preview-view.markdown-rendered.oom-project-note-view .inline-title` | Descending specificity | Low | Project note view integration |
+| **buttons.css** | 285 | `.oom-button-icon` should come before `.oom-button--expand:has(+ .oom-content-wrapper.expanded) .oom-button-icon` | Descending specificity | Medium | TableGenerator, ContentToggler, DreamMetricsDOM expand buttons |
+| **buttons.css** | 285 | `.oom-button-icon` should come before `.oom-button--expand:has(+ .oom-content-wrapper.expanded) .oom-button-icon` | Descending specificity | Medium | TableGenerator, ContentToggler, DreamMetricsDOM expand buttons |
+| **buttons.css** | 714 | `.oom-test-modal-actions-section button` should come before `.oom-log-actions button:hover` | Descending specificity | Low | TestModal action buttons, log action hover states |
+| **forms.css** | 122 | `.oom-toggle-container` should come before `.oom-form-field .oom-toggle-container` | Descending specificity | Medium | DateSelectionModal toggle controls (range/multi-select modes) |
+| **forms.css** | 261 | `.oom-text-input-row` should come before `.oom-text-input-section .oom-text-input-row` | Descending specificity | Medium | Form input layouts, modal text input sections |
+| **forms.css** | 920 | `input[type="date"]:focus-visible` should come before `.oom-date-input-container input[type="date"]:focus` | Descending specificity | Low | Date input focus states, DateSelectionModal date inputs |
+| **forms.css** | 943 | `.theme-dark .oom-toggle-slider` should come before `.oom-toggle-switch.oom-toggle-on .oom-toggle-slider` | Descending specificity | Medium | DateSelectionModal toggle switches, dark theme toggle states |
+| **icons.css** | 69 | `.oom-button-icon svg` should come before `span.oom-metric-header svg` | Descending specificity | Low | ComponentFactory button icons, metric header icons |
+| **icons.css** | 136 | `.oom-hub-tab-icon svg` should come before `span.oom-metric-header svg` | Descending specificity | Low | HubModal tab icons, metric header icons |
+| **icons.css** | 222 | `.oom-icon-picker-btn svg` should come before `span.oom-metric-header svg` | Descending specificity | Low | Icon picker button icons, metric header icons |
+| **modals.css** | 353 | `.oom-section-helper` should come before `.oom-modal .oom-section-helper` | Descending specificity | Low | Modal section helper text, general section helpers |
+| **navigation.css** | 94 | `.oom-nav-icon` should come before `.oom-nav-item .oom-nav-icon` | Descending specificity | High | HubModal navigation icons, main navigation items |
+| **navigation.css** | 106 | `svg` should come before `.oom-nav-item .oom-nav-icon svg` | Descending specificity | High | Navigation item SVG icons, general SVG elements |
+| **navigation.css** | 121 | `.oom-metrics-tabs-icon` should come before `.oom-nav-item .oom-metrics-tabs-icon` | Descending specificity | High | HubModal metrics tab icons, navigation item icons |
+| **navigation.css** | 122 | `.oom-hub-tab-icon` should come before `.oom-nav-item .oom-hub-tab-icon` | Descending specificity | High | HubModal tab icons, navigation item icons |
+| **navigation.css** | 135 | `svg` should come before `.oom-nav-item .oom-nav-icon svg` | Descending specificity | High | Navigation item SVG icons, general SVG elements |
+| **navigation.css** | 135 | `svg` should come before `.oom-nav-item .oom-nav-icon svg` | Descending specificity | High | Navigation item SVG icons, general SVG elements |
+| **navigation.css** | 150 | `.oom-hub-tab-icon` should come before `.oom-nav-item .oom-hub-tab-icon` | Descending specificity | High | HubModal tab icons, navigation item icons |
+| **navigation.css** | 158 | `.oom-nav-label` should come before `.oom-nav-item .oom-nav-label` | Descending specificity | High | HubModal navigation labels, navigation item labels |
+| **navigation.css** | 159 | `.oom-hub-tab-label` should come before `.oom-nav-item .oom-hub-tab-label` | Descending specificity | High | HubModal tab labels, navigation item labels |
+| **navigation.css** | 160 | `.oom-metrics-tabs-label` should come before `.oom-nav-item .oom-metrics-tabs-label` | Descending specificity | High | HubModal metrics tab labels, navigation item labels |
+| **navigation.css** | 345 | `.oom-metrics-tabs-button` should come before `.oom-metrics-tabs-button:hover` | Descending specificity | Medium | HubModal metrics tab buttons, tab button hover states |
+| **navigation.css** | 346 | `.oom-hub-tab-nav-item` should come before `.oom-hub-tab-nav-item:hover` | Descending specificity | Medium | HubModal tab navigation items, tab nav hover states |
+| **navigation.css** | 476 | `h2` should come before `.oom-metrics-tabs-button[data-tab-id="overview"] h2` | Descending specificity | Low | HubModal overview tab headers, general h2 elements |
+| **tables.css** | 47 | `.oom-table-wrapper` should come before `.oom-table-container .oom-table-wrapper` | Descending specificity | Medium | TableGenerator table wrappers, DreamMetricsDOM table containers |
+| **tables.css** | 59 | `.oom-table` should come before `.oom-table-container.loading .oom-table` | Descending specificity | Medium | TableGenerator tables, DreamMetricsDOM table loading states |
 
 **Summary by Component:**
 - **navigation.css**: 13 issues (highest concentration - navigation component needs specificity cleanup)
