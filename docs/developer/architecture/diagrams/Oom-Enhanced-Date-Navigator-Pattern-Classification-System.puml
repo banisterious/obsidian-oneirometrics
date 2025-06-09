@@ -1,0 +1,329 @@
+@startuml Enhanced Date Navigator Pattern Classification System
+
+'******************************************************************************
+' v0.14.0 Enhanced Date Navigator Pattern Classification System
+' Shows the sophisticated pattern analysis algorithms and visualization rendering
+' including quality scoring, fragmentation analysis, and multi-style rendering
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Enhanced Date Navigator Pattern Classification System"
+
+package "Pattern Classification & Visualization System" {
+    
+    package "Pattern Analysis Core" {
+        class PatternCalculator {
+            +classifyPattern(metrics): PatternClassification
+            +calculateQualityScore(metrics): number
+            +determineFragmentationLevel(metrics): string
+            +analyzeDescriptiveness(metrics): number
+            +generateVisualStyling(pattern): VisualStyling
+            --
+            -DEFAULT_METRICS: string[]
+            -QUALITY_WEIGHTS: Record<string, number>
+            -FRAGMENTATION_THRESHOLDS: Record<string, number>
+            -DESCRIPTIVENESS_FACTORS: string[]
+        }
+        
+        class QualityScoreEngine {
+            +calculateWeightedScore(): number
+            +normalizeSensoryDetail(): number
+            +normalizeEmotionalRecall(): number
+            +penalizeLostSegments(): number
+            +boostDescriptiveness(): number
+            +applyConfidenceScore(): number
+            --
+            -SENSORY_WEIGHT: 0.25
+            -EMOTIONAL_WEIGHT: 0.25
+            -LOST_SEGMENTS_PENALTY: 0.2
+            -DESCRIPTIVENESS_BOOST: 0.2
+            -CONFIDENCE_WEIGHT: 0.1
+        }
+        
+        class FragmentationAnalyzer {
+            +analyzeLostSegments(): string
+            +calculateFragmentationRatio(): number
+            +classifyFragmentationLevel(): string
+            +assessNarrativeCohesion(): number
+            --
+            -LOW_FRAGMENTATION_THRESHOLD: 2
+            -MEDIUM_FRAGMENTATION_THRESHOLD: 4
+            -HIGH_FRAGMENTATION_THRESHOLD: 6
+            -FRAGMENTATION_LEVELS: string[]
+        }
+        
+        class DescriptivenessAnalyzer {
+            +analyzeWordCount(): number
+            +assessDetailRichness(): number
+            +evaluateNarrativeDepth(): number
+            +calculateDescriptivenessScore(): number
+            --
+            -MIN_WORD_COUNT: 50
+            -OPTIMAL_WORD_COUNT: 200
+            -DETAIL_RICHNESS_FACTORS: string[]
+            -NARRATIVE_DEPTH_INDICATORS: string[]
+        }
+        
+        class PatternClassifier {
+            +classifyDreamPattern(): string
+            +determinePatternType(): PatternType
+            +generatePatternDescription(): string
+            +calculatePatternConfidence(): number
+            --
+            -PATTERN_TYPES: PatternType[]
+            -CLASSIFICATION_RULES: Function[]
+            -CONFIDENCE_THRESHOLDS: Record<string, number>
+        }
+    }
+    
+    package "Visualization Rendering System" {
+        class PatternRenderer {
+            +renderVisualization(container, entries, style): void
+            +clearExistingIndicators(): void
+            +createDynamicLegend(): HTMLElement
+            +updateVisualizationStyle(): void
+            --
+            -currentStyle: string
+            -VISUALIZATION_STYLES: Record<string, Function>
+            -LEGEND_TEMPLATES: Record<string, string>
+        }
+        
+        class CompositeDotsRenderer {
+            +renderCompositeDotsVisualization(): void
+            +createMetricDots(): HTMLElement[]
+            +positionDotsInGrid(): void
+            +applyDotOpacity(): void
+            +generateDotsLegend(): HTMLElement
+            --
+            -DOT_POSITIONS: Record<string, [number, number]>
+            -OPACITY_MAPPING: Function
+            -DOT_SIZE_VARIANTS: string[]
+        }
+        
+        class QualityGradientsRenderer {
+            +renderQualityGradientsVisualization(): void
+            +createGradientBackground(): void
+            +applyQualityColorMapping(): void
+            +addQualityScoreOverlay(): void
+            +generateGradientLegend(): HTMLElement
+            --
+            -QUALITY_COLOR_STOPS: Record<number, string>
+            -GRADIENT_DIRECTIONS: string[]
+            -SCORE_OVERLAY_STYLES: Record<string, string>
+        }
+        
+        class MultiLayerRenderer {
+            +renderMultiLayerVisualization(): void
+            +createMetricOverlays(): HTMLElement[]
+            +stackVisualizationLayers(): void
+            +applyLayerBlending(): void
+            +generateMultiLayerLegend(): HTMLElement
+            --
+            -LAYER_ORDER: string[]
+            -BLENDING_MODES: string[]
+            -LAYER_OPACITY_RULES: Record<string, number>
+        }
+        
+        class MinimalistIconsRenderer {
+            +renderMinimalistIconsVisualization(): void
+            +selectPatternIcon(): string
+            +applyIconStyling(): void
+            +positionIconOptimally(): void
+            +generateIconLegend(): HTMLElement
+            --
+            -PATTERN_ICON_MAPPING: Record<string, string>
+            -ICON_STYLES: Record<string, CSSProperties>
+            -POSITIONING_RULES: Function[]
+        }
+    }
+    
+    package "Tooltip & Interaction System" {
+        class PatternTooltips {
+            +createTooltip(container, classification): HTMLElement
+            +generateTooltipContent(classification): string
+            +positionTooltip(tooltip, container): void
+            +handleMissingMetrics(metrics): void
+            --
+            -TOOLTIP_TEMPLATES: Record<string, string>
+            -POSITIONING_ALGORITHMS: Function[]
+            -METRIC_BAR_STYLES: Record<string, string>
+        }
+        
+        class TooltipContentGenerator {
+            +generatePatternDescription(): string
+            +createMetricBreakdown(): HTMLElement
+            +formatQualityScore(): string
+            +addFragmentationInfo(): HTMLElement
+            +includeConfidenceIndicator(): HTMLElement
+            --
+            -DESCRIPTION_TEMPLATES: Record<string, string>
+            -METRIC_FORMATTING_RULES: Function[]
+            -CONFIDENCE_DISPLAY_THRESHOLDS: number[]
+        }
+        
+        class MetricBarRenderer {
+            +createMetricBar(name, value, max): HTMLElement
+            +applyMetricColorCoding(): void
+            +addValueLabels(): void
+            +handleZeroValues(): void
+            --
+            -METRIC_COLOR_SCHEMES: Record<string, string[]>
+            -BAR_ANIMATION_SETTINGS: Record<string, any>
+            -VALUE_FORMATTING_RULES: Function[]
+        }
+        
+        class TooltipPositioning {
+            +calculateOptimalPosition(): Position
+            +avoidViewportEdges(): Position
+            +preventOverlapping(): Position
+            +adjustForScrolling(): Position
+            --
+            -VIEWPORT_MARGINS: Record<string, number>
+            -COLLISION_DETECTION: Function[]
+            -POSITIONING_PREFERENCES: string[]
+        }
+    }
+    
+    package "Style Management & Controls" {
+        class VisualizationStyleManager {
+            +switchVisualizationStyle(newStyle): void
+            +validateStyleCompatibility(): boolean
+            +updateRendererConfiguration(): void
+            +preserveUserPreferences(): void
+            --
+            -AVAILABLE_STYLES: string[]
+            -STYLE_COMPATIBILITY_MATRIX: Record<string, boolean[]>
+            -USER_PREFERENCE_STORAGE: Function[]
+        }
+        
+        class VisualizationDropdown {
+            +buildVisualizationDropdown(container): void
+            +handleStyleChange(newStyle): void
+            +updateDropdownSelection(): void
+            +validateStyleSelection(): boolean
+            --
+            -VISUALIZATION_OPTIONS: DropdownOption[]
+            -STYLE_LABELS: Record<string, string>
+            -STYLE_ICONS: Record<string, string>
+            -CHANGE_HANDLERS: Function[]
+        }
+        
+        class LegendManager {
+            +createDynamicLegend(style): HTMLElement
+            +updateLegendContent(): void
+            +positionLegend(): void
+            +handleLegendInteractions(): void
+            --
+            -LEGEND_TEMPLATES: Record<string, string>
+            -LEGEND_POSITIONING_RULES: Function[]
+            -INTERACTION_HANDLERS: Record<string, Function>
+        }
+    }
+    
+    package "Error Handling & Fallbacks" {
+        class VisualizationErrorHandler {
+            +handleRenderingErrors(): void
+            +renderFallbackIndicator(): void
+            +logVisualizationFailures(): void
+            +attemptGracefulDegradation(): void
+            --
+            -FALLBACK_VISUALIZATION_TYPES: string[]
+            -ERROR_RECOVERY_STRATEGIES: Function[]
+            -DEGRADATION_LEVELS: string[]
+        }
+        
+        class FallbackIndicatorRenderer {
+            +renderSimpleIndicator(): HTMLElement
+            +createBasicEntryCount(): HTMLElement
+            +applyMinimalStyling(): void
+            +ensureAccessibility(): void
+            --
+            -SIMPLE_INDICATOR_STYLES: Record<string, string>
+            -ACCESSIBILITY_ATTRIBUTES: Record<string, string>
+            -BASIC_TEMPLATES: string[]
+        }
+    }
+}
+
+package "Pattern Types & Classifications" {
+    enum PatternType {
+        HIGH_QUALITY_VIVID
+        FRAGMENTED_NARRATIVE
+        RICH_DESCRIPTIVE
+        BASIC_RECALL
+        EMOTIONAL_INTENSE
+        SENSORY_DETAILED
+        COHERENT_STORY
+        INCOMPLETE_MEMORY
+    }
+    
+    interface PatternClassification {
+        +pattern: string
+        +description: string
+        +qualityScore: number
+        +fragmentationLevel: string
+        +descriptiveness: number
+        +confidence: number
+        +metrics: Record<string, number>
+        +visualStyling: VisualStyling
+    }
+    
+    interface VisualStyling {
+        +backgroundColor: string
+        +borderColor: string
+        +opacity: number
+        +className: string
+        +iconType?: string
+        +gradientStops?: string[]
+        +layerStyles?: Record<string, any>
+    }
+}
+
+' Analysis Flow
+note as AnalysisFlow
+**Pattern Analysis Flow:**
+1. PatternCalculator receives dream metrics
+2. QualityScoreEngine calculates weighted score
+3. FragmentationAnalyzer assesses narrative cohesion
+4. DescriptivenessAnalyzer evaluates detail richness
+5. PatternClassifier determines pattern type
+6. VisualStyling generated for rendering
+end note
+
+note as RenderingFlow
+**Visualization Rendering Flow:**
+1. PatternRenderer selects appropriate renderer
+2. Specific renderer (Dots/Gradients/MultiLayer/Icons)
+3. LegendManager creates dynamic legend
+4. PatternTooltips adds interactive tooltips
+5. VisualizationErrorHandler ensures fallbacks
+end note
+
+' Relationships
+PatternCalculator ||--|| QualityScoreEngine : uses
+PatternCalculator ||--|| FragmentationAnalyzer : uses
+PatternCalculator ||--|| DescriptivenessAnalyzer : uses
+PatternCalculator ||--|| PatternClassifier : uses
+
+PatternRenderer ||--|| CompositeDotsRenderer : delegates to
+PatternRenderer ||--|| QualityGradientsRenderer : delegates to
+PatternRenderer ||--|| MultiLayerRenderer : delegates to
+PatternRenderer ||--|| MinimalistIconsRenderer : delegates to
+
+PatternTooltips ||--|| TooltipContentGenerator : uses
+PatternTooltips ||--|| MetricBarRenderer : uses
+PatternTooltips ||--|| TooltipPositioning : uses
+
+VisualizationStyleManager ||--|| VisualizationDropdown : coordinates with
+VisualizationStyleManager ||--|| LegendManager : manages
+
+PatternRenderer ||--|| VisualizationErrorHandler : protected by
+VisualizationErrorHandler ||--|| FallbackIndicatorRenderer : uses
+
+PatternClassifier ||--|| PatternType : classifies as
+PatternCalculator ||--|| PatternClassification : creates
+PatternRenderer ||--|| VisualStyling : applies
+
+@enduml 

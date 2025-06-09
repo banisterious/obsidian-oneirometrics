@@ -1,0 +1,257 @@
+@startuml Enhanced Date Navigator Data Extraction Strategies
+
+'******************************************************************************
+' v0.14.0 Enhanced Date Navigator Data Extraction Strategies
+' Shows the comprehensive data loading strategies with multiple fallback mechanisms
+' including DOM extraction, date parsing, and robust error handling
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Enhanced Date Navigator Data Extraction Strategies"
+
+package "Data Extraction Strategy System" {
+    
+    package "Primary Data Sources" {
+        class PluginStateStrategy {
+            +getDreamEntries(): DreamMetricData[]
+            +validateStateEntries(): boolean
+            +logStrategyResult(): void
+            --
+            -strategy: "plugin.state.getDreamEntries()"
+            -priority: 1
+            -reliability: "High"
+        }
+        
+        class DirectEntriesStrategy {
+            +getDirectEntries(): DreamMetricData[]
+            +validateDirectEntries(): boolean
+            +checkEntriesArray(): boolean
+            --
+            -strategy: "plugin.state.entries"
+            -priority: 2
+            -reliability: "High"
+        }
+        
+        class GlobalEntriesStrategy {
+            +getGlobalEntries(): DreamMetricData[]
+            +validateGlobalScope(): boolean
+            +checkWindowObject(): boolean
+            --
+            -strategy: "window.dreamEntries"
+            -priority: 3
+            -reliability: "Medium"
+        }
+    }
+    
+    package "DOM Extraction System" {
+        class DOMExtractionStrategy {
+            +extractEntriesFromDOMTable(): DreamMetricData[]
+            +scanForMetricsContainer(): HTMLElement
+            +identifyEntriesTable(): HTMLTableElement
+            +processTableRows(): DreamMetricData[]
+            --
+            -strategy: "DOM table extraction"
+            -priority: 4
+            -reliability: "Medium-High"
+        }
+        
+        class MetricsContainerScanner {
+            +findMetricsContainer(): HTMLElement
+            +validateContainerStructure(): boolean
+            +scanMultipleSelectors(): HTMLElement[]
+            --
+            -CONTAINER_SELECTORS: string[]
+            -FALLBACK_SELECTORS: string[]
+            -VALIDATION_RULES: Function[]
+        }
+        
+        class TableIdentificationEngine {
+            +distinguishTableTypes(): HTMLTableElement
+            +identifyEntriesTable(): HTMLTableElement
+            +skipSummaryTables(): boolean
+            +validateTableStructure(): boolean
+            --
+            -SUMMARY_TABLE_INDICATORS: string[]
+            -ENTRIES_TABLE_INDICATORS: string[]
+            -HEADER_ANALYSIS_PATTERNS: RegExp[]
+        }
+        
+        class RowProcessingEngine {
+            +processTableRows(): DreamMetricData[]
+            +extractEntryFromRow(): DreamMetricData
+            +validateRowStructure(): boolean
+            +handleMalformedRows(): void
+            --
+            -ROW_VALIDATION_RULES: Function[]
+            -ERROR_RECOVERY_STRATEGIES: Function[]
+            -DATA_SANITIZATION_RULES: RegExp[]
+        }
+    }
+    
+    package "Date Extraction System" {
+        class DateExtractionEngine {
+            +extractDateFromCell(cell): string
+            +parseMultipleDateFormats(): Date
+            +useDataAttributes(): string
+            +validateDateFormat(): boolean
+            --
+            -DATE_ATTRIBUTES: string[]
+            -DATE_PATTERNS: RegExp[]
+            -FALLBACK_STRATEGIES: Function[]
+        }
+        
+        class DataAttributeExtractor {
+            +extractISODate(): string
+            +validateDataAttribute(): boolean
+            +handleMissingAttributes(): string
+            --
+            -PRIMARY_ATTR: "data-iso-date"
+            -SECONDARY_ATTR: "data-date"
+            -VALIDATION_PATTERN: ISO_DATE_REGEX
+        }
+        
+        class TextPatternMatcher {
+            +matchMonthDDYYYY(): Date
+            +matchNumericFormats(): Date
+            +parseNaturalLanguage(): Date
+            +handleAmbiguousDates(): Date
+            --
+            -MONTH_DD_YYYY_PATTERN: RegExp
+            -NUMERIC_PATTERNS: RegExp[]
+            -NATURAL_LANGUAGE_PATTERNS: RegExp[]
+        }
+        
+        class DateValidationEngine {
+            +validateDateString(): boolean
+            +checkDateRange(): boolean
+            +handleInvalidDates(): Date
+            +logDateExtractionErrors(): void
+            --
+            -MIN_VALID_DATE: Date
+            -MAX_VALID_DATE: Date
+            -VALIDATION_RULES: Function[]
+        }
+    }
+    
+    package "Metrics Extraction System" {
+        class MetricsExtractionEngine {
+            +extractMetricsFromRow(): Record<string, number>
+            +identifyMetricCells(): HTMLElement[]
+            +parseMetricValues(): number
+            +handleMissingMetrics(): Record<string, number>
+            --
+            -METRIC_CELL_SELECTORS: string[]
+            -METRIC_NAME_EXTRACTION: Function[]
+            -VALUE_PARSING_RULES: Function[]
+        }
+        
+        class MetricValueParser {
+            +parseNumericValue(): number
+            +handleNonNumericValues(): number
+            +validateMetricRange(): boolean
+            +applyDefaultValues(): number
+            --
+            -NUMERIC_PATTERNS: RegExp[]
+            -DEFAULT_METRIC_VALUES: Record<string, number>
+            -VALIDATION_RANGES: Record<string, [number, number]>
+        }
+    }
+    
+    package "Error Handling & Fallbacks" {
+        class ExtractionErrorHandler {
+            +handleExtractionErrors(): void
+            +logExtractionFailures(): void
+            +attemptErrorRecovery(): DreamMetricData[]
+            +generateFallbackData(): DreamMetricData[]
+            --
+            -ERROR_RECOVERY_STRATEGIES: Function[]
+            -FALLBACK_DATA_GENERATORS: Function[]
+            -ERROR_LOGGING_LEVELS: string[]
+        }
+        
+        class TestDataGenerator {
+            +generateTestEntries(): DreamMetricData[]
+            +createSampleData(): DreamMetricData
+            +populateTestMetrics(): Record<string, number>
+            +updateStateWithTestData(): void
+            --
+            -TEST_ENTRY_COUNT: number
+            -SAMPLE_METRICS: string[]
+            -TEST_DATE_RANGES: Date[]
+        }
+    }
+}
+
+package "Strategy Coordination" {
+    class DataExtractionOrchestrator {
+        +loadDreamData(): DreamMetricData[]
+        +executeStrategiesInOrder(): DreamMetricData[]
+        +validateExtractionResults(): boolean
+        +selectBestDataSource(): DreamMetricData[]
+        --
+        -STRATEGY_EXECUTION_ORDER: Function[]
+        -DATA_QUALITY_VALIDATORS: Function[]
+        -RESULT_SELECTION_CRITERIA: Function[]
+    }
+    
+    class ExtractionResultValidator {
+        +validateDataIntegrity(): boolean
+        +checkDataCompleteness(): boolean
+        +assessDataQuality(): QualityScore
+        +selectOptimalDataset(): DreamMetricData[]
+        --
+        -INTEGRITY_CHECKS: Function[]
+        -COMPLETENESS_THRESHOLDS: Record<string, number>
+        -QUALITY_SCORING_ALGORITHMS: Function[]
+    }
+}
+
+' Strategy Flow
+note as StrategyFlow
+**Data Extraction Strategy Flow:**
+1. PluginStateStrategy (Highest Priority)
+2. DirectEntriesStrategy (High Priority)
+3. GlobalEntriesStrategy (Medium Priority)
+4. DOMExtractionStrategy (Fallback)
+5. TestDataGenerator (Last Resort)
+
+**Each strategy validates results before proceeding**
+end note
+
+note as DOMFlow
+**DOM Extraction Process:**
+1. MetricsContainerScanner → find container
+2. TableIdentificationEngine → identify entries table
+3. RowProcessingEngine → process each row
+4. DateExtractionEngine → extract dates
+5. MetricsExtractionEngine → extract metrics
+6. ExtractionErrorHandler → handle errors
+end note
+
+' Relationships
+DataExtractionOrchestrator ||--|| PluginStateStrategy : uses
+DataExtractionOrchestrator ||--|| DirectEntriesStrategy : uses
+DataExtractionOrchestrator ||--|| GlobalEntriesStrategy : uses
+DataExtractionOrchestrator ||--|| DOMExtractionStrategy : uses
+
+DOMExtractionStrategy ||--|| MetricsContainerScanner : uses
+DOMExtractionStrategy ||--|| TableIdentificationEngine : uses
+DOMExtractionStrategy ||--|| RowProcessingEngine : uses
+
+RowProcessingEngine ||--|| DateExtractionEngine : uses
+RowProcessingEngine ||--|| MetricsExtractionEngine : uses
+
+DateExtractionEngine ||--|| DataAttributeExtractor : uses
+DateExtractionEngine ||--|| TextPatternMatcher : uses
+DateExtractionEngine ||--|| DateValidationEngine : uses
+
+MetricsExtractionEngine ||--|| MetricValueParser : uses
+
+DataExtractionOrchestrator ||--|| ExtractionErrorHandler : coordinates with
+ExtractionErrorHandler ||--|| TestDataGenerator : uses
+
+DataExtractionOrchestrator ||--|| ExtractionResultValidator : uses
+
+@enduml 

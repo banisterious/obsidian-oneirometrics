@@ -1,0 +1,138 @@
+@startuml Enhanced Date Navigator Pattern Visualization Flow
+
+'******************************************************************************
+' v0.14.0 Enhanced Date Navigator Pattern Visualization Flow
+' Shows the sequence of operations for pattern classification and visualization
+' including data extraction, analysis, rendering, and tooltip generation
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Enhanced Date Navigator Pattern Visualization Flow"
+
+participant "User" as User
+participant "EnhancedDateNavigatorModal" as Modal
+participant "DataExtractionStrategies" as DataExtraction
+participant "DOMTableExtractor" as DOMExtractor
+participant "PatternCalculator" as Calculator
+participant "PatternRenderer" as Renderer
+participant "PatternTooltips" as Tooltips
+participant "VisualizationDropdown" as Dropdown
+
+== Modal Initialization ==
+User -> Modal : Click Date Navigator Button
+activate Modal
+
+Modal -> Modal : buildInterface()
+Modal -> Modal : loadDreamData()
+Modal -> DataExtraction : loadDreamData()
+activate DataExtraction
+
+== Data Extraction Strategies ==
+DataExtraction -> DataExtraction : Strategy 1: plugin.state.getDreamEntries()
+alt No entries found
+    DataExtraction -> DataExtraction : Strategy 2: plugin.state.entries
+    alt Still no entries
+        DataExtraction -> DataExtraction : Strategy 3: window.dreamEntries
+        alt Still no entries
+            DataExtraction -> DOMExtractor : extractEntriesFromDOMTable()
+            activate DOMExtractor
+            
+            DOMExtractor -> DOMExtractor : scanForMetricsContainer()
+            DOMExtractor -> DOMExtractor : identifyEntriesTable()
+            DOMExtractor -> DOMExtractor : processTableRows()
+            
+            loop For each table row
+                DOMExtractor -> DOMExtractor : extractDateFromRow()
+                DOMExtractor -> DOMExtractor : extractMetricsFromRow()
+                DOMExtractor -> DOMExtractor : createDreamEntry()
+            end
+            
+            DOMExtractor --> DataExtraction : dreamEntries[]
+            deactivate DOMExtractor
+        end
+    end
+end
+
+DataExtraction --> Modal : dreamEntries[]
+deactivate DataExtraction
+
+== Pattern Analysis & Visualization ==
+Modal -> Modal : updateCalendar()
+
+loop For each calendar day with entries
+    Modal -> Calculator : classifyPattern(dreamEntry.metrics)
+    activate Calculator
+    
+    Calculator -> Calculator : calculateQualityScore()
+    Calculator -> Calculator : determineFragmentationLevel()
+    Calculator -> Calculator : analyzeDescriptiveness()
+    Calculator -> Calculator : generateVisualStyling()
+    
+    Calculator --> Modal : PatternClassification
+    deactivate Calculator
+    
+    Modal -> Renderer : renderPatternVisualization(dayElement, entries)
+    activate Renderer
+    
+    Renderer -> Renderer : clearExistingIndicators()
+    
+    alt visualization style == 'composite-dots'
+        Renderer -> Renderer : renderCompositeDotsVisualization()
+    else visualization style == 'quality-gradients'
+        Renderer -> Renderer : renderQualityGradientsVisualization()
+    else visualization style == 'multi-layer'
+        Renderer -> Renderer : renderMultiLayerVisualization()
+    else visualization style == 'minimalist-icons'
+        Renderer -> Renderer : renderMinimalistIconsVisualization()
+    end
+    
+    Renderer --> Modal : visualizationRendered
+    deactivate Renderer
+    
+    Modal -> Tooltips : createTooltip(dayElement, classification)
+    activate Tooltips
+    
+    Tooltips -> Tooltips : generateTooltipContent()
+    Tooltips -> Tooltips : createMetricBars()
+    Tooltips -> Tooltips : positionTooltip()
+    
+    Tooltips --> Modal : tooltipElement
+    deactivate Tooltips
+end
+
+== User Interaction ==
+User -> Dropdown : Change visualization style
+activate Dropdown
+
+Dropdown -> Modal : handleVisualizationChange(newStyle)
+Modal -> Modal : updateCalendarVisualization()
+
+Modal -> Renderer : renderVisualization(newStyle)
+activate Renderer
+Renderer -> Renderer : clearExistingIndicators()
+Renderer -> Renderer : applyNewVisualizationStyle()
+Renderer --> Modal : visualizationUpdated
+deactivate Renderer
+
+Dropdown --> User : UI updated
+deactivate Dropdown
+
+== Tooltip Display ==
+User -> Modal : Hover over calendar day
+Modal -> Tooltips : showTooltip()
+activate Tooltips
+Tooltips -> Tooltips : positionTooltip()
+Tooltips --> User : Display pattern info
+deactivate Tooltips
+
+User -> Modal : Mouse leave
+Modal -> Tooltips : hideTooltip()
+activate Tooltips
+Tooltips --> User : Hide tooltip
+deactivate Tooltips
+
+deactivate Modal
+
+@enduml 
