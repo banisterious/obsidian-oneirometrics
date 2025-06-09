@@ -1319,7 +1319,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Global state for all sections
         let calloutMetadata = '';
-        let singleLine = false;
+        let singleLine = this.plugin.settings.singleLineMetrics ?? false;
         let flattenNested = false;
         
         // Get dynamic callout names with fallbacks
@@ -1585,6 +1585,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 toggle.setValue(singleLine)
                     .onChange(async (value) => {
                         singleLine = value;
+                        this.plugin.settings.singleLineMetrics = value;
+                        await this.plugin.saveSettings();
                     });
             });
 
@@ -2122,7 +2124,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Global state for all sections
         let calloutMetadata = '';
-        let singleLine = false;
+        let singleLine = this.plugin.settings.singleLineMetrics ?? false;
         let flattenNested = false;
         
         // Get dynamic callout names with fallbacks
@@ -2388,6 +2390,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 toggle.setValue(singleLine)
                     .onChange(async (value) => {
                         singleLine = value;
+                        this.plugin.settings.singleLineMetrics = value;
+                        await this.plugin.saveSettings();
                     });
             });
 
@@ -4071,14 +4075,14 @@ Example:
                     content += `>\n`;
                 }
             } else {
-                // If no child callouts, add metrics directly nested under root (2-level nesting)
+                // If no child callouts, add metrics directly nested under root (3-level nesting to match user templates)
                 if (structure.metricsCallout) {
-                    content += `>\n> > [!${structure.metricsCallout}]\n`;
-                    content += `> > Sensory Detail: 1-5\n`;
-                    content += `> > Emotional Recall: 1-5\n`;
-                    content += `> > Lost Segments: 0-10\n`;
-                    content += `> > Descriptiveness: 1-5\n`;
-                    content += `> > Confidence Score: 1-5\n`;
+                    content += `>\n> > > [!${structure.metricsCallout}]\n`;
+                    content += `> > > Sensory Detail: 1-5\n`;
+                    content += `> > > Emotional Recall: 1-5\n`;
+                    content += `> > > Lost Segments: 0-10\n`;
+                    content += `> > > Descriptiveness: 1-5\n`;
+                    content += `> > > Confidence Score: 1-5\n`;
                 }
             }
         } else {

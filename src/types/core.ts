@@ -255,6 +255,9 @@ export interface DreamMetricsSettings {
     /** Date handling configuration */
     dateHandling?: DateHandlingConfig;
     
+    /** Whether to show all metrics on a single line in callout structures */
+    singleLineMetrics?: boolean;
+    
     /** Whether to show ribbon button in the sidebar */
     showRibbonButtons: boolean;
     

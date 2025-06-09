@@ -18699,6 +18699,48 @@ pre.oom-markdown-preview.oom-journal-structure-preview {
     background: var(--interactive-hover);
 }
 
+/* Collapsible section styles for unified test suite */
+.unified-test-suite-collapsible-section {
+    margin: 1rem 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    background: var(--background-secondary);
+    border-radius: 6px 6px 0 0;
+    transition: background 0.1s ease;
+}
+
+.unified-test-suite-collapsible-header:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-collapsible-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.unified-test-suite-toggle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+
+.unified-test-suite-collapsible-content {
+    padding: 1rem;
+    border-top: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+}
+
 /* Mobile responsiveness for custom dialog */
 @media (max-width: 768px) {
     .oomp-unified-test-suite-custom-dialog {

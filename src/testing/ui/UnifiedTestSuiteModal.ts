@@ -16,7 +16,6 @@
  */
 
 import { App, Modal, Setting, ButtonComponent, Notice } from 'obsidian';
-import { getLogger } from '../../logging';
 import { FolderSuggest } from '../../../settings';
 
 // Import existing test functionality
@@ -42,7 +41,7 @@ export class UnifiedTestSuiteModal extends Modal {
     private tabsContainer: HTMLElement;
     private contentContainer: HTMLElement;
     private selectedTab: string | null = null;
-    private logger = getLogger('UnifiedTestSuiteModal');
+    private logger: any;
     
     // Test suite state
     private testState: TestSuiteState = {
@@ -58,6 +57,8 @@ export class UnifiedTestSuiteModal extends Modal {
     constructor(app: App, private plugin: any) {
         super(app);
         this.dummyDataGenerator = new DummyDataGenerator();
+        // Use the plugin's configured logger directly
+        this.logger = this.plugin.logger;
     }
     
     onOpen() {
@@ -320,6 +321,10 @@ export class UnifiedTestSuiteModal extends Modal {
         
         this.createActionButton(actionsContainer, 'Clear Test Results', 'trash-2', () => {
             this.clearTestResults();
+        });
+        
+        this.createActionButton(actionsContainer, 'Test Utilities', 'database', () => {
+            this.selectTab('utilities');
         });
         
         // Recent test results
@@ -733,7 +738,8 @@ export class UnifiedTestSuiteModal extends Modal {
         });
         
         // Add folder suggester
-        new FolderSuggest(this.app, folderInput);
+        // Note: FolderSuggest functionality would need to be imported here
+        // For now, we'll use a basic input field
         
         // Template Selection Section
         const templateSection = dialog.createDiv({ cls: 'oomp-unified-test-suite-config-section' });
@@ -930,7 +936,15 @@ export class UnifiedTestSuiteModal extends Modal {
     private getAvailableTemplates(): any[] {
         try {
             const plugin = this.plugin as any;
-            const templates = plugin.settings?.journalStructure?.templates || [];
+            // FIX: Load templates from the correct location where they're actually saved
+            const templates = plugin.settings?.linting?.templates || [];
+            
+            this.logger.trace('TemplateDebug', 'Loading templates from settings', {
+                settingsPath: 'plugin.settings.linting.templates',
+                templateCount: templates.length,
+                templateNames: templates.map((t: any) => t.name)
+            });
+            
             return templates.filter((template: any) => template && template.id && template.name);
         } catch (error) {
             this.logger.warn('Templates', 'Failed to load templates', error as Error);
@@ -961,26 +975,33 @@ export class UnifiedTestSuiteModal extends Modal {
     }
     
     private getDefaultMetrics(): any[] {
-        // Based on docs/user/reference/metrics.md - Default metrics enabled by default
+        // Based on DEFAULT_METRICS in core.ts - metrics enabled by default
         return [
             { name: 'Sensory Detail', description: 'Richness of sensory experiences (1-5)' },
             { name: 'Emotional Recall', description: 'Emotional content and intensity (1-5)' },
-            { name: 'Lost Segments', description: 'Number of forgotten or unclear parts' },
+            { name: 'Lost Segments', description: 'Number of forgotten or unclear parts (0-10)' },
             { name: 'Descriptiveness', description: 'Level of detail in dream description (1-5)' },
             { name: 'Confidence Score', description: 'Confidence in dream recall accuracy (1-5)' }
         ];
     }
     
     private getOptionalMetrics(): any[] {
-        // Based on docs/user/reference/metrics.md - Optional metrics
+        // Based on DEFAULT_METRICS in core.ts - metrics disabled by default
         return [
-            { name: 'Lucidity Level', description: 'Level of lucid awareness (0-3)' },
-            { name: 'Character Roles', description: 'Types of characters encountered' },
-            { name: 'Character Count', description: 'Number of distinct characters' },
-            { name: 'Dream Coherence', description: 'Logical consistency of dream events (1-5)' },
-            { name: 'Environmental Familiarity', description: 'How familiar dream locations are (1-5)' },
-            { name: 'Symbolic Content', description: 'Presence of symbolic elements (1-5)' },
-            { name: 'Time Distortion', description: 'Perception of time within dream (1-5)' }
+            { name: 'Character Roles', description: 'Presence and significance of dream characters (1-5)' },
+            { name: 'Characters Count', description: 'Total number of characters (automatically calculated)' },
+            { name: 'Familiar Count', description: 'Number of familiar characters from waking life (0-20)' },
+            { name: 'Unfamiliar Count', description: 'Number of unfamiliar characters/strangers (0-20)' },
+            { name: 'Characters List', description: 'List of all characters that appeared in dream' },
+            { name: 'Dream Theme', description: 'Dominant subjects, ideas, or emotional undercurrents' },
+            { name: 'Symbolic Content', description: 'Meaningful or symbolic objects, figures, actions' },
+            { name: 'Character Clarity/Familiarity', description: 'Distinctness and recognizability of characters (1-5)' },
+            { name: 'Lucidity Level', description: 'Degree of awareness that you are dreaming (1-5)' },
+            { name: 'Dream Coherence', description: 'Logical consistency and narrative flow (1-5)' },
+            { name: 'Environmental Familiarity', description: 'How recognizable dream locations are (1-5)' },
+            { name: 'Time Distortion', description: 'How unusually time behaved in the narrative (1-5)' },
+            { name: 'Ease of Recall', description: 'How readily you can remember the dream (1-5)' },
+            { name: 'Recall Stability', description: 'How well dream memory holds up over time (1-5)' }
         ];
     }
     
@@ -1002,8 +1023,9 @@ export class UnifiedTestSuiteModal extends Modal {
         const realistic = realisticCheckbox.checked;
         const evenDistribution = distributionCheckbox.checked;
         
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - monthsBack);
+        // Create start date safely by using milliseconds calculation
+        const currentDate = new Date();
+        const startDate = new Date(currentDate.getTime() - (monthsBack * 30 * 24 * 60 * 60 * 1000)); // Approximate 30 days per month
         
         // Collect selected metrics
         const selectedMetrics: string[] = [];
@@ -1175,8 +1197,39 @@ export class UnifiedTestSuiteModal extends Modal {
     private async createEnhancedDreamNoteContent(entry: any, calloutName: string, template: any): Promise<string> {
         try {
             if (template && template.content) {
-                // Use the selected template and populate it with entry data
-                return this.populateTemplate(template.content, entry, calloutName);
+                // TRACE: Log the raw template content before any processing
+                this.logger.trace('TemplateDebug', 'Raw template content received', {
+                    templateId: template.id,
+                    templateName: template.name,
+                    rawContent: template.content
+                });
+                
+                // Check raw template for dream-metrics lines
+                const rawLines = template.content.split('\n');
+                const rawDreamMetricsLines = rawLines
+                    .map((line, index) => ({ line, index: index + 1 }))
+                    .filter(({ line }) => line.includes('dream-metrics'));
+                    
+                if (rawDreamMetricsLines.length > 0) {
+                    this.logger.trace('TemplateDebug', 'Dream-metrics lines in raw template', {
+                        dreamMetricsLines: rawDreamMetricsLines.map(({ line, index }) => ({
+                            lineNumber: index,
+                            content: line,
+                            charCount: line.length,
+                            arrowBracketCount: line.match(/>/g)?.length || 0
+                        }))
+                    });
+                }
+                
+                // Apply different logic based on template type
+                if (template.structure && template.structure.trim() !== '') {
+                    // Structure-based template: apply repair/validation
+                    const repairedContent = this.repairTemplateNesting(template.content);
+                    return this.populateTemplate(repairedContent, entry, calloutName);
+                } else {
+                    // Direct Input template: use exactly as user saved it
+                    return this.populateTemplate(template.content, entry, calloutName);
+                }
             } else {
                 // Fall back to standard dream note content
                 return this.createDreamNoteContent(entry, calloutName);
@@ -1190,6 +1243,35 @@ export class UnifiedTestSuiteModal extends Modal {
     private populateTemplate(templateContent: string, entry: any, calloutName: string): string {
         // Simple template variable replacement
         let content = templateContent;
+        
+        // TRACE: Log the original template content with detailed line inspection
+        // First, test if trace logging is working
+        console.log('[DEBUG] Testing trace logging before template debugging...');
+        this.logger.trace('TemplateDebug', 'TRACE LOG TEST - If you see this, trace logging is working');
+        console.log('[DEBUG] Testing other log levels for comparison...');
+        this.logger.debug('TemplateDebug', 'DEBUG LOG TEST');
+        this.logger.info('TemplateDebug', 'INFO LOG TEST');
+        
+        this.logger.trace('TemplateDebug', 'Starting template corruption debugging', {
+            totalLines: templateContent.split('\n').length,
+            contentLength: templateContent.length
+        });
+        
+        const lines = templateContent.split('\n');
+        const dreamMetricsLines = lines
+            .map((line, index) => ({ line, index: index + 1 }))
+            .filter(({ line }) => line.includes('dream-metrics'));
+            
+        if (dreamMetricsLines.length > 0) {
+            this.logger.trace('TemplateDebug', 'Dream-metrics lines found in original template', {
+                dreamMetricsLines: dreamMetricsLines.map(({ line, index }) => ({
+                    lineNumber: index,
+                    content: line,
+                    charCount: line.length,
+                    arrowBracketCount: line.match(/>/g)?.length || 0
+                }))
+            });
+        }
         
         // Parse the entry date
         const today = new Date().toISOString().split('T')[0];
@@ -1205,19 +1287,63 @@ export class UnifiedTestSuiteModal extends Modal {
             day: 'numeric' 
         }); // e.g., "June 8, 2025"
         
+        // Handle {{metrics}} with context-aware replacement to preserve nesting
+        const metricsPlaceholderRegex = /^(\s*>+\s*){{metrics}}\s*$/gm;
+        content = content.replace(metricsPlaceholderRegex, (match, prefix) => {
+            const formattedMetrics = this.formatMetricsForTemplate(entry.metrics || {});
+            if (!formattedMetrics) return match;
+            
+            // Check if we're using single line format
+            const singleLine = this.plugin.settings.singleLineMetrics ?? false;
+            
+            if (singleLine) {
+                // For single line, just return the prefix + metrics
+                return `${prefix}${formattedMetrics}`;
+            } else {
+                // For multi-line, split the metrics and apply prefix to each line
+                const metricLines = formattedMetrics.split('\n');
+                return metricLines.map(line => `${prefix}${line}`).join('\n');
+            }
+        });
+        
+        // Fallback: if the above regex didn't match, try a simpler replacement
+        if (content.includes('{{metrics}}')) {
+            const formattedMetrics = this.formatMetricsForTemplate(entry.metrics || {});
+            content = content.replace(/{{metrics}}/g, formattedMetrics);
+        }
+        
         const replacements = {
             '{{date}}': dateISO,
             '{{date-compact}}': dateCompact,
             '{{date-month-day}}': dateMonthDay,
             '{{title}}': entry.title || 'Dream Entry',
             '{{content}}': entry.content || 'Dream content...',
-            '{{callout}}': calloutName,
-            '{{metrics}}': this.formatMetricsForTemplate(entry.metrics || {})
+            '{{callout}}': calloutName
+            // Note: {{metrics}} is handled above with context preservation
         };
         
         Object.entries(replacements).forEach(([variable, value]) => {
             content = content.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), value);
         });
+        
+        // TRACE: Log the final processed content with detailed line inspection
+        const finalLines = content.split('\n');
+        const dreamMetricsFinal = finalLines
+            .map((line, index) => ({ line, index: index + 1 }))
+            .filter(({ line }) => line.includes('dream-metrics'));
+            
+        this.logger.trace('TemplateDebug', 'Final processed content inspection', {
+            totalLines: finalLines.length,
+            contentLength: content.length,
+            dreamMetricsLines: dreamMetricsFinal.map(({ line, index }) => ({
+                lineNumber: index,
+                content: line,
+                charCount: line.length,
+                arrowBracketCount: line.match(/>/g)?.length || 0
+            }))
+        });
+        
+        this.logger.trace('TemplateDebug', 'Template processing completed');
         
         return content;
     }
@@ -1231,7 +1357,69 @@ export class UnifiedTestSuiteModal extends Modal {
             return `**${name}**: ${value}`;
         });
         
-        return metricLines.join('\n');
+        // Check singleLineMetrics setting to determine formatting
+        const singleLine = this.plugin.settings.singleLineMetrics ?? false;
+        return singleLine ? metricLines.join(', ') : metricLines.join('\n');
+    }
+
+    /**
+     * Repair template nesting for structure-based templates only
+     * Direct Input templates are never modified
+     */
+    private repairTemplateNesting(templateContent: string): string {
+        if (!templateContent) return templateContent;
+        
+        this.logger.trace('TemplateDebug', 'Repairing structure-based template', {
+            templateLength: templateContent.length,
+            hasMetricsCallouts: templateContent.includes('dream-metrics'),
+            nestingLevels: this.analyzeNestingLevels(templateContent)
+        });
+        
+        // For structure-based templates, apply basic repairs
+        // This is safe because these templates are generated from known structures
+        const lines = templateContent.split('\n');
+        const repairedLines = lines.map(line => {
+            // Fix common generation issues in structure-based templates
+            if (line.match(/^>\s+>\s+\[!.*?metrics.*?\]/i)) {
+                // Check if metrics should be nested deeper based on context
+                const previousLines = lines.slice(Math.max(0, lines.indexOf(line) - 3), lines.indexOf(line));
+                const hasDreamDiary = previousLines.some(l => l.includes('[!dream-diary]'));
+                
+                if (hasDreamDiary) {
+                    // If nested under dream-diary, should be 3-level
+                    this.logger.trace('TemplateDebug', 'Fixing metrics nesting in structure template', {
+                        originalLine: line,
+                        reason: 'nested under dream-diary'
+                    });
+                    return line.replace(/^>\s+>\s+(\[!.*?metrics.*?\])/i, '>>> $1');
+                }
+            }
+            return line;
+        });
+        
+        return repairedLines.join('\n');
+    }
+
+    /**
+     * Analyze nesting levels in template for debugging
+     */
+    private analyzeNestingLevels(content: string): any {
+        const lines = content.split('\n');
+        const nestingAnalysis = lines
+            .filter(line => line.includes('[!'))
+            .map(line => {
+                const arrowCount = (line.match(/>/g) || []).length;
+                const calloutMatch = line.match(/\[!([^\]]+)\]/);
+                const calloutType = calloutMatch ? calloutMatch[1] : 'unknown';
+                
+                return {
+                    line: line.trim(),
+                    nestingLevel: arrowCount,
+                    calloutType
+                };
+            });
+            
+        return nestingAnalysis;
     }
 
     private async generateCustomTestData(options: {
@@ -1415,8 +1603,12 @@ export class UnifiedTestSuiteModal extends Modal {
         const plugin = this.plugin as any;
         const templateId = plugin.settings?.testDataTemplate;
         
+        // DEBUG: Log which path we're taking
+        console.log('[DEBUG] createDreamNoteContent called, templateId:', templateId);
+        
         // If no template is specified, use the default format
         if (!templateId) {
+            console.log('[DEBUG] No templateId, using default format');
             return this.createDefaultDreamNoteContent(entry, calloutName);
         }
         
@@ -1468,7 +1660,7 @@ export class UnifiedTestSuiteModal extends Modal {
             } else {
                 // If no content placeholder, look for nested callout patterns and replace carefully
                 // Handle patterns like "> > Dream goes here." 
-                const nestedCalloutPattern = /^(>\s*>\s*)(Dream goes here\.|.*goes here\.?)$/gm;
+                const nestedCalloutPattern = /^(>\s*>\s*)(Dream goes here\.?|Dream content goes here\.?)$/gm;
                 noteContent = noteContent.replace(nestedCalloutPattern, `$1${entry.content}`);
                 
                 // Also handle simple "Dream goes here" patterns
@@ -1481,20 +1673,38 @@ export class UnifiedTestSuiteModal extends Modal {
                 noteContent = noteContent.replace(placeholder, String(value));
             });
             
-            // Handle metrics placeholder
+            // Handle metrics placeholder with context-aware replacement to preserve nesting
+            const metricsPlaceholderRegex = /^(\s*>+\s*){{metrics}}\s*$/gm;
+            noteContent = noteContent.replace(metricsPlaceholderRegex, (match, prefix) => {
+                const formattedMetrics = this.formatMetricsForTemplate(entry.metrics || {});
+                if (!formattedMetrics) return match;
+                
+                // Check if we're using single line format
+                const singleLine = this.plugin.settings.singleLineMetrics ?? false;
+                
+                if (singleLine) {
+                    // For single line, just return the prefix + metrics
+                    return `${prefix}${formattedMetrics}`;
+                } else {
+                    // For multi-line, split the metrics and apply prefix to each line
+                    const metricLines = formattedMetrics.split('\n');
+                    return metricLines.map(line => `${prefix}${line}`).join('\n');
+                }
+            });
+            
+            // Fallback: if the above regex didn't match, try a simpler replacement
             if (noteContent.includes('{{metrics}}')) {
-                const metrics = Object.entries(entry.metrics)
-                    .map(([key, value]) => `**${key}**: ${value}`)
-                    .join(' • ');
-                noteContent = noteContent.replace(/\{\{metrics\}\}/g, metrics);
+                const formattedMetrics = this.formatMetricsForTemplate(entry.metrics || {});
+                noteContent = noteContent.replace(/{{metrics}}/g, formattedMetrics);
             }
             
             // If the template doesn't contain our callout or metrics, append them
             const expectedCallout = `[!${calloutName}]`;
             if (!noteContent.includes(expectedCallout) && !noteContent.includes('{{metrics}}')) {
-                const metrics = Object.entries(entry.metrics)
-                    .map(([key, value]) => `**${key}**: ${value}`)
-                    .join(' • ');
+                const metricLines = Object.entries(entry.metrics)
+                    .map(([key, value]) => `**${key}**: ${value}`);
+                const singleLine = this.plugin.settings.singleLineMetrics ?? false;
+                const metrics = singleLine ? metricLines.join(', ') : metricLines.join(' • ');
                 noteContent += `\n\n> ${expectedCallout} Dream Metrics
 > ${metrics}\n`;
             }
@@ -1509,9 +1719,10 @@ export class UnifiedTestSuiteModal extends Modal {
     }
     
     private createDefaultDreamNoteContent(entry: any, calloutName: string): string {
-        const metrics = Object.entries(entry.metrics)
-            .map(([key, value]) => `**${key}**: ${value}`)
-            .join(' • ');
+        const metricLines = Object.entries(entry.metrics)
+            .map(([key, value]) => `**${key}**: ${value}`);
+        const singleLine = this.plugin.settings.singleLineMetrics ?? false;
+        const metrics = singleLine ? metricLines.join(', ') : metricLines.join(' • ');
         
         return `---
 date: ${entry.date}
@@ -2051,84 +2262,79 @@ ${entry.content}
             cls: 'unified-test-suite-content-description'
         });
 
-        // Test Data Generation Section
-        const dataGenSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        new Setting(dataGenSection).setHeading().setName('📊 Test data generation');
-        dataGenSection.createEl('p', {
-            text: 'Generate realistic dummy dream journal entries for performance testing and validation.',
-            cls: 'unified-test-suite-section-description'
-        });
-
-        // Quick Generation Buttons
-        const quickGenContainer = dataGenSection.createDiv({ cls: 'unified-test-suite-button-row' });
+        // Quick Generation Setting
+        let quickGenDropdown: any;
+        const quickGenSetting = new Setting(this.contentContainer)
+            .setName('Quick generation')
+            .setDesc('Generate realistic dummy dream journal entries for performance testing and validation.');
         
-        this.createUtilityButton(quickGenContainer, 'Generate 500 entries (Small)', '📝', async () => {
-            await this.generateCustomTestData({
-                count: 500,
-                realistic: true,
-                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
-                endDate: new Date()
-            });
+        // Create dropdown for entry count
+        quickGenSetting.addDropdown(dropdown => {
+            quickGenDropdown = dropdown;
+            dropdown.addOption('500', '500 entries');
+            dropdown.addOption('1000', '1,000 entries');
+            dropdown.addOption('5000', '5,000 entries');
+            dropdown.setValue('1000'); // Default to medium
         });
-
-        this.createUtilityButton(quickGenContainer, 'Generate 1K entries (Medium)', '📄', async () => {
-            await this.generateCustomTestData({
-                count: 1000,
-                realistic: true,
-                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
-                endDate: new Date()
-            });
-        });
-
-        this.createUtilityButton(quickGenContainer, 'Generate 5K entries (Large)', '📚', async () => {
-            await this.generateCustomTestData({
-                count: 5000,
-                realistic: true,
-                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
-                endDate: new Date()
-            });
-        });
-
-        // Custom Generation Button
-        this.createUtilityButton(dataGenSection, 'Custom Dataset Configuration', '⚙️', () => {
-            this.showCustomDatasetDialog();
-        });
-
-        // Cleanup Section
-        const cleanupSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        new Setting(cleanupSection).setHeading().setName('🧹 Test data cleanup');
-        cleanupSection.createEl('p', {
-            text: 'Manage and clean up test data files.',
-            cls: 'unified-test-suite-section-description'
-        });
-
-        this.createUtilityButton(cleanupSection, 'Clear Test Data Folder', '🗑️', () => {
-            this.clearTestDataFolder();
-        });
-
-        // Analysis Tools Section
-        const analysisSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
-        new Setting(analysisSection).setHeading().setName('📈 Analysis tools');
-        analysisSection.createEl('p', {
-            text: 'Export and analyze test results.',
-            cls: 'unified-test-suite-section-description'
-        });
-
-        const analysisContainer = analysisSection.createDiv({ cls: 'unified-test-suite-button-row' });
         
-        this.createUtilityButton(analysisContainer, 'Export Test Results', '📊', () => {
-            this.exportTestResults();
+        // Add Generate button
+        quickGenSetting.addButton(button => {
+            button.setButtonText('Generate').onClick(async () => {
+                const count = parseInt(quickGenDropdown.getValue());
+                await this.generateCustomTestData({
+                    count,
+                    realistic: true,
+                    startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+                    endDate: new Date()
+                });
+            });
         });
 
-        this.createUtilityButton(analysisContainer, 'Clear All Caches', '💾', () => {
-            this.clearAllCaches();
-        });
+        // Custom Generation Section
+        const customGenSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
+        new Setting(customGenSection).setHeading().setName('Custom Generation');
+        
+        // Enhanced Custom Dataset Configuration content
+        this.renderEnhancedCustomDatasetConfig(customGenSection);
 
-        this.createUtilityButton(analysisContainer, 'Reset Test Environment', '🔄', () => {
-            this.resetTestEnvironment();
-        });
+        // Clear test data folder Setting
+        new Setting(this.contentContainer)
+            .setName('Clear test data folder')
+            .setDesc('Manage and clean up test data files.')
+            .addButton(button => {
+                button.setButtonText('Clear').onClick(() => {
+                    this.clearTestDataFolder();
+                });
+            });
 
-        // Test File Statistics
+        // Export test results Setting
+        new Setting(this.contentContainer)
+            .setName('Export test results')
+            .addButton(button => {
+                button.setButtonText('Export').onClick(() => {
+                    this.exportTestResults();
+                });
+            });
+
+        // Clear All Caches Setting
+        new Setting(this.contentContainer)
+            .setName('Clear all caches')
+            .addButton(button => {
+                button.setButtonText('Clear').onClick(() => {
+                    this.clearAllCaches();
+                });
+            });
+
+        // Reset Test Environment Setting
+        new Setting(this.contentContainer)
+            .setName('Reset test environment')
+            .addButton(button => {
+                button.setButtonText('Reset').onClick(() => {
+                    this.resetTestEnvironment();
+                });
+            });
+
+        // Test File Statistics (unchanged)
         const statsSection = this.contentContainer.createDiv({ cls: 'unified-test-suite-section' });
         new Setting(statsSection).setHeading().setName('📋 Test data statistics');
         
@@ -2145,6 +2351,248 @@ ${entry.content}
         // Success rate
         const successRate = this.getSuccessRate();
         this.createStatWidget(statsContainer, 'Success Rate', successRate);
+    }
+
+    private renderEnhancedCustomDatasetConfig(container: HTMLElement) {
+        // Store references for later use
+        let countInput: HTMLInputElement;
+        let dateInput: HTMLInputElement;
+        let realisticCheckbox: HTMLInputElement;
+        let distributionCheckbox: HTMLInputElement;
+        let folderInput: HTMLInputElement;
+        let templateSelect: HTMLSelectElement;
+        
+        // Get available templates
+        const templates = this.getAvailableTemplates();
+        
+        // Entry count setting
+        new Setting(container)
+            .setName('Number of entries')
+            .addText(text => {
+                countInput = text.inputEl;
+                text.setValue('1000')
+                    .setPlaceholder('1000');
+                text.inputEl.type = 'number';
+                text.inputEl.setAttribute('min', '1');
+                text.inputEl.setAttribute('max', '50000');
+            });
+        
+        // Date range setting
+        new Setting(container)
+            .setName('Date range (months back)')
+            .addText(text => {
+                dateInput = text.inputEl;
+                text.setValue('12')
+                    .setPlaceholder('12');
+                text.inputEl.type = 'number';
+                text.inputEl.setAttribute('min', '1');
+                text.inputEl.setAttribute('max', '60');
+            });
+        
+        // Realistic content setting
+        new Setting(container)
+            .setName('Realistic content')
+            .addToggle(toggle => {
+                realisticCheckbox = toggle.toggleEl as HTMLInputElement;
+                toggle.setValue(true);
+            });
+        
+        // Even distribution setting
+        new Setting(container)
+            .setName('Even distribution across dates')
+            .addToggle(toggle => {
+                distributionCheckbox = toggle.toggleEl as HTMLInputElement;
+                toggle.setValue(true);
+            });
+        
+        // Output folder setting
+        new Setting(container)
+            .setName('Output folder')
+            .addText(text => {
+                folderInput = text.inputEl;
+                text.setValue((this.plugin as any).settings?.testDataFolder || 'Test Data/Dreams')
+                    .setPlaceholder('Test Data/Dreams');
+            });
+        
+        // Note: FolderSuggest functionality would need to be imported here
+        // For now, we'll use a basic input field
+        
+        // Journal template setting
+        const templatePreview = container.createDiv({ cls: 'oomp-unified-test-suite-template-preview' });
+        templatePreview.style.display = 'none';
+        
+        new Setting(container)
+            .setName('Journal template')
+            .addDropdown(dropdown => {
+                templateSelect = dropdown.selectEl;
+                dropdown.addOption('default', 'Default Template');
+                templates.forEach(template => {
+                    dropdown.addOption(template.id, template.name);
+                });
+                dropdown.onChange(() => {
+                    this.updateTemplatePreview(templateSelect.value, templatePreview, templates);
+                });
+            });
+        
+        // Metrics Selection Collapsible Section
+        const metricsContainer = container.createDiv({ cls: 'unified-test-suite-collapsible-section' });
+        const metricsHeader = metricsContainer.createDiv({ cls: 'unified-test-suite-collapsible-header' });
+        metricsHeader.createEl('h3', { text: 'Metrics Selection' });
+        const metricsToggle = metricsHeader.createEl('span', { text: '▶', cls: 'unified-test-suite-toggle' });
+        
+        const metricsContent = metricsContainer.createDiv({ 
+            cls: 'unified-test-suite-collapsible-content',
+            attr: { style: 'display: none;' }
+        });
+        
+        let isMetricsExpanded = false;
+        metricsHeader.addEventListener('click', () => {
+            isMetricsExpanded = !isMetricsExpanded;
+            metricsContent.style.display = isMetricsExpanded ? 'block' : 'none';
+            metricsToggle.textContent = isMetricsExpanded ? '▼' : '▶';
+        });
+        
+        const metricsInfo = metricsContent.createDiv({ cls: 'oomp-unified-test-suite-metrics-info' });
+        metricsInfo.createEl('p', { 
+            text: 'Select which metrics to include in generated entries. Default metrics provide base patterns for visualization testing.',
+            cls: 'oomp-unified-test-suite-help-text'
+        });
+        
+        // Default metrics group
+        const defaultMetricsGroup = metricsContent.createDiv({ cls: 'oomp-unified-test-suite-metrics-group' });
+        new Setting(defaultMetricsGroup).setHeading().setName('Default Metrics (Recommended)');
+        
+        const defaultMetrics = this.getDefaultMetrics();
+        const defaultMetricsCheckboxes: Record<string, HTMLInputElement> = {};
+        
+        defaultMetrics.forEach(metric => {
+            new Setting(defaultMetricsGroup)
+                .setName(metric.name)
+                .setDesc(metric.description)
+                .addToggle(toggle => {
+                    defaultMetricsCheckboxes[metric.name] = toggle.toggleEl as HTMLInputElement;
+                    toggle.setValue(true); // Default metrics are enabled by default
+                });
+        });
+        
+        // Optional metrics group
+        const optionalMetricsGroup = metricsContent.createDiv({ cls: 'oomp-unified-test-suite-metrics-group' });
+        new Setting(optionalMetricsGroup).setHeading().setName('Optional Metrics');
+        
+        const optionalMetrics = this.getOptionalMetrics();
+        const optionalMetricsCheckboxes: Record<string, HTMLInputElement> = {};
+        
+        optionalMetrics.forEach(metric => {
+            new Setting(optionalMetricsGroup)
+                .setName(metric.name)
+                .setDesc(metric.description)
+                .addToggle(toggle => {
+                    optionalMetricsCheckboxes[metric.name] = toggle.toggleEl as HTMLInputElement;
+                    toggle.setValue(false); // Optional metrics are disabled by default
+                });
+        });
+        
+        // Quick selection buttons
+        const quickSelectContainer = metricsContent.createDiv({ cls: 'oomp-unified-test-suite-quick-select' });
+        quickSelectContainer.createEl('span', { text: 'Quick select: ' });
+        
+        const selectAllBtn = quickSelectContainer.createEl('button', { 
+            text: 'All',
+            cls: 'oomp-unified-test-suite-quick-btn'
+        });
+        selectAllBtn.onclick = () => {
+            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = true);
+            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = true);
+        };
+        
+        const selectDefaultBtn = quickSelectContainer.createEl('button', { 
+            text: 'Default',
+            cls: 'oomp-unified-test-suite-quick-btn'
+        });
+        selectDefaultBtn.onclick = () => {
+            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = true);
+            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = false);
+        };
+        
+        const selectNoneBtn = quickSelectContainer.createEl('button', { 
+            text: 'None',
+            cls: 'oomp-unified-test-suite-quick-btn'
+        });
+        selectNoneBtn.onclick = () => {
+            Object.values(defaultMetricsCheckboxes).forEach(cb => cb.checked = false);
+            Object.values(optionalMetricsCheckboxes).forEach(cb => cb.checked = false);
+        };
+        
+        // Advanced Options Collapsible Section
+        const advancedContainer = container.createDiv({ cls: 'unified-test-suite-collapsible-section' });
+        const advancedHeader = advancedContainer.createDiv({ cls: 'unified-test-suite-collapsible-header' });
+        advancedHeader.createEl('h3', { text: 'Advanced Options' });
+        const advancedToggle = advancedHeader.createEl('span', { text: '▶', cls: 'unified-test-suite-toggle' });
+        
+        const advancedContent = advancedContainer.createDiv({ 
+            cls: 'unified-test-suite-collapsible-content',
+            attr: { style: 'display: none;' }
+        });
+        
+        let isAdvancedExpanded = false;
+        advancedHeader.addEventListener('click', () => {
+            isAdvancedExpanded = !isAdvancedExpanded;
+            advancedContent.style.display = isAdvancedExpanded ? 'block' : 'none';
+            advancedToggle.textContent = isAdvancedExpanded ? '▼' : '▶';
+        });
+        
+        // Seed setting for reproducible results
+        const seedContainer = advancedContent.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        seedContainer.createEl('label', { text: 'Random seed (for reproducible results):' });
+        const seedInput = seedContainer.createEl('input', { 
+            type: 'number',
+            value: Math.floor(Math.random() * 10000).toString(),
+            placeholder: 'Leave empty for random'
+        });
+        
+        // Source prefix setting
+        const prefixContainer = advancedContent.createDiv({ cls: 'oomp-unified-test-suite-setting-item' });
+        prefixContainer.createEl('label', { text: 'Source prefix:' });
+        const prefixInput = prefixContainer.createEl('input', { 
+            type: 'text',
+            value: 'pattern-test',
+            placeholder: 'pattern-test'
+        });
+        
+        // Generate Enhanced Dataset Setting
+        new Setting(container)
+            .setName('Generate Enhanced Dataset')
+            .addButton(button => {
+                button.setButtonText('Generate')
+                    .setCta()
+                    .onClick(async () => {
+                        const config = this.buildDatasetConfig(
+                            countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
+                            templateSelect, templates,
+                            defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+                            seedInput, prefixInput
+                        );
+                        
+                        await this.generateEnhancedTestData(config);
+                    });
+            });
+
+        // Preview Configuration Setting
+        new Setting(container)
+            .setName('Preview Configuration')
+            .addButton(button => {
+                button.setButtonText('Preview')
+                    .onClick(() => {
+                        this.showConfigurationPreview(
+                            countInput, dateInput, realisticCheckbox, distributionCheckbox, folderInput,
+                            templateSelect, templates,
+                            defaultMetricsCheckboxes, optionalMetricsCheckboxes,
+                            seedInput, prefixInput
+                        );
+                    });
+            });
+        
+
     }
     
     // Help content
