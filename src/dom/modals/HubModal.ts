@@ -708,6 +708,12 @@ This metric assesses **how readily and effortlessly you could remember the dream
 `,
             'Recall Stability': `
 This metric assesses **how well your memory of the dream holds up and remains consistent in the minutes and hours immediately following waking**. It measures the resilience of your dream recall against the natural process of forgetting. Tracking recall stability can help you understand if your current dream capture methods are sufficient to preserve details before they fade, and highlight whether certain dreams are inherently more "sticky" than others.
+`,
+            'Symbolic Content': `
+This metric helps you identify and track the specific symbols that appear in your dreams. While your Dream Theme might capture the overall subject, Symbolic Content focuses on individual elements like a lion, a red door, or a recurring specific action that seems to carry deeper meaning. This can be recorded as a list of keywords or tags, allowing you to recognize your unique symbolic language and discover recurring motifs over time.
+`,
+            'Time Distortion': `
+Time Distortion assesses the surreal nature of time's flow within your dream. Unlike waking life, dream time can speed up, slow down, jump abruptly, or even have events happening simultaneously. This 1-5 scale helps you quantify how linear or chaotic the passage of time felt, offering insights into how your mind processes temporal experiences in different dream states.
 `
         };
         
@@ -816,6 +822,15 @@ This metric assesses **how well your memory of the dream holds up and remains co
 | 3 (Moderate Fading)    | Some details and less significant parts of the dream might fade within the first 15-30 minutes, but the core narrative and key events remain relatively intact.                                                   |
 | 4 (Mostly Stable)      | Your recall of the dream remains largely consistent for at least 30 minutes after waking. Only minor details or less impactful elements might fade over time.                                                                                                                                                                                                  |
 | 5 (Very Stable)        | The memory of the dream feels solid and enduring in the immediate post-waking period. You can recall details consistently even after a longer period without actively trying to remember it.                                                                                                                                                                                                                  |
+`,
+            'Time Distortion': `
+| Score              | Description |
+| ------------------ | ----------- |
+| 1 (Normal) | Time flows linearly, as in waking life.            |
+| 2 (Minor Fluctuations) | Slight jumps or skips, but generally linear.            |
+| 3 (Noticeable Distortion) | Time speeds up/slows down significantly, or small jumps.            |
+| 4 (Significant Distortion) | Time shifts abruptly, jumps backward/forward, or multiple events feel simultaneous.            |
+| 5 (Chaotic/Non-Existent) | Time has no discernible order; events happen out of sequence or simultaneously without any linear progression.            |
 `
         };
         
@@ -847,9 +862,13 @@ This metric assesses **how well your memory of the dream holds up and remains co
     }
     
     private getDreamExperienceMetrics(): DreamMetric[] {
-        return this.getAllMetrics().filter(m => 
-            ['Dream Theme', 'Lucidity Level', 'Dream Coherence', 'Environmental Familiarity'].includes(m.name)
-        );
+        const allMetrics = this.getAllMetrics();
+        const orderedNames = ['Dream Theme', 'Symbolic Content', 'Lucidity Level', 'Dream Coherence', 'Environmental Familiarity', 'Time Distortion'];
+        
+        // Return metrics in the exact order specified
+        return orderedNames
+            .map(name => allMetrics.find(m => m.name === name))
+            .filter(metric => metric !== undefined) as DreamMetric[];
     }
     
     private getMemoryRecallMetrics(): DreamMetric[] {
@@ -858,147 +877,40 @@ This metric assesses **how well your memory of the dream holds up and remains co
         );
     }
     
-    // Temporary method to get all metrics
+    // Get all metrics from plugin settings with fallback to DEFAULT_METRICS
     private getAllMetrics(): DreamMetric[] {
-        // This is a temporary solution until we implement the plugin methods
-        return [
-            {
-                name: 'Sensory Detail',
-                icon: 'eye',
-                minValue: 1,
-                maxValue: 5,
-                description: 'Level of sensory information recalled from the dream',
-                enabled: true
-            },
-            {
-                name: 'Emotional Recall',
-                icon: 'heart',
-                minValue: 1,
-                maxValue: 5,
-                description: 'Ability to recall emotions from the dream',
-                enabled: true
-            },
-            {
-                name: 'Descriptiveness',
-                icon: 'pen-tool',
-                minValue: 1,
-                maxValue: 5,
-                description: 'Detail level in your written description',
-                enabled: true
-            },
-            {
-                name: 'Character Roles',
-                icon: 'user-cog',
-                minValue: 1,
-                maxValue: 5,
-                description: 'Prominence of characters in the dream',
-                enabled: false
-            },
-            {
-                name: 'Confidence Score',
-                icon: 'check-circle',
-                minValue: 1,
-                maxValue: 5,
-                description: 'Confidence in your memory of the dream',
-                enabled: true
-            },
-            {
-                name: 'Characters Count',
-                icon: 'users',
-                minValue: 0,
-                maxValue: 100,
-                description: 'Number of characters in the dream',
-                enabled: false
-            },
-            {
-                name: 'Familiar Count',
-                icon: 'user-check',
-                minValue: 0,
-                maxValue: 100,
-                description: 'Number of familiar characters',
-                enabled: false
-            },
-            {
-                name: 'Unfamiliar Count',
-                icon: 'user-x',
-                minValue: 0,
-                maxValue: 100,
-                description: 'Number of unfamiliar characters',
-                enabled: false
-            },
-            {
-                name: 'Characters List',
-                icon: 'users-round',
-                minValue: 0,
-                maxValue: 0,
-                description: 'List of characters in the dream',
-                enabled: false
-            },
-            {
-                name: 'Dream Theme',
-                icon: 'sparkles',
-                minValue: 0,
-                maxValue: 0,
-                description: 'Main theme of the dream',
-                enabled: false
-            },
-            {
-                name: 'Character Clarity/Familiarity',
-                icon: 'user-search',
-                minValue: 1,
-                maxValue: 5,
-                description: 'The distinctness and recognizability of the individual characters appearing in your dream',
-                enabled: false
-            },
-            {
-                name: 'Lucidity Level',
-                icon: 'wand-2',
-                minValue: 1,
-                maxValue: 5,
-                description: 'Awareness that you were dreaming',
-                enabled: false
-            },
-            {
-                name: 'Dream Coherence',
-                icon: 'brain-circuit',
-                minValue: 1,
-                maxValue: 5,
-                description: 'How logical or coherent the dream narrative was',
-                enabled: false
-            },
-            {
-                name: 'Environmental Familiarity',
-                icon: 'map',
-                minValue: 1,
-                maxValue: 5,
-                description: 'How familiar the dream setting was',
-                enabled: false
-            },
-            {
-                name: 'Lost Segments',
-                icon: 'puzzle',
-                minValue: 0,
-                maxValue: 10,
-                description: 'Number of gaps or forgotten segments',
-                enabled: true
-            },
-            {
-                name: 'Ease of Recall',
-                icon: 'brain',
-                minValue: 1,
-                maxValue: 5,
-                description: 'How easily you remembered the dream',
-                enabled: false
-            },
-            {
-                name: 'Recall Stability',
-                icon: 'anchor',
-                minValue: 1,
-                maxValue: 5,
-                description: 'How stable the memory remains over time',
-                enabled: false
+        const settingsMetrics = Object.values(this.plugin.settings.metrics || {});
+        
+        // Always ensure metrics are up to date with DEFAULT_METRICS
+        let needsSave = false;
+        
+        DEFAULT_METRICS.forEach(defaultMetric => {
+            if (!this.plugin.settings.metrics[defaultMetric.name]) {
+                // Add missing metric
+                this.plugin.settings.metrics[defaultMetric.name] = {
+                    ...defaultMetric,
+                    // Include legacy properties for compatibility
+                    min: defaultMetric.minValue,
+                    max: defaultMetric.maxValue,
+                    step: 1
+                };
+                needsSave = true;
+            } else {
+                // Update existing metric's description if it differs from DEFAULT_METRICS
+                const existingMetric = this.plugin.settings.metrics[defaultMetric.name];
+                if (existingMetric.description !== defaultMetric.description) {
+                    existingMetric.description = defaultMetric.description;
+                    needsSave = true;
+                }
             }
-        ];
+        });
+        
+        if (needsSave) {
+            // Save settings to persist the changes
+            this.plugin.saveSettings();
+        }
+        
+        return Object.values(this.plugin.settings.metrics);
     }
 
     // Display Dashboard content
@@ -1407,7 +1319,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
 
         // Global state for all sections
         let calloutMetadata = '';
-        let singleLine = false;
+        let singleLine = this.plugin.settings.singleLineMetrics ?? false;
         let flattenNested = false;
         
         // Get dynamic callout names with fallbacks
@@ -1673,6 +1585,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 toggle.setValue(singleLine)
                     .onChange(async (value) => {
                         singleLine = value;
+                        this.plugin.settings.singleLineMetrics = value;
+                        await this.plugin.saveSettings();
                     });
             });
 
@@ -2210,7 +2124,7 @@ This metric assesses **how well your memory of the dream holds up and remains co
 
         // Global state for all sections
         let calloutMetadata = '';
-        let singleLine = false;
+        let singleLine = this.plugin.settings.singleLineMetrics ?? false;
         let flattenNested = false;
         
         // Get dynamic callout names with fallbacks
@@ -2476,6 +2390,8 @@ This metric assesses **how well your memory of the dream holds up and remains co
                 toggle.setValue(singleLine)
                     .onChange(async (value) => {
                         singleLine = value;
+                        this.plugin.settings.singleLineMetrics = value;
+                        await this.plugin.saveSettings();
                     });
             });
 
@@ -4159,14 +4075,14 @@ Example:
                     content += `>\n`;
                 }
             } else {
-                // If no child callouts, add metrics directly nested under root (2-level nesting)
+                // If no child callouts, add metrics directly nested under root (3-level nesting to match user templates)
                 if (structure.metricsCallout) {
-                    content += `>\n> > [!${structure.metricsCallout}]\n`;
-                    content += `> > Sensory Detail: 1-5\n`;
-                    content += `> > Emotional Recall: 1-5\n`;
-                    content += `> > Lost Segments: 0-10\n`;
-                    content += `> > Descriptiveness: 1-5\n`;
-                    content += `> > Confidence Score: 1-5\n`;
+                    content += `>\n> > > [!${structure.metricsCallout}]\n`;
+                    content += `> > > Sensory Detail: 1-5\n`;
+                    content += `> > > Emotional Recall: 1-5\n`;
+                    content += `> > > Lost Segments: 0-10\n`;
+                    content += `> > > Descriptiveness: 1-5\n`;
+                    content += `> > > Confidence Score: 1-5\n`;
                 }
             }
         } else {

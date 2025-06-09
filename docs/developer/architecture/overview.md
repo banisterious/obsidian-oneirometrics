@@ -283,6 +283,69 @@ Dream Journal Entries (Markdown)
     CSV/JSON/Excel Files (Download)
 ```
 
+### Enhanced Date Navigator with Pattern Visualization System
+
+The v0.14.0 release introduces a sophisticated pattern-aware date navigation system that replaces the DateSelectionModal with an advanced EnhancedDateNavigatorModal featuring comprehensive visualization and analysis capabilities.
+
+![Enhanced Date Navigator System Architecture](./diagrams/Oom-Enhanced-Date-Navigator-System-Architecture.png)
+
+#### Architecture Overview:
+- **Modular Visualization System**: PatternCalculator, PatternRenderer, and PatternTooltips components
+- **Multi-Strategy Data Extraction**: Robust data loading with comprehensive fallback mechanisms
+- **Advanced Navigation Controls**: Year picker, month jump, quarter toggle, and navigation memory
+- **Real-time Pattern Analysis**: Dynamic quality scoring, fragmentation analysis, and pattern classification
+
+#### Pattern Visualization Flow:
+
+![Enhanced Date Navigator Pattern Visualization Flow](./diagrams/Oom-Enhanced-Date-Navigator-Pattern-Visualization-Flow.png)
+
+The system provides four distinct visualization approaches accessible via dropdown selection:
+
+1. **Composite Pattern Dots** - Multi-metric visualization with positioned indicator dots
+2. **Background Gradient Quality** - Color-coded quality gradients with numerical overlays  
+3. **Multi-Layer Visualization** - Stacked metric overlays for advanced analysis
+4. **Minimalist Pattern Icons** - Intuitive emoji-based pattern recognition
+
+#### Data Extraction Strategies:
+
+![Enhanced Date Navigator Data Extraction Strategies](./diagrams/Oom-Enhanced-Date-Navigator-Data-Extraction-Strategies.png)
+
+The system employs a comprehensive four-tier data extraction strategy:
+
+```
+Priority 1: plugin.state.getDreamEntries() (Highest Reliability)
+Priority 2: plugin.state.entries (High Reliability)  
+Priority 3: window.dreamEntries (Medium Reliability)
+Priority 4: DOM Table Extraction (Fallback with sophisticated parsing)
+└── Date Extraction Engine (data-iso-date attributes, multiple format support)
+└── Metrics Extraction Engine (comprehensive metric parsing)
+└── Test Data Generation (Last resort for development/testing)
+```
+
+#### Pattern Classification System:
+
+![Enhanced Date Navigator Pattern Classification System](./diagrams/Oom-Enhanced-Date-Navigator-Pattern-Classification-System.png)
+
+The pattern analysis engine provides:
+
+- **Quality Score Calculation**: Weighted scoring across Sensory Detail, Emotional Recall, Lost Segments, Descriptiveness, and Confidence
+- **Fragmentation Analysis**: Automatic classification of narrative cohesion levels
+- **Pattern Recognition**: Intelligent classification into High Quality, Fragmented, Rich Narrative, Basic Recall, and other pattern types
+- **Visual Styling Generation**: Dynamic styling based on pattern classification and quality metrics
+
+#### Key Features:
+- **Hybrid Visualization Approach**: User choice between four visualization styles with smart defaults
+- **Rich Interactive Tooltips**: Pattern classification, metric breakdowns, and visual metric bars
+- **Advanced Navigation**: Quarter view, navigation memory, year/month jumping with dream entry validation
+- **Robust Error Handling**: Graceful fallback indicators and comprehensive error recovery
+- **Real-time Style Switching**: Dynamic visualization updates without modal refresh
+
+#### Integration Benefits:
+- **Replaces DateSelectionModal**: EnhancedDateNavigatorModal is now the default for all Date Navigator buttons
+- **Seamless Data Access**: Leverages existing dream entry data with enhanced extraction capabilities
+- **Backward Compatibility**: Maintains all existing date filtering functionality while adding pattern insights
+- **Performance Optimized**: Modular architecture with lazy loading and efficient re-rendering
+
 ### Mobile & Accessibility Architecture
 
 Comprehensive accessibility and mobile optimization ensuring WCAG 2.1 AA compliance across all components.

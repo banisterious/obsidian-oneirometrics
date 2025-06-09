@@ -9,3 +9,4 @@ export { ModalsManager } from './ModalsManager';
 export { createModal, createProgressModal, createConfirmationModal } from './ModalFactory';
 export type { ModalConfig } from './ModalFactory';
 export { DateSelectionModal } from './DateSelectionModal';
+export { EnhancedDateNavigatorModal } from './EnhancedDateNavigatorModal';

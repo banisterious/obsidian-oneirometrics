@@ -1,7 +1,7 @@
 import { App, Notice } from 'obsidian';
 import { DreamMetricsState } from '../../state/DreamMetricsState';
 import { TimeFilterManager } from '../../timeFilters';
-import { DateSelectionModal } from '../modals/DateSelectionModal';
+import { EnhancedDateNavigatorModal } from '../modals/EnhancedDateNavigatorModal';
 import { ILogger } from '../../logging/LoggerTypes';
 
 declare const globalLogger: ILogger | undefined;
@@ -287,12 +287,12 @@ export class DateNavigatorManager {
             });
         }
         
-        // Create a new DateSelectionModal instance (clean and simple)
-        const modal = new DateSelectionModal(this.app, this.timeFilterManager, this.plugin);
+        // Create a new EnhancedDateNavigatorModal instance with pattern visualization
+        const modal = new EnhancedDateNavigatorModal(this.app, this.timeFilterManager, this.plugin);
         
         // Verify that the modal was created successfully
         if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-            window['globalLogger'].info('DateNavigatorManager', 'DateSelectionModal created - clean range selection interface');
+            window['globalLogger'].info('DateNavigatorManager', 'EnhancedDateNavigatorModal created - advanced pattern visualization interface');
             window['globalLogger'].debug('DateNavigatorManager', 'Modal created successfully', {
                 modalType: modal.constructor.name,
                 hasModal: !!modal
@@ -305,11 +305,11 @@ export class DateNavigatorManager {
             
             // Log successful opening
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].info('DateNavigatorManager', 'Clean DateSelectionModal opened successfully');
+                window['globalLogger'].info('DateNavigatorManager', 'Enhanced Date Navigator Modal opened successfully');
             }
             
             // Add a notice to help users understand the new interface
-            new Notice('📅 Date Selection opened! Choose Single Date or Date Range mode, then click Apply Filter.', 4000);
+            new Notice('📊 Enhanced Date Navigator opened! Explore dream patterns with visualization options dropdown.', 4000);
             
         } catch (error) {
             this.handleError('Failed to open DateSelectionModal', error);

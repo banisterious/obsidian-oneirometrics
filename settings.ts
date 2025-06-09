@@ -21,15 +21,17 @@ export const RECOMMENDED_METRICS_ORDER = [
 export const DISABLED_METRICS_ORDER = [
   'Words',
   'Dream Theme',
-  'Dream Coherence',
+  'Symbolic Content',
   'Lucidity Level',
+  'Dream Coherence',
+  'Environmental Familiarity',
+  'Time Distortion',
   'Character Roles',
   'Characters Count',
   'Characters List',
   'Familiar Count',
   'Unfamiliar Count',
   'Character Clarity/Familiarity',
-  'Environmental Familiarity',
   'Ease of Recall',
   'Recall Stability'
 ];
@@ -538,79 +540,10 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 new FileSuggest(this.app, search.inputEl);
             });
 
-        // Add section border after basic settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
-
-        // Add Journal Structure Check settings
-        this.addJournalStructureSettings(containerEl);
-        
-        // Add section border after journal structure settings
-        containerEl.createEl('div', { cls: 'oom-section-border' });
-
-        // Add Metrics Settings Section
-        new Setting(containerEl)
-            .setName('Metrics settings')
-            .setHeading();
-
-        // Add explanatory note about metrics
-        const metricsInfoEl = containerEl.createEl('div', {
-            cls: 'oom-notice oom-notice--info'
-        });
-        metricsInfoEl.createEl('span', { 
-            text: 'Metrics allow you to track and analyze various aspects of your dreams over time. Enable the metrics you want to track, and customize them to suit your needs.'
-        });
-
-        // Add button to view metrics descriptions
-        new Setting(containerEl)
-            .setName('View metrics descriptions')
-            .setDesc('View detailed descriptions of all available metrics')
-            .addButton(button => {
-                button.setButtonText('View Metrics Guide')
-                    .onClick(() => {
-                        // Close the settings modal first
-                        (this.app as any).setting.close();
-                        
-                        // Use ModalsManager instead of the removed showMetricsTabsModal method
-                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                        const hubModal = modalsManager.openHubModal() as any;
-                        // Navigate to the overview tab
-                        setTimeout(() => {
-                            hubModal.selectTab('overview');
-                        }, 100);
-                    });
-            });
-
-        // Metrics Management - Redirect to Hub
-        new Setting(containerEl)
-            .setName('Metrics management')
-            .setDesc('Add, edit, enable/disable metrics in the OneiroMetrics Hub interface')
-            .addButton(button => {
-                button.setButtonText('Open Metrics Settings')
-                    .onClick(() => {
-                        // Close the settings modal first
-                        (this.app as any).setting.close();
-                        
-                        // Open Hub modal and navigate to Metrics Settings tab
-                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
-                        const hubModal = modalsManager.openHubModal() as any;
-                        // Navigate to the metrics-settings tab
-                        setTimeout(() => {
-                            hubModal.selectTab('metrics-settings');
-                        }, 100);
-                    });
-            });
-
-        // This functionality has been moved to the OneiroMetrics Hub - Metrics Settings tab
-
-        // Add Backup Settings Section
-        new Setting(containerEl)
-            .setName('Backup settings')
-            .setHeading();
-
         // Backup Enabled toggle
         const backupToggleSetting = new Setting(containerEl)
             .setName('Create backups')
-            .setDesc('Create backups of the project note before making changes')
+            .setDesc('Create backups of the OneiroMetrics note before scraping operations')
             .addToggle(toggle => toggle
                 .setValue(isBackupEnabled(this.plugin.settings))
                 .onChange(async (value) => {
@@ -623,7 +556,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 }));
 
         // Backup Folder Path (create container but may be hidden)
-        const backupFolderContainer = containerEl.createEl('div');
+        const backupFolderContainer = containerEl.createEl('div', { cls: 'oomp-note-backup-folder' });
         backupFolderContainer.style.display = isBackupEnabled(this.plugin.settings) ? 'block' : 'none';
         
         if (true) { // Always create the setting, just hide the container if needed
@@ -643,8 +576,41 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 });
         }
 
-        // Add section border after backup settings
+        // Add section border after basic settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
+
+        // Add Journal Structure Check settings
+        this.addJournalStructureSettings(containerEl);
+        
+        // Add section border after journal structure settings
+        containerEl.createEl('div', { cls: 'oom-section-border' });
+
+
+
+        // Metrics Management - Redirect to Hub
+        new Setting(containerEl)
+            .setName('Metrics management')
+            .setDesc('Manage the metrics that are tracked in your dream diary')
+            .addButton(button => {
+                button.setButtonText('Open Metrics Settings')
+                    .onClick(() => {
+                        // Close the settings modal first
+                        (this.app as any).setting.close();
+                        
+                        // Open Hub modal and navigate to Metrics Settings tab
+                        const modalsManager = new ModalsManager(this.app, this.plugin, null);
+                        const hubModal = modalsManager.openHubModal() as any;
+                        // Navigate to the metrics-settings tab
+                        setTimeout(() => {
+                            hubModal.selectTab('metrics-settings');
+                        }, 100);
+                    });
+            });
+
+        // This functionality has been moved to the OneiroMetrics Hub - Metrics Settings tab
+
+
+
 
         // Create Advanced Settings Section (collapsed by default)
         const advancedSection = containerEl.createDiv({ cls: 'oom-collapsible-section collapsed' });
@@ -695,17 +661,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Logging Settings (inside Advanced section)
         
         // Store references to conditional settings for showing/hiding
-        let maxSizeSetting: Setting;
-        let maxBackupsSetting: Setting;
+        let logManagementSetting: Setting;
         let performanceSection: HTMLElement;
         
         const updateLoggingSettingsVisibility = (logLevel: string) => {
             const shouldShow = logLevel !== 'off';
-            if (maxSizeSetting) {
-                maxSizeSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
-            }
-            if (maxBackupsSetting) {
-                maxBackupsSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
+
+            if (logManagementSetting) {
+                logManagementSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
             }
             if (performanceSection) {
                 performanceSection.style.display = shouldShow ? 'block' : 'none';
@@ -731,41 +694,38 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     updateLoggingSettingsVisibility(value);
                 }));
 
-        maxSizeSetting = new Setting(advancedContent)
-            .setName('Maximum log size')
-            .setDesc('Maximum size of the log file in MB before rotation.')
-            .addText(text => text
-                .setValue(String(this.plugin.settings.logging.maxSize / (1024 * 1024)))
-                .onChange(async (value) => {
-                    const size = parseInt(value) * 1024 * 1024;
-                    if (!isNaN(size) && size > 0) {
-                        this.plugin.settings.logging.maxSize = size;
-                        await this.plugin.saveSettings();
-                        this.plugin.setLogConfig(
-                            this.plugin.settings.logging.level as any,
-                            size,
-                            this.plugin.settings.logging.maxBackups
-                        );
-                    }
-                }));
 
-        maxBackupsSetting = new Setting(advancedContent)
-            .setName('Maximum log file backups')
-            .setDesc('Number of backup log files to keep.')
-            .addText(text => text
-                .setValue(String(this.plugin.settings.logging.maxBackups))
-                .onChange(async (value) => {
-                    const backups = parseInt(value);
-                    if (!isNaN(backups) && backups > 0) {
-                        this.plugin.settings.logging.maxBackups = backups;
-                        await this.plugin.saveSettings();
-                        this.plugin.setLogConfig(
-                            this.plugin.settings.logging.level as any,
-                            this.plugin.settings.logging.maxSize,
-                            backups
-                        );
-                    }
-                }));
+
+        // Export logs button
+        new Setting(advancedContent)
+            .setName('Export logs')
+            .setDesc('Export all logs to a JSON file for analysis or sharing')
+            .addButton(button => {
+                button.setButtonText('Export')
+                    .onClick(() => {
+                        this.exportLogsToFile();
+                    });
+            });
+
+        logManagementSetting = new Setting(advancedContent)
+            .setName('View and manage logs')
+            .setDesc('Easy access to plugin logs for debugging purposes')
+            .addButton(button => {
+                button.setButtonText('Go to Logging')
+                    .onClick(() => {
+                        // Close the settings modal first
+                        (this.app as any).setting.close();
+                        
+                        // Open the Test Suite modal with Logging tab
+                        const { UnifiedTestSuiteModal } = require('./src/testing/ui/UnifiedTestSuiteModal');
+                        const testSuiteModal = new UnifiedTestSuiteModal(this.app, this.plugin);
+                        testSuiteModal.open();
+                        // Navigate to the logging tab
+                        setTimeout(() => {
+                            testSuiteModal.selectTab('logging');
+                        }, 100);
+                    });
+            });
 
         // Add section border after logging settings within Advanced
         advancedContent.createEl('div', { cls: 'oom-section-border' });
@@ -862,8 +822,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
     private addJournalStructureSettings(containerEl: HTMLElement) {
         // Journal Structure settings button
         new Setting(containerEl)
-            .setName('Journal structure settings')
-            .setDesc('Configure and manage all journal structure settings')
+            .setName('Journal structures and templates')
+            .setDesc('Configure how journal and dream callouts are generated and recognized')
             .addButton(button => button
                 .setButtonText('Open Settings')
                 .onClick(() => {
@@ -1267,6 +1227,59 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             this.display();
             new Notice(`Created ${metricsToCreate.length} missing metrics with default values`);
         });
+    }
+
+    /**
+     * Export logs to a JSON file with timestamp format
+     */
+    private exportLogsToFile(): void {
+        const memoryAdapter = (this.plugin.logger as any)?.memoryAdapter;
+        if (!memoryAdapter) {
+            new Notice('Memory adapter not available');
+            return;
+        }
+        
+        const entries = memoryAdapter.getEntries();
+        if (entries.length === 0) {
+            new Notice('No logs to export');
+            return;
+        }
+        
+        // Format logs as JSON
+        const exportData = {
+            exportedAt: new Date().toISOString(),
+            totalEntries: entries.length,
+            entries: entries.map(entry => ({
+                timestamp: entry.timestamp.toISOString(),
+                level: entry.level,
+                category: entry.category,
+                message: entry.message,
+                data: entry.data
+            }))
+        };
+        
+        // Create timestamp string in format YYYYMMDD-HHMMSS
+        const now = new Date();
+        const timestamp = 
+            now.getFullYear().toString() +
+            (now.getMonth() + 1).toString().padStart(2, '0') +
+            now.getDate().toString().padStart(2, '0') + '-' +
+            now.getHours().toString().padStart(2, '0') +
+            now.getMinutes().toString().padStart(2, '0') +
+            now.getSeconds().toString().padStart(2, '0');
+        
+        // Create downloadable file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `oomp-logs-${timestamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        new Notice(`Exported ${entries.length} log entries to file`);
     }
 }
 

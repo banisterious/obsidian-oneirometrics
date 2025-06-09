@@ -10,19 +10,23 @@ This document provides detailed descriptions of all available metrics in OneiroM
    3. [Lost Segments](#lost-segments-number)
    4. [Descriptiveness](#descriptiveness-score-1-5)
    5. [Confidence Score](#confidence-score-score-1-5)
-2. [Optional Metrics](#optional-metrics)
+2. [Character Metrics](#character-metrics)
    1. [Character Roles](#character-roles-score-1-5)
    2. [Characters Count](#characters-count)
    3. [Familiar Count](#Familiar-Count-1-100-score)
    4. [Unfamiliar Count](#Unfamiliar-Count-1-100-score)
    5. [Characters List](#characters-list)
    6. [Character Clarity/Familiarity](Character-Clarity-Familiarity-score-1-5)
-   7. [Dream Theme](#dream-theme)
-   8. [Lucidity Level](#lucidity-level-score-1-5)
-   9. [Dream Coherence](#dream-coherence-score-1-5)
-   10. [Environmental Familiarity](#environmental-familiarity-score-1-5)
-   11. [Ease of Recall](#ease-of-recall-score-1-5)
-   12. [Recall Stability](#recall-stability-score-1-5)
+3. [Dream Experience Metrics](#dream-experience-metrics)
+   1. [Dream Theme](#dream-theme)
+   2. [Symbolic Content](#symbolic-content)
+   3. [Lucidity Level](#lucidity-level-score-1-5)
+   4. [Dream Coherence](#dream-coherence-score-1-5)
+   5. [Environmental Familiarity](#environmental-familiarity-score-1-5)
+   6. [Time Distortion](#time-distortion-score-1-5)
+5. [Memory & Recall Metrics](memory-recall-metrics)
+   1. [Ease of Recall](#ease-of-recall-score-1-5)
+   2. [Recall Stability](#recall-stability-score-1-5)
 3. [Using Metrics](#using-metrics)
    1. [Adding Metrics to Dreams](#adding-metrics-to-dream-entries)
    2. [Metadata Options](#metadata-support)
@@ -118,7 +122,7 @@ This is a **subjective metric reflecting your overall sense of how complete and 
 | 4 (High)      | You feel confident that you've recalled the majority of the dream with a good level of detail and coherence. You have a strong sense of its narrative flow and content, with only minor gaps or uncertainties. |
 | 5 (Very High) | You feel extremely confident that you've recalled the entire dream in vivid detail and with strong accuracy. The memory feels robust, complete, and fully accessible, leaving you with no significant sense of missing parts or uncertainty. |
 
-### Optional Metrics
+### Character Metrics
 
 The following metrics are available as optional additions to your dream journal.
 
@@ -226,6 +230,8 @@ This metric assesses the distinctness and recognizability of the individual char
 | 4 (Clearly Recognized)    | Characters were clearly perceived, and their features/identity were distinct enough to recognize, even if they were unfamiliar. For familiar characters, you recognized them without doubt. |
 | 5 (Vivid & Defined)       | Characters appeared with exceptional clarity and detail, almost as if seen in waking life. Their features, expressions, and presence were sharply defined and fully formed in your recall.  |
 
+### Dream Experience Metrics
+
 #### Dream Theme (Categorical/Keywords)
 
 **Helper text:**
@@ -258,11 +264,21 @@ This metric aims to identify the dominant subjects, ideas, or emotional undercur
     * Vulnerability
 * **Use:** To track recurring patterns in the subject matter and emotional tone of your dreams over time. Identifying themes can provide insights into your subconscious concerns, interests, and emotional processing. You can select multiple themes if a dream has several prominent aspects.
 
+#### Symbolic Content (Categorical/Keywords)
+
+**Helper text:**
+
+Note specific objects, figures, actions, or animals in the dream that felt meaningful or symbolic.
+
+**Detailed description:**
+
+This metric helps you identify and track the specific symbols that appear in your dreams. While your Dream Theme might capture the overall subject, Symbolic Content focuses on individual elements like a lion, a red door, or a recurring specific action that seems to carry deeper meaning. This can be recorded as a list of keywords or tags, allowing you to recognize your unique symbolic language and discover recurring motifs over time.
+
 #### Lucidity Level (Score 1-5)
 
 **Helper text:**
 
-Tracks your degree of awareness that you are dreaming while the dream is in progress."
+Tracks your degree of awareness that you are dreaming while the dream is in progress.
 
 **Detailed description:**
 
@@ -280,7 +296,7 @@ This metric tracks your **degree of awareness that you are dreaming while the dr
 
 **Helper text:**
 
-Assesses the logical consistency and narrative flow of your dream."
+Assesses the logical consistency and narrative flow of your dream.
 
 **Detailed description:**
 
@@ -302,7 +318,7 @@ Tracks the degree to which the locations and environments in your dream are reco
 
 **Detailed description:**
 
-This metric assesses the degree to which the locations and environments within your dream are **recognizable or familiar from your waking life**. It helps you track whether your dreams place you in known surroundings, completely novel landscapes, or a mix of both. Understanding the familiarity of your dream settings can offer insights into how your mind processes daily experiences and explores unknown territories during sleep."
+This metric assesses the degree to which the locations and environments within your dream are **recognizable or familiar from your waking life**. It helps you track whether your dreams place you in known surroundings, completely novel landscapes, or a mix of both. Understanding the familiarity of your dream settings can offer insights into how your mind processes daily experiences and explores unknown territories during sleep.
 
 | Score                     | Description                                                                                                                                                                                 |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -311,6 +327,26 @@ This metric assesses the degree to which the locations and environments within y
 | 3 (Partially Familiar)    | The dream settings are a blend of recognizable and unfamiliar elements. You might recognize the layout of a room but find it in a completely new building, or a familiar landscape might have strange, uncharacteristic features.                                                                                                                                                                                            |
 | 4 (Mostly Familiar)       | The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.                                                                                                                                                                                            |
 | 5 (Completely Familiar)   | All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.                                                                                                                                                                                            |
+
+#### Time Distortion (Score 1-5)
+
+**Helper text:**
+
+Rate how unusually time behaved in the dream's narrative.
+
+**Detailed description:**
+
+Time Distortion assesses the surreal nature of time's flow within your dream. Unlike waking life, dream time can speed up, slow down, jump abruptly, or even have events happening simultaneously. This 1-5 scale helps you quantify how linear or chaotic the passage of time felt, offering insights into how your mind processes temporal experiences in different dream states.
+
+| Score              | Description |
+| ------------------ | ----------- |
+| 1 (Normal) | Time flows linearly, as in waking life.            |
+| 2 (Minor Fluctuations) | Slight jumps or skips, but generally linear.            |
+| 3 (Noticeable Distortion) | Time speeds up/slows down significantly, or small jumps.            |
+| 4 (Significant Distortion) | Time shifts abruptly, jumps backward/forward, or multiple events feel simultaneous.            |
+| 5 (Chaotic/Non-Existent) | Time has no discernible order; events happen out of sequence or simultaneously without any linear progression.            |
+
+### Memory & Recall Metrics
 
 #### Ease of Recall (Score 1-5)
 

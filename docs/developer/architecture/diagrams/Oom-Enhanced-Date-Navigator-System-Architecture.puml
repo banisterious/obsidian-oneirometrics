@@ -1,0 +1,255 @@
+@startuml Enhanced Date Navigator System Architecture
+
+'******************************************************************************
+' v0.14.0 Enhanced Date Navigator with Pattern Visualization System
+' Shows the complete architecture of the pattern-aware date navigation system
+' including modular visualization components and data extraction strategies
+'******************************************************************************
+
+!theme cerulean-outline
+skinparam backgroundColor white
+
+title "v0.14.0 Enhanced Date Navigator System Architecture"
+
+package "Enhanced Date Navigator System" {
+    
+    package "Modal & Navigation Layer" {
+        class EnhancedDateNavigatorModal {
+            +onOpen(): void
+            +buildInterface(): void
+            +loadDreamData(): void
+            +renderPatternVisualization(): void
+            +updateCalendarVisualization(): void
+            --
+            -state: EnhancedNavigationState
+            -patternCalculator: PatternCalculator
+            -patternRenderer: PatternRenderer
+            -patternTooltips: PatternTooltips
+        }
+        
+        class EnhancedNavigationState {
+            +currentDate: Date
+            +viewMode: 'month' | 'quarter'
+            +selectedDates: Date[]
+            +selectionMode: 'single' | 'range' | 'multi'
+            +navigationMemory: Date[]
+            +dreamEntries: Map<string, any[]>
+            +visualizationStyle: string
+        }
+        
+        class DateNavigatorManager {
+            +showDateNavigator(): void
+            +collectDreamEntries(): any[]
+            +exposeEntriesGlobally(): void
+            +createAndOpenModal(): void
+            --
+            -validateDependencies()
+            -generateTestEntries()
+            -updateStateWithTestEntries()
+        }
+    }
+    
+    package "Pattern Visualization System" {
+        class PatternCalculator {
+            +calculateQualityScore(metrics): number
+            +determineFragmentationLevel(metrics): string
+            +analyzeDescriptiveness(metrics): number
+            +classifyPattern(metrics): PatternClassification
+            +generateVisualStyling(pattern): VisualStyling
+            --
+            -DEFAULT_METRICS: string[]
+            -QUALITY_WEIGHTS: Record<string, number>
+            -FRAGMENTATION_THRESHOLDS: Record<string, number>
+        }
+        
+        class PatternRenderer {
+            +renderVisualization(container, entries, style): void
+            +renderCompositeDotsVisualization(): void
+            +renderQualityGradientsVisualization(): void
+            +renderMultiLayerVisualization(): void
+            +renderMinimalistIconsVisualization(): void
+            +clearExistingIndicators(): void
+            +createDynamicLegend(): HTMLElement
+            --
+            -currentStyle: string
+            -VISUALIZATION_STYLES: Record<string, Function>
+        }
+        
+        class PatternTooltips {
+            +createTooltip(container, classification): HTMLElement
+            +generateTooltipContent(classification): string
+            +positionTooltip(tooltip, container): void
+            +handleMissingMetrics(metrics): void
+            --
+            -createMetricBar(name, value, max)
+            -formatPatternDescription()
+            -calculateTooltipPosition()
+        }
+        
+        interface PatternClassification {
+            +pattern: string
+            +description: string
+            +qualityScore: number
+            +fragmentationLevel: string
+            +descriptiveness: number
+            +confidence: number
+            +metrics: Record<string, number>
+            +visualStyling: VisualStyling
+        }
+        
+        interface VisualStyling {
+            +backgroundColor: string
+            +borderColor: string
+            +opacity: number
+            +className: string
+            +iconType?: string
+        }
+    }
+    
+    package "Data Extraction & Loading" {
+        class DataExtractionStrategies {
+            +loadDreamData(): any[]
+            +extractEntriesFromDOMTable(): any[]
+            +extractFromElements(elements): any[]
+            +extractEntryFromRow(row, index): any
+            --
+            -STRATEGY_1: plugin.state.getDreamEntries()
+            -STRATEGY_2: plugin.state.entries
+            -STRATEGY_3: global entries
+            -STRATEGY_4: DOM extraction
+        }
+        
+        class DOMTableExtractor {
+            +scanForMetricsContainer(): HTMLElement
+            +identifyEntriesTable(): HTMLTableElement
+            +processTableRows(): any[]
+            +extractDateFromRow(row): string
+            +extractMetricsFromRow(row): Record<string, number>
+            --
+            -DATE_EXTRACTION_PATTERNS: RegExp[]
+            -FALLBACK_STRATEGIES: Function[]
+            -TABLE_IDENTIFICATION_RULES: string[]
+        }
+        
+        class DateExtractionEngine {
+            +extractDateFromCell(cell): string
+            +parseMultipleDateFormats(text): Date
+            +useDataAttributes(cell): string
+            +validateDateFormat(dateStr): boolean
+            --
+            -ISO_DATE_PATTERN: RegExp
+            -MONTH_DD_YYYY_PATTERN: RegExp
+            -FALLBACK_PATTERNS: RegExp[]
+        }
+    }
+    
+    package "UI Components & Controls" {
+        class VisualizationDropdown {
+            +buildVisualizationDropdown(container): void
+            +handleStyleChange(newStyle): void
+            +updateDropdownSelection(): void
+            --
+            -VISUALIZATION_OPTIONS: Array
+            -STYLE_LABELS: Record<string, string>
+            -STYLE_ICONS: Record<string, string>
+        }
+        
+        class NavigationControls {
+            +buildYearPicker(): void
+            +buildMonthJump(): void
+            +buildQuarterToggle(): void
+            +buildGoToDate(): void
+            +buildNavigationMemory(): void
+            --
+            -yearHasDreamEntries(year)
+            -monthHasDreamEntries(year, month)
+            -updateQuarterView()
+        }
+        
+        class CalendarGrid {
+            +buildCalendarGrid(container): void
+            +updateCalendar(): void
+            +handleDateClick(date): void
+            +setupDragSelection(): void
+            --
+            -createDateRange(start, end)
+            -updateCalendarVisualState()
+            -isDragging: boolean
+        }
+        
+        class SelectionModeControls {
+            +buildSelectionModeControls(): void
+            +setSelectionMode(mode): void
+            +updateSelectionModeUI(): void
+            +updateSelectionInfo(): void
+            --
+            -handleRangeSelection(date)
+            -handleMultiSelection(date)
+            -clearSelection()
+        }
+    }
+    
+    package "Integration & Error Handling" {
+        class ErrorHandling {
+            +renderFallbackIndicator(container, count): void
+            +handleMissingData(): void
+            +logVisualizationErrors(error): void
+            +gracefulDegradation(): void
+            --
+            -FALLBACK_VISUALIZATION_TYPES: string[]
+            -ERROR_RECOVERY_STRATEGIES: Function[]
+        }
+        
+        class LoggingIntegration {
+            +debugPatternVisualization(): void
+            +traceDataExtraction(): void
+            +logRenderingPerformance(): void
+            --
+            -TRACE_LEVEL_ENABLED: boolean
+            -PERFORMANCE_MONITORING: boolean
+        }
+    }
+}
+
+' Flow Descriptions
+note as PatternFlow
+**Pattern Visualization Flow:**
+1. EnhancedDateNavigatorModal.loadDreamData()
+2. DataExtractionStrategies → DOMTableExtractor
+3. PatternCalculator.classifyPattern()
+4. PatternRenderer.renderVisualization()
+5. PatternTooltips.createTooltip()
+end note
+
+note as DataFlow
+**Data Extraction Flow:**
+1. Strategy 1: plugin.state.getDreamEntries()
+2. Strategy 2: plugin.state.entries
+3. Strategy 3: window.dreamEntries
+4. Strategy 4: DOM table extraction
+5. Fallback: Test data generation
+end note
+
+' Relationships
+EnhancedDateNavigatorModal ||--|| EnhancedNavigationState : manages
+EnhancedDateNavigatorModal ||--|| PatternCalculator : uses
+EnhancedDateNavigatorModal ||--|| PatternRenderer : uses
+EnhancedDateNavigatorModal ||--|| PatternTooltips : uses
+EnhancedDateNavigatorModal ||--|| DataExtractionStrategies : uses
+
+PatternCalculator ||--|| PatternClassification : creates
+PatternRenderer ||--|| VisualStyling : uses
+PatternTooltips ||--|| PatternClassification : displays
+
+DataExtractionStrategies ||--|| DOMTableExtractor : delegates to
+DOMTableExtractor ||--|| DateExtractionEngine : uses
+
+DateNavigatorManager ||--|| EnhancedDateNavigatorModal : creates
+
+VisualizationDropdown ||--|| PatternRenderer : controls
+NavigationControls ||--|| CalendarGrid : coordinates with
+CalendarGrid ||--|| SelectionModeControls : integrates with
+
+ErrorHandling ||--|| LoggingIntegration : coordinates with
+
+@enduml 

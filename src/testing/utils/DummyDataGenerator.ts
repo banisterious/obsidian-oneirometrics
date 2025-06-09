@@ -163,6 +163,10 @@ export class DummyDataGenerator {
         sourcePrefix: string,
         metrics: string[]
     ): DreamMetricData {
+        // Validate date before conversion
+        if (!date || isNaN(date.getTime())) {
+            throw new Error(`Invalid date passed to generateRealisticEntry: ${date}`);
+        }
         const dateStr = date.toISOString().split('T')[0];
         
         // Select random title and elements
@@ -251,6 +255,10 @@ export class DummyDataGenerator {
         sourcePrefix: string,
         metrics: string[]
     ): DreamMetricData {
+        // Validate date before conversion
+        if (!date || isNaN(date.getTime())) {
+            throw new Error(`Invalid date passed to generateBasicEntry: ${date}`);
+        }
         const dateStr = date.toISOString().split('T')[0];
         const content = `Test dream entry ${index + 1} with some basic content for performance testing.`;
         

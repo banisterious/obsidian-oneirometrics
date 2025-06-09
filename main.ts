@@ -223,6 +223,17 @@ export default class DreamMetricsPlugin extends Plugin {
 
         // Enhanced Accessibility Commands - Phase 1 Foundation
         this.addAccessibilityCommands();
+
+        // Add Enhanced Date Navigator command (for testing/preview)
+        this.addCommand({
+            id: 'open-enhanced-date-navigator-preview',
+            name: 'Enhanced Date Navigator (Preview)',
+            callback: () => {
+                const { EnhancedDateNavigatorModal } = require('./src/dom/modals/EnhancedDateNavigatorModal');
+                const modal = new EnhancedDateNavigatorModal(this.app, this.timeFilterManager, this);
+                modal.open();
+            }
+        });
     }
 
     onunload() {
