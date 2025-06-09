@@ -278,7 +278,7 @@ This metric helps you identify and track the specific symbols that appear in you
 
 **Helper text:**
 
-Tracks your degree of awareness that you are dreaming while the dream is in progress."
+Tracks your degree of awareness that you are dreaming while the dream is in progress.
 
 **Detailed description:**
 
@@ -296,7 +296,7 @@ This metric tracks your **degree of awareness that you are dreaming while the dr
 
 **Helper text:**
 
-Assesses the logical consistency and narrative flow of your dream."
+Assesses the logical consistency and narrative flow of your dream.
 
 **Detailed description:**
 
@@ -318,7 +318,7 @@ Tracks the degree to which the locations and environments in your dream are reco
 
 **Detailed description:**
 
-This metric assesses the degree to which the locations and environments within your dream are **recognizable or familiar from your waking life**. It helps you track whether your dreams place you in known surroundings, completely novel landscapes, or a mix of both. Understanding the familiarity of your dream settings can offer insights into how your mind processes daily experiences and explores unknown territories during sleep."
+This metric assesses the degree to which the locations and environments within your dream are **recognizable or familiar from your waking life**. It helps you track whether your dreams place you in known surroundings, completely novel landscapes, or a mix of both. Understanding the familiarity of your dream settings can offer insights into how your mind processes daily experiences and explores unknown territories during sleep.
 
 | Score                     | Description                                                                                                                                                                                 |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
