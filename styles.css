@@ -1,24 +1,17 @@
 /* =============================================================================
-   ONEIROMETRICS COMPILED CSS - Component System v3
-   Generated: 2025-06-09 23:28:22
-   Components: 13
+    OneiroMetrics (Turning dreams into data)
+    Author: John Banister
+    GitHub: https://github.com/banisterious
    ============================================================================= */
 
 
 
 /* =============================================================================
-   COMPONENT: VARIABLES (17.1 KB)
+   COMPONENT: VARIABLES (16.9 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics CSS Variables & Design Tokens
    ========================================================================== */
-
-/* OneiroMetrics (Turning dreams into data) - CSS Variables v3.0
- * All CSS custom properties and design tokens for the OneiroMetrics plugin.
- * 
- * Author: John Banister
- * GitHub: https://github.com/banisterious
- */
 
 :root {
     /* =============================================================================
@@ -778,18 +771,11 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: MODALS (11.4 KB)
+   COMPONENT: MODALS (11.2 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Modal Components
    ========================================================================== */
-
-/* OneiroMetrics (Turning dreams into data) - Modal Styles v3.0
- * All modal-related styles for the OneiroMetrics plugin.
- * 
- * Author: John Banister
- * GitHub: https://github.com/banisterious
- */
 
 /* =============================================================================
    MODAL CONTAINER - Theme Integrated & Modernized
@@ -1195,18 +1181,11 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: BUTTONS (22.1 KB)
+   COMPONENT: BUTTONS (21.9 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Button Components
    ========================================================================== */
-
-/* OneiroMetrics (Turning dreams into data) - Button Styles v3.0
- * All button-related styles for the OneiroMetrics plugin.
- * 
- * Author: John Banister
- * GitHub: https://github.com/banisterious
- */
 
 /* =============================================================================
    BASE BUTTON SYSTEM - Theme Integrated & Modernized
@@ -2585,8 +2564,6 @@ td:has(.oom-metric-icon-container) {
    SIZE UTILITIES - Standardized Padding/Sizing Patterns
    Extracts commonly repeated sizing patterns from components
    ============================================================================= */
-
-
 
 /* =============================================================================
    VERIFIED SIZE UTILITIES - Based on actual repeated patterns
@@ -4306,8 +4283,12 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (32.3 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (32.5 KB)
    ============================================================================= */
+/* ==========================================================================
+   Enhanced Date Navigator Modal
+   ========================================================================== */
+
 /* Enhanced Date Navigator Modal - Complete Implementation */
 .oomp-enhanced-date-navigator-modal {
     border-radius: 12px;
@@ -7642,11 +7623,10 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: HUB (18.2 KB)
+   COMPONENT: HUB (18.1 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Hub & Dashboard Component
-   Complete dashboard system including template management, journal hub, and navigation
    ============================================================================= */
 
 /* =============================================================================  
