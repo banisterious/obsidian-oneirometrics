@@ -1,0 +1,824 @@
+/* ==========================================================================
+   OneiroMetrics Button Components
+   ========================================================================== */
+
+/* OneiroMetrics (Turning dreams into data) - Button Styles v3.0
+ * All button-related styles for the OneiroMetrics plugin.
+ * 
+ * Author: John Banister
+ * GitHub: https://github.com/banisterious
+ */
+
+/* =============================================================================
+   BASE BUTTON SYSTEM - Theme Integrated & Modernized
+   ============================================================================= */
+
+.oom-button {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--oom-button-gap);
+    
+    /* Layout & Behavior */
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let Obsidian theme handle:
+     * - background-color
+     * - color
+     * - border
+     * - box-shadow
+     */
+    
+    /* === NESTED STATES === */
+    &:hover {
+        /* Let theme handle color changes */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+    
+    &:focus {
+        outline: none;
+
+        /* Let theme handle focus ring */
+    }
+    
+    &:active {
+        transform: scale(0.98);
+    }
+    
+    /* === CTA MODIFIER (from scattered modal rules) === */
+    &.mod-cta {
+        /* Let theme handle CTA styling, no custom overrides */
+        font-weight: 600;
+    }
+    
+    /* === SPECIAL BUTTON STATES === */
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    &.enabled {
+        /* Just structural - let theme handle enabled state */
+        pointer-events: auto;
+    }
+    
+    /* === LOADING STATE === */
+    &--loading::after {
+        width: 16px;
+        height: 16px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentcolor;
+        border-radius: 50%;
+        animation: oom-button-spin 1s linear infinite;
+        content: "";
+    }
+    
+    &--clicked {
+        transform: scale(0.95);
+    }
+    
+    /* === BUTTON TEXT VARIANT === */
+    &--text {
+        border: none;
+        text-decoration: underline;
+
+        /* Text-only button styling */
+        background: transparent;
+        
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+/* === BUTTON ANIMATIONS === */
+@keyframes oom-button-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   MODAL BUTTONS - Consolidated from scattered rules
+   ============================================================================= */
+
+/* Modern Modal Button (consolidates .oom-modal-btn and .oom-modal-button) */
+.oom-modal-btn,
+.oom-modal-button {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-content: center;
+    min-width: var(--oom-button-min-width);
+    padding: var(--oom-button-padding);
+    border: none;
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--oom-button-font-size);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle:
+     * - background-color
+     * - color
+     * - border-color
+     * - box-shadow
+     */
+    
+    /* === NESTED STATES === */
+    &:hover,
+    &:focus {
+        /* NO VISUAL STYLING - Let theme handle hover/focus states */
+        text-decoration: none;
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+    
+    /* === MODAL BUTTON VARIANTS === */
+    &.mod-cta,
+    &.oom-modal-btn--apply,
+    &.oom-modal-btn--primary {
+        /* NO VISUAL STYLING - Let theme handle primary button appearance */
+        font-weight: 600;
+    }
+    
+    &.mod-warning {
+        /* WARNING: Keep warning state for functional clarity */
+        border: 1px solid var(--text-error);
+        color: var(--text-on-accent);
+        background: var(--text-error);
+        
+        &:hover {
+            background: var(--text-error-hover);
+        }
+    }
+    
+    &.mod-muted,
+    &.oom-modal-btn-muted {
+        /* NO VISUAL STYLING - Let theme handle muted button appearance */
+        opacity: 0.6;
+        
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+/* =============================================================================
+   ICON BUTTONS & PICKER BUTTONS - Theme Integrated
+   ============================================================================= */
+
+.oom-button-icon {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: 0;
+    border-radius: var(--oom-radius-md);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle colors/backgrounds */
+    
+    /* === NESTED STATES === */
+    &:hover {
+        /* Let theme handle color changes */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+    
+    /* === NESTED ICON SIZING === */
+    svg {
+        width: var(--oom-icon-svg-size);
+        height: var(--oom-icon-svg-size);
+    }
+}
+
+/* Icon Picker Buttons */
+.oom-icon-picker-btn {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-grid-item-size);
+    height: var(--oom-icon-grid-item-size);
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--oom-radius-md);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    /* === NESTED STATES === */
+    &:hover,
+    &:focus {
+        /* Let theme handle hover/focus styling */
+        transform: scale(1.05);
+    }
+    
+    &.selected {
+        /* Let theme handle selected state */
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle selection colors */
+    }
+    
+    /* === NESTED ICON STYLING === */
+    svg {
+        width: var(--oom-icon-svg-size);
+        height: var(--oom-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle icon colors */
+    }
+}
+
+/* =============================================================================
+   EXPAND BUTTONS - Smart State Management with :has()
+   ============================================================================= */
+
+.oom-button--expand,
+.oom-expand-button {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    /* === SMART STATE MANAGEMENT WITH :has() === */
+
+    /* Automatically rotate based on expanded content state */
+    &:has(+ .oom-content-wrapper.expanded) {
+        .oom-button-icon {
+            transform: rotate(180deg);
+        }
+    }
+    
+    /* === NESTED STATES === */
+    &:hover {
+        /* Let theme handle hover styling */
+        transform: scale(1.05);
+    }
+    
+    &:focus {
+        outline: none;
+
+        /* Let theme handle focus styling */
+    }
+    
+    &:active {
+        transform: scale(0.95);
+    }
+    
+    /* === STATE VARIANTS === */
+    &.oom-button--state-expanded {
+        .oom-button-icon {
+            transform: rotate(180deg);
+        }
+    }
+    
+    /* === POSITIONED EXPAND BUTTONS === */
+    &[style*="position: absolute"] {
+        /* Specific positioning adjustments for absolute positioned expand buttons */
+        &:hover {
+            /* Reduce transform intensity for positioned buttons */
+            transform: scale(1.02);
+        }
+    }
+    
+    /* === EXPAND BUTTON TEXT INDICATORS === */
+    &[data-expanded="true"] .oom-button-text::before {
+        /* Text indicators for expanded state */
+        content: "▲ ";
+    }
+    
+    &[data-expanded="false"] .oom-button-text::before,
+    &:not([data-expanded="true"]) .oom-button-text::before {
+        content: "▼ ";
+    }
+}
+
+/* =============================================================================
+   NAVIGATION & TAB BUTTONS - Smart State Management
+   ============================================================================= */
+
+/* Navigation/Tab Buttons */
+.oom-nav-item,
+.oom-hub-tab-nav-item,
+.oom-metrics-tabs-button {
+    /* Layout structure only */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+    
+    &.active,
+    &.is-active,
+    &.oom-metrics-tabs-active {
+        /* Let theme handle active state */
+        font-weight: 600;
+    }
+    
+    /* === NESTED ICON STYLING === */
+    .oom-nav-icon,
+    .oom-hub-tab-icon,
+    .oom-metrics-tabs-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        /* NO VISUAL STYLING - Let theme handle icon colors */
+        
+        svg {
+            width: var(--oom-icon-svg-size);
+            height: var(--oom-icon-svg-size);
+        }
+    }
+    
+    /* === NESTED LABEL STYLING === */
+    .oom-nav-label,
+    .oom-hub-tab-label,
+    .oom-metrics-tabs-label {
+        font-size: calc(var(--font-ui-small) + 1px);
+        
+        /* NO VISUAL STYLING - Let theme handle text colors */
+    }
+}
+
+/* Special tab button variants */
+.oom-metrics-tabs-button {
+    &[data-tab-id="overview"] {
+        /* Special overview tab styling */
+        h2 {
+            margin: 0;
+            font-size: var(--font-ui-medium);
+            
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+}
+
+/* =============================================================================
+   SPECIALIZED BUTTON TYPES - Consolidated
+   ============================================================================= */
+
+/* Time Filter Buttons */
+.oneirometrics-time-filter-button {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-button-padding);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    /* === NESTED STATES === */
+    &:hover,
+    &:focus {
+        /* Let theme handle hover/focus styling */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Apply Button (from date navigator) */
+.oom-apply-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-button-padding);
+    border-radius: var(--oom-button-border-radius);
+
+    /* Inherits from base button - no additional styling needed */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Today Button (from calendar/date navigator) */
+.oom-today-button {
+    /* Let theme handle today button styling */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-button-padding);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Month Buttons (from date navigator) */
+.oom-month-button {
+    /* Let theme handle month button styling */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover,
+    &:focus {
+        /* Let theme handle hover/focus states */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Action Buttons */
+.oom-action-button,
+.oom-quick-action-button {
+    /* Structural layout only */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Filter Buttons */
+.oom-filter-button {
+    /* Let theme handle filter button styling */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Open Note Button */
+.oom-open-note-button {
+    /* Structural properties only */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-button-padding);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &.enabled {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Action Button Specialized Types */
+.oom-action-btn {
+    /* Structural action button */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: scale(1.05);
+    }
+}
+
+/* Pattern Delete Button */
+.oom-pattern-delete {
+    /* Specialized delete button */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: scale(1.05);
+    }
+}
+
+/* Text Input Toggle Button */
+.oom-text-input-toggle {
+    /* Text input section toggle */
+    cursor: pointer;
+    transition: transform var(--oom-transition-fast);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+/* Hidden Button */
+.oom-button--hidden {
+    display: none;
+}
+
+/* =============================================================================
+   BUTTON GROUPS - Smart Layout with :has()
+   ============================================================================= */
+
+.oom-button-group {
+    display: inline-flex;
+    gap: var(--oom-spacing-xs);
+    
+    /* === NESTED BUTTON STYLING === */
+    .oom-button {
+        border-radius: 0;
+        
+        &:first-child {
+            border-top-left-radius: var(--oom-button-border-radius);
+            border-bottom-left-radius: var(--oom-button-border-radius);
+        }
+        
+        &:last-child {
+            border-top-right-radius: var(--oom-button-border-radius);
+            border-bottom-right-radius: var(--oom-button-border-radius);
+        }
+    }
+}
+
+/* =============================================================================
+   BUTTON CONTAINERS - Layout Only
+   ============================================================================= */
+
+/* Dialog Button Container */
+.oom-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-lg);
+}
+
+/* Modal Button Container */
+.oom-modal-button-container {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-lg);
+    
+    /* NO VISUAL STYLING - Let theme handle container appearance */
+    
+    /* === NESTED STATES === */
+    .oom-modal-btn,
+    .oom-modal-button {
+        /* NO VISUAL STYLING - Let theme handle nested button appearance */
+        flex: 0 0 auto;
+    }
+}
+
+/* Metric Editor Button Container */
+.oom-metric-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-md);
+}
+
+/* Action Buttons Container */
+.oom-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: var(--oom-spacing-sm);
+}
+
+/* Quick Navigation Buttons Container */
+.oom-quick-nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: var(--oom-spacing-xs);
+}
+
+/* Button Container with Smart Layout */
+.oom-button-container {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    
+    /* === SMART RESPONSIVE LAYOUT WITH :has() === */
+
+    /* Adjust layout based on content */
+    &:has(.oom-button--primary) {
+        justify-content: flex-end;
+    }
+    
+    /* Stack on mobile when many buttons */
+    &:has(.oom-button:nth-child(4)) {
+        @media screen and (max-width: var(--oom-breakpoint-mobile)) {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+}
+
+/* =============================================================================
+   SPECIALIZED MODAL/CONTEXT BUTTONS
+   ============================================================================= */
+
+/* Log Action Buttons */
+.oom-log-actions button {
+    /* Structural layout only */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-button-border-radius);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* Test Modal Action Buttons */
+.oom-test-modal-actions-section button {
+    /* NO VISUAL STYLING - Let theme handle button styling */
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    &.oom-validating {
+        /* Loading state indicator */
+        opacity: 0.7;
+        cursor: wait;
+    }
+    
+    &:hover {
+        /* Let theme handle hover state */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+}
+
+/* =============================================================================
+   BUTTON RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (width <= 768px) {
+    .oom-modal-button-container {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+        
+        .oom-modal-btn,
+        .oom-modal-button {
+            width: 100%;
+        }
+    }
+    
+    .oom-button-container {
+        &:has(.oom-button:nth-child(3)) {
+            flex-direction: column;
+            align-items: stretch;
+            
+            .oom-button {
+                width: 100%;
+            }
+        }
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & REDUCED MOTION
+   ============================================================================= */
+
+@media (forced-colors: active) {
+    .oom-button,
+    .oom-button-icon,
+    .oom-modal-btn,
+    .oom-modal-button,
+    .oneirometrics-time-filter-button,
+    .oom-icon-picker-btn,
+    .oom-action-button,
+    .oom-quick-action-button,
+    .oom-filter-button,
+    .oom-nav-item,
+    .oom-hub-tab-nav-item,
+    .oom-metrics-tabs-button {
+        /* High contrast mode - minimal overrides */
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-button:focus,
+    .oom-button-icon:focus,
+    .oom-modal-btn:focus,
+    .oom-modal-button:focus,
+    .oneirometrics-time-filter-button:focus,
+    .oom-icon-picker-btn:focus {
+        outline: 2px solid Highlight;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oom-button,
+    .oom-button-icon,
+    .oom-button--expand,
+    .oom-expand-button,
+    .oom-modal-btn,
+    .oom-modal-button,
+    .oneirometrics-time-filter-button,
+    .oom-icon-picker-btn,
+    .oom-action-button,
+    .oom-quick-action-button,
+    .oom-filter-button,
+    .oom-nav-item,
+    .oom-hub-tab-nav-item,
+    .oom-metrics-tabs-button {
+        transition: none;
+    }
+    
+    .oom-button:hover,
+    .oom-button:active,
+    .oom-button-icon:hover,
+    .oom-button--expand:hover,
+    .oom-expand-button:hover,
+    .oom-action-button:hover,
+    .oom-quick-action-button:hover {
+        transform: none;
+    }
+    
+    .oom-button--loading::after {
+        animation: none;
+    }
+    
+    .oom-button--clicked {
+        transform: none;
+    }
+} 

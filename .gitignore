@@ -70,4 +70,7 @@ styles-original-backup.css
 merge-components.js
 
 # UI/UX Mockups and Prototypes
-# (All HTML files now covered by *.html pattern above) 
+# (All HTML files now covered by *.html pattern above)
+
+# Documentation
+obsidian-developer-docs/ 

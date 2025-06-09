@@ -1,0 +1,298 @@
+/* =============================================================================
+   OneiroMetrics Base & Reset Component
+   Foundational styles, resets, typography, and Obsidian integration
+   ============================================================================= */
+
+/* =============================================================================
+   OBSIDIAN INTEGRATION - Plugin Foundation
+   ============================================================================= */
+
+.markdown-preview-view.markdown-rendered.oom-project-note-view .inline-title,
+.markdown-preview-view:has(.oneirometrics-title) .inline-title {
+    display: none;
+}
+
+.markdown-preview-view[data-type="oom-project-note"] {
+    /* Project note context base styling */
+}
+
+.markdown-rendered table.oom-table {
+    /* Integration with Obsidian's markdown renderer */
+    td {
+        vertical-align: top;
+    }
+    
+    tbody > tr > td.column-content {
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+}
+
+/* =============================================================================
+   THEME COMPATIBILITY - Light & Dark Mode Support
+   ============================================================================= */
+
+.theme-dark .oom-toggle-slider {
+    /* Dark theme toggle adjustments */
+}
+
+.theme-light .oom-validation-error,
+.theme-dark .oom-validation-error {
+    /* Theme-specific validation styling */
+}
+
+.theme-dark .oom-heatmap-legend-color-low {
+    /* Dark theme heatmap adjustments */
+}
+
+.theme-dark .oom-heatmap-legend-color-medium {
+    /* Dark theme heatmap adjustments */
+}
+
+.theme-dark .oom-heatmap-legend-color-high {
+    /* Dark theme heatmap adjustments */
+}
+
+.theme-dark .oom-export-button {
+    /* Dark theme export button */
+}
+
+.theme-dark .oom-export-button:hover {
+    /* Dark theme export button hover */
+}
+
+.theme-dark .oom-export-error-content {
+    /* Dark theme error content */
+}
+
+.theme-dark .oom-insights-section {
+    /* Dark theme insights */
+}
+
+.theme-dark .oom-insights-section:hover {
+    /* Dark theme insights hover */
+}
+
+.theme-dark {
+    /* Global dark theme adjustments */
+}
+
+/* =============================================================================
+   BASE TYPOGRAPHY & HEADINGS
+   ============================================================================= */
+
+h2 {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+}
+
+h3 {
+    margin: 0;
+    font-size: var(--font-ui-large);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+h4 {
+    margin-bottom: var(--oom-spacing-sm);
+    font-size: var(--font-ui-medium);
+}
+
+/* Specific heading contexts */
+.oom-callout-section h3 {
+    margin: 0 0 var(--oom-spacing-lg) 0;
+    padding-bottom: var(--oom-spacing-sm);
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-large);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.oom-callout-settings h3 {
+    margin: 0 0 var(--oom-spacing-lg) 0;
+    padding-bottom: var(--oom-spacing-sm);
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-large);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.oom-metrics-tabs-content h2:first-of-type {
+    margin-block-start: 0;
+}
+
+.oom-metrics-tabs-content h3 {
+    margin: 0 0 var(--oom-spacing-md) 0;
+}
+
+/* =============================================================================
+   FOUNDATIONAL ELEMENTS
+   ============================================================================= */
+
+.oom-callout-section {
+    margin-bottom: var(--oom-spacing-xl);
+    padding: var(--oom-spacing-lg);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-lg);
+    background: var(--background-secondary);
+}
+
+.oom-callout-section .oom-callout-structure-box {
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.oom-callout-section .oom-copy-btn {
+    justify-content: center;
+    width: 100%;
+}
+
+.oom-callout-settings {
+    margin-top: var(--oom-spacing-xl);
+    padding-top: var(--oom-spacing-lg);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+/* =============================================================================
+   MODAL INTEGRATION - Base Obsidian Modal Styles
+   ============================================================================= */
+
+.modal:has(.template-tabs-modal) {
+    width: var(--modal-width);
+    max-width: var(--modal-max-width);
+    height: var(--modal-height);
+    max-height: var(--modal-max-height);
+    padding: 0;
+    contain: layout style;
+}
+
+.template-tabs-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    padding: var(--oom-spacing-sm);
+}
+
+/* =============================================================================
+   UNIVERSAL RESETS & NORMALIZATIONS
+   ============================================================================= */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .oom-button--loading::after,
+    .oom-table-loading::after,
+    .oom-metrics-summary.loading::after,
+    .oom-icon-picker-loading::after {
+        animation: none;
+    }
+    
+    .oom-button:hover,
+    .oom-button:active,
+    .oom-button--clicked,
+    .oom-button-icon:hover,
+    .oom-icon-picker-btn:hover,
+    .oom-draggable:hover,
+    .oom-sortable-item:hover {
+        transform: none;
+    }
+    
+    .oom-button--state-expanded .oom-button-icon,
+    .oom-preview-toggle:not(.collapsed) svg,
+    .oom-preview-toggle.collapsed svg {
+        transform: none;
+    }
+    
+    .oom-modal.is-opening,
+    .oom-modal.is-open,
+    .oom-modal.is-closing {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    
+    .oom-multiselect-dropdown.is-opening,
+    .oom-multiselect-dropdown.is-open,
+    .oom-multiselect-dropdown.is-closing {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* High Contrast Mode Support */
+@media (forced-colors: active) {
+    .oom-button--loading::after,
+    .oom-table-loading::after,
+    .oom-metrics-summary.loading::after {
+        border-top-color: CanvasText;
+        border-right-color: transparent;
+    }
+    
+    .oom-day-cell.highlight-pulse {
+        animation: none;
+    }
+}
+
+/* Print Media - Disable All Animations */
+@media print {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    .oom-content-wrapper .oom-content-preview {
+        display: none !important;
+    }
+    
+    .oom-content-wrapper .oom-content-full {
+        display: block !important;
+    }
+    
+    .oom-button--loading::after,
+    .oom-table-loading::after,
+    .oom-metrics-summary.loading::after {
+        display: none !important;
+    }
+}
+
+/* =============================================================================
+   RESPONSIVE FOUNDATION
+   ============================================================================= */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-callout-section {
+        margin-bottom: var(--oom-spacing-lg);
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-callout-section h3 {
+        font-size: var(--font-ui-medium);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-callout-section {
+        margin-bottom: var(--oom-spacing-md);
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-callout-section .oom-callout-structure-box {
+        min-height: 70px;
+        margin-bottom: var(--oom-spacing-md);
+        font-size: 0.85em;
+    }
+    
+    .oom-callout-section .oom-copy-btn {
+        padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+        font-size: var(--font-ui-smaller);
+    }
+} 

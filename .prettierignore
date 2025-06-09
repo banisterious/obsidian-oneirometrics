@@ -1,0 +1,29 @@
+# Prettier Ignore File for OneiroMetrics
+# Exclude generated files and dependencies from formatting
+
+# Generated CSS files
+styles.css
+styles-original.css
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build artifacts
+release/
+*.zip
+
+# IDE files
+.cursor/
+.vscode/
+
+# Documentation archives
+docs/archive/
+
+# Temporary files
+*.tmp
+*.bak
+temp/
+
+# Obsidian specific
+.obsidian/ 

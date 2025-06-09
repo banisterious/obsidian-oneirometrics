@@ -1,0 +1,829 @@
+/* =============================================================================
+   NAVIGATION COMPONENT - OneiroMetrics Tab & Navigation System
+   ============================================================================= */
+
+/* COMPONENT OVERVIEW:
+   - Tab Systems (metrics tabs, hub tabs, navigation tabs)
+   - Sidebar Navigation (journal manager, structure, metrics)
+   - Template Wizard Navigation
+   - Quick Navigation & Year Navigation
+   - Date Navigator Integration
+   - Tab Modal Containers
+   - Navigation Icons & Labels
+   - Responsive Navigation Design
+   - Print & Accessibility Optimizations
+*/
+
+/* =============================================================================
+   GENERAL NAVIGATION ITEMS - Smart State Management
+   ============================================================================= */
+
+/* Base Navigation Items */
+.oom-nav-item,
+.oom-hub-tab-nav-item,
+.oom-metrics-tabs-button {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle colors/backgrounds */
+    
+    /* === HOVER STATE === */
+    &:hover {
+        /* Let theme handle hover styling */
+        transform: translateY(var(--oom-drag-hover-translate));
+    }
+    
+    /* === ACTIVE STATE === */
+    &.active,
+    &.is-active,
+    &.oom-metrics-tabs-active {
+        /* Let theme handle active state colors */
+        font-weight: 600;
+    }
+    
+    /* === NESTED ICON STYLING === */
+    .oom-nav-icon,
+    .oom-hub-tab-icon,
+    .oom-metrics-tabs-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        /* NO VISUAL STYLING - Let theme handle icon colors */
+        
+        svg {
+            width: var(--oom-icon-svg-size);
+            height: var(--oom-icon-svg-size);
+        }
+    }
+    
+    /* === NESTED LABEL STYLING === */
+    .oom-nav-label,
+    .oom-hub-tab-label,
+    .oom-metrics-tabs-label {
+        font-size: calc(var(--font-ui-small) + 1px);
+        
+        /* NO VISUAL STYLING - Let theme handle text colors */
+    }
+}
+
+/* Special tab button variants */
+.oom-metrics-tabs-button {
+    &[data-tab-id="overview"] {
+        /* Special overview tab styling */
+        h2 {
+            margin: 0;
+            font-size: var(--font-ui-medium);
+            
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+}
+
+/* =============================================================================
+   NAVIGATION ICONS - Comprehensive Icon System
+   ============================================================================= */
+
+/* Base Navigation Icons */
+.oom-nav-icon {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-size);
+    height: var(--oom-icon-size);
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    /* === SVG SIZING === */
+    svg {
+        width: var(--oom-icon-svg-size);
+        height: var(--oom-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle SVG colors */
+    }
+    
+    /* === PARENT STATE CHANGES === */
+    .oom-nav-item:hover &,
+    .oom-nav-item.active & {
+        /* Let theme handle state-based icon changes */
+    }
+}
+
+/* Tab Icons - Unified System */
+.oom-metrics-tabs-icon,
+.oom-hub-tab-icon {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-tab-icon-size);
+    height: var(--oom-tab-icon-size);
+    margin-right: var(--oom-spacing-sm);
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    /* === NESTED SVG STYLING === */
+    svg {
+        width: var(--oom-tab-icon-svg-size);
+        height: var(--oom-tab-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle SVG colors */
+    }
+    
+    /* === PARENT STATE CHANGES === */
+    .oom-metrics-tabs-active &,
+    .oom-hub-tab-nav-item.is-active & {
+        /* Let theme handle active icon colors */
+    }
+}
+
+/* Remove margin for hub tab icons (they use gap on parent) */
+.oom-hub-tab-icon {
+    margin-right: 0;
+}
+
+/* =============================================================================
+   NAVIGATION LABELS - Text Content Management
+   ============================================================================= */
+
+.oom-nav-label,
+.oom-hub-tab-label,
+.oom-metrics-tabs-label {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    font-size: var(--font-ui-medium);
+    font-weight: 400;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    
+    /* NO VISUAL STYLING - Let theme handle label colors */
+}
+
+/* Special heading labels */
+h2.oom-metrics-tabs-label {
+    font-size: var(--h3-size);
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+/* =============================================================================
+   TAB MODAL CONTAINERS - Theme Integrated
+   ============================================================================= */
+
+/* Main modal container with tab interface */
+.modal:has(.oom-metrics-tabs-modal) {
+    width: var(--modal-width);
+    max-width: var(--modal-max-width);
+
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    height: var(--modal-height);
+    max-height: var(--modal-max-height);
+    padding: 0;
+    contain: layout style;
+    
+    /* NO VISUAL STYLING - Let Obsidian modal handle all styling */
+}
+
+.oom-metrics-tabs-modal {
+    /* === STRUCTURAL LAYOUT === */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    padding: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle modal styling */
+}
+
+/* Modal content area adjustments */
+.oom-metrics-tabs-modal {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    max-height: calc(100% - 30px);
+}
+
+/* Modal content label spacing */
+.modal-content:has(.oom-metrics-tabs-label) {
+    .oom-metrics-tabs-label {
+        font-size: calc(var(--font-ui-small) + 1px);
+        
+        &:first-of-type {
+            font-size: var(--h3-size);
+        }
+    }
+}
+
+/* =============================================================================
+   TAB HEADER - Theme Integrated
+   ============================================================================= */
+
+.oom-metrics-tabs-header {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: var(--h1-size);
+    font-weight: var(--h1-weight);
+    text-align: center;
+    margin-block-start: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle header colors and borders */
+}
+
+/* =============================================================================
+   TAB CONTAINER LAYOUT - Unified System
+   ============================================================================= */
+
+.oom-metrics-tabs-container {
+    /* === FLEXBOX LAYOUT === */
+    display: flex;
+    flex: 1;
+    gap: 0;
+    min-height: 0;
+    border-radius: var(--oom-radius-md);
+    overflow: hidden;
+    
+    /* NO VISUAL STYLING - Let theme handle borders and backgrounds */
+}
+
+/* =============================================================================
+   SIDEBAR NAVIGATION - Consolidated System
+   ============================================================================= */
+
+/* Unified Sidebar System */
+.oom-journal-manager-sidebar,
+.oom-journal-structure-sidebar,
+.oom-metrics-tabs-sidebar {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle sidebar appearance */
+    
+    /* === SCROLLBAR STYLING === */
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        /* NO VISUAL STYLING - Let theme handle scrollbar track */
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        border-radius: var(--oom-radius-sm);
+        
+        /* NO VISUAL STYLING - Let theme handle scrollbar thumb */
+        
+        &:hover {
+            /* Let theme handle scrollbar hover */
+        }
+    }
+}
+
+/* Sidebar-specific sizing */
+.oom-journal-manager-sidebar {
+    width: var(--oom-sidebar-width);
+    min-width: var(--oom-sidebar-width);
+    padding: var(--oom-spacing-sm);
+}
+
+.oom-journal-structure-sidebar {
+    width: var(--oom-sidebar-width);
+    min-width: var(--oom-sidebar-width);
+    padding: var(--oom-spacing-sm);
+}
+
+.oom-metrics-tabs-sidebar {
+    width: var(--oom-tab-sidebar-width);
+    min-width: var(--oom-tab-sidebar-width);
+    padding: var(--oom-spacing-sm) 0;
+}
+
+/* =============================================================================
+   TAB GROUP HEADERS - Unified Organization
+   ============================================================================= */
+
+/* Group headers for both metrics tabs and hub tabs */
+.oom-metrics-tabs-group-header,
+.oom-hub-tab-group-title {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: var(--oom-spacing-sm) 0 var(--oom-spacing-xs) 0;
+    padding: 0 .32em;
+    font-size: var(--font-ui-smaller);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    
+    /* NO VISUAL STYLING - Let theme handle group header colors */
+    
+    /* === NESTED FIRST CHILD === */
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+/* =============================================================================
+   TAB NAVIGATION ITEMS - Enhanced State Management
+   ============================================================================= */
+
+/* Unified tab button system */
+.oom-metrics-tabs-button,
+.oom-hub-tab-nav-item {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: .45em 0;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    
+    /* NO VISUAL STYLING - Let theme handle button colors and backgrounds */
+    
+    /* === NESTED HOVER STATE === */
+    &:hover {
+        /* Let theme handle hover styling */
+    }
+    
+    &:focus {
+        /* Let theme handle focus styling */
+        outline: none;
+    }
+    
+    /* === ACTIVE STATE WITH SMART MANAGEMENT === */
+    &.oom-metrics-tabs-active,
+    &.is-active {
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle active state colors */
+        
+        /* === SMART ICON STATE MANAGEMENT === */
+        .oom-metrics-tabs-icon,
+        .oom-hub-tab-icon {
+            /* Let theme handle active icon colors */
+        }
+    }
+    
+    /* === SPECIAL TAB VARIANTS === */
+    &[data-tab-id="overview"] {
+        margin-top: .5em;
+        padding-top: 1em;
+        border-top: 1px solid #ccc;
+        border-radius: 0;
+        
+        h2 {
+            font-size: var(--h3-size);
+        }
+    }
+}
+
+/* =============================================================================
+   TAB CONTENT AREAS - Scrollable Content Management
+   ============================================================================= */
+
+.oom-metrics-tabs-content {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    padding: var(--oom-spacing-lg);
+    overflow-y: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle content area styling */
+    
+    /* === SCROLLBAR STYLING === */
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        /* NO VISUAL STYLING - Let theme handle scrollbar track */
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        border-radius: var(--oom-radius-sm);
+        
+        /* NO VISUAL STYLING - Let theme handle scrollbar thumb */
+        
+        &:hover {
+            /* Let theme handle scrollbar hover */
+        }
+    }
+}
+
+/* =============================================================================
+   TAB CONTENT ELEMENTS - Content Styling
+   ============================================================================= */
+
+/* Metric headers in tab content */
+.oom-metrics-tabs-metric-header {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-top: 0;
+    margin-bottom: var(--oom-spacing-md);
+    padding-bottom: var(--oom-spacing-sm);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight);
+    
+    /* NO VISUAL STYLING - Let theme handle header colors */
+}
+
+/* Description text */
+.oom-metrics-tabs-description {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-bottom: var(--oom-spacing-lg);
+    line-height: var(--line-height-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle description styling */
+}
+
+/* Overview text content */
+.oom-metrics-tabs-overview-text {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-bottom: var(--oom-spacing-xl);
+    line-height: var(--line-height-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle text styling */
+    
+    /* === NESTED FIRST PARAGRAPH === */
+    p:first-child {
+        margin-top: 0;
+    }
+}
+
+/* Sources content section */
+.oom-metrics-tabs-sources-content {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-top: var(--oom-spacing-xl);
+    
+    /* NO VISUAL STYLING - Let theme handle content styling */
+    
+    /* === NESTED HEADING STYLING === */
+    h2,
+    h3,
+    h4 {
+        margin-top: var(--oom-spacing-md);
+        margin-bottom: var(--oom-spacing-sm);
+        
+        /* NO VISUAL STYLING - Let theme handle heading colors */
+    }
+    
+    /* === NESTED LIST STYLING === */
+    ul {
+        margin-left: 0;
+        padding-left: var(--oom-spacing-lg);
+    }
+    
+    li {
+        margin-bottom: var(--oom-spacing-xs);
+    }
+}
+
+/* =============================================================================
+   TAB FOOTER - Action Area
+   ============================================================================= */
+
+.oom-metrics-tabs-footer {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-lg);
+    padding-top: var(--oom-spacing-md);
+    
+    /* NO VISUAL STYLING - Let theme handle footer borders and styling */
+}
+
+/* =============================================================================
+   TAB INTEGRATION - Score Tables
+   ============================================================================= */
+
+/* Score tables within tab content */
+.oom-metrics-tabs-score-table {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-top: var(--oom-spacing-lg);
+    overflow-x: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle table styling */
+    
+    /* === NESTED TABLE STYLING === */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        
+        /* NO VISUAL STYLING - Let theme handle table styling */
+    }
+    
+    th,
+    td {
+        padding: var(--oom-spacing-sm);
+        text-align: left;
+        
+        /* NO VISUAL STYLING - Let theme handle cell styling */
+    }
+}
+
+/* =============================================================================
+   TEMPLATE WIZARD NAVIGATION - Specialized Navigation
+   ============================================================================= */
+
+.oom-template-wizard-navigation {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md) 0;
+    
+    /* NO VISUAL STYLING - Let theme handle navigation appearance */
+    
+    .oom-button-container {
+        display: flex;
+        gap: var(--oom-spacing-sm);
+    }
+}
+
+/* =============================================================================
+   QUICK NAVIGATION - Centered Navigation System
+   ============================================================================= */
+
+.oom-quick-navigation {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* NO VISUAL STYLING - Let theme handle navigation appearance */
+}
+
+.oom-quick-nav-buttons {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle buttons appearance */
+}
+
+/* =============================================================================
+   YEAR NAVIGATION - Date-Based Navigation
+   ============================================================================= */
+
+.oom-year-nav {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--oom-spacing-md);
+    
+    /* NO VISUAL STYLING - Let theme handle navigation appearance */
+}
+
+.oom-year-display {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    
+    /* NO VISUAL STYLING - Let theme handle display appearance */
+}
+
+/* =============================================================================
+   DATE NAVIGATOR - Component Variables Integration
+   ============================================================================= */
+
+.oom-date-navigator {
+    /* === COMPONENT-SCOPED VARIABLES === */
+    --month-bg: var(--background-primary);
+    --month-border: var(--background-modifier-border);
+    --month-text: var(--text-normal);
+    --month-header: var(--text-accent);
+    --day-bg: var(--background-primary);
+    --day-border: var(--background-modifier-border);
+    --day-text: var(--text-normal);
+    --day-today: var(--interactive-accent);
+    --day-selected: var(--interactive-accent-hover);
+    --day-dream: var(--text-accent);
+    --day-no-dream: var(--text-muted);
+    --day-other-month: var(--background-secondary);
+    --day-hover: var(--background-modifier-hover);
+    --day-with-entry-bg: rgb(var(--interactive-accent-rgb), 0.1);
+    
+    /* === STRUCTURAL PROPERTIES === */
+
+    /* Component-specific structure handled by date-navigator component */
+}
+
+/* Navigation Active State Variables */
+.oom-nav-item.active {
+    --background-modifier-hover: var(--interactive-accent);
+    --icon-color: var(--text-on-accent);
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile First Navigation
+   ============================================================================= */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    /* === TABLET RESPONSIVE LAYOUT === */
+    .oom-metrics-tabs-container {
+        flex-direction: column;
+    }
+    
+    .oom-metrics-tabs-sidebar {
+        flex-direction: row;
+
+        /* === HORIZONTAL SIDEBAR ON TABLET === */
+        width: 100%;
+        max-height: 200px;
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md); /* Same as .u-size--md */
+        overflow-x: auto;
+        overflow-y: hidden;
+        
+        /* NO VISUAL STYLING - Let theme handle tablet borders */
+    }
+    
+    .oom-metrics-tabs-button,
+    .oom-hub-tab-nav-item {
+        padding: var(--oom-spacing-xs) var(--oom-spacing-sm); /* Same as .u-size--sm */
+        border-bottom: 3px solid transparent;
+        border-left: none;
+        white-space: nowrap;
+
+        /* === TABLET TAB ITEM ADJUSTMENTS === */
+        flex-shrink: 0;
+        
+        &.oom-metrics-tabs-active,
+        &.is-active {
+            /* NO VISUAL STYLING - Let theme handle active tablet styling */
+        }
+    }
+    
+    .oom-metrics-tabs-content {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-metrics-tabs-header {
+        margin-bottom: var(--oom-spacing-sm);
+        padding-bottom: var(--oom-spacing-xs);
+        font-size: var(--h2-size);
+    }
+    
+    /* === SIDEBAR RESPONSIVE ADJUSTMENTS === */
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        width: 100%;
+        max-height: 150px;
+        padding: var(--oom-spacing-sm);
+        overflow-x: auto;
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    /* === MOBILE MODAL ADJUSTMENTS === */
+    .oom-metrics-tabs-modal {
+        padding: var(--oom-spacing-xs);
+    }
+    
+    .oom-metrics-tabs-sidebar {
+        /* === MOBILE SIDEBAR STYLING === */
+        max-height: 150px;
+        padding: var(--oom-spacing-xs);
+    }
+    
+    .oom-metrics-tabs-button,
+    .oom-hub-tab-nav-item {
+        padding: var(--oom-spacing-xs);
+
+        /* === MOBILE TAB ADJUSTMENTS === */
+        font-size: var(--font-ui-smaller);
+        
+        .oom-metrics-tabs-icon,
+        .oom-hub-tab-icon {
+            width: calc(var(--oom-tab-icon-size) * 0.8);
+            height: calc(var(--oom-tab-icon-size) * 0.8);
+        }
+        
+        .oom-metrics-tabs-label,
+        .oom-hub-tab-label {
+            font-size: var(--font-ui-small);
+        }
+    }
+    
+    /* === MOBILE NAVIGATION ADJUSTMENTS === */
+    .oom-template-wizard-navigation .oom-button-container {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-quick-navigation,
+    .oom-year-nav {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    /* === MOBILE SIDEBAR ADJUSTMENTS === */
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        width: 100%;
+        max-height: 150px;
+        padding: var(--oom-spacing-sm);
+        overflow-x: auto;
+    }
+}
+
+/* =============================================================================
+   PRINT OPTIMIZATION - Navigation
+   ============================================================================= */
+
+@media print {
+    /* === HIDE INTERACTIVE NAVIGATION IN PRINT === */
+    .oom-template-wizard-navigation,
+    .oom-quick-navigation,
+    .oom-year-nav,
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar,
+    .oom-metrics-tabs-sidebar {
+        display: none;
+    }
+    
+    /* === SIMPLIFY TAB CONTENT FOR PRINT === */
+    .oom-metrics-tabs-container {
+        flex-direction: column;
+    }
+    
+    .oom-metrics-tabs-content {
+        padding: 0;
+        overflow: visible;
+    }
+    
+    /* === HIDE INTERACTIVE ELEMENTS === */
+    .oom-metrics-tabs-footer {
+        display: none;
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY - High Contrast & Focus Management
+   ============================================================================= */
+
+/* High contrast mode adjustments */
+@media (forced-colors: active) {
+    .oom-nav-item,
+    .oom-hub-tab-nav-item,
+    .oom-metrics-tabs-button {
+        border: 1px solid ButtonText;
+        
+        &.active,
+        &.is-active,
+        &.oom-metrics-tabs-active {
+            color: HighlightText;
+            background: Highlight;
+        }
+    }
+    
+    .oom-metrics-tabs-sidebar,
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        border: 1px solid ButtonText;
+    }
+}
+
+/* Focus management for keyboard navigation */
+.oom-nav-item:focus-visible,
+.oom-hub-tab-nav-item:focus-visible,
+.oom-metrics-tabs-button:focus-visible {
+    outline: var(--oom-focus-ring-accent);
+    outline-offset: 2px;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .oom-nav-item,
+    .oom-hub-tab-nav-item,
+    .oom-metrics-tabs-button {
+        transition: none;
+        
+        &:hover {
+            transform: none;
+        }
+    }
+    
+    .oom-metrics-tabs-container,
+    .oom-metrics-tabs-content {
+        scroll-behavior: auto;
+    }
+} 

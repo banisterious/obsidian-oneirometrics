@@ -156,7 +156,7 @@ export class TableGenerator {
                     content += `    <button type="button" class="oom-button oom-button--expand oom-button--state-default" aria-expanded="false" aria-controls="${cellId}" data-expanded="false" data-content-id="${cellId}" data-parent-cell="${cellId}">\n`;
                     content += `      <span class="oom-button-text">Show more</span>\n`;
                     content += `      <span class="oom-button-icon">▼</span>\n`;
-                    content += `      <span class="visually-hidden"> full dream content</span>\n`;
+                    content += `      <span class="oom-sr-only"> full dream content</span>\n`;
                     content += `    </button>\n`;
                     content += `  </div>\n`;
                     content += `</td>\n`;

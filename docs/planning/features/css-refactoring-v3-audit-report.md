@@ -13,6 +13,24 @@ This audit analyzes the 9 CSS components created during the refactoring to ident
 3. **Utility Class Opportunities** - Repeated patterns that could become utility classes
 4. **Modularization Assessment** - Component boundary and dependency optimization
 
+## ⚠️ **CRITICAL REFACTORING CONSTRAINT**
+
+**All existing CSS class names must remain unchanged during optimization.**
+
+CSS classes are extensively referenced throughout the TypeScript/JavaScript codebase. Any class name changes would break plugin functionality unless all code references are coordinated.
+
+**Safe Optimization Approach:**
+- ✅ **Consolidate duplicate styles** under existing class names
+- ✅ **Extract new utility classes** with `u-` prefix
+- ✅ **Add new parent containers** with `oomp-` prefix when beneficial
+- ✅ **Optimize CSS structure** without changing existing selectors
+- ❌ **Rename existing classes** without coordinated codebase updates
+
+**Impact on Audit Findings:**
+- All recommendations focus on **CSS optimization** rather than **class renaming**
+- Utility extractions create **new classes** alongside existing ones
+- Size reduction comes from **eliminating repetition**, not restructuring class names
+
 ## Component Analysis Summary
 
 | Component | Size | Key Findings | Priority Issues |

@@ -8,7 +8,12 @@
         "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node build-css.js",
         "build:force": "node esbuild.config.mjs production && node build-css.js",
         "build:css": "node build-css.js",
-        "version": "node version-bump.mjs && git add manifest.json versions.json"
+        "version": "node version-bump.mjs && git add manifest.json versions.json",
+        "css:lint": "stylelint \"styles/**/*.css\" --formatter verbose",
+        "css:lint:fix": "stylelint \"styles/**/*.css\" --fix",
+        "css:format": "prettier --write \"styles/**/*.css\"",
+        "css:check": "npm run css:lint && npm run css:format --check",
+        "lint:setup": "echo 'CSS linting infrastructure ready - currently in warning mode'"
     },
     "keywords": [
         "obsidian",
@@ -25,7 +30,13 @@
         "@typescript-eslint/parser": "^5.2.0",
         "builtin-modules": "^3.2.0",
         "esbuild": "^0.25.4",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.1.0",
         "obsidian": "latest",
+        "prettier": "^3.5.3",
+        "stylelint": "^16.20.0",
+        "stylelint-config-standard": "^38.0.0",
+        "stylelint-order": "^7.0.0",
         "tslib": "2.3.1",
         "typescript": "^5.4.0"
     },

@@ -2811,7 +2811,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         } else {
             statusEl.createEl('p', { 
                 text: '❌ Templater plugin not found',
-                cls: 'oom-status-error'
+                cls: 'oom-status-error u-state--error'
             });
             statusEl.createEl('p', { 
                 text: 'Install and enable the Templater plugin to use dynamic templates.',

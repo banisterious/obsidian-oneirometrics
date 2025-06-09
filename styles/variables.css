@@ -1,0 +1,450 @@
+/* ==========================================================================
+   OneiroMetrics CSS Variables & Design Tokens
+   ========================================================================== */
+
+/* OneiroMetrics (Turning dreams into data) - CSS Variables v3.0
+ * All CSS custom properties and design tokens for the OneiroMetrics plugin.
+ * 
+ * Author: John Banister
+ * GitHub: https://github.com/banisterious
+ */
+
+:root {
+    /* =============================================================================
+       DESIGN TOKENS - Core Design System Values
+       ============================================================================= */
+    
+    /* === SPACING SCALE === */
+    --oom-spacing-xxs: 2px;
+    --oom-spacing-xs: 4px;
+    --oom-spacing-sm: 8px;
+    --oom-spacing-md: 16px;
+    --oom-spacing-lg: 24px;
+    --oom-spacing-xl: 32px;
+    --oom-spacing-xxl: 48px;
+    
+    /* === BORDER RADIUS SCALE === */
+    --oom-radius-sm: 4px;
+    --oom-radius-md: 6px;
+    --oom-radius-lg: 8px;
+    --oom-radius-xl: 12px;
+    
+    /* === TRANSITION SYSTEM === */
+    --oom-transition-fast: 0.1s ease;
+    --oom-transition-normal: 0.2s ease;
+    --oom-transition-slow: 0.3s ease;
+    
+    /* === Z-INDEX SCALE === */
+    --oom-z-base: 1;
+    --oom-z-dropdown: 100;
+    --oom-z-modal: 200;
+    --oom-z-tooltip: 300;
+    --oom-z-overlay: 1000;
+    
+    /* === SHADOW SYSTEM === */
+    --oom-shadow-sm: 0 1px 2px var(--background-modifier-box-shadow);
+    --oom-shadow-md: 0 2px 8px var(--background-modifier-box-shadow);
+    --oom-shadow-lg: 0 4px 12px var(--background-modifier-box-shadow);
+    --oom-shadow-xl: 0 8px 24px var(--background-modifier-box-shadow);
+    
+    /* === FOCUS SYSTEM === */
+    --oom-focus-ring: 0 0 0 2px var(--background-modifier-border);
+    --oom-focus-ring-accent: 0 0 0 2px var(--interactive-accent);
+    
+    /* =============================================================================
+       TYPOGRAPHY TOKENS - Text Sizing and Spacing
+       ============================================================================= */
+    
+    /* === FONT SIZES === */
+    --oom-font-size-xs: 0.75rem;
+    --oom-font-size-sm: 0.875rem;
+    --oom-font-size-base: 1rem;
+    --oom-font-size-lg: 1.125rem;
+    --oom-font-size-xl: 1.25rem;
+    
+    /* === LINE HEIGHTS === */
+    --oom-line-height-tight: 1.2;
+    --oom-line-height-normal: 1.5;
+    --oom-line-height-relaxed: 1.75;
+    
+    /* =============================================================================
+       LAYOUT TOKENS - Layout and Container Sizing
+       ============================================================================= */
+    
+    /* === CONTAINER SIZES === */
+    --oom-container-sm: 600px;
+    --oom-container-md: 800px;
+    --oom-container-lg: 1000px;
+    --oom-container-xl: 1200px;
+    
+    /* === CONTENT WIDTHS === */
+    --oom-content-width: 100%;
+    --oom-content-max-width: none;
+    
+    /* =============================================================================
+       BUTTON COMPONENT VARIABLES
+       ============================================================================= */
+    
+    /* === BUTTON SIZING === */
+    --oom-button-padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    --oom-button-padding-sm: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    --oom-button-padding-lg: var(--oom-spacing-md) var(--oom-spacing-lg);
+    --oom-button-font-size: var(--font-ui-smaller);
+    --oom-button-gap: 0.5rem;
+    --oom-button-border-radius: var(--oom-radius-md);
+    --oom-button-min-width: 80px;
+    
+    /* === BUTTON ICON SIZING === */
+    --oom-button-icon-size: 16px;
+    --oom-button-icon-size-mobile: 14px;
+    --oom-button-icon-gap: var(--oom-spacing-xs);
+    
+    /* =============================================================================
+       MODAL COMPONENT VARIABLES
+       ============================================================================= */
+    
+    /* === MODAL SIZING === */
+    --oom-modal-width: 600px;
+    --oom-modal-width-sm: 400px;
+    --oom-modal-width-md: 500px;
+    --oom-modal-width-lg: 600px;
+    --oom-modal-width-xl: 800px;
+    --oom-modal-max-width: 95vw;
+    --oom-modal-padding: var(--oom-spacing-lg);
+    --oom-modal-border-radius: var(--oom-radius-lg);
+    --oom-modal-shadow: var(--oom-shadow-lg);
+    
+    /* === MODAL TYPOGRAPHY === */
+    --oom-modal-title-size: var(--h2-size, 1.5rem);
+    --oom-modal-title-weight: var(--h2-weight, 600);
+    --oom-modal-details-size: 0.9em;
+    
+    /* === MODAL MOBILE === */
+    --oom-modal-mobile-width: 95vw;
+    --oom-modal-mobile-padding: var(--oom-spacing-md);
+    
+    /* =============================================================================
+       TABLE COMPONENT VARIABLES
+       ============================================================================= */
+    
+    /* === TABLE LAYOUT === */
+    --oom-table-cell-padding: 8px 12px;
+    --oom-table-border: 1px solid var(--background-modifier-border);
+    --oom-table-header-bg: var(--background-primary-alt);
+    --oom-table-hover-bg: var(--background-modifier-hover);
+    --oom-table-border-radius: var(--oom-radius-md);
+    
+    /* === TABLE COLUMN WIDTHS === */
+    --oom-table-date-width: 8%;
+    --oom-table-date-min-width: 85px;
+    --oom-table-title-width: 15%;
+    --oom-table-title-min-width: 120px;
+    --oom-table-words-width: 7%;
+    --oom-table-words-min-width: 60px;
+    --oom-table-content-width: 30%;
+    --oom-table-content-min-width: 200px;
+    --oom-table-metrics-width: 8%;
+    --oom-table-metrics-min-width: 70px;
+    
+    /* =============================================================================
+       PROGRESS BAR VARIABLES
+       ============================================================================= */
+    
+    --oom-progress-bar-height: 8px;
+    --oom-progress-bar-bg: var(--background-modifier-border, #eee);
+    --oom-progress-bar-radius: 4px;
+    --oom-progress-bar-margin: 1em 0;
+    --oom-progress-fill-bg: var(--interactive-accent, #2563eb);
+    
+    /* =============================================================================
+       FORM COMPONENT VARIABLES
+       ============================================================================= */
+    
+    /* === INPUT SIZING === */
+    --oom-input-padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    --oom-input-font-size: var(--font-ui-medium);
+    --oom-input-border-radius: var(--oom-radius-sm);
+    --oom-input-min-height: 32px;
+    
+    /* === SELECT SIZING === */
+    --oom-select-padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    --oom-select-font-size: var(--font-ui-medium);
+    --oom-select-border-radius: var(--oom-radius-sm);
+    
+    /* === TOGGLE SIZING === */
+    --oom-toggle-width: 40px;
+    --oom-toggle-height: 20px;
+    --oom-toggle-slider-size: 16px;
+    --oom-toggle-border-radius: 10px;
+    --oom-toggle-border-width: 2px;
+    --oom-toggle-travel: 20px;  /* Should be toggle-width minus slider-size minus 2*border-width */
+    
+    /* =============================================================================
+       ICON COMPONENT VARIABLES
+       ============================================================================= */
+    
+    /* === ICON SIZING === */
+    --oom-icon-size: 16px;
+    --oom-icon-size-sm: 14px;
+    --oom-icon-size-lg: 18px;
+    --oom-icon-size-mobile: 14px;
+    --oom-icon-opacity: 0.8;
+    
+    /* === METRIC ICON SIZING === */
+    --oom-metric-icon-size: 16px;
+    --oom-metric-icon-container-min-width: 24px;
+    
+    /* === NAVIGATION ICON SIZING === */
+    --oom-nav-icon-size: 16px;
+    --oom-nav-icon-size-mobile: 18px;
+    
+    /* === TAB ICON SIZING === */
+    --oom-tab-icon-size: 16px;
+    --oom-tab-icon-size-tablet: 18px;
+    --oom-tab-icon-size-mobile: 16px;
+    --oom-tab-icon-svg-size: 14px;
+    
+    /* === ACTION ICON SIZING === */
+    --oom-quick-action-icon-size: 1.5em;
+    --oom-action-icon-size: 1.2em;
+    --oom-notice-icon-size: 16px;
+    --oom-info-icon-size: 14px;
+    --oom-test-icon-size: 12px;
+    --oom-filter-icon-size: 14px;
+    
+    /* === ICON PICKER SIZING === */
+    --oom-icon-picker-height: 400px;
+    --oom-icon-picker-cell-size: 40px;
+    --oom-icon-picker-cell-size-tablet: 36px;
+    --oom-icon-picker-cell-size-mobile: 32px;
+    --oom-icon-picker-grid-height: 300px;
+    --oom-icon-picker-grid-height-tablet: 250px;
+    --oom-icon-picker-grid-height-mobile: 200px;
+    --oom-icon-picker-btn-size: 36px;
+    --oom-icon-picker-btn-size-mobile: 32px;
+    --oom-icon-picker-svg-size: 20px;
+    
+    /* === SEARCH ICON SIZING === */
+    --oom-search-icon-size: 16px;
+    
+    /* === LUCIDE ICON SIZING === */
+    --oom-lucide-icon-size: 16px;
+    
+    /* === ICON FALLBACK === */
+    --oom-icon-fallback-size: 1em;
+    --oom-icon-fallback-opacity: 0.6;
+    
+    /* =============================================================================
+       FILTER COMPONENT VARIABLES
+       ============================================================================= */
+    
+    /* === FILTER LAYOUT === */
+    --oom-filter-gap: var(--oom-spacing-md);
+    --oom-filter-padding: var(--oom-spacing-sm);
+    --oom-filter-border-radius: var(--oom-radius-md);
+    
+    /* === DATE FILTER === */
+    --oom-date-filter-width: 200px;
+    --oom-date-filter-dropdown-width: 300px;
+    --oom-date-filter-calendar-width: 280px;
+    --oom-date-filter-input-gap: var(--oom-spacing-xs);
+    
+    /* === DROPDOWN SIZING === */
+    --oom-dropdown-min-width: 200px;
+    --oom-dropdown-max-width: 400px;
+    --oom-dropdown-max-height: 300px;
+    --oom-dropdown-item-padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    --oom-dropdown-border-radius: var(--oom-radius-md);
+    
+    /* === MULTISELECT === */
+    --oom-multiselect-chip-padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    --oom-multiselect-chip-gap: var(--oom-spacing-xs);
+    --oom-multiselect-chip-border-radius: var(--oom-radius-sm);
+    --oom-multiselect-input-min-width: 120px;
+    --oom-multiselect-container-gap: var(--oom-spacing-xs);
+    
+    /* === DRAG HANDLE === */
+    --oom-drag-handle-width: 20px;
+    --oom-drag-handle-opacity: 0.5;
+    
+    /* === DROP ZONE === */
+    --oom-drop-zone-border: 2px dashed var(--background-modifier-border);
+    --oom-drop-zone-border-active: 2px dashed var(--interactive-accent);
+    
+    /* === SORTABLE === */
+    --oom-sortable-placeholder-opacity: 0.5;
+    --oom-sortable-dragging-opacity: 0.8;
+    --oom-sortable-drop-indicator-height: 2px;
+    --oom-sortable-drop-indicator-color: var(--interactive-accent);
+    
+    /* =============================================================================
+       DRAG & DROP BREAKPOINT
+       ============================================================================= */
+    
+    /* Disable drag & drop on smaller screens for better touch experience */
+    --oom-drag-drop-breakpoint: 768px;
+    
+    /* =============================================================================
+       ANIMATION VARIABLES
+       ============================================================================= */
+    
+    /* === ANIMATION DURATIONS === */
+    --oom-animation-fast: 0.1s;
+    --oom-animation-normal: 0.2s;
+    --oom-animation-slow: 0.3s;
+    
+    /* === ANIMATION EASINGS === */
+    --oom-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --oom-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --oom-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* =============================================================================
+       VALIDATION VARIABLES
+       ============================================================================= */
+    
+    --oom-validation-error-color: #ef4444;
+    --oom-validation-warning-color: #f59e0b;
+    --oom-validation-success-color: #10b981;
+    --oom-validation-info-color: #3b82f6;
+    
+    /* =============================================================================
+       LOG VIEWER VARIABLES
+       ============================================================================= */
+    
+    --oom-log-level-error-color: #ef4444;
+    --oom-log-level-warn-color: #f59e0b;
+    --oom-log-level-info-color: #3b82f6;
+    --oom-log-level-debug-color: #8b5cf6;
+    --oom-log-level-trace-color: #6b7280;
+    
+    /* =============================================================================
+       DATE NAVIGATOR VARIABLES
+       ============================================================================= */
+    
+    --oom-day-cell-min-height: 80px;
+    --oom-day-cell-padding: 4px;
+    --oom-dream-dot-size: 8px;
+    --oom-month-grid-gap: 1px;
+    
+    /* =============================================================================
+       CALENDAR VARIABLES
+       ============================================================================= */
+    
+    --oom-calendar-cell-size: 40px;
+    --oom-calendar-cell-size-mobile: 36px;
+    --oom-calendar-gap: 2px;
+    
+    /* =============================================================================
+       SEVERITY INDICATOR VARIABLES
+       ============================================================================= */
+    
+    --oom-severity-low: #10b981;
+    --oom-severity-medium: #f59e0b;
+    --oom-severity-high: #ef4444;
+    --oom-severity-critical: #dc2626;
+    
+    /* =============================================================================
+       TEST SUITE VARIABLES
+       ============================================================================= */
+    
+    --oom-test-success-color: #10b981;
+    --oom-test-failure-color: #ef4444;
+    --oom-test-warning-color: #f59e0b;
+    --oom-test-partial-color: #3b82f6;
+
+    /* =============================================================================
+       UTILITY VARIABLES - Screen Reader and Accessibility
+       ============================================================================= */
+    
+    /* Screen Reader Only Variables */
+    --oom-utility-sr-position: absolute;
+    --oom-utility-sr-width: 1px;
+    --oom-utility-sr-height: 1px;
+    --oom-utility-sr-padding: 0;
+    --oom-utility-sr-margin: -1px;
+    --oom-utility-sr-overflow: hidden;
+    --oom-utility-sr-clip: rect(0, 0, 0, 0);
+    --oom-utility-sr-whitespace: nowrap;
+    --oom-utility-sr-border: 0;
+    
+}
+
+/* =============================================================================
+   COMPONENT-SCOPED VARIABLES
+   ============================================================================= */
+
+/* Date Navigator Component Variables (scoped to component) */
+.oom-date-navigator {
+    --month-bg: var(--background-primary);
+    --month-border: var(--background-modifier-border);
+    --month-text: var(--text-normal);
+    --month-header: var(--text-accent);
+    --day-bg: var(--background-primary);
+    --day-border: var(--background-modifier-border);
+    --day-text: var(--text-normal);
+    --day-today: var(--interactive-accent);
+    --day-selected: var(--interactive-accent-hover);
+    --day-dream: var(--text-accent);
+    --day-no-dream: var(--text-muted);
+    --day-other-month: var(--background-secondary);
+    --day-hover: var(--background-modifier-hover);
+    --day-with-entry-bg: rgb(var(--interactive-accent-rgb), 0.1);
+}
+
+/* Navigation Active State Variables (scoped to active navigation) */
+.oom-nav-item.active {
+    --background-modifier-hover: var(--interactive-accent);
+    --icon-color: var(--text-on-accent);
+}
+
+/* =============================================================================
+   THEME-SPECIFIC ADJUSTMENTS (Minimal and Necessary Only)
+   ============================================================================= */
+
+/* Dark Theme Toggle Adjustment */
+.theme-dark .oom-toggle-slider {
+    /* Minor dark theme specific adjustment for toggle visibility */
+    box-shadow: inset 0 0 0 1px var(--background-modifier-border);
+}
+
+/* =============================================================================
+   PRINT MEDIA VARIABLES
+   ============================================================================= */
+
+@media print {
+    :root {
+        --oom-shadow-sm: none;
+        --oom-shadow-md: none;
+        --oom-shadow-lg: none;
+        --oom-shadow-xl: none;
+        --oom-transition-fast: none;
+        --oom-transition-normal: none;
+        --oom-transition-slow: none;
+    }
+}
+
+/* =============================================================================
+   HIGH CONTRAST MODE VARIABLES
+   ============================================================================= */
+
+@media (forced-colors: active) {
+    :root {
+        --oom-focus-ring: 2px solid ButtonText;
+        --oom-focus-ring-accent: 2px solid Highlight;
+    }
+}
+
+/* =============================================================================
+   REDUCED MOTION VARIABLES
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --oom-transition-fast: none;
+        --oom-transition-normal: none;
+        --oom-transition-slow: none;
+        --oom-animation-fast: none;
+        --oom-animation-normal: none;
+        --oom-animation-slow: none;
+    }
+} 

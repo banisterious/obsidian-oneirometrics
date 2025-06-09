@@ -1,0 +1,413 @@
+/* ==========================================================================
+   OneiroMetrics Modal Components
+   ========================================================================== */
+
+/* OneiroMetrics (Turning dreams into data) - Modal Styles v3.0
+ * All modal-related styles for the OneiroMetrics plugin.
+ * 
+ * Author: John Banister
+ * GitHub: https://github.com/banisterious
+ */
+
+/* =============================================================================
+   MODAL CONTAINER - Theme Integrated & Modernized
+   ============================================================================= */
+
+.oom-modal {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: var(--oom-z-modal);
+    padding: var(--oom-modal-padding);
+    border-radius: var(--oom-modal-border-radius);
+    
+    /* Layout & Behavior */
+    overflow-x: hidden;
+    transform: translate(-50%, -50%);
+    transition: transform var(--oom-transition-normal),
+                opacity var(--oom-transition-normal);
+    box-sizing: border-box;
+    
+    /* NO VISUAL STYLING - Let Obsidian theme handle:
+     * - background-color
+     * - color
+     * - border
+     * - box-shadow
+     */
+    
+    /* === MODAL ANIMATION STATES === */
+    &.is-opening {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+    }
+    
+    &.is-open {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    
+    &.is-closing {
+        opacity: 0;
+        transform: translate(-50%, -52%);
+    }
+    
+    /* === MODAL SIZE VARIANTS === */
+    &.oom-modal--sm,
+    &.oom-progress-modal,
+    &.oneirometrics-custom-date-modal {
+        max-width: var(--oom-modal-width-sm);
+    }
+    
+    &.oom-modal--md,
+    &.oom-callout-modal {
+        max-width: var(--oom-modal-width-md);
+    }
+    
+    &.oom-modal--lg,
+    &.oom-icon-picker-modal {
+        max-width: var(--oom-modal-width-lg);
+    }
+    
+    /* === SPECIFIC MODAL TYPES === */
+    &.oom-metrics-modal {
+        width: 750px;
+    }
+    
+    &.oom-date-navigator-modal {
+        /* Let theme handle modal sizing */
+        max-width: var(--oom-modal-width-lg);
+    }
+    
+    &.oom-log-viewer-modal,
+    &.oom-journal-structure-modal,
+    &.oom-journal-manager-modal {
+        /* Large modals for complex interfaces */
+        width: 90vw;
+        max-width: 1000px;
+        height: 80vh;
+        max-height: 800px;
+    }
+    
+    /* === NEW MODAL TYPES - CONSOLIDATED === */
+    &.oom-date-selection-modal {
+        max-width: var(--oom-modal-width-md);
+    }
+    
+    &.oom-dream-journal-test-modal,
+    &.oom-date-utils-test-modal,
+    &.oom-content-parser-test-modal,
+    &.oom-service-registry-test-modal,
+    &.oom-universal-worker-pool-test-modal,
+    &.oom-universal-metrics-calculator-test-modal {
+        /* Test modals need more space */
+        width: 85vw;
+        max-width: 900px;
+        height: 75vh;
+        max-height: 700px;
+    }
+}
+
+/* Modal container context adjustments using :has() */
+.modal {
+    /* === SMART MODAL SIZING WITH :has() === */
+    &:has(.oom-metrics-modal) {
+        width: 800px;
+    }
+    
+    &:has(.oom-date-navigator-modal) {
+        width: auto;
+
+        /* Auto-adjust for date navigator content */
+        min-width: 400px;
+    }
+    
+    &:has(.oom-journal-structure-modal),
+    &:has(.oom-journal-manager-modal) {
+        /* Large modal containers */
+        width: 95vw;
+        height: 85vh;
+    }
+    
+    &:has(.oom-log-viewer-modal) {
+        width: 90vw;
+        height: 80vh;
+    }
+    
+    &:has(.oom-date-selection-modal) {
+        width: auto;
+        min-width: 500px;
+    }
+    
+    /* === TEST SUITE MODAL CONTAINERS === */
+    &:has(.oom-dream-journal-test-modal),
+    &:has(.oom-date-utils-test-modal),
+    &:has(.oom-content-parser-test-modal),
+    &:has(.oom-service-registry-test-modal),
+    &:has(.oom-universal-worker-pool-test-modal),
+    &:has(.oom-universal-metrics-calculator-test-modal) {
+        width: 90vw;
+        height: 80vh;
+    }
+    
+    &:has(.oneirometrics-custom-date-modal) {
+        width: auto;
+    }
+}
+
+/* =============================================================================
+   MODAL CONTENT STRUCTURE - Nested Organization
+   ============================================================================= */
+
+.oom-modal {
+    /* === NESTED CONTENT ELEMENTS === */
+    .oom-modal-title {
+        /* Title styling - structural only */
+        margin: 0 0 var(--oom-spacing-md) 0;
+        font-size: var(--font-ui-large);
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle colors */
+    }
+    
+    .oom-modal-content {
+        flex: 1;
+
+        /* Content area - structural only */
+        margin-bottom: var(--oom-spacing-lg);
+        overflow-y: auto;
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+    
+    /* === MODAL SECTIONS === */
+    .oom-modal-section {
+        margin-bottom: var(--oom-spacing-lg);
+        
+        h4 {
+            margin: 0 0 var(--oom-spacing-sm) 0;
+            font-size: var(--font-ui-medium);
+            font-weight: 600;
+            
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+    
+    /* === MODAL UTILITIES === */
+    .oom-section-helper {
+        margin-bottom: var(--oom-spacing-sm);
+        font-size: var(--font-ui-smaller);
+        line-height: var(--line-height-normal);
+        
+        /* NO VISUAL STYLING - Let theme handle muted text color */
+    }
+    
+    /* === MODAL GRID LAYOUTS === */
+    .oom-modal-grid {
+        display: grid;
+        align-items: center;
+        gap: var(--oom-spacing-md);
+        
+        /* NO VISUAL STYLING - Let theme handle */
+        
+        /* Nested input styling */
+        input[type='text'],
+        input[type='date'],
+        input[type='number'] {
+            /* NO VISUAL STYLING - Let theme handle form controls */
+            padding: var(--oom-spacing-sm);
+            border-radius: var(--oom-radius-sm);
+        }
+        
+        label {
+            font-size: var(--font-ui-smaller);
+            font-weight: 500;
+            
+            /* NO VISUAL STYLING - Let theme handle label colors */
+        }
+    }
+}
+
+/* =============================================================================
+   MODAL LAYOUT VARIANTS - Smart Responsive Design
+   ============================================================================= */
+
+/* Multi-column modal layouts */
+.oom-modal-container,
+.oom-test-modal-container,
+.oom-journal-structure-container,
+.oom-journal-manager-container {
+    display: flex;
+    gap: var(--oom-spacing-lg);
+    height: 100%;
+    
+    /* === NESTED LAYOUT COLUMNS === */
+    .oom-modal-content-pane,
+    .oom-test-modal-content-pane,
+    .oom-journal-structure-content,
+    .oom-journal-manager-main-content {
+        flex: 1;
+        overflow-y: auto;
+    }
+    
+    .oom-modal-results-pane,
+    .oom-test-modal-results-pane,
+    .oom-journal-structure-sidebar,
+    .oom-journal-manager-sidebar {
+        flex: 0 0 250px;
+        overflow-y: auto;
+        
+        /* NO VISUAL STYLING - Let theme handle sidebar styling */
+    }
+}
+
+/* =============================================================================
+   MODAL BUTTONS - Modern Button System
+   ============================================================================= */
+
+/* Modern Modal Button (consolidates .oom-modal-btn and .oom-modal-button) */
+.oom-modal-btn,
+.oom-modal-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--oom-button-gap);
+    min-width: var(--oom-button-min-width);
+
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    padding: var(--oom-button-padding);
+    border: none;
+    border-radius: var(--oom-button-border-radius);
+    font-size: var(--oom-button-font-size);
+    text-decoration: none;
+    cursor: pointer;
+    
+    /* NO VISUAL STYLING - Let theme handle:
+     * - background-color
+     * - color
+     * - border-color
+     * - box-shadow
+     */
+    
+    /* === NESTED STATES === */
+    &:hover,
+    &:focus {
+        /* NO VISUAL STYLING - Let theme handle hover/focus states */
+        text-decoration: none;
+    }
+    
+    /* === MODAL BUTTON VARIANTS === */
+    &.mod-cta,
+    &.oom-modal-btn--apply,
+    &.oom-modal-btn--primary {
+        /* NO VISUAL STYLING - Let theme handle primary button appearance */
+        font-weight: 600;
+    }
+    
+    &.mod-warning {
+        /* NO VISUAL STYLING - Let theme handle warning button appearance */
+        border: 1px solid var(--text-error);
+        color: var(--text-on-accent);
+        background: var(--text-error);
+        
+        &:hover {
+            background: var(--text-error-hover);
+        }
+    }
+    
+    &.mod-muted,
+    &.oom-modal-btn-muted {
+        /* NO VISUAL STYLING - Let theme handle muted button appearance */
+        opacity: 0.6;
+        
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+/* Modal Button Container */
+.oom-modal-button-container {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-lg);
+    
+    /* NO VISUAL STYLING - Let theme handle container appearance */
+    
+    /* === NESTED STATES === */
+    .oom-modal-btn,
+    .oom-modal-button {
+        /* NO VISUAL STYLING - Let theme handle nested button appearance */
+        flex: 0 0 auto;
+    }
+}
+
+/* =============================================================================
+   MODAL HELPER AND INFORMATION COMPONENTS
+   ============================================================================= */
+
+/* Helper Text and Information */
+.oom-modal-helper,
+.oom-section-helper,
+.oom-favorites-helper {
+    /* NO VISUAL STYLING - Let theme handle helper appearance */
+
+    /* Structural layout only */
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-help-text,
+.oom-info-text {
+    /* NO VISUAL STYLING - Let theme handle text appearance */
+
+    /* Structural layout only */
+    margin-bottom: var(--oom-spacing-sm);
+    font-size: var(--font-ui-smaller);
+    line-height: var(--line-height-normal);
+}
+
+/* =============================================================================
+   MODAL RESPONSIVE DESIGN
+   ============================================================================= */
+
+/* Mobile responsiveness */
+@media (width <= 768px) {
+    .oom-modal {
+        width: var(--oom-modal-mobile-width);
+        padding: var(--oom-modal-mobile-padding);
+        
+        &.oom-log-viewer-modal,
+        &.oom-journal-structure-modal,
+        &.oom-journal-manager-modal {
+            width: 95vw;
+            height: 90vh;
+        }
+    }
+    
+    .oom-modal-container,
+    .oom-test-modal-container,
+    .oom-journal-structure-container,
+    .oom-journal-manager-container {
+        flex-direction: column;
+        
+        .oom-modal-results-pane,
+        .oom-test-modal-results-pane,
+        .oom-journal-structure-sidebar,
+        .oom-journal-manager-sidebar {
+            flex: 0 0 auto;
+            max-height: 200px;
+        }
+    }
+    
+    .oom-modal-button-container {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+        
+        .oom-modal-btn,
+        .oom-modal-button {
+            width: 100%;
+        }
+    }
+} 

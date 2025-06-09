@@ -188,7 +188,7 @@ export class TestModal extends Modal {
         if (errorCount > 0) {
             summaryList.createEl('li', { 
                 text: `Errors: ${errorCount}`,
-                cls: 'oom-validation-error'
+                cls: 'oom-validation-error u-state--error'
             });
         }
         if (warningCount > 0) {

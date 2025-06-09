@@ -1,0 +1,553 @@
+/* =============================================================================
+   OneiroMetrics Tables Component
+   Theme-agnostic structural styling for all table components
+   ============================================================================= */
+
+/* =============================================================================
+   TABLE CONTAINERS - Layout Foundation
+   ============================================================================= */
+
+.oom-table-container {
+    /* === STRUCTURAL PROPERTIES ONLY === */
+    position: relative;
+    margin: var(--oom-spacing-md) 0;
+    border-radius: var(--oom-radius-md);
+    overflow-x: auto;
+    overflow-y: visible;
+    
+    /* NO VISUAL STYLING - Let Obsidian theme handle:
+     * - background-color
+     * - border
+     * - box-shadow
+     */
+    
+    /* === RESPONSIVE SCROLLING === */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    
+    /* === NESTED WRAPPER STYLING === */
+    .oom-table-wrapper {
+        position: relative;
+        min-width: 100%;
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+    
+    /* === LOADING STATE === */
+    &.loading {
+        position: relative;
+        
+        .oom-table {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    }
+}
+
+.oom-table-wrapper {
+    /* Structural properties only */
+    width: 100%;
+    overflow: visible;
+    
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* =============================================================================
+   MAIN TABLE SYSTEM - Theme Integrated
+   ============================================================================= */
+
+.oom-table {
+    /* === STRUCTURAL PROPERTIES === */
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle table styling */
+    
+    /* === TABLE HEADER === */
+    th {
+        position: relative;
+
+        /* Structural properties only - using size utility pattern */
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md); /* Same as .u-size--md */
+        font-weight: 600;
+        text-align: left;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        
+        /* NO VISUAL STYLING - Let theme handle header styling */
+        
+        /* === NESTED HOVER STATE === */
+        &:hover {
+            /* Let theme handle hover styling */
+        }
+        
+        &:focus {
+            /* Let theme handle focus styling */
+            outline: none;
+        }
+        
+        /* === SORTABLE COLUMN INDICATORS === */
+        &[data-sort]::after {
+            position: absolute;
+            top: 50%;
+            right: var(--oom-spacing-sm);
+            transform: translateY(-50%);
+            content: "";
+            
+            /* NO VISUAL STYLING - Let theme handle sort indicators */
+        }
+        
+        &[data-sort="asc"]::after {
+            font-size: 0.8em;
+            content: "▲";
+        }
+        
+        &[data-sort="desc"]::after {
+            font-size: 0.8em;
+            content: "▼";
+        }
+    }
+    
+    /* === TABLE CELLS === */
+    td {
+        /* Structural properties only */
+        padding: 4px 8px;
+        vertical-align: top;
+        
+        /* NO VISUAL STYLING - Let theme handle cell styling */
+    }
+    
+    /* === TABLE ROWS === */
+    tr {
+        /* Structural properties only */
+        transition: all var(--oom-transition-fast);
+        
+        /* NO VISUAL STYLING - Let theme handle row styling */
+        
+        /* === NESTED ROW HOVER === */
+        &:hover {
+            /* Let theme handle row hover styling */
+        }
+    }
+    
+    /* === SPECIALIZED COLUMN TYPES === */
+    .oom-date-column {
+        width: var(--oom-table-date-width);
+        white-space: nowrap;
+    }
+    
+    .oom-title-column {
+        width: var(--oom-table-title-width);
+        min-width: 200px;
+    }
+    
+    .oom-words-column {
+        width: var(--oom-table-words-width);
+        text-align: center;
+    }
+    
+    .oom-content-column {
+        width: var(--oom-table-content-width);
+        max-width: 300px;
+    }
+    
+    .oom-metrics-column {
+        width: var(--oom-table-metrics-width);
+        text-align: center;
+    }
+}
+
+/* =============================================================================
+   DREAM ENTRIES TABLE - Specialized Functionality
+   ============================================================================= */
+
+.oom-dream-row {
+    /* === STRUCTURAL PROPERTIES === */
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    /* === VISIBILITY STATES === */
+    &.oom-row--hidden {
+        display: none;
+    }
+    
+    &.oom-row--visible {
+        display: table-row;
+    }
+    
+    /* === SMART STATE MANAGEMENT WITH :has() === */
+    &:has(.oom-content-wrapper.expanded) {
+        /* Auto-adjust row when content is expanded */
+        .oom-content-column {
+            max-width: none;
+        }
+    }
+}
+
+.oom-content-cell {
+    /* Structural properties for expandable content */
+    position: relative;
+    
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* =============================================================================
+   TABLE STATES - Loading & Empty
+   ============================================================================= */
+
+.oom-table-loading {
+    position: relative;
+
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    /* === LOADING SPINNER === */
+    &::after {
+        width: 24px;
+        height: 24px;
+        border: 2px solid currentcolor;
+        border-radius: 50%;
+        animation: oom-table-spin 1s linear infinite;
+        content: "";
+        border-right-color: transparent;
+        
+        /* NO VISUAL STYLING - Let theme handle spinner colors */
+    }
+}
+
+.oom-table-empty {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    font-size: var(--font-ui-medium);
+    
+    /* NO VISUAL STYLING - Let theme handle empty state styling */
+}
+
+@keyframes oom-table-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   TABLE SECTIONS - Layout & Organization
+   ============================================================================= */
+
+h2.oom-table-title.oom-stats-title {
+    margin-block-start: 0;
+}
+
+.oom-table-section {
+    /* Structural layout */
+
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    /* === NESTED SECTION VARIANTS === */
+    &.oom-stats-section {
+        /* Stats section specific layout */
+        margin-bottom: var(--oom-spacing-xl);
+    }
+}
+
+.oom-metric-category {
+    font-size: var(--font-ui-smaller);
+
+    /* Category row styling */
+    font-weight: 600;
+    
+    /* NO VISUAL STYLING - Let theme handle category styling */
+    
+    td {
+        padding: var(--oom-spacing-md);
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+}
+
+/* =============================================================================
+   TABLE FILTER INTEGRATION - Smart Display
+   ============================================================================= */
+
+.oom-filter-display {
+    /* Structural properties for filter state */
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &--updated {
+        /* Updated filter state indicator */
+        animation: oom-filter-pulse 0.3s ease-in-out;
+    }
+}
+
+@keyframes oom-filter-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+/* =============================================================================
+   METRIC ICON INTEGRATION - Table Cells
+   ============================================================================= */
+
+.oom-table th .oom-metric-icon,
+.oom-table td .oom-metric-icon {
+    /* Icon positioning in tables */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--oom-spacing-xs);
+    
+    /* NO VISUAL STYLING - Let theme handle icons */
+}
+
+td:has(.oom-metric-icon-container) {
+    /* Smart cell layout with icons */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-metric-icon-container {
+    /* Icon container in tables */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* =============================================================================
+   TABLE INTEGRATION - Project Note Context
+   ============================================================================= */
+
+.markdown-preview-view[data-type="oom-project-note"] {
+    /* === NESTED TABLE SECTION STYLING === */
+    .oom-table-section {
+        margin: var(--oom-spacing-lg) 0;
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+    
+    .oom-table-container {
+        margin: var(--oom-spacing-md) 0;
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+    
+    /* === TABLE TITLE STYLING === */
+    .oom-table-title {
+        margin-bottom: var(--oom-spacing-md);
+        font-size: var(--font-ui-large);
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+    
+    .oom-dream-entries-title {
+        margin: var(--oom-spacing-lg) 0 var(--oom-spacing-md) 0;
+        font-size: var(--font-ui-large);
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+}
+
+.markdown-rendered table.oom-table {
+    /* Integration with Obsidian's markdown renderer */
+    td {
+        /* NO VISUAL STYLING - Let theme handle */
+        vertical-align: top;
+    }
+    
+    tbody > tr > td.column-content {
+        /* Content column specific styling */
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile First
+   ============================================================================= */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-table-container {
+        /* Tablet responsive adjustments */
+        margin: var(--oom-spacing-sm) 0;
+    }
+    
+    .oom-table,
+    .oom-stats-table,
+    .oom-metrics-tabs-score-table table {
+        /* Smaller padding on tablets - using size utility pattern */
+        th,
+        td {
+            padding: var(--oom-spacing-xs) var(--oom-spacing-sm); /* Same as .u-size--sm */
+            font-size: var(--font-ui-smaller);
+        }
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] {
+        .oom-table-section {
+            margin: var(--oom-spacing-md) 0;
+        }
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-table-container {
+        /* Mobile responsive adjustments */
+        margin: var(--oom-spacing-xs) 0;
+        border-radius: var(--oom-radius-sm);
+    }
+    
+    .oom-table,
+    .oom-stats-table,
+    .oom-metrics-tabs-score-table table {
+        /* Mobile table adjustments */
+        font-size: var(--font-ui-smaller);
+        
+        th,
+        td {
+            padding: var(--oom-spacing-xs); /* Same as .u-size--xs */
+        }
+        
+        /* === MOBILE COLUMN ADJUSTMENTS === */
+        .oom-date-column {
+            width: 80px;
+            font-size: var(--font-ui-smallest);
+        }
+        
+        .oom-title-column {
+            min-width: 150px;
+        }
+        
+        .oom-content-column {
+            max-width: 200px;
+        }
+        
+        .oom-metrics-column {
+            width: 60px;
+        }
+    }
+    
+    .markdown-preview-view[data-type="oom-project-note"] {
+        .oom-table-section {
+            margin: var(--oom-spacing-sm) 0;
+        }
+        
+        .oom-table-container {
+            margin: var(--oom-spacing-xs) 0;
+        }
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & REDUCED MOTION
+   ============================================================================= */
+
+@media (forced-colors: active) {
+    .oom-table-container {
+        /* High contrast mode support */
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-table th,
+    .oom-table td,
+    .oom-stats-table th,
+    .oom-stats-table td,
+    .oom-metrics-tabs-score-table th,
+    .oom-metrics-tabs-score-table td {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-table th,
+    .oom-stats-table th,
+    .oom-metrics-tabs-score-table th {
+        color: ButtonText;
+        background: ButtonFace;
+    }
+    
+    .oom-metric-category td {
+        color: HighlightText;
+        background: Highlight;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oom-table tr,
+    .oom-stats-table tr,
+    .oom-dream-row,
+    .oom-filter-display {
+        transition: none;
+    }
+    
+    .oom-table-loading::after {
+        animation: none;
+    }
+    
+    .oom-filter-display--updated {
+        animation: none;
+    }
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+    .oom-table-container {
+        margin: var(--oom-spacing-sm) 0;
+
+        /* Print-friendly table styles */
+        overflow: visible;
+    }
+    
+    .oom-table th,
+    .oom-stats-table th,
+    .oom-metrics-tabs-score-table th {
+        border-bottom: 2px solid black !important;
+        color: black !important;
+
+        /* Print header styling */
+        background: none !important;
+    }
+    
+    .oom-table td,
+    .oom-stats-table td,
+    .oom-metrics-tabs-score-table td {
+        /* Print cell styling */
+        border-bottom: 1px solid #ccc !important;
+    }
+    
+    .oom-table tr,
+    .oom-stats-table tr {
+        /* Print row styling */
+        page-break-inside: avoid;
+    }
+    
+    /* Expand all content for print */
+    .oom-content-wrapper .oom-content-preview {
+        display: none !important;
+    }
+    
+    .oom-content-wrapper .oom-content-full {
+        display: block !important;
+    }
+    
+    .oom-table-loading,
+    .oom-table-empty {
+        display: none;
+    }
+} 

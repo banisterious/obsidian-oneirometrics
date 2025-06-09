@@ -1,0 +1,468 @@
+/* =============================================================================
+   OneiroMetrics Utilities Component
+   Helper classes, layout utilities, and common patterns
+   ============================================================================= */
+
+/* =============================================================================
+   SIZE UTILITIES - Standardized Padding/Sizing Patterns
+   Extracts commonly repeated sizing patterns from components
+   ============================================================================= */
+
+
+
+/* =============================================================================
+   VERIFIED SIZE UTILITIES - Based on actual repeated patterns
+   ============================================================================= */
+
+/* Pattern: var(--oom-spacing-xs) var(--oom-spacing-sm) 
+   Found in: base.css, tables.css, navigation.css + CSS variables */
+.u-size--sm {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+}
+
+/* Pattern: var(--oom-spacing-sm) var(--oom-spacing-md)
+   Found in: tables.css, navigation.css, icons.css + 4 CSS variables */
+.u-size--md {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+}
+
+/* Pattern: display: flex + align-items: center + justify-content: center
+   Found in: icons.css (5+ times), likely other components too */
+.u-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =============================================================================
+   STATE UTILITIES - Form and Component States (Obsidian Native Variables)
+   ============================================================================= */
+
+/* Error state utility using Obsidian's native semantic color
+   Pattern: border-color: var(--text-error) - Found 10+ times across components */
+.u-state--error {
+    border-color: var(--text-error);
+}
+
+/* Success state utility using Obsidian's native semantic color
+   Pattern: border-color: var(--text-success) - Found in forms/validation */
+.u-state--success {
+    border-color: var(--text-success);
+}
+
+/* Warning state utility using Obsidian's native semantic color
+   Pattern: border-color: var(--text-warning) - Found in forms/validation */
+.u-state--warning {
+    border-color: var(--text-warning);
+}
+
+/* Loading state utility for forms and buttons
+   Pattern: opacity + cursor - Found in multiple button states */
+.u-state--loading {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Interactive state utility using Obsidian's native hover color
+   Pattern: background-color on hover - Found throughout components */
+.u-state--interactive:hover {
+    background-color: var(--interactive-hover);
+}
+
+/* =============================================================================
+   OBSIDIAN NATIVE SPACING UTILITIES - Leverage Obsidian's 4px Grid System
+   ============================================================================= */
+
+/* Margin utilities using Obsidian's official --size-4-* variables */
+.u-margin--xs { margin: var(--size-4-1); }      /* 4px - replaces var(--oom-spacing-xs) */
+.u-margin--sm { margin: var(--size-4-2); }      /* 8px - replaces var(--oom-spacing-sm) */
+.u-margin--md { margin: var(--size-4-4); }      /* 16px - replaces var(--oom-spacing-md) */
+.u-margin--lg { margin: var(--size-4-6); }      /* 24px - replaces var(--oom-spacing-lg) */
+.u-margin--xl { margin: var(--size-4-8); }      /* 32px - replaces var(--oom-spacing-xl) */
+
+/* Padding utilities using Obsidian's official --size-4-* variables */
+.u-padding--xs { padding: var(--size-4-1); }    /* 4px - replaces var(--oom-spacing-xs) */
+.u-padding--sm { padding: var(--size-4-2); }    /* 8px - replaces var(--oom-spacing-sm) */
+.u-padding--md { padding: var(--size-4-4); }    /* 16px - replaces var(--oom-spacing-md) */
+.u-padding--lg { padding: var(--size-4-6); }    /* 24px - replaces var(--oom-spacing-lg) */
+.u-padding--xl { padding: var(--size-4-8); }    /* 32px - replaces var(--oom-spacing-xl) */
+
+/* Gap utilities for flexbox/grid using Obsidian's official variables */
+.u-gap--xs { gap: var(--size-4-1); }            /* 4px - consolidates gap: var(--oom-spacing-xs) */
+.u-gap--sm { gap: var(--size-4-2); }            /* 8px - consolidates gap: var(--oom-spacing-sm) */
+.u-gap--md { gap: var(--size-4-4); }            /* 16px - consolidates gap: var(--oom-spacing-md) */
+.u-gap--lg { gap: var(--size-4-6); }            /* 24px - consolidates gap: var(--oom-spacing-lg) */
+
+/* Directional spacing utilities for common patterns */
+.u-margin-bottom--sm { margin-bottom: var(--size-4-2); }    /* margin-bottom: var(--oom-spacing-sm) pattern */
+.u-margin-bottom--md { margin-bottom: var(--size-4-4); }    /* margin-bottom: var(--oom-spacing-md) pattern */
+.u-margin-bottom--lg { margin-bottom: var(--size-4-6); }    /* margin-bottom: var(--oom-spacing-lg) pattern */
+
+.u-margin-top--md { margin-top: var(--size-4-4); }         /* margin-top: var(--oom-spacing-md) pattern */
+.u-margin-top--lg { margin-top: var(--size-4-6); }         /* margin-top: var(--oom-spacing-lg) pattern */
+.u-margin-top--xl { margin-top: var(--size-4-8); }         /* margin-top: var(--oom-spacing-xl) pattern */
+
+/* =============================================================================
+   TRANSITION UTILITIES - Common Animation Patterns
+   ============================================================================= */
+
+/* Standard transition utility - consolidates 50+ occurrences
+   Pattern: transition: all var(--oom-transition-normal) */
+.u-transition {
+    transition: all var(--oom-transition-normal);
+}
+
+/* Standard transition with easing - found in specific components */
+.u-transition--eased {
+    transition: all var(--oom-transition-normal) var(--oom-ease-out);
+}
+
+/* =============================================================================
+   GRID SYSTEMS - Layout Utilities
+   ============================================================================= */
+
+.oom-actions-grid,
+.oom-icon-picker-grid,
+.oom-quick-actions-grid {
+    display: grid;
+    gap: var(--size-4-4); /* Using Obsidian native instead of var(--oom-spacing-md) */
+    
+    /* Grid-specific configurations */
+    &.oom-actions-grid,
+    &.oom-quick-actions-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        margin-top: var(--size-4-4); /* Using Obsidian native instead of var(--oom-spacing-md) */
+    }
+    
+    &.oom-icon-picker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        max-height: 200px;
+        padding: var(--size-4-2); /* Using Obsidian native instead of var(--oom-spacing-sm) */
+        overflow-y: auto;
+    }
+}
+
+.oom-modal-grid {
+    display: grid;
+    gap: var(--size-4-4); /* Using Obsidian native instead of var(--oom-spacing-md) */
+    grid-template-columns: 1fr 1fr;
+    margin-top: var(--size-4-2); /* Using Obsidian native instead of var(--oom-spacing-sm) */
+}
+
+.oom-dashboard-info-grid {
+    display: grid;
+    gap: var(--size-4-6); /* Using Obsidian native instead of var(--oom-spacing-lg) */
+    grid-template-columns: 1fr 1fr;
+    margin-top: var(--size-4-6); /* Using Obsidian native instead of var(--oom-spacing-lg) */
+}
+
+/* =============================================================================
+   ACCESSIBILITY UTILITIES
+   ============================================================================= */
+
+.oom-sr-only,
+.oom-live-region {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    clip: var(--oom-utility-sr-clip);
+}
+
+.oom-focus-visible:focus {
+    outline: var(--oom-focus-outline);
+    outline-offset: var(--oom-focus-outline-offset);
+}
+
+.oom-focus-trap {
+    position: relative;
+}
+
+.oom-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    z-index: 9999;
+    padding: 8px;
+    text-decoration: none;
+    transition: top var(--oom-transition-fast);
+    
+    &:focus {
+        top: 6px;
+    }
+}
+
+/* =============================================================================
+   VISIBILITY UTILITIES
+   ============================================================================= */
+
+.oom-hide,
+.oom-hidden {
+    display: none !important;
+}
+
+.oom-show {
+    display: block !important;
+}
+
+.oom-show-inline {
+    display: inline !important;
+}
+
+.oom-show-inline-block {
+    display: inline-block !important;
+}
+
+.oom-show-flex {
+    display: flex !important;
+}
+
+.oom-show-grid {
+    display: grid !important;
+}
+
+.oom-invisible {
+    visibility: hidden !important;
+}
+
+.oom-visible {
+    visibility: visible !important;
+}
+
+.oom-metrics-hide {
+    display: none !important;
+}
+
+.oom-button--hidden {
+    display: none;
+}
+
+.oom-row--hidden {
+    position: absolute;
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateZ(0);
+}
+
+.oom-row--visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateZ(0);
+}
+
+/* =============================================================================
+   LAYOUT UTILITIES - Content Wrappers
+   ============================================================================= */
+
+.oom-content-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 30px;
+    transition: max-height var(--oom-transition-duration) ease-in-out;
+    
+    .oom-content-preview {
+        display: block;
+        max-height: 120px;
+        margin-bottom: var(--size-4-2); /* Using Obsidian native instead of var(--oom-spacing-sm) */
+        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: hidden;
+    }
+    
+    .oom-content-full {
+        display: none;
+        margin-bottom: var(--size-4-2); /* Using Obsidian native instead of var(--oom-spacing-sm) */
+        white-space: normal;
+    }
+    
+    &.expanded,
+    &[data-expanded="true"] {
+        .oom-content-preview {
+            display: none;
+        }
+        
+        .oom-content-full {
+            display: block;
+        }
+    }
+}
+
+/* =============================================================================
+   SECTION LAYOUTS - Modal & Dashboard
+   ============================================================================= */
+
+.oom-modal-section {
+    margin-bottom: var(--size-4-6); /* Using Obsidian native instead of var(--oom-spacing-lg) */
+    
+    h4 {
+        margin-bottom: var(--size-4-2); /* Using Obsidian native instead of var(--oom-spacing-sm) */
+    }
+}
+
+.oom-dashboard-section {
+    margin-bottom: var(--size-4-8); /* Using Obsidian native instead of var(--oom-spacing-xl) */
+    
+    h4 {
+        margin-bottom: var(--size-4-4); /* Using Obsidian native instead of var(--oom-spacing-md) */
+    }
+}
+
+.oom-dashboard-info-grid .oom-dashboard-section {
+    margin-top: 0;
+}
+
+.oom-journal-structure-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4); /* Using Obsidian native instead of var(--oom-spacing-md) */
+}
+
+/* =============================================================================
+   SIDEBAR LAYOUTS
+   ============================================================================= */
+
+.oom-journal-manager-sidebar,
+.oom-journal-structure-sidebar,
+.oom-metrics-tabs-sidebar {
+    min-width: 180px;
+    padding: var(--oom-spacing-lg) 0;
+    overflow-y: auto;
+    
+    &.oom-journal-manager-sidebar {
+        width: 180px;
+    }
+    
+    &.oom-journal-structure-sidebar {
+        width: 200px;
+        padding: var(--oom-spacing-lg);
+    }
+    
+    &.oom-metrics-tabs-sidebar {
+        min-width: 180px;
+        max-width: 250px;
+        padding: var(--oom-spacing-lg) var(--oom-spacing-sm);
+        flex-shrink: 0;
+    }
+}
+
+.oom-journal-manager-main-content,
+.oom-journal-structure-content,
+.oom-metrics-tabs-content {
+    flex: 1;
+    padding: var(--oom-spacing-lg);
+    overflow-y: auto;
+}
+
+.oom-metrics-tabs-content h2:first-of-type {
+    margin-block-start: 0;
+}
+
+/* =============================================================================
+   COMPACT DISPLAY UTILITIES
+   ============================================================================= */
+
+.oom-metrics-compact {
+    padding: var(--oom-utility-compact-padding) !important;
+    font-size: var(--oom-utility-compact-font-size) !important;
+}
+
+/* =============================================================================
+   INTERACTION UTILITIES
+   ============================================================================= */
+
+.oom-drop-indicator {
+    opacity: 0;
+    transition: opacity var(--oom-transition-normal) var(--oom-ease-out);
+    
+    &.visible {
+        opacity: 1;
+    }
+}
+
+.oom-hover-opacity:hover {
+    will-change: opacity;
+}
+
+/* =============================================================================
+   CLEARFIX UTILITY
+   ============================================================================= */
+
+.oom-clearfix::after {
+    display: table;
+    clear: both;
+    content: "";
+}
+
+/* =============================================================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================================================= */
+
+.oom-transform,
+.oom-hover-lift,
+.oom-hover-scale,
+.oom-loading {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.oom-hover-lift:hover,
+.oom-hover-scale:hover,
+.oom-loading {
+    will-change: transform;
+}
+
+.oom-dream-row,
+.oom-content-wrapper,
+.oom-modal,
+.oom-multiselect-dropdown {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.oom-button--expand,
+.oom-preview-toggle,
+.oom-drop-indicator {
+    will-change: transform, opacity;
+}
+
+/* =============================================================================
+   RESPONSIVE GRID ADJUSTMENTS
+   ============================================================================= */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-dashboard-info-grid {
+        gap: var(--oom-spacing-md);
+        grid-template-columns: 1fr;
+    }
+    
+    .oom-icon-picker-grid {
+        gap: var(--oom-spacing-xs);
+        grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-grid-item-mobile-size), 1fr));
+    }
+    
+    .oom-modal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-dashboard-info-grid {
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oom-icon-picker-grid {
+        gap: 2px;
+        grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+        padding: var(--oom-spacing-xs);
+    }
+    
+    .oom-modal-grid {
+        gap: var(--oom-spacing-sm);
+        grid-template-columns: 1fr;
+    }
+} 

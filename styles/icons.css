@@ -1,0 +1,427 @@
+/* =============================================================================
+   OneiroMetrics Icons Component
+   Comprehensive icon systems for metrics, buttons, navigation, and interface
+   ============================================================================= */
+
+/* =============================================================================
+   METRIC ICONS - Dream Metrics and Score Indicators
+   ============================================================================= */
+
+.oom-metric-icon,
+.oom-metric-icon-svg {
+    display: inline-flex;
+    align-items: center;
+    width: var(--oom-icon-size);
+    height: var(--oom-icon-size);
+    margin-right: 0;
+    margin-left: var(--oom-spacing-sm);
+    font-size: 1em;
+    vertical-align: middle;
+    opacity: var(--oom-icon-opacity);
+    pointer-events: none;
+    transition: color var(--oom-transition-normal),
+                opacity var(--oom-transition-normal),
+                fill var(--oom-transition-normal);
+}
+
+.oom-metric-icon--start {
+    margin-right: var(--oom-spacing-sm);
+    margin-left: 0;
+}
+
+.oom-metric-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--oom-icon-container-min-width);
+}
+
+td:has(.oom-metric-icon-container) {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.oom-table th .oom-metric-icon,
+.oom-table td .oom-metric-icon,
+.oom-select option .oom-metric-icon {
+    width: var(--oom-icon-size-sm);
+    height: var(--oom-icon-size-sm);
+    margin: 0;
+}
+
+span.oom-metric-header svg {
+    margin-left: var(--oom-spacing-xs);
+    vertical-align: middle;
+}
+
+/* =============================================================================
+   BUTTON ICONS - Icon Elements within Buttons
+   ============================================================================= */
+
+.oom-button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--oom-spacing-xs);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-button-icon svg {
+    width: var(--oom-button-icon-size);
+    height: var(--oom-button-icon-size);
+}
+
+.oom-button--state-expanded .oom-button-icon,
+.oom-button--state-collapsed .oom-button-icon {
+    transition: transform var(--oom-transition-normal);
+}
+
+.oom-button--state-expanded .oom-button-icon {
+    transform: rotate(180deg);
+}
+
+/* =============================================================================
+   NAVIGATION ICONS - Sidebar and Menu Icons
+   ============================================================================= */
+
+.oom-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-nav-icon-size);
+    height: var(--oom-nav-icon-size);
+    margin-right: var(--oom-spacing-sm);
+    flex-shrink: 0;
+}
+
+.oom-quick-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--oom-quick-action-icon-size);
+}
+
+.oom-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--oom-spacing-sm);
+    font-size: var(--oom-action-icon-size);
+}
+
+/* =============================================================================
+   TAB ICONS - Metrics Tabs and Hub Tab Icons
+   ============================================================================= */
+
+.oom-metrics-tabs-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-tab-icon-size);
+    height: var(--oom-tab-icon-size);
+    margin-right: var(--oom-spacing-sm);
+    flex-shrink: 0;
+}
+
+.oom-hub-tab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-tab-icon-size);
+    height: var(--oom-tab-icon-size);
+    margin-right: var(--oom-spacing-sm);
+    flex-shrink: 0;
+}
+
+.oom-hub-tab-icon svg {
+    width: var(--oom-tab-icon-svg-size);
+    height: var(--oom-tab-icon-svg-size);
+}
+
+/* =============================================================================
+   ICON PICKER SYSTEM - Icon Selection Interface
+   ============================================================================= */
+
+.oom-icon-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-md);
+    height: var(--oom-icon-picker-height);
+}
+
+.oom-icon-picker-search {
+    position: relative;
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-icon-picker-search::before {
+    position: absolute;
+    top: 50%;
+    left: var(--oom-spacing-sm);
+    width: var(--oom-search-icon-size);
+    height: var(--oom-search-icon-size);
+    transform: translateY(-50%);
+    content: "";
+}
+
+.oom-icon-picker-search input {
+    width: 100%;
+    padding: var(--oom-input-padding);
+    padding-left: calc(var(--oom-search-icon-size) + var(--oom-spacing-lg));
+    border-radius: var(--oom-input-radius);
+    font-size: var(--oom-input-font-size);
+}
+
+.oom-icon-picker-search input:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-icon-picker-grid {
+    display: grid;
+    gap: var(--oom-spacing-xs);
+    grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-picker-cell-size), 1fr));
+    max-height: var(--oom-icon-picker-grid-height);
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-md);
+    overflow-y: auto;
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar {
+    width: var(--oom-scrollbar-width);
+}
+
+.oom-icon-picker-grid::-webkit-scrollbar-thumb {
+    border-radius: var(--oom-scrollbar-radius);
+}
+
+.oom-icon-picker-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-picker-btn-size);
+    height: var(--oom-icon-picker-btn-size);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-icon-picker-btn:hover {
+    transform: scale(1.05);
+}
+
+.oom-icon-picker-btn:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+.oom-icon-picker-btn.selected {
+    transform: scale(1.1);
+}
+
+.oom-icon-picker-btn svg {
+    width: var(--oom-icon-picker-svg-size);
+    height: var(--oom-icon-picker-svg-size);
+}
+
+.oom-icon-picker-clear {
+    margin-top: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md); /* Same as .u-size--md */
+    border-radius: var(--oom-radius-sm);
+    font-size: var(--oom-font-size-sm);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-icon-picker-clear:focus {
+    outline: none;
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* =============================================================================
+   ICON FALLBACK SYSTEM - Error Handling and Placeholder Icons
+   ============================================================================= */
+
+.oom-icon-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-size);
+    height: var(--oom-icon-size);
+    border-radius: var(--oom-radius-sm);
+    font-size: var(--oom-icon-fallback-font-size);
+    font-weight: var(--font-bold);
+}
+
+/* =============================================================================
+   FILTER ICONS - Status and State Indicator Icons
+   ============================================================================= */
+
+.oom-filter-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-filter-icon-size);
+    height: var(--oom-filter-icon-size);
+    margin-right: var(--oom-spacing-xs);
+    color: inherit;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile First
+   ============================================================================= */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-nav-icon,
+    .oom-quick-action-icon,
+    .oom-action-icon {
+        width: var(--oom-icon-size-lg);
+        height: var(--oom-icon-size-lg);
+        margin-right: var(--oom-spacing-xs);
+    }
+    
+    .oom-icon-picker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-picker-cell-size-tablet), 1fr));
+        max-height: var(--oom-icon-picker-grid-height-tablet);
+    }
+    
+    .oom-metrics-tabs-icon,
+    .oom-hub-tab-icon {
+        width: var(--oom-tab-icon-size-tablet);
+        height: var(--oom-tab-icon-size-tablet);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-metric-icon,
+    .oom-metric-icon-svg {
+        width: var(--oom-icon-size-mobile);
+        height: var(--oom-icon-size-mobile);
+        margin-left: var(--oom-spacing-xs);
+    }
+    
+    .oom-button-icon svg {
+        width: var(--oom-button-icon-size-mobile);
+        height: var(--oom-button-icon-size-mobile);
+    }
+    
+    .oom-nav-icon {
+        width: var(--oom-nav-icon-size-mobile);
+        height: var(--oom-nav-icon-size-mobile);
+        margin-right: var(--oom-spacing-xs);
+    }
+    
+    .oom-icon-picker-grid {
+        gap: var(--oom-spacing-xxs);
+        grid-template-columns: repeat(auto-fill, minmax(var(--oom-icon-picker-cell-size-mobile), 1fr));
+        max-height: var(--oom-icon-picker-grid-height-mobile);
+    }
+    
+    .oom-icon-picker-btn {
+        width: var(--oom-icon-picker-btn-size-mobile);
+        height: var(--oom-icon-picker-btn-size-mobile);
+    }
+    
+    .oom-metrics-tabs-icon,
+    .oom-hub-tab-icon {
+        width: var(--oom-tab-icon-size-mobile);
+        height: var(--oom-tab-icon-size-mobile);
+        margin-right: var(--oom-spacing-xs);
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & HIGH CONTRAST
+   ============================================================================= */
+
+@media (forced-colors: active) {
+    .oom-metric-icon,
+    .oom-metric-icon-svg,
+    .oom-button-icon,
+    .oom-nav-icon,
+    .oom-metrics-tabs-icon,
+    .oom-hub-tab-icon {
+        color: ButtonText;
+        forced-color-adjust: auto;
+    }
+    
+    .oom-icon-picker-btn {
+        border: 2px solid ButtonText;
+    }
+    
+    .oom-icon-picker-btn:focus {
+        border-color: Highlight;
+        color: HighlightText;
+        background-color: Highlight;
+    }
+    
+    .oom-icon-picker-btn.selected {
+        border-color: Highlight;
+        color: HighlightText;
+        background-color: Highlight;
+    }
+    
+    .oom-icon-picker-clear {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-icon-picker-clear:focus {
+        color: HighlightText;
+        background-color: Highlight;
+    }
+    
+    .oom-icon-fallback {
+        border: 2px solid ButtonText;
+        color: ButtonText;
+        background-color: Canvas;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oom-metric-icon,
+    .oom-metric-icon-svg,
+    .oom-button-icon,
+    .oom-icon-picker-btn,
+    .oom-icon-picker-clear,
+    .oom-button--state-expanded .oom-button-icon,
+    .oom-button--state-collapsed .oom-button-icon {
+        transition: none;
+    }
+    
+    .oom-icon-picker-btn:hover {
+        transform: none;
+    }
+    
+    .oom-icon-picker-btn.selected {
+        transform: none;
+    }
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+    .oom-icon-picker-container,
+    .oom-icon-picker-search,
+    .oom-icon-picker-grid,
+    .oom-icon-picker-btn,
+    .oom-icon-picker-clear {
+        display: none;
+    }
+    
+    .oom-metric-icon,
+    .oom-metric-icon-svg,
+    .oom-button-icon,
+    .oom-nav-icon {
+        opacity: 1 !important;
+        color: black !important;
+    }
+    
+    .oom-icon-fallback {
+        border: 1px solid black !important;
+        color: black !important;
+        background-color: white !important;
+    }
+}

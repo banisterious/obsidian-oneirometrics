@@ -1,0 +1,946 @@
+/* =============================================================================
+   FORMS COMPONENT - OneiroMetrics Form Controls & Validation System
+   ============================================================================= */
+
+/* COMPONENT OVERVIEW:
+   - Form Field Layouts (Obsidian-style settings forms)
+   - Toggle Switches (custom toggle controls)
+   - Input Controls (text, date, search, select)
+   - Validation System (error, warning, success states)
+   - Filter Controls (dropdowns, date ranges, search)
+   - Form Sections (collapsible, wizard forms)
+   - Responsive Form Design
+   - Accessibility & Keyboard Navigation
+   - Print & High Contrast Optimizations
+*/
+
+/* =============================================================================
+   VALIDATION SYSTEM - Error, Warning & Success States
+   ============================================================================= */
+
+/* Base validation indicators - functional state colors */
+.oom-validation-error {
+    border-left-color: var(--text-error);
+}
+
+.oom-validation-warning {
+    border-left-color: var(--text-warning);
+}
+
+.oom-validation-info {
+    border-left-color: var(--text-accent);
+}
+
+/* Editor validation markers - code highlighting */
+.oom-cm-validation-error {
+    text-decoration: red wavy underline;
+}
+
+.oom-cm-validation-warning {
+    text-decoration: orange wavy underline;
+}
+
+.oom-cm-validation-info {
+    text-decoration: blue wavy underline;
+}
+
+/* Button error/success states */
+.oom-button--error {
+    color: var(--text-error);
+}
+
+.oom-button--success {
+    color: var(--text-success);
+}
+
+/* Modal warning states */
+.oom-modal-button.mod-warning {
+    border-color: var(--text-error);
+    background: var(--text-error);
+}
+
+.oom-modal-button.mod-warning:hover {
+    background: var(--text-error-hover);
+}
+
+/* =============================================================================
+   FORM FIELDS - Obsidian-Style Settings Layout
+   ============================================================================= */
+
+/* Base form field layout - emulates Obsidian settings */
+.oom-form-field,
+.oom-setting-toggle {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--oom-spacing-md);
+    min-height: 40px;
+    padding: var(--oom-spacing-sm) 0;
+    
+    /* NO VISUAL STYLING - Let theme handle form field appearance */
+}
+
+/* Labels and descriptions - left aligned */
+.oom-form-label,
+.oom-setting-info,
+.oom-form-field .oom-form-label {
+    flex: 1;
+
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: left;
+    
+    /* NO VISUAL STYLING - Let theme handle label styling */
+}
+
+/* Form controls - right aligned */
+.oom-form-control,
+.oom-form-field .oom-toggle-container,
+.oom-form-field-toggle .oom-toggle-container {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 0 0 auto;
+    margin: 0;
+    margin-left: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle form control appearance */
+}
+
+/* Form spacing - visual separation */
+.oom-journal-structure-modal .oom-form-field + .oom-form-field {
+    margin-top: var(--oom-spacing-xs);
+    padding-top: var(--oom-spacing-sm);
+    border-top: 1px solid var(--background-modifier-border-hover);
+}
+
+/* =============================================================================
+   TOGGLE SWITCHES - Custom Toggle Controls
+   ============================================================================= */
+
+.oom-toggle-container {
+    /* === STRUCTURAL PROPERTIES === */
+    position: relative;
+    cursor: pointer;
+    
+    /* NO VISUAL STYLING - Let theme handle toggle container */
+}
+
+.oom-toggle-input {
+    /* === HIDDEN INPUT === */
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.oom-toggle-switch {
+    /* === STRUCTURAL PROPERTIES === */
+    position: relative;
+    width: var(--oom-toggle-width);
+    height: var(--oom-toggle-height);
+    border-radius: calc(var(--oom-toggle-height) / 2);
+    cursor: pointer;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle toggle switch styling */
+    
+    &:hover {
+        /* Let theme handle hover styling */
+    }
+    
+    .oom-toggle-slider {
+        position: absolute;
+        top: var(--oom-toggle-border-width);
+        left: var(--oom-toggle-border-width);
+        width: var(--oom-toggle-slider-size);
+        height: var(--oom-toggle-slider-size);
+        border-radius: 50%;
+        transition: transform var(--oom-transition-normal);
+        
+        /* NO VISUAL STYLING - Let theme handle slider styling */
+    }
+    
+    /* === TOGGLE STATES === */
+    &.oom-toggle-on,
+    &:has(.oom-toggle-input:checked) {
+        /* NO VISUAL STYLING - Let theme handle active toggle */
+        
+        .oom-toggle-slider {
+            transform: translateX(var(--oom-toggle-travel));
+        }
+        
+        &:hover {
+            /* Let theme handle active hover styling */
+        }
+    }
+    
+    &.oom-toggle-off {
+        /* NO VISUAL STYLING - Let theme handle inactive toggle */
+    }
+}
+
+/* Focus states for toggle */
+.oom-toggle-input:focus + .oom-toggle-switch {
+    /* === ACCESSIBILITY FOCUS === */
+    box-shadow: var(--oom-focus-ring);
+}
+
+/* Toggle labels and text */
+.oom-toggle-label {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    font-size: var(--font-ui-medium);
+    cursor: pointer;
+    
+    /* NO VISUAL STYLING - Let theme handle toggle label styling */
+}
+
+.oom-toggle-text {
+    /* === STRUCTURAL PROPERTIES === */
+    font-size: var(--font-ui-small);
+    line-height: 1.4;
+    
+    /* NO VISUAL STYLING - Let theme handle toggle text styling */
+}
+
+/* =============================================================================
+   TEXT INPUT SECTIONS - Modal Text Input Layouts
+   ============================================================================= */
+
+.oom-text-input-section {
+    /* === STRUCTURAL PROPERTIES === */
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-md);
+    
+    /* NO VISUAL STYLING - Let theme handle text input section backgrounds and borders */
+    
+    .oom-text-input-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--oom-spacing-xs);
+    }
+    
+    .oom-text-input-title {
+        font-size: var(--oom-text-input-title-size);
+        font-weight: var(--font-semibold);
+        
+        /* NO VISUAL STYLING - Let theme handle title styling */
+    }
+    
+    .oom-text-input-toggle {
+        font-size: var(--oom-text-input-toggle-size);
+        cursor: pointer;
+        user-select: none;
+        
+        /* NO VISUAL STYLING - Let theme handle toggle text styling */
+        
+        &:hover {
+            /* Let theme handle hover styling */
+        }
+    }
+    
+    .oom-text-input-row {
+        display: grid;
+        align-items: end;
+        gap: var(--oom-spacing-sm);
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    &.collapsed .oom-text-input-row {
+        display: none;
+    }
+}
+
+/* Input row layouts */
+.oom-input-row,
+.oom-actions-row,
+.oom-text-input-row {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle row appearance */
+}
+
+.oom-fav-name-row {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-md);
+    
+    /* NO VISUAL STYLING - Let theme handle favorite name row appearance */
+}
+
+/* Text input field wrapper */
+.oom-text-input-field {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    margin-right: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle field appearance */
+}
+
+/* =============================================================================
+   SELECT CONTROLS - Dropdown Elements
+   ============================================================================= */
+
+.oom-select {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    max-width: 150px;
+    padding: 0 0 0 .5em;
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle select styling */
+    
+    &:hover {
+        /* Let theme handle hover styling */
+    }
+    
+    &:focus {
+        /* Let theme handle focus styling */
+        outline: none;
+        box-shadow: var(--oom-focus-ring);
+    }
+    
+    /* === OPTION STYLING === */
+    option {
+        /* NO VISUAL STYLING - Let theme handle option styling */
+        
+        .oom-metric-icon {
+            /* Preserve icon structure in options */
+            margin-right: var(--oom-spacing-xs);
+        }
+    }
+}
+
+/* Obsidian context-specific styling */
+.markdown-preview-view[data-type="oom-project-note"] .oom-select {
+    /* Inherit from base .oom-select */
+
+    /* Additional context-specific overrides only if needed */
+}
+
+/* =============================================================================
+   INPUT CONTAINERS - Context-Specific Layouts
+   ============================================================================= */
+
+.oom-input-container,
+.oom-input-row {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle input container appearance */
+}
+
+.oom-fav-save-container,
+.oom-fav-name-row {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle favorite input containers */
+    
+    label {
+        min-width: fit-content;
+        font-size: var(--oom-input-label-size);
+        font-weight: var(--font-medium);
+        
+        /* NO VISUAL STYLING - Let theme handle favorite labels */
+    }
+    
+    input {
+        flex: 1;
+
+        /* Inherits all styling from base input elements */
+    }
+    
+    button {
+        /* NO VISUAL STYLING - Let theme handle favorite buttons */
+
+        /* Inherits button styling from theme */
+    }
+}
+
+/* Modal section input containers */
+.oom-modal-section .oom-notes-selector-container {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-top: var(--oom-spacing-md);
+    
+    /* NO VISUAL STYLING - Let theme handle modal section containers */
+    
+    .oom-multiselect-search-container {
+        margin-bottom: var(--oom-spacing-sm);
+    }
+}
+
+/* =============================================================================
+   SEARCH INPUT COMPONENTS - Search and Filter Inputs
+   ============================================================================= */
+
+.oom-icon-picker-search {
+    /* === STRUCTURAL PROPERTIES === */
+    position: relative;
+    margin-bottom: var(--oom-spacing-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle search container */
+    
+    &::before {
+        position: absolute;
+        top: 50%;
+        left: var(--oom-spacing-sm);
+        width: var(--oom-search-icon-size);
+        height: var(--oom-search-icon-size);
+        transform: translateY(-50%);
+
+        /* Search icon placeholder - structural only */
+        content: "";
+        
+        /* NO VISUAL STYLING - Let theme handle search icon */
+    }
+    
+    input {
+        width: 100%;
+        padding-left: calc(var(--oom-search-icon-size) + var(--oom-spacing-lg));
+        
+        /* Inherits all styling from base input elements */
+    }
+}
+
+/* =============================================================================
+   DATE INPUT CONTROLS - Date Selection
+   ============================================================================= */
+
+.oom-date-input-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    min-width: 200px;
+    
+    /* NO VISUAL STYLING - Let theme handle date input container */
+    
+    label {
+        font-size: var(--oom-filter-label-size);
+        font-weight: var(--font-medium);
+        
+        /* NO VISUAL STYLING - Let theme handle label colors */
+    }
+    
+    input[type="date"] {
+        padding: var(--oom-filter-input-padding);
+        border-radius: var(--oom-filter-input-radius);
+        font-size: var(--oom-filter-label-size);
+        transition: all var(--oom-transition-normal);
+        
+        /* NO VISUAL STYLING - Let theme handle date input styling */
+        
+        &:hover {
+            /* Let theme handle hover styling */
+        }
+        
+        &:focus {
+            /* Let theme handle focus styling */
+            outline: none;
+            box-shadow: var(--oom-focus-ring);
+        }
+    }
+}
+
+.oom-date-range-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-filter-gap);
+    
+    /* NO VISUAL STYLING - Let theme handle date range container */
+}
+
+/* =============================================================================
+   FILTER CONTROLS - Filter System Components
+   ============================================================================= */
+
+.oom-filter-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-filter-gap);
+    margin-bottom: var(--oom-spacing-md);
+    padding: var(--oom-filter-padding);
+    border-radius: var(--oom-filter-border-radius);
+    
+    /* NO VISUAL STYLING - Let theme handle filter container styling */
+}
+
+/* Filter display states - visual feedback */
+.oom-filter-display {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    
+    /* NO VISUAL STYLING - Default state handled by theme */
+    
+    .oom-filter-icon {
+        margin-right: 0.25em;
+
+        /* Icon inherits color from parent text state */
+        color: inherit;
+    }
+    
+    /* === FILTER STATE INDICATORS === */
+    &:has(.oom-filter-text.oom-filter--all-visible) {
+        color: var(--text-success);
+        
+        .oom-filter-icon {
+            color: var(--text-success);
+        }
+    }
+    
+    &:has(.oom-filter-text.oom-filter--partially-visible) {
+        color: var(--text-warning);
+        
+        .oom-filter-icon {
+            color: var(--text-warning);
+        }
+    }
+    
+    &:has(.oom-filter-text.oom-filter--none-visible) {
+        color: var(--text-error);
+        
+        .oom-filter-icon {
+            color: var(--text-error);
+        }
+    }
+    
+    /* === UPDATED STATE === */
+    &.oom-filter-display--updated {
+        /* Temporary highlight for filter updates */
+        animation: filter-update-flash 0.3s ease-out;
+    }
+}
+
+/* Individual filter state classes */
+.oom-filter--all-visible {
+    color: var(--text-success);
+}
+
+.oom-filter--mostly-visible {
+    opacity: 0.8;
+    color: var(--text-success);
+}
+
+.oom-filter--partially-visible {
+    color: var(--text-warning);
+}
+
+.oom-filter--none-visible {
+    color: var(--text-error);
+}
+
+.oom-filter-hidden {
+    display: none;
+}
+
+/* Special ID-based filter display */
+div#oom-time-filter-display {
+    margin: var(--oom-spacing-sm) 0;
+
+    /* === STRUCTURAL PROPERTIES === */
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-sm);
+    
+    /* NO VISUAL STYLING - Let theme handle time filter display */
+}
+
+/* =============================================================================
+   SELECTION CONTROLS - Selection and Info Displays
+   ============================================================================= */
+
+.oom-selection-info {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-bottom: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-sm);
+    font-size: var(--font-ui-small);
+    
+    /* NO VISUAL STYLING - Let theme handle selection info styling */
+}
+
+.oom-selected-text {
+    /* === STRUCTURAL PROPERTIES === */
+    font-weight: var(--font-medium);
+    
+    /* NO VISUAL STYLING - Let theme handle selected text styling */
+}
+
+/* =============================================================================
+   STRUCTURE FORM COMPONENTS - Journal Structure Forms
+   ============================================================================= */
+
+/* Structure list item layout */
+.oom-structure-list-item {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    
+    /* NO VISUAL STYLING - Let theme handle structure list item appearance */
+}
+
+.oom-structure-list-item .oom-structure-toggle {
+    display: flex;
+    align-items: center;
+    margin-right: var(--oom-spacing-sm);
+    order: -1;
+}
+
+.oom-structure-list-item .oom-structure-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.oom-structure-list-item .oom-structure-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.oom-structure-item.editing {
+    margin-top: 1em;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Journal section styling */
+.oom-journal-section {
+    margin-bottom: var(--oom-spacing-md);
+
+    /* === STRUCTURAL PROPERTIES === */
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    
+    /* NO VISUAL STYLING - Let theme handle journal section appearance */
+}
+
+.oom-section-header {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--oom-spacing-sm);
+    padding-bottom: var(--oom-spacing-xs);
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+    
+    /* NO VISUAL STYLING - Let theme handle section header appearance */
+}
+
+/* =============================================================================
+   WIZARD FORMS - Step-by-Step Form Components
+   ============================================================================= */
+
+.oom-wizard-header {
+    /* === STRUCTURAL PROPERTIES === */
+    position: sticky;
+    top: 0;
+    z-index: 101;
+    padding: .5em;
+    border-bottom: 1px solid var(--background-modifier-border);
+    box-shadow: rgb(0 0 0 / 10%) 0 2px 8px;
+    background-color: var(--background-primary);
+    
+    /* NO VISUAL STYLING - Uses theme background */
+}
+
+.oom-wizard-main-content {
+    padding-top: 1em;
+
+    /* === STRUCTURAL PROPERTIES === */
+    padding-bottom: 80px;
+}
+
+.oom-wizard-step.step-1 h3,
+.oom-wizard-step.step-2 h3,
+.oom-wizard-step.step-3 h3 {
+    font-size: var(--h4-size);
+    margin-block-start: 0;
+}
+
+.oom-wizard-footer {
+    /* === STRUCTURAL PROPERTIES === */
+    position: sticky;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: .5em;
+    border-top: 1px solid var(--background-modifier-border);
+    box-shadow: rgb(0 0 0 / 10%) 0 -2px 8px;
+    background-color: var(--background-primary);
+    
+    /* NO VISUAL STYLING - Uses theme background */
+}
+
+.oom-nav-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.oom-button-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    gap: 0.5em;
+}
+
+.oom-wizard-footer .oom-step-indicator {
+    /* === STRUCTURAL PROPERTIES === */
+    min-width: auto;
+    font-size: var(--font-ui-small);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle step indicator */
+}
+
+/* =============================================================================
+   FORM DESCRIPTIONS & HELP TEXT
+   ============================================================================= */
+
+p.oom-journal-structure-description {
+    font-size: var(--font-ui-smaller);
+}
+
+p.oom-journal-structure-description:nth-of-type(2) {
+    margin-bottom: 0;
+    margin-block-end: 0;
+}
+
+/* Preview containers */
+pre.oom-markdown-preview.oom-templater-preview {
+    border: 1px solid var(--color-accent);
+    font-size: 12px;
+    background-color: var(--background-secondary);
+}
+
+pre.oom-markdown-preview.oom-journal-structure-preview {
+    font-size: 12px;
+    background-color: var(--background-secondary);
+}
+
+/* =============================================================================
+   STATUS INDICATORS - Form State Feedback
+   ============================================================================= */
+
+.oom-status-warning {
+    color: var(--text-warning);
+}
+
+.oom-status-success {
+    color: var(--text-success);
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile First Forms
+   ============================================================================= */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    /* === TABLET FORM ADJUSTMENTS === */
+    .oom-text-input-row {
+        gap: var(--oom-spacing-sm);
+        grid-template-columns: 1fr;
+    }
+    
+    .oom-date-range-container {
+        flex-direction: column;
+    }
+    
+    .oom-filter-container {
+        gap: var(--oom-spacing-sm);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    /* === MOBILE FORM ADJUSTMENTS === */
+    .oom-form-field,
+    .oom-setting-toggle {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--oom-spacing-sm);
+        min-height: auto;
+    }
+    
+    .oom-form-label,
+    .oom-setting-info {
+        text-align: left;
+    }
+    
+    .oom-form-control,
+    .oom-form-field .oom-toggle-container,
+    .oom-form-field-toggle .oom-toggle-container {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+    
+    .oom-input-row,
+    .oom-actions-row,
+    .oom-fav-name-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .oom-text-input-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-text-input-field {
+        margin-right: 0;
+    }
+    
+    .oom-wizard-header,
+    .oom-wizard-footer {
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-nav-container {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oom-button-container {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+    }
+}
+
+/* =============================================================================
+   PRINT OPTIMIZATION - Forms
+   ============================================================================= */
+
+@media print {
+    /* === HIDE INTERACTIVE FORM ELEMENTS IN PRINT === */
+    .oom-wizard-header,
+    .oom-wizard-footer,
+    .oom-button-container,
+    .oom-toggle-container,
+    .oom-structure-actions {
+        display: none;
+    }
+    
+    /* === SIMPLIFY FORM LAYOUT FOR PRINT === */
+    .oom-form-field,
+    .oom-setting-toggle {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: var(--oom-spacing-lg);
+    }
+    
+    /* === PRESERVE FORM CONTENT === */
+    .oom-form-label,
+    .oom-selected-text,
+    .oom-filter-display {
+        color: black !important;
+    }
+    
+    /* === REMOVE FORM BACKGROUNDS === */
+    .oom-wizard-main-content {
+        padding: 0;
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY - High Contrast & Focus Management
+   ============================================================================= */
+
+/* High contrast mode adjustments */
+@media (forced-colors: active) {
+    .oom-validation-error,
+    .oom-cm-validation-error {
+        border-color: Mark;
+        text-decoration-color: Mark;
+    }
+    
+    .oom-validation-warning,
+    .oom-cm-validation-warning {
+        border-color: Highlight;
+        text-decoration-color: Highlight;
+    }
+    
+    .oom-filter--all-visible {
+        color: LinkText;
+    }
+    
+    .oom-filter--partially-visible,
+    .oom-filter--none-visible {
+        color: VisitedText;
+    }
+    
+    .oom-toggle-switch {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-toggle-input:checked + .oom-toggle-switch {
+        background: Highlight;
+    }
+    
+    .oom-form-field,
+    .oom-structure-list-item {
+        border: 1px solid ButtonText;
+    }
+}
+
+/* Focus management for form controls */
+.oom-select:focus-visible,
+.oom-toggle-container:focus-visible,
+input[type="date"]:focus-visible {
+    outline: var(--oom-focus-ring-accent);
+    outline-offset: 2px;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .oom-toggle-switch,
+    .oom-toggle-slider,
+    .oom-filter-display {
+        transition: none;
+    }
+    
+    .oom-filter-display--updated {
+        animation: none;
+    }
+}
+
+/* =============================================================================
+   DARK THEME SPECIFIC ADJUSTMENTS
+   ============================================================================= */
+
+/* Dark theme toggle visibility enhancement */
+.theme-dark .oom-toggle-slider {
+    /* Add subtle border for better visibility in dark themes */
+    box-shadow: inset 0 0 0 1px var(--background-modifier-border);
+}
