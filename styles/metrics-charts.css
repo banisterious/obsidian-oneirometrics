@@ -1,0 +1,1116 @@
+/* =============================================================================
+   OneiroMetrics Charts & Visualization Component
+   Complete chart system including tabs, heatmaps, Chart.js integration, and metrics visualization
+   ============================================================================= */
+
+/* =============================================================================
+   ENHANCED CHART TOOLBAR SYSTEM
+   ============================================================================= */
+
+.oom-chart-toolbar {
+    display: flex;
+    min-height: 40px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    align-items: center;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    justify-content: space-between;
+    background: var(--background-secondary);
+}
+
+.oom-chart-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+.oom-chart-content {
+    flex: 1;
+}
+
+/* Statistics Tab Specific - No title in toolbar, just export button */
+.oom-chart-container:has(.oom-chart-content table) .oom-chart-toolbar {
+    justify-content: flex-end;
+}
+
+/* =============================================================================
+   ENHANCED HEATMAP CONTROLS
+   ============================================================================= */
+
+.oom-heatmap-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.oom-metric-selector {
+    flex: 1;
+    min-width: 200px;
+    padding: 6px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 13px;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+}
+
+.oom-metric-selector:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+    border-color: var(--interactive-accent);
+}
+
+/* =============================================================================
+   EXPORT ERROR NOTIFICATIONS SYSTEM
+   ============================================================================= */
+
+.oom-export-error {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.oom-export-error-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--color-red);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+}
+
+.oom-export-error-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.oom-export-error-message {
+    flex: 1;
+    line-height: 1.4;
+    font-size: 13px;
+}
+
+.oom-export-error-close {
+    display: flex;
+    height: 20px;
+    width: 20px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: none;
+}
+
+.oom-export-error-close:hover {
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-modifier-hover);
+}
+
+/* Success notification variant */
+.oom-export-success .oom-export-error-content {
+    border-color: var(--color-green);
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* Animation for error notifications */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* =============================================================================
+   INSIGHTS TAB ANALYTICS SYSTEM
+   ============================================================================= */
+
+.oom-insights-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.oom-insights-section {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.oom-insights-section:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.oom-insights-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    /* NO VISUAL STYLING - Let theme handle */
+    border-bottom: 2px solid var(--background-modifier-border);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oom-insight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    gap: 12px;
+}
+
+.oom-insight-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.oom-insight-label {
+    font-weight: 500;
+    /* NO VISUAL STYLING - Let theme handle */
+    flex: 1;
+    font-size: 14px;
+}
+
+.oom-insight-value {
+    max-width: 60%;
+    font-weight: 600;
+    text-align: right;
+    font-size: 14px;
+    word-wrap: break-word;
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* Trend indicators */
+.oom-trend-positive {
+    color: var(--color-green);
+}
+
+.oom-trend-negative {
+    color: var(--color-red);
+}
+
+.oom-trend-stable {
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* Outlier indicators */
+.oom-outlier-high {
+    font-weight: 700;
+    color: var(--color-orange);
+}
+
+.oom-outlier-low {
+    font-weight: 700;
+    color: var(--color-blue);
+}
+
+/* Correlation strength indicators */
+.oom-correlation-strong {
+    font-weight: 700;
+    color: var(--color-purple);
+}
+
+.oom-correlation-moderate {
+    font-weight: 600;
+    color: var(--color-cyan);
+}
+
+/* Empty and error states */
+.oom-insights-empty,
+.oom-insights-error {
+    padding: 40px 20px;
+    border-radius: 8px;
+    border: 2px dashed var(--background-modifier-border);
+    text-align: center;
+    font-style: italic;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-secondary);
+}
+
+.oom-insights-error {
+    border-color: var(--color-red);
+    color: var(--color-red);
+    background: rgba(var(--color-red-rgb), 0.1);
+}
+
+/* =============================================================================
+   ADVANCED CHART CONTROLS WITH NESTING AND :has()
+   ============================================================================= */
+
+.oom-chart-container {
+    /* Chart type selector */
+    .oom-chart-type-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 12px;
+
+        .oom-chart-selector-label {
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        .oom-chart-selector {
+            min-width: 120px;
+            padding: 4px 8px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            font-size: 12px;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-primary);
+
+            &:hover {
+                border-color: var(--background-modifier-border-hover);
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: var(--interactive-accent);
+                box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+            }
+        }
+    }
+
+    /* Smoothing toggle */
+    .oom-chart-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 12px;
+
+        input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            accent-color: var(--interactive-accent);
+        }
+
+        label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        &:hover label {
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+
+    /* Correlation threshold controls */
+    .oom-correlation-threshold {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 12px;
+
+        .oom-threshold-label {
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        .oom-threshold-slider {
+            width: 80px;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--background-modifier-border);
+
+            &:hover {
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+            &::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid var(--background-primary);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                background: var(--interactive-accent);
+            }
+        }
+
+        .oom-threshold-value {
+            min-width: 24px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--background-modifier-border);
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-modifier-form-field);
+        }
+    }
+
+    /* Chart toolbar */
+    .oom-chart-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 48px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--background-modifier-border);
+        background: var(--background-secondary);
+
+        .oom-chart-title {
+            flex-shrink: 0;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        .oom-chart-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Enhanced chart canvas */
+    .oom-chart-canvas {
+        min-height: 400px;
+        max-height: 600px;
+    }
+
+    /* Loading state */
+    &.oom-chart-container--loading {
+        .oom-chart-canvas {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        &::after {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 10;
+            padding: 8px 16px;
+            content: "Loading chart...";
+            transform: translate(-50%, -50%);
+            border-radius: 4px;
+            border: 1px solid var(--background-modifier-border);
+            font-size: 12px;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-primary);
+        }
+    }
+
+    /* Special styling when container has correlation controls */
+    &:has(.oom-correlation-threshold) {
+        .oom-chart-toolbar {
+            background: linear-gradient(135deg, var(--background-secondary), var(--background-modifier-hover));
+        }
+    }
+
+    /* Box plot info styling when box plot is present */
+    &:has(.oom-chart-selector option[value="box"]:checked) {
+        .oom-box-plot-info {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 8px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 10px;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-primary);
+        }
+    }
+}
+
+/* =============================================================================
+   CORRELATION MATRIX & TREND DECOMPOSITION
+   ============================================================================= */
+
+.oom-correlation-matrix {
+    position: relative;
+
+    .oom-correlation-legend {
+        display: flex;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        /* NO VISUAL STYLING - Let theme handle */
+
+        .oom-correlation-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .oom-correlation-legend-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 2px;
+
+                &.oom-correlation-legend-positive {
+                    background: rgba(0, 100, 255, 0.7);
+                }
+
+                &.oom-correlation-legend-negative {
+                    background: rgba(255, 100, 0, 0.7);
+                }
+            }
+        }
+    }
+}
+
+.oom-trend-decomposition {
+    .oom-trend-decomposition-legend {
+        display: flex;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        /* NO VISUAL STYLING - Let theme handle */
+
+        .oom-trend-decomposition-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .oom-trend-line-original {
+                width: 16px;
+                height: 2px;
+                background: var(--color-blue);
+            }
+
+            .oom-trend-line-trend {
+                width: 16px;
+                height: 2px;
+                background: var(--color-green);
+            }
+
+            .oom-trend-line-residual {
+                width: 16px;
+                height: 2px;
+                background: var(--color-red);
+            }
+        }
+    }
+}
+
+/* Chart transition animation */
+.oom-chart-transition {
+    transition: all 0.3s ease;
+}
+
+/* =============================================================================
+   TAB-BASED CHART SYSTEM
+   ============================================================================= */
+
+.oom-metrics-chart-tabs-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    /* NO VISUAL STYLING - Let theme handle container styling */
+}
+
+.oom-metrics-chart-tabs-nav {
+    display: flex;
+    flex-shrink: 0; /* Prevent navigation from shrinking */
+    /* NO VISUAL STYLING - Let theme handle navigation styling */
+}
+
+.oom-metrics-chart-tab {
+    position: relative;
+    margin-right: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.oom-metrics-chart-tab:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-metrics-chart-tab--active {
+    font-weight: 600;
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-chart-tab--active:hover {
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-chart-tabs-content {
+    flex: 1;
+    overflow: auto;
+    min-height: 0; /* Important for flex child with overflow */
+    border-right: 1px solid var(--background-modifier-border);
+    border-left: 1px solid var(--background-modifier-border);
+    border-bottom: 1px solid var(--background-modifier-border);
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    /* NO VISUAL STYLING - Let theme handle content styling */
+}
+
+/* =============================================================================
+   CHART.JS INTEGRATION & CANVAS MANAGEMENT
+   ============================================================================= */
+
+.oom-chart-container {
+    width: 100%;
+    padding: var(--oom-spacing-md);
+    height: auto;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    /* NO VISUAL STYLING - Let theme handle chart container styling */
+}
+
+.oom-chart-title {
+    margin: 0 0 var(--oom-spacing-md) 0;
+    flex-shrink: 0; /* Prevent title from shrinking */
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.oom-chart-canvas {
+    flex: 1;
+    width: 100% !important; /* Override Chart.js default */
+    height: 400px !important; /* Override Chart.js default */
+    max-width: 100%;
+    max-height: 400px;
+    min-height: 300px;
+    /* NO VISUAL STYLING - Chart.js handles canvas styling */
+}
+
+.oom-chart-placeholder {
+    padding: var(--oom-spacing-xl);
+    text-align: center;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background-secondary);
+    border-radius: var(--oom-radius-lg);
+    border: 1px dashed var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.oom-chart-placeholder h3 {
+    margin: 0 0 var(--oom-spacing-sm) 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.oom-chart-placeholder p {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+/* Fix for Chart.js responsive behavior */
+.oom-chart-container canvas {
+    position: relative !important;
+}
+
+/* Animation prevention during initial render */
+.oom-chart-container--loading .oom-chart-canvas {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* =============================================================================
+   HEATMAP VISUALIZATION SYSTEM
+   ============================================================================= */
+
+.oom-heatmap-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    background: var(--background-modifier-form-field);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-metric-selector {
+    min-width: 200px;
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+}
+
+.oom-metric-selector:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: 0 0 0 2px var(--text-accent-hover);
+}
+
+.oom-heatmap-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.oom-heatmap-placeholder {
+    text-align: center;
+    padding: var(--oom-spacing-xl);
+    color: var(--text-muted);
+    font-style: italic;
+    background: var(--background-modifier-hover);
+    border-radius: 6px;
+    margin: var(--oom-spacing-md) 0;
+}
+
+/* =============================================================================
+   HEATMAP LEGEND SYSTEM
+   ============================================================================= */
+
+.oom-heatmap-legend {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xl);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-heatmap-legend-title {
+    font-weight: 600;
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    text-align: center;
+}
+
+.oom-heatmap-legend-scale {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    justify-content: center;
+}
+
+.oom-heatmap-legend-min,
+.oom-heatmap-legend-max {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    font-weight: 500;
+    min-width: 40px;
+    text-align: center;
+}
+
+.oom-heatmap-legend-gradient {
+    display: flex;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    min-width: 120px;
+}
+
+.oom-heatmap-legend-color-low {
+    flex: 1;
+    background: var(--color-green-rgb);
+    background: rgba(var(--color-green-rgb), 0.3);
+}
+
+.oom-heatmap-legend-color-medium {
+    flex: 1;
+    background: var(--color-yellow-rgb);
+    background: rgba(var(--color-yellow-rgb), 0.6);
+}
+
+.oom-heatmap-legend-color-high {
+    flex: 1;
+    background: var(--color-red-rgb);
+    background: rgba(var(--color-red-rgb), 0.8);
+}
+
+/* =============================================================================
+   HEATMAP MONTHS & GRIDS
+   ============================================================================= */
+
+.oom-heatmap-months {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-xl);
+}
+
+.oom-heatmap-month {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--background-primary);
+}
+
+.oom-heatmap-month-header {
+    background: var(--background-modifier-hover);
+    padding: var(--oom-spacing-md);
+    font-weight: 600;
+    color: var(--text-normal);
+    text-align: center;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-medium);
+}
+
+.oom-heatmap-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    padding: var(--oom-spacing-sm);
+    background: var(--background-modifier-border);
+}
+
+.oom-heatmap-day-label {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    text-align: center;
+    padding: var(--oom-spacing-xs);
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* =============================================================================
+   HEATMAP DAY CELLS & STATES
+   ============================================================================= */
+
+.oom-heatmap-day {
+    background: var(--background-primary);
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-ui-small);
+    border-radius: 3px;
+    cursor: default;
+    position: relative;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.oom-heatmap-day-empty {
+    background: var(--background-modifier-hover);
+    opacity: 0.3;
+}
+
+.oom-heatmap-day-no-data {
+    background: var(--background-primary);
+    color: var(--text-faint);
+    opacity: 0.6;
+}
+
+.oom-heatmap-day-no-data:hover {
+    opacity: 0.8;
+    border-color: var(--background-modifier-border);
+}
+
+.oom-heatmap-day-data {
+    color: var(--text-on-accent);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.oom-heatmap-day-data:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-color: var(--text-accent);
+}
+
+/* =============================================================================
+   INTENSITY-BASED COLORING SYSTEM
+   ============================================================================= */
+
+.oom-heatmap-intensity-low {
+    background: rgba(var(--color-green-rgb), 0.4);
+    color: var(--text-normal);
+}
+
+.oom-heatmap-intensity-medium {
+    background: rgba(var(--color-yellow-rgb), 0.7);
+    color: var(--text-normal);
+}
+
+.oom-heatmap-intensity-high {
+    background: rgba(var(--color-red-rgb), 0.8);
+    color: var(--text-on-accent);
+}
+
+/* Dynamic Intensity Using CSS Custom Properties */
+.oom-heatmap-day-data {
+    background: rgba(
+        calc(var(--color-green-rgb) * (1 - var(--intensity, 0)) + var(--color-red-rgb) * var(--intensity, 0)),
+        calc(0.3 + var(--intensity, 0) * 0.5)
+    );
+}
+
+/* =============================================================================
+   PROGRESS BAR SYSTEM
+   ============================================================================= */
+
+.oom-progress-bar {
+    height: var(--oom-progress-bar-height, 8px);
+    background: var(--oom-progress-bar-bg, var(--background-modifier-border));
+    border-radius: var(--oom-progress-bar-radius, 4px);
+    margin: var(--oom-progress-bar-margin, 1em 0);
+    overflow: hidden;
+    position: relative;
+}
+
+.oom-progress-fill {
+    height: 100%;
+    background: var(--oom-progress-fill-bg, var(--interactive-accent));
+    border-radius: inherit;
+    transition: width 0.3s ease;
+    min-width: 2px; /* Ensure visibility even at 0% */
+}
+
+.oom-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    color: var(--text-on-accent);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+/* =============================================================================
+   PATTERN VISUALIZATION ELEMENTS
+   ============================================================================= */
+
+.oom-pattern-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--oom-radius-sm);
+    font-size: var(--font-ui-smaller);
+    font-weight: 500;
+}
+
+.oom-quality-score {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    color: var(--text-on-accent);
+}
+
+.oom-metric-overlay {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--background-primary);
+    z-index: 2;
+}
+
+.oom-pattern-high-quality { background: var(--color-green); }
+.oom-pattern-fragmented { background: var(--color-yellow); }
+.oom-pattern-rich-narrative { background: var(--color-blue); }
+.oom-pattern-basic-recall { background: var(--color-orange); }
+
+.oom-quality-high { background: var(--color-green); }
+.oom-quality-medium { background: var(--color-yellow); }
+.oom-quality-low { background: var(--color-red); }
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    .oom-metrics-chart-tabs-nav {
+        flex-wrap: wrap;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-metrics-chart-tab {
+        margin-right: 0;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .oom-chart-container {
+        height: 400px;
+    }
+    
+    .oom-chart-canvas {
+        height: 300px !important;
+        max-height: 300px;
+    }
+    
+    .oom-chart-placeholder {
+        height: 300px;
+        padding: var(--oom-spacing-lg);
+    }
+    
+    .oom-heatmap-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .oom-metric-selector {
+        min-width: unset;
+    }
+    
+    .oom-heatmap-day {
+        min-height: 28px;
+        font-size: var(--font-ui-smaller);
+    }
+    
+    .oom-heatmap-legend-scale {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-heatmap-legend-gradient {
+        min-width: unset;
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & THEME SUPPORT
+   ============================================================================= */
+
+/* High Contrast Theme Support */
+@media (prefers-contrast: high) {
+    .oom-heatmap-day {
+        border: 1px solid var(--text-normal);
+    }
+    
+    .oom-heatmap-intensity-low {
+        background: var(--color-green);
+        color: var(--text-on-accent);
+    }
+    
+    .oom-heatmap-intensity-medium {
+        background: var(--color-yellow);
+        color: var(--text-normal);
+    }
+    
+    .oom-heatmap-intensity-high {
+        background: var(--color-red);
+        color: var(--text-on-accent);
+    }
+    
+    .oom-progress-fill {
+        border: 1px solid var(--text-normal);
+    }
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .oom-heatmap-legend-color-low {
+    background: rgba(var(--color-green-rgb), 0.5);
+}
+
+.theme-dark .oom-heatmap-legend-color-medium {
+    background: rgba(var(--color-yellow-rgb), 0.7);
+}
+
+.theme-dark .oom-heatmap-legend-color-high {
+    background: rgba(var(--color-red-rgb), 0.9);
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+    .oom-heatmap-day:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .oom-heatmap-container {
+        overflow: visible;
+    }
+    
+    .oom-chart-container {
+        page-break-inside: avoid;
+    }
+    
+    .oom-progress-bar {
+        print-color-adjust: exact;
+    }
+} 

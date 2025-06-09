@@ -207,7 +207,6 @@
     justify-content: center;
     width: var(--oom-icon-grid-item-size);
     height: var(--oom-icon-grid-item-size);
-    padding: var(--oom-spacing-xs);
     border-radius: var(--oom-radius-md);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -248,7 +247,6 @@
     align-items: center;
     justify-content: center;
     width: 120px;
-    padding: var(--oom-spacing-xs);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -449,7 +447,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--oom-spacing-sm);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -470,8 +467,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--oom-spacing-xs);
-    padding: var(--oom-spacing-sm);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -490,7 +485,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--oom-spacing-sm);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);

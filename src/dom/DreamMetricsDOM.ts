@@ -200,7 +200,7 @@ export class DreamMetricsDOM {
                 contentCell.appendChild(contentWrapper);
 
                 const expandButton = document.createElement('button');
-                expandButton.className = 'oom-button oom-button--expand';
+                expandButton.className = 'oom-button oom-button--expand u-padding--xs';
                 const sourceId = getSourceFile(entry);
                 expandButton.textContent = this.expandedRows.has(sourceId) ? 'Show less' : 'Read more';
                 expandButton.setAttribute('data-content-id', sourceId);

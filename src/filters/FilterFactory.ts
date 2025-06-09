@@ -245,7 +245,7 @@ export function createFilterButton(props: FilterElementProps): EventableComponen
     // Create button component
     const component = createComponent(EventableComponent, {
         id: props.id,
-        className: `oom-filter-button ${props.className || ''}`,
+        className: `oom-filter-button u-padding--sm ${props.className || ''}`,
         container: props.container
     });
 

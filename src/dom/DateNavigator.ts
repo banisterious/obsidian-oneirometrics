@@ -142,7 +142,7 @@ export class DateNavigator {
         
         // Left navigation button
         const prevButton = headerContainer.createEl('button', {
-            cls: 'oom-month-button oom-month-prev-button',
+                            cls: 'oom-month-button oom-month-prev-button u-padding--sm',
             attr: {
                 'aria-label': 'Previous month',
                 'title': 'Previous month'
@@ -158,7 +158,7 @@ export class DateNavigator {
         
         // Right navigation button
         const nextButton = headerContainer.createEl('button', {
-            cls: 'oom-month-button oom-month-next-button',
+                            cls: 'oom-month-button oom-month-next-button u-padding--sm',
             attr: {
                 'aria-label': 'Next month',
                 'title': 'Next month'
@@ -168,7 +168,7 @@ export class DateNavigator {
         
         // Today button
         const todayButton = headerContainer.createEl('button', {
-            cls: 'oom-month-button oom-today-button',
+                            cls: 'oom-month-button oom-today-button u-padding--sm',
             text: 'Today',
             attr: {
                 'aria-label': 'Go to today',

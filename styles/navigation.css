@@ -15,6 +15,111 @@
 */
 
 /* =============================================================================
+   NAVIGATION ICONS - Comprehensive Icon System (MOVED FIRST for specificity order)
+   ============================================================================= */
+
+/* Base Navigation Icons - STANDALONE FIRST */
+.oom-nav-icon {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-size);
+    height: var(--oom-icon-size);
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    /* === SVG SIZING === */
+    svg {
+        width: var(--oom-icon-svg-size);
+        height: var(--oom-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle SVG colors */
+    }
+}
+
+/* Tab Icons - Unified System - STANDALONE FIRST */
+.oom-metrics-tabs-icon,
+.oom-hub-tab-icon {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-tab-icon-size);
+    height: var(--oom-tab-icon-size);
+    margin-right: var(--oom-spacing-sm);
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    /* === NESTED SVG STYLING === */
+    svg {
+        width: var(--oom-tab-icon-svg-size);
+        height: var(--oom-tab-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle SVG colors */
+    }
+}
+
+/* Remove margin for hub tab icons (they use gap on parent) */
+.oom-hub-tab-icon {
+    margin-right: 0;
+}
+
+/* =============================================================================
+   NAVIGATION LABELS - Text Content Management (MOVED FIRST for specificity order)
+   ============================================================================= */
+
+/* STANDALONE LABELS FIRST */
+.oom-nav-label,
+.oom-hub-tab-label,
+.oom-metrics-tabs-label {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    font-size: var(--font-ui-medium);
+    font-weight: 400;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    
+    /* NO VISUAL STYLING - Let theme handle label colors */
+}
+
+/* Special heading labels */
+h2.oom-metrics-tabs-label {
+    font-size: var(--h3-size);
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+/* =============================================================================
+   TAB NAVIGATION BUTTONS - Enhanced State Management (MOVED FIRST for specificity order)
+   ============================================================================= */
+
+/* STANDALONE BUTTON STYLES FIRST */
+.oom-metrics-tabs-button,
+.oom-hub-tab-nav-item {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: .45em 0;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    
+    /* NO VISUAL STYLING - Let theme handle button colors and backgrounds */
+}
+
+/* Hover states for tab buttons */
+.oom-metrics-tabs-button:hover,
+.oom-hub-tab-nav-item:hover {
+    /* Let theme handle hover styling */
+}
+
+/* =============================================================================
    GENERAL NAVIGATION ITEMS - Smart State Management
    ============================================================================= */
 
@@ -47,7 +152,7 @@
         font-weight: 600;
     }
     
-    /* === NESTED ICON STYLING === */
+    /* === NESTED ICON STYLING - Higher specificity after standalone icons === */
     .oom-nav-icon,
     .oom-hub-tab-icon,
     .oom-metrics-tabs-icon {
@@ -63,7 +168,7 @@
         }
     }
     
-    /* === NESTED LABEL STYLING === */
+    /* === NESTED LABEL STYLING - Higher specificity after standalone labels === */
     .oom-nav-label,
     .oom-hub-tab-label,
     .oom-metrics-tabs-label {
@@ -71,6 +176,17 @@
         
         /* NO VISUAL STYLING - Let theme handle text colors */
     }
+}
+
+/* PARENT STATE CHANGES - Higher specificity after standalone icons */
+.oom-nav-item:hover .oom-nav-icon,
+.oom-nav-item.active .oom-nav-icon {
+    /* Let theme handle state-based icon changes */
+}
+
+.oom-metrics-tabs-active .oom-metrics-tabs-icon,
+.oom-hub-tab-nav-item.is-active .oom-hub-tab-icon {
+    /* Let theme handle active icon colors */
 }
 
 /* Special tab button variants */
@@ -84,97 +200,6 @@
             /* NO VISUAL STYLING - Let theme handle */
         }
     }
-}
-
-/* =============================================================================
-   NAVIGATION ICONS - Comprehensive Icon System
-   ============================================================================= */
-
-/* Base Navigation Icons */
-.oom-nav-icon {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--oom-icon-size);
-    height: var(--oom-icon-size);
-    flex-shrink: 0;
-    
-    /* NO VISUAL STYLING - Let theme handle icon colors */
-    
-    /* === SVG SIZING === */
-    svg {
-        width: var(--oom-icon-svg-size);
-        height: var(--oom-icon-svg-size);
-        
-        /* NO VISUAL STYLING - Let theme handle SVG colors */
-    }
-    
-    /* === PARENT STATE CHANGES === */
-    .oom-nav-item:hover &,
-    .oom-nav-item.active & {
-        /* Let theme handle state-based icon changes */
-    }
-}
-
-/* Tab Icons - Unified System */
-.oom-metrics-tabs-icon,
-.oom-hub-tab-icon {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--oom-tab-icon-size);
-    height: var(--oom-tab-icon-size);
-    margin-right: var(--oom-spacing-sm);
-    flex-shrink: 0;
-    
-    /* NO VISUAL STYLING - Let theme handle icon colors */
-    
-    /* === NESTED SVG STYLING === */
-    svg {
-        width: var(--oom-tab-icon-svg-size);
-        height: var(--oom-tab-icon-svg-size);
-        
-        /* NO VISUAL STYLING - Let theme handle SVG colors */
-    }
-    
-    /* === PARENT STATE CHANGES === */
-    .oom-metrics-tabs-active &,
-    .oom-hub-tab-nav-item.is-active & {
-        /* Let theme handle active icon colors */
-    }
-}
-
-/* Remove margin for hub tab icons (they use gap on parent) */
-.oom-hub-tab-icon {
-    margin-right: 0;
-}
-
-/* =============================================================================
-   NAVIGATION LABELS - Text Content Management
-   ============================================================================= */
-
-.oom-nav-label,
-.oom-hub-tab-label,
-.oom-metrics-tabs-label {
-    /* === STRUCTURAL PROPERTIES === */
-    flex: 1;
-    font-size: var(--font-ui-medium);
-    font-weight: 400;
-    line-height: 1.4;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    
-    /* NO VISUAL STYLING - Let theme handle label colors */
-}
-
-/* Special heading labels */
-h2.oom-metrics-tabs-label {
-    font-size: var(--h3-size);
-    margin-block-start: 0;
-    margin-block-end: 0;
 }
 
 /* =============================================================================
@@ -338,10 +363,10 @@ h2.oom-metrics-tabs-label {
 }
 
 /* =============================================================================
-   TAB NAVIGATION ITEMS - Enhanced State Management
+   TAB NAVIGATION BUTTONS - Enhanced State Management
    ============================================================================= */
 
-/* Unified tab button system */
+/* MOVED FIRST for proper specificity order - Base button styles */
 .oom-metrics-tabs-button,
 .oom-hub-tab-nav-item {
     /* === STRUCTURAL PROPERTIES === */
@@ -354,42 +379,12 @@ h2.oom-metrics-tabs-label {
     transition: all var(--oom-transition-fast);
     
     /* NO VISUAL STYLING - Let theme handle button colors and backgrounds */
-    
-    /* === NESTED HOVER STATE === */
-    &:hover {
-        /* Let theme handle hover styling */
-    }
-    
-    &:focus {
-        /* Let theme handle focus styling */
-        outline: none;
-    }
-    
-    /* === ACTIVE STATE WITH SMART MANAGEMENT === */
-    &.oom-metrics-tabs-active,
-    &.is-active {
-        font-weight: 600;
-        
-        /* NO VISUAL STYLING - Let theme handle active state colors */
-        
-        /* === SMART ICON STATE MANAGEMENT === */
-        .oom-metrics-tabs-icon,
-        .oom-hub-tab-icon {
-            /* Let theme handle active icon colors */
-        }
-    }
-    
-    /* === SPECIAL TAB VARIANTS === */
-    &[data-tab-id="overview"] {
-        margin-top: .5em;
-        padding-top: 1em;
-        border-top: 1px solid #ccc;
-        border-radius: 0;
-        
-        h2 {
-            font-size: var(--h3-size);
-        }
-    }
+}
+
+/* Hover states - MOVED AFTER base styles for proper specificity order */
+.oom-metrics-tabs-button:hover,
+.oom-hub-tab-nav-item:hover {
+    /* Let theme handle hover styling */
 }
 
 /* =============================================================================

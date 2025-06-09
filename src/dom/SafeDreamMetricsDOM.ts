@@ -612,7 +612,7 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       
       // Expand/collapse button
       const expandButton = this.domSafetyGuard.createElement('button', {
-        className: 'oom-button oom-button--expand',
+                        className: 'oom-button oom-button--expand u-padding--xs',
         parent: contentCell
       });
       

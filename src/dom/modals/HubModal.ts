@@ -1027,7 +1027,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         callback: () => void
     ) {
         const button = containerEl.createEl('button', { 
-            cls: 'oom-quick-action-button', 
+            cls: 'oom-quick-action-button u-gap--xs u-padding--sm', 
             text: label 
         });
         

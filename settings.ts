@@ -227,7 +227,7 @@ export class MetricEditorModal extends Modal {
             iconGrid.empty();
             Object.entries(category.icons).forEach(([iconName, iconSVG]: [string, string]) => {
                 const iconBtn = iconGrid.createEl('button', {
-                    cls: 'oom-icon-picker-btn',
+                    cls: 'oom-icon-picker-btn u-padding--xs',
                     attr: { 
                         type: 'button',
                         'aria-label': iconName,
@@ -257,7 +257,7 @@ export class MetricEditorModal extends Modal {
             Object.entries(allIcons).forEach(([iconName, iconSVG]: [string, string]) => {
                 if (iconName.toLowerCase().includes(searchTerm)) {
                     const iconBtn = iconGrid.createEl('button', {
-                        cls: 'oom-icon-picker-btn',
+                        cls: 'oom-icon-picker-btn u-padding--xs',
                         attr: { 
                             type: 'button',
                             'aria-label': iconName,

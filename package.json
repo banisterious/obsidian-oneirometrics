@@ -41,6 +41,7 @@
         "typescript": "^5.4.0"
     },
     "dependencies": {
+        "chart.js": "^4.4.9",
         "date-fns": "^2.30.0",
         "lucide-static": "^0.509.0",
         "replace-in-file": "^8.3.0",

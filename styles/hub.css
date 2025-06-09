@@ -1,0 +1,663 @@
+/* =============================================================================
+   OneiroMetrics Hub & Dashboard Component
+   Complete dashboard system including template management, journal hub, and navigation
+   ============================================================================= */
+
+/* =============================================================================  
+   DASHBOARD SECTIONS - Content Organization
+   ============================================================================= */
+
+.oom-dashboard-section {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    border-radius: var(--oom-radius-md);
+    
+    /* NO VISUAL STYLING - Let theme handle section styling */
+    
+    /* === NESTED HEADING === */
+    h3 {
+        font-size: var(--font-ui-medium);
+        font-weight: var(--font-semibold);
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+
+    h4 {
+        margin-top: 0;
+        margin-bottom: var(--oom-spacing-sm);
+        padding-bottom: var(--oom-spacing-xs);
+        font-size: var(--font-ui-large);
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle heading borders and colors */
+    }
+}
+
+.oom-template-import-export h3,
+.oom-template-status h3,
+.oom-analysis-targets h3,
+.oom-metrics-tabs-content h3 {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+.oom-suggestions-hidden .suggestion {
+    display: none;
+}
+
+/* =============================================================================
+   TEMPLATE WIZARD NAVIGATION SYSTEM
+   ============================================================================= */
+
+.oom-template-wizard-navigation {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    margin-top: var(--oom-spacing-lg);
+    padding-top: var(--oom-spacing-md);
+    justify-content: space-between;
+    align-items: center;
+    
+    /* NO VISUAL STYLING - Let theme handle navigation borders */
+    
+    .oom-button-container {
+        display: flex;
+        gap: var(--oom-spacing-sm);
+    }
+}
+
+.oom-step-indicator {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    font-size: var(--font-ui-small);
+    
+    /* NO VISUAL STYLING - Let theme handle step indicator colors */
+}
+
+/* =============================================================================
+   COMPREHENSIVE TEMPLATE MANAGEMENT SYSTEM
+   ============================================================================= */
+
+.oom-journal-section {
+    /* Template management container */
+    & .oom-setting {
+        margin-top: 1em;
+    }
+    
+    & .oom-template-import-export {
+        margin-top: 1.5em;
+    }
+    
+    & .oom-template-status {
+        margin-top: 1em;
+    }
+    
+    /* Template List Container */
+    & .oom-templates-list {
+        margin-top: 0.5em;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 4px;
+    }
+    
+    /* Template Row - Individual Template Items */
+    & .oom-template-row {
+        display: flex;
+        padding: 0.75em 1em;
+        border-bottom: 1px solid var(--background-modifier-border);
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
+    
+    & .oom-template-row.oom-template-expanded {
+        background-color: var(--background-modifier-hover);
+    }
+    
+    /* Template Information Display */
+    & .oom-template-info {
+        & .oom-template-details {
+            font-size: 0.9em;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+    
+    /* Template Action Buttons Container */
+    & .oom-template-actions {
+        display: flex;
+        gap: 0.5em;
+    }
+    
+    /* Template Preview Container */
+    & .oom-template-preview-container {
+        display: block;
+        margin-bottom: 0.5em;
+        padding: 0 1em;
+        border-top: 1px solid var(--background-modifier-border);
+        background-color: var(--background-secondary);
+        
+        & .oom-preview-section {
+            margin-bottom: 0.75em;
+            
+            & .oom-template-preview-code {
+                max-height: 200px;
+                padding: 0.75em;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 4px;
+                font-size: 0.85em;
+                font-family: var(--font-monospace);
+                /* NO VISUAL STYLING - Let theme handle */
+                background-color: var(--code-background);
+            }
+        }
+    }
+}
+
+/* =============================================================================
+   TEMPLATE ACTION BUTTONS - Icon Button System
+   ============================================================================= */
+
+.oom-template-action-btn.oom-icon-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 0.4em;
+    border: none;
+    border-radius: 3px;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    /* NO VISUAL STYLING - Let theme handle */
+    background-color: var(--interactive-normal);
+}
+
+.oom-template-action-btn.oom-icon-button:hover {
+    transform: translateY(-1px);
+    /* NO VISUAL STYLING - Let theme handle */
+    background-color: var(--interactive-hover);
+}
+
+.oom-template-action-btn.oom-icon-button:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.oom-template-action-btn.oom-icon-button:active {
+    transform: translateY(0);
+    background-color: var(--interactive-active);
+}
+
+/* Delete button specific styling */
+.oom-template-action-btn.oom-template-delete-btn.oom-icon-button {
+    /* NO VISUAL STYLING - Let theme handle */
+    background-color: var(--color-red);
+}
+
+.oom-template-action-btn.oom-template-delete-btn.oom-icon-button:hover {
+    opacity: 0.9;
+    background-color: var(--color-red-hover, var(--color-red));
+}
+
+/* Icon sizing within buttons */
+.oom-template-action-btn.oom-icon-button svg {
+    height: 16px;
+    width: 16px;
+    stroke-width: 2;
+}
+
+/* Template actions container adjustment */
+.oom-template-actions {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+}
+
+/* =============================================================================
+   JOURNAL MANAGER SIDEBAR NAVIGATION
+   ============================================================================= */
+
+.oom-journal-manager-sidebar {
+    /* === STRUCTURAL PROPERTIES === */
+    flex-shrink: 0;
+    width: var(--oom-sidebar-width);
+    padding: var(--oom-spacing-md);
+    overflow-y: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle sidebar styling */
+    
+    /* === SCROLLBAR STYLING === */
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        /* NO VISUAL STYLING - Let theme handle scrollbar track */
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        border-radius: var(--oom-radius-sm);
+        
+        /* NO VISUAL STYLING - Let theme handle scrollbar thumb */
+        
+        &:hover {
+            /* Let theme handle scrollbar hover */
+        }
+    }
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN SYSTEM - Mobile First
+   ============================================================================= */
+
+/* Mobile Responsiveness for Template Action Buttons */
+@media screen and (max-width: 768px) {
+    .oom-template-action-btn.oom-icon-button {
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0.3em;
+    }
+    
+    .oom-template-action-btn.oom-icon-button svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Tablet Layout Adjustments */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-actions-grid {
+        /* === TABLET GRID ADJUSTMENTS === */
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-action-button {
+        /* === TABLET BUTTON ADJUSTMENTS === */
+        min-height: 60px;
+        padding: var(--oom-spacing-sm) var(--oom-spacing-xs);
+    }
+    
+    .oom-action-icon {
+        height: 20px;
+        font-size: var(--font-ui-large);
+        margin-bottom: var(--oom-spacing-xxs);
+    }
+    
+    .oom-dashboard-section {
+        padding: var(--oom-spacing-sm);
+        margin-bottom: var(--oom-spacing-md);
+    }
+    
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        width: 100%;
+        max-height: 200px;
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-template-wizard-navigation {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+        
+        .oom-button-container {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+}
+
+/* Mobile Layout Optimizations */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-nav-item {
+        /* === MOBILE NAV ADJUSTMENTS === */
+        padding: var(--oom-spacing-xs);
+        margin-bottom: var(--oom-spacing-xxs);
+        
+        .oom-nav-icon {
+            width: 16px;
+            height: 16px;
+            
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+        
+        .oom-nav-label {
+            font-size: var(--font-ui-small);
+        }
+    }
+    
+    .oom-actions-grid {
+        /* === MOBILE SINGLE COLUMN === */
+        grid-template-columns: 1fr;
+    }
+    
+    .oom-action-button {
+        /* === MOBILE COMPACT BUTTONS === */
+        flex-direction: row;
+        min-height: 40px;
+        text-align: left;
+        
+        .oom-action-icon {
+            margin-bottom: 0;
+            margin-right: var(--oom-spacing-xs);
+            height: 16px;
+            font-size: var(--font-ui-medium);
+        }
+    }
+    
+    .oom-collapsible-header {
+        padding: var(--oom-spacing-xs);
+        
+        h3 {
+            font-size: var(--font-ui-medium);
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+    
+    .oom-dashboard-section {
+        padding: var(--oom-spacing-xs);
+        margin-bottom: var(--oom-spacing-sm);
+        
+        h4 {
+            font-size: var(--font-ui-medium);
+            margin-bottom: var(--oom-spacing-xs);
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & REDUCED MOTION SUPPORT
+   ============================================================================= */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .oom-template-action-btn.oom-icon-button {
+        transition: none;
+    }
+    
+    .oom-template-action-btn.oom-icon-button:hover {
+        transform: none;
+    }
+    
+    .oom-nav-item,
+    .oom-action-button,
+    .oom-collapsible-toggle {
+        /* === REDUCED MOTION === */
+        transition: none;
+    }
+    
+    .oom-action-button:hover {
+        transform: none;
+    }
+    
+    .oom-action-button:active {
+        transform: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (forced-colors: active) {
+    .oom-template-action-btn.oom-icon-button {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-template-action-btn.oom-template-delete-btn.oom-icon-button {
+        border-color: Highlight;
+    }
+    
+    .oom-nav-item {
+        /* === HIGH CONTRAST NAVIGATION === */
+        border: 1px solid ButtonText;
+        
+        &.active {
+            color: HighlightText;
+            background-color: Highlight;
+            border-left-color: Highlight;
+            
+            .oom-nav-icon {
+                color: HighlightText;
+            }
+        }
+    }
+    
+    .oom-action-button {
+        border: 1px solid ButtonText;
+        
+        &:hover {
+            background-color: Highlight;
+            color: HighlightText;
+        }
+    }
+    
+    .oom-collapsible-section {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-dashboard-section {
+        border: 1px solid ButtonText;
+    }
+}
+
+/* =============================================================================
+   PRINT STYLES - Clean Print Layout
+   ============================================================================= */
+
+@media print {
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        /* === HIDE SIDEBARS IN PRINT === */
+        display: none;
+    }
+    
+    .oom-template-wizard-navigation {
+        /* === HIDE NAVIGATION IN PRINT === */
+        display: none;
+    }
+    
+    .oom-quick-actions {
+        /* === HIDE ACTIONS IN PRINT === */
+        display: none;
+    }
+    
+    .oom-dashboard-section {
+        /* === PRINT SECTION STYLING === */
+        page-break-inside: avoid;
+        margin-bottom: var(--oom-spacing-md);
+        
+        h4 {
+            page-break-after: avoid;
+        }
+    }
+}
+
+/* =============================================================================
+   DASHBOARD GRID SYSTEM INTEGRATION
+   ============================================================================= */
+
+.oom-dashboard-info-grid {
+    display: grid;
+    gap: var(--oom-spacing-md);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    
+    .oom-dashboard-section {
+        margin-bottom: 0; /* Override default margin in grid context */
+    }
+}
+
+/* Action Grid System for Dashboard */
+.oom-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--oom-spacing-sm);
+    margin: var(--oom-spacing-md) 0;
+}
+
+.oom-action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 80px;
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    text-decoration: none;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background: var(--background-modifier-hover);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.oom-action-icon {
+    height: 24px;
+    font-size: var(--font-ui-large);
+    margin-bottom: var(--oom-spacing-xs);
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* =============================================================================
+   NAVIGATION ITEM INTEGRATION 
+   ============================================================================= */
+
+.oom-nav-item {
+    display: flex;
+    align-items: center;
+    padding: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xs);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        background: var(--background-modifier-hover);
+    }
+    
+    &.active {
+        /* NO VISUAL STYLING - Let theme handle active states */
+        background: var(--background-modifier-active-hover);
+        border-left: 3px solid var(--interactive-accent);
+        
+        .oom-nav-icon {
+            /* NO VISUAL STYLING - Let theme handle active icon color */
+        }
+    }
+}
+
+.oom-nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: var(--oom-spacing-sm);
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.oom-nav-label {
+    font-size: var(--font-ui-medium);
+    font-weight: 500;
+    /* NO VISUAL STYLING - Let theme handle text color */
+}
+
+/* =============================================================================
+   COLLAPSIBLE SECTIONS INTEGRATION
+   ============================================================================= */
+
+.oom-collapsible-section {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    margin-bottom: var(--oom-spacing-md);
+    overflow: hidden;
+}
+
+.oom-collapsible-header {
+    display: flex;
+    align-items: center;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background: var(--background-secondary);
+    
+    &:hover {
+        background: var(--background-modifier-hover);
+    }
+    
+    h3 {
+        margin: 0;
+        font-size: var(--font-ui-medium);
+        font-weight: var(--font-semibold);
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+}
+
+.oom-collapsible-toggle {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &.oom-expanded {
+        transform: rotate(180deg);
+    }
+}
+
+.oom-collapsible-content {
+    padding: var(--oom-spacing-md);
+    background: var(--background-primary);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+/* =============================================================================
+   QUICK ACTIONS INTEGRATION
+   ============================================================================= */
+
+.oom-quick-actions {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    margin: var(--oom-spacing-md) 0;
+    flex-wrap: wrap;
+}
+
+.oom-quick-action-btn {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: var(--font-ui-small);
+    text-decoration: none;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+    
+    &:hover {
+        background: var(--background-modifier-hover);
+        transform: translateY(-1px);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+} 

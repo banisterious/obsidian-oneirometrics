@@ -1,8 +1,9 @@
-﻿/* =============================================================================
+/* =============================================================================
    ONEIROMETRICS COMPILED CSS - Component System v3
-   Generated: 2025-06-09 13:41:42
-   Components: 9
+   Generated: 2025-06-09 23:28:22
+   Components: 13
    ============================================================================= */
+
 
 
 /* =============================================================================
@@ -460,7 +461,7 @@
 } 
 
 /* =============================================================================
-   COMPONENT: BASE (8 KB)
+   COMPONENT: BASE (8.5 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Base & Reset Component
@@ -505,17 +506,7 @@
     /* Theme-specific validation styling */
 }
 
-.theme-dark .oom-heatmap-legend-color-low {
-    /* Dark theme heatmap adjustments */
-}
-
-.theme-dark .oom-heatmap-legend-color-medium {
-    /* Dark theme heatmap adjustments */
-}
-
-.theme-dark .oom-heatmap-legend-color-high {
-    /* Dark theme heatmap adjustments */
-}
+/* Dark theme heatmap adjustments moved to heatmap.css component */
 
 .theme-dark .oom-export-button {
     /* Dark theme export button */
@@ -542,19 +533,44 @@
 }
 
 /* =============================================================================
-   BASE TYPOGRAPHY & HEADINGS
+   BASE TYPOGRAPHY & COMPONENT NESTING
    ============================================================================= */
 
-h2 {
-    margin: 0;
-    font-size: var(--font-ui-medium);
+/* Properly nested headings within their parent components */
+.oom-template-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--oom-spacing-sm);
+    cursor: pointer;
+    
+    h3 {
+        margin: 0;
+        /* NO VISUAL STYLING - Let theme handle heading appearance */
+    }
 }
 
-h3 {
-    margin: 0;
-    font-size: var(--font-ui-large);
-    font-weight: 600;
-    color: var(--text-normal);
+.oom-collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: var(--oom-spacing-sm);
+    
+    h3 {
+        margin: 0;
+        /* NO VISUAL STYLING - Let theme handle heading appearance */
+    }
+}
+
+.oom-metrics-tabs-button {
+    &[data-tab-id="overview"] {
+        h2 {
+            margin: 0;
+            font-size: var(--font-ui-medium);
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
 }
 
 h4 {
@@ -1179,7 +1195,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: BUTTONS (22.3 KB)
+   COMPONENT: BUTTONS (22.1 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Button Components
@@ -1390,7 +1406,6 @@ h4 {
     justify-content: center;
     width: var(--oom-icon-grid-item-size);
     height: var(--oom-icon-grid-item-size);
-    padding: var(--oom-spacing-xs);
     border-radius: var(--oom-radius-md);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -1431,7 +1446,6 @@ h4 {
     align-items: center;
     justify-content: center;
     width: 120px;
-    padding: var(--oom-spacing-xs);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -1482,12 +1496,12 @@ h4 {
     /* === EXPAND BUTTON TEXT INDICATORS === */
     &[data-expanded="true"] .oom-button-text::before {
         /* Text indicators for expanded state */
-        content: "â–² ";
+        content: "▲ ";
     }
     
     &[data-expanded="false"] .oom-button-text::before,
     &:not([data-expanded="true"]) .oom-button-text::before {
-        content: "â–¼ ";
+        content: "▼ ";
     }
 }
 
@@ -1632,7 +1646,6 @@ h4 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--oom-spacing-sm);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -1653,8 +1666,6 @@ h4 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--oom-spacing-xs);
-    padding: var(--oom-spacing-sm);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -1673,7 +1684,6 @@ h4 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--oom-spacing-sm);
     border-radius: var(--oom-button-border-radius);
     cursor: pointer;
     transition: all var(--oom-transition-normal);
@@ -2113,12 +2123,12 @@ h4 {
         
         &[data-sort="asc"]::after {
             font-size: 0.8em;
-            content: "â–²";
+            content: "▲";
         }
         
         &[data-sort="desc"]::after {
             font-size: 0.8em;
-            content: "â–¼";
+            content: "▼";
         }
     }
     
@@ -2564,7 +2574,7 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (14.7 KB)
+   COMPONENT: UTILITIES (14.5 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -2642,33 +2652,33 @@ td:has(.oom-metric-icon-container) {
    ============================================================================= */
 
 /* Margin utilities using Obsidian's official --size-4-* variables */
-.u-margin--xs { margin: var(--size-4-1); }      /* 4px - replaces var(--oom-spacing-xs) */
-.u-margin--sm { margin: var(--size-4-2); }      /* 8px - replaces var(--oom-spacing-sm) */
-.u-margin--md { margin: var(--size-4-4); }      /* 16px - replaces var(--oom-spacing-md) */
-.u-margin--lg { margin: var(--size-4-6); }      /* 24px - replaces var(--oom-spacing-lg) */
-.u-margin--xl { margin: var(--size-4-8); }      /* 32px - replaces var(--oom-spacing-xl) */
+.u-margin--xs { margin: var(--oom-spacing-xs); }      /* 4px - replaces direct usage */
+.u-margin--sm { margin: var(--oom-spacing-sm); }      /* 8px - replaces direct usage */
+.u-margin--md { margin: var(--oom-spacing-md); }      /* 16px - replaces direct usage */
+.u-margin--lg { margin: var(--oom-spacing-lg); }      /* 24px - replaces direct usage */
+.u-margin--xl { margin: var(--oom-spacing-xl); }      /* 32px - replaces direct usage */
 
 /* Padding utilities using Obsidian's official --size-4-* variables */
-.u-padding--xs { padding: var(--size-4-1); }    /* 4px - replaces var(--oom-spacing-xs) */
-.u-padding--sm { padding: var(--size-4-2); }    /* 8px - replaces var(--oom-spacing-sm) */
-.u-padding--md { padding: var(--size-4-4); }    /* 16px - replaces var(--oom-spacing-md) */
-.u-padding--lg { padding: var(--size-4-6); }    /* 24px - replaces var(--oom-spacing-lg) */
-.u-padding--xl { padding: var(--size-4-8); }    /* 32px - replaces var(--oom-spacing-xl) */
+.u-padding--xs { padding: var(--oom-spacing-xs); }    /* 4px - replaces direct usage */
+.u-padding--sm { padding: var(--oom-spacing-sm); }    /* 8px - replaces direct usage */
+.u-padding--md { padding: var(--oom-spacing-md); }    /* 16px - replaces direct usage */
+.u-padding--lg { padding: var(--oom-spacing-lg); }    /* 24px - replaces direct usage */
+.u-padding--xl { padding: var(--oom-spacing-xl); }    /* 32px - replaces direct usage */
 
-/* Gap utilities for flexbox/grid using Obsidian's official variables */
-.u-gap--xs { gap: var(--size-4-1); }            /* 4px - consolidates gap: var(--oom-spacing-xs) */
-.u-gap--sm { gap: var(--size-4-2); }            /* 8px - consolidates gap: var(--oom-spacing-sm) */
-.u-gap--md { gap: var(--size-4-4); }            /* 16px - consolidates gap: var(--oom-spacing-md) */
-.u-gap--lg { gap: var(--size-4-6); }            /* 24px - consolidates gap: var(--oom-spacing-lg) */
+/* Gap utilities for flexbox/grid using reliable oom spacing variables */
+.u-gap--xs { gap: var(--oom-spacing-xs); }            /* 4px - consolidates gap patterns */
+.u-gap--sm { gap: var(--oom-spacing-sm); }            /* 8px - consolidates gap patterns */
+.u-gap--md { gap: var(--oom-spacing-md); }            /* 16px - consolidates gap patterns */
+.u-gap--lg { gap: var(--oom-spacing-lg); }            /* 24px - consolidates gap patterns */
 
 /* Directional spacing utilities for common patterns */
-.u-margin-bottom--sm { margin-bottom: var(--size-4-2); }    /* margin-bottom: var(--oom-spacing-sm) pattern */
-.u-margin-bottom--md { margin-bottom: var(--size-4-4); }    /* margin-bottom: var(--oom-spacing-md) pattern */
-.u-margin-bottom--lg { margin-bottom: var(--size-4-6); }    /* margin-bottom: var(--oom-spacing-lg) pattern */
+.u-margin-bottom--sm { margin-bottom: var(--oom-spacing-sm); }    /* margin-bottom patterns */
+.u-margin-bottom--md { margin-bottom: var(--oom-spacing-md); }    /* margin-bottom patterns */
+.u-margin-bottom--lg { margin-bottom: var(--oom-spacing-lg); }    /* margin-bottom patterns */
 
-.u-margin-top--md { margin-top: var(--size-4-4); }         /* margin-top: var(--oom-spacing-md) pattern */
-.u-margin-top--lg { margin-top: var(--size-4-6); }         /* margin-top: var(--oom-spacing-lg) pattern */
-.u-margin-top--xl { margin-top: var(--size-4-8); }         /* margin-top: var(--oom-spacing-xl) pattern */
+.u-margin-top--md { margin-top: var(--oom-spacing-md); }         /* margin-top patterns */
+.u-margin-top--lg { margin-top: var(--oom-spacing-lg); }         /* margin-top patterns */
+.u-margin-top--xl { margin-top: var(--oom-spacing-xl); }         /* margin-top patterns */
 
 /* =============================================================================
    TRANSITION UTILITIES - Common Animation Patterns
@@ -3468,7 +3478,7 @@ span.oom-metric-header svg {
 
 
 /* =============================================================================
-   COMPONENT: NAVIGATION (23.8 KB)
+   COMPONENT: NAVIGATION (24.2 KB)
    ============================================================================= */
 /* =============================================================================
    NAVIGATION COMPONENT - OneiroMetrics Tab & Navigation System
@@ -3485,6 +3495,111 @@ span.oom-metric-header svg {
    - Responsive Navigation Design
    - Print & Accessibility Optimizations
 */
+
+/* =============================================================================
+   NAVIGATION ICONS - Comprehensive Icon System (MOVED FIRST for specificity order)
+   ============================================================================= */
+
+/* Base Navigation Icons - STANDALONE FIRST */
+.oom-nav-icon {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-icon-size);
+    height: var(--oom-icon-size);
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    /* === SVG SIZING === */
+    svg {
+        width: var(--oom-icon-svg-size);
+        height: var(--oom-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle SVG colors */
+    }
+}
+
+/* Tab Icons - Unified System - STANDALONE FIRST */
+.oom-metrics-tabs-icon,
+.oom-hub-tab-icon {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--oom-tab-icon-size);
+    height: var(--oom-tab-icon-size);
+    margin-right: var(--oom-spacing-sm);
+    flex-shrink: 0;
+    
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    /* === NESTED SVG STYLING === */
+    svg {
+        width: var(--oom-tab-icon-svg-size);
+        height: var(--oom-tab-icon-svg-size);
+        
+        /* NO VISUAL STYLING - Let theme handle SVG colors */
+    }
+}
+
+/* Remove margin for hub tab icons (they use gap on parent) */
+.oom-hub-tab-icon {
+    margin-right: 0;
+}
+
+/* =============================================================================
+   NAVIGATION LABELS - Text Content Management (MOVED FIRST for specificity order)
+   ============================================================================= */
+
+/* STANDALONE LABELS FIRST */
+.oom-nav-label,
+.oom-hub-tab-label,
+.oom-metrics-tabs-label {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    font-size: var(--font-ui-medium);
+    font-weight: 400;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    
+    /* NO VISUAL STYLING - Let theme handle label colors */
+}
+
+/* Special heading labels */
+h2.oom-metrics-tabs-label {
+    font-size: var(--h3-size);
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+/* =============================================================================
+   TAB NAVIGATION BUTTONS - Enhanced State Management (MOVED FIRST for specificity order)
+   ============================================================================= */
+
+/* STANDALONE BUTTON STYLES FIRST */
+.oom-metrics-tabs-button,
+.oom-hub-tab-nav-item {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: .45em 0;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    
+    /* NO VISUAL STYLING - Let theme handle button colors and backgrounds */
+}
+
+/* Hover states for tab buttons */
+.oom-metrics-tabs-button:hover,
+.oom-hub-tab-nav-item:hover {
+    /* Let theme handle hover styling */
+}
 
 /* =============================================================================
    GENERAL NAVIGATION ITEMS - Smart State Management
@@ -3519,7 +3634,7 @@ span.oom-metric-header svg {
         font-weight: 600;
     }
     
-    /* === NESTED ICON STYLING === */
+    /* === NESTED ICON STYLING - Higher specificity after standalone icons === */
     .oom-nav-icon,
     .oom-hub-tab-icon,
     .oom-metrics-tabs-icon {
@@ -3535,7 +3650,7 @@ span.oom-metric-header svg {
         }
     }
     
-    /* === NESTED LABEL STYLING === */
+    /* === NESTED LABEL STYLING - Higher specificity after standalone labels === */
     .oom-nav-label,
     .oom-hub-tab-label,
     .oom-metrics-tabs-label {
@@ -3543,6 +3658,17 @@ span.oom-metric-header svg {
         
         /* NO VISUAL STYLING - Let theme handle text colors */
     }
+}
+
+/* PARENT STATE CHANGES - Higher specificity after standalone icons */
+.oom-nav-item:hover .oom-nav-icon,
+.oom-nav-item.active .oom-nav-icon {
+    /* Let theme handle state-based icon changes */
+}
+
+.oom-metrics-tabs-active .oom-metrics-tabs-icon,
+.oom-hub-tab-nav-item.is-active .oom-hub-tab-icon {
+    /* Let theme handle active icon colors */
 }
 
 /* Special tab button variants */
@@ -3556,97 +3682,6 @@ span.oom-metric-header svg {
             /* NO VISUAL STYLING - Let theme handle */
         }
     }
-}
-
-/* =============================================================================
-   NAVIGATION ICONS - Comprehensive Icon System
-   ============================================================================= */
-
-/* Base Navigation Icons */
-.oom-nav-icon {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--oom-icon-size);
-    height: var(--oom-icon-size);
-    flex-shrink: 0;
-    
-    /* NO VISUAL STYLING - Let theme handle icon colors */
-    
-    /* === SVG SIZING === */
-    svg {
-        width: var(--oom-icon-svg-size);
-        height: var(--oom-icon-svg-size);
-        
-        /* NO VISUAL STYLING - Let theme handle SVG colors */
-    }
-    
-    /* === PARENT STATE CHANGES === */
-    .oom-nav-item:hover &,
-    .oom-nav-item.active & {
-        /* Let theme handle state-based icon changes */
-    }
-}
-
-/* Tab Icons - Unified System */
-.oom-metrics-tabs-icon,
-.oom-hub-tab-icon {
-    /* === STRUCTURAL PROPERTIES === */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--oom-tab-icon-size);
-    height: var(--oom-tab-icon-size);
-    margin-right: var(--oom-spacing-sm);
-    flex-shrink: 0;
-    
-    /* NO VISUAL STYLING - Let theme handle icon colors */
-    
-    /* === NESTED SVG STYLING === */
-    svg {
-        width: var(--oom-tab-icon-svg-size);
-        height: var(--oom-tab-icon-svg-size);
-        
-        /* NO VISUAL STYLING - Let theme handle SVG colors */
-    }
-    
-    /* === PARENT STATE CHANGES === */
-    .oom-metrics-tabs-active &,
-    .oom-hub-tab-nav-item.is-active & {
-        /* Let theme handle active icon colors */
-    }
-}
-
-/* Remove margin for hub tab icons (they use gap on parent) */
-.oom-hub-tab-icon {
-    margin-right: 0;
-}
-
-/* =============================================================================
-   NAVIGATION LABELS - Text Content Management
-   ============================================================================= */
-
-.oom-nav-label,
-.oom-hub-tab-label,
-.oom-metrics-tabs-label {
-    /* === STRUCTURAL PROPERTIES === */
-    flex: 1;
-    font-size: var(--font-ui-medium);
-    font-weight: 400;
-    line-height: 1.4;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    
-    /* NO VISUAL STYLING - Let theme handle label colors */
-}
-
-/* Special heading labels */
-h2.oom-metrics-tabs-label {
-    font-size: var(--h3-size);
-    margin-block-start: 0;
-    margin-block-end: 0;
 }
 
 /* =============================================================================
@@ -3810,10 +3845,10 @@ h2.oom-metrics-tabs-label {
 }
 
 /* =============================================================================
-   TAB NAVIGATION ITEMS - Enhanced State Management
+   TAB NAVIGATION BUTTONS - Enhanced State Management
    ============================================================================= */
 
-/* Unified tab button system */
+/* MOVED FIRST for proper specificity order - Base button styles */
 .oom-metrics-tabs-button,
 .oom-hub-tab-nav-item {
     /* === STRUCTURAL PROPERTIES === */
@@ -3826,42 +3861,12 @@ h2.oom-metrics-tabs-label {
     transition: all var(--oom-transition-fast);
     
     /* NO VISUAL STYLING - Let theme handle button colors and backgrounds */
-    
-    /* === NESTED HOVER STATE === */
-    &:hover {
-        /* Let theme handle hover styling */
-    }
-    
-    &:focus {
-        /* Let theme handle focus styling */
-        outline: none;
-    }
-    
-    /* === ACTIVE STATE WITH SMART MANAGEMENT === */
-    &.oom-metrics-tabs-active,
-    &.is-active {
-        font-weight: 600;
-        
-        /* NO VISUAL STYLING - Let theme handle active state colors */
-        
-        /* === SMART ICON STATE MANAGEMENT === */
-        .oom-metrics-tabs-icon,
-        .oom-hub-tab-icon {
-            /* Let theme handle active icon colors */
-        }
-    }
-    
-    /* === SPECIAL TAB VARIANTS === */
-    &[data-tab-id="overview"] {
-        margin-top: .5em;
-        padding-top: 1em;
-        border-top: 1px solid #ccc;
-        border-radius: 0;
-        
-        h2 {
-            font-size: var(--h3-size);
-        }
-    }
+}
+
+/* Hover states - MOVED AFTER base styles for proper specificity order */
+.oom-metrics-tabs-button:hover,
+.oom-hub-tab-nav-item:hover {
+    /* Let theme handle hover styling */
 }
 
 /* =============================================================================
@@ -4297,6 +4302,4009 @@ h2.oom-metrics-tabs-label {
     .oom-metrics-tabs-container,
     .oom-metrics-tabs-content {
         scroll-behavior: auto;
+    }
+} 
+
+/* =============================================================================
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (32.3 KB)
+   ============================================================================= */
+/* Enhanced Date Navigator Modal - Complete Implementation */
+.oomp-enhanced-date-navigator-modal {
+    border-radius: 12px;
+    padding: 12px;
+    max-height: var(--modal-max-height);
+    height: var(--modal-height);
+    max-width: 600px;
+    width: 90vw;
+    overflow-y: auto;
+    box-shadow: var(--shadow-l);
+    background: var(--modal-background);
+    
+    /* Main container */
+    .enhanced-date-navigator-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Navigation Section */
+    .enhanced-nav-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        
+        .nav-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            background: var(--background-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--background-modifier-border);
+        }
+    }
+
+    /* Year Picker */
+    .year-picker-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        .year-picker {
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-normal);
+            font-size: 12px;
+            cursor: pointer;
+            
+            &:focus {
+                outline: 2px solid var(--interactive-accent);
+                outline-offset: 1px;
+            }
+            
+            option[data-has-dreams="true"] {
+                font-weight: 600;
+            }
+        }
+    }
+
+    /* Month Jump */
+    .month-jump-container {
+        position: relative;
+        
+        .month-jump-trigger {
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-normal);
+            font-size: 12px;
+            cursor: pointer;
+            
+            &:hover {
+                background: var(--background-modifier-hover);
+            }
+            
+            &:focus {
+                outline: 2px solid var(--interactive-accent);
+                outline-offset: 1px;
+            }
+        }
+        
+        .month-jump-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 6px;
+            box-shadow: var(--shadow-s);
+            z-index: 100;
+            min-width: 200px;
+            
+            .month-item {
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 12px;
+                border-bottom: 1px solid var(--background-modifier-border);
+                
+                &:hover {
+                    background: var(--background-modifier-hover);
+                }
+                
+                &:last-child {
+                    border-bottom: none;
+                }
+                
+                &[data-has-dreams="true"]::after {
+                    content: " ●";
+                    color: var(--interactive-accent);
+                }
+            }
+        }
+    }
+
+    /* Quarter Toggle */
+    .quarter-toggle-container {
+        .quarter-toggle {
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-normal);
+            font-size: 12px;
+            cursor: pointer;
+            
+            &:hover {
+                background: var(--background-modifier-hover);
+            }
+            
+            &.active {
+                background: var(--interactive-accent);
+                color: var(--text-on-accent);
+            }
+            
+            &:focus {
+                outline: 2px solid var(--interactive-accent);
+                outline-offset: 1px;
+            }
+        }
+    }
+
+    /* Go to Date */
+    .goto-date-container {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        
+        .goto-date-input {
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-normal);
+            font-size: 12px;
+            width: 100px;
+            
+            &:focus {
+                outline: 2px solid var(--interactive-accent);
+                outline-offset: 1px;
+                border-color: var(--interactive-accent);
+            }
+            
+            &::placeholder {
+                color: var(--text-muted);
+            }
+        }
+        
+        .goto-date-btn {
+            background: var(--interactive-accent);
+            border: 1px solid var(--interactive-accent);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-on-accent);
+            font-size: 12px;
+            cursor: pointer;
+            
+            &:hover {
+                background: var(--interactive-accent-hover);
+            }
+            
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    /* Navigation Memory */
+    .navigation-memory-container {
+        .memory-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            
+            .memory-chip {
+                background: var(--background-primary);
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 12px;
+                padding: 2px 8px;
+                font-size: 10px;
+                color: var(--text-normal);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                
+                &:hover {
+                    background: var(--background-modifier-hover);
+                }
+                
+                .remove-chip {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted);
+                    cursor: pointer;
+                    font-size: 10px;
+                    
+                    &:hover {
+                        color: var(--text-accent);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Selection Mode Controls */
+    .selection-mode-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--background-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--background-modifier-border);
+        
+        .mode-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-normal);
+            white-space: nowrap;
+        }
+        
+        .mode-buttons {
+            display: flex;
+            gap: 4px;
+            background: var(--background-primary);
+            border-radius: 6px;
+            padding: 2px;
+            border: 1px solid var(--background-modifier-border);
+            
+            .selection-mode-btn {
+                padding: 6px 12px;
+                border: none;
+                background: transparent;
+                color: var(--text-muted);
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+
+                &:hover {
+                    background: var(--background-modifier-hover);
+                    color: var(--text-normal);
+                }
+
+                &.active {
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                }
+
+                &:focus {
+                    outline: 2px solid var(--interactive-accent);
+                    outline-offset: 2px;
+                }
+            }
+        }
+    }
+
+    /* Calendar Section */
+    .enhanced-calendar-section {
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            
+            .month-navigation {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                
+                .nav-button {
+                    background: var(--background-secondary);
+                    border: 1px solid var(--background-modifier-border);
+                    color: var(--text-normal);
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+
+                    &:hover {
+                        background: var(--background-modifier-hover);
+                    }
+                    
+                    &:focus {
+                        outline: 2px solid var(--interactive-accent);
+                        outline-offset: 1px;
+                    }
+                }
+                
+                .month-display {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: var(--text-normal);
+                }
+            }
+        }
+        
+        .calendar-grid {
+            max-width: fit-content;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--background-modifier-border);
+            background: var(--background-secondary);
+            
+            .day-header {
+                text-align: center;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-muted);
+                padding: 6px 2px;
+                border-bottom: 1px solid var(--background-modifier-border);
+                margin-bottom: 4px;
+            }
+            
+            .calendar-day {
+                position: relative;
+                display: flex;
+                aspect-ratio: 1;
+                min-height: 52px;
+                height: 52px;
+                border-radius: 4px;
+                border: 1px solid transparent;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                user-select: none;
+                color: var(--text-normal);
+                background: var(--background-primary);
+
+                &:hover {
+                    background: var(--background-modifier-hover);
+                    transform: scale(1.03);
+                    z-index: 1;
+                }
+
+                &:focus {
+                    outline: 2px solid var(--interactive-accent);
+                    outline-offset: 1px;
+                    z-index: 2;
+                }
+
+                &.today {
+                    border: 2px solid var(--interactive-accent);
+                    font-weight: 600;
+                }
+
+                &.other-month {
+                    color: var(--text-muted);
+                    opacity: 0.4;
+                }
+
+                &.selected {
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    font-weight: 600;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                &.range-start {
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    border-top-left-radius: 12px;
+                    border-bottom-left-radius: 12px;
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+
+                &.range-end {
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    border-top-left-radius: 4px;
+                    border-bottom-left-radius: 4px;
+                    border-top-right-radius: 12px;
+                    border-bottom-right-radius: 12px;
+                }
+
+                &.range-middle {
+                    background: var(--interactive-accent-hover);
+                    color: var(--text-on-accent);
+                    border-radius: 4px;
+                }
+
+                &.multi-selected {
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    border-radius: 8px;
+
+                    &::after {
+                        content: "✓";
+                        position: absolute;
+                        top: 2px;
+                        right: 2px;
+                        font-size: 8px;
+                        opacity: 0.8;
+                    }
+                }
+
+                &.drag-preview {
+                    background: var(--interactive-accent-hover);
+                    color: var(--text-on-accent);
+                    opacity: 0.7;
+                    border: 2px dashed var(--interactive-accent);
+                }
+
+                /* Dream Quality Indicators */
+                .dream-indicator {
+                    position: absolute;
+                    bottom: 1px;
+                    right: 1px;
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    border: 1px solid var(--background-primary);
+
+                    &.quality-high {
+                        background: radial-gradient(circle, #48bb78 0%, #2f855a 100%);
+                        box-shadow: 0 0 4px rgba(72, 187, 120, 0.4);
+                    }
+
+                    &.quality-medium {
+                        background: radial-gradient(circle, #ed8936 0%, #c05621 100%);
+                        box-shadow: 0 0 4px rgba(237, 137, 54, 0.4);
+                    }
+
+                    &.quality-low {
+                        background: radial-gradient(circle, #f56565 0%, #c53030 100%);
+                        box-shadow: 0 0 4px rgba(245, 101, 101, 0.4);
+                    }
+
+                    &.quality-none {
+                        background: #718096;
+                    }
+
+                    &.multiple-entries {
+                        width: 8px;
+                        height: 8px;
+                        bottom: 0px;
+                        right: 0px;
+
+                        &.quality-high {
+                            background: radial-gradient(circle, #48bb78 0%, #2f855a 50%, #1a5d3a 100%);
+                            box-shadow: 0 0 6px rgba(72, 187, 120, 0.6);
+                        }
+
+                        &.quality-medium {
+                            background: radial-gradient(circle, #ed8936 0%, #c05621 50%, #8b3d15 100%);
+                            box-shadow: 0 0 6px rgba(237, 137, 54, 0.6);
+                        }
+
+                        &.quality-low {
+                            background: radial-gradient(circle, #f56565 0%, #c53030 50%, #9b2c2c 100%);
+                            box-shadow: 0 0 6px rgba(245, 101, 101, 0.6);
+                        }
+                    }
+                }
+
+                .entry-count {
+                    position: absolute;
+                    top: -1px;
+                    right: -1px;
+                    background: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    font-size: 7px;
+                    font-weight: bold;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid var(--background-primary);
+                }
+            }
+        }
+    }
+
+    /* Quarter View - Alternative Implementation */
+    .quarter-view {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        
+        .compact-month {
+            background: var(--background-secondary);
+            border-radius: 6px;
+            padding: 8px;
+            border: 1px solid var(--background-modifier-border);
+            
+            .compact-month-header {
+                text-align: center;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: var(--text-normal);
+            }
+            
+            .compact-calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 1px;
+                
+                .compact-day {
+                    aspect-ratio: 1;
+                    min-height: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    border-radius: 2px;
+                    cursor: pointer;
+                    background: var(--background-primary);
+                    color: var(--text-normal);
+                    
+                    &:hover {
+                        background: var(--background-modifier-hover);
+                    }
+                    
+                    &.today {
+                        border: 1px solid var(--interactive-accent);
+                    }
+                    
+                    &.selected {
+                        background: var(--interactive-accent);
+                        color: var(--text-on-accent);
+                    }
+                    
+                    &.other-month {
+                        opacity: 0.3;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Action Section */
+    .enhanced-action-section {
+        .selection-info {
+            padding: 8px 12px;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-normal);
+            text-align: center;
+            margin-bottom: 16px;
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+
+            button {
+                padding: 8px 16px;
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 6px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                
+                &:focus {
+                    outline: 2px solid var(--interactive-accent);
+                    outline-offset: 2px;
+                }
+            }
+
+            .apply-button {
+                background: var(--interactive-accent);
+                color: var(--text-on-accent);
+                border-color: var(--interactive-accent);
+
+                &:hover {
+                    background: var(--interactive-accent-hover);
+                }
+            }
+
+            .cancel-button, .clear-button {
+                background: var(--background-secondary);
+                color: var(--text-normal);
+
+                &:hover {
+                    background: var(--background-modifier-hover);
+                }
+            }
+        }
+    }
+
+    /* State-based styling using :has() */
+    &:has(.selection-mode-btn[data-mode="range"].active) {
+        .calendar-day:hover {
+            background: var(--interactive-accent-hover);
+            color: var(--text-on-accent);
+            opacity: 0.6;
+        }
+    }
+
+    &:has(.selection-mode-btn[data-mode="multi"].active) {
+        .calendar-day:hover::before {
+            content: "+";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--interactive-accent);
+        }
+    }
+
+    &.dragging {
+        cursor: crosshair;
+
+        .calendar-day {
+            cursor: crosshair;
+        }
+    }
+
+    &:has(.calendar-day.selected) {
+        .selection-info {
+            background: var(--background-modifier-success);
+            border-color: var(--interactive-accent);
+            color: var(--text-normal);
+            font-weight: 500;
+        }
+    }
+
+    &:has(.calendar-day.range-start) {
+        .mode-buttons .selection-mode-btn[data-mode="range"] {
+            background: var(--interactive-accent-hover);
+            color: var(--text-on-accent);
+        }
+    }
+
+    &:has(.calendar-day.multi-selected) {
+        .mode-buttons .selection-mode-btn[data-mode="multi"] {
+            background: var(--interactive-accent-hover);
+            color: var(--text-on-accent);
+        }
+    }
+}
+
+/* Accessibility and Preferences */
+@media (prefers-reduced-motion: reduce) {
+    .oomp-enhanced-date-navigator-modal {
+        .calendar-day {
+            transition: none;
+
+            &:hover {
+                transform: none;
+            }
+        }
+        
+        .selection-mode-btn {
+            transition: none;
+        }
+    }
+}
+
+@media (prefers-contrast: high) {
+    .oomp-enhanced-date-navigator-modal {
+        .calendar-day.selected {
+            border: 2px solid var(--text-on-accent);
+        }
+        
+        .selection-mode-btn.active {
+            border: 2px solid var(--text-on-accent);
+        }
+    }
+}
+
+/* Responsive Adjustments */
+@container (max-width: 500px) {
+    .oomp-enhanced-date-navigator-modal {
+        .calendar-day {
+            min-height: 28px;
+            font-size: 12px;
+        }
+
+        .calendar-grid {
+            padding: 8px;
+            gap: 1px;
+        }
+
+        .enhanced-nav-section .nav-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .selection-mode-section {
+            flex-direction: column;
+            align-items: stretch;
+            
+            .mode-buttons {
+                justify-content: center;
+            }
+        }
+    }
+}
+
+/* Calendar Days Grid - CRITICAL GRID LAYOUT */
+.oomp-enhanced-date-navigator-modal .calendar-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1.5px;
+    max-width: none;
+    width: 100%;
+}
+
+/* Calendar Header Row */  
+.oomp-enhanced-date-navigator-modal .calendar-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1.5px;
+    max-width: none;
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+/* Weekday Headers */
+.oomp-enhanced-date-navigator-modal .calendar-weekday {
+    padding: 5px 2px;
+    text-align: center;
+    font-size: 11px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Quarter View Layout */
+.oomp-enhanced-date-navigator-modal .quarter-view {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 8px;
+    width: 100%;
+}
+
+/* Individual Month Containers in Quarter View */
+.oomp-enhanced-date-navigator-modal .oomp-quarter-month {
+    display: flex;
+    flex-direction: column;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 8px;
+    min-width: 0;
+}
+
+/* Quarter Month Headers */
+.oomp-enhanced-date-navigator-modal .oomp-quarter-month-header {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-normal);
+    margin-bottom: 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Compact Month Grid */
+.oomp-enhanced-date-navigator-modal .oomp-compact-month-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Compact Header Row (Weekdays) */
+.oomp-enhanced-date-navigator-modal .oomp-compact-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    margin-bottom: 2px;
+}
+
+/* Compact Weekday Headers */
+.oomp-enhanced-date-navigator-modal .oomp-compact-weekday {
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2px;
+    min-height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Compact Days Container */
+.oomp-enhanced-date-navigator-modal .oomp-compact-days-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+}
+
+/* Compact Day Cells */
+.oomp-enhanced-date-navigator-modal .oomp-compact-day {
+    position: relative;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background-color 0.15s ease;
+    background: var(--background-primary);
+}
+
+.oomp-enhanced-date-navigator-modal .oomp-compact-day:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oomp-enhanced-date-navigator-modal .oomp-compact-day.today {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.oomp-enhanced-date-navigator-modal .oomp-compact-day.other-month {
+    opacity: 0.4;
+}
+
+/* Compact Day Numbers */
+.oomp-enhanced-date-navigator-modal .oomp-compact-day-number {
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1;
+    z-index: 1;
+}
+
+/* Compact Dream Indicators */
+.oomp-enhanced-date-navigator-modal .oomp-compact-dream-indicator {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    font-size: 6px;
+    color: var(--color-green);
+    line-height: 1;
+    z-index: 2;
+}
+
+/* Quarter Toggle Enhancement */
+.oomp-enhanced-date-navigator-modal .quarter-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:hover {
+    border-color: var(--background-modifier-border-hover);
+    background: var(--background-modifier-hover);
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:active {
+    transform: translateY(1px);
+    background: var(--background-modifier-active);
+}
+
+.oomp-enhanced-date-navigator-modal .toggle-switch input[type="checkbox"] {
+    height: 14px;
+    width: 14px;
+    margin: 0;
+    pointer-events: none;
+    accent-color: var(--interactive-accent);
+}
+
+.oomp-enhanced-date-navigator-modal .toggle-label {
+    pointer-events: none;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:has(input:checked) {
+    border-color: var(--interactive-accent);
+    background: var(--interactive-accent-hover);
+}
+
+.oomp-enhanced-date-navigator-modal .quarter-toggle:has(input:checked) .toggle-label {
+    font-weight: 600;
+    color: var(--text-on-accent);
+}
+
+/* Dark Mode Adjustments */
+.theme-dark .oomp-enhanced-date-navigator-modal .oomp-quarter-month {
+    background: var(--background-primary-alt);
+}
+
+.theme-dark .oomp-enhanced-date-navigator-modal .oomp-compact-day {
+    background: var(--background-secondary);
+}
+
+.theme-dark .oomp-enhanced-date-navigator-modal .oomp-compact-dream-indicator {
+    color: var(--color-green-rgb);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .oomp-enhanced-date-navigator-modal .quarter-view {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-quarter-month {
+        padding: 6px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day {
+        min-height: 24px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day-number {
+        font-size: 11px;
+    }
+}
+
+/* Visualization Dropdown */
+.oomp-visualization-dropdown-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .oomp-visualization-dropdown {
+        min-width: 110px;
+        padding: 4px 8px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-normal);
+        background: var(--background-primary);
+        
+        &:focus {
+            outline: 2px solid var(--interactive-accent);
+            outline-offset: 1px;
+            border-color: var(--interactive-accent);
+        }
+        
+        &:hover {
+            background: var(--background-modifier-hover);
+        }
+        
+        option {
+            padding: 4px;
+            color: var(--text-normal);
+            background: var(--background-primary);
+        }
+    }
+}
+
+/* Pattern Visualization Elements */
+.oomp-pattern-indicator {
+    position: absolute;
+    z-index: 2;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.oomp-quality-score {
+    position: absolute;
+    z-index: 2;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.6em;
+    padding: 1px 3px;
+    border-radius: 2px;
+}
+
+.oomp-metric-overlay {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    pointer-events: none;
+}
+
+.oomp-metric-dot {
+    height: 4px;
+    width: 4px;
+    margin: auto;
+    border-radius: 50%;
+}
+
+.oomp-pattern-icon {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2em;
+}
+
+.oomp-fallback-indicator {
+    position: absolute;
+    z-index: 2;
+    top: 2px;
+    right: 2px;
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
+    background-color: #666;
+}
+
+/* Pattern-specific classes */
+.oomp-pattern-high-quality {
+    /* Additional styling for high quality days if needed */
+}
+
+.oomp-pattern-fragmented {
+    /* Additional styling for fragmented days if needed */
+}
+
+.oomp-pattern-rich-narrative {
+    /* Additional styling for rich narrative days if needed */
+}
+
+.oomp-pattern-basic-recall {
+    /* Additional styling for basic recall days if needed */
+}
+
+.oomp-quality-high {
+    /* Background will be set via JavaScript */
+}
+
+.oomp-quality-medium {
+    /* Background will be set via JavaScript */
+}
+
+.oomp-quality-low {
+    /* Background will be set via JavaScript */
+}
+
+/* Tooltips */
+.oomp-pattern-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    z-index: 100;
+    max-width: 250px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.75em;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: translateX(-50%);
+    color: white;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.oomp-tooltip-title {
+    font-weight: bold;
+}
+
+.oomp-tooltip-date {
+    color: #ccc;
+}
+
+.oomp-tooltip-pattern {
+    font-weight: bold;
+    color: #7c3aed;
+}
+
+.oomp-tooltip-pattern-desc {
+    font-style: italic;
+    color: #bbb;
+}
+
+.oomp-tooltip-metric {
+    font-size: 0.9em;
+}
+
+.oomp-tooltip-calculated {
+    font-weight: bold;
+    color: #faa61a;
+}
+
+.oomp-tooltip-no-metrics {
+    font-style: italic;
+    color: #888;
+} 
+
+/* =============================================================================
+   COMPONENT: UNIFIED-TEST-SUITE (27.0 KB)
+   ============================================================================= */
+/* =============================================================================
+   UNIFIED TEST SUITE - Complete Modal System & Configuration Components
+   ============================================================================= */
+
+/* Modal Container */
+.modal:has(.unified-test-suite-modal) {
+    contain: layout style;
+    width: var(--modal-width);
+    max-width: var(--modal-max-width);
+    height: var(--modal-height);
+    max-height: var(--modal-max-height);
+    padding: 0;
+}
+
+.unified-test-suite-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    padding: var(--oom-spacing-sm);
+}
+
+/* Header & Description */
+.unified-test-suite-header {
+    margin-bottom: 0;
+    margin-block-start: 0;
+    padding-bottom: 0;
+    text-align: center;
+    font-size: var(--h1-size);
+    font-weight: var(--h1-weight);
+}
+
+.unified-test-suite-description {
+    margin-bottom: var(--oom-spacing-lg);
+    text-align: center;
+    line-height: var(--line-height-normal);
+    color: var(--text-muted);
+}
+
+/* Two-Column Layout */
+.unified-test-suite-container {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0;
+    border-radius: var(--oom-radius-md);
+}
+
+/* Sidebar Navigation */
+.unified-test-suite-sidebar {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+    width: var(--oom-tab-sidebar-width);
+    min-width: var(--oom-tab-sidebar-width);
+    padding: var(--oom-spacing-sm) 0;
+    scrollbar-width: thin;
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar-track {
+    /* Let theme handle scrollbar track styling */
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar-thumb {
+    border-radius: var(--oom-radius-sm);
+    /* Let theme handle scrollbar thumb styling */
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar-thumb:hover {
+    /* Let theme handle scrollbar hover styling */
+}
+
+/* Tab Group Headers */
+.unified-test-suite-tab-group-title {
+    margin: var(--oom-spacing-sm) 0 var(--oom-spacing-xs) 0;
+    padding: 0 .32em;
+    font-weight: 700;
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+}
+
+.unified-test-suite-tab-group-title:first-child {
+    margin-top: 0;
+}
+
+/* Tab Navigation Items */
+.unified-test-suite-tab-nav-item {
+    display: flex;
+    align-items: center;
+    padding: .45em 0;
+    gap: var(--oom-spacing-sm);
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+}
+
+.unified-test-suite-tab-nav-item:hover {
+    /* Let theme handle hover styling */
+}
+
+.unified-test-suite-tab-nav-item:focus {
+    outline: none;
+    /* Let theme handle focus styling */
+}
+
+.unified-test-suite-tab-nav-item.is-active {
+    font-weight: 600;
+    /* Let theme handle active state colors */
+}
+
+.unified-test-suite-tab-label {
+    /* Inherits from the navigation item styling */
+}
+
+/* Content Area */
+.unified-test-suite-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1em;
+    scrollbar-width: thin;
+}
+
+.unified-test-suite-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-content::-webkit-scrollbar-track {
+    /* Let theme handle scrollbar track styling */
+}
+
+.unified-test-suite-content::-webkit-scrollbar-thumb {
+    border-radius: var(--oom-radius-sm);
+    /* Let theme handle scrollbar thumb styling */
+}
+
+.unified-test-suite-content::-webkit-scrollbar-thumb:hover {
+    /* Let theme handle scrollbar hover styling */
+}
+
+/* Content Headers */
+.unified-test-suite-content-header {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight);
+}
+
+.unified-test-suite-content-description {
+    margin-bottom: var(--oom-spacing-lg);
+    line-height: var(--line-height-normal);
+    color: var(--text-muted);
+}
+
+/* Dashboard Components */
+.unified-test-suite-dashboard-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-stat-widget {
+    flex: 1;
+    min-width: 120px;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-stat-label {
+    margin-bottom: var(--oom-spacing-xs);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.unified-test-suite-stat-value {
+    color: var(--text-normal);
+    font-size: var(--h3-size);
+    font-weight: 600;
+}
+
+.unified-test-suite-dashboard-actions {
+    margin-top: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-dashboard-actions h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+/* Action Buttons */
+.unified-test-suite-action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-right: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-sm);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--oom-transition-fast);
+    color: var(--text-on-accent);
+    background: var(--interactive-normal);
+}
+
+.unified-test-suite-action-button:hover {
+    background: var(--interactive-hover);
+}
+
+.unified-test-suite-test-button,
+.unified-test-suite-utility-button {
+    display: block;
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-test-button:hover,
+.unified-test-suite-utility-button:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.unified-test-suite-quick-test-button {
+    display: inline-block;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-right: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-quick-test-button:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Test Areas */
+.unified-test-suite-test-controls {
+    margin: var(--oom-spacing-lg) 0;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-test-results {
+    margin-top: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-results-area {
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary-alt);
+}
+
+/* Quick Tests */
+.unified-test-suite-quick-tests {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.unified-test-suite-quick-tests h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+.unified-test-suite-custom-test {
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-custom-test h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h4-size);
+}
+
+/* Memory/Scaling Tests */
+.unified-test-suite-memory-tests,
+.unified-test-suite-scaling-tests {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.unified-test-suite-memory-tests h3,
+.unified-test-suite-scaling-tests h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+/* Utilities Container */
+.unified-test-suite-utilities-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-utility-description {
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
+.unified-test-suite-utility-section {
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-utility-section h3 {
+    margin-bottom: var(--oom-spacing-md);
+    color: var(--text-normal);
+    font-size: var(--h4-size);
+}
+
+/* Folder Configuration */
+.unified-test-suite-folder-config {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-folder-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-monospace);
+    margin-top: 0.5rem;
+}
+
+.unified-test-suite-folder-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-generation-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/* Template Configuration */
+.unified-test-suite-template-config {
+    margin: var(--oom-spacing-md) 0;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-template-input {
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin: var(--oom-spacing-xs) 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+.unified-test-suite-template-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-browse-button {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-top: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+}
+
+.unified-test-suite-browse-button:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Template Selector Dialog */
+.unified-test-suite-template-selector-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-height: 500px;
+    padding: var(--oom-spacing-lg);
+    border: 2px solid var(--interactive-accent);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.unified-test-suite-template-selector-dialog h4 {
+    margin: 0 0 var(--oom-spacing-md) 0;
+    color: var(--interactive-accent);
+    font-weight: 600;
+}
+
+.unified-test-suite-template-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-track {
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+.unified-test-suite-template-option {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: background-color var(--oom-transition-fast);
+}
+
+.unified-test-suite-template-option:last-child {
+    border-bottom: none;
+}
+
+.unified-test-suite-template-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-template-option span {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    word-break: break-all;
+}
+
+.unified-test-suite-template-close {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    background: var(--background-modifier-border);
+    color: var(--text-normal);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-ui-medium);
+    transition: background-color var(--oom-transition-normal);
+}
+
+.unified-test-suite-template-close:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+/* Help Content */
+.unified-test-suite-help-content {
+    max-width: none;
+    line-height: var(--line-height-normal);
+}
+
+.unified-test-suite-help-content h3 {
+    margin: var(--oom-spacing-lg) 0 var(--oom-spacing-md) 0;
+    font-size: var(--h3-size);
+}
+
+.unified-test-suite-help-content h4 {
+    margin: var(--oom-spacing-md) 0 var(--oom-spacing-sm) 0;
+    font-size: var(--h4-size);
+}
+
+.unified-test-suite-help-content p {
+    margin-bottom: var(--oom-spacing-md);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-help-content ul {
+    margin: var(--oom-spacing-sm) 0 var(--oom-spacing-md) var(--oom-spacing-lg);
+}
+
+.unified-test-suite-help-content li {
+    margin-bottom: var(--oom-spacing-xs);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-help-content code {
+    padding: 2px 4px;
+    border-radius: var(--oom-radius-xs);
+    background: var(--background-primary-alt);
+    font-family: var(--font-monospace);
+}
+
+/* Recent Results */
+.unified-test-suite-recent-results {
+    margin-top: var(--oom-spacing-xl);
+}
+
+.unified-test-suite-recent-results h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+.unified-test-suite-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+}
+
+.unified-test-suite-result-item {
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    border-left-width: 4px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-result-success {
+    border-left-color: var(--color-green);
+}
+
+.unified-test-suite-result-failure {
+    border-left-color: var(--color-red);
+}
+
+.unified-test-suite-result-warning {
+    border-left-color: var(--color-orange);
+}
+
+.unified-test-suite-result-running {
+    border-left-color: var(--color-blue);
+}
+
+.unified-test-suite-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--oom-spacing-xs);
+}
+
+.unified-test-suite-result-name {
+    font-weight: 600;
+}
+
+.unified-test-suite-result-status {
+    padding: 2px 8px;
+    border-radius: var(--oom-radius-xs);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.unified-test-suite-result-success .unified-test-suite-result-status {
+    background: var(--color-green);
+    color: white;
+}
+
+.unified-test-suite-result-failure .unified-test-suite-result-status {
+    background: var(--color-red);
+    color: white;
+}
+
+.unified-test-suite-result-warning .unified-test-suite-result-status {
+    background: var(--color-orange);
+    color: white;
+}
+
+.unified-test-suite-result-running .unified-test-suite-result-status {
+    background: var(--color-blue);
+    color: white;
+}
+
+.unified-test-suite-result-duration,
+.unified-test-suite-result-details {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+/* Data Table */
+.unified-test-suite-data-table {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.unified-test-suite-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.unified-test-suite-data-table th,
+.unified-test-suite-data-table td {
+    padding: var(--oom-spacing-sm);
+    border-bottom: 1px solid var(--background-modifier-border);
+    text-align: left;
+}
+
+.unified-test-suite-data-table th {
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    font-weight: 600;
+}
+
+.unified-test-suite-data-table td {
+    color: var(--text-normal);
+}
+
+.unified-test-suite-data-table tr:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Item Actions */
+.unified-test-suite-item-actions {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-item-actions button {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+}
+
+.unified-test-suite-item-actions button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-item-actions button.mod-warning {
+    border-color: var(--background-modifier-error);
+    background: var(--background-modifier-error);
+    color: var(--text-error);
+}
+
+/* Logging Settings */
+.unified-test-suite-logging-settings {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.unified-test-suite-setting-label {
+    min-width: 180px;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.unified-test-suite-log-level-select {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    transition: all var(--oom-transition-fast);
+}
+
+.unified-test-suite-log-level-select:hover {
+    border-color: var(--background-modifier-border-hover);
+}
+
+.unified-test-suite-log-level-select:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-setting-helper {
+    margin-top: 0.5rem;
+}
+
+.unified-test-suite-helper-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.unified-test-suite-logging-testing,
+.unified-test-suite-performance-testing {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+/* Custom Dialog Container */
+.oomp-unified-test-suite-custom-dialog {
+    max-width: 800px;
+    width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: var(--shadow-l);
+}
+
+/* Configuration Sections */
+.oomp-unified-test-suite-config-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.oomp-unified-test-suite-config-section h5 {
+    margin: 0 0 1rem 0;
+    color: var(--text-accent);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.oomp-unified-test-suite-config-section h6 {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-normal);
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+/* Setting Items */
+.oomp-unified-test-suite-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.oomp-unified-test-suite-setting-item label {
+    min-width: 180px;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.oomp-unified-test-suite-setting-item input,
+.oomp-unified-test-suite-setting-item select {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+/* Template Preview */
+.oomp-unified-test-suite-template-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+}
+
+.oomp-unified-test-suite-template-preview-content {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    background: var(--code-background);
+    padding: 0.75rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+/* Metrics Info & Help Text */
+.oomp-unified-test-suite-metrics-info {
+    margin-bottom: 1rem;
+}
+
+.oomp-unified-test-suite-help-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.oomp-unified-test-suite-metrics-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Metrics Container & Items */
+.oomp-unified-test-suite-metrics-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.oomp-unified-test-suite-metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+}
+
+.oomp-unified-test-suite-metric-item label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-normal);
+    cursor: pointer;
+    min-width: auto;
+}
+
+.oomp-unified-test-suite-metric-item input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    appearance: checkbox;
+    -webkit-appearance: checkbox;
+    border-radius: 3px;
+}
+
+.oomp-unified-test-suite-metric-item input[type="checkbox"]:checked {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+}
+
+.oomp-unified-test-suite-metric-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    color: var(--text-on-accent);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.oomp-unified-test-suite-metric-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-left: 1.25rem;
+}
+
+/* Quick Selection */
+.oomp-unified-test-suite-quick-select {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.oomp-unified-test-suite-quick-btn {
+    padding: 0.375rem 0.75rem;
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.1s ease;
+}
+
+.oomp-unified-test-suite-quick-btn:hover {
+    background: var(--interactive-hover);
+}
+
+/* Dialog Actions */
+.oomp-unified-test-suite-dialog-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.oomp-unified-test-suite-preview-btn {
+    padding: 0.5rem 1rem;
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.oomp-unified-test-suite-preview-btn:hover {
+    background: var(--interactive-hover);
+}
+
+/* Collapsible Sections */
+.unified-test-suite-collapsible-section {
+    margin: 1rem 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    background: var(--background-secondary);
+    border-radius: 6px 6px 0 0;
+    transition: background 0.1s ease;
+}
+
+.unified-test-suite-collapsible-header:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-collapsible-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.unified-test-suite-toggle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+
+.unified-test-suite-collapsible-content {
+    padding: 1rem;
+    border-top: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    .oomp-unified-test-suite-custom-dialog {
+        width: 95vw;
+        padding: 1rem;
+    }
+    
+    .oomp-unified-test-suite-setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .oomp-unified-test-suite-setting-item label {
+        min-width: auto;
+    }
+    
+    .oomp-unified-test-suite-metrics-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .oomp-unified-test-suite-dialog-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .unified-test-suite-container {
+        flex-direction: column;
+    }
+
+    .unified-test-suite-sidebar {
+        width: 100%;
+        min-width: 100%;
+        max-height: 200px;
+        padding: var(--oom-spacing-sm);
+        border-bottom: 1px solid var(--background-modifier-border);
+    }
+
+    .unified-test-suite-tab-nav-item {
+        padding: var(--oom-spacing-sm);
+        border-left: none;
+        border-bottom: 2px solid transparent;
+    }
+
+    .unified-test-suite-dashboard-stats {
+        flex-direction: column;
+    }
+
+    .unified-test-suite-quick-test-button {
+        display: block;
+        margin-right: 0;
+        margin-bottom: var(--oom-spacing-sm);
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .unified-test-suite-modal {
+        padding: var(--oom-spacing-xs);
+    }
+
+    .unified-test-suite-content {
+        padding: 0 var(--oom-spacing-sm);
+    }
+
+    .unified-test-suite-action-button {
+        display: block;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--oom-spacing-sm);
+    }
+
+    .unified-test-suite-item-actions {
+        flex-direction: column;
+    }
+
+    .unified-test-suite-utility-section {
+        padding: var(--oom-spacing-sm);
+    }
+
+    .unified-test-suite-result-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+} 
+
+/* =============================================================================
+   COMPONENT: METRICS-CHARTS (29.6 KB)
+   ============================================================================= */
+/* =============================================================================
+   OneiroMetrics Charts & Visualization Component
+   Complete chart system including tabs, heatmaps, Chart.js integration, and metrics visualization
+   ============================================================================= */
+
+/* =============================================================================
+   ENHANCED CHART TOOLBAR SYSTEM
+   ============================================================================= */
+
+.oom-chart-toolbar {
+    display: flex;
+    min-height: 40px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    align-items: center;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    justify-content: space-between;
+    background: var(--background-secondary);
+}
+
+.oom-chart-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+.oom-chart-content {
+    flex: 1;
+}
+
+/* Statistics Tab Specific - No title in toolbar, just export button */
+.oom-chart-container:has(.oom-chart-content table) .oom-chart-toolbar {
+    justify-content: flex-end;
+}
+
+/* =============================================================================
+   ENHANCED HEATMAP CONTROLS
+   ============================================================================= */
+
+.oom-heatmap-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.oom-metric-selector {
+    flex: 1;
+    min-width: 200px;
+    padding: 6px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 13px;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+}
+
+.oom-metric-selector:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+    border-color: var(--interactive-accent);
+}
+
+/* =============================================================================
+   EXPORT ERROR NOTIFICATIONS SYSTEM
+   ============================================================================= */
+
+.oom-export-error {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.oom-export-error-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--color-red);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+}
+
+.oom-export-error-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.oom-export-error-message {
+    flex: 1;
+    line-height: 1.4;
+    font-size: 13px;
+}
+
+.oom-export-error-close {
+    display: flex;
+    height: 20px;
+    width: 20px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: none;
+}
+
+.oom-export-error-close:hover {
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-modifier-hover);
+}
+
+/* Success notification variant */
+.oom-export-success .oom-export-error-content {
+    border-color: var(--color-green);
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* Animation for error notifications */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* =============================================================================
+   INSIGHTS TAB ANALYTICS SYSTEM
+   ============================================================================= */
+
+.oom-insights-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.oom-insights-section {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.oom-insights-section:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.oom-insights-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    /* NO VISUAL STYLING - Let theme handle */
+    border-bottom: 2px solid var(--background-modifier-border);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oom-insight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    gap: 12px;
+}
+
+.oom-insight-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.oom-insight-label {
+    font-weight: 500;
+    /* NO VISUAL STYLING - Let theme handle */
+    flex: 1;
+    font-size: 14px;
+}
+
+.oom-insight-value {
+    max-width: 60%;
+    font-weight: 600;
+    text-align: right;
+    font-size: 14px;
+    word-wrap: break-word;
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* Trend indicators */
+.oom-trend-positive {
+    color: var(--color-green);
+}
+
+.oom-trend-negative {
+    color: var(--color-red);
+}
+
+.oom-trend-stable {
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* Outlier indicators */
+.oom-outlier-high {
+    font-weight: 700;
+    color: var(--color-orange);
+}
+
+.oom-outlier-low {
+    font-weight: 700;
+    color: var(--color-blue);
+}
+
+/* Correlation strength indicators */
+.oom-correlation-strong {
+    font-weight: 700;
+    color: var(--color-purple);
+}
+
+.oom-correlation-moderate {
+    font-weight: 600;
+    color: var(--color-cyan);
+}
+
+/* Empty and error states */
+.oom-insights-empty,
+.oom-insights-error {
+    padding: 40px 20px;
+    border-radius: 8px;
+    border: 2px dashed var(--background-modifier-border);
+    text-align: center;
+    font-style: italic;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-secondary);
+}
+
+.oom-insights-error {
+    border-color: var(--color-red);
+    color: var(--color-red);
+    background: rgba(var(--color-red-rgb), 0.1);
+}
+
+/* =============================================================================
+   ADVANCED CHART CONTROLS WITH NESTING AND :has()
+   ============================================================================= */
+
+.oom-chart-container {
+    /* Chart type selector */
+    .oom-chart-type-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 12px;
+
+        .oom-chart-selector-label {
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        .oom-chart-selector {
+            min-width: 120px;
+            padding: 4px 8px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            font-size: 12px;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-primary);
+
+            &:hover {
+                border-color: var(--background-modifier-border-hover);
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: var(--interactive-accent);
+                box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+            }
+        }
+    }
+
+    /* Smoothing toggle */
+    .oom-chart-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 12px;
+
+        input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            accent-color: var(--interactive-accent);
+        }
+
+        label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        &:hover label {
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+
+    /* Correlation threshold controls */
+    .oom-correlation-threshold {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 12px;
+
+        .oom-threshold-label {
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        .oom-threshold-slider {
+            width: 80px;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--background-modifier-border);
+
+            &:hover {
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+            &::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid var(--background-primary);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                background: var(--interactive-accent);
+            }
+        }
+
+        .oom-threshold-value {
+            min-width: 24px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--background-modifier-border);
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-modifier-form-field);
+        }
+    }
+
+    /* Chart toolbar */
+    .oom-chart-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 48px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--background-modifier-border);
+        background: var(--background-secondary);
+
+        .oom-chart-title {
+            flex-shrink: 0;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+
+        .oom-chart-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Enhanced chart canvas */
+    .oom-chart-canvas {
+        min-height: 400px;
+        max-height: 600px;
+    }
+
+    /* Loading state */
+    &.oom-chart-container--loading {
+        .oom-chart-canvas {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        &::after {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 10;
+            padding: 8px 16px;
+            content: "Loading chart...";
+            transform: translate(-50%, -50%);
+            border-radius: 4px;
+            border: 1px solid var(--background-modifier-border);
+            font-size: 12px;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-primary);
+        }
+    }
+
+    /* Special styling when container has correlation controls */
+    &:has(.oom-correlation-threshold) {
+        .oom-chart-toolbar {
+            background: linear-gradient(135deg, var(--background-secondary), var(--background-modifier-hover));
+        }
+    }
+
+    /* Box plot info styling when box plot is present */
+    &:has(.oom-chart-selector option[value="box"]:checked) {
+        .oom-box-plot-info {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 8px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 10px;
+            /* NO VISUAL STYLING - Let theme handle */
+            background: var(--background-primary);
+        }
+    }
+}
+
+/* =============================================================================
+   CORRELATION MATRIX & TREND DECOMPOSITION
+   ============================================================================= */
+
+.oom-correlation-matrix {
+    position: relative;
+
+    .oom-correlation-legend {
+        display: flex;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        /* NO VISUAL STYLING - Let theme handle */
+
+        .oom-correlation-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .oom-correlation-legend-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 2px;
+
+                &.oom-correlation-legend-positive {
+                    background: rgba(0, 100, 255, 0.7);
+                }
+
+                &.oom-correlation-legend-negative {
+                    background: rgba(255, 100, 0, 0.7);
+                }
+            }
+        }
+    }
+}
+
+.oom-trend-decomposition {
+    .oom-trend-decomposition-legend {
+        display: flex;
+        gap: 12px;
+        margin: 8px 0;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        /* NO VISUAL STYLING - Let theme handle */
+
+        .oom-trend-decomposition-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .oom-trend-line-original {
+                width: 16px;
+                height: 2px;
+                background: var(--color-blue);
+            }
+
+            .oom-trend-line-trend {
+                width: 16px;
+                height: 2px;
+                background: var(--color-green);
+            }
+
+            .oom-trend-line-residual {
+                width: 16px;
+                height: 2px;
+                background: var(--color-red);
+            }
+        }
+    }
+}
+
+/* Chart transition animation */
+.oom-chart-transition {
+    transition: all 0.3s ease;
+}
+
+/* =============================================================================
+   TAB-BASED CHART SYSTEM
+   ============================================================================= */
+
+.oom-metrics-chart-tabs-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    /* NO VISUAL STYLING - Let theme handle container styling */
+}
+
+.oom-metrics-chart-tabs-nav {
+    display: flex;
+    flex-shrink: 0; /* Prevent navigation from shrinking */
+    /* NO VISUAL STYLING - Let theme handle navigation styling */
+}
+
+.oom-metrics-chart-tab {
+    position: relative;
+    margin-right: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.oom-metrics-chart-tab:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-metrics-chart-tab--active {
+    font-weight: 600;
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-chart-tab--active:hover {
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-chart-tabs-content {
+    flex: 1;
+    overflow: auto;
+    min-height: 0; /* Important for flex child with overflow */
+    border-right: 1px solid var(--background-modifier-border);
+    border-left: 1px solid var(--background-modifier-border);
+    border-bottom: 1px solid var(--background-modifier-border);
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    /* NO VISUAL STYLING - Let theme handle content styling */
+}
+
+/* =============================================================================
+   CHART.JS INTEGRATION & CANVAS MANAGEMENT
+   ============================================================================= */
+
+.oom-chart-container {
+    width: 100%;
+    padding: var(--oom-spacing-md);
+    height: auto;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    /* NO VISUAL STYLING - Let theme handle chart container styling */
+}
+
+.oom-chart-title {
+    margin: 0 0 var(--oom-spacing-md) 0;
+    flex-shrink: 0; /* Prevent title from shrinking */
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.oom-chart-canvas {
+    flex: 1;
+    width: 100% !important; /* Override Chart.js default */
+    height: 400px !important; /* Override Chart.js default */
+    max-width: 100%;
+    max-height: 400px;
+    min-height: 300px;
+    /* NO VISUAL STYLING - Chart.js handles canvas styling */
+}
+
+.oom-chart-placeholder {
+    padding: var(--oom-spacing-xl);
+    text-align: center;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background-secondary);
+    border-radius: var(--oom-radius-lg);
+    border: 1px dashed var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.oom-chart-placeholder h3 {
+    margin: 0 0 var(--oom-spacing-sm) 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.oom-chart-placeholder p {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+/* Fix for Chart.js responsive behavior */
+.oom-chart-container canvas {
+    position: relative !important;
+}
+
+/* Animation prevention during initial render */
+.oom-chart-container--loading .oom-chart-canvas {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* =============================================================================
+   HEATMAP VISUALIZATION SYSTEM
+   ============================================================================= */
+
+.oom-heatmap-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    background: var(--background-modifier-form-field);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-metric-selector {
+    min-width: 200px;
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+}
+
+.oom-metric-selector:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: 0 0 0 2px var(--text-accent-hover);
+}
+
+.oom-heatmap-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.oom-heatmap-placeholder {
+    text-align: center;
+    padding: var(--oom-spacing-xl);
+    color: var(--text-muted);
+    font-style: italic;
+    background: var(--background-modifier-hover);
+    border-radius: 6px;
+    margin: var(--oom-spacing-md) 0;
+}
+
+/* =============================================================================
+   HEATMAP LEGEND SYSTEM
+   ============================================================================= */
+
+.oom-heatmap-legend {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xl);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-heatmap-legend-title {
+    font-weight: 600;
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    text-align: center;
+}
+
+.oom-heatmap-legend-scale {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    justify-content: center;
+}
+
+.oom-heatmap-legend-min,
+.oom-heatmap-legend-max {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    font-weight: 500;
+    min-width: 40px;
+    text-align: center;
+}
+
+.oom-heatmap-legend-gradient {
+    display: flex;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    min-width: 120px;
+}
+
+.oom-heatmap-legend-color-low {
+    flex: 1;
+    background: var(--color-green-rgb);
+    background: rgba(var(--color-green-rgb), 0.3);
+}
+
+.oom-heatmap-legend-color-medium {
+    flex: 1;
+    background: var(--color-yellow-rgb);
+    background: rgba(var(--color-yellow-rgb), 0.6);
+}
+
+.oom-heatmap-legend-color-high {
+    flex: 1;
+    background: var(--color-red-rgb);
+    background: rgba(var(--color-red-rgb), 0.8);
+}
+
+/* =============================================================================
+   HEATMAP MONTHS & GRIDS
+   ============================================================================= */
+
+.oom-heatmap-months {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-xl);
+}
+
+.oom-heatmap-month {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--background-primary);
+}
+
+.oom-heatmap-month-header {
+    background: var(--background-modifier-hover);
+    padding: var(--oom-spacing-md);
+    font-weight: 600;
+    color: var(--text-normal);
+    text-align: center;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-medium);
+}
+
+.oom-heatmap-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    padding: var(--oom-spacing-sm);
+    background: var(--background-modifier-border);
+}
+
+.oom-heatmap-day-label {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    text-align: center;
+    padding: var(--oom-spacing-xs);
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* =============================================================================
+   HEATMAP DAY CELLS & STATES
+   ============================================================================= */
+
+.oom-heatmap-day {
+    background: var(--background-primary);
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-ui-small);
+    border-radius: 3px;
+    cursor: default;
+    position: relative;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.oom-heatmap-day-empty {
+    background: var(--background-modifier-hover);
+    opacity: 0.3;
+}
+
+.oom-heatmap-day-no-data {
+    background: var(--background-primary);
+    color: var(--text-faint);
+    opacity: 0.6;
+}
+
+.oom-heatmap-day-no-data:hover {
+    opacity: 0.8;
+    border-color: var(--background-modifier-border);
+}
+
+.oom-heatmap-day-data {
+    color: var(--text-on-accent);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.oom-heatmap-day-data:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-color: var(--text-accent);
+}
+
+/* =============================================================================
+   INTENSITY-BASED COLORING SYSTEM
+   ============================================================================= */
+
+.oom-heatmap-intensity-low {
+    background: rgba(var(--color-green-rgb), 0.4);
+    color: var(--text-normal);
+}
+
+.oom-heatmap-intensity-medium {
+    background: rgba(var(--color-yellow-rgb), 0.7);
+    color: var(--text-normal);
+}
+
+.oom-heatmap-intensity-high {
+    background: rgba(var(--color-red-rgb), 0.8);
+    color: var(--text-on-accent);
+}
+
+/* Dynamic Intensity Using CSS Custom Properties */
+.oom-heatmap-day-data {
+    background: rgba(
+        calc(var(--color-green-rgb) * (1 - var(--intensity, 0)) + var(--color-red-rgb) * var(--intensity, 0)),
+        calc(0.3 + var(--intensity, 0) * 0.5)
+    );
+}
+
+/* =============================================================================
+   PROGRESS BAR SYSTEM
+   ============================================================================= */
+
+.oom-progress-bar {
+    height: var(--oom-progress-bar-height, 8px);
+    background: var(--oom-progress-bar-bg, var(--background-modifier-border));
+    border-radius: var(--oom-progress-bar-radius, 4px);
+    margin: var(--oom-progress-bar-margin, 1em 0);
+    overflow: hidden;
+    position: relative;
+}
+
+.oom-progress-fill {
+    height: 100%;
+    background: var(--oom-progress-fill-bg, var(--interactive-accent));
+    border-radius: inherit;
+    transition: width 0.3s ease;
+    min-width: 2px; /* Ensure visibility even at 0% */
+}
+
+.oom-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    color: var(--text-on-accent);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+/* =============================================================================
+   PATTERN VISUALIZATION ELEMENTS
+   ============================================================================= */
+
+.oom-pattern-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--oom-radius-sm);
+    font-size: var(--font-ui-smaller);
+    font-weight: 500;
+}
+
+.oom-quality-score {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    color: var(--text-on-accent);
+}
+
+.oom-metric-overlay {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--background-primary);
+    z-index: 2;
+}
+
+.oom-pattern-high-quality { background: var(--color-green); }
+.oom-pattern-fragmented { background: var(--color-yellow); }
+.oom-pattern-rich-narrative { background: var(--color-blue); }
+.oom-pattern-basic-recall { background: var(--color-orange); }
+
+.oom-quality-high { background: var(--color-green); }
+.oom-quality-medium { background: var(--color-yellow); }
+.oom-quality-low { background: var(--color-red); }
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    .oom-metrics-chart-tabs-nav {
+        flex-wrap: wrap;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-metrics-chart-tab {
+        margin-right: 0;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .oom-chart-container {
+        height: 400px;
+    }
+    
+    .oom-chart-canvas {
+        height: 300px !important;
+        max-height: 300px;
+    }
+    
+    .oom-chart-placeholder {
+        height: 300px;
+        padding: var(--oom-spacing-lg);
+    }
+    
+    .oom-heatmap-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .oom-metric-selector {
+        min-width: unset;
+    }
+    
+    .oom-heatmap-day {
+        min-height: 28px;
+        font-size: var(--font-ui-smaller);
+    }
+    
+    .oom-heatmap-legend-scale {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-heatmap-legend-gradient {
+        min-width: unset;
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & THEME SUPPORT
+   ============================================================================= */
+
+/* High Contrast Theme Support */
+@media (prefers-contrast: high) {
+    .oom-heatmap-day {
+        border: 1px solid var(--text-normal);
+    }
+    
+    .oom-heatmap-intensity-low {
+        background: var(--color-green);
+        color: var(--text-on-accent);
+    }
+    
+    .oom-heatmap-intensity-medium {
+        background: var(--color-yellow);
+        color: var(--text-normal);
+    }
+    
+    .oom-heatmap-intensity-high {
+        background: var(--color-red);
+        color: var(--text-on-accent);
+    }
+    
+    .oom-progress-fill {
+        border: 1px solid var(--text-normal);
+    }
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .oom-heatmap-legend-color-low {
+    background: rgba(var(--color-green-rgb), 0.5);
+}
+
+.theme-dark .oom-heatmap-legend-color-medium {
+    background: rgba(var(--color-yellow-rgb), 0.7);
+}
+
+.theme-dark .oom-heatmap-legend-color-high {
+    background: rgba(var(--color-red-rgb), 0.9);
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+    .oom-heatmap-day:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .oom-heatmap-container {
+        overflow: visible;
+    }
+    
+    .oom-chart-container {
+        page-break-inside: avoid;
+    }
+    
+    .oom-progress-bar {
+        print-color-adjust: exact;
+    }
+} 
+
+/* =============================================================================
+   COMPONENT: HUB (18.2 KB)
+   ============================================================================= */
+/* =============================================================================
+   OneiroMetrics Hub & Dashboard Component
+   Complete dashboard system including template management, journal hub, and navigation
+   ============================================================================= */
+
+/* =============================================================================  
+   DASHBOARD SECTIONS - Content Organization
+   ============================================================================= */
+
+.oom-dashboard-section {
+    /* === STRUCTURAL PROPERTIES === */
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    border-radius: var(--oom-radius-md);
+    
+    /* NO VISUAL STYLING - Let theme handle section styling */
+    
+    /* === NESTED HEADING === */
+    h3 {
+        font-size: var(--font-ui-medium);
+        font-weight: var(--font-semibold);
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+
+    h4 {
+        margin-top: 0;
+        margin-bottom: var(--oom-spacing-sm);
+        padding-bottom: var(--oom-spacing-xs);
+        font-size: var(--font-ui-large);
+        font-weight: 600;
+        
+        /* NO VISUAL STYLING - Let theme handle heading borders and colors */
+    }
+}
+
+.oom-template-import-export h3,
+.oom-template-status h3,
+.oom-analysis-targets h3,
+.oom-metrics-tabs-content h3 {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+.oom-suggestions-hidden .suggestion {
+    display: none;
+}
+
+/* =============================================================================
+   TEMPLATE WIZARD NAVIGATION SYSTEM
+   ============================================================================= */
+
+.oom-template-wizard-navigation {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    margin-top: var(--oom-spacing-lg);
+    padding-top: var(--oom-spacing-md);
+    justify-content: space-between;
+    align-items: center;
+    
+    /* NO VISUAL STYLING - Let theme handle navigation borders */
+    
+    .oom-button-container {
+        display: flex;
+        gap: var(--oom-spacing-sm);
+    }
+}
+
+.oom-step-indicator {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+    font-size: var(--font-ui-small);
+    
+    /* NO VISUAL STYLING - Let theme handle step indicator colors */
+}
+
+/* =============================================================================
+   COMPREHENSIVE TEMPLATE MANAGEMENT SYSTEM
+   ============================================================================= */
+
+.oom-journal-section {
+    /* Template management container */
+    & .oom-setting {
+        margin-top: 1em;
+    }
+    
+    & .oom-template-import-export {
+        margin-top: 1.5em;
+    }
+    
+    & .oom-template-status {
+        margin-top: 1em;
+    }
+    
+    /* Template List Container */
+    & .oom-templates-list {
+        margin-top: 0.5em;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 4px;
+    }
+    
+    /* Template Row - Individual Template Items */
+    & .oom-template-row {
+        display: flex;
+        padding: 0.75em 1em;
+        border-bottom: 1px solid var(--background-modifier-border);
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
+    
+    & .oom-template-row.oom-template-expanded {
+        background-color: var(--background-modifier-hover);
+    }
+    
+    /* Template Information Display */
+    & .oom-template-info {
+        & .oom-template-details {
+            font-size: 0.9em;
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+    
+    /* Template Action Buttons Container */
+    & .oom-template-actions {
+        display: flex;
+        gap: 0.5em;
+    }
+    
+    /* Template Preview Container */
+    & .oom-template-preview-container {
+        display: block;
+        margin-bottom: 0.5em;
+        padding: 0 1em;
+        border-top: 1px solid var(--background-modifier-border);
+        background-color: var(--background-secondary);
+        
+        & .oom-preview-section {
+            margin-bottom: 0.75em;
+            
+            & .oom-template-preview-code {
+                max-height: 200px;
+                padding: 0.75em;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 4px;
+                font-size: 0.85em;
+                font-family: var(--font-monospace);
+                /* NO VISUAL STYLING - Let theme handle */
+                background-color: var(--code-background);
+            }
+        }
+    }
+}
+
+/* =============================================================================
+   TEMPLATE ACTION BUTTONS - Icon Button System
+   ============================================================================= */
+
+.oom-template-action-btn.oom-icon-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 0.4em;
+    border: none;
+    border-radius: 3px;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    /* NO VISUAL STYLING - Let theme handle */
+    background-color: var(--interactive-normal);
+}
+
+.oom-template-action-btn.oom-icon-button:hover {
+    transform: translateY(-1px);
+    /* NO VISUAL STYLING - Let theme handle */
+    background-color: var(--interactive-hover);
+}
+
+.oom-template-action-btn.oom-icon-button:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.oom-template-action-btn.oom-icon-button:active {
+    transform: translateY(0);
+    background-color: var(--interactive-active);
+}
+
+/* Delete button specific styling */
+.oom-template-action-btn.oom-template-delete-btn.oom-icon-button {
+    /* NO VISUAL STYLING - Let theme handle */
+    background-color: var(--color-red);
+}
+
+.oom-template-action-btn.oom-template-delete-btn.oom-icon-button:hover {
+    opacity: 0.9;
+    background-color: var(--color-red-hover, var(--color-red));
+}
+
+/* Icon sizing within buttons */
+.oom-template-action-btn.oom-icon-button svg {
+    height: 16px;
+    width: 16px;
+    stroke-width: 2;
+}
+
+/* Template actions container adjustment */
+.oom-template-actions {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+}
+
+/* =============================================================================
+   JOURNAL MANAGER SIDEBAR NAVIGATION
+   ============================================================================= */
+
+.oom-journal-manager-sidebar {
+    /* === STRUCTURAL PROPERTIES === */
+    flex-shrink: 0;
+    width: var(--oom-sidebar-width);
+    padding: var(--oom-spacing-md);
+    overflow-y: auto;
+    
+    /* NO VISUAL STYLING - Let theme handle sidebar styling */
+    
+    /* === SCROLLBAR STYLING === */
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        /* NO VISUAL STYLING - Let theme handle scrollbar track */
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        border-radius: var(--oom-radius-sm);
+        
+        /* NO VISUAL STYLING - Let theme handle scrollbar thumb */
+        
+        &:hover {
+            /* Let theme handle scrollbar hover */
+        }
+    }
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN SYSTEM - Mobile First
+   ============================================================================= */
+
+/* Mobile Responsiveness for Template Action Buttons */
+@media screen and (max-width: 768px) {
+    .oom-template-action-btn.oom-icon-button {
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0.3em;
+    }
+    
+    .oom-template-action-btn.oom-icon-button svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Tablet Layout Adjustments */
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .oom-actions-grid {
+        /* === TABLET GRID ADJUSTMENTS === */
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-action-button {
+        /* === TABLET BUTTON ADJUSTMENTS === */
+        min-height: 60px;
+        padding: var(--oom-spacing-sm) var(--oom-spacing-xs);
+    }
+    
+    .oom-action-icon {
+        height: 20px;
+        font-size: var(--font-ui-large);
+        margin-bottom: var(--oom-spacing-xxs);
+    }
+    
+    .oom-dashboard-section {
+        padding: var(--oom-spacing-sm);
+        margin-bottom: var(--oom-spacing-md);
+    }
+    
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        width: 100%;
+        max-height: 200px;
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .oom-template-wizard-navigation {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+        
+        .oom-button-container {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+}
+
+/* Mobile Layout Optimizations */
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .oom-nav-item {
+        /* === MOBILE NAV ADJUSTMENTS === */
+        padding: var(--oom-spacing-xs);
+        margin-bottom: var(--oom-spacing-xxs);
+        
+        .oom-nav-icon {
+            width: 16px;
+            height: 16px;
+            
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+        
+        .oom-nav-label {
+            font-size: var(--font-ui-small);
+        }
+    }
+    
+    .oom-actions-grid {
+        /* === MOBILE SINGLE COLUMN === */
+        grid-template-columns: 1fr;
+    }
+    
+    .oom-action-button {
+        /* === MOBILE COMPACT BUTTONS === */
+        flex-direction: row;
+        min-height: 40px;
+        text-align: left;
+        
+        .oom-action-icon {
+            margin-bottom: 0;
+            margin-right: var(--oom-spacing-xs);
+            height: 16px;
+            font-size: var(--font-ui-medium);
+        }
+    }
+    
+    .oom-collapsible-header {
+        padding: var(--oom-spacing-xs);
+        
+        h3 {
+            font-size: var(--font-ui-medium);
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+    
+    .oom-dashboard-section {
+        padding: var(--oom-spacing-xs);
+        margin-bottom: var(--oom-spacing-sm);
+        
+        h4 {
+            font-size: var(--font-ui-medium);
+            margin-bottom: var(--oom-spacing-xs);
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & REDUCED MOTION SUPPORT
+   ============================================================================= */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .oom-template-action-btn.oom-icon-button {
+        transition: none;
+    }
+    
+    .oom-template-action-btn.oom-icon-button:hover {
+        transform: none;
+    }
+    
+    .oom-nav-item,
+    .oom-action-button,
+    .oom-collapsible-toggle {
+        /* === REDUCED MOTION === */
+        transition: none;
+    }
+    
+    .oom-action-button:hover {
+        transform: none;
+    }
+    
+    .oom-action-button:active {
+        transform: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (forced-colors: active) {
+    .oom-template-action-btn.oom-icon-button {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-template-action-btn.oom-template-delete-btn.oom-icon-button {
+        border-color: Highlight;
+    }
+    
+    .oom-nav-item {
+        /* === HIGH CONTRAST NAVIGATION === */
+        border: 1px solid ButtonText;
+        
+        &.active {
+            color: HighlightText;
+            background-color: Highlight;
+            border-left-color: Highlight;
+            
+            .oom-nav-icon {
+                color: HighlightText;
+            }
+        }
+    }
+    
+    .oom-action-button {
+        border: 1px solid ButtonText;
+        
+        &:hover {
+            background-color: Highlight;
+            color: HighlightText;
+        }
+    }
+    
+    .oom-collapsible-section {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-dashboard-section {
+        border: 1px solid ButtonText;
+    }
+}
+
+/* =============================================================================
+   PRINT STYLES - Clean Print Layout
+   ============================================================================= */
+
+@media print {
+    .oom-journal-manager-sidebar,
+    .oom-journal-structure-sidebar {
+        /* === HIDE SIDEBARS IN PRINT === */
+        display: none;
+    }
+    
+    .oom-template-wizard-navigation {
+        /* === HIDE NAVIGATION IN PRINT === */
+        display: none;
+    }
+    
+    .oom-quick-actions {
+        /* === HIDE ACTIONS IN PRINT === */
+        display: none;
+    }
+    
+    .oom-dashboard-section {
+        /* === PRINT SECTION STYLING === */
+        page-break-inside: avoid;
+        margin-bottom: var(--oom-spacing-md);
+        
+        h4 {
+            page-break-after: avoid;
+        }
+    }
+}
+
+/* =============================================================================
+   DASHBOARD GRID SYSTEM INTEGRATION
+   ============================================================================= */
+
+.oom-dashboard-info-grid {
+    display: grid;
+    gap: var(--oom-spacing-md);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    
+    .oom-dashboard-section {
+        margin-bottom: 0; /* Override default margin in grid context */
+    }
+}
+
+/* Action Grid System for Dashboard */
+.oom-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--oom-spacing-sm);
+    margin: var(--oom-spacing-md) 0;
+}
+
+.oom-action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 80px;
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    text-decoration: none;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background: var(--background-modifier-hover);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.oom-action-icon {
+    height: 24px;
+    font-size: var(--font-ui-large);
+    margin-bottom: var(--oom-spacing-xs);
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+/* =============================================================================
+   NAVIGATION ITEM INTEGRATION 
+   ============================================================================= */
+
+.oom-nav-item {
+    display: flex;
+    align-items: center;
+    padding: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xs);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &:hover {
+        background: var(--background-modifier-hover);
+    }
+    
+    &.active {
+        /* NO VISUAL STYLING - Let theme handle active states */
+        background: var(--background-modifier-active-hover);
+        border-left: 3px solid var(--interactive-accent);
+        
+        .oom-nav-icon {
+            /* NO VISUAL STYLING - Let theme handle active icon color */
+        }
+    }
+}
+
+.oom-nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: var(--oom-spacing-sm);
+    /* NO VISUAL STYLING - Let theme handle icon colors */
+    
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.oom-nav-label {
+    font-size: var(--font-ui-medium);
+    font-weight: 500;
+    /* NO VISUAL STYLING - Let theme handle text color */
+}
+
+/* =============================================================================
+   COLLAPSIBLE SECTIONS INTEGRATION
+   ============================================================================= */
+
+.oom-collapsible-section {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    margin-bottom: var(--oom-spacing-md);
+    overflow: hidden;
+}
+
+.oom-collapsible-header {
+    display: flex;
+    align-items: center;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background: var(--background-secondary);
+    
+    &:hover {
+        background: var(--background-modifier-hover);
+    }
+    
+    h3 {
+        margin: 0;
+        font-size: var(--font-ui-medium);
+        font-weight: var(--font-semibold);
+        /* NO VISUAL STYLING - Let theme handle */
+    }
+}
+
+.oom-collapsible-toggle {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+    /* NO VISUAL STYLING - Let theme handle */
+    
+    &.oom-expanded {
+        transform: rotate(180deg);
+    }
+}
+
+.oom-collapsible-content {
+    padding: var(--oom-spacing-md);
+    background: var(--background-primary);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+/* =============================================================================
+   QUICK ACTIONS INTEGRATION
+   ============================================================================= */
+
+.oom-quick-actions {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    margin: var(--oom-spacing-md) 0;
+    flex-wrap: wrap;
+}
+
+.oom-quick-action-btn {
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: var(--font-ui-small);
+    text-decoration: none;
+    /* NO VISUAL STYLING - Let theme handle */
+    background: var(--background-primary);
+    
+    &:hover {
+        background: var(--background-modifier-hover);
+        transform: translateY(-1px);
+    }
+    
+    &:active {
+        transform: translateY(0);
     }
 } 
 
@@ -5249,4 +9257,3 @@ input[type="date"]:focus-visible {
     /* Add subtle border for better visibility in dark themes */
     box-shadow: inset 0 0 0 1px var(--background-modifier-border);
 }
-

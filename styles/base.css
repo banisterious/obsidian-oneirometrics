@@ -41,17 +41,7 @@
     /* Theme-specific validation styling */
 }
 
-.theme-dark .oom-heatmap-legend-color-low {
-    /* Dark theme heatmap adjustments */
-}
-
-.theme-dark .oom-heatmap-legend-color-medium {
-    /* Dark theme heatmap adjustments */
-}
-
-.theme-dark .oom-heatmap-legend-color-high {
-    /* Dark theme heatmap adjustments */
-}
+/* Dark theme heatmap adjustments moved to heatmap.css component */
 
 .theme-dark .oom-export-button {
     /* Dark theme export button */
@@ -78,19 +68,44 @@
 }
 
 /* =============================================================================
-   BASE TYPOGRAPHY & HEADINGS
+   BASE TYPOGRAPHY & COMPONENT NESTING
    ============================================================================= */
 
-h2 {
-    margin: 0;
-    font-size: var(--font-ui-medium);
+/* Properly nested headings within their parent components */
+.oom-template-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--oom-spacing-sm);
+    cursor: pointer;
+    
+    h3 {
+        margin: 0;
+        /* NO VISUAL STYLING - Let theme handle heading appearance */
+    }
 }
 
-h3 {
-    margin: 0;
-    font-size: var(--font-ui-large);
-    font-weight: 600;
-    color: var(--text-normal);
+.oom-collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: var(--oom-spacing-sm);
+    
+    h3 {
+        margin: 0;
+        /* NO VISUAL STYLING - Let theme handle heading appearance */
+    }
+}
+
+.oom-metrics-tabs-button {
+    &[data-tab-id="overview"] {
+        h2 {
+            margin: 0;
+            font-size: var(--font-ui-medium);
+            /* NO VISUAL STYLING - Let theme handle */
+        }
+    }
 }
 
 h4 {

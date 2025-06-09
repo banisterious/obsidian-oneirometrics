@@ -74,33 +74,33 @@
    ============================================================================= */
 
 /* Margin utilities using Obsidian's official --size-4-* variables */
-.u-margin--xs { margin: var(--size-4-1); }      /* 4px - replaces var(--oom-spacing-xs) */
-.u-margin--sm { margin: var(--size-4-2); }      /* 8px - replaces var(--oom-spacing-sm) */
-.u-margin--md { margin: var(--size-4-4); }      /* 16px - replaces var(--oom-spacing-md) */
-.u-margin--lg { margin: var(--size-4-6); }      /* 24px - replaces var(--oom-spacing-lg) */
-.u-margin--xl { margin: var(--size-4-8); }      /* 32px - replaces var(--oom-spacing-xl) */
+.u-margin--xs { margin: var(--oom-spacing-xs); }      /* 4px - replaces direct usage */
+.u-margin--sm { margin: var(--oom-spacing-sm); }      /* 8px - replaces direct usage */
+.u-margin--md { margin: var(--oom-spacing-md); }      /* 16px - replaces direct usage */
+.u-margin--lg { margin: var(--oom-spacing-lg); }      /* 24px - replaces direct usage */
+.u-margin--xl { margin: var(--oom-spacing-xl); }      /* 32px - replaces direct usage */
 
 /* Padding utilities using Obsidian's official --size-4-* variables */
-.u-padding--xs { padding: var(--size-4-1); }    /* 4px - replaces var(--oom-spacing-xs) */
-.u-padding--sm { padding: var(--size-4-2); }    /* 8px - replaces var(--oom-spacing-sm) */
-.u-padding--md { padding: var(--size-4-4); }    /* 16px - replaces var(--oom-spacing-md) */
-.u-padding--lg { padding: var(--size-4-6); }    /* 24px - replaces var(--oom-spacing-lg) */
-.u-padding--xl { padding: var(--size-4-8); }    /* 32px - replaces var(--oom-spacing-xl) */
+.u-padding--xs { padding: var(--oom-spacing-xs); }    /* 4px - replaces direct usage */
+.u-padding--sm { padding: var(--oom-spacing-sm); }    /* 8px - replaces direct usage */
+.u-padding--md { padding: var(--oom-spacing-md); }    /* 16px - replaces direct usage */
+.u-padding--lg { padding: var(--oom-spacing-lg); }    /* 24px - replaces direct usage */
+.u-padding--xl { padding: var(--oom-spacing-xl); }    /* 32px - replaces direct usage */
 
-/* Gap utilities for flexbox/grid using Obsidian's official variables */
-.u-gap--xs { gap: var(--size-4-1); }            /* 4px - consolidates gap: var(--oom-spacing-xs) */
-.u-gap--sm { gap: var(--size-4-2); }            /* 8px - consolidates gap: var(--oom-spacing-sm) */
-.u-gap--md { gap: var(--size-4-4); }            /* 16px - consolidates gap: var(--oom-spacing-md) */
-.u-gap--lg { gap: var(--size-4-6); }            /* 24px - consolidates gap: var(--oom-spacing-lg) */
+/* Gap utilities for flexbox/grid using reliable oom spacing variables */
+.u-gap--xs { gap: var(--oom-spacing-xs); }            /* 4px - consolidates gap patterns */
+.u-gap--sm { gap: var(--oom-spacing-sm); }            /* 8px - consolidates gap patterns */
+.u-gap--md { gap: var(--oom-spacing-md); }            /* 16px - consolidates gap patterns */
+.u-gap--lg { gap: var(--oom-spacing-lg); }            /* 24px - consolidates gap patterns */
 
 /* Directional spacing utilities for common patterns */
-.u-margin-bottom--sm { margin-bottom: var(--size-4-2); }    /* margin-bottom: var(--oom-spacing-sm) pattern */
-.u-margin-bottom--md { margin-bottom: var(--size-4-4); }    /* margin-bottom: var(--oom-spacing-md) pattern */
-.u-margin-bottom--lg { margin-bottom: var(--size-4-6); }    /* margin-bottom: var(--oom-spacing-lg) pattern */
+.u-margin-bottom--sm { margin-bottom: var(--oom-spacing-sm); }    /* margin-bottom patterns */
+.u-margin-bottom--md { margin-bottom: var(--oom-spacing-md); }    /* margin-bottom patterns */
+.u-margin-bottom--lg { margin-bottom: var(--oom-spacing-lg); }    /* margin-bottom patterns */
 
-.u-margin-top--md { margin-top: var(--size-4-4); }         /* margin-top: var(--oom-spacing-md) pattern */
-.u-margin-top--lg { margin-top: var(--size-4-6); }         /* margin-top: var(--oom-spacing-lg) pattern */
-.u-margin-top--xl { margin-top: var(--size-4-8); }         /* margin-top: var(--oom-spacing-xl) pattern */
+.u-margin-top--md { margin-top: var(--oom-spacing-md); }         /* margin-top patterns */
+.u-margin-top--lg { margin-top: var(--oom-spacing-lg); }         /* margin-top patterns */
+.u-margin-top--xl { margin-top: var(--oom-spacing-xl); }         /* margin-top patterns */
 
 /* =============================================================================
    TRANSITION UTILITIES - Common Animation Patterns
