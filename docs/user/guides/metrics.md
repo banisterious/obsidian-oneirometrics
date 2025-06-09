@@ -37,13 +37,23 @@ OneiroMetrics comes with several built-in metrics:
 |--------|-------------|-------|-------------|
 | Sensory Detail | Vividness of sensory experiences | 1-5 | Rate how vividly you experienced sensations (sight, sound, touch, etc.) |
 | Emotional Recall | Ability to recall emotions | 1-5 | Rate how clearly you remember the emotions felt in the dream |
+| Lost Segments | Lost or forgotten dream segments | Any whole number | Count instances where you know that a part of the dream is missing or has been forgotten. |
 | Descriptiveness | Detail level in written description | 1-5 | Rate how detailed your written account is |
-| Character Roles | Prominence of characters | 1-5 | Rate the significance of characters in the dream narrative |
 | Confidence Score | Confidence in your memory | 1-5 | Rate how confident you are in remembering the dream correctly |
+| Character Roles | Prominence of characters | 1-5 | Rate the significance of characters in the dream narrative |
 | Characters Count | Number of characters appearing | Any whole number | Count distinct characters/entities in the dream |
 | Familiar Count | Number of familiar people/entities | Any whole number | Count people or entities you recognize from waking life |
 | Unfamiliar Count | Number of unfamiliar entities | Any whole number | Count people or entities that were new/unknown to you |
+| Characters List | Characters appearing in the dream | List | List all characters that appeared in your dream |
 | Character Clarity/Familiarity | Distinctness of characters | 1-5 | Rate how clearly you perceived individual characters |
+| Dream Theme |  | 1-5 | The dominant subjects, ideas, or emotional undercurrents present in your dream. |
+| Symbolic Content |  | 1-5 | Note specific objects, figures, actions, or animals in the dream that felt meaningful or symbolic. |
+| Lucidity Level |  | 1-5 | Track your degree of awareness that you are dreaming while the dream is in progress. |
+| Dream Coherence |  | 1-5 | Assesses the logical consistency and narrative flow of your dream. |
+| Environmental Familiarity |  | 1-5 | Track the degree to which the locations and environments in your dream are recognizable from your waking life. |
+| Time Distortion |  | 1-5 | Rate how unusually time behaved in the dream's narrative. |
+| Ease of Recall |  | 1-5 | Assesses how readily and effortlessly you can remember the dream upon waking. |
+| Recall Stability |  | 1-5 | Assesses how well your memory of the dream holds up in the minutes immediately following waking. |
 
 ### Metric Rating Scales
 
