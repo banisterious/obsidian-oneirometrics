@@ -45,6 +45,30 @@ class SafeLoggerImpl implements SafeLogger {
   private initialized = false;
   
   /**
+   * Check if logging should be disabled based on plugin settings
+   */
+  private shouldSkipLogging(): boolean {
+    // Check if we can access plugin settings to respect log level
+    try {
+      // Try to access plugin settings from app data
+      if (typeof window !== 'undefined' && (window as any).app) {
+        const app = (window as any).app;
+        // Try to get OneiroMetrics plugin data
+        if (app.plugins && app.plugins.plugins && app.plugins.plugins['oneirometrics']) {
+          const plugin = app.plugins.plugins['oneirometrics'];
+          const settings = plugin.settings;
+          if (settings && settings.logging && settings.logging.level === 'off') {
+            return true; // Skip logging when explicitly set to 'off'
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore errors when checking settings - fallback to logging
+    }
+    return false;
+  }
+  
+  /**
    * Generic log method (maps to info for backward compatibility)
    */
   log(category: string, message: string, data?: any): void {
@@ -95,6 +119,11 @@ class SafeLoggerImpl implements SafeLogger {
    * Helper to log with a specific level
    */
   private logWithLevel(level: LogLevel, category: string, message: string, data?: any): void {
+    // Check if we should skip logging based on plugin settings (especially for debug messages)
+    if (level === 'debug' && this.shouldSkipLogging()) {
+      return; // Skip debug messages when logging is disabled
+    }
+    
     // Check if we should use the regular logger yet
     if (this.initialized) {
       try {
@@ -111,6 +140,11 @@ class SafeLoggerImpl implements SafeLogger {
         // Failed to use the regular logger, fall back to console
         this.initialized = false;
       }
+    }
+    
+    // Check again for fallback console logging
+    if (level === 'debug' && this.shouldSkipLogging()) {
+      return; // Skip debug console output when logging is disabled
     }
     
     // INTENTIONAL CONSOLE USAGE: These are fallback mechanisms when the structured logging is unavailable

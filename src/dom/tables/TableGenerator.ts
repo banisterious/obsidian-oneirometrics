@@ -382,12 +382,7 @@ export class TableGenerator {
      * @returns HTML content for the summary table
      */
     public generateSummaryTable(metrics: Record<string, number[]>): string {
-        console.log('📊 DEBUG: generateSummaryTable called with metrics:', Object.keys(metrics));
-        console.log('📊 DEBUG: Metrics data sample:', {
-            totalKeys: Object.keys(metrics).length,
-            wordsData: metrics['Words']?.slice(0, 3),
-            sensoryData: metrics['Sensory Detail']?.slice(0, 3)
-        });
+        this.logger?.debug('TableGenerator', 'generateSummaryTable called with metrics', { metricNames: Object.keys(metrics) });
         
         let content = "";
         content += `<div class="oom-table-section oom-stats-section">`;
@@ -419,7 +414,7 @@ export class TableGenerator {
         let hasMetrics = false;
         let rowsAdded = 0;
         
-        console.log('📊 DEBUG: Starting metrics processing loop...');
+        this.logger?.debug('TableGenerator', 'Starting metrics processing loop');
         
         // First, ALWAYS handle Words metric specially (even if not in enabled metrics)
         if (metrics["Words"] && metrics["Words"].length > 0) {
@@ -430,7 +425,7 @@ export class TableGenerator {
             const max = Math.max(...values);
             const total = values.reduce((a, b) => a + b, 0);
             
-            console.log('📊 DEBUG: Processing Words metric:', { avg, min, max, total, count: values.length });
+            this.logger?.debug('TableGenerator', 'Processing Words metric', { avg, min, max, total, count: values.length });
             
             content += "<tr>\n";
             content += `<td>Words <span class="oom-words-total">(total: ${total})</span></td>\n`;
@@ -453,7 +448,7 @@ export class TableGenerator {
             const values = metrics[name];
             if (!values || values.length === 0) continue;
             
-            console.log('📊 DEBUG: Processing metric:', name, { count: values.length, firstFew: values.slice(0, 3) });
+            this.logger?.debug('TableGenerator', 'Processing metric', { name, count: values.length });
             
             hasMetrics = true;
             const avg = values.reduce((a, b) => a + b) / values.length;
@@ -501,7 +496,7 @@ export class TableGenerator {
             const values = metrics[name];
             if (!values || values.length === 0) continue;
             
-            console.log('📊 DEBUG: Processing unlisted metric:', name, { count: values.length });
+            this.logger?.debug('TableGenerator', 'Processing unlisted metric', { name, count: values.length });
             
             hasMetrics = true;
             const avg = values.reduce((a, b) => a + b) / values.length;
@@ -538,7 +533,7 @@ export class TableGenerator {
         }
         
         if (!hasMetrics) {
-            console.log('📊 DEBUG: No metrics found, adding empty row');
+            this.logger?.debug('TableGenerator', 'No metrics found, adding empty row');
             content += '<tr><td colspan="5" class="oom-no-metrics">No metrics available</td></tr>\n';
             rowsAdded++;
         }
@@ -548,11 +543,10 @@ export class TableGenerator {
         content += "</div>\n"; // Close table-container
         content += "</div>\n"; // Close stats-section
         
-        console.log('📊 DEBUG: generateSummaryTable completed', { 
+        this.logger?.debug('TableGenerator', 'generateSummaryTable completed', { 
             hasMetrics, 
             rowsAdded, 
-            contentLength: content.length,
-            contentPreview: content.substring(0, 200) + '...'
+            contentLength: content.length
         });
         
         return content;
