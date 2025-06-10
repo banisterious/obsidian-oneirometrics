@@ -1213,4 +1213,39 @@
 .oomp-tooltip-no-metrics {
     font-style: italic;
     color: #888;
+}
+
+/* Calendar Day Focus Styles for Accessibility */
+.calendar-day:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+    z-index: 1;
+    position: relative;
+}
+
+.calendar-day:focus .day-number {
+    color: var(--interactive-accent);
+    font-weight: 600;
+}
+
+/* High contrast focus for better accessibility */
+@media (prefers-contrast: high) {
+    .calendar-day:focus {
+        outline: 3px solid var(--text-normal);
+        box-shadow: 0 0 0 1px var(--background-primary), 0 0 0 5px var(--text-normal);
+    }
+}
+
+/* Focus visible for keyboard-only navigation */
+.calendar-day:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+}
+
+/* Remove focus outline for mouse clicks */
+.calendar-day:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
 } 
