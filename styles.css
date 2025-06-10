@@ -4409,7 +4409,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (35.0 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (35.4 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -5630,37 +5630,52 @@ h2.oom-metrics-tabs-label {
 
 /* Calendar Day Focus Styles for Accessibility */
 .calendar-day:focus {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: -2px;
-    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+    border: 3px solid var(--interactive-accent) !important;
+    background: var(--background-modifier-hover) !important;
+    outline: none;
+    box-shadow: 0 0 8px rgba(var(--interactive-accent-rgb), 0.3);
     z-index: 1;
     position: relative;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
 }
 
 .calendar-day:focus .day-number {
     color: var(--interactive-accent);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.1em;
 }
 
 /* High contrast focus for better accessibility */
 @media (prefers-contrast: high) {
     .calendar-day:focus {
-        outline: 3px solid var(--text-normal);
-        box-shadow: 0 0 0 1px var(--background-primary), 0 0 0 5px var(--text-normal);
+        border: 4px solid var(--text-normal) !important;
+        background: var(--background-secondary) !important;
+        box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 6px var(--text-normal);
+        transform: scale(1.1);
+    }
+    
+    .calendar-day:focus .day-number {
+        color: var(--text-normal);
+        font-weight: 800;
     }
 }
 
 /* Focus visible for keyboard-only navigation */
 .calendar-day:focus-visible {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: -2px;
-    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--interactive-accent);
+    border: 3px solid var(--interactive-accent) !important;
+    background: var(--background-modifier-hover) !important;
+    outline: none;
+    box-shadow: 0 0 8px rgba(var(--interactive-accent-rgb), 0.3);
+    transform: scale(1.05);
 }
 
 /* Remove focus outline for mouse clicks */
 .calendar-day:focus:not(:focus-visible) {
-    outline: none;
+    border: 1px solid var(--background-modifier-border);
+    background: initial;
     box-shadow: none;
+    transform: none;
 } 
 
 /* =============================================================================
