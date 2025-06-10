@@ -362,10 +362,48 @@
 }
 
 /* =============================================================================
-   MODAL RESPONSIVE DESIGN
+   STICKY FOOTER COMPONENTS - Dream Scrape Tab
    ============================================================================= */
 
-/* Mobile responsiveness */
+/* Dream Scrape Tab Sticky Footer */
+.oom-dream-scrape-sticky-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--oom-z-dropdown);
+    margin-top: auto;
+    padding: var(--oom-spacing-md) var(--oom-spacing-lg);
+    box-shadow: 0 -2px 8px var(--background-modifier-box-shadow);
+    border-top: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+}
+
+.oom-dream-scrape-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.oom-dream-scrape-actions .oom-button {
+    flex: 0 0 auto;
+    min-width: 140px;
+}
+
+/* Ensure the content container has proper layout for sticky footer */
+.oom-metrics-tabs-content:has(.oom-dream-scrape-sticky-footer) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile Adjustments
+   ============================================================================= */
+
 @media (width <= 768px) {
     .oom-modal {
         width: var(--oom-modal-mobile-width);
@@ -402,5 +440,21 @@
         .oom-modal-button {
             width: 100%;
         }
+    }
+    
+    /* Mobile responsive adjustments for sticky footer */
+    .oom-dream-scrape-sticky-footer {
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    }
+    
+    .oom-dream-scrape-actions {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+        max-width: 100%;
+    }
+    
+    .oom-dream-scrape-actions .oom-button {
+        width: 100%;
+        min-width: unset;
     }
 } 

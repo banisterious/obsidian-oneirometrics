@@ -771,7 +771,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: MODALS (11.2 KB)
+   COMPONENT: MODALS (12.7 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Modal Components
@@ -1137,10 +1137,48 @@ h4 {
 }
 
 /* =============================================================================
-   MODAL RESPONSIVE DESIGN
+   STICKY FOOTER COMPONENTS - Dream Scrape Tab
    ============================================================================= */
 
-/* Mobile responsiveness */
+/* Dream Scrape Tab Sticky Footer */
+.oom-dream-scrape-sticky-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--oom-z-dropdown);
+    margin-top: auto;
+    padding: var(--oom-spacing-md) var(--oom-spacing-lg);
+    box-shadow: 0 -2px 8px var(--background-modifier-box-shadow);
+    border-top: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+}
+
+.oom-dream-scrape-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.oom-dream-scrape-actions .oom-button {
+    flex: 0 0 auto;
+    min-width: 140px;
+}
+
+/* Ensure the content container has proper layout for sticky footer */
+.oom-metrics-tabs-content:has(.oom-dream-scrape-sticky-footer) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile Adjustments
+   ============================================================================= */
+
 @media (width <= 768px) {
     .oom-modal {
         width: var(--oom-modal-mobile-width);
@@ -1177,6 +1215,22 @@ h4 {
         .oom-modal-button {
             width: 100%;
         }
+    }
+    
+    /* Mobile responsive adjustments for sticky footer */
+    .oom-dream-scrape-sticky-footer {
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    }
+    
+    .oom-dream-scrape-actions {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+        max-width: 100%;
+    }
+    
+    .oom-dream-scrape-actions .oom-button {
+        width: 100%;
+        min-width: unset;
     }
 } 
 
@@ -2553,7 +2607,7 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (14.5 KB)
+   COMPONENT: UTILITIES (16.1 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -3020,6 +3074,78 @@ td:has(.oom-metric-icon-container) {
         gap: var(--oom-spacing-sm);
         grid-template-columns: 1fr;
     }
+}
+
+/* =============================================================================
+   FEEDBACK SYSTEM - Dream Scrape Feedback Components
+   ============================================================================= */
+
+/* Dream Scrape Feedback Area */
+.oom-dream-scrape-feedback {
+    margin: 16px 0;
+    padding: 0;
+}
+
+.oom-feedback-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Feedback type styles */
+.oom-feedback-info {
+    border-color: var(--text-accent);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-info);
+}
+
+.oom-feedback-warning {
+    border-color: var(--text-warning);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-error-hover);
+}
+
+.oom-feedback-success {
+    border-color: var(--text-success);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-success);
+}
+
+.oom-feedback-error {
+    border-color: var(--text-error);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-error);
+}
+
+.oom-feedback-icon {
+    display: flex;
+    flex-shrink: 0;
+    height: 16px;
+    width: 16px;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-feedback-message {
+    flex: 1;
+    font-weight: 500;
+}
+
+.oom-feedback-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.oom-feedback-buttons .oom-button {
+    height: auto;
+    padding: 4px 12px;
+    font-size: 13px;
 } 
 
 /* =============================================================================

@@ -460,11 +460,17 @@ export default class DreamMetricsPlugin extends Plugin {
         
         // Set container for event handlers and content toggler
         this.container = previewEl;
-        this.eventHandler.setContainer(previewEl);
-        this.contentToggler.setContainer(previewEl);
         
-        // Setup event listeners for project notes
-        this.eventHandler.attachProjectNoteEventListeners();
+        // Only set container if the services are initialized
+        if (this.eventHandler) {
+            this.eventHandler.setContainer(previewEl);
+            // Setup event listeners for project notes
+            this.eventHandler.attachProjectNoteEventListeners();
+        }
+        
+        if (this.contentToggler) {
+            this.contentToggler.setContainer(previewEl);
+        }
         
         // Initialize the table row classes for improved filtering
         // Defer initialization to avoid blocking initial render

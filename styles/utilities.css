@@ -463,4 +463,76 @@
         gap: var(--oom-spacing-sm);
         grid-template-columns: 1fr;
     }
+}
+
+/* =============================================================================
+   FEEDBACK SYSTEM - Dream Scrape Feedback Components
+   ============================================================================= */
+
+/* Dream Scrape Feedback Area */
+.oom-dream-scrape-feedback {
+    margin: 16px 0;
+    padding: 0;
+}
+
+.oom-feedback-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Feedback type styles */
+.oom-feedback-info {
+    border-color: var(--text-accent);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-info);
+}
+
+.oom-feedback-warning {
+    border-color: var(--text-warning);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-error-hover);
+}
+
+.oom-feedback-success {
+    border-color: var(--text-success);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-success);
+}
+
+.oom-feedback-error {
+    border-color: var(--text-error);
+    color: var(--text-normal);
+    background-color: var(--background-modifier-error);
+}
+
+.oom-feedback-icon {
+    display: flex;
+    flex-shrink: 0;
+    height: 16px;
+    width: 16px;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-feedback-message {
+    flex: 1;
+    font-weight: 500;
+}
+
+.oom-feedback-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.oom-feedback-buttons .oom-button {
+    height: auto;
+    padding: 4px 12px;
+    font-size: 13px;
 } 
