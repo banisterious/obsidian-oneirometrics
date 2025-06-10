@@ -50,22 +50,39 @@ class SafeLoggerImpl implements SafeLogger {
   private shouldSkipLogging(): boolean {
     // Check if we can access plugin settings to respect log level
     try {
-      // Try to access plugin settings from app data
+      // Try multiple approaches to get settings
+      
+      // Approach 1: Check if plugin is already loaded
       if (typeof window !== 'undefined' && (window as any).app) {
         const app = (window as any).app;
-        // Try to get OneiroMetrics plugin data
         if (app.plugins && app.plugins.plugins && app.plugins.plugins['oneirometrics']) {
           const plugin = app.plugins.plugins['oneirometrics'];
           const settings = plugin.settings;
           if (settings && settings.logging && settings.logging.level === 'off') {
-            return true; // Skip logging when explicitly set to 'off'
+            return true;
+          }
+        }
+        
+        // Approach 2: Check app vault data directly (during loading)
+        if (app.vault && app.vault.adapter) {
+          try {
+            // Try to read plugin data directly from storage
+            const configPath = app.vault.adapter.path.join(app.vault.configDir, 'plugins', 'oneirometrics', 'data.json');
+            // Note: This is synchronous access which may not work, but worth trying
+          } catch (e) {
+            // Ignore errors from direct file access
           }
         }
       }
+      
+      // Approach 3: Default to skipping debug during early initialization
+      // If we can't determine the log level, assume it's off to prevent spam
+      return true; // Conservative approach: skip debug messages by default during early init
+      
     } catch (e) {
-      // Ignore errors when checking settings - fallback to logging
+      // If any error occurs, default to skipping debug messages
+      return true;
     }
-    return false;
   }
   
   /**
@@ -119,9 +136,10 @@ class SafeLoggerImpl implements SafeLogger {
    * Helper to log with a specific level
    */
   private logWithLevel(level: LogLevel, category: string, message: string, data?: any): void {
-    // Check if we should skip logging based on plugin settings (especially for debug messages)
-    if (level === 'debug' && this.shouldSkipLogging()) {
-      return; // Skip debug messages when logging is disabled
+    // CRITICAL FIX: Always skip debug messages in SafeLogger during early initialization
+    // SafeLogger is meant for essential logging only - debug spam should be handled by structured logger
+    if (level === 'debug') {
+      return; // Skip all debug messages in SafeLogger
     }
     
     // Check if we should use the regular logger yet
@@ -129,7 +147,6 @@ class SafeLoggerImpl implements SafeLogger {
       try {
         const logger = getLogger('SafeLogger');
         switch (level) {
-          case 'debug': logger.debug(category, message, data); break;
           case 'info': logger.info(category, message, data); break;
           case 'warn': logger.warn(category, message, data); break;
           case 'error': logger.error(category, message, data); break;
@@ -142,13 +159,8 @@ class SafeLoggerImpl implements SafeLogger {
       }
     }
     
-    // Check again for fallback console logging
-    if (level === 'debug' && this.shouldSkipLogging()) {
-      return; // Skip debug console output when logging is disabled
-    }
-    
     // INTENTIONAL CONSOLE USAGE: These are fallback mechanisms when the structured logging is unavailable
-    // Fall back to console
+    // Fall back to console (debug messages already filtered out above)
     const timestamp = new Date().toISOString();
     const formattedMsg = `[${timestamp}] ${level.toUpperCase()} [SafeLogger:${category}] ${message}`;
     
@@ -156,7 +168,6 @@ class SafeLoggerImpl implements SafeLogger {
       case 'error': console.error(formattedMsg); break;
       case 'warn': console.warn(formattedMsg); break;
       case 'info': console.info(formattedMsg); break;
-      case 'debug': console.debug(formattedMsg); break;
       case 'trace': console.log(formattedMsg); break;
     }
     

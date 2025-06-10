@@ -741,39 +741,39 @@ export default class DreamMetricsPlugin extends Plugin {
      * Attempt to restore charts from cached data when OneiroMetrics note is viewed
      */
     private async attemptChartRestoration(): Promise<void> {
-        console.log('🔄 RESTORATION DEBUG: attemptChartRestoration called');
+        this.logger?.debug('UI', 'attemptChartRestoration called');
         
         try {
             // Check if chart tabs placeholder exists (indicates the note has the right structure)
             const placeholder = document.querySelector('#oom-chart-tabs-placeholder') as HTMLElement;
             if (!placeholder) {
-                console.log('🔄 RESTORATION DEBUG: No chart placeholder found, note may not have chart structure');
+                this.logger?.debug('UI', 'No chart placeholder found, note may not have chart structure');
                 return;
             }
-
+            
             // Extract dream entries from the DOM table to validate cache
             const dreamEntries = this.extractDreamEntriesFromDOM();
             if (!dreamEntries || dreamEntries.length === 0) {
-                console.log('🔄 RESTORATION DEBUG: No dream entries found in DOM');
+                this.logger?.debug('UI', 'No dream entries found in DOM');
                 this.showChartPlaceholder(placeholder);
                 return;
             }
-
-            console.log('🔄 RESTORATION DEBUG: Found', dreamEntries.length, 'dream entries in DOM');
-
+            
+            this.logger?.debug('UI', 'Found dream entries in DOM', { count: dreamEntries.length });
+            
             // Try to restore charts from cache
             const { ChartDataPersistence } = await import('./src/state/ChartDataPersistence');
             const persistence = new ChartDataPersistence(this.app, this, this.logger);
             
             const cacheStatus = await persistence.getCacheStatus(dreamEntries);
-            console.log('🔄 RESTORATION DEBUG: Cache status:', cacheStatus);
-
+            this.logger?.debug('UI', 'Cache status', cacheStatus);
+            
             if (cacheStatus.hasCache && cacheStatus.isValid) {
-                console.log('🔄 RESTORATION DEBUG: Attempting to restore charts from cache');
+                this.logger?.debug('UI', 'Attempting to restore charts from cache');
                 const cachedData = await persistence.restoreChartData(dreamEntries);
                 
                 if (cachedData) {
-                    console.log('🔄 RESTORATION DEBUG: Successfully restored cached chart data');
+                    this.logger?.debug('UI', 'Successfully restored cached chart data');
                     // Initialize charts with cached data via TableGenerator
                     const tableGenerator = new (await import('./src/dom/tables/TableGenerator')).TableGenerator(
                         this.settings, 
@@ -782,17 +782,16 @@ export default class DreamMetricsPlugin extends Plugin {
                         this
                     );
                     await tableGenerator.initializeChartTabs(cachedData.metrics, dreamEntries);
-                    console.log('🔄 RESTORATION DEBUG: Charts restored successfully');
+                    this.logger?.debug('UI', 'Charts restored successfully');
                     return;
                 }
             }
 
             // If we get here, cache is invalid or missing
-            console.log('🔄 RESTORATION DEBUG: No valid cache found, showing placeholder');
+            this.logger?.debug('UI', 'No valid cache found, showing placeholder');
             this.showChartPlaceholder(placeholder);
 
         } catch (error) {
-            console.error('🔄 RESTORATION DEBUG: Error during chart restoration:', error);
             this.logger?.error('UI', 'Chart restoration failed', error as Error);
             
             // Show placeholder on error
@@ -807,81 +806,105 @@ export default class DreamMetricsPlugin extends Plugin {
      * Extract dream entries from the DOM table for cache validation
      */
     private extractDreamEntriesFromDOM(): DreamMetricData[] {
-        console.log('🔄 EXTRACTION DEBUG: Extracting dream entries from DOM');
+        this.logger?.debug('UI', 'Extracting dream entries from DOM');
         
-        try {
-            const dreamEntries: DreamMetricData[] = [];
-            const tableRows = document.querySelectorAll('#oom-dream-entries-table tbody tr.oom-dream-row');
-            
-            console.log('🔄 EXTRACTION DEBUG: Found', tableRows.length, 'table rows');
-
-            tableRows.forEach((row, index) => {
-                try {
-                    const dateCell = row.querySelector('.column-date');
-                    const titleCell = row.querySelector('.oom-dream-title a');
-                    const contentCell = row.querySelector('.oom-dream-content');
-                    
-                    if (!dateCell || !titleCell) {
-                        console.log('🔄 EXTRACTION DEBUG: Skipping row', index, '- missing date or title');
-                        return;
-                    }
-
-                    const dateAttr = row.getAttribute('data-date');
-                    const title = titleCell.textContent?.trim() || '';
-                    
-                    if (!dateAttr || !title) {
-                        console.log('🔄 EXTRACTION DEBUG: Skipping row', index, '- invalid date or title');
-                        return;
-                    }
-
-                    // Extract metrics from the row
-                    const metrics: Record<string, number> = {};
-                    const metricCells = row.querySelectorAll('.metric-value');
-                    metricCells.forEach(cell => {
-                        const metricName = cell.getAttribute('data-metric');
-                        const metricValue = cell.textContent?.trim();
-                        
-                        if (metricName && metricValue && metricValue !== '') {
-                            const numValue = parseInt(metricValue, 10);
-                            if (!isNaN(numValue)) {
-                                metrics[metricName] = numValue;
-                            }
-                        }
-                    });
-
-                    // Extract content (simplified for cache validation)
-                    const content = contentCell?.textContent?.trim() || '';
-
-                    const entry: DreamMetricData = {
-                        date: dateAttr,
-                        title: title,
-                        content: content,
-                        metrics: metrics,
-                        wordCount: metrics['Words'] || 0,
-                        source: `extracted-from-dom#entry-${dateAttr}`
-                    };
-
-                    dreamEntries.push(entry);
-                    
-                } catch (error) {
-                    console.error('🔄 EXTRACTION DEBUG: Error processing row', index, ':', error);
+        const dreamEntries: DreamMetricData[] = [];
+        
+        // Find the main table with dream data
+        const tableRows = document.querySelectorAll('.oom-table tbody tr');
+        this.logger?.debug('UI', 'Found table rows', { count: tableRows.length });
+        
+        tableRows.forEach((row, index) => {
+            try {
+                // Extract date from the first cell
+                const dateCell = row.querySelector('td:first-child') as HTMLElement;
+                const titleCell = row.querySelector('td:nth-child(2)') as HTMLElement;
+                
+                if (!dateCell || !titleCell) {
+                    this.logger?.debug('UI', 'Skipping row - missing date or title', { index });
+                    return;
                 }
-            });
-
-            console.log('🔄 EXTRACTION DEBUG: Successfully extracted', dreamEntries.length, 'entries');
-            return dreamEntries;
-            
-        } catch (error) {
-            console.error('🔄 EXTRACTION DEBUG: Error extracting dream entries:', error);
-            return [];
-        }
+                
+                const dateText = dateCell.textContent?.trim();
+                const titleText = titleCell.textContent?.trim();
+                
+                if (!dateText || !titleText) {
+                    this.logger?.debug('UI', 'Skipping row - invalid date or title', { index });
+                    return;
+                }
+                
+                // Parse the date
+                const dreamDate = new Date(dateText);
+                if (isNaN(dreamDate.getTime())) {
+                    return; // Skip invalid dates
+                }
+                
+                // Extract metrics from remaining cells
+                const metricCells = row.querySelectorAll('td:nth-child(n+3)');
+                const metrics: { [key: string]: number } = {};
+                
+                metricCells.forEach((cell, cellIndex) => {
+                    const value = parseFloat(cell.textContent?.trim() || '0');
+                    if (!isNaN(value)) {
+                        // Use generic metric names for now
+                        const metricName = `metric_${cellIndex + 1}`;
+                        metrics[metricName] = value;
+                    }
+                });
+                
+                dreamEntries.push({
+                    date: dateText, // Use string instead of Date object
+                    title: titleText,
+                    content: '', // Not available from DOM
+                    metrics,
+                    source: `extracted-from-dom#row-${index}`,
+                    wordCount: 0 // Not available from DOM extraction
+                });
+                
+            } catch (error) {
+                // Skip problematic rows
+            }
+        });
+        
+        this.logger?.debug('UI', 'Successfully extracted entries', { count: dreamEntries.length });
+        
+        // Add accessibility commands
+        this.logger?.debug('Accessibility', 'Registering essential accessibility command');
+        
+        this.addCommand({
+            id: 'open-date-navigator-accessible',
+            name: 'Open Date Navigator (Accessible)',
+            callback: () => {
+                this.logger?.debug('Accessibility', 'Opening Date Navigator');
+                this.openDateNavigatorAccessible();
+            },
+        });
+        
+        this.logger?.debug('Accessibility', 'Essential accessibility command registered successfully');
+        
+        // Add accessibility validation context for debugging
+        const activeFile = this.app.workspace.getActiveFile();
+        const projectNotePath = getProjectNotePath(this.settings);
+        const isOneiroNoteActive = activeFile && projectNotePath && activeFile.path === projectNotePath;
+        const isNavigatorReady = !!this.dateNavigatorManager;
+        const isValid = this.validateAccessibilityContext();
+        
+        this.logger?.debug('Accessibility', 'Date Navigator Accessibility Check', {
+            activeFile: activeFile?.path,
+            projectNote: projectNotePath,
+            isOneiroNoteActive,
+            isNavigatorReady,
+            isValid
+        });
+        
+        return dreamEntries;
     }
 
     /**
      * Show a placeholder message when no charts are available
      */
     private showChartPlaceholder(placeholder: HTMLElement): void {
-        console.log('🔄 PLACEHOLDER DEBUG: Showing chart placeholder');
+        this.logger?.debug('UI', 'Showing chart placeholder');
         
         placeholder.innerHTML = `
             <div class="oom-chart-placeholder">
@@ -912,7 +935,7 @@ export default class DreamMetricsPlugin extends Plugin {
                     const modalsManager = new ModalsManager(this.app, this, null);
                     modalsManager.openHubModal();
                 } catch (error) {
-                    console.error('Error opening Hub from chart placeholder:', error);
+                    this.logger?.error('Error opening Hub from chart placeholder:', error);
                     new Notice('Error opening OneiroMetrics Hub');
                 }
             });
@@ -924,7 +947,7 @@ export default class DreamMetricsPlugin extends Plugin {
      * Simplified implementation focusing on core functionality
      */
     private addAccessibilityCommands(): void {
-        console.log('🔍 Registering essential accessibility command...');
+        this.logger?.debug('Accessibility', 'Registering essential accessibility command');
         
         // Essential Date Navigator opening command
         this.addCommand({
@@ -935,7 +958,7 @@ export default class DreamMetricsPlugin extends Plugin {
                 const isReady = this.validateAccessibilityContext();
                 
                 if (isReady && !checking) {
-                    console.log('🔍 Opening Date Navigator');
+                    this.logger?.debug('Accessibility', 'Opening Date Navigator');
                     this.openDateNavigatorAccessible();
                 }
                 
@@ -943,7 +966,7 @@ export default class DreamMetricsPlugin extends Plugin {
             }
         });
         
-        console.log('🔍 Essential accessibility command registered successfully');
+        this.logger?.debug('Accessibility', 'Essential accessibility command registered successfully');
     }
 
     /**
@@ -959,7 +982,7 @@ export default class DreamMetricsPlugin extends Plugin {
         const isValid = isOneiroNoteActive && isNavigatorReady;
         
         // DEBUG: Log validation details
-        console.log('🔍 Date Navigator Accessibility Check:', {
+        this.logger?.debug('Accessibility', 'Date Navigator Accessibility Check', {
             activeFile: activeFile?.path,
             projectNote: this.settings.projectNote,
             isOneiroNoteActive,
@@ -969,8 +992,6 @@ export default class DreamMetricsPlugin extends Plugin {
         
         return isValid;
     }
-
-
 
     /**
      * Checks if scraping is currently in progress
@@ -998,8 +1019,6 @@ export default class DreamMetricsPlugin extends Plugin {
             new Notice('Error opening Date Navigator');
         }
     }
-
-
 }
 
 // Helper to extract date for a dream entry

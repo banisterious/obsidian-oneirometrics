@@ -27,56 +27,67 @@ export class ChartDataPersistence {
     }
 
     /**
+     * Debug helper that respects log level settings
+     */
+    private debugLog(message: string, ...args: any[]): void {
+        // Only log if logger is available and configured for debug level
+        if (this.logger) {
+            this.logger.debug('ChartDataPersistence', message, ...args);
+        }
+    }
+
+    /**
      * Generate a unique scrape ID based on dream entries content
      * This ID changes when the underlying data changes, invalidating cache
      */
     generateScrapeId(dreamEntries: DreamMetricData[]): string {
-        try {
-            console.log('🔄 SCRAPE ID DEBUG: Generating scrape ID for', dreamEntries.length, 'entries');
-            
-            if (!dreamEntries || dreamEntries.length === 0) {
-                console.log('🔄 SCRAPE ID DEBUG: Empty dataset - returning empty-dataset');
-                return 'empty-dataset';
+        if (this.logger) {
+            this.logger.debug('ChartDataPersistence', 'Generating scrape ID for entries', { count: dreamEntries.length });
+        }
+        
+        if (!dreamEntries || dreamEntries.length === 0) {
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Empty dataset - returning empty-dataset');
             }
+            return 'empty-dataset';
+        }
 
-            // Create content signature based on entries and their metrics
-            const contentSignature = dreamEntries
-                .map(entry => {
-                    const metricKeys = Object.keys(entry.metrics || {}).sort();
-                    const metricValues = metricKeys.map(key => entry.metrics?.[key] || 0);
-                    return `${entry.date}-${metricKeys.length}-${metricValues.join(',')}`;
-                })
-                .join('|');
+        // Create content signature based on entries and their metrics
+        const contentSignature = dreamEntries
+            .map(entry => {
+                const metricKeys = Object.keys(entry.metrics || {}).sort();
+                const metricValues = metricKeys.map(key => entry.metrics?.[key] || 0);
+                return `${entry.date}-${metricKeys.length}-${metricValues.join(',')}`;
+            })
+            .join('|');
 
-            // Add entry count and total metrics for quick validation
-            const entryCount = dreamEntries.length;
-            const totalMetrics = dreamEntries.reduce((total, entry) => 
-                total + Object.keys(entry.metrics || {}).length, 0
-            );
+        // Add entry count and total metrics for quick validation
+        const entryCount = dreamEntries.length;
+        const totalMetrics = dreamEntries.reduce((total, entry) => 
+            total + Object.keys(entry.metrics || {}).length, 0
+        );
 
-            const fullSignature = `${entryCount}-${totalMetrics}-${contentSignature}`;
-            console.log('🔄 SCRAPE ID DEBUG: Full signature length:', fullSignature.length);
-            console.log('🔄 SCRAPE ID DEBUG: Entry count:', entryCount, 'Total metrics:', totalMetrics);
-            
-            // Generate hash-like ID (simple but effective)
-            const scrapeId = btoa(fullSignature)
-                .replace(/[+/=]/g, '') // Remove base64 special chars
-                .slice(0, 16);
+        const fullSignature = `${entryCount}-${totalMetrics}-${contentSignature}`;
+        if (this.logger) {
+            this.logger.debug('ChartDataPersistence', 'Full signature length:', { length: fullSignature.length });
+            this.logger.debug('ChartDataPersistence', 'Entry count:', { count: entryCount, totalMetrics });
+        }
+        
+        // Generate hash-like ID (simple but effective)
+        const scrapeId = btoa(fullSignature)
+            .replace(/[+/=]/g, '') // Remove base64 special chars
+            .slice(0, 16);
 
-            console.log('🔄 SCRAPE ID DEBUG: Generated scrape ID:', scrapeId);
-
-            this.logger?.debug('ChartDataPersistence', 'Generated scrape ID', {
+        if (this.logger) {
+            this.logger.debug('ChartDataPersistence', 'Generated scrape ID:', { scrapeId });
+            this.logger.debug('ChartDataPersistence', 'Generated scrape ID details:', {
                 scrapeId,
                 entryCount,
                 totalMetrics
             });
-
-            return scrapeId;
-        } catch (error) {
-            console.error('🔄 SCRAPE ID DEBUG: Error generating scrape ID:', error);
-            this.logger?.error('ChartDataPersistence', 'Error generating scrape ID', error);
-            return `error-${Date.now()}`;
         }
+
+        return scrapeId;
     }
 
     /**
@@ -84,7 +95,9 @@ export class ChartDataPersistence {
      */
     async saveChartData(data: ChartTabData, dreamEntries: DreamMetricData[]): Promise<void> {
         try {
-            this.logger?.debug('ChartDataPersistence', 'Saving chart data to cache');
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Saving chart data to cache');
+            }
 
             const scrapeId = this.generateScrapeId(dreamEntries);
             
@@ -99,26 +112,32 @@ export class ChartDataPersistence {
 
             // Load existing plugin data and add chart data
             const existingData = await this.plugin.loadData() || {};
-            console.log('🔄 SAVE DEBUG: Existing plugin data keys before save:', Object.keys(existingData));
-            console.log('🔄 SAVE DEBUG: Saving under key:', ChartDataPersistence.CHART_DATA_KEY);
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Existing plugin data keys before save:', { keys: Object.keys(existingData) });
+                this.logger.debug('ChartDataPersistence', 'Saving under key:', ChartDataPersistence.CHART_DATA_KEY);
+            }
             
             existingData[ChartDataPersistence.CHART_DATA_KEY] = persistedData;
             
-            console.log('🔄 SAVE DEBUG: Plugin data keys after adding chart data:', Object.keys(existingData));
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Plugin data keys after adding chart data:', { keys: Object.keys(existingData) });
+            }
             
             // Save back to plugin data storage
             await this.plugin.saveData(existingData);
             
-            console.log('🔄 SAVE DEBUG: Plugin data saved successfully');
-
-            this.logger?.info('ChartDataPersistence', 'Chart data saved successfully', {
-                scrapeId,
-                entryCount: persistedData.entryCount,
-                metricsCount: persistedData.metricsCount
-            });
+            if (this.logger) {
+                this.logger.info('ChartDataPersistence', 'Chart data saved successfully', {
+                    scrapeId,
+                    entryCount: persistedData.entryCount,
+                    metricsCount: persistedData.metricsCount
+                });
+            }
 
         } catch (error) {
-            this.logger?.error('ChartDataPersistence', 'Failed to save chart data', error);
+            if (this.logger) {
+                this.logger.error('ChartDataPersistence', 'Failed to save chart data', error);
+            }
             throw error;
         }
     }
@@ -133,7 +152,9 @@ export class ChartDataPersistence {
             const savedData = pluginData[ChartDataPersistence.CHART_DATA_KEY] as PersistedChartData;
             
             if (!savedData) {
-                this.logger?.debug('ChartDataPersistence', 'No cached chart data found');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'No cached chart data found');
+                }
                 return null;
             }
 
@@ -142,21 +163,27 @@ export class ChartDataPersistence {
             
             // Check if cached data is still valid
             if (!this.isDataValid(savedData, currentScrapeId, currentDreamEntries)) {
-                this.logger?.debug('ChartDataPersistence', 'Cached data invalid, clearing cache');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'Cached data invalid, clearing cache');
+                }
                 await this.clearChartData();
                 return null;
             }
 
-            this.logger?.info('ChartDataPersistence', 'Successfully restored chart data from cache', {
-                scrapeId: savedData.scrapeId,
-                age: Date.now() - savedData.timestamp,
-                entryCount: savedData.entryCount
-            });
+            if (this.logger) {
+                this.logger.info('ChartDataPersistence', 'Successfully restored chart data from cache', {
+                    scrapeId: savedData.scrapeId,
+                    age: Date.now() - savedData.timestamp,
+                    entryCount: savedData.entryCount
+                });
+            }
 
             return savedData.data;
 
         } catch (error) {
-            this.logger?.error('ChartDataPersistence', 'Error restoring chart data', error);
+            if (this.logger) {
+                this.logger.error('ChartDataPersistence', 'Error restoring chart data', error);
+            }
             // Clear corrupted data
             await this.clearChartData();
             return null;
@@ -208,9 +235,13 @@ export class ChartDataPersistence {
             // Save back to plugin data storage
             await this.plugin.saveData(existingData);
             
-            this.logger?.debug('ChartDataPersistence', 'Chart data cache cleared');
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Chart data cache cleared');
+            }
         } catch (error) {
-            this.logger?.error('ChartDataPersistence', 'Error clearing chart data', error);
+            if (this.logger) {
+                this.logger.error('ChartDataPersistence', 'Error clearing chart data', error);
+            }
         }
     }
 
@@ -225,39 +256,53 @@ export class ChartDataPersistence {
         entryCount?: number;
     }> {
         try {
-            console.log('🔄 CACHE DEBUG: getCacheStatus called with', dreamEntries.length, 'entries');
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'getCacheStatus called with entries', { count: dreamEntries.length });
+            }
             
             const data = await this.plugin.loadData();
-            console.log('🔄 CACHE DEBUG: Plugin data loaded:', !!data);
-            console.log('🔄 CACHE DEBUG: Plugin data keys:', data ? Object.keys(data) : 'no data');
-            console.log('🔄 CACHE DEBUG: Looking for key:', ChartDataPersistence.CHART_DATA_KEY);
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Plugin data loaded:', !!data);
+                this.logger.debug('ChartDataPersistence', 'Plugin data keys:', data ? Object.keys(data) : 'no data');
+                this.logger.debug('ChartDataPersistence', 'Looking for key:', ChartDataPersistence.CHART_DATA_KEY);
+            }
             
             const cachedData = data?.[ChartDataPersistence.CHART_DATA_KEY] as PersistedChartData;
-            console.log('🔄 CACHE DEBUG: Cached data found:', !!cachedData);
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Cached data found:', !!cachedData);
+            }
             
             if (!cachedData) {
-                this.logger?.debug('ChartPersistence', 'No cached data found');
-                console.log('🔄 CACHE DEBUG: No cached data - returning hasCache: false');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'No cached data found');
+                    this.logger.debug('ChartDataPersistence', 'No cached data - returning hasCache: false');
+                }
                 return { hasCache: false };
             }
 
-            console.log('🔄 CACHE DEBUG: Cached data details:', {
-                scrapeId: cachedData.scrapeId,
-                entryCount: cachedData.entryCount,
-                metricsCount: cachedData.metricsCount,
-                timestamp: cachedData.timestamp,
-                version: cachedData.version
-            });
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Cached data details:', {
+                    scrapeId: cachedData.scrapeId,
+                    entryCount: cachedData.entryCount,
+                    metricsCount: cachedData.metricsCount,
+                    timestamp: cachedData.timestamp,
+                    version: cachedData.version
+                });
+            }
 
             // Generate current scrape ID for comparison
             const currentScrapeId = this.generateScrapeId(dreamEntries);
-            console.log('🔄 CACHE DEBUG: Current scrape ID:', currentScrapeId);
-            console.log('🔄 CACHE DEBUG: Cached scrape ID:', cachedData.scrapeId);
-            console.log('🔄 CACHE DEBUG: Scrape IDs match:', currentScrapeId === cachedData.scrapeId);
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Current scrape ID:', currentScrapeId);
+                this.logger.debug('ChartDataPersistence', 'Cached scrape ID:', cachedData.scrapeId);
+                this.logger.debug('ChartDataPersistence', 'Scrape IDs match:', currentScrapeId === cachedData.scrapeId);
+            }
             
             // Validate cache
             const isValid = this.validateCachedData(cachedData, currentScrapeId, dreamEntries.length);
-            console.log('🔄 CACHE DEBUG: Cache validation result:', isValid);
+            if (this.logger) {
+                this.logger.debug('ChartDataPersistence', 'Cache validation result:', isValid);
+            }
             
             return {
                 hasCache: true,
@@ -267,8 +312,10 @@ export class ChartDataPersistence {
                 entryCount: cachedData.entryCount
             };
         } catch (error) {
-            console.error('🔄 CACHE DEBUG: Error in getCacheStatus:', error);
-            this.logger?.error('ChartPersistence', 'Error checking cache status', error as Error);
+            if (this.logger) {
+                this.logger.error('ChartDataPersistence', 'Error in getCacheStatus:', error);
+                this.logger.error('ChartDataPersistence', 'Error checking cache status', error as Error);
+            }
             return { hasCache: false };
         }
     }
@@ -280,19 +327,25 @@ export class ChartDataPersistence {
         try {
             // Check version compatibility
             if (cachedData.version !== ChartDataPersistence.VERSION) {
-                this.logger?.debug('ChartPersistence', 'Cache invalid: version mismatch');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'Cache invalid: version mismatch');
+                }
                 return false;
             }
 
             // Check if scrape ID matches (data hasn't changed)
             if (cachedData.scrapeId !== currentScrapeId) {
-                this.logger?.debug('ChartPersistence', 'Cache invalid: scrape ID mismatch');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'Cache invalid: scrape ID mismatch');
+                }
                 return false;
             }
 
             // Check entry count
             if (cachedData.entryCount !== currentEntryCount) {
-                this.logger?.debug('ChartPersistence', 'Cache invalid: entry count mismatch');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'Cache invalid: entry count mismatch');
+                }
                 return false;
             }
 
@@ -300,13 +353,17 @@ export class ChartDataPersistence {
             const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
             const age = Date.now() - cachedData.timestamp;
             if (age > maxAge) {
-                this.logger?.debug('ChartPersistence', 'Cache invalid: too old');
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'Cache invalid: too old');
+                }
                 return false;
             }
 
             return true;
         } catch (error) {
-            this.logger?.error('ChartPersistence', 'Error validating cache', error as Error);
+            if (this.logger) {
+                this.logger.error('ChartDataPersistence', 'Error validating cache', error as Error);
+            }
             return false;
         }
     }
