@@ -9,7 +9,6 @@ export interface EnhancedNavigationState {
     viewMode: 'month' | 'quarter';
     selectedDates: Date[];
     selectionMode: 'single' | 'range' | 'multi';
-    navigationMemory: Date[];
     dreamEntries: Map<string, any[]>;
     visualizationStyle: 'composite-dots' | 'quality-gradients' | 'multi-layer' | 'minimalist-icons';
 }
@@ -42,7 +41,6 @@ export class EnhancedDateNavigatorModal extends Modal {
             viewMode: 'month',
             selectedDates: [],
             selectionMode: 'single',
-            navigationMemory: [],
             dreamEntries: new Map(),
             visualizationStyle: 'composite-dots'
         };
@@ -81,9 +79,9 @@ export class EnhancedDateNavigatorModal extends Modal {
                 cls: 'enhanced-date-navigator-container'
             });
 
-            // Build sections
-            this.buildNavigationSection();
-            this.buildSelectionModeControls();
+            // Build optimized two-row header sections
+            this.buildOptimizedNavigationHeader();
+            this.buildOptimizedInteractionHeader();
             this.buildCalendarSection();
             this.buildActionSection();
 
@@ -94,38 +92,57 @@ export class EnhancedDateNavigatorModal extends Modal {
         }
     }
 
-    private buildNavigationSection(): void {
+    /**
+     * Build the optimized first row: Year, Jump to Month, Quarter View, Date Input, Go
+     */
+    private buildOptimizedNavigationHeader(): void {
         this.navigationSection = this.mainContainer.createDiv({
-            cls: 'enhanced-nav-section'
+            cls: 'enhanced-nav-section optimized-nav-row'
         });
 
-        // Navigation header
-        const navHeader = this.navigationSection.createDiv({
-            cls: 'nav-header'
+        // Primary navigation controls row
+        const navRow = this.navigationSection.createDiv({
+            cls: 'nav-header optimized-nav-header'
         });
 
-        // Enhanced navigation controls
-        this.buildYearPicker(navHeader);
-        this.buildMonthJump(navHeader);
-        this.buildQuarterToggle(navHeader);
-        this.buildVisualizationDropdown(navHeader);
-        this.buildGoToDate(navHeader);
-        this.buildNavigationMemory(navHeader);
+        // Core navigation controls (no wrapping)
+        this.buildYearPicker(navRow);
+        this.buildMonthJump(navRow);
+        this.buildQuarterToggle(navRow);
+        this.buildGoToDate(navRow);
     }
 
-    private buildSelectionModeControls(): void {
-        // Selection mode controls section
-        const selectionModeSection = this.mainContainer.createDiv({
-            cls: 'selection-mode-section'
+    /**
+     * Build the optimized second row: Selection Mode and Patterns (Recent removed)
+     */
+    private buildOptimizedInteractionHeader(): void {
+        const interactionSection = this.mainContainer.createDiv({
+            cls: 'enhanced-interaction-section optimized-interaction-row'
         });
 
-        const modeLabel = selectionModeSection.createDiv({
-            cls: 'mode-label',
-            text: 'Selection Mode:'
+        const interactionRow = interactionSection.createDiv({
+            cls: 'interaction-header optimized-interaction-header'
         });
 
-        const modeButtons = selectionModeSection.createDiv({
-            cls: 'mode-buttons'
+        // Center: Selection Mode Controls
+        const centerSection = interactionRow.createDiv({
+            cls: 'interaction-center'
+        });
+        this.buildSelectionModeButtons(centerSection);
+
+        // Right: Patterns/Visualization
+        const rightSection = interactionRow.createDiv({
+            cls: 'interaction-right'
+        });
+        this.buildVisualizationDropdown(rightSection);
+    }
+
+    /**
+     * Build selection mode buttons for the optimized layout
+     */
+    private buildSelectionModeButtons(container: HTMLElement): void {
+        const modeButtons = container.createDiv({
+            cls: 'mode-buttons optimized-mode-buttons'
         });
 
         const singleBtn = modeButtons.createEl('button', {
@@ -278,7 +295,6 @@ export class EnhancedDateNavigatorModal extends Modal {
             this.state.currentDate = newDate;
             this.updateCalendar();
             this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
-            this.addToNavigationMemory(new Date(selectedYear, 0, 1));
         });
     }
 
@@ -351,7 +367,6 @@ export class EnhancedDateNavigatorModal extends Modal {
                 
                 this.updateCalendar();
                 this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
-                this.addToNavigationMemory(new Date(newDate));
                 menu.remove();
                 
                 this.plugin.logger?.trace('EnhancedDateNavigator', 'Month jump - switched to month view', {
@@ -582,54 +597,46 @@ export class EnhancedDateNavigatorModal extends Modal {
         dateInput.value = this.state.currentDate.toISOString().split('T')[0];
 
         const handleGoToDate = () => {
-            const inputValue = dateInput.value;
-            if (!inputValue) {
-                new Notice('Please enter a valid date');
-                return;
+            const inputValue = dateInput.value.trim();
+            if (!inputValue) return;
+
+            let targetDate: Date | null = null;
+
+            // Support various date formats
+            if (/^\d{4}-\d{2}-\d{2}$/.test(inputValue)) {
+                // YYYY-MM-DD format
+                targetDate = new Date(inputValue + 'T00:00:00');
+            } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(inputValue)) {
+                // MM/DD/YYYY format
+                targetDate = new Date(inputValue);
+            } else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(inputValue)) {
+                // MM-DD-YYYY format
+                const parts = inputValue.split('-');
+                targetDate = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
             }
 
-            try {
-                const targetDate = new Date(inputValue + 'T00:00:00');
-                if (isNaN(targetDate.getTime())) {
-                    new Notice('Invalid date format');
-                    return;
-                }
-
-                this.state.currentDate = targetDate;
-                
-                // Switch to month view and update quarter toggle
-                this.state.viewMode = 'month';
-                const toggleInput = this.mainContainer.querySelector('.toggle-switch input') as HTMLInputElement;
-                if (toggleInput) {
-                    toggleInput.checked = false;
-                }
-                
+            if (targetDate && !isNaN(targetDate.getTime())) {
+                this.state.currentDate = new Date(targetDate);
                 this.updateCalendar();
                 this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
-                this.addToNavigationMemory(new Date(targetDate));
-                
+                dateInput.value = '';
                 new Notice(`Navigated to ${targetDate.toLocaleDateString()}`);
-                
-                this.plugin.logger?.trace('EnhancedDateNavigator', 'Go to date - switched to month view', {
-                    targetDate: targetDate.toISOString()
-                });
-            } catch (error) {
-                new Notice('Error parsing date');
-                this.plugin.logger?.error('EnhancedDateNavigator', 'Error parsing date', error);
+            } else {
+                new Notice('Invalid date format. Use YYYY-MM-DD, MM/DD/YYYY, or MM-DD-YYYY');
             }
         };
 
-        goButton.addEventListener('click', handleGoToDate);
-        dateInput.addEventListener('keydown', (e) => {
+        dateInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 handleGoToDate();
             }
         });
 
-        // Update input when current date changes
-        dateInput.addEventListener('change', () => {
-            const newDate = new Date(dateInput.value + 'T00:00:00');
-            if (!isNaN(newDate.getTime())) {
+        goButton.addEventListener('click', handleGoToDate);
+
+        // Update button state based on input
+        dateInput.addEventListener('input', () => {
+            if (dateInput.value.trim()) {
                 goButton.disabled = false;
             } else {
                 goButton.disabled = true;
@@ -1862,8 +1869,8 @@ export class EnhancedDateNavigatorModal extends Modal {
 
     private clearSelection(): void {
         this.state.selectedDates = [];
-        this.updateCalendar();
-        new Notice('Selection cleared');
+        this.updateCalendarVisualState();
+        this.updateSelectionInfo();
     }
 
     private addToNavigationMemory(date: Date): void {
@@ -1949,7 +1956,6 @@ export class EnhancedDateNavigatorModal extends Modal {
         
         // Clean up state
         this.state.selectedDates = [];
-        this.state.navigationMemory = [];
         this.state.dreamEntries.clear();
         
         this.plugin.logger?.info('EnhancedDateNavigator', 'Modal cleanup completed');
