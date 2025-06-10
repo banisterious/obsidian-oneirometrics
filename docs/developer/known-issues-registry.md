@@ -53,7 +53,7 @@ This document tracks technical issues, limitations, and known bugs that have bee
 |----------|-------|----------|---------------------|-------------------|
 | Initialization Issues | 5 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
 | Module Dependencies | 4 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
-| UI and Rendering | 4 | Medium | 0% | [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) |
+| UI and Rendering | 5 | Medium | 0% | [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) |
 | Dream Entry Detection | 3 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
 | Architecture Design | 4 | High | 0% | [Refactoring Lessons](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) |
 | Implementation Approach | 4 | Medium | 0% | [Post-Refactoring Roadmap](./implementation/post-refactoring-roadmap.md) |
@@ -80,6 +80,7 @@ This document tracks technical issues, limitations, and known bugs that have bee
 
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
+| ISSUE-25-013 | Enhanced Date Navigator | Keyboard navigation (arrow keys) in compact month grids (dual/quarter view) does not work properly across multiple month calendars | Medium - Users can tab to grids but arrow keys don't navigate within individual month grids, affecting accessibility | 2025-01-15 | TBD |
 
 ### Scraping and Metrics Note Issues
 
@@ -163,6 +164,39 @@ The DateNavigator.ts file had several type errors related to incompatibilities b
    - Update all imports to use the consolidated type
    - Remove duplicate type definitions to prevent future incompatibilities
 
+### ISSUE-25-013 (Enhanced Date Navigator Keyboard Navigation)
+This issue affects keyboard accessibility in the Enhanced Date Navigator modal when using dual or quarter view modes.
+
+**Problem Description:**
+- Users can tab to individual month grids in dual/quarter view
+- Arrow key navigation does not work properly within month grids
+- Tab navigation works between grids but arrow keys should work within each grid independently
+- Affects screen reader users and keyboard-only navigation
+
+**Resolution Attempts Made:**
+1. **Initial Fix**: Added basic keyboard navigation with `setupCompactCalendarAccessibility` method
+2. **Enter/Space Behavior**: Fixed Enter/Space to select dates instead of switching view modes
+3. **Inter-Grid Navigation**: Implemented coordinated tab order system between multiple grids
+4. **Visual Feedback**: Added focus event handlers for immediate visual feedback
+5. **Scope Isolation**: Updated `getAdjacentCompactCell` to use `closest('.oomp-compact-days-container')` instead of `parentElement`
+6. **Architecture Simplification**: Removed complex roving tabindex management in favor of simpler approach
+
+**Current Status:**
+Despite multiple incremental fixes addressing different aspects (scoping, event handling, visual feedback, tabindex management), the core keyboard navigation within month grids remains non-functional. The issue may require fundamental architectural changes to the accessibility pattern rather than incremental fixes.
+
+**Recommended Future Approach:**
+- Consider complete rewrite of compact calendar accessibility implementation
+- Investigate whether DOM structure conflicts with accessibility patterns
+- May need to separate single-month and multi-month accessibility implementations entirely
+- Test with actual screen reader software to validate proper ARIA implementation
+
+**Files Affected:**
+- `src/dom/modals/EnhancedDateNavigatorModal.ts` (multiple methods)
+- `styles/enhanced-date-navigator.css` (focus styles)
+
+**Workaround:**
+Users can still use Tab key to navigate between grids and Enter/Space to select dates. Mouse/touch interaction remains fully functional.
+
 ## Resolved Issues
 
 Issues can be resolved in multiple ways:
@@ -175,7 +209,7 @@ Issues can be resolved in multiple ways:
 | ISSUE-25-004 | Date Range Filter | Custom Date Range Filter had significant usability issues with date input fields: strict input format requirements, poor validation feedback, and difficult selection interface | Fully Fixed - Implemented proper date picker component with multiple format support, inline validation, and improved user feedback | 2025-01-15 |
 | ISSUE-25-005 | Metric Component | Metric icons not displaying properly in some UI contexts despite proper icon property values | Fully Fixed - Updated icon rendering in MetricComponent and EntryComponent with fallback mechanism | 2025-05-26 |
 | ISSUE-25-006 | Statistics Table | Icons missing and incorrect metric ordering in the Statistics Table despite proper configuration | Fully Fixed - Resolved icon display issues and implemented proper metric sorting in Statistics Table component | 2025-01-15 |
-| ISSUE-25-007 | DateNavigator | Type incompatibilities between DreamMetricData from '../types' and '../types/core' causing build errors | Fully Fixed - Created type adapter in utils/type-adapters.ts, added calculateWordCount utility, and ensured consistent wordCount property on all test entries | 2025-06-01 |
+| ISSUE-25-007 | DateNavigator | Type incompatibilities between DreamMetricData from '../types' and '../types/core' causing build errors | No Longer Relevant - Now using Enhanced Date Navigator instead of legacy DateNavigator component | 2025-01-15 |
 | ISSUE-25-008 | Code Quality | Unused parameters in multiple component functions causing TypeScript warnings | Fully Fixed - Removed unused parameters from toggleContentVisibility and other functions across main.ts, ContentToggler.ts, and ProjectNoteEvents.ts | 2025-06-01 |
 | ISSUE-25-009 | Statistics Table | Duplicate Words metric appearing in Statistics Table after refactoring | Fully Fixed - Eliminated duplicate metric entries and standardized word count display in Statistics Table | 2025-01-15 |
 | ISSUE-25-010 | Statistics Table | Multiple "Words" rows appearing in Statistics Table with different values | Fully Fixed - Consolidated word count metrics into single row with standardized calculation | 2025-01-15 |
@@ -189,7 +223,7 @@ Issues can be resolved in multiple ways:
 - [Adapter Migration Plan (Archived)](../archive/refactoring-2025/adapter-migration-plan.md)
 - [TypeScript Architecture Lessons](./architecture/typescript-architecture-lessons.md)
 
-*Last Updated: 2025-05-26*
+*Last Updated: 2025-01-15*
 
 ## Initialization and Dependency Issues
 

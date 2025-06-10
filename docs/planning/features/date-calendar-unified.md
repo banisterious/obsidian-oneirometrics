@@ -1304,6 +1304,33 @@ The calendar component currently has a known issue where it fails to correctly d
 **Impact**: Visual indicators not showing, but functionality remains intact  
 **Workaround**: Filter application still works correctly despite visual indicator issue
 
+#### **Enhanced Date Navigator: Keyboard Navigation in Dual/Quarter View - TRACKED**
+**Status**: 📋 **TRACKED** (ISSUE-25-013)
+
+**Problem**: Keyboard navigation (arrow keys) does not work properly within compact month grids when using dual or quarter view modes in the Enhanced Date Navigator.
+
+**Specific Issues**:
+- Users can tab to individual month grids in dual/quarter view
+- Arrow key navigation fails to work within individual month grids  
+- Tab navigation works between grids but arrow keys should work within each grid independently
+- Affects screen reader users and keyboard-only navigation
+
+**Technical Context**:
+- Single month view has fully functional keyboard navigation
+- Issue only affects compact calendar grids in multi-month layouts
+- Multiple resolution attempts made including scope isolation, event handling fixes, and architecture simplification
+- May require fundamental architectural changes to accessibility pattern
+
+**Current Workaround**:
+- Tab key navigation works to move between grids
+- Enter/Space keys work for date selection
+- Mouse/touch interaction remains fully functional
+- Single month view provides complete keyboard accessibility
+
+**Impact**: Medium - Affects accessibility in dual/quarter view modes but core functionality remains available
+
+**Documentation**: See [Known Issues Registry](../../developer/known-issues-registry.md#issue-25-013-enhanced-date-navigator-keyboard-navigation) for detailed resolution attempts and recommended future approach
+
 ### **Usage Contexts**
 
 The Date Navigator Modal operates differently depending on the user's current context:

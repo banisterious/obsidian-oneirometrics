@@ -507,6 +507,7 @@ export class EnhancedDateNavigatorModal extends Modal {
             const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
             
             // Create 3 month grids side by side
+            const monthGrids: HTMLElement[] = [];
             for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
                 const monthContainer = quarterGrid.createDiv({ cls: 'oomp-quarter-month' });
                 const monthDate = new Date(this.state.currentDate);
@@ -519,8 +520,12 @@ export class EnhancedDateNavigatorModal extends Modal {
                 });
 
                 // Compact month grid
-                this.buildCompactMonthGrid(monthContainer, monthDate);
+                const monthGrid = this.buildCompactMonthGrid(monthContainer, monthDate, monthOffset);
+                monthGrids.push(monthGrid);
             }
+            
+            // Set up inter-grid navigation
+            this.setupInterGridNavigation(monthGrids);
         } finally {
             this.isUpdating = false;
         }
@@ -561,6 +566,7 @@ export class EnhancedDateNavigatorModal extends Modal {
             const dualGrid = calendarGrid.createDiv({ cls: 'calendar-days-grid dual-view' });
             
             // Create 2 month grids side by side (current month and next month)
+            const monthGrids: HTMLElement[] = [];
             for (let monthOffset = 0; monthOffset < 2; monthOffset++) {
                 const monthContainer = dualGrid.createDiv({ cls: 'oomp-dual-month' });
                 const monthDate = new Date(this.state.currentDate);
@@ -573,14 +579,18 @@ export class EnhancedDateNavigatorModal extends Modal {
                 });
 
                 // Compact month grid
-                this.buildCompactMonthGrid(monthContainer, monthDate);
+                const monthGrid = this.buildCompactMonthGrid(monthContainer, monthDate, monthOffset);
+                monthGrids.push(monthGrid);
             }
+            
+            // Set up inter-grid navigation
+            this.setupInterGridNavigation(monthGrids);
         } finally {
             this.isUpdating = false;
         }
     }
 
-    private buildCompactMonthGrid(container: HTMLElement, monthDate: Date): void {
+    private buildCompactMonthGrid(container: HTMLElement, monthDate: Date, gridIndex: number = 0): HTMLElement {
         const year = monthDate.getFullYear();
         const month = monthDate.getMonth();
         
@@ -602,7 +612,7 @@ export class EnhancedDateNavigatorModal extends Modal {
         const daysContainer = monthGrid.createDiv({ cls: 'oomp-compact-days-container' });
         
         // ACCESSIBILITY: Set up ARIA grid structure for compact calendar
-        this.setupCompactCalendarAccessibility(daysContainer, monthDate);
+        this.setupCompactCalendarAccessibility(daysContainer, monthDate, gridIndex);
         
         for (let i = 0; i < 42; i++) {
             const currentDate = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
@@ -635,19 +645,23 @@ export class EnhancedDateNavigatorModal extends Modal {
                 indicator.setText('●');
             }
             
-            dayEl.addEventListener('click', () => {
-                this.state.currentDate = new Date(currentDate);
-                this.state.viewMode = 'month'; // Switch back to month view
-                this.updateCalendar();
-                this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
-                // Update dropdown
-                const dropdown = this.mainContainer.querySelector('.view-mode-dropdown') as HTMLSelectElement;
-                if (dropdown) dropdown.value = 'month';
+            dayEl.addEventListener('click', (e) => {
+                // Handle multi-select with Ctrl key
+                if (e.ctrlKey || e.metaKey) {
+                    const originalMode = this.state.selectionMode;
+                    this.state.selectionMode = 'multi';
+                    this.handleDateClick(currentDate);
+                    this.state.selectionMode = originalMode;
+                } else {
+                    this.handleDateClick(currentDate);
+                }
             });
         }
         
         // ACCESSIBILITY: Set up roving tabindex pattern for this compact calendar
-        this.setupCompactRovingTabindex(daysContainer);
+        this.setupCompactRovingTabindex(daysContainer, gridIndex);
+        
+        return daysContainer;
     }
 
     private buildGoToDate(container: HTMLElement): void {
@@ -1025,17 +1039,35 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     private updateCalendarVisualState(): void {
-        // Update visual state of calendar days
+        // Update visual state of main calendar days (single month view)
         const dayElements = this.calendarSection.querySelectorAll('.calendar-day');
         dayElements.forEach((dayEl: HTMLElement) => {
             dayEl.removeClass('selected');
         });
 
-        // Mark selected dates
+        // Mark selected dates in main calendar
         this.state.selectedDates.forEach(selectedDate => {
             const dateIndex = this.getDateIndex(selectedDate);
             if (dateIndex >= 0 && dateIndex < dayElements.length) {
                 dayElements[dateIndex].addClass('selected');
+            }
+        });
+
+        // Update visual state of compact calendar days (dual/quarter views)
+        const compactDayElements = this.calendarSection.querySelectorAll('.oomp-compact-day');
+        compactDayElements.forEach((dayEl: HTMLElement) => {
+            dayEl.removeClass('selected');
+            
+            // Check if this compact day represents a selected date
+            const dateAttr = dayEl.getAttribute('data-date');
+            if (dateAttr) {
+                const compactDate = new Date(dateAttr);
+                const isSelected = this.state.selectedDates.some(selectedDate => 
+                    this.isSameDay(selectedDate, compactDate));
+                
+                if (isSelected) {
+                    dayEl.addClass('selected');
+                }
             }
         });
     }
@@ -2322,36 +2354,46 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     /**
+     * Sets up inter-grid navigation for multiple compact calendar grids
+     * @param monthGrids - Array of month grid containers
+     */
+    private setupInterGridNavigation(monthGrids: HTMLElement[]): void {
+        // The individual accessibility setup in each grid handles focus behavior
+        // This method is just for coordination if needed in the future
+        if (monthGrids.length <= 1) return;
+        
+        // All grids are already set up with proper accessibility in setupCompactCalendarAccessibility
+        // No additional coordination needed - natural tab order handles inter-grid navigation
+    }
+
+    /**
      * Sets up accessibility for compact calendar grids (dual/quarter view) with ARIA structure and keyboard navigation
      * @param calendarContainer - The compact calendar grid container
      * @param monthDate - The date representing the month being displayed
+     * @param gridIndex - Index of this grid in multi-grid layouts
      */
-    private setupCompactCalendarAccessibility(calendarContainer: HTMLElement, monthDate: Date): void {
+    private setupCompactCalendarAccessibility(calendarContainer: HTMLElement, monthDate: Date, gridIndex: number = 0): void {
         const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         
         // ACCESSIBILITY: Set up ARIA grid structure
         calendarContainer.setAttribute('role', 'grid');
         calendarContainer.setAttribute('aria-label', `${monthName} calendar grid`);
-        
-        // ACCESSIBILITY: Make calendar container focusable for Tab navigation
         calendarContainer.setAttribute('tabindex', '0');
         
-        // ACCESSIBILITY: Set up keyboard navigation for compact calendar grid
+        // When grid container gets focus, move to first day cell
+        calendarContainer.addEventListener('focus', (e) => {
+            const firstDayCell = calendarContainer.querySelector('[data-date]') as HTMLElement;
+            if (firstDayCell) {
+                firstDayCell.focus();
+            }
+        });
+        
+        // Set up keyboard navigation on the container (delegation)
         calendarContainer.addEventListener('keydown', (event: KeyboardEvent) => {
             const target = event.target as HTMLElement;
             
-            // Only handle arrow keys when focused on a day cell with tabindex="0"
-            const isDayCell = target.hasAttribute('data-date') && target.getAttribute('tabindex') === '0';
-            
-            if (!isDayCell) {
-                // If calendar container is focused, focus on first available day cell only for specific keys
-                if (target === calendarContainer && (event.key === 'Enter' || event.key === ' ')) {
-                    event.preventDefault();
-                    const firstFocusableCell = calendarContainer.querySelector('[tabindex="0"]') as HTMLElement;
-                    if (firstFocusableCell) {
-                        firstFocusableCell.focus();
-                    }
-                }
+            // Only handle if we're on a day cell
+            if (!target.hasAttribute('data-date')) {
                 return;
             }
             
@@ -2390,10 +2432,6 @@ export class EnhancedDateNavigatorModal extends Modal {
             
             if (newCell) {
                 event.preventDefault();
-                
-                // Update roving tabindex pattern
-                target.setAttribute('tabindex', '-1');
-                newCell.setAttribute('tabindex', '0');
                 newCell.focus();
             }
         });
@@ -2406,7 +2444,11 @@ export class EnhancedDateNavigatorModal extends Modal {
      * @returns Adjacent cell or null if not found
      */
     private getAdjacentCompactCell(currentCell: HTMLElement, direction: 'up' | 'down' | 'left' | 'right'): HTMLElement | null {
-        const allCells = Array.from(currentCell.parentElement?.querySelectorAll('[data-date]') || []) as HTMLElement[];
+        // Find the specific compact days container for this cell
+        const daysContainer = currentCell.closest('.oomp-compact-days-container') as HTMLElement;
+        if (!daysContainer) return null;
+        
+        const allCells = Array.from(daysContainer.querySelectorAll('[data-date]')) as HTMLElement[];
         const currentIndex = allCells.indexOf(currentCell);
         
         if (currentIndex === -1) return null;
@@ -2438,27 +2480,12 @@ export class EnhancedDateNavigatorModal extends Modal {
     /**
      * Sets up roving tabindex pattern for compact calendar accessibility
      * @param calendarContainer - The compact calendar grid container
+     * @param gridIndex - Index of this grid in multi-grid layouts
      */
-    private setupCompactRovingTabindex(calendarContainer: HTMLElement): void {
-        // Find current focused cell or default to today/first cell
-        let cellToFocus = calendarContainer.querySelector('[tabindex="0"]') as HTMLElement;
-        
-        if (!cellToFocus) {
-            // Try to focus today first
-            const today = new Date();
-            const todayCell = calendarContainer.querySelector(`[data-date="${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}"]`) as HTMLElement;
-            cellToFocus = todayCell || calendarContainer.querySelector('[data-date]') as HTMLElement;
-        }
-        
-        if (cellToFocus) {
-            // Set up roving tabindex on the focused cell
-            cellToFocus.setAttribute('tabindex', '0');
-            // Remove tabindex="0" from any other cells
-            calendarContainer.querySelectorAll('[tabindex="0"]').forEach(cell => {
-                if (cell !== cellToFocus) {
-                    cell.setAttribute('tabindex', '-1');
-                }
-            });
-        }
+    private setupCompactRovingTabindex(calendarContainer: HTMLElement, gridIndex: number = 0): void {
+        // Make all day cells focusable (but not in tab order)
+        calendarContainer.querySelectorAll('[data-date]').forEach(cell => {
+            cell.setAttribute('tabindex', '-1');
+        });
     }
 } 

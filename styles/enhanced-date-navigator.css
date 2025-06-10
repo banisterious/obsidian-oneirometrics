@@ -614,7 +614,7 @@
     }
 
     /* Accessibility: Focus styles for compact calendar days */
-    .oomp-enhanced-date-navigator-modal .oomp-compact-day:focus {
+    .oomp-compact-day:focus {
         outline: 2px solid var(--interactive-accent);
         outline-offset: 2px;
         background: var(--background-modifier-hover);
@@ -623,34 +623,59 @@
         box-shadow: 0 0 0 1px var(--interactive-accent);
     }
 
-    .oomp-enhanced-date-navigator-modal .oomp-compact-day:focus .oomp-compact-day-number {
+    .oomp-compact-day:focus .oomp-compact-day-number {
         font-weight: 600;
         color: var(--interactive-accent);
     }
 
     /* High contrast support for compact calendar focus */
     @media (prefers-contrast: high) {
-        .oomp-enhanced-date-navigator-modal .oomp-compact-day:focus {
+        .oomp-compact-day:focus {
             outline: 3px solid var(--interactive-accent);
             outline-offset: 1px;
             box-shadow: 0 0 0 2px var(--interactive-accent);
         }
 
-        .oomp-enhanced-date-navigator-modal .oomp-compact-day:focus .oomp-compact-day-number {
+        .oomp-compact-day:focus .oomp-compact-day-number {
             color: var(--text-accent);
         }
     }
 
     /* Focus-visible support for compact calendar days */
-    .oomp-enhanced-date-navigator-modal .oomp-compact-day:focus-visible {
+    .oomp-compact-day:focus-visible {
         outline: 2px solid var(--interactive-accent);
         outline-offset: 2px;
     }
 
     /* Remove focus outline when clicked (not keyboard focused) */
-    .oomp-enhanced-date-navigator-modal .oomp-compact-day:focus:not(:focus-visible) {
+    .oomp-compact-day:focus:not(:focus-visible) {
         outline: none;
         box-shadow: none;
+    }
+
+    /* Compact Day Selection Styles */
+    .oomp-compact-day.selected {
+        background: var(--interactive-accent);
+        color: var(--text-on-accent);
+        border-color: var(--interactive-accent);
+        font-weight: 600;
+    }
+
+    .oomp-compact-day.selected .oomp-compact-day-number {
+        color: var(--text-on-accent);
+        font-weight: 600;
+    }
+
+    .oomp-compact-day.selected .oomp-compact-dream-indicator {
+        color: var(--text-on-accent);
+        font-weight: bold;
+    }
+
+    /* Selection with today state */
+    .oomp-compact-day.selected.today {
+        background: var(--interactive-accent);
+        border-color: var(--text-accent);
+        box-shadow: 0 0 0 1px var(--text-accent);
     }
 
     /* Compact Day Numbers */
@@ -1055,6 +1080,32 @@
         background: initial;
         box-shadow: none;
         transform: none;
+    }
+
+    /* Compact Calendar Container Focus Styles for Tab Navigation */
+    .oomp-enhanced-date-navigator-modal .oomp-compact-days-container:focus {
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    .oomp-enhanced-date-navigator-modal .oomp-compact-days-container:focus-visible {
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    /* Remove focus outline when clicked (not keyboard focused) */
+    .oomp-enhanced-date-navigator-modal .oomp-compact-days-container:focus:not(:focus-visible) {
+        outline: none;
+    }
+
+    /* High contrast support for compact calendar container focus */
+    @media (prefers-contrast: high) {
+        .oomp-enhanced-date-navigator-modal .oomp-compact-days-container:focus {
+            outline: 3px solid var(--interactive-accent);
+            outline-offset: 1px;
+        }
     }
 }
 
