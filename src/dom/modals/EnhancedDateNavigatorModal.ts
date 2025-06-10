@@ -601,10 +601,19 @@ export class EnhancedDateNavigatorModal extends Modal {
         
         const daysContainer = monthGrid.createDiv({ cls: 'oomp-compact-days-container' });
         
+        // ACCESSIBILITY: Set up ARIA grid structure for compact calendar
+        this.setupCompactCalendarAccessibility(daysContainer, monthDate);
+        
         for (let i = 0; i < 42; i++) {
             const currentDate = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
             
             const dayEl = daysContainer.createDiv({ cls: 'oomp-compact-day' });
+            
+            // ACCESSIBILITY: Add ARIA gridcell structure and data attributes
+            dayEl.setAttribute('role', 'gridcell');
+            dayEl.setAttribute('data-date', this.formatDateForData(currentDate));
+            dayEl.setAttribute('aria-label', this.formatDateForAriaLabel(currentDate));
+            dayEl.setAttribute('tabindex', '-1'); // Will be set to '0' for focused cell
             
             if (currentDate.getMonth() !== month) {
                 dayEl.addClass('other-month');
@@ -636,6 +645,9 @@ export class EnhancedDateNavigatorModal extends Modal {
                 if (dropdown) dropdown.value = 'month';
             });
         }
+        
+        // ACCESSIBILITY: Set up roving tabindex pattern for this compact calendar
+        this.setupCompactRovingTabindex(daysContainer);
     }
 
     private buildGoToDate(container: HTMLElement): void {
@@ -2167,8 +2179,8 @@ export class EnhancedDateNavigatorModal extends Modal {
             const isDayCell = target.hasAttribute('data-date') && target.getAttribute('tabindex') === '0';
             
             if (!isDayCell) {
-                // If calendar container is focused, focus on first available day cell
-                if (target === calendarContainer) {
+                // If calendar container is focused, focus on first available day cell only for specific keys
+                if (target === calendarContainer && (event.key === 'Enter' || event.key === ' ')) {
                     event.preventDefault();
                     const firstFocusableCell = calendarContainer.querySelector('[tabindex="0"]') as HTMLElement;
                     if (firstFocusableCell) {
@@ -2307,5 +2319,146 @@ export class EnhancedDateNavigatorModal extends Modal {
             day: 'numeric' 
         };
         return date.toLocaleDateString('en-US', options);
+    }
+
+    /**
+     * Sets up accessibility for compact calendar grids (dual/quarter view) with ARIA structure and keyboard navigation
+     * @param calendarContainer - The compact calendar grid container
+     * @param monthDate - The date representing the month being displayed
+     */
+    private setupCompactCalendarAccessibility(calendarContainer: HTMLElement, monthDate: Date): void {
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        // ACCESSIBILITY: Set up ARIA grid structure
+        calendarContainer.setAttribute('role', 'grid');
+        calendarContainer.setAttribute('aria-label', `${monthName} calendar grid`);
+        
+        // ACCESSIBILITY: Make calendar container focusable for Tab navigation
+        calendarContainer.setAttribute('tabindex', '0');
+        
+        // ACCESSIBILITY: Set up keyboard navigation for compact calendar grid
+        calendarContainer.addEventListener('keydown', (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement;
+            
+            // Only handle arrow keys when focused on a day cell with tabindex="0"
+            const isDayCell = target.hasAttribute('data-date') && target.getAttribute('tabindex') === '0';
+            
+            if (!isDayCell) {
+                // If calendar container is focused, focus on first available day cell only for specific keys
+                if (target === calendarContainer && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault();
+                    const firstFocusableCell = calendarContainer.querySelector('[tabindex="0"]') as HTMLElement;
+                    if (firstFocusableCell) {
+                        firstFocusableCell.focus();
+                    }
+                }
+                return;
+            }
+            
+            let newCell: HTMLElement | null = null;
+            
+            switch (event.key) {
+                case 'ArrowUp':
+                    newCell = this.getAdjacentCompactCell(target, 'up');
+                    break;
+                case 'ArrowDown':
+                    newCell = this.getAdjacentCompactCell(target, 'down');
+                    break;
+                case 'ArrowLeft':
+                    newCell = this.getAdjacentCompactCell(target, 'left');
+                    break;
+                case 'ArrowRight':
+                    newCell = this.getAdjacentCompactCell(target, 'right');
+                    break;
+                case 'Enter':
+                case ' ':
+                    event.preventDefault();
+                    target.click();
+                    return;
+                case 'Home':
+                    event.preventDefault();
+                    newCell = calendarContainer.querySelector('[data-date]') as HTMLElement;
+                    break;
+                case 'End':
+                    event.preventDefault();
+                    const allCells = calendarContainer.querySelectorAll('[data-date]');
+                    newCell = allCells[allCells.length - 1] as HTMLElement;
+                    break;
+                default:
+                    return;
+            }
+            
+            if (newCell) {
+                event.preventDefault();
+                
+                // Update roving tabindex pattern
+                target.setAttribute('tabindex', '-1');
+                newCell.setAttribute('tabindex', '0');
+                newCell.focus();
+            }
+        });
+    }
+
+    /**
+     * Gets adjacent cell for compact calendar keyboard navigation
+     * @param currentCell - Current focused cell
+     * @param direction - Direction to move (up, down, left, right)
+     * @returns Adjacent cell or null if not found
+     */
+    private getAdjacentCompactCell(currentCell: HTMLElement, direction: 'up' | 'down' | 'left' | 'right'): HTMLElement | null {
+        const allCells = Array.from(currentCell.parentElement?.querySelectorAll('[data-date]') || []) as HTMLElement[];
+        const currentIndex = allCells.indexOf(currentCell);
+        
+        if (currentIndex === -1) return null;
+        
+        let targetIndex: number;
+        
+        switch (direction) {
+            case 'left':
+                targetIndex = currentIndex - 1;
+                break;
+            case 'right':
+                targetIndex = currentIndex + 1;
+                break;
+            case 'up':
+                targetIndex = currentIndex - 7; // 7 days per week
+                break;
+            case 'down':
+                targetIndex = currentIndex + 7; // 7 days per week
+                break;
+        }
+        
+        if (targetIndex >= 0 && targetIndex < allCells.length) {
+            return allCells[targetIndex];
+        }
+        
+        return null;
+    }
+
+    /**
+     * Sets up roving tabindex pattern for compact calendar accessibility
+     * @param calendarContainer - The compact calendar grid container
+     */
+    private setupCompactRovingTabindex(calendarContainer: HTMLElement): void {
+        // Find current focused cell or default to today/first cell
+        let cellToFocus = calendarContainer.querySelector('[tabindex="0"]') as HTMLElement;
+        
+        if (!cellToFocus) {
+            // Try to focus today first
+            const today = new Date();
+            const todayCell = calendarContainer.querySelector(`[data-date="${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}"]`) as HTMLElement;
+            cellToFocus = todayCell || calendarContainer.querySelector('[data-date]') as HTMLElement;
+        }
+        
+        if (cellToFocus) {
+            // Set up roving tabindex on the focused cell
+            cellToFocus.setAttribute('tabindex', '0');
+            // Remove tabindex="0" from any other cells
+            calendarContainer.querySelectorAll('[tabindex="0"]').forEach(cell => {
+                if (cell !== cellToFocus) {
+                    cell.setAttribute('tabindex', '-1');
+                }
+            });
+        }
     }
 } 
