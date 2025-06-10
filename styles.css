@@ -4409,7 +4409,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (32.9 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (33.9 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -5480,33 +5480,98 @@ h2.oom-metrics-tabs-label {
     background-color: #666;
 }
 
-/* Pattern-specific classes */
+/* Pattern Legend System */
+.oomp-pattern-legend {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 16px 0;
+    max-width: 300px;
+}
+
+.oomp-legend-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 4px;
+}
+
+.oomp-legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.oomp-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-normal);
+}
+
+.oomp-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.oomp-legend-gradient {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Pattern Type Classes */
 .oomp-pattern-high-quality {
-    /* Additional styling for high quality days if needed */
+    background: var(--color-green);
 }
 
 .oomp-pattern-fragmented {
-    /* Additional styling for fragmented days if needed */
+    background: var(--color-yellow);
 }
 
 .oomp-pattern-rich-narrative {
-    /* Additional styling for rich narrative days if needed */
+    background: var(--color-blue);
 }
 
 .oomp-pattern-basic-recall {
-    /* Additional styling for basic recall days if needed */
+    background: var(--color-orange);
 }
 
+/* Quality Level Classes */
 .oomp-quality-high {
-    /* Background will be set via JavaScript */
+    background: var(--color-green);
 }
 
 .oomp-quality-medium {
-    /* Background will be set via JavaScript */
+    background: var(--color-yellow);
 }
 
 .oomp-quality-low {
-    /* Background will be set via JavaScript */
+    background: var(--color-red);
+}
+
+/* Metric-Specific Classes for Multi-Layer Visualization */
+.oomp-sensory {
+    background-color: #7c3aed;
+}
+
+.oomp-emotional {
+    background-color: #06d6a0;
+}
+
+.oomp-fragmentation {
+    background-color: #f72585;
+}
+
+.oomp-descriptiveness {
+    background-color: #f77f00;
 }
 
 /* Tooltips */
@@ -6627,7 +6692,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: METRICS-CHARTS (29.6 KB)
+   COMPONENT: METRICS-CHARTS (29.7 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Charts & Visualization Component
@@ -6680,6 +6745,46 @@ h2.oom-metrics-tabs-label {
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     background: var(--background-secondary);
+}
+
+.oom-heatmap-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-normal);
+    white-space: nowrap;
+}
+
+.oom-heatmap-selector {
+    flex: 1;
+    min-width: 150px;
+    padding: 6px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.oom-heatmap-selector:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+    border-color: var(--interactive-accent);
+}
+
+.oom-heatmap-selector:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.oom-heatmap-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .oom-metric-selector {
@@ -7312,34 +7417,6 @@ h2.oom-metrics-tabs-label {
 /* =============================================================================
    HEATMAP VISUALIZATION SYSTEM
    ============================================================================= */
-
-.oom-heatmap-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--oom-spacing-md);
-    margin-bottom: var(--oom-spacing-lg);
-    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
-    background: var(--background-modifier-form-field);
-    border-radius: 6px;
-    border: 1px solid var(--background-modifier-border);
-}
-
-.oom-metric-selector {
-    min-width: 200px;
-    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
-    background: var(--background-primary);
-    color: var(--text-normal);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    font-size: var(--font-ui-small);
-    cursor: pointer;
-}
-
-.oom-metric-selector:focus {
-    outline: none;
-    border-color: var(--text-accent);
-    box-shadow: 0 0 0 2px var(--text-accent-hover);
-}
 
 .oom-heatmap-container {
     width: 100%;

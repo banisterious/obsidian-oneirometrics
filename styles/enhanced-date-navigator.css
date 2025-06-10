@@ -1067,33 +1067,98 @@
     background-color: #666;
 }
 
-/* Pattern-specific classes */
+/* Pattern Legend System */
+.oomp-pattern-legend {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 16px 0;
+    max-width: 300px;
+}
+
+.oomp-legend-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 4px;
+}
+
+.oomp-legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.oomp-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-normal);
+}
+
+.oomp-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.oomp-legend-gradient {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Pattern Type Classes */
 .oomp-pattern-high-quality {
-    /* Additional styling for high quality days if needed */
+    background: var(--color-green);
 }
 
 .oomp-pattern-fragmented {
-    /* Additional styling for fragmented days if needed */
+    background: var(--color-yellow);
 }
 
 .oomp-pattern-rich-narrative {
-    /* Additional styling for rich narrative days if needed */
+    background: var(--color-blue);
 }
 
 .oomp-pattern-basic-recall {
-    /* Additional styling for basic recall days if needed */
+    background: var(--color-orange);
 }
 
+/* Quality Level Classes */
 .oomp-quality-high {
-    /* Background will be set via JavaScript */
+    background: var(--color-green);
 }
 
 .oomp-quality-medium {
-    /* Background will be set via JavaScript */
+    background: var(--color-yellow);
 }
 
 .oomp-quality-low {
-    /* Background will be set via JavaScript */
+    background: var(--color-red);
+}
+
+/* Metric-Specific Classes for Multi-Layer Visualization */
+.oomp-sensory {
+    background-color: #7c3aed;
+}
+
+.oomp-emotional {
+    background-color: #06d6a0;
+}
+
+.oomp-fragmentation {
+    background-color: #f72585;
+}
+
+.oomp-descriptiveness {
+    background-color: #f77f00;
 }
 
 /* Tooltips */

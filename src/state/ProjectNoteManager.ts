@@ -213,6 +213,20 @@ export class ProjectNoteManager {
         await this.app.vault.modify(file, content);
         this.logger?.info('ProjectNote', `Updated project note at ${file.path}`);
         
+        // CRITICAL FIX: Update plugin state with dream entries for Enhanced Date Navigator
+        if (dreamEntries && dreamEntries.length > 0) {
+            try {
+                if (this.plugin.state?.updateDreamEntries) {
+                    this.plugin.state.updateDreamEntries(dreamEntries);
+                    this.logger?.info('ProjectNote', `Updated plugin state with ${dreamEntries.length} dream entries for Enhanced Date Navigator`);
+                } else {
+                    this.logger?.warn('ProjectNote', 'Plugin state.updateDreamEntries not available - Enhanced Date Navigator may show test data');
+                }
+            } catch (error) {
+                this.logger?.error('ProjectNote', 'Error updating plugin state with dream entries', error as Error);
+            }
+        }
+        
         // Open the file
         const leaf = this.app.workspace.getLeaf();
         await leaf.openFile(file);

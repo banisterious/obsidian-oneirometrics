@@ -51,6 +51,46 @@
     background: var(--background-secondary);
 }
 
+.oom-heatmap-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-normal);
+    white-space: nowrap;
+}
+
+.oom-heatmap-selector {
+    flex: 1;
+    min-width: 150px;
+    padding: 6px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.oom-heatmap-selector:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+    border-color: var(--interactive-accent);
+}
+
+.oom-heatmap-selector:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.oom-heatmap-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
 .oom-metric-selector {
     flex: 1;
     min-width: 200px;
@@ -681,34 +721,6 @@
 /* =============================================================================
    HEATMAP VISUALIZATION SYSTEM
    ============================================================================= */
-
-.oom-heatmap-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--oom-spacing-md);
-    margin-bottom: var(--oom-spacing-lg);
-    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
-    background: var(--background-modifier-form-field);
-    border-radius: 6px;
-    border: 1px solid var(--background-modifier-border);
-}
-
-.oom-metric-selector {
-    min-width: 200px;
-    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
-    background: var(--background-primary);
-    color: var(--text-normal);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    font-size: var(--font-ui-small);
-    cursor: pointer;
-}
-
-.oom-metric-selector:focus {
-    outline: none;
-    border-color: var(--text-accent);
-    box-shadow: 0 0 0 2px var(--text-accent-hover);
-}
 
 .oom-heatmap-container {
     width: 100%;

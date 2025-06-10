@@ -32,7 +32,7 @@
 
 ## Released Versions
 
-## [0.15.0] - 2025-06-10
+## [0.15.0] - 2025-06-09
 
 ### Added
 - **Enhanced Date Navigator with Pattern Visualization System**: Complete calendar interface overhaul ✅ **MAJOR RELEASE FEATURE**
@@ -79,7 +79,7 @@
   - Fixed template wizard integration with better error handling
 
 - **Scraping Issues with Universal Fallback System**: Enhanced data extraction reliability ✅ **CRITICAL FIXES**
-  - Implemented UniversalMetricsCalculator as robust fallback system
+  - Implemented robust fallback system for UniversalMetricsCalculator scraping
   - Improved handling of various journal formats and structures
   - Enhanced parsing accuracy for edge cases and non-standard entries
   - Better error recovery and graceful degradation when parsing fails
