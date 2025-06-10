@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.15.0](#0150---2025-06-10)
   - [Version 0.13.0](#0130---2025-06-05)
   - [Version 0.11.1](#0111---2025-06-03)
   - [Version 0.11.0](#0110---2025-01-14)
@@ -30,6 +31,96 @@
   - Responsive design with styled export buttons and mobile compatibility
 
 ## Released Versions
+
+## [0.15.0] - 2025-06-10
+
+### Added
+- **Enhanced Date Navigator with Pattern Visualization System**: Complete calendar interface overhaul ✅ **MAJOR RELEASE FEATURE**
+  - Advanced pattern visualization engine with 4 visualization styles (Patterns, Quality, Detail, Icons)
+  - Smart dream entry detection with quality-based color coding and visual indicators
+  - Interactive calendar with drag selection, multi-select (Ctrl+click), and range selection modes
+  - Comprehensive navigation tools: Year picker, Month jump, Quarter view, Date input with Go button
+  - Month navigation centered for better visual balance and improved UX
+  - Pattern tooltips with detailed dream metrics and entry information
+  - Responsive quarter view displaying 3 months simultaneously for broader context
+
+- **Component-Based CSS Architecture**: Complete CSS refactoring for maintainability ✅ **MAJOR ARCHITECTURAL IMPROVEMENT**
+  - 13 organized CSS components (variables, base, modals, buttons, tables, utilities, icons, navigation, enhanced-date-navigator, unified-test-suite, metrics-charts, hub, forms)
+  - Automated build system with `build-css.js` for component compilation
+  - 260KB total CSS with granular component breakdown for optimal performance
+  - CSS linting and formatting infrastructure with stylelint integration
+  - Proper import hierarchy and dependency management between components
+  - Enhanced maintainability with logical component separation
+
+- **Standardized Settings Interface Elements**: Unified UI components across the plugin ✅ **UX ENHANCEMENT**
+  - Consistent form styling with standardized input fields, buttons, and controls
+  - Professional modal layouts with improved spacing and visual hierarchy
+  - Enhanced accessibility with proper ARIA labels and keyboard navigation
+  - Responsive design ensuring compatibility across different screen sizes
+
+### Changed
+- **Enhanced Date Navigator Layout Optimization**: Streamlined two-row interface design
+  - **Row 1**: Core navigation (Year, Jump to Month, Quarter View, Date input, Go button)
+  - **Row 2**: Interaction controls (Selection Mode buttons: Single/Range/Multi + Patterns dropdown)
+  - Removed Recent navigation memory functionality for cleaner, more focused UX
+  - Eliminated layout overflow issues that pushed elements outside modal viewport
+  - Centered selection controls with improved spacing (24px gap) for better visual balance
+
+- **Improved Visual Design**: Enhanced spacing, typography, and component consistency
+  - Optimized padding and margins throughout the interface for better content density
+  - Professional color scheme with improved contrast and readability
+  - Consistent button styling and hover states across all components
+
+### Fixed
+- **Journal Structure and Template Issues**: Resolved critical parsing and template problems ✅ **CRITICAL FIXES**
+  - Fixed journal structure recognition preventing proper entry detection
+  - Resolved template creation and editing functionality
+  - Enhanced callout parsing reliability with improved pattern matching
+  - Fixed template wizard integration with better error handling
+
+- **Scraping Issues with Universal Fallback System**: Enhanced data extraction reliability ✅ **CRITICAL FIXES**
+  - Implemented UniversalMetricsCalculator as robust fallback system
+  - Improved handling of various journal formats and structures
+  - Enhanced parsing accuracy for edge cases and non-standard entries
+  - Better error recovery and graceful degradation when parsing fails
+  - Comprehensive fallback mechanisms ensuring no data loss
+
+- **Layout and Responsive Design**: Multiple UI improvements
+  - Fixed modal overflow issues in Enhanced Date Navigator
+  - Resolved responsive design problems across different screen sizes
+  - Enhanced CSS component loading and compilation reliability
+  - Fixed various visual glitches and alignment issues
+
+### Technical Improvements
+- **Performance Optimizations**: Enhanced processing efficiency and memory management
+  - Optimized CSS build system with efficient component compilation
+  - Improved pattern visualization rendering with better caching
+  - Enhanced calendar performance with optimized date calculations
+  - Reduced memory footprint with better resource management
+
+- **Code Architecture**: Improved maintainability and extensibility
+  - Modular CSS architecture enabling easier customization and maintenance
+  - Enhanced component separation with clear dependency management
+  - Improved TypeScript type safety throughout the codebase
+  - Better error handling and logging for debugging capabilities
+
+- **Build System**: Enhanced development and deployment workflow
+  - Automated CSS compilation with component-based build system
+  - Integrated linting and formatting tools for code quality
+  - Streamlined build process with proper dependency management
+  - Enhanced development experience with better tooling integration
+
+### Migration Notes
+- **Automatic CSS Migration**: New component-based CSS system loads seamlessly
+- **Enhanced Date Navigator**: Existing date navigation preferences preserved
+- **Settings Compatibility**: All existing settings maintain full compatibility
+- **Visual Updates**: Interface improvements are automatically applied without user action
+
+### Performance Impact
+- **Optimized Resource Usage**: Component-based CSS loading reduces redundancy
+- **Enhanced Calendar Performance**: Improved rendering speed for large date ranges
+- **Better Memory Management**: Reduced memory usage with optimized component architecture
+- **Faster Load Times**: Streamlined CSS compilation and loading process
 
 ## [0.13.0] - 2025-06-05
 

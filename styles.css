@@ -4409,7 +4409,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (33.3 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (32.9 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -4452,40 +4452,32 @@ h2.oom-metrics-tabs-label {
         }
     }
 
-    /* Optimized Interaction Section - Second Row */
+    /* Optimized Interaction Section - Second Row (Recent removed) */
     .enhanced-interaction-section.optimized-interaction-row {
         display: flex;
         flex-direction: column;
         
         .interaction-header.optimized-interaction-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 6px 12px; /* Lighter padding than nav row */
-            background: transparent; /* No background for cleaner look */
-            border-bottom: 1px solid var(--background-modifier-border); /* Just a separator */
-            gap: 12px;
+            padding: 6px 12px;
+            background: transparent;
+            border-bottom: 1px solid var(--background-modifier-border);
+            gap: 24px; /* Increased gap since we have more space */
         }
     }
 
-    /* Interaction sections layout */
-    .interaction-left {
-        flex: 1 1 0;          /* Allow to grow/shrink, but constrain */
-        min-width: 0;         /* Allow shrinking below content size */
-        max-width: 40%;       /* Don't take more than 40% of available space */
-        display: flex;
-        align-items: center;
-    }
-
+    /* Simplified interaction sections (no left section needed) */
     .interaction-center {
-        flex: 0 0 auto;       /* Keep selection buttons fixed size */
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .interaction-right {
-        flex: 0 0 auto;       /* Keep patterns button fixed size */
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
     }

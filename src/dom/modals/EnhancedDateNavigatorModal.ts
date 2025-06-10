@@ -644,20 +644,6 @@ export class EnhancedDateNavigatorModal extends Modal {
         });
     }
 
-    private buildNavigationMemory(container: HTMLElement): void {
-        const navMemoryContainer = container.createDiv({ cls: 'navigation-memory-container' });
-        
-        const memoryLabel = navMemoryContainer.createDiv({
-            cls: 'oomp-memory-label',
-            text: 'Recent:'
-        });
-        
-        const memoryChips = navMemoryContainer.createDiv({ cls: 'memory-chips' });
-        
-        // Initialize with current date in memory
-        this.addToNavigationMemory(this.state.currentDate);
-    }
-
     private buildCalendarGrid(container: HTMLElement): void {
         // Basic calendar grid - will be enhanced with pattern visualization
         const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1871,79 +1857,6 @@ export class EnhancedDateNavigatorModal extends Modal {
         this.state.selectedDates = [];
         this.updateCalendarVisualState();
         this.updateSelectionInfo();
-    }
-
-    private addToNavigationMemory(date: Date): void {
-        const dateStr = date.toISOString().split('T')[0];
-        
-        // Remove if already exists (to move to front)
-        this.state.navigationMemory = this.state.navigationMemory.filter(
-            memDate => memDate.toISOString().split('T')[0] !== dateStr
-        );
-        
-        // Add to front
-        this.state.navigationMemory.unshift(new Date(date));
-        
-        // Keep only last 5 entries
-        if (this.state.navigationMemory.length > 5) {
-            this.state.navigationMemory = this.state.navigationMemory.slice(0, 5);
-        }
-        
-        // Update navigation memory display
-        this.updateNavigationMemoryDisplay();
-    }
-
-    private updateNavigationMemoryDisplay(): void {
-        const memoryContainer = this.mainContainer.querySelector('.memory-chips');
-        if (!memoryContainer) return;
-
-        memoryContainer.empty();
-
-        this.state.navigationMemory.forEach((date, index) => {
-            const chip = memoryContainer.createDiv({ cls: 'memory-chip' });
-            
-            const chipDate = chip.createDiv({
-                cls: 'chip-date',
-                text: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            });
-
-            const removeBtn = chip.createDiv({
-                cls: 'chip-remove',
-                text: '×',
-                attr: { 'aria-label': 'Remove from memory' }
-            });
-
-            chip.addEventListener('click', (e) => {
-                if (e.target === removeBtn) {
-                    this.removeFromNavigationMemory(index);
-                } else {
-                    this.navigateToMemoryDate(date);
-                }
-            });
-        });
-    }
-
-    private removeFromNavigationMemory(index: number): void {
-        this.state.navigationMemory.splice(index, 1);
-        this.updateNavigationMemoryDisplay();
-    }
-
-    private navigateToMemoryDate(date: Date): void {
-        this.state.currentDate = new Date(date);
-        
-        // Switch to month view and update quarter toggle
-        this.state.viewMode = 'month';
-        const toggleInput = this.mainContainer.querySelector('.toggle-switch input') as HTMLInputElement;
-        if (toggleInput) {
-            toggleInput.checked = false;
-        }
-        
-        this.updateCalendar();
-        this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
-        
-        this.plugin.logger?.trace('EnhancedDateNavigator', 'Navigation memory - switched to month view', {
-            memoryDate: date.toISOString()
-        });
     }
 
     private cleanup(): void {
