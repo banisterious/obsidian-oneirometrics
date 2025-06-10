@@ -4409,7 +4409,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (35.4 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (35.5 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -4767,13 +4767,13 @@ h2.oom-metrics-tabs-label {
                 position: relative;
                 display: flex;
                 aspect-ratio: 1;
-                min-height: 52px;
-                height: 52px;
-                border-radius: 4px;
+                min-height: 64px;
+                height: 64px;
+                border-radius: 6px;
                 border: 1px solid transparent;
                 align-items: center;
                 justify-content: center;
-                font-size: 13px;
+                font-size: 14px;
                 cursor: pointer;
                 transition: all 0.15s ease;
                 user-select: none;
@@ -5157,19 +5157,21 @@ h2.oom-metrics-tabs-label {
 .oomp-enhanced-date-navigator-modal .calendar-days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 1.5px;
+    gap: 3px;
     max-width: none;
     width: 100%;
+    padding: 4px;
 }
 
 /* Calendar Header Row */  
 .oomp-enhanced-date-navigator-modal .calendar-header-row {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 1.5px;
+    gap: 3px;
     max-width: none;
     width: 100%;
     margin-bottom: 6px;
+    padding: 0 4px;
 }
 
 /* Weekday Headers */
