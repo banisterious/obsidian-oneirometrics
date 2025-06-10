@@ -78,7 +78,7 @@ export class SettingsAdapter {
       
       dateHandling: this.getDateHandlingConfig(settings),
       singleLineMetrics: settings.singleLineMetrics ?? false,
-      showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || false),
+      showRibbonButtons: settings.showRibbonButtons !== undefined ? settings.showRibbonButtons : (!!settings.showTestRibbonButton || true),
       backupEnabled: settings.backup?.enabled ?? settings.backupEnabled ?? false,
       backupFolderPath: settings.backup?.folderPath ?? settings.backupFolderPath ?? './backups',
       

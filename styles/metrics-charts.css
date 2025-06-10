@@ -707,6 +707,35 @@
     color: var(--text-muted);
 }
 
+.oom-chart-placeholder-actions {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.oom-chart-placeholder-hub-btn {
+    background: var(--color-accent);
+    color: var(--text-on-accent);
+    border: none;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-ui-small);
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-chart-placeholder-hub-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--background-modifier-box-shadow);
+}
+
+.oom-chart-placeholder-hub-btn:active {
+    transform: translateY(0);
+}
+
 /* Fix for Chart.js responsive behavior */
 .oom-chart-container canvas {
     position: relative !important;
@@ -1032,6 +1061,11 @@
     .oom-chart-placeholder {
         height: 300px;
         padding: var(--oom-spacing-lg);
+    }
+    
+    .oom-chart-placeholder-hub-btn {
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+        font-size: var(--font-ui-smaller);
     }
     
     .oom-heatmap-controls {

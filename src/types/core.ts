@@ -368,6 +368,9 @@ export interface DreamMetricsSettings {
         /** Show warnings when performance mode is active */
         showWarnings: boolean;
     };
+
+    /** Whether the onboarding banner has been dismissed */
+    onboardingDismissed?: boolean;
 }
 
 /**

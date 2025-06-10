@@ -893,10 +893,30 @@ export default class DreamMetricsPlugin extends Plugin {
                         <li>Click the "Rescrape Metrics" button below</li>
                         <li>Or use the OneiroMetrics Hub (ribbon icon)</li>
                     </ol>
+                    <div class="oom-chart-placeholder-actions">
+                        <button class="oom-chart-placeholder-hub-btn" type="button">
+                            🌙 Open OneiroMetrics Hub
+                        </button>
+                    </div>
                     <p><em>Charts are automatically cached and will persist between reloads once generated.</em></p>
                 </div>
             </div>
         `;
+
+        // Add click handler for Hub button
+        const hubBtn = placeholder.querySelector('.oom-chart-placeholder-hub-btn') as HTMLElement;
+        if (hubBtn) {
+            hubBtn.addEventListener('click', () => {
+                try {
+                    const { ModalsManager } = require('./src/dom/modals/ModalsManager');
+                    const modalsManager = new ModalsManager(this.app, this, null);
+                    modalsManager.openHubModal();
+                } catch (error) {
+                    console.error('Error opening Hub from chart placeholder:', error);
+                    new Notice('Error opening OneiroMetrics Hub');
+                }
+            });
+        }
     }
 
     /**

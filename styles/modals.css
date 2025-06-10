@@ -458,3 +458,138 @@
         min-width: unset;
     }
 } 
+
+/* =============================================================================
+   ONBOARDING BANNER COMPONENT
+   ============================================================================= */
+
+/* Onboarding Banner Styles */
+.oom-onboarding-banner {
+    background: linear-gradient(135deg, var(--background-modifier-success) 0%, var(--background-modifier-success-hover) 100%);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-m);
+    margin-bottom: var(--oom-spacing-lg);
+    padding: 0;
+    position: relative;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+}
+
+.oom-onboarding-content {
+    padding: var(--oom-spacing-lg);
+}
+
+.oom-onboarding-header {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-md);
+}
+
+.oom-onboarding-header h3 {
+    margin: 0;
+    flex: 1;
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-weight-semibold);
+}
+
+.oom-onboarding-icon {
+    font-size: var(--font-ui-large);
+}
+
+.oom-onboarding-dismiss {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--radius-s);
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+}
+
+.oom-onboarding-dismiss:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.oom-onboarding-banner p {
+    margin: 0 0 var(--oom-spacing-lg) 0;
+    color: var(--text-normal);
+    line-height: var(--line-height-normal);
+}
+
+.oom-onboarding-actions {
+    display: flex;
+    gap: var(--oom-spacing-md);
+    align-items: center;
+}
+
+.oom-onboarding-hub-btn {
+    background: var(--color-accent);
+    color: var(--text-on-accent);
+    border: none;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+}
+
+.oom-onboarding-hub-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+}
+
+.oom-onboarding-dismiss-btn {
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+}
+
+.oom-onboarding-dismiss-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Mobile responsive adjustments for onboarding banner */
+@media (width <= 768px) {
+    .oom-onboarding-banner {
+        margin-bottom: var(--oom-spacing-md);
+    }
+    
+    .oom-onboarding-content {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-onboarding-header {
+        gap: var(--oom-spacing-sm);
+        margin-bottom: var(--oom-spacing-sm);
+    }
+    
+    .oom-onboarding-header h3 {
+        font-size: var(--font-ui-small);
+    }
+    
+    .oom-onboarding-banner p {
+        margin-bottom: var(--oom-spacing-md);
+        font-size: var(--font-ui-smaller);
+    }
+    
+    .oom-onboarding-actions {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oom-onboarding-hub-btn,
+    .oom-onboarding-dismiss-btn {
+        width: 100%;
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    }
+} 

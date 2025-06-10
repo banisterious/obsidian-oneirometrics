@@ -501,7 +501,48 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             }
         }
 
+        // Onboarding Banner - dismissible welcome message
+        if (!this.plugin.settings.onboardingDismissed) {
+            const onboardingBanner = containerEl.createDiv({ cls: 'oom-onboarding-banner' });
+            onboardingBanner.innerHTML = `
+                <div class="oom-onboarding-content">
+                    <div class="oom-onboarding-header">
+                        <span class="oom-onboarding-icon">🌙</span>
+                        <h3>Welcome to OneiroMetrics v0.16.0!</h3>
+                        <button class="oom-onboarding-dismiss" aria-label="Dismiss">&times;</button>
+                    </div>
+                    <p>Get started by exploring the <strong>OneiroMetrics Hub</strong> - your central command center for dream tracking and analytics.</p>
+                    <div class="oom-onboarding-actions">
+                        <button class="oom-onboarding-hub-btn">Open OneiroMetrics Hub</button>
+                        <button class="oom-onboarding-dismiss-btn">Got it, dismiss</button>
+                    </div>
+                </div>
+            `;
 
+            // Handle dismiss button
+            const dismissBtn = onboardingBanner.querySelector('.oom-onboarding-dismiss') as HTMLElement;
+            const dismissTextBtn = onboardingBanner.querySelector('.oom-onboarding-dismiss-btn') as HTMLElement;
+            
+            const dismissOnboarding = async () => {
+                this.plugin.settings.onboardingDismissed = true;
+                await this.plugin.saveSettings();
+                onboardingBanner.remove();
+            };
+
+            dismissBtn?.addEventListener('click', dismissOnboarding);
+            dismissTextBtn?.addEventListener('click', dismissOnboarding);
+
+            // Handle Hub button
+            const hubBtn = onboardingBanner.querySelector('.oom-onboarding-hub-btn') as HTMLElement;
+            hubBtn?.addEventListener('click', () => {
+                // Close the settings modal first
+                (this.app as any).setting.close();
+                
+                // Open Hub modal
+                const modalsManager = new ModalsManager(this.app, this.plugin, null);
+                modalsManager.openHubModal();
+            });
+        }
 
         // Add Reading View requirement notice with contextual styling
         const noticeEl = containerEl.createEl('div', {
@@ -509,20 +550,10 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         });
         noticeEl.createEl('strong', { text: 'Note: ' });
         noticeEl.createEl('span', { 
-            text: 'OneiroMetrics is optimized for Reading View mode. While Live Preview is supported, you may experience some layout inconsistencies.'
+            text: 'OneiroMetrics requires Reading View mode to function properly. The plugin generates interactive HTML content that will only display as raw markup in Live Preview mode.'
         });
 
-        // Ribbon buttons setting
-        new Setting(containerEl)
-            .setName('Show ribbon button')
-            .setDesc('Add ribbon button for opening the OneiroMetrics Hub')
-            .addToggle(toggle => toggle
-                .setValue(shouldShowRibbonButtons(this.plugin.settings))
-                .onChange(async (value) => {
-                    setShowRibbonButtons(this.plugin.settings, value);
-                    await this.plugin.saveSettings();
-                    this.plugin.updateRibbonIcons();
-                }));
+        // Ribbon button is now always enabled by default (as recommended by Obsidian team)
 
         // OneiroMetrics Note Setting with Obsidian's built-in search like Templater
         const oneiroMetricsNoteSetting = new Setting(containerEl)
@@ -585,8 +616,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Add section border after journal structure settings
         containerEl.createEl('div', { cls: 'oom-section-border' });
 
-
-
         // Metrics Management - Redirect to Hub
         new Setting(containerEl)
             .setName('Metrics management')
@@ -608,9 +637,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
 
         // This functionality has been moved to the OneiroMetrics Hub - Metrics Settings tab
-
-
-
 
         // Create Advanced Settings Section (collapsed by default)
         const advancedSection = containerEl.createDiv({ cls: 'oom-collapsible-section collapsed' });
@@ -693,8 +719,6 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     this.plugin.setLogLevel(value as any);
                     updateLoggingSettingsVisibility(value);
                 }));
-
-
 
         // Export logs button
         new Setting(advancedContent)

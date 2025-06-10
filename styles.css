@@ -771,7 +771,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: MODALS (12.7 KB)
+   COMPONENT: MODALS (16.3 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Modal Components
@@ -1231,6 +1231,141 @@ h4 {
     .oom-dream-scrape-actions .oom-button {
         width: 100%;
         min-width: unset;
+    }
+} 
+
+/* =============================================================================
+   ONBOARDING BANNER COMPONENT
+   ============================================================================= */
+
+/* Onboarding Banner Styles */
+.oom-onboarding-banner {
+    background: linear-gradient(135deg, var(--background-modifier-success) 0%, var(--background-modifier-success-hover) 100%);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-m);
+    margin-bottom: var(--oom-spacing-lg);
+    padding: 0;
+    position: relative;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+}
+
+.oom-onboarding-content {
+    padding: var(--oom-spacing-lg);
+}
+
+.oom-onboarding-header {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-md);
+}
+
+.oom-onboarding-header h3 {
+    margin: 0;
+    flex: 1;
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-weight-semibold);
+}
+
+.oom-onboarding-icon {
+    font-size: var(--font-ui-large);
+}
+
+.oom-onboarding-dismiss {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: var(--oom-spacing-xs);
+    border-radius: var(--radius-s);
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+}
+
+.oom-onboarding-dismiss:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.oom-onboarding-banner p {
+    margin: 0 0 var(--oom-spacing-lg) 0;
+    color: var(--text-normal);
+    line-height: var(--line-height-normal);
+}
+
+.oom-onboarding-actions {
+    display: flex;
+    gap: var(--oom-spacing-md);
+    align-items: center;
+}
+
+.oom-onboarding-hub-btn {
+    background: var(--color-accent);
+    color: var(--text-on-accent);
+    border: none;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+}
+
+.oom-onboarding-hub-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+}
+
+.oom-onboarding-dismiss-btn {
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+}
+
+.oom-onboarding-dismiss-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Mobile responsive adjustments for onboarding banner */
+@media (width <= 768px) {
+    .oom-onboarding-banner {
+        margin-bottom: var(--oom-spacing-md);
+    }
+    
+    .oom-onboarding-content {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-onboarding-header {
+        gap: var(--oom-spacing-sm);
+        margin-bottom: var(--oom-spacing-sm);
+    }
+    
+    .oom-onboarding-header h3 {
+        font-size: var(--font-ui-small);
+    }
+    
+    .oom-onboarding-banner p {
+        margin-bottom: var(--oom-spacing-md);
+        font-size: var(--font-ui-smaller);
+    }
+    
+    .oom-onboarding-actions {
+        flex-direction: column;
+        gap: var(--oom-spacing-sm);
+    }
+    
+    .oom-onboarding-hub-btn,
+    .oom-onboarding-dismiss-btn {
+        width: 100%;
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     }
 } 
 
@@ -7468,7 +7603,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: METRICS-CHARTS (29.7 KB)
+   COMPONENT: METRICS-CHARTS (30.7 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Charts & Visualization Component
@@ -8179,6 +8314,35 @@ h2.oom-metrics-tabs-label {
     color: var(--text-muted);
 }
 
+.oom-chart-placeholder-actions {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.oom-chart-placeholder-hub-btn {
+    background: var(--color-accent);
+    color: var(--text-on-accent);
+    border: none;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-ui-small);
+    transition: all var(--anim-duration-fast) var(--anim-motion-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-xs);
+}
+
+.oom-chart-placeholder-hub-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--background-modifier-box-shadow);
+}
+
+.oom-chart-placeholder-hub-btn:active {
+    transform: translateY(0);
+}
+
 /* Fix for Chart.js responsive behavior */
 .oom-chart-container canvas {
     position: relative !important;
@@ -8506,6 +8670,11 @@ h2.oom-metrics-tabs-label {
         padding: var(--oom-spacing-lg);
     }
     
+    .oom-chart-placeholder-hub-btn {
+        padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+        font-size: var(--font-ui-smaller);
+    }
+    
     .oom-heatmap-controls {
         flex-direction: column;
         align-items: stretch;
@@ -8600,7 +8769,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: HUB (18.1 KB)
+   COMPONENT: HUB (18.3 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Hub & Dashboard Component
@@ -9231,6 +9400,14 @@ h2.oom-metrics-tabs-label {
     padding: var(--oom-spacing-md);
     background: var(--background-primary);
     border-top: 1px solid var(--background-modifier-border);
+}
+
+.oneirometrics-settings .oom-collapsible-content {
+    border-top: none;
+}
+
+.oneirometrics-settings .oom-collapsible-section .setting-item-heading {
+    padding: 0 0 .5em .5em;
 }
 
 /* =============================================================================

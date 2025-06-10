@@ -364,6 +364,12 @@ export class PluginLoader {
                 globalLogger.info('Plugin', `Log level enforced during startup: ${settings.logging.level}`);
             }
             
+            // Initialize SafeLogger to use structured logging system
+            // This ensures SafeLogger respects log level settings instead of always logging to console
+            const { initializeSafeLogger } = await import('../logging/safe-logger');
+            initializeSafeLogger();
+            globalLogger.debug('Plugin', 'SafeLogger initialized to use structured logging system');
+            
             // Initialize the log viewer UI
             const logUIComponents = initializeLogUI(this.plugin);
             

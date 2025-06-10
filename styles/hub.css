@@ -629,6 +629,14 @@
     border-top: 1px solid var(--background-modifier-border);
 }
 
+.oneirometrics-settings .oom-collapsible-content {
+    border-top: none;
+}
+
+.oneirometrics-settings .oom-collapsible-section .setting-item-heading {
+    padding: 0 0 .5em .5em;
+}
+
 /* =============================================================================
    QUICK ACTIONS INTEGRATION
    ============================================================================= */
