@@ -6,7 +6,7 @@ import { PatternCalculator, PatternRenderer, PatternTooltips, type PatternVisual
 
 export interface EnhancedNavigationState {
     currentDate: Date;
-    viewMode: 'month' | 'quarter';
+    viewMode: 'month' | 'dual' | 'quarter';
     selectedDates: Date[];
     selectionMode: 'single' | 'range' | 'multi';
     dreamEntries: Map<string, any[]>;
@@ -406,55 +406,62 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     private buildQuarterToggle(container: HTMLElement): void {
-        const quarterToggleContainer = container.createDiv({ cls: 'quarter-toggle-container' });
+        const viewModeContainer = container.createDiv({ cls: 'view-mode-container' });
         
-        const quarterToggle = quarterToggleContainer.createDiv({ cls: 'quarter-toggle' });
-        
-        const toggleSwitch = quarterToggle.createDiv({ cls: 'toggle-switch' });
-        
-        const toggleInput = toggleSwitch.createEl('input', {
-            type: 'checkbox',
-            attr: { 'aria-label': 'Toggle quarter view' }
+        const dropdown = viewModeContainer.createEl('select', {
+            cls: 'view-mode-dropdown',
+            attr: { 'aria-label': 'Select view mode' }
         });
 
-        const toggleLabel = quarterToggle.createDiv({
-            cls: 'toggle-label',
-            text: 'Quarter View'
+        // Add options
+        const monthOption = dropdown.createEl('option', {
+            value: 'month',
+            text: 'Single month'
         });
 
-        toggleInput.checked = this.state.viewMode === 'quarter';
+        const dualOption = dropdown.createEl('option', {
+            value: 'dual', 
+            text: 'Dual month'
+        });
 
-        // Make the entire toggle area clickable (not just the checkbox)
-        quarterToggle.addEventListener('click', () => {
-            this.plugin.logger?.trace('EnhancedDateNavigator', 'Quarter toggle clicked', {
-                currentViewMode: this.state.viewMode,
-                checkboxStateBefore: toggleInput.checked
+        const quarterOption = dropdown.createEl('option', {
+            value: 'quarter',
+            text: 'Quarter'
+        });
+
+        // Set current value
+        dropdown.value = this.state.viewMode;
+
+        // Handle changes
+        dropdown.addEventListener('change', () => {
+            const newViewMode = dropdown.value as 'month' | 'dual' | 'quarter';
+            
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'View mode dropdown changed', {
+                oldViewMode: this.state.viewMode,
+                newViewMode: newViewMode
             });
             
-            // Toggle the view mode directly rather than relying on checkbox state
-            this.state.viewMode = this.state.viewMode === 'month' ? 'quarter' : 'month';
-            toggleInput.checked = this.state.viewMode === 'quarter';
+            this.state.viewMode = newViewMode;
             
-            this.plugin.logger?.trace('EnhancedDateNavigator', 'View mode toggled', {
-                newViewMode: this.state.viewMode,
-                checkboxStateAfter: toggleInput.checked
-            });
-            
-            if (this.state.viewMode === 'quarter') {
-                this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to quarter view');
-                this.updateQuarterView();
-            } else {
-                this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to month view');
-                this.updateCalendar();
+            // Update calendar based on new view mode
+            switch (newViewMode) {
+                case 'month':
+                    this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to single month view');
+                    this.updateCalendar();
+                    break;
+                case 'dual':
+                    this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to dual month view');
+                    this.updateDualView();
+                    break;
+                case 'quarter':
+                    this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to quarter view');
+                    this.updateQuarterView();
+                    break;
             }
             
             this.plugin.logger?.info('EnhancedDateNavigator', 'View mode changed', {
                 mode: this.state.viewMode
             });
-        });
-
-        toggleInput.addEventListener('change', (e) => {
-            e.stopPropagation(); // Prevent double firing
         });
     }
 
@@ -516,14 +523,68 @@ export class EnhancedDateNavigatorModal extends Modal {
         }
     }
 
+    private updateDualView(): void {
+        // Dual view implementation - shows 2 months side by side
+        this.plugin.logger?.trace('EnhancedDateNavigator', 'updateDualView() called', {
+            isUpdating: this.isUpdating,
+            currentDate: this.state.currentDate.toISOString()
+        });
+        
+        if (this.isUpdating) {
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'Skipping dual view update - already updating');
+            return;
+        }
+        this.isUpdating = true;
+
+        try {
+            const existingDaysGrid = this.calendarSection.querySelector('.calendar-days-grid');
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'DOM cleanup for dual view', {
+                existingDaysGrid: !!existingDaysGrid
+            });
+            
+            if (existingDaysGrid) {
+                existingDaysGrid.remove();
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Removed existing calendar days grid');
+            }
+
+            const calendarGrid = this.calendarSection.querySelector('.calendar-grid');
+            if (!calendarGrid) {
+                this.plugin.logger?.trace('EnhancedDateNavigator', 'Calendar grid not found - aborting dual view update');
+                return;
+            }
+            
+            this.plugin.logger?.trace('EnhancedDateNavigator', 'Building dual view grid');
+
+            const dualGrid = calendarGrid.createDiv({ cls: 'calendar-days-grid dual-view' });
+            
+            // Create 2 month grids side by side (current month and next month)
+            for (let monthOffset = 0; monthOffset < 2; monthOffset++) {
+                const monthContainer = dualGrid.createDiv({ cls: 'oomp-dual-month' });
+                const monthDate = new Date(this.state.currentDate);
+                monthDate.setMonth(this.state.currentDate.getMonth() + monthOffset);
+                
+                // Month header
+                const monthHeader = monthContainer.createDiv({
+                    cls: 'oomp-dual-month-header',
+                    text: monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                });
+
+                // Compact month grid
+                this.buildCompactMonthGrid(monthContainer, monthDate);
+            }
+        } finally {
+            this.isUpdating = false;
+        }
+    }
+
     private buildCompactMonthGrid(container: HTMLElement, monthDate: Date): void {
         const year = monthDate.getFullYear();
         const month = monthDate.getMonth();
         
         const monthGrid = container.createDiv({ cls: 'oomp-compact-month-grid' });
         
-        // Weekday headers (abbreviated)
-        const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        // Weekday headers (abbreviated) - must match main calendar order starting with Sunday
+        const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
         const headerRow = monthGrid.createDiv({ cls: 'oomp-compact-header-row' });
         weekdays.forEach(day => {
             headerRow.createDiv({ cls: 'oomp-compact-weekday', text: day });
@@ -538,8 +599,7 @@ export class EnhancedDateNavigatorModal extends Modal {
         const daysContainer = monthGrid.createDiv({ cls: 'oomp-compact-days-container' });
         
         for (let i = 0; i < 42; i++) {
-            const currentDate = new Date(startDate);
-            currentDate.setDate(startDate.getDate() + i);
+            const currentDate = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
             
             const dayEl = daysContainer.createDiv({ cls: 'oomp-compact-day' });
             
@@ -568,9 +628,9 @@ export class EnhancedDateNavigatorModal extends Modal {
                 this.state.viewMode = 'month'; // Switch back to month view
                 this.updateCalendar();
                 this.updateMonthDisplay(this.mainContainer.querySelector('.month-display') as HTMLElement);
-                // Update toggle
-                const toggleInput = this.mainContainer.querySelector('.toggle-switch input') as HTMLInputElement;
-                if (toggleInput) toggleInput.checked = false;
+                // Update dropdown
+                const dropdown = this.mainContainer.querySelector('.view-mode-dropdown') as HTMLSelectElement;
+                if (dropdown) dropdown.value = 'month';
             });
         }
     }
@@ -693,8 +753,7 @@ export class EnhancedDateNavigatorModal extends Modal {
 
             // Generate 42 days (6 weeks)
             for (let i = 0; i < 42; i++) {
-                const currentDate = new Date(startDate);
-                currentDate.setDate(startDate.getDate() + i);
+                const currentDate = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
                 
                 const dayEl = daysGrid.createDiv({ cls: 'calendar-day' });
                 
