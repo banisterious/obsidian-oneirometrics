@@ -47,9 +47,15 @@ The Enhanced Date Navigator includes sophisticated navigation features:
 
 - **Year Picker**: Jump directly to any year with dream entries
 - **Month Jump**: Quick access to any month with visual indicators for months containing dreams
-- **Quarter Toggle**: Switch between monthly and quarterly views
+- **View Mode Dropdown**: Choose between Single month, Dual month, or Quarter view
 - **Navigation Memory**: Remember and quickly return to previously visited dates
 - **Go To Date**: Jump directly to any specific date
+
+### View Mode Selection
+Use the view mode dropdown to switch between Single month, Dual month, and Quarter views:
+- **Single month**: Traditional full-size calendar view for detailed day analysis
+- **Dual month**: Side-by-side current and next month display for cross-month comparison  
+- **Quarter view**: Compact three-month layout perfect for identifying seasonal patterns and longer-term trends
 
 ### Selection Modes
 
@@ -117,9 +123,6 @@ The Enhanced Date Navigator automatically analyzes your dreams and classifies th
 
 ### Navigation Memory
 The Enhanced Date Navigator remembers your navigation history, allowing you to quickly return to previously visited dates. Use the navigation memory controls in the header to revisit important dates.
-
-### Quarter View
-Switch to quarter view to see three months at once, perfect for identifying seasonal patterns in your dreams or tracking longer-term trends.
 
 ### Pattern Tooltips
 The rich tooltip system provides detailed analysis including:

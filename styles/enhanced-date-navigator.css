@@ -1739,4 +1739,123 @@
 .oomp-enhanced-date-navigator-modal .dual-view .oomp-compact-day-number {
     font-size: 11px; /* Increased from 10px */
     font-weight: 500;
+}
+
+/* Enhanced Mobile and Responsive Design */
+@media (max-width: 768px) {
+    /* Make modal responsive */
+    .oomp-enhanced-date-navigator-modal {
+        width: 95vw;
+        max-width: 500px;
+        height: auto !important;
+        max-height: 90vh;
+        padding: 12px;
+    }
+    
+    /* Responsive navigation controls */
+    .oomp-enhanced-date-navigator-modal .nav-header.optimized-nav-header {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 6px 8px;
+    }
+    
+    /* Quarter view - single column */
+    .oomp-enhanced-date-navigator-modal .quarter-view {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    /* Dual view - single column on mobile */
+    .oomp-enhanced-date-navigator-modal .dual-view {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    /* Compact month containers */
+    .oomp-enhanced-date-navigator-modal .oomp-quarter-month,
+    .oomp-enhanced-date-navigator-modal .oomp-dual-month {
+        padding: 8px;
+    }
+    
+    /* Larger touch targets for mobile */
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day {
+        min-height: 32px;
+        max-height: 36px;
+        font-size: 13px;
+        padding: 2px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day-number {
+        font-size: 12px;
+    }
+    
+    /* Larger weekday headers */
+    .oomp-enhanced-date-navigator-modal .oomp-compact-weekday {
+        min-height: 28px;
+        font-size: 12px;
+        padding: 3px;
+    }
+    
+    /* Navigation dropdowns */
+    .oomp-enhanced-date-navigator-modal .view-mode-dropdown,
+    .oomp-enhanced-date-navigator-modal .year-picker {
+        min-width: 80px;
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+    
+    /* Selection mode buttons */
+    .oomp-enhanced-date-navigator-modal .selection-mode-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-width: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra small screens */
+    .oomp-enhanced-date-navigator-modal {
+        width: 98vw;
+        padding: 8px;
+    }
+    
+    /* Stack navigation controls vertically */
+    .oomp-enhanced-date-navigator-modal .nav-header.optimized-nav-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    /* Smaller compact days */
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day {
+        min-height: 28px;
+        max-height: 32px;
+        font-size: 12px;
+    }
+    
+    .oomp-enhanced-date-navigator-modal .oomp-compact-day-number {
+        font-size: 11px;
+    }
+    
+    /* Smaller headers */
+    .oomp-enhanced-date-navigator-modal .oomp-dual-month-header,
+    .oomp-enhanced-date-navigator-modal .oomp-quarter-month-header {
+        font-size: 13px;
+        padding: 4px 0;
+        margin-bottom: 8px;
+    }
+}
+
+/* Landscape phone orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    .oomp-enhanced-date-navigator-modal {
+        height: auto !important;
+        max-height: 95vh;
+    }
+    
+    /* Keep dual view as 2 columns in landscape */
+    .oomp-enhanced-date-navigator-modal .dual-view {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
 } 

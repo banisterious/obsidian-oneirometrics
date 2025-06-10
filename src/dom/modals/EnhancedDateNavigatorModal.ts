@@ -448,14 +448,17 @@ export class EnhancedDateNavigatorModal extends Modal {
                 case 'month':
                     this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to single month view');
                     this.updateCalendar();
+                    this.announceToScreenReader('Switched to single month view');
                     break;
                 case 'dual':
                     this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to dual month view');
                     this.updateDualView();
+                    this.announceToScreenReader('Switched to dual month view showing current and next month');
                     break;
                 case 'quarter':
                     this.plugin.logger?.trace('EnhancedDateNavigator', 'Switching to quarter view');
                     this.updateQuarterView();
+                    this.announceToScreenReader('Switched to quarter view showing three months');
                     break;
             }
             
