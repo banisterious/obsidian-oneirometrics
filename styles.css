@@ -10414,7 +10414,7 @@ border-radius: 8px;
 
 
 /* =============================================================================
-   COMPONENT: FORMS (27.4 KB)
+   COMPONENT: FORMS (27.7 KB)
    ============================================================================= */
 /* =============================================================================
    FORMS COMPONENT - OneiroMetrics Form Controls & Validation System
@@ -11436,3 +11436,18 @@ input[type="date"]:focus-visible {
 /* =============================================================================
    END TEMPLATE WIZARD COMPONENT STATES
    ============================================================================= */
+
+/* Templater section visibility states */
+.oom-templater-section--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.oom-templater-section--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}

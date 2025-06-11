@@ -83,7 +83,9 @@ export class TemplateWizard extends Modal {
             });
             
             if (i !== this.currentStep) {
-                stepContainer.style.display = 'none';
+                stepContainer.classList.add('oom-template-wizard-step--hidden');
+            } else {
+                stepContainer.classList.add('oom-template-wizard-step--visible');
             }
             
             this.stepContainers.push(stepContainer);
@@ -270,8 +272,8 @@ export class TemplateWizard extends Modal {
                     });
             });
         
-        // Templater template selection
-        const templaterSection = container.createDiv({ cls: 'oom-templater-section' });
+        // Templater template selection with initial visibility state
+        const templaterSection = container.createDiv({ cls: this.useTemplater ? 'oom-templater-section oom-templater-section--visible' : 'oom-templater-section oom-templater-section--hidden' });
         
         if (!templaterEnabled) {
             const warningEl = templaterSection.createDiv({ cls: 'oom-templater-warning' });
@@ -328,9 +330,6 @@ export class TemplateWizard extends Modal {
                 }
             });
         
-        // Make sure the templater section is initially hidden if not using templater
-        templaterSection.style.display = this.useTemplater ? 'block' : 'none';
-        
         // Content area for manual editing
         const contentSection = container.createDiv({ cls: 'oom-content-section' });
         
@@ -350,6 +349,9 @@ export class TemplateWizard extends Modal {
             this.content = value;
             this.updatePreview();
         });
+        
+        // Make the text area larger using CSS class
+        this.contentArea.inputEl.classList.add('oom-template-wizard-content-area');
     }
     
     /**
@@ -428,9 +430,8 @@ export class TemplateWizard extends Modal {
                     this.updatePreview();
                 });
             
-            // Make the text area larger
-            this.contentArea.inputEl.style.height = '300px';
-            this.contentArea.inputEl.style.width = '100%';
+            // Make the text area larger using CSS class
+            this.contentArea.inputEl.classList.add('oom-template-wizard-content-area');
         } else {
             container.createEl('p', { 
                 text: 'Using Templater template. Content will be dynamically generated.',
@@ -493,13 +494,15 @@ export class TemplateWizard extends Modal {
         
         // Hide current step
         if (this.stepContainers[this.currentStep - 1]) {
-            this.stepContainers[this.currentStep - 1].style.display = 'none';
+            this.stepContainers[this.currentStep - 1].classList.remove('oom-template-wizard-step--visible');
+            this.stepContainers[this.currentStep - 1].classList.add('oom-template-wizard-step--hidden');
         }
         
         // Show new step
         this.currentStep = step;
         if (this.stepContainers[this.currentStep - 1]) {
-            this.stepContainers[this.currentStep - 1].style.display = 'block';
+            this.stepContainers[this.currentStep - 1].classList.remove('oom-template-wizard-step--hidden');
+            this.stepContainers[this.currentStep - 1].classList.add('oom-template-wizard-step--visible');
         }
         
         // Special handling for Step 3: Update content based on selected structure
@@ -591,7 +594,8 @@ export class TemplateWizard extends Modal {
     private updateTemplaterSection(visible: boolean) {
         const templaterSection = document.querySelector('.oom-templater-section') as HTMLElement;
         if (templaterSection) {
-            templaterSection.style.display = visible ? 'block' : 'none';
+            templaterSection.classList.toggle('oom-templater-section--hidden', !visible);
+            templaterSection.classList.toggle('oom-templater-section--visible', visible);
         }
     }
     
