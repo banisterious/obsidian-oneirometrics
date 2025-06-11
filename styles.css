@@ -4544,7 +4544,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (56.6 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (57.0 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -6631,6 +6631,26 @@ h2.oom-metrics-tabs-label {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
+}
+
+/* Calendar Fallback Indicators */
+.oom-calendar-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #666;
+    z-index: 2;
+}
+
+.oom-calendar-indicator--count {
+    font-size: 0.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
 } 
 
 /* =============================================================================

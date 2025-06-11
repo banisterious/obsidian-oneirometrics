@@ -2147,24 +2147,12 @@ export class EnhancedDateNavigatorModal extends Modal {
      * Fallback indicator when pattern visualization fails
      */
     private renderFallbackIndicator(dayElement: HTMLElement, entryCount: number): void {
-        const indicator = dayElement.createDiv({ cls: 'oomp-fallback-indicator' });
-        indicator.style.position = 'absolute';
-        indicator.style.top = '2px';
-        indicator.style.right = '2px';
-        indicator.style.width = '8px';
-        indicator.style.height = '8px';
-        indicator.style.borderRadius = '50%';
-        indicator.style.backgroundColor = '#666';
-        indicator.style.zIndex = '2';
+        const indicator = dayElement.createDiv({ cls: 'oom-calendar-indicator' });
         
         // Show count if multiple entries
         if (entryCount > 1) {
             indicator.textContent = entryCount.toString();
-            indicator.style.fontSize = '0.6em';
-            indicator.style.display = 'flex';
-            indicator.style.alignItems = 'center';
-            indicator.style.justifyContent = 'center';
-            indicator.style.color = 'white';
+            indicator.addClasses(['oom-calendar-indicator--count']);
         }
     }
 
@@ -2176,11 +2164,7 @@ export class EnhancedDateNavigatorModal extends Modal {
         const announcement = document.createElement('div');
         announcement.setAttribute('aria-live', 'polite');
         announcement.setAttribute('aria-atomic', 'true');
-        announcement.style.position = 'absolute';
-        announcement.style.left = '-10000px';
-        announcement.style.width = '1px';
-        announcement.style.height = '1px';
-        announcement.style.overflow = 'hidden';
+        announcement.classList.add('oom-sr-only');
         announcement.textContent = message;
         
         document.body.appendChild(announcement);

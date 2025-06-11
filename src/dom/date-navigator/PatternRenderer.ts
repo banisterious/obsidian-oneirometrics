@@ -107,17 +107,8 @@ export class PatternRenderer {
         
         // Create pattern indicator dot
         const indicator = dayElement.createDiv({ cls: 'oomp-pattern-indicator' });
-        indicator.style.backgroundColor = primaryPattern.visualStyle.color;
-        indicator.style.opacity = primaryPattern.visualStyle.opacity.toString();
-        
-        // Position in top-right corner
-        indicator.style.position = 'absolute';
-        indicator.style.top = '2px';
-        indicator.style.right = '2px';
-        indicator.style.width = '8px';
-        indicator.style.height = '8px';
-        indicator.style.borderRadius = '50%';
-        indicator.style.zIndex = '2';
+        indicator.style.setProperty('--pattern-color', primaryPattern.visualStyle.color);
+        indicator.style.setProperty('--pattern-opacity', primaryPattern.visualStyle.opacity.toString());
     }
     
     /**
@@ -139,15 +130,6 @@ export class PatternRenderer {
         // Add quality score indicator in bottom-right
         const scoreIndicator = dayElement.createDiv({ cls: 'oomp-quality-score' });
         scoreIndicator.textContent = Math.round(primaryPattern.qualityScore * 5).toString();
-        scoreIndicator.style.position = 'absolute';
-        scoreIndicator.style.bottom = '2px';
-        scoreIndicator.style.right = '2px';
-        scoreIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
-        scoreIndicator.style.color = 'white';
-        scoreIndicator.style.fontSize = '0.6em';
-        scoreIndicator.style.padding = '1px 3px';
-        scoreIndicator.style.borderRadius = '2px';
-        scoreIndicator.style.zIndex = '2';
     }
     
     /**
@@ -166,16 +148,7 @@ export class PatternRenderer {
         
         // Create metric overlay grid
         const overlay = dayElement.createDiv({ cls: 'oomp-metric-overlay' });
-        overlay.style.position = 'absolute';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.right = '0';
-        overlay.style.bottom = '0';
-        overlay.style.display = 'grid';
-        overlay.style.gridTemplateColumns = '1fr 1fr';
-        overlay.style.gridTemplateRows = '1fr 1fr';
-        overlay.style.pointerEvents = 'none';
-        overlay.style.zIndex = '2';
+        // Grid layout and positioning handled by CSS class
         
         // Add metric dots (using normalized scores for opacity)
         const metrics = [
@@ -187,12 +160,8 @@ export class PatternRenderer {
         
         metrics.forEach(metric => {
             const dot = overlay.createDiv({ cls: `oomp-metric-dot oomp-${metric.name}` });
-            dot.style.width = '4px';
-            dot.style.height = '4px';
-            dot.style.borderRadius = '50%';
-            dot.style.margin = 'auto';
-            dot.style.backgroundColor = metric.color;
-            dot.style.opacity = Math.max(0.2, metric.opacity).toString();
+            dot.style.setProperty('--metric-color', metric.color);
+            dot.style.setProperty('--metric-opacity', Math.max(0.2, metric.opacity).toString());
         });
     }
     
@@ -212,14 +181,9 @@ export class PatternRenderer {
         // Create icon element
         const iconElement = dayElement.createDiv({ cls: 'oomp-pattern-icon' });
         iconElement.textContent = icon;
-        iconElement.style.position = 'absolute';
-        iconElement.style.top = '50%';
-        iconElement.style.left = '50%';
-        iconElement.style.transform = 'translate(-50%, -50%)';
-        iconElement.style.fontSize = '1.2em';
-        iconElement.style.opacity = primaryPattern.visualStyle.opacity.toString();
-        iconElement.style.color = primaryPattern.visualStyle.color;
-        iconElement.style.zIndex = '2';
+        // Positioning handled by CSS class
+        iconElement.style.setProperty('--pattern-opacity', primaryPattern.visualStyle.opacity.toString());
+        iconElement.style.setProperty('--pattern-color', primaryPattern.visualStyle.color);
     }
     
     /**

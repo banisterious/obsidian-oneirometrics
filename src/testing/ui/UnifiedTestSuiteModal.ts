@@ -445,8 +445,7 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // Custom folder input (hidden by default)
         const customFolderContainer = folderSection.createDiv({ 
-            cls: 'unified-test-suite-custom-folder-container',
-            attr: { style: 'display: none;' }
+            cls: 'unified-test-suite-custom-folder-container oom-hidden'
         });
         const customFolderInput = customFolderContainer.createEl('input', {
             type: 'text',
@@ -456,9 +455,9 @@ export class UnifiedTestSuiteModal extends Modal {
         
         folderSelect.addEventListener('change', () => {
             if (folderSelect.value === 'custom') {
-                customFolderContainer.style.display = 'block';
+                customFolderContainer.classList.remove('oom-hidden');
             } else {
-                customFolderContainer.style.display = 'none';
+                customFolderContainer.classList.add('oom-hidden');
             }
         });
         
@@ -763,8 +762,9 @@ export class UnifiedTestSuiteModal extends Modal {
         });
         
         // Template preview
-        const templatePreview = templateContainer.createDiv({ cls: 'oomp-unified-test-suite-template-preview' });
-        templatePreview.style.display = 'none';
+        const templatePreview = templateContainer.createDiv({ 
+            cls: 'unified-test-suite-template-preview oom-hidden'
+        });
         
         templateSelect.addEventListener('change', () => {
             this.updateTemplatePreview(templateSelect.value, templatePreview, templates);
@@ -956,17 +956,17 @@ export class UnifiedTestSuiteModal extends Modal {
         previewElement.empty();
         
         if (templateId === 'default') {
-            previewElement.style.display = 'none';
+            previewElement.classList.add('oom-hidden');
             return;
         }
         
         const template = templates.find(t => t.id === templateId);
         if (!template) {
-            previewElement.style.display = 'none';
+            previewElement.classList.add('oom-hidden');
             return;
         }
         
-        previewElement.style.display = 'block';
+        previewElement.classList.remove('oom-hidden');
         previewElement.createEl('strong', { text: 'Preview:' });
         
         const previewContent = previewElement.createEl('pre', { cls: 'unified-test-suite-template-preview-content' });
@@ -2483,8 +2483,9 @@ ${entry.content}
         // For now, we'll use a basic input field
         
         // Journal template setting
-        const templatePreview = container.createDiv({ cls: 'oomp-unified-test-suite-template-preview' });
-        templatePreview.style.display = 'none';
+        const templatePreview = container.createDiv({ 
+            cls: 'unified-test-suite-template-preview oom-hidden'
+        });
         
         new Setting(container)
             .setName('Journal template')
@@ -2506,14 +2507,17 @@ ${entry.content}
         const metricsToggle = metricsHeader.createEl('span', { text: '▶', cls: 'unified-test-suite-toggle' });
         
         const metricsContent = metricsContainer.createDiv({ 
-            cls: 'unified-test-suite-collapsible-content',
-            attr: { style: 'display: none;' }
+            cls: 'unified-test-suite-collapsible-content oom-hidden'
         });
         
         let isMetricsExpanded = false;
         metricsHeader.addEventListener('click', () => {
             isMetricsExpanded = !isMetricsExpanded;
-            metricsContent.style.display = isMetricsExpanded ? 'block' : 'none';
+            if (isMetricsExpanded) {
+                metricsContent.classList.remove('oom-hidden');
+            } else {
+                metricsContent.classList.add('oom-hidden');
+            }
             metricsToggle.textContent = isMetricsExpanded ? '▼' : '▶';
         });
         
@@ -2595,14 +2599,17 @@ ${entry.content}
         const advancedToggle = advancedHeader.createEl('span', { text: '▶', cls: 'unified-test-suite-toggle' });
         
         const advancedContent = advancedContainer.createDiv({ 
-            cls: 'unified-test-suite-collapsible-content',
-            attr: { style: 'display: none;' }
+            cls: 'unified-test-suite-collapsible-content oom-hidden'
         });
         
         let isAdvancedExpanded = false;
         advancedHeader.addEventListener('click', () => {
             isAdvancedExpanded = !isAdvancedExpanded;
-            advancedContent.style.display = isAdvancedExpanded ? 'block' : 'none';
+            if (isAdvancedExpanded) {
+                advancedContent.classList.remove('oom-hidden');
+            } else {
+                advancedContent.classList.add('oom-hidden');
+            }
             advancedToggle.textContent = isAdvancedExpanded ? '▼' : '▶';
         });
         
