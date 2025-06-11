@@ -3,25 +3,34 @@
 **Related:** [CSS Extraction Implementation Plan](./css-extraction-implementation-plan.md)  
 **Branch:** fix/remove-inline-styles  
 **Date:** 2025-06-10  
-**Last Updated:** 2025-06-11 (all phases complete)
+**Last Updated:** 2025-06-11 (comprehensive audit completed)
 
 ## Status Summary
 
-**✅ Project 100% Complete - All Phases Complete**
-- **Total Inline Styles Found:** ~200 instances
-- **Inline Styles Eliminated:** 198+ instances (100% of targeted static styles)
-- **CSS Classes Created:** 50+ new utility and component classes
-- **CSS Infrastructure Added:** 6KB+ of organized, maintainable stylesheets
-- **Performance Gains:** Hardware-accelerated CSS replacing JavaScript DOM manipulation
+**🔄 Project Status: Phase 7 Required - Additional Inline Styles Discovered**
+- **Total Inline Styles Found:** ~350+ instances (updated after comprehensive audit)
+- **Inline Styles Eliminated (Phases 1-6):** 220+ instances (63% overall)
+- **Remaining Inline Styles:** ~110+ instances requiring Phase 7 cleanup
+- **CSS Classes Created:** 60+ new utility and component classes
+- **CSS Infrastructure Added:** 8KB+ of organized, maintainable stylesheets
+- **Performance Gains:** Hardware-accelerated CSS + CSS custom properties replacing JavaScript DOM manipulation
 
-**Key Achievements:**
+**Key Achievements (Phases 1-6):**
 - ✅ **Phase 1A-C Complete:** Button containers, template hover effects, display toggles (52+ styles)  
 - ✅ **Phase 2 Complete:** Complete PatternTooltips system extraction (33+ styles)
 - ✅ **Phase 3 Complete:** HubModal template system extraction (80+ styles)
 - ✅ **Phase 4A Complete:** DateNavigator components visibility system (16+ styles)
 - ✅ **Phase 4B Complete:** EnhancedDateNavigatorModal indicators & accessibility (17+ styles)
+- ✅ **Phase 5 Complete:** UnifiedTestSuiteModal display system (9+ styles)
+- ✅ **Phase 6 Complete:** PatternRenderer.ts critical infrastructure (40+ styles)
 
-**Project Complete:** All static inline styles successfully extracted to CSS classes. Remaining inline styles are appropriately dynamic (positioning, conditional styling).
+**🔍 Comprehensive Audit Findings (2025-06-11):**
+- **Additional Inline Styles Found:** ~110+ instances across 20+ files
+- **Critical UI Components:** 6+ high-priority instances requiring immediate attention
+- **Performance Components:** 35+ instances (virtual scrolling, loading indicators)
+- **Test/Development Components:** 60+ instances (lower priority)
+
+**Current Mission:** Phase 7 implementation required to achieve complete inline style elimination.
 
 ## Table of Contents
 
@@ -423,3 +432,290 @@ element.className = 'oom-hub-template-row oom-hub-template-row--hover';
 - 1 × Function name (`shouldDisplayInSettings`)
 
 **Commit**: `dcf91eb` - "Phase 1C: Convert 22 display toggles to CSS classes"
+
+## 🔍 **Phase 7: Comprehensive Audit Findings (2025-06-11)**
+
+### **📊 Audit Overview**
+After completing the initial 6 phases, a comprehensive codebase audit using multiple search patterns discovered **~110+ additional inline styles** that were missed in the original cleanup. This section documents all findings for Phase 7 implementation.
+
+### **🔍 Search Patterns Used**
+- **`.style.` assignments**: Direct DOM style property manipulation
+- **`cssText` assignments**: Bulk inline style setting
+- **`setAttribute('style')`**: HTML style attribute setting
+- **Template literals with `style=`**: Inline styles in HTML templates
+
+### **📋 Detailed Findings by Priority**
+
+---
+
+## **🚨 Priority 1: Critical UI Components (6+ instances)**
+
+### **HubModal.ts - Remaining Issues**
+**File**: `src/dom/modals/HubModal.ts`  
+**Status**: ⚠️ **PARTIALLY CLEANED** - Additional issues discovered  
+**Remaining Issues**: 6+ instances
+
+```typescript
+// Line 1234 - Object style configuration
+attr: { style: 'display: none;' }
+
+// Lines 5516-5523 - Table styling with cssText (4 instances)
+headerRow.createEl('th', { text: 'Callout Type' }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: left;';
+headerRow.createEl('th', { text: 'Count' }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: right;';
+row.createEl('td', { text: type }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em;';
+row.createEl('td', { text: count.toString() }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: right;';
+
+// Line 5628 - Font style assignment
+titleEl.style.fontStyle = 'italic';
+```
+
+**Recommended CSS Classes:**
+```css
+.oom-table-header { 
+    border: 1px solid var(--background-modifier-border); 
+    padding: 0.5em; 
+    text-align: left; 
+}
+.oom-table-header--right { text-align: right; }
+.oom-table-cell { 
+    border: 1px solid var(--background-modifier-border); 
+    padding: 0.5em; 
+}
+.oom-table-cell--right { text-align: right; }
+.oom-title-italic { font-style: italic; }
+```
+
+### **PatternTooltips.ts - Template Literal Bar**
+**File**: `src/dom/date-navigator/PatternTooltips.ts`  
+**Status**: ⚠️ **PARTIALLY CLEANED** - One template literal missed  
+**Remaining Issues**: 1 instance
+
+```typescript
+// Line 210 - Bar fill with dynamic inline styles
+<span class="oom-tooltip-bar-fill" style="width: ${percentage}%; background: ${barColor};"></span>
+```
+
+**Recommended Solution:**
+```typescript
+// Convert to CSS custom properties
+<span class="oom-tooltip-bar-fill" style="--bar-width: ${percentage}%; --bar-color: ${barColor};"></span>
+```
+
+```css
+.oom-tooltip-bar-fill {
+    width: var(--bar-width, 0%);
+    background: var(--bar-color, var(--text-muted));
+    /* additional base styles */
+}
+```
+
+### **TableGenerator.ts - Content Toggle**
+**File**: `src/dom/tables/TableGenerator.ts`  
+**Status**: 🔄 **NOT ADDRESSED** - Missed in original cleanup  
+**Issues**: 1 instance
+
+```typescript
+// Line 154 - Inline display none in template
+content += `<div class="oom-content-full" id="${cellId}" style="display: none;">${dreamContent}</div>`;
+```
+
+**Recommended Solution:**
+```typescript
+// Use CSS class instead
+content += `<div class="oom-content-full oom-content-full--hidden" id="${cellId}">${dreamContent}</div>`;
+```
+
+### **settings.ts - Object Configuration**
+**File**: `settings.ts`  
+**Status**: 🔄 **NOT ADDRESSED**  
+**Issues**: 1 instance
+
+```typescript
+// Line 665 - Object style configuration
+attr: { style: 'display: none;' }
+```
+
+---
+
+## **🟡 Priority 2: Performance Critical Components (35+ instances)**
+
+### **Virtual Scrolling Components**
+**Files**: `SafeDreamMetricsDOM.ts`, `DreamMetricsDOM.ts`  
+**Status**: 🔄 **EVALUATION REQUIRED**  
+**Issues**: 15+ instances - Virtual scrolling positioning
+
+```typescript
+// Dynamic positioning for performance
+rowsContainer.style.position = 'relative';
+rowsContainer.style.height = `${totalRows * this.ROW_HEIGHT}px`;
+row.style.position = 'absolute';
+row.style.top = `${i * this.ROW_HEIGHT}px`;
+row.style.width = '100%';
+row.style.height = `${this.ROW_HEIGHT}px`;
+```
+
+**Assessment**: These may be **acceptable** for virtual scrolling performance. Dynamic positioning via JavaScript is often required for virtual scrolling implementations.
+
+### **Filter Components - Loading Indicators**
+**Files**: `FilterManager.ts`, `FilterUI.ts`, `CustomDateRangeFilter.ts`  
+**Status**: 🔄 **GOOD EXTRACTION CANDIDATES**  
+**Issues**: 12+ instances
+
+```typescript
+// Loading indicator styling (repeated pattern)
+loadingIndicator.style.position = 'fixed';
+loadingIndicator.style.top = '10px';
+loadingIndicator.style.right = '10px';
+loadingIndicator.style.background = 'var(--background-primary)';
+loadingIndicator.style.color = 'var(--text-normal)';
+loadingIndicator.style.padding = '8px 12px';
+loadingIndicator.style.borderRadius = '4px';
+loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
+loadingIndicator.style.zIndex = '1000';
+```
+
+**Recommended CSS Class:**
+```css
+.oom-loading-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+    z-index: 1000;
+}
+```
+
+### **Performance Optimization Attributes**
+**Files**: `FilterUI.ts`, `FilterManager.ts`, `CustomDateRangeFilter.ts`  
+**Status**: ✅ **ACCEPTABLE** - Performance optimizations  
+**Issues**: 4 instances
+
+```typescript
+// Performance hints - acceptable inline usage
+tableContainer.setAttribute('style', 'will-change: contents;');
+tableContainer.setAttribute('style', 'will-change: transform, contents; contain: content;');
+```
+
+**Assessment**: These are **performance optimization hints** and are acceptable as inline styles.
+
+### **PatternRenderer.ts - CSS Custom Properties**
+**File**: `src/dom/date-navigator/PatternRenderer.ts`  
+**Status**: ✅ **ACCEPTABLE** - Proper use of CSS custom properties  
+**Issues**: 12+ instances (CSS custom properties)
+
+```typescript
+// Proper use of CSS custom properties for dynamic styling
+dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient);
+indicator.style.setProperty('--pattern-color', primaryPattern.visualStyle.color);
+dot.style.setProperty('--metric-color', metric.color);
+```
+
+**Assessment**: These are **proper use of CSS custom properties** for dynamic styling and should remain as-is.
+
+---
+
+## **🟢 Priority 3: Test/Development Components (60+ instances)**
+
+### **Test Modal Components**
+**Files**: Multiple test files  
+**Status**: 🔄 **LOW PRIORITY** - Development components  
+**Issues**: 25+ instances across test files
+
+**Files Affected:**
+- `DateNavigatorTestModal.ts` - 3 cssText assignments
+- `ServiceRegistryTestModal.ts` - 8 styling assignments  
+- `ContentParserTestModal.ts` - 4 assignments
+- `DateUtilsTestModal.ts` - 2 assignments
+- `TestModal.ts` - 2 assignments
+- `LogViewerModal.ts` - 1 assignment
+- `LogCommands.ts` - 1 assignment
+
+**Assessment**: These are **development/testing components** and could remain as-is for development builds. Low priority for extraction.
+
+### **Template Wizard Components**
+**Files**: `UnifiedTemplateWizard.ts`, `TemplateWizard.ts`  
+**Status**: 🔄 **MEDIUM EXTRACTION CANDIDATES**  
+**Issues**: 12+ instances
+
+```typescript
+// Step navigation and textarea sizing
+stepContainer.style.display = 'none';
+this.contentArea.inputEl.style.height = '300px';
+this.contentArea.inputEl.style.width = '100%';
+```
+
+**Recommended CSS Classes:**
+```css
+.oom-wizard-step-hidden { display: none; }
+.oom-wizard-textarea {
+    height: 300px;
+    width: 100%;
+}
+```
+
+### **Utility Components**
+**Files**: `ProgressIndicator.ts`, `csv-export-service.ts`, `defensive-utils.ts`  
+**Status**: 🔄 **UTILITY EXTRACTION CANDIDATES**  
+**Issues**: 5+ instances
+
+```typescript
+// Progress bar updates and utility functions
+this.progressBar.style.width = `${progress.progress}%`;
+downloadLink.style.display = 'none';
+div.style.display = 'none';
+```
+
+---
+
+## **🎯 Phase 7 Implementation Strategy**
+
+### **Implementation Order**
+1. **Priority 1**: Critical UI components (6+ instances) - **IMMEDIATE**
+2. **Priority 2**: Performance components evaluation (35+ instances) - **NEXT**
+3. **Priority 3**: Test/development components (60+ instances) - **OPTIONAL**
+
+### **CSS Infrastructure Required**
+```css
+/* Priority 1 - Critical UI */
+.oom-table-header { /* HubModal table headers */ }
+.oom-table-cell { /* HubModal table cells */ }
+.oom-title-italic { /* Italic text styling */ }
+.oom-content-full--hidden { /* Hidden table content */ }
+
+/* Priority 2 - Performance */
+.oom-loading-indicator { /* Loading overlays */ }
+.oom-virtual-scroll-container { /* Virtual scrolling - if needed */ }
+
+/* Priority 3 - Development */
+.oom-wizard-step-hidden { /* Wizard navigation */ }
+.oom-wizard-textarea { /* Textarea sizing */ }
+.oom-test-container { /* Test modal layouts */ }
+```
+
+### **Estimated Effort**
+- **Priority 1**: 2-3 hours
+- **Priority 2**: 4-6 hours (includes evaluation)
+- **Priority 3**: 6-8 hours (if pursued)
+
+### **Files Requiring Updates**
+- **CSS Files**: `hub.css`, `enhanced-date-navigator.css`, `utilities.css`
+- **TypeScript Files**: 8+ files for Priority 1, 20+ total
+- **Testing**: All updated components require functionality verification
+
+---
+
+## **📈 Updated Project Metrics**
+
+| Metric | Original Estimate | Post-Audit Reality | Phase 7 Target |
+|--------|-------------------|-------------------|-----------------|
+| **Total Inline Styles** | ~150 | **~350** | **<10** |
+| **Critical Issues** | 150+ | **220+ eliminated + 110+ discovered** | **<5** |
+| **Files Affected** | 15+ | **25+** | **20+** |
+| **CSS Infrastructure** | +5KB | **+8KB** | **+10KB** |
+| **Completion Rate** | 100% (initial) | **63% (updated)** | **98%** (target) |
+
+**Summary**: The comprehensive audit revealed that the initial cleanup was successful for the targeted components, but significant additional inline styles exist throughout the codebase that require Phase 7 implementation for complete elimination.

@@ -242,9 +242,9 @@ export class PatternRenderer {
         levels.forEach(level => {
             const item = container.createDiv({ cls: 'oomp-legend-item' });
             const gradient = item.createDiv({ cls: 'oomp-legend-gradient' });
-            gradient.style.width = '16px';
-            gradient.style.height = '12px';
-            gradient.style.background = `linear-gradient(135deg, ${level.color}40, ${level.color}10)`;
+            // Width handled by CSS class
+            // Height handled by CSS class
+            gradient.style.setProperty('--legend-gradient', `linear-gradient(135deg, ${level.color}40, ${level.color}10)`);
             item.createSpan({ text: level.label });
         });
     }
@@ -263,10 +263,10 @@ export class PatternRenderer {
         metrics.forEach(metric => {
             const item = container.createDiv({ cls: 'oomp-legend-item' });
             const dot = item.createDiv({ cls: 'oomp-legend-dot' });
-            dot.style.width = '8px';
-            dot.style.height = '8px';
-            dot.style.borderRadius = '50%';
-            dot.style.backgroundColor = metric.color;
+            // Width handled by CSS class
+            // Height handled by CSS class
+            // Border radius handled by CSS class
+            dot.style.setProperty('--legend-color', metric.color);
             item.createSpan({ text: metric.label });
         });
     }
@@ -287,9 +287,10 @@ export class PatternRenderer {
                 const item = container.createDiv({ cls: 'oomp-legend-item' });
                 const icon = item.createDiv({ cls: 'oomp-legend-icon' });
                 icon.textContent = pattern.icon;
-                icon.style.fontSize = '16px';
+                // Font size handled by CSS class
                 item.createSpan({ text: pattern.label });
             }
         });
     }
 } 
+
