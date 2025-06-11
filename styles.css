@@ -4544,7 +4544,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (57.0 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (57.9 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -5378,6 +5378,8 @@ h2.oom-metrics-tabs-label {
         width: 8px;
         height: 8px;
         border-radius: 50%;
+        background-color: var(--pattern-color, #666);
+        opacity: var(--pattern-opacity, 1);
     }
 
     .oomp-quality-score {
@@ -5410,6 +5412,8 @@ h2.oom-metrics-tabs-label {
         width: 4px;
         margin: auto;
         border-radius: 50%;
+        background-color: var(--metric-color, #666);
+        opacity: var(--metric-opacity, 1);
     }
 
     .oomp-pattern-icon {
@@ -5419,6 +5423,8 @@ h2.oom-metrics-tabs-label {
         left: 50%;
         transform: translate(-50%, -50%);
         font-size: 1.2em;
+        color: var(--pattern-color, #666);
+        opacity: var(--pattern-opacity, 1);
     }
 
     .oomp-fallback-indicator {
@@ -5470,12 +5476,19 @@ h2.oom-metrics-tabs-label {
         height: 12px;
         border-radius: 50%;
         flex-shrink: 0;
+        background-color: var(--legend-color, #666);
     }
 
     .oomp-legend-gradient {
         width: 16px;
         height: 12px;
         border-radius: 2px;
+        flex-shrink: 0;
+        background: var(--legend-gradient, #666);
+    }
+
+    .oomp-legend-icon {
+        font-size: 16px;
         flex-shrink: 0;
     }
 
@@ -6091,6 +6104,8 @@ h2.oom-metrics-tabs-label {
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    background-color: var(--pattern-color, #666);
+    opacity: var(--pattern-opacity, 1);
 }
 
 .oomp-quality-score {
@@ -6123,6 +6138,8 @@ h2.oom-metrics-tabs-label {
     width: 4px;
     margin: auto;
     border-radius: 50%;
+    background-color: var(--metric-color, #666);
+    opacity: var(--metric-opacity, 1);
 }
 
 .oomp-pattern-icon {
@@ -6132,6 +6149,8 @@ h2.oom-metrics-tabs-label {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 1.2em;
+    color: var(--pattern-color, #666);
+    opacity: var(--pattern-opacity, 1);
 }
 
 .oomp-fallback-indicator {
@@ -6183,12 +6202,19 @@ h2.oom-metrics-tabs-label {
     height: 12px;
     border-radius: 50%;
     flex-shrink: 0;
+    background-color: var(--legend-color, #666);
 }
 
 .oomp-legend-gradient {
     width: 16px;
     height: 12px;
     border-radius: 2px;
+    flex-shrink: 0;
+    background: var(--legend-gradient, #666);
+}
+
+.oomp-legend-icon {
+    font-size: 16px;
     flex-shrink: 0;
 }
 

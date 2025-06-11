@@ -91,7 +91,7 @@ export class PatternRenderer {
         indicators.forEach(indicator => indicator.remove());
         
         // Clear background gradients
-        dayElement.style.background = '';
+        dayElement.style.setProperty('--pattern-background', '');
     }
     
     /**
@@ -124,7 +124,7 @@ export class PatternRenderer {
         
         // Apply background gradient
         if (primaryPattern.visualStyle.backgroundGradient) {
-            dayElement.style.background = primaryPattern.visualStyle.backgroundGradient;
+            dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient);
         }
         
         // Add quality score indicator in bottom-right
@@ -143,7 +143,7 @@ export class PatternRenderer {
         const qualityLevel = this.getQualityLevel(primaryPattern.qualityScore);
         dayElement.classList.add(`oomp-quality-${qualityLevel}`);
         if (primaryPattern.visualStyle.backgroundGradient) {
-            dayElement.style.background = primaryPattern.visualStyle.backgroundGradient;
+            dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient);
         }
         
         // Create metric overlay grid
@@ -223,10 +223,7 @@ export class PatternRenderer {
             if (activePatterns.has(pattern.key)) {
                 const item = container.createDiv({ cls: 'oomp-legend-item' });
                 const dot = item.createDiv({ cls: 'oomp-legend-dot' });
-                dot.style.width = '12px';
-                dot.style.height = '12px';
-                dot.style.borderRadius = '50%';
-                dot.style.backgroundColor = pattern.color;
+                dot.style.setProperty('--legend-color', pattern.color);
                 item.createSpan({ text: pattern.label });
             }
         });
