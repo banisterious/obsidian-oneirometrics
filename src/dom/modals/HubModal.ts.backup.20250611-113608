@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HubModal
  * 
  * The central OneiroMetrics Hub modal that provides access to all plugin functionality
@@ -1564,7 +1564,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         descEl.appendText('. Your current syntax looks like this: ');
         
         const previewSpan = descEl.createEl('span', { cls: 'oom-date-format-preview-inline' });
-        previewSpan.classList.add('oom-preview-span--bold');
+        previewSpan.style.fontWeight = 'bold';
 
         const updateDateFormatPreview = () => {
             const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
@@ -1643,7 +1643,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Template creation button - switches to wizard mode
         const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
-        createBtnContainer.classList.add('oom-create-btn-container');
+        createBtnContainer.style.marginTop = '1em';
         const createBtn = createBtnContainer.createEl('button', { 
             text: 'Open Template Wizard',
             cls: 'oom-button-primary'
@@ -1844,7 +1844,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Template creation button - switches to wizard mode
         const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
-        createBtnContainer.classList.add('oom-create-btn-container');
+        createBtnContainer.style.marginTop = '1em';
         const createBtn = createBtnContainer.createEl('button', { 
             text: 'Open Template Wizard',
             cls: 'oom-button-primary'
@@ -2344,7 +2344,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         descEl.appendText('. Your current syntax looks like this: ');
         
         const previewSpan = descEl.createEl('span', { cls: 'oom-date-format-preview-inline' });
-        previewSpan.classList.add('oom-preview-span--bold');
+        previewSpan.style.fontWeight = 'bold';
 
         const updateDateFormatPreview = () => {
             const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
@@ -2423,7 +2423,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Template creation button - switches to wizard mode
         const createBtnContainer = templateSection.createDiv({ cls: 'oom-setting' });
-        createBtnContainer.classList.add('oom-create-btn-container');
+        createBtnContainer.style.marginTop = '1em';
         const createBtn = createBtnContainer.createEl('button', { 
             text: 'Open Template Wizard',
             cls: 'oom-button-primary'
@@ -2775,7 +2775,7 @@ Full debug info in logs/console`);
         
         // Template creation button - now switches to wizard mode
         const createBtnContainer = containerEl.createDiv({ cls: 'oom-setting' });
-        createBtnContainer.classList.add('oom-create-btn-container--extended');
+        createBtnContainer.style.marginTop = '1.5em';
         const createBtn = createBtnContainer.createEl('button', { 
             text: 'Open Template Wizard',
             cls: 'oom-button-primary'
@@ -3320,39 +3320,39 @@ Example:
             
             // Helper buttons - replace simple button with dropdown
             const helpersContainer = container.createDiv({ cls: 'oom-content-helpers' });
-            helpersContainer.classList.add('oom-helpers-container');
-            
-            
+            helpersContainer.style.marginTop = '10px';
+            helpersContainer.style.display = 'flex';
+            helpersContainer.style.gap = '10px';
             
             // Create dropdown for sample content
             const sampleDropdownContainer = helpersContainer.createDiv({ cls: 'oom-sample-dropdown-container' });
-            sampleDropdownContainer.classList.add('oom-sample-dropdown-container');
-            
+            sampleDropdownContainer.style.position = 'relative';
+            sampleDropdownContainer.style.display = 'inline-block';
             
             const sampleDropdownBtn = sampleDropdownContainer.createEl('button', {
                 text: 'Insert Sample Content ▼',
                 cls: 'oom-helper-button oom-sample-dropdown-button'
             });
-            sampleDropdownBtn.classList.add('oom-sample-dropdown-btn');
-            
+            sampleDropdownBtn.style.padding = '6px 12px';
+            sampleDropdownBtn.style.fontSize = '14px';
             
             const sampleDropdownMenu = sampleDropdownContainer.createDiv({ cls: 'oom-sample-dropdown-menu' });
             sampleDropdownMenu.classList.add('oom-hidden');
-            sampleDropdownMenu.classList.add('oom-sample-dropdown-menu');
-            
-            
-            
-            
-            
-            
-            
-            
+            sampleDropdownMenu.style.position = 'absolute';
+            sampleDropdownMenu.style.top = '100%';
+            sampleDropdownMenu.style.left = '0';
+            sampleDropdownMenu.style.backgroundColor = 'var(--background-primary)';
+            sampleDropdownMenu.style.border = '1px solid var(--background-modifier-border)';
+            sampleDropdownMenu.style.borderRadius = '4px';
+            sampleDropdownMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+            sampleDropdownMenu.style.zIndex = '1000';
+            sampleDropdownMenu.style.minWidth = '200px';
             
             // Flat sample option
             const flatOption = sampleDropdownMenu.createDiv({ cls: 'oom-sample-option' });
-            flatOption.classList.add('oom-dropdown-option');
-            
-            
+            flatOption.style.padding = '8px 12px';
+            flatOption.style.cursor = 'pointer';
+            flatOption.style.borderBottom = '1px solid var(--background-modifier-border)';
             flatOption.textContent = 'Insert Sample (Flat)';
             
             flatOption.addEventListener('click', () => {
@@ -3380,8 +3380,8 @@ Example:
             
             // Nested sample option
             const nestedOption = sampleDropdownMenu.createDiv({ cls: 'oom-sample-option' });
-            nestedOption.classList.add('oom-dropdown-option');
-            
+            nestedOption.style.padding = '8px 12px';
+            nestedOption.style.cursor = 'pointer';
             nestedOption.textContent = 'Insert Sample (Nested)';
             
             nestedOption.addEventListener('click', () => {
@@ -3409,17 +3409,17 @@ Example:
             
             // Hover effects
             flatOption.addEventListener('mouseenter', () => {
-                flatOption.classList.add('oom-dropdown-option--hover');
+                flatOption.style.backgroundColor = 'var(--background-modifier-hover)';
             });
             flatOption.addEventListener('mouseleave', () => {
-                flatOption.classList.remove('oom-dropdown-option--hover');
+                flatOption.style.backgroundColor = '';
             });
             
             nestedOption.addEventListener('mouseenter', () => {
-                nestedOption.classList.add('oom-dropdown-option--hover');
+                nestedOption.style.backgroundColor = 'var(--background-modifier-hover)';
             });
             nestedOption.addEventListener('mouseleave', () => {
-                nestedOption.classList.remove('oom-dropdown-option--hover');
+                nestedOption.style.backgroundColor = '';
             });
             
             // Toggle dropdown on button click
@@ -3444,8 +3444,8 @@ Example:
                 text: 'Clear',
                 cls: 'oom-helper-button'
             });
-            clearBtn.classList.add('oom-clear-btn');
-            
+            clearBtn.style.padding = '6px 12px';
+            clearBtn.style.fontSize = '14px';
             clearBtn.addEventListener('click', () => {
                 textarea.value = '';
                 this.wizardState!.content = '';
@@ -3796,7 +3796,7 @@ Example:
         // Build and show new step
         this.buildWizardStep(step);
         if (this.wizardStepContainers[step - 1]) {
-            this.wizardStepContainers[step - 1].classList.add('oom-wizard-step--visible');
+            this.wizardStepContainers[step - 1].style.display = 'block';
         }
         
         // Update navigation and preview
@@ -3857,11 +3857,11 @@ Example:
                         </li>
                     </ul>
                 `;
-                explanation.classList.add('oom-explanation');
-                
-                
-                
-                
+                explanation.style.marginTop = '1em';
+                explanation.style.padding = '1em';
+                explanation.style.backgroundColor = 'var(--background-primary)';
+                explanation.style.borderRadius = '4px';
+                explanation.style.fontSize = '14px';
                 
             } else {
                 // Regular preview for non-Templater content
@@ -4890,9 +4890,9 @@ Example:
             // Show info details
             if (info.length > 0) {
                 const infoSection = successEl.createDiv({ cls: 'oom-validation-info-section' });
-                infoSection.classList.add('oom-info-section');
-                
-                
+                infoSection.style.marginTop = '0.5em';
+                infoSection.style.fontSize = '0.9em';
+                infoSection.style.color = 'var(--text-muted)';
                 info.forEach(infoItem => {
                     infoSection.createEl('div', { text: `ℹ️ ${infoItem}` });
                 });
@@ -4965,17 +4965,17 @@ Example:
         contentEl.createEl('p', { text: 'Choose a folder to analyze for callout patterns:' });
         
         const folderList = contentEl.createDiv({ cls: 'oom-folder-list' });
-        folderList.classList.add('oom-folder-list');
-        
-        
-        
-        
+        folderList.style.maxHeight = '300px';
+        folderList.style.overflowY = 'auto';
+        folderList.style.border = '1px solid var(--background-modifier-border)';
+        folderList.style.borderRadius = '4px';
+        folderList.style.margin = '1em 0';
         
         folders.forEach(folderPath => {
             const folderItem = folderList.createDiv({ cls: 'oom-folder-item' });
-            folderItem.classList.add('oom-folder-item');
-            
-            
+            folderItem.style.padding = '0.5em';
+            folderItem.style.borderBottom = '1px solid var(--background-modifier-border)';
+            folderItem.style.cursor = 'pointer';
             
             folderItem.textContent = `📁 ${folderPath}`;
             
@@ -4991,17 +4991,17 @@ Example:
             });
             
             folderItem.addEventListener('mouseenter', () => {
-                folderItem.classList.add('oom-folder-item--hover');
+                folderItem.style.backgroundColor = 'var(--background-modifier-hover)';
             });
             
             folderItem.addEventListener('mouseleave', () => {
-                folderItem.classList.remove('oom-folder-item--hover');
+                folderItem.style.backgroundColor = '';
             });
         });
         
         const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
-        buttonContainer.classList.add('oom-button-container--right');
-        buttonContainer.classList.add('oom-button-container');
+        buttonContainer.style.textAlign = 'right';
+        buttonContainer.style.marginTop = '1em';
         
         const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
         cancelBtn.addEventListener('click', () => modal.close());
@@ -5032,37 +5032,37 @@ Example:
         
         // Add search input
         const searchContainer = contentEl.createDiv({ cls: 'oom-search-container' });
-        searchContainer.classList.add('oom-search-container');
+        searchContainer.style.margin = '1em 0';
         
         const searchInput = searchContainer.createEl('input', { 
             type: 'text',
             placeholder: 'Search notes...'
         });
-        searchInput.classList.add('oom-search-input');
-        
-        
-        
+        searchInput.style.width = '100%';
+        searchInput.style.padding = '0.5em';
+        searchInput.style.border = '1px solid var(--background-modifier-border)';
+        searchInput.style.borderRadius = '4px';
         
         const noteList = contentEl.createDiv({ cls: 'oom-note-list' });
-        noteList.classList.add('oom-note-list');
-        
-        
-        
-        
+        noteList.style.maxHeight = '300px';
+        noteList.style.overflowY = 'auto';
+        noteList.style.border = '1px solid var(--background-modifier-border)';
+        noteList.style.borderRadius = '4px';
+        noteList.style.margin = '1em 0';
         
         const renderNotes = (filteredFiles: typeof markdownFiles) => {
             noteList.empty();
             
             filteredFiles.slice(0, 100).forEach(file => { // Limit to 100 for performance
                 const noteItem = noteList.createDiv({ cls: 'oom-note-item' });
-                noteItem.classList.add('oom-note-item');
-                
-                
+                noteItem.style.padding = '0.5em';
+                noteItem.style.borderBottom = '1px solid var(--background-modifier-border)';
+                noteItem.style.cursor = 'pointer';
                 
                 noteItem.createEl('div', { text: file.name, cls: 'oom-note-name' });
                 const pathEl = noteItem.createEl('div', { text: file.path, cls: 'oom-note-path' });
-                pathEl.classList.add('oom-path-element');
-                
+                pathEl.style.fontSize = '0.8em';
+                pathEl.style.color = 'var(--text-muted)';
                 
                 noteItem.addEventListener('click', () => {
                     this.addAnalysisTarget(targetsList, emptyState, {
@@ -5075,19 +5075,19 @@ Example:
                 });
                 
                 noteItem.addEventListener('mouseenter', () => {
-                    noteItem.classList.add('oom-note-item--hover');
+                    noteItem.style.backgroundColor = 'var(--background-modifier-hover)';
                 });
                 
                 noteItem.addEventListener('mouseleave', () => {
-                    noteItem.classList.remove('oom-note-item--hover');
+                    noteItem.style.backgroundColor = '';
                 });
             });
             
             if (filteredFiles.length > 100) {
                 const moreItem = noteList.createDiv({ cls: 'oom-note-item' });
-                moreItem.classList.add('oom-more-item');
-                
-                
+                moreItem.style.padding = '0.5em';
+                moreItem.style.textAlign = 'center';
+                moreItem.style.color = 'var(--text-muted)';
                 moreItem.textContent = `... and ${filteredFiles.length - 100} more. Refine your search.`;
             }
         };
@@ -5106,8 +5106,8 @@ Example:
         });
         
         const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
-        buttonContainer.classList.add('oom-button-container--right');
-        buttonContainer.classList.add('oom-button-container');
+        buttonContainer.style.textAlign = 'right';
+        buttonContainer.style.marginTop = '1em';
         
         const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
         cancelBtn.addEventListener('click', () => modal.close());
@@ -5225,30 +5225,30 @@ Example:
         
         // Show progress
         const progressContainer = this.contentContainer.createDiv({ cls: 'oom-progress-container' });
-        progressContainer.classList.add('oom-progress-container');
-        
-        
-        
+        progressContainer.style.marginTop = '2em';
+        progressContainer.style.padding = '2em';
+        progressContainer.style.border = '2px solid var(--background-modifier-border)';
+        progressContainer.style.borderRadius = '8px';
         
         const progressTitle = progressContainer.createEl('h3', { text: '🔍 Analyzing Content...' });
-        progressTitle.classList.add('oom-progress-title');
+        progressTitle.style.marginBottom = '1em';
         
         const progressBar = progressContainer.createDiv({ cls: 'oom-progress-bar' });
-        progressBar.classList.add('oom-progress-bar');
-        
-        
-        
-        
+        progressBar.style.width = '100%';
+        progressBar.style.height = '20px';
+        progressBar.style.backgroundColor = 'var(--background-modifier-border)';
+        progressBar.style.borderRadius = '10px';
+        progressBar.style.overflow = 'hidden';
         
         const progressFill = progressBar.createDiv({ cls: 'oom-progress-fill' });
-        progressFill.classList.add('oom-progress-fill');
-        
-        
-        
+        progressFill.style.height = '100%';
+        progressFill.style.backgroundColor = 'var(--interactive-accent)';
+        progressFill.style.width = '0%';
+        progressFill.style.transition = 'width 0.3s ease';
         
         const statusText = progressContainer.createEl('p', { text: 'Preparing analysis...' });
-        statusText.classList.add('oom-status-text');
-        
+        statusText.style.marginTop = '1em';
+        statusText.style.textAlign = 'center';
         
         try {
             // Initialize results object
@@ -5328,7 +5328,7 @@ Example:
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
             
-            progressFill.classList.add('oom-progress-fill--complete');
+            progressFill.style.width = '100%';
             statusText.textContent = 'Analysis complete!';
             
             this.logger.info('ContentAnalysis', 'All files processed, showing results', {
@@ -5458,10 +5458,10 @@ Example:
             
             // Show structure complexity metrics
             const complexitySection = structureSection.createDiv({ cls: 'oom-structure-complexity' });
-            complexitySection.classList.add('oom-complexity-section');
-            
-            
-            
+            complexitySection.style.marginBottom = '1.5em';
+            complexitySection.style.padding = '1em';
+            complexitySection.style.background = 'var(--background-secondary)';
+            complexitySection.style.borderRadius = '5px';
             
             const totalCallouts = Object.values(results.calloutsFound).reduce((sum: number, count: number) => sum + count, 0);
             const filesWithNesting = fileEntries.filter(([, data]: [string, any]) => 
@@ -5480,9 +5480,9 @@ Example:
             
             fileEntries.forEach(([filePath, fileData]: [string, any]) => {
                 const fileContainer = structureSection.createDiv({ cls: 'oom-file-structure' });
-                fileContainer.classList.add('oom-file-container');
-                
-                
+                fileContainer.style.marginBottom = '1.5em';
+                fileContainer.style.border = '1px solid var(--background-modifier-border)';
+                fileContainer.style.borderRadius = '5px';
                 fileContainer.style.padding = '1em';
                 
                 const fileHeader = fileContainer.createDiv({ cls: 'oom-file-header' });
@@ -5542,7 +5542,7 @@ Example:
         
         // Close button
         const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
-        buttonContainer.classList.add('oom-button-container--right');
+        buttonContainer.style.textAlign = 'right';
         buttonContainer.style.marginTop = '2em';
         
         const closeBtn = buttonContainer.createEl('button', { text: 'Close', cls: 'mod-cta' });
@@ -6910,5 +6910,4 @@ Example:
     }
 
 }
-
 
