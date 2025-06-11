@@ -2587,25 +2587,14 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
      * Apply styles to the callout box
      */
     private applyCalloutBoxStyles(element: HTMLElement): void {
-        element.style.width = '100%';
-        element.style.minHeight = '90px';
-        element.style.fontFamily = 'var(--font-monospace, monospace)';
-        element.style.fontSize = '0.93em';
-        element.style.background = 'var(--background-secondary)';
-        element.style.border = '1px solid var(--border-color)';
-        element.style.borderRadius = '4px';
-        element.style.marginBottom = '1em';
-        element.style.padding = '12px';
-        element.style.whiteSpace = 'pre-wrap';
-        element.style.wordBreak = 'break-word';
-        element.style.userSelect = 'all';
+        element.addClass('oom-callout-box');
     }
     
     /**
      * Apply styles to the copy button
      */
     private applyCopyButtonStyles(button: HTMLElement): void {
-        button.style.marginBottom = '1.5em';
+        button.classList.add('oom-copy-button');
     }
     
     /**
@@ -2616,91 +2605,26 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         statusEl: HTMLElement, 
         settingsBtn: HTMLElement
     ): void {
-        // Section container styling
-        configSection.style.marginBottom = '1.5em';
-        configSection.style.padding = '1em';
-        configSection.style.backgroundColor = 'var(--background-secondary)';
-        configSection.style.borderRadius = '4px';
-        configSection.style.border = '1px solid var(--background-modifier-border)';
+        // Section container styling - use CSS class
+        configSection.addClass('oom-templater-config-section');
         
-        // Status element styling
-        statusEl.style.marginBottom = '1em';
+        // Status element styling - use CSS class
+        statusEl.addClass('oom-templater-status');
         
-        // Apply styles to status paragraphs
-        const successElements = statusEl.querySelectorAll('.oom-status-success');
-        successElements.forEach((el: Element) => {
-            (el as HTMLElement).style.color = 'var(--text-success)';
-            (el as HTMLElement).style.fontWeight = '500';
-        });
-        
-        const warningElements = statusEl.querySelectorAll('.oom-status-warning');
-        warningElements.forEach((el: Element) => {
-            (el as HTMLElement).style.color = 'var(--text-warning)';
-            (el as HTMLElement).style.fontStyle = 'italic';
-        });
-        
-        const errorElements = statusEl.querySelectorAll('.oom-status-error');
-        errorElements.forEach((el: Element) => {
-            (el as HTMLElement).style.color = 'var(--text-error)';
-            (el as HTMLElement).style.fontWeight = '500';
-        });
-        
-        const infoElements = statusEl.querySelectorAll('.oom-templater-folder-info, .oom-templater-count-info');
-        infoElements.forEach((el: Element) => {
-            (el as HTMLElement).style.color = 'var(--text-muted)';
-            (el as HTMLElement).style.fontSize = '0.9em';
-            (el as HTMLElement).style.margin = '0.25em 0';
-        });
-        
-        const helpElements = statusEl.querySelectorAll('.oom-templater-help-text');
-        helpElements.forEach((el: Element) => {
-            (el as HTMLElement).style.color = 'var(--text-muted)';
-            (el as HTMLElement).style.fontSize = '0.9em';
-        });
-        
-        // Button container styling
+        // Status elements use CSS classes for styling (no JS needed)
+        // Button container styling handled by CSS
         const buttonContainer = settingsBtn.parentElement;
         if (buttonContainer) {
-            
-            
-            buttonContainer.style.flexWrap = 'wrap';
+            buttonContainer.addClass('oom-template-button-container');
         }
         
-        // Settings button styling
-        settingsBtn.style.padding = '0.5em 1em';
-        settingsBtn.style.backgroundColor = 'var(--interactive-accent)';
-        settingsBtn.style.color = 'var(--text-on-accent)';
-        settingsBtn.style.border = 'none';
-        settingsBtn.style.borderRadius = '4px';
-        settingsBtn.style.cursor = 'pointer';
-        settingsBtn.style.fontSize = '0.9em';
+        // Settings button styling - use CSS class
+        settingsBtn.addClass('oom-template-settings-button');
         
-        // Add hover effect for settings button
-        settingsBtn.addEventListener('mouseenter', () => {
-            settingsBtn.style.backgroundColor = 'var(--interactive-accent-hover)';
-        });
-        settingsBtn.addEventListener('mouseleave', () => {
-            settingsBtn.style.backgroundColor = 'var(--interactive-accent)';
-        });
-        
-        // Debug button styling (if it exists)
+        // Debug button styling (if it exists) - use CSS class
         const debugBtn = buttonContainer?.querySelector('.oom-templater-debug-button') as HTMLElement;
         if (debugBtn) {
-            debugBtn.style.padding = '0.5em 1em';
-            debugBtn.style.backgroundColor = 'var(--background-modifier-border)';
-            debugBtn.style.color = 'var(--text-normal)';
-            debugBtn.style.border = '1px solid var(--background-modifier-border)';
-            debugBtn.style.borderRadius = '4px';
-            debugBtn.style.cursor = 'pointer';
-            debugBtn.style.fontSize = '0.9em';
-            
-            // Add hover effect for debug button
-            debugBtn.addEventListener('mouseenter', () => {
-                debugBtn.style.backgroundColor = 'var(--background-modifier-hover)';
-            });
-            debugBtn.addEventListener('mouseleave', () => {
-                debugBtn.style.backgroundColor = 'var(--background-modifier-border)';
-            });
+            debugBtn.addClass('oom-template-debug-button');
         }
     }
 
@@ -3216,12 +3140,8 @@ Full debug info in logs/console`);
                 });
             }
             
-            // Apply inline styling
-            templaterConfigSection.style.marginBottom = '1.5em';
-            templaterConfigSection.style.padding = '1em';
-            templaterConfigSection.style.backgroundColor = 'var(--background-secondary)';
-            templaterConfigSection.style.borderRadius = '4px';
-            templaterConfigSection.style.border = '1px solid var(--background-modifier-border)';
+            // Apply CSS class instead of inline styling
+            templaterConfigSection.addClass('oom-templater-config-section');
             
             // Template selection
             if (templaterTemplates.length > 0) {
