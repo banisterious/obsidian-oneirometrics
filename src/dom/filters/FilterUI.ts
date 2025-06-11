@@ -168,15 +168,6 @@ export class FilterUI {
             loadingIndicator = document.createElement('div');
             loadingIndicator.className = 'oom-loading-indicator';
             loadingIndicator.textContent = 'Filtering entries...';
-            loadingIndicator.style.position = 'fixed';
-            loadingIndicator.style.top = '10px';
-            loadingIndicator.style.right = '10px';
-            loadingIndicator.style.background = 'var(--background-primary)';
-            loadingIndicator.style.color = 'var(--text-normal)';
-            loadingIndicator.style.padding = '8px 12px';
-            loadingIndicator.style.borderRadius = '4px';
-            loadingIndicator.style.boxShadow = '0 2px 8px var(--background-modifier-box-shadow)';
-            loadingIndicator.style.zIndex = '1000';
             document.body.appendChild(loadingIndicator);
         }
         

@@ -535,4 +535,32 @@
     height: auto;
     padding: 4px 12px;
     font-size: 13px;
+}
+
+/* Loading Indicators */
+.oom-loading-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px var(--background-modifier-box-shadow);
+    z-index: 1000;
+    font-size: 14px;
+    border: 1px solid var(--background-modifier-border);
+    backdrop-filter: blur(4px);
+    animation: oom-loading-fade-in 0.2s ease-out;
+}
+
+@keyframes oom-loading-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 } 
