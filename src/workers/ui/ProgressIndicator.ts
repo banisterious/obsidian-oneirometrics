@@ -18,8 +18,7 @@ export class ProgressIndicator {
      */
     private createProgressUI(): void {
         this.progressElement = document.createElement('div');
-        this.progressElement.className = 'oom-progress-indicator';
-        this.progressElement.style.display = 'none';
+        this.progressElement.className = 'oom-progress-indicator oom-hidden';
         this.progressElement.innerHTML = `
             <div class="oom-progress-content">
                 <div class="oom-progress-text">Processing...</div>
@@ -99,7 +98,7 @@ export class ProgressIndicator {
      */
     show(message: string = 'Processing...'): void {
         if (this.progressElement) {
-            this.progressElement.style.display = 'flex';
+            this.progressElement.className = 'oom-progress-indicator';
         }
         if (this.statusText) {
             this.statusText.textContent = message;
@@ -126,7 +125,7 @@ export class ProgressIndicator {
      */
     hide(): void {
         if (this.progressElement) {
-            this.progressElement.style.display = 'none';
+            this.progressElement.className = 'oom-progress-indicator oom-hidden';
         }
     }
 

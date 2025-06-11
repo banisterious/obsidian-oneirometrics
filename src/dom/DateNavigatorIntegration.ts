@@ -748,7 +748,7 @@ export class DateNavigatorIntegration {
      */
     public show(): void {
         if (this.container) {
-            this.container.style.display = 'flex';
+            this.container.classList.remove('oom-hidden');
         }
     }
     
@@ -757,7 +757,7 @@ export class DateNavigatorIntegration {
      */
     public hide(): void {
         if (this.container) {
-            this.container.style.display = 'none';
+            this.container.classList.add('oom-hidden');
         }
     }
     
@@ -766,11 +766,7 @@ export class DateNavigatorIntegration {
      */
     public toggle(): void {
         if (this.container) {
-            if (this.container.style.display === 'none') {
-                this.show();
-            } else {
-                this.hide();
-            }
+            this.container.classList.toggle('oom-hidden');
         }
     }
     
@@ -908,13 +904,11 @@ export class DateNavigatorIntegration {
         requestAnimationFrame(() => {
             changes.forEach(({ element, visible }) => {
                 if (visible) {
-                    element.classList.remove('oom-row--hidden');
+                    element.classList.remove('oom-row--hidden', 'oom-hidden');
                     element.classList.add('oom-row--visible');
-                    element.style.display = 'block';
                 } else {
-                    element.classList.add('oom-row--hidden');
+                    element.classList.add('oom-row--hidden', 'oom-hidden');
                     element.classList.remove('oom-row--visible');
-                    element.style.display = 'none';
                 }
             });
             

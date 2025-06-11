@@ -191,7 +191,7 @@ export class DateNavigator {
         const debugButton = document.createElement('button');
         debugButton.textContent = 'Debug DateNavigator';
         debugButton.onclick = () => this.debugDisplay();
-        debugButton.style.display = 'none'; // Hide by default
+        debugButton.classList.add('oom-hidden'); // Hide by default
         this.container.appendChild(debugButton);
         
         // Use proper logging
