@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HubModal
  * 
  * The central OneiroMetrics Hub modal that provides access to all plugin functionality
@@ -605,7 +605,7 @@ The plugin does not prescribe any particular interpretation or meaning to dream 
         // Return detailed description based on metric name
         const descriptions: Record<string, string> = {
             'Sensory Detail': `
-This metric captures the **richness and vividness of the sensory information** you recall from your dream experience. It's about how much detail you remember across your five senses—what you saw, heard, felt, smelled, and tasted. Tracking this helps you gauge the overall immersive quality of your dreams and can indicate improvements in your recall abilities.
+This metric captures the **richness and vividness of the sensory information** you recall from your dream experience. It's about how much detail you remember across your five senses�what you saw, heard, felt, smelled, and tasted. Tracking this helps you gauge the overall immersive quality of your dreams and can indicate improvements in your recall abilities.
 `,
             'Emotional Recall': `
 This metric focuses on your **ability to remember and articulate the emotions you experienced while dreaming**. Dreams are often rich with feelings, and tracking them can provide profound insights into your subconscious state, anxieties, joys, and unresolved issues. This metric helps you assess not just _what_ emotions were present, but also their clarity, intensity, and how they evolved throughout the dream narrative.
@@ -800,7 +800,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 | Score                     | Description                                                                                                                                                                                 |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 (Completely Unfamiliar) | All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.                                                 |
-| 2 (Vaguely Familiar)      | You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories. |
+| 2 (Vaguely Familiar)      | You experience a sense of d�j� vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories. |
 | 3 (Partially Familiar)    | The dream settings are a blend of recognizable and unfamiliar elements. You might recognize the layout of a room but find it in a completely new building, or a familiar landscape might have strange, uncharacteristic features.                                                                                                                                                                                            |
 | 4 (Mostly Familiar)       | The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.                                                                                                                                                                                            |
 | 5 (Completely Familiar)   | All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.                                                                                                                                                                                            |
@@ -2019,7 +2019,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Add breadcrumb with back button
         const breadcrumbContainer = headerSection.createDiv({ cls: 'oom-wizard-breadcrumb' });
         const backButton = breadcrumbContainer.createEl('button', {
-            text: '← Back to Journal Structure',
+            text: '? Back to Journal Structure',
             cls: 'oom-wizard-back-button'
         });
         backButton.addEventListener('click', () => {
@@ -2672,32 +2672,32 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         if (templaterEnabled) {
             statusEl.createEl('p', { 
-                text: `✅ Templater plugin detected`,
+                text: `? Templater plugin detected`,
                 cls: 'oom-status-success'
             });
             statusEl.createEl('p', { 
-                text: `📁 Template folder: ${templaterTemplateFolder}`,
+                text: `?? Template folder: ${templaterTemplateFolder}`,
                 cls: 'oom-templater-folder-info'
             });
             statusEl.createEl('p', { 
-                text: `📄 Templates found: ${templaterTemplates.length}`,
+                text: `?? Templates found: ${templaterTemplates.length}`,
                 cls: 'oom-templater-count-info'
             });
             
             if (templaterTemplates.length === 0 && templaterTemplateFolder !== 'Not configured') {
                 statusEl.createEl('p', { 
-                    text: '⚠️ No .md files found in template folder. Create some Templater templates to use this feature.',
+                    text: '?? No .md files found in template folder. Create some Templater templates to use this feature.',
                     cls: 'oom-status-warning'
                 });
             } else if (templaterTemplateFolder === 'Not configured') {
                 statusEl.createEl('p', { 
-                    text: '⚠️ Templater template folder not configured. Go to Templater settings to set a template folder.',
+                    text: '?? Templater template folder not configured. Go to Templater settings to set a template folder.',
                     cls: 'oom-status-warning'
                 });
             }
         } else {
             statusEl.createEl('p', { 
-                text: '❌ Templater plugin not found',
+                text: '? Templater plugin not found',
                 cls: 'oom-status-error u-state--error'
             });
             statusEl.createEl('p', { 
@@ -2898,11 +2898,11 @@ Full debug info in logs/console`);
         
         switch (this.wizardState.method) {
             case 'templater':
-                return 2; // Method selection → Template selection (with preview)
+                return 2; // Method selection ? Template selection (with preview)
             case 'structure':
-                return 3; // Method selection → Structure selection → Final preview
+                return 3; // Method selection ? Structure selection ? Final preview
             case 'direct':
-                return 2; // Method selection → Content editing (with preview)
+                return 2; // Method selection ? Content editing (with preview)
             default:
                 return 2;
         }
@@ -3122,19 +3122,19 @@ Full debug info in logs/console`);
             
             if (templaterEnabled) {
                 statusEl.createEl('p', { 
-                    text: `✅ Templater plugin detected | 📁 Folder: ${templaterTemplateFolder} | 📄 Templates: ${templaterTemplates.length}`,
+                    text: `? Templater plugin detected | ?? Folder: ${templaterTemplateFolder} | ?? Templates: ${templaterTemplates.length}`,
                     cls: 'oom-status-success'
                 });
                 
                 if (templaterTemplates.length === 0) {
                     statusEl.createEl('p', { 
-                        text: '⚠️ No .md files found in template folder.',
+                        text: '?? No .md files found in template folder.',
                         cls: 'oom-status-warning'
                     });
                 }
             } else {
                 statusEl.createEl('p', { 
-                    text: '❌ Templater plugin not found',
+                    text: '? Templater plugin not found',
                     cls: 'oom-status-error'
                 });
             }
@@ -3330,7 +3330,7 @@ Example:
             
             
             const sampleDropdownBtn = sampleDropdownContainer.createEl('button', {
-                text: 'Insert Sample Content ▼',
+                text: 'Insert Sample Content ?',
                 cls: 'oom-helper-button oom-sample-dropdown-button'
             });
             sampleDropdownBtn.classList.add('oom-sample-dropdown-btn');
@@ -3428,7 +3428,7 @@ Example:
                 e.stopPropagation();
                 dropdownOpen = !dropdownOpen;
                 sampleDropdownMenu.style.display = dropdownOpen ? 'block' : 'none';
-                sampleDropdownBtn.textContent = dropdownOpen ? 'Insert Sample Content ▲' : 'Insert Sample Content ▼';
+                sampleDropdownBtn.textContent = dropdownOpen ? 'Insert Sample Content ?' : 'Insert Sample Content ?';
             });
             
             // Close dropdown when clicking outside
@@ -3436,7 +3436,7 @@ Example:
                 if (dropdownOpen) {
                     dropdownOpen = false;
                     sampleDropdownMenu.classList.add('oom-hidden');
-                    sampleDropdownBtn.textContent = 'Insert Sample Content ▼';
+                    sampleDropdownBtn.textContent = 'Insert Sample Content ?';
                 }
             });
             
@@ -3496,7 +3496,7 @@ Example:
             {
                 id: 'nested-3-level',
                 name: 'Nested (3-level)',
-                description: 'Deep nested structure: journal-entry → dream-diary → dream-metrics',
+                description: 'Deep nested structure: journal-entry ? dream-diary ? dream-metrics',
                 type: 'nested',
                 rootCallout: 'journal-entry',
                 childCallouts: ['dream-diary'],
@@ -3508,7 +3508,7 @@ Example:
             {
                 id: 'nested-2-level',
                 name: 'Nested (2-level)',
-                description: 'Simple nested structure: journal-entry → dream-metrics',
+                description: 'Simple nested structure: journal-entry ? dream-metrics',
                 type: 'nested',
                 rootCallout: 'journal-entry',
                 childCallouts: [],
@@ -3577,9 +3577,9 @@ Example:
             }
         }
         
-        console.log('🔧 Edit Template - Detected method:', method, 'for template:', template.name);
-        console.log('🔧 Template has structure:', template.structure);
-        console.log('🔧 Template content preview:', template.content?.substring(0, 100));
+        console.log('?? Edit Template - Detected method:', method, 'for template:', template.name);
+        console.log('?? Template has structure:', template.structure);
+        console.log('?? Template content preview:', template.content?.substring(0, 100));
         
         // Find the structure if it exists and method is structure
         let structure: CalloutStructure | null = null;
@@ -3605,7 +3605,7 @@ Example:
             editingTemplateId: template.id // Store the ID so we know we're editing
         };
         
-        console.log('🔧 Wizard state for editing:', this.wizardState);
+        console.log('?? Wizard state for editing:', this.wizardState);
         
         // Re-render in wizard mode
         this.loadJournalStructureContent();
@@ -3694,7 +3694,7 @@ Example:
         
         const previewHeader = previewSection.createDiv({ cls: 'oom-preview-header' });
         const collapseButton = previewHeader.createEl('button', {
-            text: '▼ Preview',
+            text: '? Preview',
             cls: 'oom-preview-collapse-button'
         });
         
@@ -3704,7 +3704,7 @@ Example:
         collapseButton.addEventListener('click', () => {
             isCollapsed = !isCollapsed;
             this.wizardPreviewEl!.style.display = isCollapsed ? 'none' : 'block';
-            collapseButton.textContent = isCollapsed ? '▶ Preview' : '▼ Preview';
+            collapseButton.textContent = isCollapsed ? '? Preview' : '? Preview';
         });
     }
     
@@ -3850,9 +3850,9 @@ Example:
                         <li><strong>Static Fallback:</strong> Converts Templater syntax to placeholders for manual replacement</li>
                         <li><strong>Your Template Features:</strong>
                             <ul>
-                                <li><code>tp.system.prompt()</code> → Interactive user prompts</li>
-                                <li><code>&lt;%* ... -%&gt;</code> → JavaScript execution blocks</li>
-                                <li><code>&lt;% variable %&gt;</code> → Variable insertion</li>
+                                <li><code>tp.system.prompt()</code> ? Interactive user prompts</li>
+                                <li><code>&lt;%* ... -%&gt;</code> ? JavaScript execution blocks</li>
+                                <li><code>&lt;% variable %&gt;</code> ? Variable insertion</li>
                             </ul>
                         </li>
                     </ul>
@@ -4001,8 +4001,8 @@ Example:
             templaterFile: this.wizardState.templaterFile || ''
         };
         
-        console.log('🔧 Saving template with structure ID:', template.structure);
-        console.log('🔧 Template data:', template);
+        console.log('?? Saving template with structure ID:', template.structure);
+        console.log('?? Template data:', template);
         
         this.saveTemplate(template);
     }
@@ -4037,9 +4037,9 @@ Example:
                     userInterface: {
                         showInlineValidation: false,
                         severityIndicators: {
-                            error: '❌',
-                            warning: '⚠️',
-                            info: 'ℹ️'
+                            error: '?',
+                            warning: '??',
+                            info: '??'
                         },
                         quickFixesEnabled: false
                     }
@@ -4229,7 +4229,7 @@ Example:
         });
         
         placeholderContent.createEl('p', { 
-            text: '🚧 Migration tools will be available in a future update.',
+            text: '?? Migration tools will be available in a future update.',
             cls: 'oom-hub-placeholder-text' 
         });
 
@@ -4504,7 +4504,7 @@ Example:
             // Configuration Status
             new Setting(infrastructureSection)
                 .setName('Configuration Status')
-                .setDesc(`Version ${config.configVersion} • Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`)
+                .setDesc(`Version ${config.configVersion} � Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`)
                 .addButton(button => {
                     button.setButtonText('Test Infrastructure')
                         .onClick(() => {
@@ -4684,13 +4684,13 @@ Example:
                                 
                                 if (result.migrated) {
                                     await this.plugin.saveSettings();
-                                    new Notice('✅ Settings migrated to unified metrics format');
+                                    new Notice('? Settings migrated to unified metrics format');
                                     this.loadMetricsSettingsContent(); // Refresh the content
                                 } else {
-                                    new Notice('ℹ️ Settings are already up to date');
+                                    new Notice('?? Settings are already up to date');
                                 }
                             } catch (error) {
-                                new Notice(`❌ Migration failed: ${(error as Error).message}`);
+                                new Notice(`? Migration failed: ${(error as Error).message}`);
                                 console.error('Settings migration error:', error);
                             }
                         });
@@ -4708,9 +4708,9 @@ Example:
         // Show loading state
         resultsContainer.classList.remove('oom-hidden');
         resultsContainer.innerHTML = '';
-        resultsContainer.createEl('p', { text: '🔄 Validating template...', cls: 'oom-validation-loading' });
+        resultsContainer.createEl('p', { text: '?? Validating template...', cls: 'oom-validation-loading' });
         
-        console.log('🔍 Debug template validation:');
+        console.log('?? Debug template validation:');
         console.log('Template structure ID:', template.structure);
         console.log('Template is Templater:', template.isTemplaterTemplate);
         console.log('Template Templater file:', template.templaterFile);
@@ -4881,7 +4881,7 @@ Example:
     private displayValidationResults(resultsContainer: HTMLElement, errors: string[], warnings: string[], info: string[], templateType: string) {
         if (errors.length === 0 && warnings.length === 0) {
             const successEl = resultsContainer.createDiv({ cls: 'oom-validation-success' });
-            successEl.createEl('span', { text: '✅ Template validation passed!' });
+            successEl.createEl('span', { text: '? Template validation passed!' });
             successEl.createEl('p', { 
                 text: `${templateType} is properly configured.`,
                 cls: 'oom-validation-success-details'
@@ -4894,7 +4894,7 @@ Example:
                 
                 
                 info.forEach(infoItem => {
-                    infoSection.createEl('div', { text: `ℹ️ ${infoItem}` });
+                    infoSection.createEl('div', { text: `?? ${infoItem}` });
                 });
             }
         } else {
@@ -4912,7 +4912,7 @@ Example:
             // Show errors first
             if (errors.length > 0) {
                 const errorsSection = detailsEl.createDiv({ cls: 'oom-validation-section' });
-                errorsSection.createEl('h5', { text: '❌ Errors' });
+                errorsSection.createEl('h5', { text: '? Errors' });
                 errors.forEach(error => {
                     const errorItem = errorsSection.createDiv({ cls: 'oom-validation-item error' });
                     errorItem.createEl('span', { text: error });
@@ -4922,7 +4922,7 @@ Example:
             // Show warnings
             if (warnings.length > 0) {
                 const warningsSection = detailsEl.createDiv({ cls: 'oom-validation-section' });
-                warningsSection.createEl('h5', { text: '⚠️ Warnings' });
+                warningsSection.createEl('h5', { text: '?? Warnings' });
                 warnings.forEach(warning => {
                     const warningItem = warningsSection.createDiv({ cls: 'oom-validation-item warning' });
                     warningItem.createEl('span', { text: warning });
@@ -4932,7 +4932,7 @@ Example:
             // Show info
             if (info.length > 0) {
                 const infoSection = detailsEl.createDiv({ cls: 'oom-validation-section' });
-                infoSection.createEl('h5', { text: 'ℹ️ Information' });
+                infoSection.createEl('h5', { text: '?? Information' });
                 info.forEach(infoItem => {
                     const infoEl = infoSection.createDiv({ cls: 'oom-validation-item info' });
                     infoEl.createEl('span', { text: infoItem });
@@ -4977,7 +4977,7 @@ Example:
             
             
             
-            folderItem.textContent = `📁 ${folderPath}`;
+            folderItem.textContent = `?? ${folderPath}`;
             
             folderItem.addEventListener('click', () => {
                 this.addAnalysisTarget(targetsList, emptyState, {
@@ -5142,7 +5142,7 @@ Example:
         
         const targetInfo = targetItem.createDiv({ cls: 'oom-target-info' });
         
-        const icon = target.type === 'folder' ? '📁' : '📄';
+        const icon = target.type === 'folder' ? '??' : '??';
         targetInfo.createEl('span', { text: `${icon} ${target.name}`, cls: 'oom-target-name' });
         targetInfo.createEl('br');
         targetInfo.createEl('span', { text: target.path, cls: 'oom-target-path' });
@@ -5153,7 +5153,7 @@ Example:
         }
         
         // Remove button
-        const removeBtn = targetItem.createEl('button', { text: '×', cls: 'oom-remove-target-btn' });
+        const removeBtn = targetItem.createEl('button', { text: '�', cls: 'oom-remove-target-btn' });
         
         removeBtn.addEventListener('click', () => {
             targetItem.remove();
@@ -5195,30 +5195,30 @@ Example:
      */
     private async analyzeSelectedContent() {
         // Fallback logging in case structured logging isn't working
-        console.log('🚨 CONTENT ANALYSIS STARTED - METHOD CALLED');
+        console.log('?? CONTENT ANALYSIS STARTED - METHOD CALLED');
         this.logger.info('ContentAnalysis', 'ANALYSIS STARTED - Checking for targets');
         
         const targetsList = this.contentContainer.querySelector('.oom-targets-list');
-        console.log('🚨 Targets list element:', targetsList);
+        console.log('?? Targets list element:', targetsList);
         
         if (!targetsList) {
-            console.log('🚨 NO TARGETS LIST FOUND IN DOM');
+            console.log('?? NO TARGETS LIST FOUND IN DOM');
             this.logger.error('ContentAnalysis', 'No targets list found in DOM');
             return;
         }
         
         const targets = Array.from(targetsList.querySelectorAll('.oom-analysis-target'));
-        console.log('🚨 Found targets:', targets.length, targets);
+        console.log('?? Found targets:', targets.length, targets);
         this.logger.info('ContentAnalysis', `Found ${targets.length} targets for analysis`);
         
         if (targets.length === 0) {
-            console.log('🚨 NO TARGETS SELECTED - This might be the issue');
+            console.log('?? NO TARGETS SELECTED - This might be the issue');
             this.logger.warn('ContentAnalysis', 'No targets selected for analysis');
             new Notice('No targets selected for analysis');
             return;
         }
         
-        console.log('🚨 Starting analysis process with', targets.length, 'targets');
+        console.log('?? Starting analysis process with', targets.length, 'targets');
         this.logger.info('ContentAnalysis', 'Starting content analysis process');
         this.isScraping = true;
         this.updateAnalyzeButtonState();
@@ -5230,7 +5230,7 @@ Example:
         
         
         
-        const progressTitle = progressContainer.createEl('h3', { text: '🔍 Analyzing Content...' });
+        const progressTitle = progressContainer.createEl('h3', { text: '?? Analyzing Content...' });
         progressTitle.classList.add('oom-progress-title');
         
         const progressBar = progressContainer.createDiv({ cls: 'oom-progress-bar' });
@@ -5259,7 +5259,7 @@ Example:
                 fileStructures: {} as Record<string, { name: string; structure: CalloutNode[] }>
             };
             
-            console.log('🚨 Results object initialized, processing targets');
+            console.log('?? Results object initialized, processing targets');
             this.logger.info('ContentAnalysis', 'Results object initialized, processing targets');
             
             // Get files to analyze from targets
@@ -5270,7 +5270,7 @@ Example:
                 if (!pathEl) continue;
                 
                 const targetPath = pathEl.textContent || '';
-                const isFolder = targetEl.textContent?.includes('📁');
+                const isFolder = targetEl.textContent?.includes('??');
                 
                 this.logger.info('ContentAnalysis', `Processing target: ${targetPath} (folder: ${isFolder})`);
                 
@@ -5295,11 +5295,11 @@ Example:
             }
             
             results.totalFiles = filesToAnalyze.length;
-            console.log('🚨 Total files to analyze:', results.totalFiles);
+            console.log('?? Total files to analyze:', results.totalFiles);
             this.logger.info('ContentAnalysis', `Total files to analyze: ${results.totalFiles}`);
             
             if (results.totalFiles === 0) {
-                console.log('🚨 NO FILES FOUND TO ANALYZE - This is the problem!');
+                console.log('?? NO FILES FOUND TO ANALYZE - This is the problem!');
                 this.logger.error('ContentAnalysis', 'NO FILES FOUND TO ANALYZE - This is the problem!');
                 statusText.textContent = 'No files found to analyze';
                 setTimeout(() => {
@@ -5311,7 +5311,7 @@ Example:
             }
             
             // Analyze files
-            console.log('🚨 Starting analysis of', filesToAnalyze.length, 'files');
+            console.log('?? Starting analysis of', filesToAnalyze.length, 'files');
             this.logger.info('ContentAnalysis', `Starting analysis of ${filesToAnalyze.length} files`);
             for (let i = 0; i < filesToAnalyze.length; i++) {
                 const file = filesToAnalyze[i];
@@ -5320,7 +5320,7 @@ Example:
                 progressFill.style.width = `${progress}%`;
                 statusText.textContent = `Analyzing ${file.name} (${i + 1}/${filesToAnalyze.length})`;
                 
-                console.log('🚨 About to analyze file', i + 1, '/', filesToAnalyze.length, ':', file.name);
+                console.log('?? About to analyze file', i + 1, '/', filesToAnalyze.length, ':', file.name);
                 this.logger.info('ContentAnalysis', `About to analyze file ${i + 1}/${filesToAnalyze.length}: ${file.name}`);
                 await this.analyzeFile(file, results);
                 
@@ -5359,20 +5359,20 @@ Example:
      * Analyze a single file for callout patterns and nested structures
      */
     private async analyzeFile(file: any, results: any) {
-        console.log('🚨 ANALYZE FILE STARTED for:', file.name);
+        console.log('?? ANALYZE FILE STARTED for:', file.name);
         this.logger.info('ContentAnalysis', 'Starting file analysis', {
             fileName: file.name,
             filePath: file.path
         });
         
         try {
-            console.log('🚨 About to read file content for:', file.name);
+            console.log('?? About to read file content for:', file.name);
             this.logger.info('ContentAnalysis', 'Reading file content', {
                 fileName: file.name
             });
             
             const content = await this.app.vault.read(file);
-            console.log('🚨 File content read successfully, length:', content.length);
+            console.log('?? File content read successfully, length:', content.length);
             
             this.logger.info('ContentAnalysis', 'File content read successfully', {
                 fileName: file.name,
@@ -5381,13 +5381,13 @@ Example:
             });
             
             // Find callout patterns and analyze nesting
-            console.log('🚨 About to call parseCalloutStructure');
+            console.log('?? About to call parseCalloutStructure');
             this.logger.info('ContentAnalysis', 'Calling parseCalloutStructure', {
                 fileName: file.name
             });
             
             const calloutStructure = this.parseCalloutStructure(content);
-            console.log('🚨 parseCalloutStructure completed, found', calloutStructure.length, 'callouts');
+            console.log('?? parseCalloutStructure completed, found', calloutStructure.length, 'callouts');
             this.logger.info('ContentAnalysis', 'parseCalloutStructure completed', {
                 fileName: file.name,
                 structureLength: calloutStructure.length,
@@ -5442,7 +5442,7 @@ Example:
         
         // Summary section
         const summarySection = contentEl.createDiv({ cls: 'oom-analysis-summary' });
-        summarySection.createEl('h3', { text: '📊 Summary' });
+        summarySection.createEl('h3', { text: '?? Summary' });
         
         const summaryList = summarySection.createEl('ul');
         summaryList.createEl('li', { text: `Total files analyzed: ${results.totalFiles}` });
@@ -5452,7 +5452,7 @@ Example:
         // Structure Analysis section - NEW
         if (Object.keys(results.fileStructures).length > 0) {
             const structureSection = contentEl.createDiv({ cls: 'oom-analysis-structures' });
-            structureSection.createEl('h3', { text: '🌳 Callout Structure Analysis' });
+            structureSection.createEl('h3', { text: '?? Callout Structure Analysis' });
             
             const fileEntries = Object.entries(results.fileStructures);
             
@@ -5469,31 +5469,34 @@ Example:
             ).length;
             const avgDepth = this.calculateAverageDepth(fileEntries);
             
-            complexitySection.createEl('h4', { text: '📈 Structure Metrics' });
+            complexitySection.createEl('h4', { text: '?? Structure Metrics' });
             const metricsList = complexitySection.createEl('ul');
             metricsList.createEl('li', { text: `Total callouts found: ${totalCallouts}` });
             metricsList.createEl('li', { text: `Files with nested callouts: ${filesWithNesting}/${results.filesWithCallouts}` });
             metricsList.createEl('li', { text: `Average nesting depth: ${avgDepth.toFixed(1)}` });
             
             // Show file structures
-            structureSection.createEl('h4', { text: '📁 File Structure Details' });
+            structureSection.createEl('h4', { text: '?? File Structure Details' });
             
             fileEntries.forEach(([filePath, fileData]: [string, any]) => {
                 const fileContainer = structureSection.createDiv({ cls: 'oom-file-structure' });
                 fileContainer.classList.add('oom-file-container');
                 
                 
-                fileContainer.style.padding = '1em';
+                fileContainer.classList.add('oom-file-container');
                 
                 const fileHeader = fileContainer.createDiv({ cls: 'oom-file-header' });
-                fileHeader.style.marginBottom = '0.5em';
-                fileHeader.style.fontWeight = 'bold';
-                fileHeader.createEl('span', { text: `📄 ${fileData.name}` });
+                fileHeader.classList.add('oom-file-header');
+                
+                fileHeader.createEl('span', { text: `?? ${fileData.name}` });
                 
                 const pathSpan = fileHeader.createEl('span', { text: ` (${filePath})` });
-                pathSpan.style.fontSize = '0.9em';
-                pathSpan.style.color = 'var(--text-muted)';
-                pathSpan.style.fontWeight = 'normal';
+
+                
+                pathSpan.classList.add('oom-file-path');
+                
+                
+                
                 
                 // Display callout tree
                 const treeContainer = fileContainer.createDiv({ cls: 'oom-callout-tree' });
@@ -5503,13 +5506,13 @@ Example:
         
         // Callouts found section
         const calloutsSection = contentEl.createDiv({ cls: 'oom-analysis-callouts' });
-        calloutsSection.createEl('h3', { text: '🎯 Callout Types Found' });
+        calloutsSection.createEl('h3', { text: '?? Callout Types Found' });
         
         const calloutEntries = Object.entries(results.calloutsFound);
         if (calloutEntries.length > 0) {
             const calloutTable = calloutsSection.createEl('table');
-            calloutTable.style.width = '100%';
-            calloutTable.style.borderCollapse = 'collapse';
+            calloutTable.classList.add('oom-callout-table');
+            
             
             // Header
             const headerRow = calloutTable.createEl('tr');
@@ -5528,7 +5531,7 @@ Example:
         
         // Suggestions section
         const suggestionsSection = contentEl.createDiv({ cls: 'oom-analysis-suggestions' });
-        suggestionsSection.createEl('h3', { text: '💡 Suggestions' });
+        suggestionsSection.createEl('h3', { text: '?? Suggestions' });
         
         const suggestions = this.generateAnalysisSuggestions(results);
         if (suggestions.length > 0) {
@@ -5543,7 +5546,7 @@ Example:
         // Close button
         const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
         buttonContainer.classList.add('oom-button-container--right');
-        buttonContainer.style.marginTop = '2em';
+        buttonContainer.classList.add('oom-button-container-spaced');
         
         const closeBtn = buttonContainer.createEl('button', { text: 'Close', cls: 'mod-cta' });
         closeBtn.addEventListener('click', () => modal.close());
@@ -5608,9 +5611,9 @@ Example:
             const lineEl = nodeEl.createSpan({ cls: 'oom-tree-line' });
             
             if (depth === 0) {
-                lineEl.textContent = index === nodes.length - 1 ? '└─' : '├─';
+                lineEl.textContent = index === nodes.length - 1 ? '+-' : '+-';
             } else {
-                lineEl.textContent = index === nodes.length - 1 ? '└─' : '├─';
+                lineEl.textContent = index === nodes.length - 1 ? '+-' : '+-';
             }
             
             // Callout type badge
@@ -5624,7 +5627,7 @@ Example:
                 // Removed: titleEl.style.fontWeight = 'bold';
             } else {
                 titleEl.textContent = `(line ${node.lineNumber})`;
-                titleEl.style.color = 'var(--text-muted)';
+                titleEl.classList.add('oom-title-muted');
                 titleEl.classList.add('oom-title-italic');
             }
             
@@ -5688,7 +5691,7 @@ Example:
      */
     private async recoverLostTemplateContent() {
         const modal = new Modal(this.app);
-        modal.titleEl.textContent = '🆘 Template Recovery Tool';
+        modal.titleEl.textContent = '?? Template Recovery Tool';
         
         const { contentEl } = modal;
         
@@ -5701,7 +5704,7 @@ Example:
         
         // Check browser localStorage
         const checkLocalStorageBtn = recoveryActions.createEl('button', {
-            text: '🔍 Check Browser Cache',
+            text: '?? Check Browser Cache',
             cls: 'oom-recovery-button'
         });
         checkLocalStorageBtn.addEventListener('click', () => {
@@ -5710,7 +5713,7 @@ Example:
         
         // Check for backup files
         const checkBackupsBtn = recoveryActions.createEl('button', {
-            text: '📁 Check Plugin Folder for Backups',
+            text: '?? Check Plugin Folder for Backups',
             cls: 'oom-recovery-button'
         });
         checkBackupsBtn.addEventListener('click', () => {
@@ -5719,7 +5722,7 @@ Example:
         
         // Manual content restoration
         const manualRestoreBtn = recoveryActions.createEl('button', {
-            text: '✏️ Manual Content Restoration',
+            text: '?? Manual Content Restoration',
             cls: 'oom-recovery-button'
         });
         manualRestoreBtn.addEventListener('click', () => {
@@ -5727,7 +5730,7 @@ Example:
         });
         
         const closeBtn = contentEl.createEl('button', { text: 'Close', cls: 'mod-cta' });
-        closeBtn.style.marginTop = '2em';
+        closeBtn.classList.add('oom-close-btn-spaced');
         closeBtn.addEventListener('click', () => modal.close());
         
         modal.open();
@@ -5740,7 +5743,7 @@ Example:
         const resultsEl = containerEl.createDiv({ cls: 'oom-recovery-results' });
         resultsEl.innerHTML = '';
         
-        resultsEl.createEl('h4', { text: '🔍 Browser Cache Search Results' });
+        resultsEl.createEl('h4', { text: '?? Browser Cache Search Results' });
         
         try {
             // Check localStorage
@@ -5759,17 +5762,17 @@ Example:
                 resultsEl.createEl('p', { text: `Found ${localStorageResults.length} potential cache entries:` });
                 localStorageResults.forEach((item, index) => {
                     const itemEl = resultsEl.createDiv({ cls: 'oom-cache-item' });
-                    itemEl.style.border = '1px solid var(--background-modifier-border)';
-                    itemEl.style.padding = '1em';
-                    itemEl.style.margin = '0.5em 0';
-                    itemEl.style.borderRadius = '4px';
+                    itemEl.classList.add('oom-item-container');
+                    
+                    
+                    
                     
                     itemEl.createEl('strong', { text: `Cache Entry ${index + 1}: ${item.key}` });
                     const previewEl = itemEl.createEl('pre', { text: item.value.substring(0, 200) + '...' });
-                    previewEl.style.fontSize = '0.8em';
-                    previewEl.style.background = 'var(--background-secondary)';
-                    previewEl.style.padding = '0.5em';
-                    previewEl.style.borderRadius = '3px';
+                    previewEl.classList.add('oom-preview-element');
+                    
+                    
+                    
                     
                     const restoreBtn = itemEl.createEl('button', { text: 'Restore This Content' });
                     restoreBtn.addEventListener('click', () => {
@@ -5792,7 +5795,7 @@ Example:
         const resultsEl = containerEl.createDiv({ cls: 'oom-recovery-results' });
         resultsEl.innerHTML = '';
         
-        resultsEl.createEl('h4', { text: '📁 Plugin Folder Search' });
+        resultsEl.createEl('h4', { text: '?? Plugin Folder Search' });
         resultsEl.createEl('p', { 
             text: 'Check these locations in your vault for backup files:' 
         });
@@ -5814,24 +5817,24 @@ Example:
         const restoreEl = containerEl.createDiv({ cls: 'oom-manual-restore' });
         restoreEl.innerHTML = '';
         
-        restoreEl.createEl('h4', { text: '✏️ Manual Template Restoration' });
+        restoreEl.createEl('h4', { text: '?? Manual Template Restoration' });
         restoreEl.createEl('p', { 
             text: 'If you remember or have a copy of your template content, paste it here to restore:' 
         });
         
         const textarea = restoreEl.createEl('textarea');
         textarea.placeholder = 'Paste your template content here...';
-        textarea.style.width = '100%';
-        textarea.style.height = '200px';
-        textarea.style.fontFamily = 'var(--font-monospace)';
-        textarea.style.padding = '1em';
+        textarea.classList.add('oom-textarea-editor');
+        
+        
+        
         
         const templateNameInput = restoreEl.createEl('input');
         templateNameInput.type = 'text';
         templateNameInput.placeholder = 'Template name...';
-        templateNameInput.style.width = '100%';
-        templateNameInput.style.margin = '1em 0';
-        templateNameInput.style.padding = '0.5em';
+        templateNameInput.classList.add('oom-template-name-input');
+        
+        
         
         const restoreBtn = restoreEl.createEl('button', { 
             text: 'Restore Template',
@@ -6001,7 +6004,7 @@ Example:
         for (const block of blocks) {
             const currentDepth = block.depth;
             
-            console.log('🚨 Processing callout:', block.type, 'depth:', currentDepth, 'line:', block.lineNumber);
+            console.log('?? Processing callout:', block.type, 'depth:', currentDepth, 'line:', block.lineNumber);
             this.logger.info('CalloutParser', 'Processing block for nesting', {
                 type: block.type,
                 depth: currentDepth,
@@ -6011,15 +6014,15 @@ Example:
             // Pop from stack until we find a suitable parent (with lower depth)
             while (parentStack.length > 0 && parentStack[parentStack.length - 1].depth >= currentDepth) {
                 const popped = parentStack.pop();
-                console.log('🚨 Popped from stack:', popped?.type, 'depth:', popped?.depth);
+                console.log('?? Popped from stack:', popped?.type, 'depth:', popped?.depth);
             }
             
-            console.log('🚨 Stack after popping:', parentStack.map(p => `${p.type}(${p.depth})`));
+            console.log('?? Stack after popping:', parentStack.map(p => `${p.type}(${p.depth})`));
             
             // If we have a potential parent in the stack
             if (parentStack.length > 0) {
                 const parent = parentStack[parentStack.length - 1];
-                console.log('🚨 Found parent:', parent.type, 'depth:', parent.depth, 'for child:', block.type, 'depth:', currentDepth);
+                console.log('?? Found parent:', parent.type, 'depth:', parent.depth, 'for child:', block.type, 'depth:', currentDepth);
                 this.logger.info('CalloutParser', 'Found parent via stack', {
                     child: block.type,
                     childDepth: currentDepth,
@@ -6028,7 +6031,7 @@ Example:
                 });
                 parent.children.push(block);
         } else {
-                console.log('🚨 Adding as root:', block.type, 'depth:', currentDepth);
+                console.log('?? Adding as root:', block.type, 'depth:', currentDepth);
                 this.logger.info('CalloutParser', 'Adding root level callout', {
                     type: block.type,
                     depth: currentDepth
@@ -6038,7 +6041,7 @@ Example:
             
             // Add current block to stack for potential future children
             parentStack.push(block);
-            console.log('🚨 Added to stack:', block.type, 'Stack now:', parentStack.map(p => `${p.type}(${p.depth})`));
+            console.log('?? Added to stack:', block.type, 'Stack now:', parentStack.map(p => `${p.type}(${p.depth})`));
         }
         
         this.logger.info('CalloutParser', 'Callout structure parsing completed', {
@@ -6277,9 +6280,9 @@ Example:
                     userInterface: {
                         showInlineValidation: true,
                         severityIndicators: {
-                            error: '❌',
-                            warning: '⚠️',
-                            info: 'ℹ️'
+                            error: '?',
+                            warning: '??',
+                            info: '??'
                         },
                         quickFixesEnabled: true
                     }
@@ -6365,24 +6368,24 @@ Example:
         contentEl.createEl('p', { text: 'Choose which templates you want to export:' });
         
         const templateList = contentEl.createDiv({ cls: 'oom-template-selection-list' });
-        templateList.style.maxHeight = '300px';
-        templateList.style.overflowY = 'auto';
-        templateList.style.border = '1px solid var(--background-modifier-border)';
-        templateList.style.borderRadius = '4px';
-        templateList.style.padding = '0.5em';
-        templateList.style.marginTop = '1em';
+        templateList.classList.add('oom-template-list');
+        
+        
+        
+        
+        
         
         const checkboxes: { template: JournalTemplate; checkbox: HTMLInputElement }[] = [];
         
         templates.forEach(template => {
             const templateItem = templateList.createDiv({ cls: 'oom-template-selection-item' });
-            templateItem.style.display = 'flex';
-            templateItem.style.alignItems = 'center';
-            templateItem.style.padding = '0.5em';
-            templateItem.style.borderBottom = '1px solid var(--background-modifier-border-focus)';
+            templateItem.classList.add('oom-template-item');
+            
+            
+            
             
             const checkbox = templateItem.createEl('input', { type: 'checkbox' });
-            checkbox.style.marginRight = '0.75em';
+            checkbox.classList.add('oom-template-checkbox');
             
             const labelContainer = templateItem.createDiv();
             labelContainer.createEl('strong', { text: template.name });
@@ -6399,10 +6402,10 @@ Example:
         });
         
         const selectAllContainer = contentEl.createDiv({ cls: 'oom-select-all' });
-        selectAllContainer.style.marginTop = '0.75em';
+        selectAllContainer.classList.add('oom-select-all-container');
         
         const selectAllCheckbox = selectAllContainer.createEl('input', { type: 'checkbox' });
-        selectAllCheckbox.style.marginRight = '0.5em';
+        selectAllCheckbox.classList.add('oom-select-all-checkbox');
         selectAllContainer.createEl('label', { text: 'Select All' });
         
         selectAllCheckbox.addEventListener('change', () => {
@@ -6629,7 +6632,7 @@ Example:
                 cls: 'oom-drag-handle',
                 attr: { 'data-index': key }
             });
-            dragHandle.innerHTML = '⋮⋮';
+            dragHandle.innerHTML = '??';
         };
 
         // Function to check if a metric should be displayed in settings
@@ -6744,7 +6747,7 @@ Example:
         if (!this.feedbackArea) return;
         
         this.feedbackArea.empty();
-        this.feedbackArea.style.display = 'block';
+        this.feedbackArea.classList.remove('oom-hidden'); this.feedbackArea.classList.add('oom-visible');
         
         const feedbackContent = this.feedbackArea.createDiv({ cls: `oom-feedback-content oom-feedback-${type}` });
         
@@ -6777,7 +6780,7 @@ Example:
         if (!this.feedbackArea) return;
         
         this.feedbackArea.empty();
-        this.feedbackArea.style.display = 'block';
+        this.feedbackArea.classList.remove('oom-hidden'); this.feedbackArea.classList.add('oom-visible');
         
         const warningContent = this.feedbackArea.createDiv({ cls: 'oom-feedback-content oom-feedback-warning' });
         
@@ -6815,7 +6818,7 @@ Example:
      */
     public hideFeedback(): void {
         if (!this.feedbackArea) return;
-        this.feedbackArea.style.display = 'none';
+        this.feedbackArea.classList.remove('oom-visible'); this.feedbackArea.classList.add('oom-hidden');
         this.feedbackArea.empty();
     }
 
@@ -6890,7 +6893,7 @@ Example:
         
         if (!projectNotePath) {
             this.showScrapeFeedback(
-                '⚠️ Please select your OneiroMetrics note above before scraping.',
+                '?? Please select your OneiroMetrics note above before scraping.',
                 'warning'
             );
             return;
@@ -6899,7 +6902,7 @@ Example:
         const projectFile = this.app.vault.getAbstractFileByPath(projectNotePath);
         if (!projectFile) {
             this.showScrapeFeedback(
-                `⚠️ OneiroMetrics note not found: "${projectNotePath}". Please select an existing file above.`,
+                `?? OneiroMetrics note not found: "${projectNotePath}". Please select an existing file above.`,
                 'warning'
             );
             return;

@@ -1141,3 +1141,23 @@ border-radius: 8px;
 }
 
 /* ============================================================================= */
+
+/* Phase 7K: Remaining HubModal.ts Styles */
+.oom-file-container { padding: 1em; }
+.oom-file-header { margin-bottom: 0.5em; font-weight: bold; }
+.oom-file-path { font-size: 0.9em; color: var(--text-muted); font-weight: normal; }
+.oom-callout-table { width: 100%; border-collapse: collapse; }
+.oom-button-container-spaced { margin-top: 2em; }
+.oom-close-btn-spaced { margin-top: 2em; }
+.oom-title-muted { color: var(--text-muted); }
+.oom-item-container { border: 1px solid var(--background-modifier-border); padding: 1em; margin: 0.5em 0; border-radius: 4px; }
+.oom-preview-element { font-size: 0.8em; background: var(--background-secondary); padding: 0.5em; border-radius: 3px; }
+.oom-textarea-editor { width: 100%; height: 200px; font-family: var(--font-monospace); padding: 1em; }
+.oom-template-name-input { width: 100%; margin: 1em 0; padding: 0.5em; }
+.oom-template-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 0.5em; margin-top: 1em; }
+.oom-template-item { display: flex; align-items: center; padding: 0.5em; border-bottom: 1px solid var(--background-modifier-border-focus); }
+.oom-template-checkbox { margin-right: 0.75em; }
+.oom-select-all-container { margin-top: 0.75em; }
+.oom-select-all-checkbox { margin-right: 0.5em; }
+.oom-visible { display: block !important; }
+.oom-hidden { display: none !important; }
