@@ -2185,7 +2185,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: TABLES (14.7 KB)
+   COMPONENT: TABLES (14.8 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Tables Component
@@ -2739,6 +2739,11 @@ td:has(.oom-metric-icon-container) {
     .oom-table-empty {
         display: none;
     }
+}
+
+/* Content visibility control for table expansions */
+.oom-content-full--hidden {
+    display: none;
 } 
 
 /* =============================================================================
@@ -4544,7 +4549,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: ENHANCED-DATE-NAVIGATOR (57.9 KB)
+   COMPONENT: ENHANCED-DATE-NAVIGATOR (58.0 KB)
    ============================================================================= */
 /* ==========================================================================
    Enhanced Date Navigator Modal
@@ -6345,8 +6350,11 @@ h2.oom-metrics-tabs-label {
 
 .oom-tooltip-bar-fill {
     display: block;
+    width: var(--bar-width, 0%);
     height: 100%;
+    background: var(--bar-color, var(--text-muted));
     border-radius: 2px;
+    transition: width 0.3s ease;
 }
 
 /* Tooltip Visibility States */

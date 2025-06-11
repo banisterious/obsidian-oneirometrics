@@ -550,4 +550,9 @@ td:has(.oom-metric-icon-container) {
     .oom-table-empty {
         display: none;
     }
+}
+
+/* Content visibility control for table expansions */
+.oom-content-full--hidden {
+    display: none;
 } 

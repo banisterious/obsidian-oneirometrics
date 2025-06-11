@@ -1797,8 +1797,11 @@
 
 .oom-tooltip-bar-fill {
     display: block;
+    width: var(--bar-width, 0%);
     height: 100%;
+    background: var(--bar-color, var(--text-muted));
     border-radius: 2px;
+    transition: width 0.3s ease;
 }
 
 /* Tooltip Visibility States */

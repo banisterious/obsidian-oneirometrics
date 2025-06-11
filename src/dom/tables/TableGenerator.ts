@@ -152,7 +152,7 @@ export class TableGenerator {
                     content += `<td class="oom-dream-content column-content">\n`;
                     content += `  <div class="oom-content-wrapper">\n`;
                     content += `    <div class="oom-content-preview">${preview}</div>\n`;
-                    content += `    <div class="oom-content-full" id="${cellId}" style="display: none;">${dreamContent}</div>\n`;
+                    content += `    <div class="oom-content-full oom-content-full--hidden" id="${cellId}">${dreamContent}</div>\n`;
                     content += `    <button type="button" class="oom-button oom-button--expand oom-button--state-default u-padding--xs" aria-expanded="false" aria-controls="${cellId}" data-expanded="false" data-content-id="${cellId}" data-parent-cell="${cellId}">\n`;
                     content += `      <span class="oom-button-text">Show more</span>\n`;
                     content += `      <span class="oom-button-icon">▼</span>\n`;

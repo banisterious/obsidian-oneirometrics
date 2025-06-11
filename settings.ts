@@ -662,8 +662,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         advancedSetting.settingEl.style.cursor = 'pointer';
         
         const advancedContent = advancedSection.createDiv({ 
-            cls: 'oom-collapsible-content',
-            attr: { style: 'display: none;' }
+            cls: 'oom-collapsible-content oom-settings-hidden'
         });
         
         const toggleAdvanced = () => {

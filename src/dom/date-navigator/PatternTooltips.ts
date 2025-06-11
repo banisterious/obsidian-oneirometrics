@@ -208,7 +208,7 @@ export class PatternTooltips {
         const barColor = this.getMetricBarColor(metricName, normalizedValue, maxValue);
         
         return `<span class="oom-tooltip-bar">
-            <span class="oom-tooltip-bar-fill" style="width: ${percentage}%; background: ${barColor};"></span>
+            <span class="oom-tooltip-bar-fill" style="--bar-width: ${percentage}%; --bar-color: ${barColor};"></span>
         </span>`;
     }
     
