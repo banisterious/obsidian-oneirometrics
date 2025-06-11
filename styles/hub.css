@@ -3,6 +3,14 @@
    ============================================================================= */
 
 /* =============================================================================  
+   UTILITY CLASSES - Common helpers
+   ============================================================================= */
+
+.oom-hidden {
+    display: none !important;
+}
+
+/* =============================================================================  
    DASHBOARD SECTIONS - Content Organization
    ============================================================================= */
 
@@ -100,6 +108,40 @@
         border-radius: 4px;
     }
     
+    /* Import/Export Button Container */
+    & .oom-import-export-buttons {
+        display: flex;
+        gap: 0.75em;
+        margin-top: 0.5em;
+    }
+    
+    /* Wizard Navigation Button Container */
+    & .oom-wizard-navigation-buttons {
+        display: flex;
+        gap: 0.5em;
+        flex-wrap: wrap;
+    }
+    
+    /* Right-aligned Button Container */
+    & .oom-button-container-right {
+        text-align: right;
+        margin-top: 1em;
+    }
+    
+    /* Modal Dialog Button Container */
+    & .oom-modal-button-container {
+        margin-top: 1.5em;
+        display: flex;
+        gap: 0.75em;
+        justify-content: flex-end;
+    }
+    
+    /* Large Modal Dialog Button Container */
+    & .oom-button-container-large {
+        text-align: right;
+        margin-top: 2em;
+    }
+    
     /* Template Row - Individual Template Items */
     & .oom-template-row {
         display: flex;
@@ -109,6 +151,10 @@
         align-items: center;
         cursor: pointer;
         transition: background-color 0.15s;
+    }
+    
+    & .oom-template-row:hover {
+        background-color: var(--background-modifier-hover);
     }
     
     & .oom-template-row.oom-template-expanded {
@@ -667,4 +713,166 @@
     &:active {
         transform: translateY(0);
     }
+}
+
+/* ========================================
+   HUBMODAL TEMPLATE SYSTEM STYLING
+   ======================================== */
+
+/* Callout Box Styling */
+.oom-callout-box {
+    width: 100%;
+    min-height: 90px;
+    font-family: var(--font-monospace, monospace);
+    font-size: 0.93em;
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 1em;
+    padding: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    user-select: all;
+}
+
+/* Copy Button Styling */
+.oom-copy-button {
+    margin-bottom: 1.5em;
+}
+
+/* Templater Configuration Section */
+.oom-templater-config-section {
+    margin-bottom: 1.5em;
+    padding: 1em;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-templater-status {
+    margin-bottom: 1em;
+}
+
+/* Status Element Styling */
+.oom-status-success {
+    color: var(--text-success);
+    font-weight: 500;
+}
+
+.oom-status-warning {
+    color: var(--text-warning);
+    font-style: italic;
+}
+
+.oom-status-error {
+    color: var(--text-error);
+    font-weight: 500;
+}
+
+.oom-templater-folder-info,
+.oom-templater-count-info {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin: 0.25em 0;
+}
+
+.oom-templater-help-text {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+/* Button Container */
+.oom-template-button-container {
+    flex-wrap: wrap;
+}
+
+/* Template Buttons */
+.oom-template-settings-button {
+    padding: 0.5em 1em;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-template-settings-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.oom-templater-debug-button {
+    padding: 0.5em 1em;
+    background-color: var(--background-modifier-border);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-templater-debug-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+/* Template Wizard Textarea */
+.oom-wizard-textarea {
+    width: 100%;
+    min-height: 300px;
+    font-family: var(--font-monospace);
+    font-size: 14px;
+    padding: 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    resize: vertical;
+}
+
+/* Content Helpers */
+.oom-content-helpers {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+/* Sample Dropdown */
+.oom-sample-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.oom-sample-dropdown-button {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+.oom-sample-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
+    min-width: 200px;
+}
+
+.oom-sample-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-sample-option:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-sample-option:last-child {
+    border-bottom: none;
+}
+
+/* Helper Button */
+.oom-helper-button {
+    padding: 6px 12px;
+    font-size: 14px;
 } 
