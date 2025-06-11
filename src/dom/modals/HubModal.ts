@@ -1703,15 +1703,6 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             templates.forEach((template, index) => {
                 const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
                 
-                // Add hover effect
-                templateRow.addEventListener('mouseenter', () => {
-                    templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
-                });
-                templateRow.addEventListener('mouseleave', () => {
-                    if (!templateRow.classList.contains('oom-template-expanded')) {
-                        templateRow.style.backgroundColor = '';
-                    }
-                });
                 
                 const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
                 templateInfo.createEl('strong', { text: template.name });
@@ -1788,12 +1779,10 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     if (isExpanded) {
                         // Collapse
                         templateRow.classList.remove('oom-template-expanded');
-                        templateRow.style.backgroundColor = '';
                         previewContainer.style.display = 'none';
                     } else {
                         // Expand
                         templateRow.classList.add('oom-template-expanded');
-                        templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
                         previewContainer.style.display = 'block';
                         
                         // Populate preview if not already done
@@ -1918,15 +1907,6 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             templates.forEach((template, index) => {
                 const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
                 
-                // Add hover effect
-                templateRow.addEventListener('mouseenter', () => {
-                    templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
-                });
-                templateRow.addEventListener('mouseleave', () => {
-                    if (!templateRow.classList.contains('oom-template-expanded')) {
-                        templateRow.style.backgroundColor = '';
-                    }
-                });
                 
                 const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
                 templateInfo.createEl('strong', { text: template.name });
@@ -2003,12 +1983,10 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     if (isExpanded) {
                         // Collapse
                         templateRow.classList.remove('oom-template-expanded');
-                        templateRow.style.backgroundColor = '';
                         previewContainer.style.display = 'none';
                     } else {
                         // Expand
                         templateRow.classList.add('oom-template-expanded');
-                        templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
                         previewContainer.style.display = 'block';
                         
                         // Populate preview if not already done
@@ -2508,15 +2486,6 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             templates.forEach((template, index) => {
                 const templateRow = templatesContainer.createDiv({ cls: 'oom-template-row' });
                 
-                // Add hover effect
-                templateRow.addEventListener('mouseenter', () => {
-                    templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
-                });
-                templateRow.addEventListener('mouseleave', () => {
-                    if (!templateRow.classList.contains('oom-template-expanded')) {
-                        templateRow.style.backgroundColor = '';
-                    }
-                });
                 
                 const templateInfo = templateRow.createDiv({ cls: 'oom-template-info' });
                 templateInfo.createEl('strong', { text: template.name });
@@ -2593,12 +2562,10 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     if (isExpanded) {
                         // Collapse
                         templateRow.classList.remove('oom-template-expanded');
-                        templateRow.style.backgroundColor = '';
                         previewContainer.style.display = 'none';
                     } else {
                         // Expand
                         templateRow.classList.add('oom-template-expanded');
-                        templateRow.style.backgroundColor = 'var(--background-modifier-hover)';
                         previewContainer.style.display = 'block';
                         
                         // Populate preview if not already done

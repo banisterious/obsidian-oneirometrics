@@ -3,9 +3,9 @@
 **Related:** [CSS Extraction Implementation Plan](./css-extraction-implementation-plan.md)  
 **Branch:** fix/remove-inline-styles  
 **Date:** 2025-06-10  
-**Last Updated:** 2025-06-10 (Phase 1A Complete)
+**Last Updated:** 2025-06-10 (Phase 1B Complete)
 
-## ✅ **PROGRESS UPDATE - Phase 1A Complete**
+## ✅ **PROGRESS UPDATE - Phase 1B Complete**
 
 ### **Phase 1A: Button Container Cleanup** ✅ **COMPLETED**
 **Date Completed:** 2025-06-10  
@@ -20,20 +20,34 @@
 - ✅ **Button Container Margin Styling** - Removed 6 instances of `buttonContainer.style.marginTop = '0.5em'/'1.5em'`
 - ✅ **Button Container Justify Content** - Removed 2 instances of `buttonContainer.style.justifyContent = 'flex-end'`
 
+### **Phase 1B: Template Row Hover Effects** ✅ **COMPLETED**
+**Date Completed:** 2025-06-10  
+**Characters Removed:** 1,929 characters of JavaScript hover code  
+**Files Changed:** 1 (HubModal.ts)  
+**Conversion Type:** JavaScript Events → CSS-only Hover  
+
+**Completed Conversions:**
+- ✅ **Template Row Hover Events** - Removed 3 instances of `templateRow.addEventListener('mouseenter', ...)`
+- ✅ **Template Row Hover Reset** - Removed 3 instances of `templateRow.addEventListener('mouseleave', ...)`
+- ✅ **Inline backgroundColor Assignments** - Removed 6+ instances of `templateRow.style.backgroundColor`
+- ✅ **CSS Infrastructure Leveraged** - Now using `.oom-template-row:hover` and `.oom-template-expanded`
+
+**Impact:** Template rows now use hardware-accelerated CSS hover effects instead of JavaScript event handlers, improving performance and maintainability.
+
 **CSS Infrastructure Leveraged:**
 - ✅ `.oom-import-export-buttons` (existing class handles flex, gap, margin)
 - ✅ `.oom-dialog-buttons` (existing class handles dialog button layout)
+- ✅ `.oom-template-row:hover` (existing class handles hover effects)
+- ✅ `.oom-template-expanded` (existing class handles persistent expanded state)
 
-**Impact:** Template import/export dialogs and wizard navigation now use CSS classes instead of inline styles, improving maintainability and consistency.
-
-**Next Phase:** Phase 1B - Template Row Hover Effects (12+ instances remaining)
+**Next Phase:** Phase 1C - Display Toggle Cleanup (9+ instances remaining)
 
 ## Table of Contents
 
 - [Summary](#summary)
 - [Categorized Findings](#categorized-findings)
   - [🚨 Critical - High Impact UI Components](#-critical---high-impact-ui-components)
-    - [1. HubModal.ts (80+ instances → 60+ instances)](#1-hubmodalts-80-instances-60-instances)
+    - [1. HubModal.ts (80+ instances → 40+ instances)](#1-hubmodalts-80-instances-40-instances)
     - [2. PatternTooltips.ts (20+ instances)](#2-patterntooltipsts-20-instances)
     - [3. EnhancedDateNavigatorModal.ts (15+ instances)](#3-enhanceddatenavigatormodalts-15-instances)
   - [🟡 Medium Priority - Component Specific](#-medium-priority---component-specific)
@@ -80,7 +94,7 @@
 
 ### 🚨 Critical - High Impact UI Components
 
-#### 1. HubModal.ts (80+ instances → 60+ instances)
+#### 1. HubModal.ts (80+ instances → 40+ instances) ✅ **PARTIALLY COMPLETE**
 **Location:** `src/dom/modals/HubModal.ts`  
 **Impact:** Core UI functionality  
 
@@ -93,11 +107,21 @@
 - ~~Lines 6344-6347: Template export dialog button container~~ **EXTRACTED** ✅
 - ~~Lines 6536-6539: Another dialog button container~~ **EXTRACTED** ✅
 
-**🔄 REMAINING - Phase 1B:**
-- Lines 1710, 1714, 1798-1799: Template row hover states (12+ instances)
-- Lines 1782, 1792, 1797: Preview container display toggles (9+ instances)
+**✅ COMPLETED - Phase 1B:**
+- ~~Lines 1706-1712: Template row hover event listeners~~ **CONVERTED TO CSS** ✅
+- ~~Lines 1921-1927: Template row hover event listeners~~ **CONVERTED TO CSS** ✅  
+- ~~Lines 2511-2517: Template row hover event listeners~~ **CONVERTED TO CSS** ✅
+- ~~Lines 1791, 1796: Template row backgroundColor in expand/collapse~~ **REMOVED** ✅
+- ~~Lines 2006, 2011: Template row backgroundColor in expand/collapse~~ **REMOVED** ✅
+- ~~Lines 2596, 2601: Template row backgroundColor in expand/collapse~~ **REMOVED** ✅
 
 **🔄 REMAINING - Phase 1C:**
+- Lines 1782: Preview container display toggles (`previewContainer.style.display = 'none'`)
+- Lines 1784, 1787: Preview container display toggles (`'none'` → `'block'`)
+- Lines 1992, 1995: Preview container display toggles (wizard sections)
+- Lines 2582, 2585: Preview container display toggles (settings sections)
+
+**🔄 REMAINING - Phase 2: Additional Components:**
 - Lines 2625-2636: Callout box comprehensive styling (12 properties)
 - Lines 2655-2659: Config section styling (5 properties)
 - Lines 2667-2693: Status text color/typography (multiple instances)
@@ -109,10 +133,11 @@
 /* ✅ COMPLETED - Using existing classes */
 .oom-import-export-buttons { /* flex layout - DONE */ }
 .oom-dialog-buttons { /* dialog button layout - DONE */ }
+.oom-template-row:hover { /* hover effects - DONE */ }
+.oom-template-expanded { /* persistent expanded state - DONE */ }
 
-/* 🔄 NEXT - Phase 1B & 1C */
-.oom-hub-template-row { /* base styles */ }
-.oom-hub-template-row--hover { /* hover state */ }
+/* 🔄 NEXT - Phase 1C & Phase 2 */
+.oom-hidden { /* display toggles - EXISTS, need to use */ }
 .oom-hub-callout-box { /* callout styling */ }
 .oom-hub-config-section { /* config section */ }
 .oom-hub-status-success { /* status colors */ }
