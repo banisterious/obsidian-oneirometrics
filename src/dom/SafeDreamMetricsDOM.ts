@@ -238,6 +238,10 @@ export class SafeDreamMetricsDOM implements DOMComponent {
             parent: container
           });
           
+          // Set virtualization properties
+          tableContainer.style.setProperty('--oom-visible-rows', this.VISIBLE_ROWS.toString());
+          tableContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+          
           const table = this.domSafetyGuard.createElement('table', {
             className: 'oom-table',
             parent: tableContainer
@@ -356,9 +360,9 @@ export class SafeDreamMetricsDOM implements DOMComponent {
         parent: tbody
       });
       
-      // Set height for the total scrollable area
-      rowsContainer.style.position = 'relative';
-      rowsContainer.style.height = `${totalRows * this.ROW_HEIGHT}px`;
+      // Set dynamic properties for the total scrollable area
+      rowsContainer.style.setProperty('--oom-total-rows', totalRows.toString());
+      rowsContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
       
       // Render initial visible rows
       this.renderVisibleRows(rowsContainer, entries, 0);
@@ -488,11 +492,10 @@ export class SafeDreamMetricsDOM implements DOMComponent {
             parent: container
           });
           
-          // Position absolutely for virtualization
-          row.style.position = 'absolute';
-          row.style.top = `${i * this.ROW_HEIGHT}px`;
-          row.style.width = '100%';
-          row.style.height = `${this.ROW_HEIGHT}px`;
+          // Position using CSS custom properties for virtualization
+          row.classList.add('oom-virtualized');
+          row.style.setProperty('--oom-row-index', i.toString());
+          row.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
           
           // Generate a unique ID for the entry
           const entryId = this.getEntryId(entry, i);

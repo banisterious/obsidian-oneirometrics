@@ -2185,7 +2185,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: TABLES (14.8 KB)
+   COMPONENT: TABLES (16.7 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Tables Component
@@ -2374,6 +2374,68 @@ h4 {
         .oom-content-column {
             max-width: none;
         }
+    }
+}
+
+/* =============================================================================
+   VIRTUAL SCROLLING - Dynamic Positioning System
+   ============================================================================= */
+
+.oom-virtualized-container {
+    /* Container for virtual scrolling rows */
+    position: relative;
+    height: calc(var(--oom-total-rows, 0) * var(--oom-row-height, 50px));
+    overflow: hidden;
+}
+
+.oom-virtualized-rows-container {
+    /* Container that holds all virtualized rows */
+    position: relative;
+    height: calc(var(--oom-total-rows, 0) * var(--oom-row-height, 50px));
+    width: 100%;
+}
+
+.oom-dream-row.oom-virtualized {
+    /* Virtualized row positioning using CSS custom properties */
+    position: absolute;
+    top: calc(var(--oom-row-index, 0) * var(--oom-row-height, 50px));
+    width: 100%;
+    height: var(--oom-row-height, 50px);
+    display: var(--oom-row-display, table-row);
+    
+    /* Performance optimizations for virtual scrolling */
+    contain: layout style;
+    will-change: transform;
+}
+
+.oom-virtualized-table-template {
+    /* Template row for cloning - hidden by default */
+    position: absolute;
+    width: 100%;
+    height: var(--oom-row-height, 50px);
+    display: none;
+}
+
+/* Virtual scrolling container overflow handling */
+.oom-table-container:has(.oom-virtualized-rows-container) {
+    /* Only apply virtual scrolling styles when container has virtualized rows */
+    overflow-y: auto;
+    max-height: calc(var(--oom-visible-rows, 12) * var(--oom-row-height, 50px));
+    
+    /* Scrollbar styling for virtual tables */
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        /* Let theme handle scrollbar track styling */
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        /* Let theme handle scrollbar thumb styling */
+        border-radius: 4px;
     }
 }
 

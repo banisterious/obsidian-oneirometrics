@@ -110,17 +110,15 @@ export class DreamMetricsDOM {
 
         // Create a single container for all rows
         const rowsContainer = document.createElement('div');
-        rowsContainer.style.position = 'relative';
-        rowsContainer.style.height = `${totalRows * this.ROW_HEIGHT}px`;
+        rowsContainer.className = 'oom-virtualized-rows-container';
+        rowsContainer.style.setProperty('--oom-total-rows', totalRows.toString());
+        rowsContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
         tbody.appendChild(rowsContainer);
 
         // Create a single row template
         const rowTemplate = document.createElement('tr');
-        rowTemplate.className = 'oom-dream-row';
-        rowTemplate.style.position = 'absolute';
-        rowTemplate.style.width = '100%';
-        rowTemplate.style.height = `${this.ROW_HEIGHT}px`;
-        rowTemplate.style.display = 'none';
+        rowTemplate.className = 'oom-dream-row oom-virtualized-table-template';
+        rowTemplate.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
         rowsContainer.appendChild(rowTemplate);
 
         // Debounce scroll handler with RAF
@@ -162,8 +160,10 @@ export class DreamMetricsDOM {
             for (let i = currentStartIdx; i < endIdx; i++) {
                 const entry = entries[i];
                 const row = rowTemplate.cloneNode(true) as HTMLElement;
-                row.style.display = 'table-row';
-                row.style.top = `${i * this.ROW_HEIGHT}px`;
+                row.className = 'oom-dream-row oom-virtualized';
+                row.style.setProperty('--oom-row-index', i.toString());
+                row.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+                row.style.setProperty('--oom-row-display', 'table-row');
                 row.setAttribute('data-source', getSourceFile(entry));
 
                 // Add date cell
@@ -250,8 +250,8 @@ export class DreamMetricsDOM {
         const container = table.parentElement as HTMLElement;
         if (container) {
             container.onscroll = debouncedScroll;
-            container.style.overflowY = 'auto';
-            container.style.maxHeight = `${this.ROW_HEIGHT * this.VISIBLE_ROWS}px`;
+            container.style.setProperty('--oom-visible-rows', this.VISIBLE_ROWS.toString());
+            container.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
         }
 
         // Initial render
