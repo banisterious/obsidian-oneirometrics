@@ -33,7 +33,7 @@ export class ChartTabsManager {
         statisticsTableHTML: string
     ): Promise<void> {
         try {
-            console.log('📊 CHART TABS DEBUG: initializeChartTabs called', {
+            this.logger?.debug('ChartTabsManager', 'initializeChartTabs called', {
                 hasContainer: !!metricsContainer,
                 metricsKeys: Object.keys(chartData.metrics),
                 entriesCount: chartData.dreamEntries.length,
@@ -44,7 +44,6 @@ export class ChartTabsManager {
             
             // Check if chart tabs already exist
             if (metricsContainer.querySelector('.oom-metrics-chart-tabs-container')) {
-                console.log('📊 CHART TABS DEBUG: Chart tabs already exist, updating data');
                 this.logger?.debug('ChartTabsManager', 'Chart tabs already exist, updating data');
                 await this.updateChartData(chartData, statisticsTableHTML);
                 return;
@@ -53,12 +52,12 @@ export class ChartTabsManager {
             // Find the chart tabs placeholder
             const placeholder = metricsContainer.querySelector('#oom-chart-tabs-placeholder') as HTMLElement;
             if (!placeholder) {
-                console.log('📊 CHART TABS DEBUG: No placeholder found');
+                this.logger?.debug('ChartTabsManager', 'No placeholder found');
                 this.logger?.warn('ChartTabsManager', 'Chart tabs placeholder not found');
                 return;
             }
 
-            console.log('📊 CHART TABS DEBUG: Creating new chart tabs');
+            this.logger?.debug('ChartTabsManager', 'Creating new chart tabs');
             
             // Clear the placeholder content before creating charts
             placeholder.innerHTML = '';
@@ -71,27 +70,22 @@ export class ChartTabsManager {
                 this.logger
             );
             
-            console.log('📊 CHART TABS DEBUG: Chart tabs created successfully');
-            this.logger?.debug('ChartTabsManager', 'Chart tabs initialized successfully');
+            this.logger?.debug('ChartTabsManager', 'Chart tabs created successfully');
 
             // Save chart data to cache if persistence is available
             if (this.persistence) {
                 try {
-                    console.log('📊 CHART TABS DEBUG: Saving chart data to cache');
+                    this.logger?.debug('ChartTabsManager', 'Saving chart data to cache');
                     await this.persistence.saveChartData(chartData, chartData.dreamEntries);
-                    console.log('📊 CHART TABS DEBUG: Chart data cached successfully');
                     this.logger?.debug('ChartTabsManager', 'Chart data cached successfully');
                 } catch (error) {
-                    console.error('📊 CHART TABS DEBUG: Failed to cache chart data:', error);
                     this.logger?.error('ChartTabsManager', 'Failed to cache chart data', error as Error);
                 }
             } else {
-                console.log('📊 CHART TABS DEBUG: No persistence available, charts will not be cached');
-                this.logger?.warn('ChartTabsManager', 'No persistence available, charts will not be cached');
+                this.logger?.debug('ChartTabsManager', 'No persistence available, charts will not be cached');
             }
 
         } catch (error) {
-            console.error('📊 CHART TABS DEBUG: Error initializing chart tabs:', error);
             this.logger?.error('ChartTabsManager', 'Failed to initialize chart tabs', error as Error);
         }
     }

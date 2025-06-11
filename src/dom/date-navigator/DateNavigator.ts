@@ -78,38 +78,45 @@ export class DateNavigator {
     private focusedDate: Date | null = null;
     
     constructor(container: HTMLElement, state: DreamMetricsState, app?: App, settings?: DreamMetricsSettings) {
-        console.log('🔍 DateNavigator: Constructor called!', { container, state, app, settings });
+        // Debug logging handled by proper logger initialization
         
         this.container = container;
         this.state = state;
-        this.app = app || (window as any).oneiroMetricsPlugin?.app;
-        this.settings = settings || (window as any).oneiroMetricsPlugin?.settings || this.createDefaultSettings();
+        this.app = app;
+        this.settings = settings || this.createDefaultSettings();
+        this.currentMonth = new Date();
         
-        // Initialize MetricsDiscoveryService if we have app and settings
-        if (this.app && this.settings) {
-            this.metricsDiscoveryService = MetricsDiscoveryService.getInstance(this.app, this.settings);
+        // Initialize metrics discovery service
+        if (this.app) {
+            this.metricsDiscoveryService = new MetricsDiscoveryService(this.app, this.settings);
         }
-        
-        // Always start with the current month
-        const today = new Date();
-        this.currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        
+
         // Use proper logging
         try {
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Initializing with current month: ${format(this.currentMonth, 'MMMM yyyy')}`);
-                if (this.settings?.unifiedMetrics) {
-                    window['globalLogger'].debug('DateNavigator', 'Using unified metrics configuration for calendar display');
-                }
+                window['globalLogger'].debug('DateNavigator', 'Constructor called', { hasContainer: !!container, hasState: !!state, hasApp: !!app, hasSettings: !!settings });
             }
         } catch (e) {
-            // Silent failure - logging should never break functionality
+            // Silent failure
         }
         
-        // Initialize the date navigator
-        console.log('🔍 DateNavigator: About to call initialize()');
-        this.initialize();
-        console.log('🔍 DateNavigator: Constructor completed successfully');
+        try {
+            // Debug logging handled by proper logger initialization
+            
+            this.initialize();
+            
+            // Debug logging handled by proper logger initialization
+        } catch (error) {
+            // Use proper logging for errors
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].error('DateNavigator', 'Constructor failed', error);
+                }
+            } catch (e) {
+                // Silent failure
+            }
+            throw error;
+        }
     }
     
     /**
@@ -140,63 +147,80 @@ export class DateNavigator {
     }
     
     private initialize(): void {
-        console.log('🔍 DateNavigator: initialize() method called');
-        
-        // Clear the container
-        this.container.empty();
-        this.container.addClass('oom-date-navigator');
-        
-        console.log('🔍 DateNavigator: Container cleared and class added');
-        
-        // Create the month header
-        console.log('🔍 DateNavigator: About to create month header');
-        this.createMonthHeader();
-        console.log('🔍 DateNavigator: Month header created');
-        
-        // ✅ DEBUG: Add a test focusable element to verify tab order
-        const testButton = this.container.createEl('button', {
-            text: '🔍 DEBUG: Test Focusable Element',
-            attr: { 'tabindex': '0' }
-        });
-        testButton.style.backgroundColor = '#ff6b6b';
-        testButton.style.color = 'white';
-        testButton.style.padding = '10px';
-        testButton.style.margin = '10px';
-        console.log('🔍 DateNavigator: Added debug test button');
-        
-        // Create the month grid
-        console.log('🔍 DateNavigator: About to create month grid');
-        this.createMonthGrid();
-        console.log('🔍 DateNavigator: Month grid created');
-        
-        // Ensure we're using the current month
-        const today = new Date();
-        this.currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        
+        // Use proper logging
         try {
             if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
-                window['globalLogger'].debug('DateNavigator', `Setting current month during initialize: ${format(this.currentMonth, 'MMMM yyyy')}`);
+                window['globalLogger'].debug('DateNavigator', 'initialize() method called');
             }
         } catch (e) {
-            // Silent failure - logging should never break functionality
+            // Silent failure
         }
         
-        // CRITICAL FIX: Create guaranteed entries for the CURRENT month
-        this.createGuaranteedEntriesForCurrentMonth();
+        // Clear any existing content
+        this.container.innerHTML = '';
+        this.container.className = 'oom-date-navigator';
         
-        // CRITICAL FIX: Scan all possible data sources for entries before any other method runs
-        this.scanAllDataSources();
-        
-        // Load dream entries for the current month
-        this.loadEntriesForMonth(this.currentMonth);
-        
-        // FORCE TEST ENTRIES: Always create some test entries to ensure calendar display works
-        // This will create entries regardless of whether real entries were found
-        if (this.dreamEntries.size === 0) {
-            this.forceCreateTestEntries();
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'Container cleared and class added');
+            }
+        } catch (e) {
+            // Silent failure
         }
         
-        // Attach event listeners
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'About to create month header');
+            }
+        } catch (e) {
+            // Silent failure
+        }
+        this.createMonthHeader();
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'Month header created');
+            }
+        } catch (e) {
+            // Silent failure
+        }
+        
+        // Add debug test button (for development)
+        const debugButton = document.createElement('button');
+        debugButton.textContent = 'Debug DateNavigator';
+        debugButton.onclick = () => this.debugDisplay();
+        debugButton.style.display = 'none'; // Hide by default
+        this.container.appendChild(debugButton);
+        
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'Added debug test button');
+            }
+        } catch (e) {
+            // Silent failure
+        }
+        
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'About to create month grid');
+            }
+        } catch (e) {
+            // Silent failure
+        }
+        this.createMonthGrid();
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'Month grid created');
+            }
+        } catch (e) {
+            // Silent failure
+        }
+        
         this.attachEventListeners();
     }
     
@@ -246,77 +270,122 @@ export class DateNavigator {
     }
     
     private createMonthGrid(): void {
-        console.log('🔍 DateNavigator: createMonthGrid() called for month:', this.currentMonth);
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'createMonthGrid() called for month:', this.currentMonth);
+            }
+        } catch (e) {
+            // Silent failure
+        }
         
-        const gridContainer = this.container.createDiv('oom-month-grid');
-        
-        // ✅ NEW: Add ARIA grid attributes for screen readers
-        gridContainer.setAttribute('role', 'grid');
-        gridContainer.setAttribute('aria-label', `Calendar for ${this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
-        
+        const grid = document.createElement('div');
+        grid.className = 'oom-month-grid';
+
         // Create weekday headers
-        const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         weekdays.forEach(day => {
-            const dayHeader = gridContainer.createDiv('oom-day-header');
-            dayHeader.textContent = day;
-            dayHeader.setAttribute('role', 'columnheader');
+            const header = document.createElement('div');
+            header.className = 'oom-day-header';
+            header.textContent = day;
+            grid.appendChild(header);
         });
-        
-        // Generate days for the current month view
+
+        // Generate calendar days
         const days = this.generateDaysForMonth(this.currentMonth);
-        console.log('🔍 DateNavigator: Generated', days.length, 'days for calendar');
-        console.log('🔍 DateNavigator: focusedDate is:', this.focusedDate);
-        console.log('🔍 DateNavigator: Today is:', new Date().toDateString());
+        
+        // Use proper logging
+        try {
+            if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                window['globalLogger'].debug('DateNavigator', 'Generated', days.length, 'days for calendar');
+                window['globalLogger'].debug('DateNavigator', 'focusedDate is:', this.focusedDate);
+                window['globalLogger'].debug('DateNavigator', 'Today is:', new Date().toDateString());
+            }
+        } catch (e) {
+            // Silent failure
+        }
+        
+        let focusableElementSet = false;
+        const today = new Date();
+        const todayKey = this.formatDateKey(today);
+        const hasTodayInView = days.some(day => this.formatDateKey(day.date) === todayKey);
         
         days.forEach((day, index) => {
-            const dayCell = this.createDayCell(day);
+            // Use proper logging for complex logic
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigator', 'Processing day:', this.formatDateKey(day.date), {
+                        isCurrentMonth: day.isCurrentMonth,
+                        hasDreamEntry: day.hasDreamEntry,
+                        isToday: day.isToday,
+                        isSelected: day.isSelected,
+                        entries: day.entries.length
+                    });
+                }
+            } catch (e) {
+                // Silent failure
+            }
             
-            // ✅ NEW: Add ARIA gridcell attributes and position data
-            dayCell.setAttribute('role', 'gridcell');
-            dayCell.setAttribute('data-date', this.formatDateKey(day.date));
-            dayCell.setAttribute('data-row', Math.floor(index / 7).toString());
-            dayCell.setAttribute('data-col', (index % 7).toString());
+            const element = this.createDayCell(day);
             
-            // Set up roving tabindex pattern (only one cell focusable at a time)
+            // Determine if this cell should have focus
             let shouldFocus = false;
-            
-            console.log('🔍 DateNavigator: Processing day:', this.formatDateKey(day.date), {
-                isToday: day.isToday,
-                focusedDate: this.focusedDate,
-                index: index,
-                hasToday: days.some(d => d.isToday)
-            });
-            
             if (this.focusedDate && this.isSameDay(day.date, this.focusedDate)) {
-                // Restore focus to the previously focused date
+                // Use proper logging
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigator', 'shouldFocus=true (matches focusedDate)');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
                 shouldFocus = true;
-                console.log('🔍 DateNavigator: shouldFocus=true (matches focusedDate)');
-            } else if (!this.focusedDate && day.isToday) {
-                // Default to today if no focused date is tracked
+            } else if (!this.focusedDate && day.isToday && day.isCurrentMonth) {
+                // Use proper logging
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigator', 'shouldFocus=true (is today, no focusedDate)');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
                 shouldFocus = true;
-                console.log('🔍 DateNavigator: shouldFocus=true (is today, no focusedDate)');
-            } else if (!this.focusedDate && index === 0 && !days.some(d => d.isToday)) {
-                // Fall back to first cell if no today visible and no tracked focus
+            } else if (!focusableElementSet && !hasTodayInView && index === 0) {
+                // Use proper logging
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigator', 'shouldFocus=true (first cell, no today visible)');
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
                 shouldFocus = true;
-                console.log('🔍 DateNavigator: shouldFocus=true (first cell, no today visible)');
             }
             
-            dayCell.setAttribute('tabindex', shouldFocus ? '0' : '-1');
-            
-            // ✅ DEBUG: Add a distinctive class to cells that should be focusable
-            if (shouldFocus) {
-                dayCell.addClass('oom-focusable-day');
-                console.log('🔍 DateNavigator: ✅ Setting tabindex="0" and oom-focusable-day class on date:', this.formatDateKey(day.date));
+            if (shouldFocus && !focusableElementSet) {
+                element.setAttribute('tabindex', '0');
+                element.classList.add('oom-focusable-day');
+                focusableElementSet = true;
+                
+                // Use proper logging
+                try {
+                    if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                        window['globalLogger'].debug('DateNavigator', '✅ Setting tabindex="0" and oom-focusable-day class on date:', this.formatDateKey(day.date));
+                    }
+                } catch (e) {
+                    // Silent failure
+                }
+            } else {
+                element.setAttribute('tabindex', '-1');
             }
             
-            gridContainer.appendChild(dayCell);
+            // Store element reference
+            this.dayElements.set(this.formatDateKey(day.date), element);
             
-            // Store reference to the element for later updates
-            this.dayElements.set(this.formatDateKey(day.date), dayCell);
+            grid.appendChild(element);
         });
-        
-        // ✅ NEW: Add keyboard navigation to all day cells
-        this.addCalendarKeyboardNavigation(gridContainer);
+
+        this.container.appendChild(grid);
     }
     
     /**
@@ -576,7 +645,27 @@ export class DateNavigator {
         
         // ✅ DEBUG: Add focus event listener to track if cells are receiving focus
         dayCell.addEventListener('focus', () => {
-            console.log('🔍 DateNavigator: Day cell received focus:', this.formatDateKey(day.date));
+            // Use proper logging
+            try {
+                if (typeof window['globalLogger'] !== 'undefined' && window['globalLogger']) {
+                    window['globalLogger'].debug('DateNavigator', 'Day cell received focus:', this.formatDateKey(day.date));
+                }
+            } catch (e) {
+                // Silent failure
+            }
+            
+            this.focusedDate = day.date;
+            
+            // Update roving tabindex
+            this.dayElements.forEach((el, dateKey) => {
+                if (dateKey === this.formatDateKey(day.date)) {
+                    el.setAttribute('tabindex', '0');
+                    el.classList.add('oom-focusable-day');
+                } else {
+                    el.setAttribute('tabindex', '-1');
+                    el.classList.remove('oom-focusable-day');
+                }
+            });
         });
         
         // Note: Keyboard events (Enter/Space) are now handled by the grid-level navigation

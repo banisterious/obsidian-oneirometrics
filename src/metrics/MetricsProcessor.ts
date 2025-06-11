@@ -29,7 +29,7 @@ export class MetricsProcessor {
      * Process dream journal entries to extract metrics
      */
     public async scrapeMetrics(): Promise<void> {
-        console.log('MetricsProcessor.scrapeMetrics() called');
+        this.logger?.debug('Scrape', 'MetricsProcessor.scrapeMetrics() called');
         this.logger?.info('Scrape', 'Starting metrics scrape process');
         
         // Show a notice instead of a modal
@@ -163,11 +163,11 @@ export class MetricsProcessor {
                     // Log performance mode status
                     if (isPerformanceMode) {
                         const limitText = maxFiles > 0 ? `${maxFiles} files` : 'unlimited files';
-                        this.logger?.info('Performance', `Performance testing mode active - processing ${limitText} (found ${acc.length} total files)`);
+                        this.logger?.info('Performance', `Performance testing mode active - processing ${files.length} files (limit: ${limitText})`);
                         
                         // Show warning if enabled
                         if (perfSettings?.showWarnings) {
-                            console.warn(`[OneiroMetrics Performance Mode] Processing ${files.length} files (limit: ${limitText})`);
+                            this.logger?.info('Performance', `Performance testing mode active - processing ${files.length} files (limit: ${limitText})`);
                         }
                     } else {
                         if (acc.length > 200) {

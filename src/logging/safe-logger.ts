@@ -45,44 +45,52 @@ class SafeLoggerImpl implements SafeLogger {
   private initialized = false;
   
   /**
+   * Check if we're in early initialization phase where logging should be minimal
+   */
+  private isEarlyInitialization(): boolean {
+    // During early initialization, we want to be conservative about logging
+    // Only allow ERROR messages through to avoid spam when user has logging disabled
+    try {
+      // If plugin is fully loaded and accessible, we're past early initialization
+      if (typeof window !== 'undefined' && (window as any).app) {
+        const app = (window as any).app;
+        if (app.plugins && app.plugins.plugins && app.plugins.plugins['oneirometrics']) {
+          const plugin = app.plugins.plugins['oneirometrics'];
+          // If plugin exists and has settings, we're past early initialization
+          if (plugin && plugin.settings) {
+            return false; // Not in early initialization anymore
+          }
+        }
+      }
+    } catch (e) {
+      // If any error occurs, assume we're still in early initialization
+    }
+    
+    // Default: assume we're in early initialization
+    return true;
+  }
+  
+  /**
    * Check if logging should be disabled based on plugin settings
    */
   private shouldSkipLogging(): boolean {
-    // Check if we can access plugin settings to respect log level
+    // During early initialization, try to determine if logging is set to 'off'
     try {
-      // Try multiple approaches to get settings
-      
-      // Approach 1: Check if plugin is already loaded
+      // Check if plugin is already loaded and has settings
       if (typeof window !== 'undefined' && (window as any).app) {
         const app = (window as any).app;
         if (app.plugins && app.plugins.plugins && app.plugins.plugins['oneirometrics']) {
           const plugin = app.plugins.plugins['oneirometrics'];
           const settings = plugin.settings;
           if (settings && settings.logging && settings.logging.level === 'off') {
-            return true;
-          }
-        }
-        
-        // Approach 2: Check app vault data directly (during loading)
-        if (app.vault && app.vault.adapter) {
-          try {
-            // Try to read plugin data directly from storage
-            const configPath = app.vault.adapter.path.join(app.vault.configDir, 'plugins', 'oneirometrics', 'data.json');
-            // Note: This is synchronous access which may not work, but worth trying
-          } catch (e) {
-            // Ignore errors from direct file access
+            return true; // Skip logging when explicitly set to 'off'
           }
         }
       }
-      
-      // Approach 3: Default to skipping debug during early initialization
-      // If we can't determine the log level, assume it's off to prevent spam
-      return true; // Conservative approach: skip debug messages by default during early init
-      
     } catch (e) {
-      // If any error occurs, default to skipping debug messages
-      return true;
+      // Ignore errors when checking settings
     }
+    return false;
   }
   
   /**
@@ -142,6 +150,18 @@ class SafeLoggerImpl implements SafeLogger {
       return; // Skip all debug messages in SafeLogger
     }
     
+    // CONSERVATIVE APPROACH: During early initialization, only allow ERROR messages
+    // This prevents INFO spam during plugin startup when we can't reliably check settings
+    if (this.isEarlyInitialization() && level !== 'error') {
+      return; // Skip all non-error messages during early initialization
+    }
+    
+    // Check if logging is completely disabled (level: 'off')
+    // When 'off', only allow ERROR messages through for critical issues
+    if (this.shouldSkipLogging() && level !== 'error') {
+      return; // Skip all non-error messages when logging is off
+    }
+    
     // Check if we should use the regular logger yet
     if (this.initialized) {
       try {
@@ -160,7 +180,7 @@ class SafeLoggerImpl implements SafeLogger {
     }
     
     // INTENTIONAL CONSOLE USAGE: These are fallback mechanisms when the structured logging is unavailable
-    // Fall back to console (debug messages already filtered out above)
+    // Fall back to console (debug messages and disabled logging already filtered out above)
     const timestamp = new Date().toISOString();
     const formattedMsg = `[${timestamp}] ${level.toUpperCase()} [SafeLogger:${category}] ${message}`;
     

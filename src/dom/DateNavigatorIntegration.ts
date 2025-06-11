@@ -123,11 +123,13 @@ export class DateNavigatorIntegration {
      * Initialize the Date Navigator in the specified container
      */
     public initialize(container: HTMLElement): DateNavigator {
-        console.log('🔍 DateNavigatorIntegration: initialize() called with container:', !!container);
+        this.logger?.debug('DateNavigatorIntegration', 'initialize() called', { hasContainer: !!container });
         
         this.container = container;
         
-        console.log('🔍 DateNavigatorIntegration: About to create settings object');
+        if (!container) {
+            this.logger?.debug('DateNavigatorIntegration', 'About to create settings object');
+        }
         
         // Create the date navigator with app and settings
         // If no plugin settings available, create a minimal settings object
@@ -156,18 +158,18 @@ export class DateNavigatorIntegration {
             unifiedMetrics: undefined // Will use legacy fallback if not configured
         };
         
-        console.log('🔍 DateNavigatorIntegration: Settings prepared:', {
+        this.logger?.debug('DateNavigatorIntegration', 'Settings prepared:', {
             hasPlugin: !!this.plugin,
             hasSettings: !!settings,
             hasApp: !!this.app,
             hasState: !!this.state
         });
         
-        console.log('🔍 DateNavigatorIntegration: About to create new DateNavigator');
+        this.logger?.debug('DateNavigatorIntegration', 'About to create new DateNavigator');
         
         this.dateNavigator = new DateNavigator(container, this.state, this.app, settings);
         
-        console.log('🔍 DateNavigatorIntegration: DateNavigator created successfully:', !!this.dateNavigator);
+        this.logger?.debug('DateNavigatorIntegration', 'DateNavigator created successfully:', !!this.dateNavigator);
         
         // Create progress indicator for the container
         this.progressIndicator = new ProgressIndicator(container);

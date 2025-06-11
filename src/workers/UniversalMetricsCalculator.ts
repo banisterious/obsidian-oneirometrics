@@ -398,7 +398,7 @@ export class UniversalMetricsCalculator {
      * Main entry point - maintains compatibility with MetricsProcessor.scrapeMetrics()
      */
     public async scrapeMetrics(): Promise<void> {
-        console.log('UniversalMetricsCalculator.scrapeMetrics() called');
+        this.logger?.debug('Scrape', 'UniversalMetricsCalculator.scrapeMetrics() called');
         this.logger?.info('Scrape', '🚀 ===== STARTING METRICS SCRAPING PROCESS =====');
         this.logger?.info('Scrape', 'Using UniversalMetricsCalculator with worker pool support');
         
@@ -532,21 +532,19 @@ export class UniversalMetricsCalculator {
             }
 
             // Update project note
-            console.log('🔍 DEBUG: About to call updateProjectNote with metrics:', Object.keys(metrics));
-            console.log('🔍 DEBUG: Metrics data sample:', {
+            this.logger?.debug('ProjectNote', 'About to call updateProjectNote with metrics', {
+                metricsKeys: Object.keys(metrics),
+                dreamEntriesCount: processedEntries.length
+            });
+            this.logger?.debug('ProjectNote', 'Metrics data sample', {
                 totalMetrics: Object.keys(metrics).length,
-                wordsCount: metrics['Words']?.length || 0,
+                wordsCount: metrics['Words']?.[0] || 'N/A',
                 firstMetric: Object.keys(metrics)[0],
                 firstMetricSample: metrics[Object.keys(metrics)[0]]?.slice(0, 3)
             });
             
-            try {
-                await this.updateProjectNote(metrics, processedEntries);
-                console.log('✅ DEBUG: updateProjectNote completed successfully');
-            } catch (error) {
-                console.error('❌ DEBUG: updateProjectNote failed:', error);
-                throw error;
-            }
+            await this.updateProjectNote(metrics, processedEntries);
+            this.logger?.debug('ProjectNote', 'updateProjectNote completed successfully');
             
             const processingTime = performance.now() - startTime;
             this.stats.averageProcessingTime = (this.stats.averageProcessingTime + processingTime) / 2;
@@ -728,22 +726,50 @@ export class UniversalMetricsCalculator {
                 }
             };
 
-            const result = await this.workerPool.processTask(task);
-            if (result.success && result.data?.entries?.[0]?.advancedMetrics) {
+            this.logger?.debug('WorkerPool', 'About to call workerPool.processTask', { taskId: task.taskId });
+            
+            // Add timeout to prevent hanging - fallback to sync if worker pool is broken
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Worker pool timeout after 10 seconds')), 10000);
+            });
+            
+            const result = await Promise.race([
+                this.workerPool.processTask(task),
+                timeoutPromise
+            ]) as any;
+            
+            this.logger?.debug('WorkerPool', 'Worker pool returned result', {
+                success: result.success,
+                dataExists: !!result.data,
+                entriesCount: result.data?.entries?.length || 0,
+                error: result.error
+            });
+            
+            this.logger?.debug('WorkerPool', `Worker pool returned result`, {
+                success: result.success,
+                dataExists: !!result.data,
+                entriesCount: result.data?.entries?.length || 0
+            });
+            
+            if (result.success && result.data) {
                 const metrics = result.data.entries[0].advancedMetrics;
                 this.setCache(cacheKey, metrics);
                 this.stats.workerPoolUsage++;
                 return metrics;
+            } else {
+                this.logger?.warn('WorkerPool', 'Worker pool task failed, falling back to sync', {
+                    error: result.error
+                });
             }
         } catch (error) {
-            this.logger?.warn('Metrics', 'Worker pool failed, falling back to main thread', error as Error);
+            this.logger?.debug('WorkerPool', 'Worker pool failed with error', { error });
+            this.logger?.error('WorkerPool', 'Worker pool failed, falling back to sync processing', error as Error);
         }
 
-        // Fallback to main thread calculation
+        // Fallback to sync processing
+        this.logger?.debug('WorkerPool', 'Falling back to sync processing');
         this.stats.fallbackUsage++;
-        const metrics = this.calculateAdvancedMetricsSync(content);
-        this.setCache(cacheKey, metrics);
-        return metrics;
+        return this.calculateAdvancedMetricsSync(content);
     }
 
     /**
@@ -976,11 +1002,11 @@ export class UniversalMetricsCalculator {
                 // Log performance mode status
                 if (isPerformanceMode) {
                     const limitText = maxFiles > 0 ? `${maxFiles} files` : 'unlimited files';
-                    this.logger?.info('Performance', `Performance testing mode active - processing ${limitText} (found ${acc.length} total files)`);
+                    this.logger?.info('Performance', `Performance testing mode active - processing ${files.length} files (limit: ${limitText})`);
                     
                     // Show warning if enabled
                     if (perfSettings?.showWarnings) {
-                        console.warn(`[OneiroMetrics Performance Mode] Processing ${files.length} files (limit: ${limitText})`);
+                        this.logger?.info('Performance', `Performance testing mode active - processing ${files.length} files (limit: ${limitText})`);
                     }
                 } else {
                     if (acc.length > 200) {
@@ -1432,7 +1458,7 @@ export class UniversalMetricsCalculator {
 
     private async processMetricsWithWorkerPool(entries: MetricsEntry[]): Promise<MetricsResult> {
         this.logger?.debug('WorkerPool', `Processing ${entries.length} entries with worker pool`);
-        console.log('🔥 processMetricsWithWorkerPool called with', entries.length, 'entries');
+        this.logger?.debug('WorkerPool', 'processMetricsWithWorkerPool called', { entriesCount: entries.length });
         
         try {
             const task: UniversalTask = {
@@ -1461,7 +1487,7 @@ export class UniversalMetricsCalculator {
                 } : null
             });
 
-            console.log('🔥 About to call workerPool.processTask with task:', task.taskId);
+            this.logger?.debug('WorkerPool', 'About to call workerPool.processTask', { taskId: task.taskId });
             
             // Add timeout to prevent hanging - fallback to sync if worker pool is broken
             const timeoutPromise = new Promise((_, reject) => {
@@ -1473,7 +1499,7 @@ export class UniversalMetricsCalculator {
                 timeoutPromise
             ]) as any;
             
-            console.log('🔥 Worker pool returned result:', {
+            this.logger?.debug('WorkerPool', 'Worker pool returned result', {
                 success: result.success,
                 dataExists: !!result.data,
                 entriesCount: result.data?.entries?.length || 0,
@@ -1495,12 +1521,12 @@ export class UniversalMetricsCalculator {
                 });
             }
         } catch (error) {
-            console.log('🔥 Worker pool failed with error:', error);
+            this.logger?.debug('WorkerPool', 'Worker pool failed with error', { error });
             this.logger?.error('WorkerPool', 'Worker pool failed, falling back to sync processing', error as Error);
         }
 
         // Fallback to sync processing
-        console.log('🔥 Falling back to sync processing');
+        this.logger?.debug('WorkerPool', 'Falling back to sync processing');
         this.stats.fallbackUsage++;
         return this.processMetricsSync(entries);
     }
