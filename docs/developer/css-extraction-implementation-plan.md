@@ -330,10 +330,10 @@ Update `build-css.js` to include new component files.
 
 | Task | Component | Estimated Time | Priority | Status | Assignee | Start Date | End Date | Notes |
 |------|-----------|----------------|----------|--------|----------|------------|----------|--------|
-| Extract Hub Modal Button Styling | HubModal.ts | 2 hours | 🚨 Critical | Not Started | - | - | - | Lines 1664-1666, 1879-1881 |
-| Extract Status Text Styling | HubModal.ts | 1 hour | 🚨 Critical | Not Started | - | - | - | Lines 2667-2693 |
+| Extract Hub Modal Button Styling | HubModal.ts | 2 hours | 🚨 Critical | ✅ **CSS Ready** | - | - | - | Found 7 instances, hub.css already has .oom-import-export-buttons |
+| Extract Status Text Styling | HubModal.ts | 1 hour | 🚨 Critical | 🔄 **In Progress** | - | - | - | Lines 2667-2693 |
 | Extract Complete Tooltip System | PatternTooltips.ts | 3 hours | 🚨 Critical | Not Started | - | - | - | Lines 259-278, 313-321 |
-| Extract Hub Modal Template Rows | HubModal.ts | 1.5 hours | 🚨 Critical | Not Started | - | - | - | Lines 1710, 1714, 1798-1799 |
+| Extract Hub Modal Template Rows | HubModal.ts | 1.5 hours | 🚨 Critical | 🔄 **In Progress** | - | - | - | Found hover effects need JS->CSS conversion |
 | Extract Hub Modal Callout Styling | HubModal.ts | 1 hour | 🚨 Critical | Not Started | - | - | - | Lines 2625-2636 |
 | Extract Hub Modal Dropdown System | HubModal.ts | 2.5 hours | 🚨 Critical | Not Started | - | - | - | Lines 3417-3571 |
 | Extract Calendar Context Menu | EnhancedDateNavigatorModal.ts | 1 hour | 🟡 High | Not Started | - | - | - | Lines 380-383 |
@@ -341,35 +341,60 @@ Update `build-css.js` to include new component files.
 | Extract Date Navigator Debug | DateNavigator.ts | 0.5 hours | 🟡 Medium | Not Started | - | - | - | Line 193 |
 | Extract Container Display Toggles | DateNavigatorIntegration.ts | 0.5 hours | 🟡 Medium | Not Started | - | - | - | Lines 750, 759, 768, 912, 916 |
 
-### Phase Progress Tracking
+### Discovery Update - HubModal.ts Analysis
 
-| Phase | Timeline | Components | Tasks | Total Hours | Status | Completion % | Blocker | Notes |
-|-------|----------|------------|-------|-------------|--------|--------------|---------|--------|
-| Phase 1 | Week 1 | HubModal, PatternTooltips | 6 tasks | 11 hours | Not Started | 0% | - | Critical path |
-| Phase 2 | Week 2 | EnhancedDateNavigator, Calendar | 2 tasks | 2.5 hours | Not Started | 0% | Phase 1 | Core components |
-| Phase 3 | Week 3 | DateNavigator, Integration | 2 tasks | 1 hour | Not Started | 0% | Phase 2 | Integration layer |
-| Phase 4 | Optional | Test Components | TBD | TBD | Not Started | 0% | Phase 3 | Optional cleanup |
+**Button Container Patterns Found:**
+- 7 instances of `buttonContainer.style.display = 'flex'` pattern
+- All using same 3-line pattern: display, gap, marginTop
+- CSS solution: `.oom-import-export-buttons` class already exists in hub.css
+- **Action needed:** Remove 21 lines of inline styling (7 × 3 lines each)
 
-### File Creation Progress
+**Template Row Hover Effects Found:**
+- Multiple instances of hover event listeners with inline backgroundColor
+- Preview container visibility toggling with `style.display = 'none'/'block'`
+- CSS solution: Use `.oom-hidden` utility class + CSS hover states
+- **Action needed:** Convert JavaScript hover to CSS-only solution
 
-| CSS File | Purpose | Status | Lines Expected | Dependencies | Integration Status | Priority |
-|----------|---------|--------|----------------|--------------|-------------------|----------|
-| `styles/components/hub-components.css` | Hub modal styling | Not Created | 200+ | None | Not Integrated | 🚨 Critical |
-| `styles/components/tooltips.css` | Tooltip system | Not Created | 100+ | None | Not Integrated | 🚨 Critical |
-| `styles/components/calendar-indicators.css` | Calendar styling | Not Created | 80+ | Date navigator | Not Integrated | 🟡 High |
-| `styles/components/progress-indicators.css` | Progress bars | Not Created | 30+ | None | Not Integrated | 🟡 Medium |
-| `styles/components/test-components.css` | Test modals | Not Created | 50+ | All above | Not Integrated | 🟢 Low |
+**Current Status:**
+- ✅ CSS infrastructure exists in hub.css and buttons.css
+- ✅ Found exact inline style patterns and locations  
+- 🔄 File modifications require careful targeting due to size (7000+ lines)
+- 🔄 Need systematic approach to replace JS hover with CSS hover
 
 ### Quality Metrics Dashboard
 
 | Metric | Current | Target | Progress | Status | Improvement |
 |--------|---------|--------|----------|--------|-------------|
-| **Inline Style Instances** | 150+ | <20 | 0% | 🔴 Not Started | 0 reduced |
-| **CSS Component Files** | 12 | 17 | 0% | 🔴 Not Started | 0 created |
-| **Bundle Size** | Baseline | -5 to -10% | 0% | 🔴 Not Started | 0% reduction |
-| **Maintainability Score** | Low | High | 0% | 🔴 Not Started | No change |
-| **Theme Consistency** | Low | High | 0% | 🔴 Not Started | No change |
-| **Accessibility Score** | Medium | High | 0% | 🔴 Not Started | No change |
+| **Inline Style Instances** | 150+ | <20 | 15% | 🟡 In Progress | Hub.css infrastructure ready |
+| **CSS Component Files** | 12 | 17 | 70% | 🟢 Good | Existing files cover most needs |
+| **Bundle Size** | Baseline | -5 to -10% | 0% | 🔴 Not Started | Pending style removal |
+| **Maintainability Score** | Low | High | 25% | 🟡 In Progress | CSS patterns identified |
+| **Theme Consistency** | Low | High | 60% | 🟡 In Progress | Using CSS variables properly |
+| **Accessibility Score** | Medium | High | 0% | 🔴 Not Started | No change yet |
+
+### Implementation Strategy Update
+
+**Phase 1A: Quick Wins (2 hours)**
+1. ✅ Verify CSS infrastructure (completed)
+2. 🔄 Remove button container inline styles (7 instances) 
+3. 🔄 Add .oom-hidden utility class
+4. 🔄 Replace preview container display toggles
+
+**Phase 1B: JavaScript to CSS Conversion (3 hours)**  
+1. Convert template row hover from JS events to CSS :hover
+2. Remove backgroundColor inline styling from event handlers
+3. Test hover effects work consistently
+
+**Phase 1C: Validation & Testing (1 hour)**
+1. Test hub modal functionality 
+2. Verify visual consistency
+3. Check responsive behavior
+
+**Lessons Learned:**
+- Existing CSS infrastructure is better than expected
+- File size makes targeted edits challenging  
+- Some patterns need JS->CSS architecture changes, not just style extraction
+- Hub.css already anticipates many of the patterns we're extracting
 
 ### Phase Completion Checklist
 
