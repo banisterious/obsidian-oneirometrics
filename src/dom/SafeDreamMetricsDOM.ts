@@ -611,7 +611,15 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       });
       
       fullContent.textContent = entry.content || 'No content';
-      fullContent.style.display = isExpanded ? 'block' : 'none';
+      
+      // Set visibility using CSS classes instead of inline styles
+      if (isExpanded) {
+        fullContent.classList.add('oom-content-full--visible');
+        fullContent.classList.remove('oom-content-full--hidden');
+      } else {
+        fullContent.classList.add('oom-content-full--hidden');
+        fullContent.classList.remove('oom-content-full--visible');
+      }
       
       // Expand/collapse button
       const expandButton = this.domSafetyGuard.createElement('button', {
@@ -662,12 +670,18 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       button.setAttribute('data-expanded', newExpandedState ? 'true' : 'false');
       button.textContent = newExpandedState ? 'Show less' : 'Show more';
       
-      // Update content visibility
+      // Update content visibility using CSS classes
       const row = button.closest('.oom-dream-row');
       if (row) {
         const contentFull = row.querySelector('.oom-content-full') as HTMLElement;
         if (contentFull) {
-          contentFull.style.display = newExpandedState ? 'block' : 'none';
+          if (newExpandedState) {
+            contentFull.classList.add('oom-content-full--visible');
+            contentFull.classList.remove('oom-content-full--hidden');
+          } else {
+            contentFull.classList.add('oom-content-full--hidden');
+            contentFull.classList.remove('oom-content-full--visible');
+          }
         }
       }
       
@@ -703,12 +717,18 @@ export class SafeDreamMetricsDOM implements DOMComponent {
         button.setAttribute('data-expanded', isExpanded ? 'true' : 'false');
         button.textContent = isExpanded ? 'Show less' : 'Show more';
         
-        // Find and update content visibility
+        // Find and update content visibility using CSS classes
         const row = button.closest('.oom-dream-row');
         if (row) {
           const contentFull = row.querySelector('.oom-content-full') as HTMLElement;
           if (contentFull) {
-            contentFull.style.display = isExpanded ? 'block' : 'none';
+            if (isExpanded) {
+              contentFull.classList.add('oom-content-full--visible');
+              contentFull.classList.remove('oom-content-full--hidden');
+            } else {
+              contentFull.classList.add('oom-content-full--hidden');
+              contentFull.classList.remove('oom-content-full--visible');
+            }
           }
         }
       }

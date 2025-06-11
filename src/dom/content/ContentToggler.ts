@@ -142,9 +142,10 @@ export class ContentToggler {
                 // 3. Create a transition effect by temporarily setting overflow to hidden
                 contentCell.style.overflow = 'hidden';
                 
-                // 4. Set styles directly - use requestAnimationFrame for better performance
+                // 4. Set visibility using CSS classes - use requestAnimationFrame for better performance
                 requestAnimationFrame(() => {
-                    fullContent.style.display = 'block';
+                    fullContent.classList.add('oom-content-full--visible');
+                    fullContent.classList.remove('oom-content-full--hidden');
                     
                     // 5. Update the table row height to fit the new content
                     const tableRow = contentWrapper.closest('tr');
@@ -177,9 +178,10 @@ export class ContentToggler {
                 // 2. Update content wrapper with CSS class
                 contentWrapper.classList.remove('expanded');
                 
-                // 3. Set styles directly - use requestAnimationFrame for better performance
+                // 3. Set visibility using CSS classes - use requestAnimationFrame for better performance
                 requestAnimationFrame(() => {
-                    fullContent.style.display = 'none';
+                    fullContent.classList.add('oom-content-full--hidden');
+                    fullContent.classList.remove('oom-content-full--visible');
                 });
                 
                 // Remove from expanded states

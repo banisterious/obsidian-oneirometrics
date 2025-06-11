@@ -2185,7 +2185,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: TABLES (16.7 KB)
+   COMPONENT: TABLES (17.8 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Tables Component
@@ -2806,6 +2806,47 @@ td:has(.oom-metric-icon-container) {
 /* Content visibility control for table expansions */
 .oom-content-full--hidden {
     display: none;
+}
+
+/* =============================================================================
+   CONTENT VISIBILITY STATES - Dynamic Toggle System
+   ============================================================================= */
+
+.oom-content-full {
+    /* Default visible state for full content */
+    display: block;
+    
+    /* Enhanced transition for smooth expand/collapse */
+    transition: all var(--oom-transition-normal);
+    
+    /* NO VISUAL STYLING - Let theme handle */
+}
+
+.oom-content-full--visible {
+    /* Explicitly visible state */
+    display: block !important;
+}
+
+.oom-content-full--hidden {
+    /* Hidden state for content toggle */
+    display: none !important;
+}
+
+.oom-content-full--collapsed {
+    /* Alternative collapsed state with height animation */
+    display: block;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-content-full--expanded {
+    /* Expanded state with height animation */
+    display: block;
+    height: auto;
+    opacity: 1;
+    transition: all var(--oom-transition-normal);
 } 
 
 /* =============================================================================
