@@ -3295,15 +3295,8 @@ Example:
                 }
             });
             
-            // Style the textarea
-            textarea.style.width = '100%';
-            textarea.style.minHeight = '300px';
-            textarea.style.fontFamily = 'var(--font-monospace)';
-            textarea.style.fontSize = '14px';
-            textarea.style.padding = '12px';
-            textarea.style.border = '1px solid var(--background-modifier-border)';
-            textarea.style.borderRadius = '4px';
-            textarea.style.resize = 'vertical';
+            // Style the textarea - use CSS class
+            textarea.addClass('oom-wizard-textarea');
             
             // Set initial value - this was missing proper restoration for editing!
             textarea.value = this.wizardState!.content || '';
