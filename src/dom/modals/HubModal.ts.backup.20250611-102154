@@ -1231,7 +1231,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Create dynamic feedback area above the sticky footer
         this.feedbackArea = this.contentContainer.createDiv({ 
-            cls: 'oom-dream-scrape-feedback oom-feedback-area-hidden'
+            cls: 'oom-dream-scrape-feedback',
+            attr: { style: 'display: none;' }
         });
 
         // Check project note validation and show feedback if needed
@@ -5513,14 +5514,14 @@ Example:
             
             // Header
             const headerRow = calloutTable.createEl('tr');
-            headerRow.createEl('th', { text: 'Callout Type', cls: 'oom-table-header' });
-            headerRow.createEl('th', { text: 'Count', cls: 'oom-table-header oom-table-header--right' });
+            headerRow.createEl('th', { text: 'Callout Type' }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: left;';
+            headerRow.createEl('th', { text: 'Count' }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: right;';
             
             // Sort by count descending
             calloutEntries.sort((a, b) => (b[1] as number) - (a[1] as number)).forEach(([type, count]) => {
                 const row = calloutTable.createEl('tr');
-                row.createEl('td', { text: type, cls: 'oom-table-cell' });
-                row.createEl('td', { text: count.toString(), cls: 'oom-table-cell oom-table-cell--right' });
+                row.createEl('td', { text: type }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em;';
+                row.createEl('td', { text: count.toString() }).style.cssText = 'border: 1px solid var(--background-modifier-border); padding: 0.5em; text-align: right;';
             });
         } else {
             calloutsSection.createEl('p', { text: 'No callouts found in the analyzed content.' });
@@ -5625,7 +5626,7 @@ Example:
             } else {
                 titleEl.textContent = `(line ${node.lineNumber})`;
                 titleEl.style.color = 'var(--text-muted)';
-                titleEl.classList.add('oom-title-italic');
+                titleEl.style.fontStyle = 'italic';
             }
             
             // Render children recursively

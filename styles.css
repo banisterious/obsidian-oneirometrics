@@ -8909,7 +8909,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: HUB (23.0 KB)
+   COMPONENT: HUB (23.5 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Hub & Dashboard Component
@@ -8921,6 +8921,36 @@ h2.oom-metrics-tabs-label {
 
 .oom-hidden {
     display: none !important;
+}
+
+/* Table styling classes for analysis results */
+.oom-table-header {
+    border: 1px solid var(--background-modifier-border);
+    padding: 0.5em;
+    text-align: left;
+}
+
+.oom-table-header--right {
+    text-align: right;
+}
+
+.oom-table-cell {
+    border: 1px solid var(--background-modifier-border);
+    padding: 0.5em;
+}
+
+.oom-table-cell--right {
+    text-align: right;
+}
+
+/* Typography utility classes */
+.oom-title-italic {
+    font-style: italic;
+}
+
+/* Modal feedback area styling */
+.oom-feedback-area-hidden {
+    display: none;
 }
 
 /* =============================================================================  
