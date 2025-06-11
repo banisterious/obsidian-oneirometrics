@@ -1662,9 +1662,6 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         });
 
         const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.marginTop = '0.5em';
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
@@ -1877,9 +1874,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         });
 
         const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.marginTop = '0.5em';
+        
+        
+        
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
@@ -2467,9 +2464,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         });
 
         const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.marginTop = '0.5em';
+        
+        
+        
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
@@ -2697,8 +2694,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Button container styling
         const buttonContainer = settingsBtn.parentElement;
         if (buttonContainer) {
-            buttonContainer.style.display = 'flex';
-            buttonContainer.style.gap = '0.5em';
+            
+            
             buttonContainer.style.flexWrap = 'wrap';
         }
         
@@ -2906,9 +2903,9 @@ Full debug info in logs/console`);
         });
 
         const buttonContainer = importExportSection.createDiv({ cls: 'oom-import-export-buttons' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.marginTop = '0.5em';
+        
+        
+        
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
@@ -6344,10 +6341,10 @@ Example:
         }
         
         const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
-        buttonContainer.style.marginTop = '1.5em';
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.justifyContent = 'flex-end';
+        
+        
+        
+        
         
         const cancelBtn = buttonContainer.createEl('button', {
             text: 'Cancel',
@@ -6536,10 +6533,6 @@ Example:
         });
         
         const buttonContainer = contentEl.createDiv({ cls: 'oom-dialog-buttons' });
-        buttonContainer.style.marginTop = '1.5em';
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.gap = '0.75em';
-        buttonContainer.style.justifyContent = 'flex-end';
         
         const cancelBtn = buttonContainer.createEl('button', {
             text: 'Cancel',
