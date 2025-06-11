@@ -47,7 +47,7 @@
 - [Summary](#summary)
 - [Categorized Findings](#categorized-findings)
   - [🚨 Critical - High Impact UI Components](#-critical---high-impact-ui-components)
-    - [1. HubModal.ts (80+ instances → 40+ instances)](#1-hubmodalts-80-instances-40-instances)
+    - [1. HubModal.ts (80+ instances → 18+ instances)](#1-hubmodalts-80-instances-18-instances)
     - [2. PatternTooltips.ts (20+ instances)](#2-patterntooltipsts-20-instances)
     - [3. EnhancedDateNavigatorModal.ts (15+ instances)](#3-enhanceddatenavigatormodalts-15-instances)
   - [🟡 Medium Priority - Component Specific](#-medium-priority---component-specific)
@@ -94,7 +94,7 @@
 
 ### 🚨 Critical - High Impact UI Components
 
-#### 1. HubModal.ts (80+ instances → 40+ instances) ✅ **PARTIALLY COMPLETE**
+#### 1. HubModal.ts (80+ instances → 18+ instances) ✅ **PARTIALLY COMPLETE**
 **Location:** `src/dom/modals/HubModal.ts`  
 **Impact:** Core UI functionality  
 
@@ -380,6 +380,43 @@ element.className = 'oom-hub-template-row oom-hub-template-row--hover';
 | `styles/components/calendar-indicators.css` | Calendar day indicators | Not Created | - | Theme-dependent |
 | `styles/components/progress-indicators.css` | Progress bars | Not Created | - | Utility component |
 | `styles/components/test-components.css` | Test modal styling | Not Created | - | Development only |
+
+## Phase 1B: Template Row Hover Effects Conversion ✅ COMPLETE
+
+**Target**: Template row hover effects in HubModal.ts  
+**Status**: ✅ **COMPLETE** (2025-01-16)  
+**Result**: Removed 1,929 characters of JavaScript hover code
+
+**Completed Work**:
+- ✅ Removed 3 template row `addEventListener('mouseenter', ...)` calls
+- ✅ Removed 3 template row `addEventListener('mouseleave', ...)` calls  
+- ✅ Removed 6+ `templateRow.style.backgroundColor` assignments from expand/collapse logic
+- ✅ Leveraged existing CSS infrastructure (`.oom-template-row:hover`, `.oom-template-expanded`)
+- ✅ Build verified: no compilation errors, functionality preserved
+- ✅ Performance improvement: hardware-accelerated CSS hover vs JavaScript events
+
+**Commit**: `247eb33` - "Phase 1B: Convert template row hover from JavaScript to CSS-only"
+
+## Phase 1C: Display Toggle Cleanup ✅ COMPLETE
+
+**Target**: Inline `style.display` assignments in HubModal.ts  
+**Status**: ✅ **COMPLETE** (2025-01-16)  
+**Result**: Converted 22 display toggles to `.oom-hidden` CSS class
+
+**Completed Work**:
+- ✅ Converted 22 instances from `element.style.display = 'none'/'block'` to CSS classes
+- ✅ Patterns converted: preview containers (9), dropdown menus (4), download links (3), wizard steps (2), etc.
+- ✅ Leveraged existing `.oom-hidden { display: none !important; }` utility class
+- ✅ Performance improvement: CSS-only display control vs JavaScript DOM manipulation
+- ✅ Build verified: no compilation errors, all functionality preserved
+- ✅ Improved code separation: CSS styling vs JavaScript logic
+
+**Remaining Display Assignments**: 14 instances requiring different approaches:
+- 8 × Conditional/ternary expressions (`condition ? 'block' : 'none'`)
+- 3 × Layout display values (`'flex'`, `'inline-block'`)
+- 1 × Function name (`shouldDisplayInSettings`)
+
+**Commit**: `dcf91eb` - "Phase 1C: Convert 22 display toggles to CSS classes"
 
 ---
 
