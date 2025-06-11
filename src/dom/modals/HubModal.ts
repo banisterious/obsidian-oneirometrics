@@ -1770,7 +1770,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     cls: 'oom-template-preview-container',
                     attr: { 'data-template-id': template.id }
                 });
-                previewContainer.style.display = 'none';
+                previewContainer.classList.add('oom-hidden');
                 
                 // Add expand/collapse functionality to template row
                 templateRow.addEventListener('click', () => {
@@ -1779,11 +1779,11 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     if (isExpanded) {
                         // Collapse
                         templateRow.classList.remove('oom-template-expanded');
-                        previewContainer.style.display = 'none';
+                        previewContainer.classList.add('oom-hidden');
                     } else {
                         // Expand
                         templateRow.classList.add('oom-template-expanded');
-                        previewContainer.style.display = 'block';
+                        previewContainer.classList.remove('oom-hidden');
                         
                         // Populate preview if not already done
                         if (previewContainer.innerHTML === '') {
@@ -1974,7 +1974,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     cls: 'oom-template-preview-container',
                     attr: { 'data-template-id': template.id }
                 });
-                previewContainer.style.display = 'none';
+                previewContainer.classList.add('oom-hidden');
                 
                 // Add expand/collapse functionality to template row
                 templateRow.addEventListener('click', () => {
@@ -1983,11 +1983,11 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     if (isExpanded) {
                         // Collapse
                         templateRow.classList.remove('oom-template-expanded');
-                        previewContainer.style.display = 'none';
+                        previewContainer.classList.add('oom-hidden');
                     } else {
                         // Expand
                         templateRow.classList.add('oom-template-expanded');
-                        previewContainer.style.display = 'block';
+                        previewContainer.classList.remove('oom-hidden');
                         
                         // Populate preview if not already done
                         if (previewContainer.innerHTML === '') {
@@ -2060,7 +2060,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             });
             
             if (i !== this.wizardState!.currentStep) {
-                stepContainer.style.display = 'none';
+                stepContainer.classList.add('oom-hidden');
             }
             
             this.wizardStepContainers.push(stepContainer);
@@ -2553,7 +2553,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     cls: 'oom-template-preview-container',
                     attr: { 'data-template-id': template.id }
                 });
-                previewContainer.style.display = 'none';
+                previewContainer.classList.add('oom-hidden');
                 
                 // Add expand/collapse functionality to template row
                 templateRow.addEventListener('click', () => {
@@ -2562,11 +2562,11 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     if (isExpanded) {
                         // Collapse
                         templateRow.classList.remove('oom-template-expanded');
-                        previewContainer.style.display = 'none';
+                        previewContainer.classList.add('oom-hidden');
                     } else {
                         // Expand
                         templateRow.classList.add('oom-template-expanded');
-                        previewContainer.style.display = 'block';
+                        previewContainer.classList.remove('oom-hidden');
                         
                         // Populate preview if not already done
                         if (previewContainer.innerHTML === '') {
@@ -3425,7 +3425,7 @@ Example:
             sampleDropdownBtn.style.fontSize = '14px';
             
             const sampleDropdownMenu = sampleDropdownContainer.createDiv({ cls: 'oom-sample-dropdown-menu' });
-            sampleDropdownMenu.style.display = 'none';
+            sampleDropdownMenu.classList.add('oom-hidden');
             sampleDropdownMenu.style.position = 'absolute';
             sampleDropdownMenu.style.top = '100%';
             sampleDropdownMenu.style.left = '0';
@@ -3463,7 +3463,7 @@ Example:
                 this.wizardState!.content = flatSampleContent;
                 this.validateWizardState();
                 this.updateWizardPreview();
-                sampleDropdownMenu.style.display = 'none';
+                sampleDropdownMenu.classList.add('oom-hidden');
             });
             
             // Nested sample option
@@ -3492,7 +3492,7 @@ Example:
                 this.wizardState!.content = nestedSampleContent;
                 this.validateWizardState();
                 this.updateWizardPreview();
-                sampleDropdownMenu.style.display = 'none';
+                sampleDropdownMenu.classList.add('oom-hidden');
             });
             
             // Hover effects
@@ -3523,7 +3523,7 @@ Example:
             document.addEventListener('click', () => {
                 if (dropdownOpen) {
                     dropdownOpen = false;
-                    sampleDropdownMenu.style.display = 'none';
+                    sampleDropdownMenu.classList.add('oom-hidden');
                     sampleDropdownBtn.textContent = 'Insert Sample Content ▼';
                 }
             });
@@ -3861,7 +3861,7 @@ Example:
         
         // Hide current step
         if (this.wizardStepContainers[this.wizardState.currentStep - 1]) {
-            this.wizardStepContainers[this.wizardState.currentStep - 1].style.display = 'none';
+            this.wizardStepContainers[this.wizardState.currentStep - 1].classList.add('oom-hidden');
         }
         
         // Update current step
@@ -4794,7 +4794,7 @@ Example:
         if (!resultsContainer) return;
         
         // Show loading state
-        resultsContainer.style.display = 'block';
+        resultsContainer.classList.remove('oom-hidden');
         resultsContainer.innerHTML = '';
         resultsContainer.createEl('p', { text: '🔄 Validating template...', cls: 'oom-validation-loading' });
         
@@ -5211,7 +5211,7 @@ Example:
      */
     private addAnalysisTarget(targetsList: HTMLElement, emptyState: HTMLElement, target: { type: string; path: string; name: string; includeSubfolders?: boolean }) {
         // Hide empty state
-        emptyState.style.display = 'none';
+        emptyState.classList.add('oom-hidden');
         
         // Check if target already exists
         const existingTargets = Array.from(targetsList.querySelectorAll('.oom-analysis-target'));
@@ -5249,7 +5249,7 @@ Example:
             // Show empty state if no targets left
             const remainingTargets = targetsList.querySelectorAll('.oom-analysis-target');
             if (remainingTargets.length === 0) {
-                emptyState.style.display = 'block';
+                emptyState.classList.remove('oom-hidden');
             }
             
             // Update analyze button state
@@ -6185,7 +6185,7 @@ Example:
             const downloadLink = document.createElement('a');
             downloadLink.href = url;
             downloadLink.download = suggestedFilename;
-            downloadLink.style.display = 'none';
+            downloadLink.classList.add('oom-hidden');
             
             document.body.appendChild(downloadLink);
             downloadLink.click();
@@ -6211,7 +6211,7 @@ Example:
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.accept = '.json';
-            fileInput.style.display = 'none';
+            fileInput.classList.add('oom-hidden');
             
             fileInput.addEventListener('change', async (event) => {
                 const file = (event.target as HTMLInputElement).files?.[0];
@@ -6554,7 +6554,7 @@ Example:
             const downloadLink = document.createElement('a');
             downloadLink.href = url;
             downloadLink.download = suggestedFilename;
-            downloadLink.style.display = 'none';
+            downloadLink.classList.add('oom-hidden');
             
             document.body.appendChild(downloadLink);
             downloadLink.click();
@@ -6626,7 +6626,7 @@ Example:
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
         downloadLink.download = `${template.name}.json`;
-        downloadLink.style.display = 'none';
+        downloadLink.classList.add('oom-hidden');
         
         document.body.appendChild(downloadLink);
         downloadLink.click();
