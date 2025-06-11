@@ -3424,7 +3424,7 @@ Example:
             // Set initial value - this was missing proper restoration for editing!
             textarea.value = this.wizardState!.content || '';
             
-            console.log('🔧 Direct Input - Setting textarea content:', this.wizardState!.content?.substring(0, 100));
+            this.logger?.debug('HubModal', 'Direct Input - Setting textarea content', { contentPreview: this.wizardState!.content?.substring(0, 100) });
             
             // Add event handler
             textarea.addEventListener('input', () => {
@@ -4607,8 +4607,9 @@ Example:
         if (hasUnifiedConfig) {
             const config = this.plugin.settings.unifiedMetrics;
             
-            console.log('Calendar metrics:', config.preferredMetrics.calendar);
-            console.log('Charts metrics:', config.preferredMetrics.charts);
+            // Use proper logging instead of console.log
+            this.logger?.debug('HubModal', 'Calendar metrics configuration', { metrics: config.preferredMetrics.calendar });
+            this.logger?.debug('HubModal', 'Charts metrics configuration', { metrics: config.preferredMetrics.charts });
             // Unified Metrics Infrastructure Section
             const infrastructureSection = advancedSection.createDiv({ 
                 cls: 'oom-hub-subsection' 
