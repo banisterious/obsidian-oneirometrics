@@ -250,9 +250,7 @@ export class FilterControls {
         const debugBtn = document.createElement('button');
         debugBtn.className = 'oom-button oom-debug-attach-listeners';
         debugBtn.innerHTML = '<span class="oom-button-text">Debug: Attach Listeners</span>';
-        debugBtn.style.backgroundColor = 'var(--color-yellow)';
-        debugBtn.style.color = 'black';
-        debugBtn.style.marginLeft = '8px';
+                        debugBtn.classList.add('oom-debug-btn--yellow');
         debugBtn.addEventListener('click', () => {
             new Notice('Manually attaching filter listeners...');
             this.initializeFilters(this.container || filterControls.parentElement || document.body);
@@ -263,9 +261,7 @@ export class FilterControls {
         const expandAllDebugBtn = document.createElement('button');
         expandAllDebugBtn.className = 'oom-button oom-debug-expand-all';
         expandAllDebugBtn.innerHTML = '<span class="oom-button-text">Debug: Expand All Content</span>';
-        expandAllDebugBtn.style.backgroundColor = 'var(--color-red)';
-        expandAllDebugBtn.style.color = 'white';
-        expandAllDebugBtn.style.marginLeft = '8px';
+                        expandAllDebugBtn.classList.add('oom-debug-btn--red');
         expandAllDebugBtn.addEventListener('click', () => {
             new Notice('Expanding all content sections for debugging...');
             const container = this.container || filterControls.parentElement || document.body;

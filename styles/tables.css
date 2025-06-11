@@ -658,4 +658,29 @@ td:has(.oom-metric-icon-container) {
     height: auto;
     opacity: 1;
     transition: all var(--oom-transition-normal);
+}
+
+/* =============================================================================
+   PHASE 7L: ContentToggler Inline Style Elimination
+   ============================================================================= */
+
+/* Content cell overflow control during transitions */
+.oom-content-cell--transitioning {
+    overflow: hidden;
+}
+
+.oom-content-cell--expanded {
+    overflow: visible;
+}
+
+/* Table row dynamic height for expanded content */
+.oom-table-row--auto-height {
+    height: auto !important;
+    min-height: fit-content !important;
+}
+
+.oom-table-row--expanded {
+    height: auto;
+    min-height: fit-content;
+    transition: height var(--oom-transition-normal);
 } 

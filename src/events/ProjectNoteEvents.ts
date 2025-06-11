@@ -141,9 +141,7 @@ export class ProjectNoteEvents {
                     const newDebugBtn = document.createElement('button');
                     newDebugBtn.className = 'oom-button oom-debug-expand-all';
                     newDebugBtn.innerHTML = '<span class="oom-button-text">Debug: Expand All Content</span>';
-                    newDebugBtn.style.backgroundColor = 'var(--color-red)';
-                    newDebugBtn.style.color = 'white';
-                    newDebugBtn.style.marginLeft = '8px';
+                                newDebugBtn.classList.add('oom-debug-btn--red');
                     newDebugBtn.addEventListener('click', () => {
                         new Notice('Expanding all content sections for debugging...');
                         this.contentToggler.expandAllContentSections(previewEl);

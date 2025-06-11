@@ -34,12 +34,7 @@ export class ServiceRegistryTestModal extends Modal {
     // Create result container
     const resultContainer = contentEl.createDiv();
     resultContainer.addClass('service-registry-test-results');
-    resultContainer.style.height = '200px';
-    resultContainer.style.overflow = 'auto';
-    resultContainer.style.border = '1px solid var(--background-modifier-border)';
-    resultContainer.style.padding = '10px';
-    resultContainer.style.marginBottom = '10px';
-    resultContainer.style.fontFamily = 'monospace';
+    resultContainer.addClass('oom-service-registry-results');
     this.resultEl = resultContainer;
     
     // Create services text area
@@ -49,17 +44,13 @@ export class ServiceRegistryTestModal extends Modal {
       .addTextArea(text => {
         this.servicesTextArea = text;
         text.setValue('{\n  "name": "testService",\n  "value": "Hello from test service"\n}');
-        text.inputEl.style.height = '100px';
-        text.inputEl.style.width = '100%';
+        text.inputEl.classList.add('oom-service-registry-textarea');
       });
     
     // Test buttons
     const buttonContainer = contentEl.createDiv();
     buttonContainer.addClass('service-registry-test-buttons');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.justifyContent = 'space-between';
-    buttonContainer.style.flexWrap = 'wrap';
-    buttonContainer.style.marginTop = '20px';
+    buttonContainer.addClass('oom-service-registry-buttons');
     
     // List services button
     new ButtonComponent(buttonContainer)

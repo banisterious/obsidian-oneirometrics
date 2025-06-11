@@ -1161,3 +1161,41 @@ border-radius: 8px;
 .oom-select-all-checkbox { margin-right: 0.5em; }
 .oom-visible { display: block !important; }
 .oom-hidden { display: none !important; }
+
+/* =============================================================================
+   PHASE 7L: Debug Button Styling
+   ============================================================================= */
+
+/* Yellow debug button for FilterControls */
+.oom-debug-btn--yellow {
+    background-color: var(--color-yellow);
+    color: black;
+    margin-left: 8px;
+    padding: 0.5em 1em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-debug-btn--yellow:hover {
+    background-color: var(--color-yellow);
+    opacity: 0.8;
+}
+
+/* Red debug button for expand-all and event handlers */
+.oom-debug-btn--red {
+    background-color: var(--color-red);
+    color: white;
+    margin-left: 8px;
+    padding: 0.5em 1em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-debug-btn--red:hover {
+    background-color: var(--color-red);
+    opacity: 0.8;
+}

@@ -592,4 +592,38 @@
         width: 100%;
         padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     }
+}
+
+/* =============================================================================
+   PHASE 7L: ServiceRegistryTestModal Component Styles
+   ============================================================================= */
+
+/* Service Registry Test Results Container */
+.oom-service-registry-results {
+    height: 200px;
+    overflow: auto;
+    border: 1px solid var(--background-modifier-border);
+    padding: 10px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: var(--font-ui-smaller);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+}
+
+/* Service Registry Test Text Area */
+.oom-service-registry-textarea {
+    height: 100px !important;
+    width: 100% !important;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Service Registry Test Button Container */
+.oom-service-registry-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    gap: var(--oom-spacing-sm);
 } 

@@ -140,7 +140,7 @@ export class ContentToggler {
                 contentWrapper.classList.add('expanded');
                 
                 // 3. Create a transition effect by temporarily setting overflow to hidden
-                contentCell.style.overflow = 'hidden';
+                contentCell.classList.add('oom-content-cell--transitioning');
                 
                 // 4. Set visibility using CSS classes - use requestAnimationFrame for better performance
                 requestAnimationFrame(() => {
@@ -150,13 +150,13 @@ export class ContentToggler {
                     // 5. Update the table row height to fit the new content
                     const tableRow = contentWrapper.closest('tr');
                     if (tableRow) {
-                        (tableRow as HTMLElement).style.height = 'auto';
-                        (tableRow as HTMLElement).style.minHeight = 'fit-content';
+                        (tableRow as HTMLElement).classList.add('oom-table-row--auto-height');
                     }
                     
                     // 6. Remove overflow constraint after transition
                     setTimeout(() => {
-                        contentCell.style.overflow = '';
+                        contentCell.classList.remove('oom-content-cell--transitioning');
+                        contentCell.classList.add('oom-content-cell--expanded');
                     }, 300);
                 });
                 

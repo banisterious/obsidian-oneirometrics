@@ -771,7 +771,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: MODALS (16.3 KB)
+   COMPONENT: MODALS (17.4 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Modal Components
@@ -1367,6 +1367,40 @@ h4 {
         width: 100%;
         padding: var(--oom-spacing-sm) var(--oom-spacing-md);
     }
+}
+
+/* =============================================================================
+   PHASE 7L: ServiceRegistryTestModal Component Styles
+   ============================================================================= */
+
+/* Service Registry Test Results Container */
+.oom-service-registry-results {
+    height: 200px;
+    overflow: auto;
+    border: 1px solid var(--background-modifier-border);
+    padding: 10px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: var(--font-ui-smaller);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+}
+
+/* Service Registry Test Text Area */
+.oom-service-registry-textarea {
+    height: 100px !important;
+    width: 100% !important;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Service Registry Test Button Container */
+.oom-service-registry-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    gap: var(--oom-spacing-sm);
 } 
 
 /* =============================================================================
@@ -2185,7 +2219,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: TABLES (17.8 KB)
+   COMPONENT: TABLES (18.5 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Tables Component
@@ -2847,6 +2881,31 @@ td:has(.oom-metric-icon-container) {
     height: auto;
     opacity: 1;
     transition: all var(--oom-transition-normal);
+}
+
+/* =============================================================================
+   PHASE 7L: ContentToggler Inline Style Elimination
+   ============================================================================= */
+
+/* Content cell overflow control during transitions */
+.oom-content-cell--transitioning {
+    overflow: hidden;
+}
+
+.oom-content-cell--expanded {
+    overflow: visible;
+}
+
+/* Table row dynamic height for expanded content */
+.oom-table-row--auto-height {
+    height: auto !important;
+    min-height: fit-content !important;
+}
+
+.oom-table-row--expanded {
+    height: auto;
+    min-height: fit-content;
+    transition: height var(--oom-transition-normal);
 } 
 
 /* =============================================================================
@@ -9266,7 +9325,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: HUB (29.2 KB)
+   COMPONENT: HUB (30.4 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Hub & Dashboard Component
@@ -10431,6 +10490,44 @@ border-radius: 8px;
 .oom-select-all-checkbox { margin-right: 0.5em; }
 .oom-visible { display: block !important; }
 .oom-hidden { display: none !important; }
+
+/* =============================================================================
+   PHASE 7L: Debug Button Styling
+   ============================================================================= */
+
+/* Yellow debug button for FilterControls */
+.oom-debug-btn--yellow {
+    background-color: var(--color-yellow);
+    color: black;
+    margin-left: 8px;
+    padding: 0.5em 1em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-debug-btn--yellow:hover {
+    background-color: var(--color-yellow);
+    opacity: 0.8;
+}
+
+/* Red debug button for expand-all and event handlers */
+.oom-debug-btn--red {
+    background-color: var(--color-red);
+    color: white;
+    margin-left: 8px;
+    padding: 0.5em 1em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.oom-debug-btn--red:hover {
+    background-color: var(--color-red);
+    opacity: 0.8;
+}
 
 
 /* =============================================================================
