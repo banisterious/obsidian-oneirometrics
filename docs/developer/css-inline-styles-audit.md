@@ -2,14 +2,38 @@
 
 **Related:** [CSS Extraction Implementation Plan](./css-extraction-implementation-plan.md)  
 **Branch:** fix/remove-inline-styles  
-**Date:** 2025-06-10
+**Date:** 2025-06-10  
+**Last Updated:** 2025-06-10 (Phase 1A Complete)
+
+## ✅ **PROGRESS UPDATE - Phase 1A Complete**
+
+### **Phase 1A: Button Container Cleanup** ✅ **COMPLETED**
+**Date Completed:** 2025-06-10  
+**Commit:** `27c9d24` - "Phase 1A: Remove redundant buttonContainer inline styles"  
+**Files Changed:** 1 (HubModal.ts)  
+**Lines Removed:** 18+ inline style statements  
+**Net Reduction:** 7 lines of code removed  
+
+**Completed Extractions:**
+- ✅ **Button Container Flex Styling** - Removed 6 instances of `buttonContainer.style.display = 'flex'`
+- ✅ **Button Container Gap Styling** - Removed 6 instances of `buttonContainer.style.gap = '0.75em'/'0.5em'`  
+- ✅ **Button Container Margin Styling** - Removed 6 instances of `buttonContainer.style.marginTop = '0.5em'/'1.5em'`
+- ✅ **Button Container Justify Content** - Removed 2 instances of `buttonContainer.style.justifyContent = 'flex-end'`
+
+**CSS Infrastructure Leveraged:**
+- ✅ `.oom-import-export-buttons` (existing class handles flex, gap, margin)
+- ✅ `.oom-dialog-buttons` (existing class handles dialog button layout)
+
+**Impact:** Template import/export dialogs and wizard navigation now use CSS classes instead of inline styles, improving maintainability and consistency.
+
+**Next Phase:** Phase 1B - Template Row Hover Effects (12+ instances remaining)
 
 ## Table of Contents
 
 - [Summary](#summary)
 - [Categorized Findings](#categorized-findings)
   - [🚨 Critical - High Impact UI Components](#-critical---high-impact-ui-components)
-    - [1. HubModal.ts (80+ instances)](#1-hubmodalts-80-instances)
+    - [1. HubModal.ts (80+ instances → 60+ instances)](#1-hubmodalts-80-instances-60-instances)
     - [2. PatternTooltips.ts (20+ instances)](#2-patterntooltipsts-20-instances)
     - [3. EnhancedDateNavigatorModal.ts (15+ instances)](#3-enhanceddatenavigatormodalts-15-instances)
   - [🟡 Medium Priority - Component Specific](#-medium-priority---component-specific)
@@ -56,22 +80,37 @@
 
 ### 🚨 Critical - High Impact UI Components
 
-#### 1. HubModal.ts (80+ instances)
+#### 1. HubModal.ts (80+ instances → 60+ instances)
 **Location:** `src/dom/modals/HubModal.ts`  
 **Impact:** Core UI functionality  
 
-**Major Issues:**
-- Lines 1664-1666: Button container flex styling
-- Lines 1710, 1714, 1798-1799: Template row hover states
+**✅ COMPLETED - Phase 1A:**
+- ~~Lines 1664-1666: Button container flex styling~~ **EXTRACTED** ✅
+- ~~Lines 1876-1878: Import/export button container styling~~ **EXTRACTED** ✅
+- ~~Lines 2466-2468: Callout settings button container styling~~ **EXTRACTED** ✅
+- ~~Lines 2696-2698: Template creation button container styling~~ **EXTRACTED** ✅
+- ~~Lines 2905-2907: Another button container instance~~ **EXTRACTED** ✅
+- ~~Lines 6344-6347: Template export dialog button container~~ **EXTRACTED** ✅
+- ~~Lines 6536-6539: Another dialog button container~~ **EXTRACTED** ✅
+
+**🔄 REMAINING - Phase 1B:**
+- Lines 1710, 1714, 1798-1799: Template row hover states (12+ instances)
+- Lines 1782, 1792, 1797: Preview container display toggles (9+ instances)
+
+**🔄 REMAINING - Phase 1C:**
 - Lines 2625-2636: Callout box comprehensive styling (12 properties)
 - Lines 2655-2659: Config section styling (5 properties)
 - Lines 2667-2693: Status text color/typography (multiple instances)
 - Lines 2699-2737: Button styling with hover states
 - Lines 3417-3571: Dropdown menu positioning and styling (20+ properties)
 
-**Recommended CSS Classes to Extract:**
+**Updated Recommended CSS Classes to Extract:**
 ```css
-.oom-hub-button-container { /* flex layout */ }
+/* ✅ COMPLETED - Using existing classes */
+.oom-import-export-buttons { /* flex layout - DONE */ }
+.oom-dialog-buttons { /* dialog button layout - DONE */ }
+
+/* 🔄 NEXT - Phase 1B & 1C */
 .oom-hub-template-row { /* base styles */ }
 .oom-hub-template-row--hover { /* hover state */ }
 .oom-hub-callout-box { /* callout styling */ }
