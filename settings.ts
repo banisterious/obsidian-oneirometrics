@@ -582,13 +582,25 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     // Show/hide backup folder setting without refreshing entire page
                     if (backupFolderContainer) {
-                        backupFolderContainer.style.display = value ? 'block' : 'none';
+                        if (value) {
+                            backupFolderContainer.classList.add('oom-backup-folder-container--visible');
+                            backupFolderContainer.classList.remove('oom-backup-folder-container--hidden');
+                        } else {
+                            backupFolderContainer.classList.add('oom-backup-folder-container--hidden');
+                            backupFolderContainer.classList.remove('oom-backup-folder-container--visible');
+                        }
                     }
                 }));
 
         // Backup Folder Path (create container but may be hidden)
-        const backupFolderContainer = containerEl.createEl('div', { cls: 'oomp-note-backup-folder' });
-        backupFolderContainer.style.display = isBackupEnabled(this.plugin.settings) ? 'block' : 'none';
+        const backupFolderContainer = containerEl.createEl('div', { cls: 'oomp-note-backup-folder oom-backup-folder-container' });
+        
+        // Set initial visibility using CSS classes
+        if (isBackupEnabled(this.plugin.settings)) {
+            backupFolderContainer.classList.add('oom-backup-folder-container--visible');
+        } else {
+            backupFolderContainer.classList.add('oom-backup-folder-container--hidden');
+        }
         
         if (true) { // Always create the setting, just hide the container if needed
             const backupFolderSetting = new Setting(backupFolderContainer)
@@ -662,7 +674,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         advancedSetting.settingEl.style.cursor = 'pointer';
         
         const advancedContent = advancedSection.createDiv({ 
-            cls: 'oom-collapsible-content oom-settings-hidden'
+            cls: 'oom-collapsible-content oom-advanced-content oom-advanced-content--collapsed'
         });
         
         const toggleAdvanced = () => {
@@ -670,10 +682,12 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             advancedSection.toggleClass('collapsed', !isCollapsed);
             if (isCollapsed) {
                 advancedToggle.innerHTML = '<svg viewBox="0 0 100 100" class="oom-chevron-down"><path fill="none" stroke="currentColor" stroke-width="15" d="M10,30 L50,70 L90,30"/></svg>';
-                advancedContent.style.display = 'block';
+                advancedContent.classList.add('oom-advanced-content--expanded');
+                advancedContent.classList.remove('oom-advanced-content--collapsed');
             } else {
                 advancedToggle.innerHTML = '<svg viewBox="0 0 100 100" class="oom-chevron-right"><path fill="none" stroke="currentColor" stroke-width="15" d="M30,10 L70,50 L30,90"/></svg>';
-                advancedContent.style.display = 'none';
+                advancedContent.classList.add('oom-advanced-content--collapsed');
+                advancedContent.classList.remove('oom-advanced-content--expanded');
             }
         };
         
@@ -693,10 +707,22 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             const shouldShow = logLevel !== 'off';
 
             if (logManagementSetting) {
-                logManagementSetting.settingEl.style.display = shouldShow ? 'block' : 'none';
+                if (shouldShow) {
+                    logManagementSetting.settingEl.classList.add('oom-logging-management--visible');
+                    logManagementSetting.settingEl.classList.remove('oom-logging-management--hidden');
+                } else {
+                    logManagementSetting.settingEl.classList.add('oom-logging-management--hidden');
+                    logManagementSetting.settingEl.classList.remove('oom-logging-management--visible');
+                }
             }
             if (performanceSection) {
-                performanceSection.style.display = shouldShow ? 'block' : 'none';
+                if (shouldShow) {
+                    performanceSection.classList.add('oom-performance-section--visible');
+                    performanceSection.classList.remove('oom-performance-section--hidden');
+                } else {
+                    performanceSection.classList.add('oom-performance-section--hidden');
+                    performanceSection.classList.remove('oom-performance-section--visible');
+                }
             }
         };
         
@@ -750,11 +776,14 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                     });
             });
 
+        // Add CSS class for conditional visibility
+        logManagementSetting.settingEl.classList.add('oom-logging-management');
+
         // Add section border after logging settings within Advanced
         advancedContent.createEl('div', { cls: 'oom-section-border' });
 
         // Performance Testing Settings (inside Advanced section)
-        performanceSection = advancedContent.createDiv();
+        performanceSection = advancedContent.createDiv({ cls: 'oom-performance-section' });
 
         // Performance mode toggle
         new Setting(performanceSection)
@@ -871,7 +900,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         
         // Clear and reset the container
         templateListContainer.empty();
-        (templateListContainer as HTMLElement).style.display = 'block';
+        templateListContainer.classList.add('oom-template-manager--visible');
+        templateListContainer.classList.remove('oom-template-manager--hidden');
         
         // Create header
         const header = templateListContainer.createEl('h3', { text: 'Manage Templates' });
@@ -889,7 +919,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         closeButton.style.padding = '0 0.5em';
         
         closeButton.addEventListener('click', () => {
-            (templateListContainer as HTMLElement).style.display = 'none';
+            templateListContainer.classList.add('oom-template-manager--hidden');
+            templateListContainer.classList.remove('oom-template-manager--visible');
         });
         
         // Get templates from settings
@@ -925,7 +956,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 new UnifiedTemplateWizard(this.app, this.plugin).open();
                 
                 // Close the template manager (will be refreshed when reopened)
-                (templateListContainer as HTMLElement).style.display = 'none';
+                templateListContainer.classList.add('oom-template-manager--hidden');
+                templateListContainer.classList.remove('oom-template-manager--visible');
             });
             
             // Delete button
@@ -999,9 +1031,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             });
             
             const previewContainer = templateItem.createEl('div', { 
-                cls: 'oom-template-preview-container' 
+                cls: 'oom-template-preview-container oom-template-preview--hidden' 
             });
-            previewContainer.style.display = 'none';
             
             const previewContent = previewContainer.createEl('pre', { 
                 cls: 'oom-template-preview-content' 
@@ -1010,9 +1041,16 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 (template.content.length > 300 ? '...' : '');
             
             previewButton.addEventListener('click', () => {
-                const isHidden = previewContainer.style.display === 'none';
-                previewContainer.style.display = isHidden ? 'block' : 'none';
-                previewButton.textContent = isHidden ? 'Hide Preview' : 'Show Preview';
+                const isHidden = previewContainer.classList.contains('oom-template-preview--hidden');
+                if (isHidden) {
+                    previewContainer.classList.remove('oom-template-preview--hidden');
+                    previewContainer.classList.add('oom-template-preview--visible'); 
+                    previewButton.textContent = 'Hide Preview';
+                } else {
+                    previewContainer.classList.remove('oom-template-preview--visible');
+                    previewContainer.classList.add('oom-template-preview--hidden');
+                    previewButton.textContent = 'Show Preview';
+                }
             });
         }
         

@@ -132,7 +132,9 @@ export class UnifiedTemplateWizard extends Modal {
             });
             
             if (i !== this.currentStep) {
-                stepContainer.style.display = 'none';
+                stepContainer.classList.add('oom-template-wizard-step--hidden');
+            } else {
+                stepContainer.classList.add('oom-template-wizard-step--visible');
             }
             
             this.stepContainers.push(stepContainer);
@@ -518,9 +520,8 @@ export class UnifiedTemplateWizard extends Modal {
             this.updatePreview();
         });
         
-        // Make the text area larger
-        this.contentArea.inputEl.style.height = '300px';
-        this.contentArea.inputEl.style.width = '100%';
+        // Make the text area larger using CSS class
+        this.contentArea.inputEl.classList.add('oom-template-wizard-content-area');
     }
     
     /**
@@ -712,7 +713,8 @@ export class UnifiedTemplateWizard extends Modal {
         
         // Hide current step
         if (this.stepContainers[this.currentStep - 1]) {
-            this.stepContainers[this.currentStep - 1].style.display = 'none';
+            this.stepContainers[this.currentStep - 1].classList.remove('oom-template-wizard-step--visible');
+            this.stepContainers[this.currentStep - 1].classList.add('oom-template-wizard-step--hidden');
         }
         
         // Update current step
@@ -727,7 +729,8 @@ export class UnifiedTemplateWizard extends Modal {
         
         // Show new step
         if (this.stepContainers[this.currentStep - 1]) {
-            this.stepContainers[this.currentStep - 1].style.display = 'block';
+            this.stepContainers[this.currentStep - 1].classList.remove('oom-template-wizard-step--hidden');
+            this.stepContainers[this.currentStep - 1].classList.add('oom-template-wizard-step--visible');
         }
         
         // Update navigation

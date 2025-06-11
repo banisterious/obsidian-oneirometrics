@@ -563,4 +563,61 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* =============================================================================
+   ERROR BOUNDARY VISIBILITY STATES
+   ============================================================================= */
+
+/* Error boundary containers */
+.oom-error-boundary-content {
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.oom-error-boundary-fallback {
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Content element states */
+.oom-error-boundary-content--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.oom-error-boundary-content--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Fallback element states */  
+.oom-error-boundary-fallback--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.oom-error-boundary-fallback--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Error details states */
+.oom-error-details--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  max-height: 500px;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+.oom-error-details--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
 } 

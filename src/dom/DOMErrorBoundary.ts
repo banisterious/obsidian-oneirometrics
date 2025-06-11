@@ -80,8 +80,8 @@ export class DOMErrorBoundary {
     this.fallbackElement = this.createFallbackElement(options.fallbackContent);
     this.container.appendChild(this.fallbackElement);
     
-    // Hide fallback initially
-    this.fallbackElement.style.display = 'none';
+    // Hide fallback initially using CSS class
+    this.fallbackElement.classList.add('oom-error-boundary-fallback--hidden');
   }
   
   /**
@@ -124,7 +124,9 @@ export class DOMErrorBoundary {
       });
       
       if (!this.showErrorDetails) {
-        errorDetails.style.display = 'none';
+        errorDetails.classList.add('oom-error-details--hidden');
+      } else {
+        errorDetails.classList.add('oom-error-details--visible');
       }
       
       fallback.appendChild(errorDetails);
@@ -144,9 +146,11 @@ export class DOMErrorBoundary {
       // Clear any existing content
       this.domSafetyGuard.clearElement(this.contentElement);
       
-      // Hide fallback, show content
-      this.fallbackElement.style.display = 'none';
-      this.contentElement.style.display = 'block';
+      // Hide fallback, show content using CSS classes
+      this.fallbackElement.classList.remove('oom-error-boundary-fallback--visible');
+      this.fallbackElement.classList.add('oom-error-boundary-fallback--hidden');
+      this.contentElement.classList.remove('oom-error-boundary-content--hidden');  
+      this.contentElement.classList.add('oom-error-boundary-content--visible');
       
       // Render content
       renderFunction(this.contentElement);
@@ -177,9 +181,11 @@ export class DOMErrorBoundary {
       error
     );
     
-    // Show fallback UI
-    this.contentElement.style.display = 'none';
-    this.fallbackElement.style.display = 'block';
+    // Show fallback UI using CSS classes
+    this.contentElement.classList.remove('oom-error-boundary-content--visible');
+    this.contentElement.classList.add('oom-error-boundary-content--hidden');
+    this.fallbackElement.classList.remove('oom-error-boundary-fallback--hidden');  
+    this.fallbackElement.classList.add('oom-error-boundary-fallback--visible');
     
     // Update error details if enabled
     if (this.showErrorDetails) {
@@ -226,9 +232,11 @@ export class DOMErrorBoundary {
           // Reset error state
           this.hasError = false;
           
-          // Show content, hide fallback
-          this.contentElement.style.display = 'block';
-          this.fallbackElement.style.display = 'none';
+          // Show content, hide fallback using CSS classes
+          this.contentElement.classList.remove('oom-error-boundary-content--hidden');
+          this.contentElement.classList.add('oom-error-boundary-content--visible');
+          this.fallbackElement.classList.remove('oom-error-boundary-fallback--visible');
+          this.fallbackElement.classList.add('oom-error-boundary-fallback--hidden');
           
           safeLogger.info(
             'DOMErrorBoundary', 
@@ -292,7 +300,9 @@ export class DOMErrorBoundary {
    */
   reset(): void {
     this.hasError = false;
-    this.contentElement.style.display = 'block';
-    this.fallbackElement.style.display = 'none';
+    this.contentElement.classList.remove('oom-error-boundary-content--hidden');
+    this.contentElement.classList.add('oom-error-boundary-content--visible');
+    this.fallbackElement.classList.remove('oom-error-boundary-fallback--visible');
+    this.fallbackElement.classList.add('oom-error-boundary-fallback--hidden');
   }
 } 

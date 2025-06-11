@@ -944,3 +944,77 @@ input[type="date"]:focus-visible {
     /* Add subtle border for better visibility in dark themes */
     box-shadow: inset 0 0 0 1px var(--background-modifier-border);
 }
+
+/* =============================================================================
+   TEMPLATE WIZARD COMPONENT STATES
+   ============================================================================= */
+
+/* Wizard step containers */
+.oom-template-wizard-step {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Step visibility states */
+.oom-template-wizard-step--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.oom-template-wizard-step--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Content area sizing states */
+.oom-template-wizard-content-area {
+  height: 300px;
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  line-height: 1.4;
+  transition: height 0.2s ease;
+}
+
+.oom-template-wizard-content-area:focus {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+/* Enhanced wizard step animations */
+.oom-template-wizard-step.step-entering {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.oom-template-wizard-step.step-exiting {
+  animation: slideOutLeft 0.3s ease-in;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+/* =============================================================================
+   END TEMPLATE WIZARD COMPONENT STATES
+   ============================================================================= */

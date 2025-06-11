@@ -2850,7 +2850,168 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (16.8 KB)
+   COMPONENT: SETTINGS (4.1 KB)
+   ============================================================================= */
+/* Settings visibility control */
+.oom-settings-hidden {
+    display: none;
+}
+
+/* =============================================================================
+   OneiroMetrics Settings Component
+   Theme-agnostic structural styling for settings UI components
+   ============================================================================= */
+
+/* =============================================================================
+   SETTINGS VISIBILITY STATES - Dynamic UI Management
+   ============================================================================= */
+
+/* Backup settings container */
+.oom-backup-folder-container {
+    /* Default visible state */
+    display: block;
+    
+    /* Smooth transitions for show/hide */
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-backup-folder-container--hidden {
+    display: none !important;
+}
+
+.oom-backup-folder-container--visible {
+    display: block !important;
+}
+
+/* Advanced settings collapsible content */
+.oom-advanced-content {
+    /* Default hidden state for collapsible content */
+    display: none;
+    
+    /* Enhanced transition for smooth expand/collapse */
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-advanced-content--expanded {
+    display: block !important;
+}
+
+.oom-advanced-content--collapsed {
+    display: none !important;
+}
+
+/* Logging management settings */
+.oom-logging-management {
+    /* Default visible state */
+    display: block;
+    
+    /* Transition for conditional visibility */
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-logging-management--hidden {
+    display: none !important;
+}
+
+.oom-logging-management--visible {
+    display: block !important;
+}
+
+/* Performance section visibility */
+.oom-performance-section {
+    /* Default visible state */
+    display: block;
+    
+    /* Transition for conditional visibility */
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-performance-section--hidden {
+    display: none !important;
+}
+
+.oom-performance-section--visible {
+    display: block !important;
+}
+
+/* Template manager container */
+.oom-template-manager {
+    /* Default hidden state */
+    display: none;
+    
+    /* Enhanced transition for template management UI */
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-template-manager--visible {
+    display: block !important;
+}
+
+.oom-template-manager--hidden {
+    display: none !important;
+}
+
+/* Template preview container */
+.oom-template-preview {
+    /* Default hidden state for previews */
+    display: none;
+    
+    /* Smooth transition for preview toggle */
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-template-preview--visible {
+    display: block !important;
+}
+
+.oom-template-preview--hidden {
+    display: none !important;
+}
+
+/* =============================================================================
+   SETTINGS UI ENHANCEMENTS - Accessibility & UX
+   ============================================================================= */
+
+/* Enhanced collapsible section behavior */
+.oom-collapsible-section.collapsed .oom-advanced-content {
+    display: none;
+}
+
+.oom-collapsible-section:not(.collapsed) .oom-advanced-content {
+    display: block;
+}
+
+/* Smooth transitions for all settings visibility states */
+.oom-backup-folder-container,
+.oom-advanced-content,
+.oom-logging-management,
+.oom-performance-section,
+.oom-template-manager,
+.oom-template-preview {
+    /* Performance optimization for frequent visibility changes */
+    will-change: display, opacity;
+    
+    /* Consistent transition timing */
+    transition-duration: var(--oom-transition-fast);
+    transition-property: opacity, transform;
+    transition-timing-function: ease-in-out;
+}
+
+/* Alternative fade-based visibility (for smoother UX) */
+.oom-settings-fade-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity var(--oom-transition-normal), transform var(--oom-transition-normal);
+}
+
+.oom-settings-fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity var(--oom-transition-fast), transform var(--oom-transition-fast);
+} 
+
+/* =============================================================================
+   COMPONENT: UTILITIES (18.0 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -3417,6 +3578,63 @@ td:has(.oom-metric-icon-container) {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* =============================================================================
+   ERROR BOUNDARY VISIBILITY STATES
+   ============================================================================= */
+
+/* Error boundary containers */
+.oom-error-boundary-content {
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.oom-error-boundary-fallback {
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Content element states */
+.oom-error-boundary-content--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.oom-error-boundary-content--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Fallback element states */  
+.oom-error-boundary-fallback--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.oom-error-boundary-fallback--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Error details states */
+.oom-error-details--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  max-height: 500px;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+.oom-error-details--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
 } 
 
 /* =============================================================================
@@ -9960,7 +10178,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: FORMS (25.7 KB)
+   COMPONENT: FORMS (27.4 KB)
    ============================================================================= */
 /* =============================================================================
    FORMS COMPONENT - OneiroMetrics Form Controls & Validation System
@@ -10908,3 +11126,77 @@ input[type="date"]:focus-visible {
     /* Add subtle border for better visibility in dark themes */
     box-shadow: inset 0 0 0 1px var(--background-modifier-border);
 }
+
+/* =============================================================================
+   TEMPLATE WIZARD COMPONENT STATES
+   ============================================================================= */
+
+/* Wizard step containers */
+.oom-template-wizard-step {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Step visibility states */
+.oom-template-wizard-step--visible {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.oom-template-wizard-step--hidden {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Content area sizing states */
+.oom-template-wizard-content-area {
+  height: 300px;
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  line-height: 1.4;
+  transition: height 0.2s ease;
+}
+
+.oom-template-wizard-content-area:focus {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+/* Enhanced wizard step animations */
+.oom-template-wizard-step.step-entering {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.oom-template-wizard-step.step-exiting {
+  animation: slideOutLeft 0.3s ease-in;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+/* =============================================================================
+   END TEMPLATE WIZARD COMPONENT STATES
+   ============================================================================= */
