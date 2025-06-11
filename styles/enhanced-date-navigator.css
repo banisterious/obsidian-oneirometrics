@@ -1032,6 +1032,53 @@
         color: #888;
     }
 
+    /* Tooltip Arrow */
+    .oomp-tooltip-arrow {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 4px solid rgba(0, 0, 0, 0.9);
+        width: 0;
+        height: 0;
+    }
+
+    /* Tooltip Metric Bars */
+    .oom-tooltip-bar {
+        display: inline-block;
+        width: 40px;
+        height: 4px;
+        background: #333;
+        margin-left: 4px;
+        position: relative;
+        border-radius: 2px;
+    }
+
+    .oom-tooltip-bar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 2px;
+    }
+
+    /* Tooltip Visibility States */
+    .oom-tooltip-visible {
+        opacity: 1 !important;
+    }
+
+    /* Tooltip Position Adjustments */
+    .oom-tooltip-left {
+        left: 0 !important;
+        transform: none !important;
+    }
+
+    .oom-tooltip-right {
+        left: auto !important;
+        right: 0 !important;
+        transform: none !important;
+    }
+
     /* Calendar Day Focus Styles for Accessibility */
     .calendar-day:focus {
         border: 3px solid var(--interactive-accent) !important;
@@ -1696,6 +1743,53 @@
 .oomp-tooltip-no-metrics {
     font-style: italic;
     color: #888;
+}
+
+/* Tooltip Arrow */
+.oomp-tooltip-arrow {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid rgba(0, 0, 0, 0.9);
+    width: 0;
+    height: 0;
+}
+
+/* Tooltip Metric Bars */
+.oom-tooltip-bar {
+    display: inline-block;
+    width: 40px;
+    height: 4px;
+    background: #333;
+    margin-left: 4px;
+    position: relative;
+    border-radius: 2px;
+}
+
+.oom-tooltip-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+}
+
+/* Tooltip Visibility States */
+.oom-tooltip-visible {
+    opacity: 1 !important;
+}
+
+/* Tooltip Position Adjustments */
+.oom-tooltip-left {
+    left: 0 !important;
+    transform: none !important;
+}
+
+.oom-tooltip-right {
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
 }
 
 /* Calendar Day Focus Styles for Accessibility */

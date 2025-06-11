@@ -207,22 +207,8 @@ export class PatternTooltips {
         const percentage = Math.min(100, (normalizedValue / maxValue) * 100);
         const barColor = this.getMetricBarColor(metricName, normalizedValue, maxValue);
         
-        return `<span class="oomp-tooltip-bar" style="
-            display: inline-block;
-            width: 40px;
-            height: 4px;
-            background: #333;
-            margin-left: 4px;
-            position: relative;
-            border-radius: 2px;
-        ">
-            <span style="
-                display: block;
-                width: ${percentage}%;
-                height: 100%;
-                background: ${barColor};
-                border-radius: 2px;
-            "></span>
+        return `<span class="oom-tooltip-bar">
+            <span class="oom-tooltip-bar-fill" style="width: ${percentage}%; background: ${barColor};"></span>
         </span>`;
     }
     
@@ -257,26 +243,8 @@ export class PatternTooltips {
      * Apply styling to tooltip element
      */
     private styleTooltip(tooltip: HTMLElement): void {
-        tooltip.style.position = 'absolute';
-        tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
-        tooltip.style.color = 'white';
-        tooltip.style.padding = '8px 12px';
-        tooltip.style.borderRadius = '6px';
-        tooltip.style.fontSize = '0.75em';
-        tooltip.style.lineHeight = '1.4';
-        tooltip.style.maxWidth = '250px';
-        tooltip.style.whiteSpace = 'nowrap';
-        tooltip.style.opacity = '0';
-        tooltip.style.pointerEvents = 'none';
-        tooltip.style.transition = 'opacity 0.2s';
-        tooltip.style.zIndex = '100';
-        tooltip.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
-        
-        // Position above the element initially
-        tooltip.style.bottom = '100%';
-        tooltip.style.left = '50%';
-        tooltip.style.transform = 'translateX(-50%)';
-        tooltip.style.marginBottom = '8px';
+        // Use existing CSS class for all tooltip styling
+        tooltip.className = 'oomp-pattern-tooltip';
     }
     
     /**
@@ -284,22 +252,21 @@ export class PatternTooltips {
      */
     private setupTooltipEvents(dayElement: HTMLElement, tooltip: HTMLElement): void {
         dayElement.addEventListener('mouseenter', () => {
-            tooltip.style.opacity = '1';
+            tooltip.classList.add('oom-tooltip-visible');
             
             // Adjust position if tooltip would go off screen
             const rect = tooltip.getBoundingClientRect();
             if (rect.left < 0) {
-                tooltip.style.left = '0';
-                tooltip.style.transform = 'none';
+                tooltip.classList.add('oom-tooltip-left');
+                tooltip.classList.remove('oom-tooltip-right');
             } else if (rect.right > window.innerWidth) {
-                tooltip.style.left = 'auto';
-                tooltip.style.right = '0';
-                tooltip.style.transform = 'none';
+                tooltip.classList.add('oom-tooltip-right');
+                tooltip.classList.remove('oom-tooltip-left');
             }
         });
         
         dayElement.addEventListener('mouseleave', () => {
-            tooltip.style.opacity = '0';
+            tooltip.classList.remove('oom-tooltip-visible');
         });
         
         // Additional arrow pointer
@@ -311,15 +278,7 @@ export class PatternTooltips {
      */
     private addTooltipArrow(tooltip: HTMLElement): void {
         const arrow = document.createElement('div');
-        arrow.style.position = 'absolute';
-        arrow.style.top = '100%';
-        arrow.style.left = '50%';
-        arrow.style.transform = 'translateX(-50%)';
-        arrow.style.borderLeft = '4px solid transparent';
-        arrow.style.borderRight = '4px solid transparent';
-        arrow.style.borderTop = '4px solid rgba(0, 0, 0, 0.9)';
-        arrow.style.width = '0';
-        arrow.style.height = '0';
+        arrow.className = 'oomp-tooltip-arrow';
         
         tooltip.appendChild(arrow);
     }
