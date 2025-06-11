@@ -344,22 +344,31 @@ Update `build-css.js` to include new component files.
 ### Discovery Update - HubModal.ts Analysis
 
 **Button Container Patterns Found:**
-- 7 instances of `buttonContainer.style.display = 'flex'` pattern
-- All using same 3-line pattern: display, gap, marginTop
-- CSS solution: `.oom-import-export-buttons` class already exists in hub.css
-- **Action needed:** Remove 21 lines of inline styling (7 × 3 lines each)
+- **6 instances of `buttonContainer.style.display = 'flex'` at lines:** 1877, 2467, 2697, 2906, 6345, 6537
+- **Associated patterns found:**
+  - `buttonContainer.style.gap = '0.75em'` (5 instances)
+  - `buttonContainer.style.gap = '0.5em'` (1 instance - wizard navigation)
+  - `buttonContainer.style.marginTop = '0.5em'` (3 instances)
+  - `buttonContainer.style.marginTop = '1.5em'` (2 instances)
+  - `buttonContainer.style.flexWrap = 'wrap'` (1 instance)
+  - `buttonContainer.style.justifyContent = 'flex-end'` (2 instances)
 
 **Template Row Hover Effects Found:**
 - Multiple instances of hover event listeners with inline backgroundColor
 - Preview container visibility toggling with `style.display = 'none'/'block'`
-- CSS solution: Use `.oom-hidden` utility class + CSS hover states
-- **Action needed:** Convert JavaScript hover to CSS-only solution
 
-**Current Status:**
-- ✅ CSS infrastructure exists in hub.css and buttons.css
-- ✅ Found exact inline style patterns and locations  
-- 🔄 File modifications require careful targeting due to size (7000+ lines)
-- 🔄 Need systematic approach to replace JS hover with CSS hover
+**CSS Infrastructure Status:**
+- ✅ `.oom-import-export-buttons` exists in hub.css (lines 113-117)
+- ✅ `.oom-wizard-navigation-buttons` exists (lines 119-123)
+- ✅ `.oom-modal-button-container` exists (lines 130-135)
+- ✅ `.oom-hidden` utility class exists in utilities.css (line 202)
+- ✅ Template row hover handled by CSS `:hover` state (hub.css line 154)
+
+**Total Inline Style Lines to Remove:**
+- **Button containers:** 21+ lines of redundant inline styling
+- **Hover effects:** 15+ lines of JS event handler styling  
+- **Display toggles:** 10+ lines of show/hide inline styling
+- **Total estimated:** 46+ lines of inline styling to extract
 
 ### Quality Metrics Dashboard
 
