@@ -64,6 +64,14 @@ docs/developer/implementation/refactoring-cleanup.sh
 docs/developer/implementation/archive-refactoring-docs.sh
 archive-additional-refactoring-docs.ps1
 
+# Inline Style Elimination Project Scripts (Phase 7 Complete - 2025-06-11)
+# These were one-time development scripts for the inline style removal project
+fix-hubmodal-comprehensive.ps1
+fix-hubmodal-phase7k.ps1
+fix-hubmodal-styles-phase7.ps1
+fix-pattern-renderer-styles.ps1
+remove-inline-styles.ps1
+
 # CSS Refactoring v2 - Development Files (Phase 2 complete)
 css-components/
 styles-original-backup.css
