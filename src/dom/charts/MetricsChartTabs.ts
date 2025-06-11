@@ -1995,7 +1995,8 @@ export class MetricsChartTabs {
      * Show the chart tabs
      */
     public show(): void {
-        this.tabsContainer.style.display = 'flex';
+        this.tabsContainer.classList.add('oom-show-flex');
+        this.tabsContainer.classList.remove('oom-display-none');
         this.isVisible = true;
     }
 
@@ -2003,7 +2004,8 @@ export class MetricsChartTabs {
      * Hide the chart tabs
      */
     public hide(): void {
-        this.tabsContainer.style.display = 'none';
+        this.tabsContainer.classList.add('oom-display-none');
+        this.tabsContainer.classList.remove('oom-show-flex');
         this.isVisible = false;
     }
 

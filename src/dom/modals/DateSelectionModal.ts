@@ -1316,7 +1316,8 @@ export class DateSelectionModal extends Modal {
         visibilityMap.forEach((result, index) => {
             const row = rows[index];
             if (row) {
-                (row as HTMLElement).style.display = result.visible ? '' : 'none';
+                (row as HTMLElement).classList.toggle('oom-display-show', result.visible);
+                (row as HTMLElement).classList.toggle('oom-display-hide', !result.visible);
             }
         });
     }

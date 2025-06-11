@@ -221,11 +221,9 @@ export class ContentParserTestModal extends Modal {
         const optionsContainer = this.optionsArea.parentElement;
         if (!optionsContainer) return;
         
-        if (['parseContent', 'extractDreamEntries'].includes(this.selectedFunction)) {
-            optionsContainer.style.display = 'block';
-        } else {
-            optionsContainer.style.display = 'none';
-        }
+        const shouldShow = ['parseContent', 'extractDreamEntries'].includes(this.selectedFunction);
+        optionsContainer.classList.toggle('oom-display-block', shouldShow);
+        optionsContainer.classList.toggle('oom-display-none', !shouldShow);
     }
     
     /**

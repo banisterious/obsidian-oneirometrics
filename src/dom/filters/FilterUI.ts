@@ -304,13 +304,11 @@ export class FilterUI {
                 const isVisible = rowVisibility[i];
                 
                 if (isVisible) {
-                    rowEl.style.display = '';
-                    rowEl.classList.add('oom-row--visible');
-                    rowEl.classList.remove('oom-row--hidden');
+                    rowEl.classList.add('oom-row--visible', 'oom-display-show');
+                    rowEl.classList.remove('oom-row--hidden', 'oom-display-hide');
                 } else {
-                    rowEl.style.display = 'none';
-                    rowEl.classList.add('oom-row--hidden');
-                    rowEl.classList.remove('oom-row--visible');
+                    rowEl.classList.add('oom-row--hidden', 'oom-display-hide');
+                    rowEl.classList.remove('oom-row--visible', 'oom-display-show');
                 }
             }
             
@@ -481,19 +479,17 @@ export class FilterUI {
             rows.forEach(row => {
                 const dateAttr = row.getAttribute('data-date');
                 if (!dateAttr) {
-                    (row as HTMLElement).style.display = 'none';
+                    (row as HTMLElement).classList.add('oom-display-hide');
                     return;
                 }
                 
                 if (dateAttr >= startDate && dateAttr <= endDate) {
-                    (row as HTMLElement).style.display = '';
-                    (row as HTMLElement).classList.add('oom-row--visible');
-                    (row as HTMLElement).classList.remove('oom-row--hidden');
+                    (row as HTMLElement).classList.add('oom-row--visible', 'oom-display-show');
+                    (row as HTMLElement).classList.remove('oom-row--hidden', 'oom-display-hide');
                     visibleCount++;
                 } else {
-                    (row as HTMLElement).style.display = 'none';
-                    (row as HTMLElement).classList.add('oom-row--hidden');
-                    (row as HTMLElement).classList.remove('oom-row--visible');
+                    (row as HTMLElement).classList.add('oom-row--hidden', 'oom-display-hide');
+                    (row as HTMLElement).classList.remove('oom-row--visible', 'oom-display-show');
                 }
             });
             
@@ -536,7 +532,7 @@ export class FilterUI {
             rows.forEach(row => {
                 const dateCell = row.querySelector('.column-date');
                 if (!dateCell || !dateCell.textContent) {
-                    (row as HTMLElement).style.display = 'none';
+                    (row as HTMLElement).classList.add('oom-display-hide');
                     hiddenCount++;
                     return;
                 }

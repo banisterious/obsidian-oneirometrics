@@ -261,13 +261,11 @@ export class CustomDateRangeFilter {
                         const isVisible = rowVisibility[i];
                         
                         if (isVisible) {
-                            rowEl.classList.remove('oom-row--hidden');
-                            rowEl.classList.add('oom-row--visible');
-                            rowEl.style.removeProperty('display');
+                            rowEl.classList.remove('oom-row--hidden', 'oom-display-hide');
+                            rowEl.classList.add('oom-row--visible', 'oom-display-show');
                         } else {
-                            rowEl.classList.add('oom-row--hidden');
-                            rowEl.classList.remove('oom-row--visible');
-                            rowEl.style.display = 'none';
+                            rowEl.classList.add('oom-row--hidden', 'oom-display-hide');
+                            rowEl.classList.remove('oom-row--visible', 'oom-display-show');
                         }
                     }
                     

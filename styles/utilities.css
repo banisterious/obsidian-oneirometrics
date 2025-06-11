@@ -254,6 +254,67 @@
 }
 
 /* =============================================================================
+   PHASE 7M-1: Complete Display/Visibility System
+   ============================================================================= */
+
+/* Enhanced display utilities for inline style elimination */
+.oom-display-block {
+    display: block !important;
+}
+
+.oom-display-none {
+    display: none !important;
+}
+
+.oom-display-show {
+    display: block !important;
+}
+
+.oom-display-hide {
+    display: none !important;
+}
+
+/* Row visibility with display control (combines display + classes) */
+.oom-table-row--show {
+    display: table-row !important;
+}
+
+.oom-table-row--hide {
+    display: none !important;
+}
+
+/* Container visibility toggles */
+.oom-container-visible {
+    display: block !important;
+}
+
+.oom-container-hidden {
+    display: none !important;
+}
+
+/* Conditional visibility utilities */
+.oom-show-when-active {
+    display: none;
+}
+
+.oom-show-when-active.active {
+    display: block !important;
+}
+
+.oom-hide-when-empty:empty {
+    display: none !important;
+}
+
+/* Dropdown/Menu visibility */
+.oom-dropdown-show {
+    display: block !important;
+}
+
+.oom-dropdown-hide {
+    display: none !important;
+}
+
+/* =============================================================================
    LAYOUT UTILITIES - Content Wrappers
    ============================================================================= */
 

@@ -1171,7 +1171,7 @@ export class CSVExportPipeline implements CSVExportService, TabSpecificExporter 
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
         downloadLink.download = filename;
-        downloadLink.style.display = 'none';
+        downloadLink.classList.add('oom-display-none');
         
         // Trigger download
         document.body.appendChild(downloadLink);

@@ -304,7 +304,7 @@ export class LogViewerModal extends Modal {
     element.setAttribute('download', `logs-${new Date().toISOString()}.json`);
     
     // Simulate click to download
-    element.style.display = 'none';
+                element.classList.add('oom-display-none');
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);

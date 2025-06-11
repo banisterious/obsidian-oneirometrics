@@ -175,7 +175,7 @@ export function safeQuerySelector(
  */
 function createInvisibleFallbackElement(): HTMLElement {
   const div = document.createElement('div');
-  div.style.display = 'none';
+          div.classList.add('oom-display-none');
   div.classList.add('oom-fallback-element');
   document.body.appendChild(div);
   return div;

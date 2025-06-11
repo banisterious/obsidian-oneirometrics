@@ -121,7 +121,7 @@ export class NullDOM implements DOMComponent {
     const el = document.createElement('div');
     el.className = 'oom-null-dom-element';
     el.setAttribute('aria-hidden', 'true');
-    el.style.display = 'none';
+            el.classList.add('oom-display-none');
     return el;
   }
   

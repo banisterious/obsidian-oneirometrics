@@ -101,7 +101,7 @@ export class LogCommands {
           element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(logsJson));
           element.setAttribute('download', `logs-${new Date().toISOString()}.json`);
           
-          element.style.display = 'none';
+                      element.classList.add('oom-display-none');
           document.body.appendChild(element);
           element.click();
           document.body.removeChild(element);

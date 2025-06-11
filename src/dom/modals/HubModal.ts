@@ -605,7 +605,7 @@ The plugin does not prescribe any particular interpretation or meaning to dream 
         // Return detailed description based on metric name
         const descriptions: Record<string, string> = {
             'Sensory Detail': `
-This metric captures the **richness and vividness of the sensory information** you recall from your dream experience. It's about how much detail you remember across your five senses—what you saw, heard, felt, smelled, and tasted. Tracking this helps you gauge the overall immersive quality of your dreams and can indicate improvements in your recall abilities.
+This metric captures the **richness and vividness of the sensory information** you recall from your dream experience. It's about how much detail you remember across your five sensesï¿½what you saw, heard, felt, smelled, and tasted. Tracking this helps you gauge the overall immersive quality of your dreams and can indicate improvements in your recall abilities.
 `,
             'Emotional Recall': `
 This metric focuses on your **ability to remember and articulate the emotions you experienced while dreaming**. Dreams are often rich with feelings, and tracking them can provide profound insights into your subconscious state, anxieties, joys, and unresolved issues. This metric helps you assess not just _what_ emotions were present, but also their clarity, intensity, and how they evolved throughout the dream narrative.
@@ -800,7 +800,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 | Score                     | Description                                                                                                                                                                                 |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 (Completely Unfamiliar) | All the settings in the dream are entirely novel and have no discernible connection to any places you have experienced in your waking life.                                                 |
-| 2 (Vaguely Familiar)      | You experience a sense of déjà vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories. |
+| 2 (Vaguely Familiar)      | You experience a sense of dï¿½jï¿½ vu or a faint feeling of having been in a similar place before, but you cannot specifically identify the location or its connection to your waking memories. |
 | 3 (Partially Familiar)    | The dream settings are a blend of recognizable and unfamiliar elements. You might recognize the layout of a room but find it in a completely new building, or a familiar landscape might have strange, uncharacteristic features.                                                                                                                                                                                            |
 | 4 (Mostly Familiar)       | The dream primarily takes place in locations you know from your waking life, such as your home, workplace, or familiar landmarks, although there might be minor alterations or unusual juxtapositions.                                                                                                                                                                                            |
 | 5 (Completely Familiar)   | All the settings in the dream are direct and accurate representations of places you know well from your waking experience, without any significant alterations or unfamiliar elements.                                                                                                                                                                                            |
@@ -1213,7 +1213,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             // Multi-chip note autocomplete (identical to Settings)
             const searchFieldContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container' });
             const chipsContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-chips-container' });
-            chipsContainer.style.display = (this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0) ? '' : 'none';
+            chipsContainer.classList.toggle('oom-container-visible', this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0);
+            chipsContainer.classList.toggle('oom-container-hidden', !(this.plugin.settings.selectedNotes && this.plugin.settings.selectedNotes.length > 0));
             createSelectedNotesAutocomplete({
                 app: this.app,
                 plugin: this.plugin,
@@ -1221,7 +1222,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 selectedNotes: this.plugin.settings.selectedNotes,
                 onChange: (selected) => {
                     this.plugin.settings.selectedNotes = selected;
-                    chipsContainer.style.display = (selected && selected.length > 0) ? '' : 'none';
+                    chipsContainer.classList.toggle('oom-container-visible', selected && selected.length > 0);
+                    chipsContainer.classList.toggle('oom-container-hidden', !(selected && selected.length > 0));
                     this.plugin.saveSettings();
                 }
             });
@@ -1469,7 +1471,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         this.plugin.settings.dateHandling.placement = value ? 'field' : 'none';
                         
                         // Show/hide the date options
-                        dateOptionsContainer.style.display = value ? 'block' : 'none';
+                        dateOptionsContainer.classList.toggle('oom-display-block', value);
+                        dateOptionsContainer.classList.toggle('oom-display-none', !value);
                         
                         await this.plugin.saveSettings();
                     });
@@ -1477,7 +1480,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Date Options Container (only visible when master toggle is ON)
         dateOptionsContainer = settingsContainer.createDiv({ cls: 'oom-date-options-container' });
-        dateOptionsContainer.style.display = dateFieldsEnabled ? 'block' : 'none';
+        dateOptionsContainer.classList.toggle('oom-display-block', dateFieldsEnabled);
+        dateOptionsContainer.classList.toggle('oom-display-none', !dateFieldsEnabled);
 
         // Date Placement Dropdown
         new Setting(dateOptionsContainer)
@@ -2249,7 +2253,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         this.plugin.settings.dateHandling.placement = value ? 'field' : 'none';
                         
                         // Show/hide the date options
-                        dateOptionsContainer.style.display = value ? 'block' : 'none';
+                        dateOptionsContainer.classList.toggle('oom-display-block', value);
+                        dateOptionsContainer.classList.toggle('oom-display-none', !value);
                         
                         await this.plugin.saveSettings();
                     });
@@ -2257,7 +2262,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Date Options Container (only visible when master toggle is ON)
         dateOptionsContainer = settingsContainer.createDiv({ cls: 'oom-date-options-container' });
-        dateOptionsContainer.style.display = dateFieldsEnabled ? 'block' : 'none';
+        dateOptionsContainer.classList.toggle('oom-display-block', dateFieldsEnabled);
+        dateOptionsContainer.classList.toggle('oom-display-none', !dateFieldsEnabled);
 
         // Date Placement Dropdown
         new Setting(dateOptionsContainer)
@@ -3427,7 +3433,8 @@ Example:
             sampleDropdownBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 dropdownOpen = !dropdownOpen;
-                sampleDropdownMenu.style.display = dropdownOpen ? 'block' : 'none';
+                sampleDropdownMenu.classList.toggle('oom-dropdown-show', dropdownOpen);
+                sampleDropdownMenu.classList.toggle('oom-dropdown-hide', !dropdownOpen);
                 sampleDropdownBtn.textContent = dropdownOpen ? 'Insert Sample Content ?' : 'Insert Sample Content ?';
             });
             
@@ -3703,7 +3710,8 @@ Example:
         let isCollapsed = false;
         collapseButton.addEventListener('click', () => {
             isCollapsed = !isCollapsed;
-            this.wizardPreviewEl!.style.display = isCollapsed ? 'none' : 'block';
+            this.wizardPreviewEl!.classList.toggle('oom-display-none', isCollapsed);
+            this.wizardPreviewEl!.classList.toggle('oom-display-block', !isCollapsed);
             collapseButton.textContent = isCollapsed ? '? Preview' : '? Preview';
         });
     }
@@ -4504,7 +4512,7 @@ Example:
             // Configuration Status
             new Setting(infrastructureSection)
                 .setName('Configuration Status')
-                .setDesc(`Version ${config.configVersion} • Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`)
+                .setDesc(`Version ${config.configVersion} ï¿½ Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`)
                 .addButton(button => {
                     button.setButtonText('Test Infrastructure')
                         .onClick(() => {
@@ -5153,7 +5161,7 @@ Example:
         }
         
         // Remove button
-        const removeBtn = targetItem.createEl('button', { text: '×', cls: 'oom-remove-target-btn' });
+        const removeBtn = targetItem.createEl('button', { text: 'ï¿½', cls: 'oom-remove-target-btn' });
         
         removeBtn.addEventListener('click', () => {
             targetItem.remove();

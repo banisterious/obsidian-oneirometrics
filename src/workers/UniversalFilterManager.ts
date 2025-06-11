@@ -305,7 +305,8 @@ export class UniversalFilterManager {
             
             // Fallback to showing all entries
             Array.from(rows).forEach(row => {
-                (row as HTMLElement).style.display = '';
+                (row as HTMLElement).classList.add('oom-display-show');
+                (row as HTMLElement).classList.remove('oom-display-hide');
             });
         }
     }
@@ -527,11 +528,11 @@ export class UniversalFilterManager {
             const entryId = `row_${index}`;
             
             if (visibleIds.has(entryId)) {
-                rowEl.style.display = '';
-                rowEl.classList.remove('oom-filtered-out');
+                rowEl.classList.add('oom-display-show');
+                rowEl.classList.remove('oom-display-hide', 'oom-filtered-out');
             } else {
-                rowEl.style.display = 'none';
-                rowEl.classList.add('oom-filtered-out');
+                rowEl.classList.add('oom-display-hide', 'oom-filtered-out');
+                rowEl.classList.remove('oom-display-show');
             }
         });
     }

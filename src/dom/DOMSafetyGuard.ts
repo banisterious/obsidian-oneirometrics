@@ -47,7 +47,7 @@ export class DOMSafetyGuard {
   private constructor() {
     // Create fallback container
     this.fallbackContainer = document.createElement('div');
-    this.fallbackContainer.style.display = 'none';
+            this.fallbackContainer.classList.add('oom-display-none');
     this.fallbackContainer.id = 'oom-fallback-container';
     this.fallbackContainer.setAttribute('aria-hidden', 'true');
     
@@ -349,7 +349,7 @@ export class DOMSafetyGuard {
     const fallback = document.createElement('div');
     fallback.className = 'oom-fallback-element';
     fallback.dataset.originalSelector = selector;
-    fallback.style.display = 'none';
+                fallback.classList.add('oom-display-none');
     fallback.setAttribute('aria-hidden', 'true');
     
     // Add to fallback container
