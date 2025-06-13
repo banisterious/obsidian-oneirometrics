@@ -1899,8 +1899,10 @@ export class EnhancedDateNavigatorModal extends Modal {
                 
                 filterDropdown.value = 'custom';
                 
-                // Apply filters through FilterUI
-                plugin.filterUI.applyFilters(metricsContainer);
+                // Apply filters through FilterUI with delay (same as regular dropdown)
+                setTimeout(() => {
+                    plugin.filterUI.applyFilters(metricsContainer);
+                }, 50);
                 
                 // Update the filter display with a small delay to ensure it happens after automatic update
                 setTimeout(() => {

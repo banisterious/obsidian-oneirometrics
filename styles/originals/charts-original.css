@@ -1,0 +1,500 @@
+/* =============================================================================
+   METRICS CHART TABS - Tab-based Visualization
+   ============================================================================= */
+
+.oom-metrics-chart-tabs-container {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    
+    /* NO VISUAL STYLING - Let theme handle container styling */
+}
+
+/* Tab Navigation */
+.oom-metrics-chart-tabs-nav {
+    /* === STRUCTURAL PROPERTIES === */
+    display: flex;
+    /*margin-bottom: var(--oom-spacing-md);*/
+    /*border-bottom: 1px solid var(--background-modifier-border);*/
+    flex-shrink: 0; /* Prevent navigation from shrinking */
+    
+    /* NO VISUAL STYLING - Let theme handle navigation styling */
+}
+
+.oom-metrics-chart-tab {
+    /* === STRUCTURAL PROPERTIES === */
+    position: relative;
+    margin-right: var(--oom-spacing-xs);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    
+    /* === VISUAL PROPERTIES === */
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-muted);
+    
+    /* === INTERACTION === */
+}
+
+.oom-metrics-chart-tab:hover {
+    /* === VISUAL PROPERTIES === */
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-metrics-chart-tab--active {
+    /* === VISUAL PROPERTIES === */
+    font-weight: 600;
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+.oom-metrics-chart-tab--active:hover {
+    /* === VISUAL PROPERTIES === */
+    color: var(--text-accent);
+    background-color: var(--background-primary);
+}
+
+/* Tab Content */
+.oom-metrics-chart-tabs-content {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    overflow: auto;
+    min-height: 0; /* Important for flex child with overflow */
+    border-right: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    
+    /* NO VISUAL STYLING - Let theme handle content styling */
+}
+
+/* Chart Containers */
+.oom-chart-container {
+    /* === STRUCTURAL PROPERTIES === */
+    width: 100%;
+    padding: var(--oom-spacing-md);
+    height: auto; /* Fixed height to prevent stretching */
+    max-height:500px;
+    display: flex;
+    flex-direction: column;
+    
+    /* NO VISUAL STYLING - Let theme handle chart container styling */
+}
+
+.oom-chart-title {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0 0 var(--oom-spacing-md) 0;
+    flex-shrink: 0; /* Prevent title from shrinking */
+    
+    /* === VISUAL PROPERTIES === */
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.oom-chart-canvas {
+    /* === STRUCTURAL PROPERTIES === */
+    flex: 1;
+    width: 100% !important; /* Override Chart.js default */
+    height: 400px !important; /* Override Chart.js default */
+    max-width: 100%;
+    max-height: 400px;
+    min-height: 300px;
+    
+    /* NO VISUAL STYLING - Chart.js handles canvas styling */
+}
+
+/* Chart Placeholders */
+.oom-chart-placeholder {
+    /* === STRUCTURAL PROPERTIES === */
+    padding: var(--oom-spacing-xl);
+    text-align: center;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    /* === VISUAL PROPERTIES === */
+    background-color: var(--background-secondary);
+    border-radius: var(--oom-border-radius);
+    border: 1px dashed var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.oom-chart-placeholder h3 {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0 0 var(--oom-spacing-sm) 0;
+    
+    /* === VISUAL PROPERTIES === */
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.oom-chart-placeholder p {
+    /* === STRUCTURAL PROPERTIES === */
+    margin: 0;
+    
+    /* === VISUAL PROPERTIES === */
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .oom-metrics-chart-tabs-nav {
+        /* === STRUCTURAL PROPERTIES === */
+        flex-wrap: wrap;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-metrics-chart-tab {
+        /* === STRUCTURAL PROPERTIES === */
+        margin-right: 0;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .oom-chart-container {
+        /* === STRUCTURAL PROPERTIES === */
+        height: 400px; /* Smaller on mobile */
+    }
+    
+    .oom-chart-canvas {
+        /* === STRUCTURAL PROPERTIES === */
+        height: 300px !important;
+        max-height: 300px;
+    }
+    
+    .oom-chart-placeholder {
+        /* === STRUCTURAL PROPERTIES === */
+        height: 300px;
+        padding: var(--oom-spacing-lg);
+    }
+}
+
+/* Fix for Chart.js responsive behavior */
+.oom-chart-container canvas {
+    /* Prevent Chart.js from overriding our size constraints */
+    position: relative !important;
+}
+
+/* Animation prevention during initial render */
+.oom-chart-container--loading .oom-chart-canvas {
+    /* Prevent any animations during initial load */
+    animation: none !important;
+    transition: none !important;
+}
+
+/* =============================================================================
+   METRICS HEATMAP VISUALIZATION
+   ============================================================================= */
+
+/* Heatmap Controls */
+.oom-heatmap-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    background: var(--background-modifier-form-field);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-metric-selector {
+    min-width: 200px;
+    padding: var(--oom-spacing-xs) var(--oom-spacing-sm);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+}
+
+.oom-metric-selector:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: 0 0 0 2px var(--text-accent-hover);
+}
+
+/* Heatmap Container */
+.oom-heatmap-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.oom-heatmap-placeholder {
+    text-align: center;
+    padding: var(--oom-spacing-xl);
+    color: var(--text-muted);
+    font-style: italic;
+    background: var(--background-modifier-hover);
+    border-radius: 6px;
+    margin: var(--oom-spacing-md) 0;
+}
+
+/* Legend */
+.oom-heatmap-legend {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-xl);
+    padding: var(--oom-spacing-md);
+    background: var(--background-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-heatmap-legend-title {
+    font-weight: 600;
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    text-align: center;
+}
+
+.oom-heatmap-legend-scale {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    justify-content: center;
+}
+
+.oom-heatmap-legend-min,
+.oom-heatmap-legend-max {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    font-weight: 500;
+    min-width: 40px;
+    text-align: center;
+}
+
+.oom-heatmap-legend-gradient {
+    display: flex;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    min-width: 120px;
+}
+
+.oom-heatmap-legend-color-low {
+    flex: 1;
+    background: var(--color-green-rgb);
+    background: rgba(var(--color-green-rgb), 0.3);
+}
+
+.oom-heatmap-legend-color-medium {
+    flex: 1;
+    background: var(--color-yellow-rgb);
+    background: rgba(var(--color-yellow-rgb), 0.6);
+}
+
+.oom-heatmap-legend-color-high {
+    flex: 1;
+    background: var(--color-red-rgb);
+    background: rgba(var(--color-red-rgb), 0.8);
+}
+
+/* Months Container */
+.oom-heatmap-months {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-xl);
+}
+
+/* Individual Month */
+.oom-heatmap-month {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--background-primary);
+}
+
+.oom-heatmap-month-header {
+    background: var(--background-modifier-hover);
+    padding: var(--oom-spacing-md);
+    font-weight: 600;
+    color: var(--text-normal);
+    text-align: center;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-medium);
+}
+
+/* Days Grid */
+.oom-heatmap-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    padding: var(--oom-spacing-sm);
+    background: var(--background-modifier-border);
+}
+
+.oom-heatmap-day-label {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    text-align: center;
+    padding: var(--oom-spacing-xs);
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Day Cells */
+.oom-heatmap-day {
+    background: var(--background-primary);
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-ui-small);
+    border-radius: 3px;
+    cursor: default;
+    position: relative;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.oom-heatmap-day-empty {
+    background: var(--background-modifier-hover);
+    opacity: 0.3;
+}
+
+.oom-heatmap-day-no-data {
+    background: var(--background-primary);
+    color: var(--text-faint);
+    opacity: 0.6;
+}
+
+.oom-heatmap-day-no-data:hover {
+    opacity: 0.8;
+    border-color: var(--background-modifier-border);
+}
+
+/* Days with Data - Base Styling */
+.oom-heatmap-day-data {
+    color: var(--text-on-accent);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.oom-heatmap-day-data:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-color: var(--text-accent);
+}
+
+/* Intensity-based Colors */
+.oom-heatmap-intensity-low {
+    background: rgba(var(--color-green-rgb), 0.4);
+    color: var(--text-normal);
+}
+
+.oom-heatmap-intensity-medium {
+    background: rgba(var(--color-yellow-rgb), 0.7);
+    color: var(--text-normal);
+}
+
+.oom-heatmap-intensity-high {
+    background: rgba(var(--color-red-rgb), 0.8);
+    color: var(--text-on-accent);
+}
+
+/* Dynamic Intensity Using CSS Custom Properties */
+.oom-heatmap-day-data {
+    background: rgba(
+        calc(var(--color-green-rgb) * (1 - var(--intensity, 0)) + var(--color-red-rgb) * var(--intensity, 0)),
+        calc(0.3 + var(--intensity, 0) * 0.5)
+    );
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .oom-heatmap-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .oom-metric-selector {
+        min-width: unset;
+    }
+    
+    .oom-heatmap-day {
+        min-height: 28px;
+        font-size: var(--font-ui-smaller);
+    }
+    
+    .oom-heatmap-legend-scale {
+        flex-direction: column;
+        gap: var(--oom-spacing-xs);
+    }
+    
+    .oom-heatmap-legend-gradient {
+        min-width: unset;
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .oom-heatmap-day:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .oom-heatmap-container {
+        overflow: visible;
+    }
+}
+
+/* High Contrast Theme Support */
+@media (prefers-contrast: high) {
+    .oom-heatmap-day {
+        border: 1px solid var(--text-normal);
+    }
+    
+    .oom-heatmap-intensity-low {
+        background: var(--color-green);
+        color: var(--text-on-accent);
+    }
+    
+    .oom-heatmap-intensity-medium {
+        background: var(--color-yellow);
+        color: var(--text-normal);
+    }
+    
+    .oom-heatmap-intensity-high {
+        background: var(--color-red);
+        color: var(--text-on-accent);
+    }
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .oom-heatmap-legend-color-low {
+    background: rgba(var(--color-green-rgb), 0.5);
+}
+
+.theme-dark .oom-heatmap-legend-color-medium {
+    background: rgba(var(--color-yellow-rgb), 0.7);
+}
+
+.theme-dark .oom-heatmap-legend-color-high {
+    background: rgba(var(--color-red-rgb), 0.9);
+}

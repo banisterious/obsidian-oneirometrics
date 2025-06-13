@@ -49,6 +49,10 @@ export class FilterUI {
         this.logger?.debug('UI', 'Container set for FilterUI');
     }
     
+
+    
+
+    
     /**
      * Apply filters to the dream metrics table
      * 
@@ -133,6 +137,8 @@ export class FilterUI {
         this.logger?.debug('Filter', `Applying filter: ${dateRange}`, {
             totalRows: rows.length
         });
+
+        // Using same CSS class approach as existing filters
 
         // Prepare date ranges before any DOM operations
         const now = new Date();
@@ -304,11 +310,11 @@ export class FilterUI {
                 const isVisible = rowVisibility[i];
                 
                 if (isVisible) {
-                    rowEl.classList.add('oom-row--visible', 'oom-display-show');
-                    rowEl.classList.remove('oom-row--hidden', 'oom-display-hide');
+                    rowEl.classList.add('oom-row--visible');
+                    rowEl.classList.remove('oom-row--hidden');
                 } else {
-                    rowEl.classList.add('oom-row--hidden', 'oom-display-hide');
-                    rowEl.classList.remove('oom-row--visible', 'oom-display-show');
+                    rowEl.classList.remove('oom-row--visible');
+                    rowEl.classList.add('oom-row--hidden');
                 }
             }
             
@@ -324,6 +330,8 @@ export class FilterUI {
                     invalidDates,
                     outOfRangeDates
                 });
+                
+                // Using same approach as existing filters - no special handling needed
                 
                 // Update the filter display
                 this.filterDisplayManager.updateFilterDisplay(
@@ -484,12 +492,12 @@ export class FilterUI {
                 }
                 
                 if (dateAttr >= startDate && dateAttr <= endDate) {
-                    (row as HTMLElement).classList.add('oom-row--visible', 'oom-display-show');
-                    (row as HTMLElement).classList.remove('oom-row--hidden', 'oom-display-hide');
+                    (row as HTMLElement).classList.add('oom-row--visible');
+                    (row as HTMLElement).classList.remove('oom-row--hidden');
                     visibleCount++;
                 } else {
-                    (row as HTMLElement).classList.add('oom-row--hidden', 'oom-display-hide');
-                    (row as HTMLElement).classList.remove('oom-row--visible', 'oom-display-show');
+                    (row as HTMLElement).classList.remove('oom-row--visible');
+                    (row as HTMLElement).classList.add('oom-row--hidden');
                 }
             });
             
@@ -702,4 +710,6 @@ export class FilterUI {
             localStorage.removeItem(CUSTOM_RANGE_KEY);
         }
     }
+
+
 } 

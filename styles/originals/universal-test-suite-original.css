@@ -1,0 +1,865 @@
+/* Unified Test Suite Modal Container */
+
+.modal:has(.unified-test-suite-modal) {
+    contain: layout style;
+    width: var(--modal-width);
+    max-width: var(--modal-max-width);
+    height: var(--modal-height);
+    max-height: var(--modal-max-height);
+    padding: 0;
+}
+
+.unified-test-suite-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    padding: var(--oom-spacing-sm);
+}
+
+/* Unified Test Suite Header Styling */
+
+.unified-test-suite-header {
+    margin-bottom: 0;
+    margin-block-start: 0;
+    padding-bottom: 0;
+    text-align: center;
+    font-size: var(--h1-size);
+    font-weight: var(--h1-weight);
+}
+
+.unified-test-suite-description {
+    margin-bottom: var(--oom-spacing-lg);
+    text-align: center;
+    line-height: var(--line-height-normal);
+    color: var(--text-muted);
+}
+
+/* Unified Test Suite Two-Column Layout */
+
+.unified-test-suite-container {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0;
+    border-radius: var(--oom-radius-md);
+}
+
+/* Unified Test Suite Sidebar Navigation */
+
+.unified-test-suite-sidebar {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+    width: var(--oom-tab-sidebar-width);
+    min-width: var(--oom-tab-sidebar-width);
+    padding: var(--oom-spacing-sm) 0;
+    scrollbar-width: thin;
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar-track {
+    /* Let theme handle scrollbar track styling */
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar-thumb {
+    border-radius: var(--oom-radius-sm);
+    /* Let theme handle scrollbar thumb styling */
+}
+
+.unified-test-suite-sidebar::-webkit-scrollbar-thumb:hover {
+    /* Let theme handle scrollbar hover styling */
+}
+
+/* Unified Test Suite Tab Group Headers */
+
+.unified-test-suite-tab-group-title {
+    margin: var(--oom-spacing-sm) 0 var(--oom-spacing-xs) 0;
+    padding: 0 .32em;
+    font-weight: 700;
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+}
+
+.unified-test-suite-tab-group-title:first-child {
+    margin-top: 0;
+}
+
+/* Unified Test Suite Tab Navigation Items */
+
+.unified-test-suite-tab-nav-item {
+    display: flex;
+    align-items: center;
+    padding: .45em 0;
+    gap: var(--oom-spacing-sm);
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+}
+
+.unified-test-suite-tab-nav-item:hover {
+    /* Let theme handle hover styling */
+}
+
+.unified-test-suite-tab-nav-item:focus {
+    outline: none;
+    /* Let theme handle focus styling */
+}
+
+.unified-test-suite-tab-nav-item.is-active {
+    font-weight: 600;
+    /* Let theme handle active state colors */
+}
+
+/* Unified Test Suite Tab Labels */
+
+.unified-test-suite-tab-label {
+    /* Inherits from the navigation item styling */
+    /* Add any specific label styling here */
+}
+
+/* Unified Test Suite Content Area */
+
+.unified-test-suite-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1em;
+    scrollbar-width: thin;
+}
+
+.unified-test-suite-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-content::-webkit-scrollbar-track {
+    /* Let theme handle scrollbar track styling */
+}
+
+.unified-test-suite-content::-webkit-scrollbar-thumb {
+    border-radius: var(--oom-radius-sm);
+    /* Let theme handle scrollbar thumb styling */
+}
+
+.unified-test-suite-content::-webkit-scrollbar-thumb:hover {
+    /* Let theme handle scrollbar hover styling */
+}
+
+/* Unified Test Suite Content Headers */
+
+.unified-test-suite-content-header {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight);
+}
+
+.unified-test-suite-content-description {
+    margin-bottom: var(--oom-spacing-lg);
+    line-height: var(--line-height-normal);
+    color: var(--text-muted);
+}
+
+/* Unified Test Suite Dashboard Components */
+
+.unified-test-suite-dashboard-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-stat-widget {
+    flex: 1;
+    min-width: 120px;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-stat-label {
+    margin-bottom: var(--oom-spacing-xs);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.unified-test-suite-stat-value {
+    color: var(--text-normal);
+    font-size: var(--h3-size);
+    font-weight: 600;
+}
+
+.unified-test-suite-dashboard-actions {
+    margin-top: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-dashboard-actions h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+/* Unified Test Suite Action Buttons */
+
+.unified-test-suite-action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-right: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-sm);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--oom-transition-fast);
+    color: var(--text-on-accent);
+    background: var(--interactive-normal);
+}
+
+.unified-test-suite-action-button:hover {
+    background: var(--interactive-hover);
+}
+
+.unified-test-suite-test-button,
+.unified-test-suite-utility-button {
+    display: block;
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-bottom: var(--oom-spacing-xs);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-test-button:hover,
+.unified-test-suite-utility-button:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.unified-test-suite-quick-test-button {
+    display: inline-block;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin-right: var(--oom-spacing-sm);
+    margin-bottom: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-quick-test-button:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Unified Test Suite Test Areas */
+
+.unified-test-suite-test-controls {
+    margin: var(--oom-spacing-lg) 0;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-test-results {
+    margin-top: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-results-area {
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-primary-alt);
+}
+
+/* Unified Test Suite Quick Tests */
+
+.unified-test-suite-quick-tests {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.unified-test-suite-quick-tests h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+.unified-test-suite-custom-test {
+    margin-top: var(--oom-spacing-lg);
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-custom-test h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h4-size);
+}
+
+/* Unified Test Suite Memory/Scaling Tests */
+
+.unified-test-suite-memory-tests,
+.unified-test-suite-scaling-tests {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.unified-test-suite-memory-tests h3,
+.unified-test-suite-scaling-tests h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+/* Unified Test Suite Utilities */
+
+.unified-test-suite-utilities-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-utility-description {
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
+.unified-test-suite-utility-section {
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-utility-section h3 {
+    margin-bottom: var(--oom-spacing-md);
+    color: var(--text-normal);
+    font-size: var(--h4-size);
+}
+
+.unified-test-suite-folder-config {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-folder-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-monospace);
+    margin-top: 0.5rem;
+}
+
+.unified-test-suite-folder-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-generation-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.unified-test-suite-custom-dialog {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    border: 2px solid var(--interactive-accent);
+    border-radius: 8px;
+    background: var(--background-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.unified-test-suite-custom-dialog h4 {
+    margin: 0 0 1rem 0;
+    color: var(--interactive-accent);
+    font-weight: 600;
+}
+
+.unified-test-suite-dialog-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+.unified-test-suite-dialog-buttons button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.unified-test-suite-dialog-buttons button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-dialog-buttons button.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.unified-test-suite-dialog-buttons button.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* Template Selection Styles */
+
+.unified-test-suite-template-config {
+    margin: var(--oom-spacing-md) 0;
+    padding: var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-template-input {
+    width: 100%;
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    margin: var(--oom-spacing-xs) 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+.unified-test-suite-template-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-browse-button {
+    margin-top: var(--oom-spacing-sm);
+    padding: var(--oom-spacing-xs) var(--oom-spacing-md);
+    background: var(--interactive-normal);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: background-color var(--oom-transition-normal);
+}
+
+.unified-test-suite-browse-button:hover {
+    background: var(--interactive-hover);
+}
+
+.unified-test-suite-template-selector-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-lg);
+    box-shadow: var(--oom-shadow-lg);
+    padding: var(--oom-spacing-lg);
+    z-index: var(--oom-z-modal);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 70vh;
+}
+
+.unified-test-suite-template-selector-dialog h4 {
+    margin: 0 0 var(--oom-spacing-md) 0;
+    color: var(--text-normal);
+    font-size: var(--font-ui-larger);
+    font-weight: var(--font-weight-bold);
+}
+
+.unified-test-suite-template-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: var(--oom-spacing-md) 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-track {
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.unified-test-suite-template-list::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+.unified-test-suite-template-option {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border-bottom: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+    transition: background-color var(--oom-transition-fast);
+}
+
+.unified-test-suite-template-option:last-child {
+    border-bottom: none;
+}
+
+.unified-test-suite-template-option:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-template-option span {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    word-break: break-all;
+}
+
+.unified-test-suite-template-close {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-lg);
+    background: var(--background-modifier-border);
+    color: var(--text-normal);
+    border: none;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-ui-medium);
+    transition: background-color var(--oom-transition-normal);
+}
+
+.unified-test-suite-template-close:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+/* Unified Test Suite Help Content */
+
+.unified-test-suite-help-content {
+    max-width: none;
+    line-height: var(--line-height-normal);
+}
+
+.unified-test-suite-help-content h3 {
+    margin: var(--oom-spacing-lg) 0 var(--oom-spacing-md) 0;
+    font-size: var(--h3-size);
+}
+
+.unified-test-suite-help-content h4 {
+    margin: var(--oom-spacing-md) 0 var(--oom-spacing-sm) 0;
+    font-size: var(--h4-size);
+}
+
+.unified-test-suite-help-content p {
+    margin-bottom: var(--oom-spacing-md);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-help-content ul {
+    margin: var(--oom-spacing-sm) 0 var(--oom-spacing-md) var(--oom-spacing-lg);
+}
+
+.unified-test-suite-help-content li {
+    margin-bottom: var(--oom-spacing-xs);
+    color: var(--text-normal);
+}
+
+.unified-test-suite-help-content code {
+    padding: 2px 4px;
+    border-radius: var(--oom-radius-xs);
+    background: var(--background-primary-alt);
+    font-family: var(--font-monospace);
+}
+
+/* Unified Test Suite Recent Results */
+
+.unified-test-suite-recent-results {
+    margin-top: var(--oom-spacing-xl);
+}
+
+.unified-test-suite-recent-results h3 {
+    margin-bottom: var(--oom-spacing-md);
+    font-size: var(--h3-size);
+}
+
+.unified-test-suite-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--oom-spacing-sm);
+}
+
+.unified-test-suite-result-item {
+    padding: var(--oom-spacing-sm);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    border-left-width: 4px;
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-result-success {
+    border-left-color: var(--color-green);
+}
+
+.unified-test-suite-result-failure {
+    border-left-color: var(--color-red);
+}
+
+.unified-test-suite-result-warning {
+    border-left-color: var(--color-orange);
+}
+
+.unified-test-suite-result-running {
+    border-left-color: var(--color-blue);
+}
+
+.unified-test-suite-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--oom-spacing-xs);
+}
+
+.unified-test-suite-result-name {
+    font-weight: 600;
+}
+
+.unified-test-suite-result-status {
+    padding: 2px 8px;
+    border-radius: var(--oom-radius-xs);
+    font-size: var(--font-ui-smaller);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.unified-test-suite-result-success .unified-test-suite-result-status {
+    background: var(--color-green);
+    color: white;
+}
+
+.unified-test-suite-result-failure .unified-test-suite-result-status {
+    background: var(--color-red);
+    color: white;
+}
+
+.unified-test-suite-result-warning .unified-test-suite-result-status {
+    background: var(--color-orange);
+    color: white;
+}
+
+.unified-test-suite-result-running .unified-test-suite-result-status {
+    background: var(--color-blue);
+    color: white;
+}
+
+.unified-test-suite-result-duration,
+.unified-test-suite-result-details {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+/* Unified Test Suite Data Table (for test results display) */
+
+.unified-test-suite-data-table {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.unified-test-suite-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.unified-test-suite-data-table th,
+.unified-test-suite-data-table td {
+    padding: var(--oom-spacing-sm);
+    border-bottom: 1px solid var(--background-modifier-border);
+    text-align: left;
+}
+
+.unified-test-suite-data-table th {
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    font-weight: 600;
+}
+
+.unified-test-suite-data-table td {
+    color: var(--text-normal);
+}
+
+.unified-test-suite-data-table tr:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Unified Test Suite Item Actions */
+
+.unified-test-suite-item-actions {
+    display: flex;
+    gap: var(--oom-spacing-sm);
+    margin-top: var(--oom-spacing-lg);
+}
+
+.unified-test-suite-item-actions button {
+    padding: var(--oom-spacing-sm) var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all var(--oom-transition-fast);
+}
+
+.unified-test-suite-item-actions button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.unified-test-suite-item-actions button.mod-warning {
+    border-color: var(--background-modifier-error);
+    background: var(--background-modifier-error);
+    color: var(--text-error);
+}
+
+/* Unified Test Suite - Logging Settings */
+.unified-test-suite-logging-settings {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.unified-test-suite-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.unified-test-suite-setting-label {
+    font-weight: 500;
+    min-width: 80px;
+    margin: 0;
+    color: var(--text-normal);
+}
+
+.unified-test-suite-log-level-select {
+    /*padding: 0.375rem 0.75rem;
+    border: 1px solid var(--background-modifier-border);
+    min-width: 120px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--text-normal);
+    background: var(--background-primary);*/
+}
+
+.unified-test-suite-log-level-select:hover {
+    border-color: var(--interactive-hover);
+}
+
+.unified-test-suite-log-level-select:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.unified-test-suite-setting-helper {
+    margin-top: 0.5rem;
+}
+
+.unified-test-suite-helper-text {
+    margin: 0;
+    line-height: 1.4;
+    font-size: 0.8rem;
+    font-style: italic;
+    /*color: var(--text-muted);*/
+}
+
+/* Spacing adjustments for logging sections */
+.unified-test-suite-logging-testing,
+.unified-test-suite-log-management,
+.unified-test-suite-log-stats {
+    margin-top: 1.5rem;
+}
+
+/* Responsive Design */
+
+@media screen and (max-width: var(--oom-breakpoint-tablet)) {
+    .unified-test-suite-container {
+        flex-direction: column;
+    }
+    
+    .unified-test-suite-sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+        min-width: 100%;
+        max-height: 200px;
+    }
+    
+    .unified-test-suite-tab-nav-item {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    
+    .unified-test-suite-dashboard-stats {
+        flex-direction: column;
+    }
+    
+    .unified-test-suite-quick-test-button {
+        display: block;
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+@media screen and (max-width: var(--oom-breakpoint-mobile)) {
+    .unified-test-suite-modal {
+        padding: var(--oom-spacing-xs);
+    }
+    
+    .unified-test-suite-content {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .unified-test-suite-action-button {
+        display: block;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--oom-spacing-sm);
+    }
+    
+    .unified-test-suite-item-actions {
+        flex-direction: column;
+    }
+    
+    .unified-test-suite-utility-section {
+        padding: var(--oom-spacing-sm);
+    }
+    
+    .unified-test-suite-result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--oom-spacing-xs);
+    }
+}
