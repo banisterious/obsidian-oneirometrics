@@ -81,9 +81,11 @@ export class UniversalMetricsCalculator {
         poolConfig?: UniversalPoolConfiguration,
         private logger?: ILogger
     ) {
+        this.logger?.trace('Constructor', 'UniversalMetricsCalculator constructor started');
         this.settings = plugin.settings;
         
         // Create default pool configuration for metrics calculations
+        this.logger?.trace('Constructor', 'Creating default pool configuration');
         const defaultConfig: UniversalPoolConfiguration = {
             workerTypes: {
                 [UniversalTaskType.DREAM_METRICS_PROCESSING]: {
@@ -114,14 +116,26 @@ export class UniversalMetricsCalculator {
             memoryLimit: 256 * 1024 * 1024, // 256MB
             priorityMode: 'performance'
         };
+        this.logger?.trace('Constructor', 'Default pool configuration created', {
+            maxWorkers: defaultConfig.maxWorkers,
+            workerTypes: Object.keys(defaultConfig.workerTypes)
+        });
 
-        this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
+        this.logger?.trace('Constructor', 'About to create UniversalWorkerPool instance');
+        try {
+            this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
+            this.logger?.trace('Constructor', 'UniversalWorkerPool instance created successfully');
+        } catch (error) {
+            this.logger?.error('Constructor', 'Failed to create UniversalWorkerPool', error as Error);
+            throw error;
+        }
         
         this.logger?.info('Initialization', 'Universal Metrics Calculator initialized', {
             maxWorkers: defaultConfig.maxWorkers,
             cacheEnabled: true,
             poolConfig: defaultConfig
         });
+        this.logger?.trace('Constructor', 'UniversalMetricsCalculator constructor completed');
     }
 
     /**

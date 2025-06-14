@@ -356,24 +356,30 @@ export default class DreamMetricsPlugin extends Plugin {
         
         try {
             this.logger?.info('Scrape', '🔧 Attempting scraping with UniversalMetricsCalculator (modern system)');
+            this.logger?.trace('Scrape', 'About to import UniversalMetricsCalculator');
             
             // Import the UniversalMetricsCalculator
             const { UniversalMetricsCalculator } = await import('./src/workers/UniversalMetricsCalculator');
+            this.logger?.trace('Scrape', 'UniversalMetricsCalculator imported successfully');
             
             // Create universal calculator
+            this.logger?.trace('Scrape', 'Creating UniversalMetricsCalculator instance');
             const universalCalculator = new UniversalMetricsCalculator(
                 this.app,
                 this,
                 undefined, // Use default worker pool config
                 this.logger
             );
+            this.logger?.trace('Scrape', 'UniversalMetricsCalculator instance created successfully');
             
             // Wrap in timeout to prevent hanging
             const SCRAPE_TIMEOUT = 120000; // 2 minutes timeout
+            this.logger?.trace('Scrape', `Starting scrapeMetrics with ${SCRAPE_TIMEOUT/1000}s timeout`);
             const scrapePromise = universalCalculator.scrapeMetrics();
             
             const timeoutPromise = new Promise<never>((_, reject) => {
                 setTimeout(() => {
+                    this.logger?.error('Scrape', `UniversalMetricsCalculator timeout after ${SCRAPE_TIMEOUT / 1000} seconds`);
                     reject(new Error(`UniversalMetricsCalculator timeout after ${SCRAPE_TIMEOUT / 1000} seconds`));
                 }, SCRAPE_TIMEOUT);
             });
@@ -385,9 +391,12 @@ export default class DreamMetricsPlugin extends Plugin {
             universalSuccess = true;
             
         } catch (error) {
+            this.logger?.error('Scrape', '❌ UniversalMetricsCalculator failed with error', error as Error);
             this.logger?.warn('Scrape', '⚠️ UniversalMetricsCalculator failed, will fallback to legacy system', {
                 error: (error as Error).message,
-                wasTimeout: (error as Error).message.includes('timeout')
+                errorStack: (error as Error).stack,
+                wasTimeout: (error as Error).message.includes('timeout'),
+                errorName: (error as Error).name
             });
             
             // Don't show error notice yet - we'll try fallback first

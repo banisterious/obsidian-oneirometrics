@@ -132,16 +132,38 @@ export class UniversalWorkerPool {
     private app: App,
     private config: UniversalPoolConfiguration
   ) {
-    this.initializeLoadBalancer();
-    this.initializeWorkerPool();
-    this.startHealthChecking();
-    this.startQueueProcessing();
-    
-    this.logger.info('Initialization', 'Universal Worker Pool initialized', {
+    this.logger.info('Initialization', 'UniversalWorkerPool constructor called', {
       maxWorkers: config.maxWorkers,
-      loadBalancing: config.loadBalancing,
-      supportedTaskTypes: Object.keys(config.workerTypes)
+      workerTypes: Object.keys(config.workerTypes),
+      loadBalancing: config.loadBalancing
     });
+    
+    try {
+      this.logger.trace('Initialization', 'Initializing load balancer');
+      this.initializeLoadBalancer();
+      this.logger.trace('Initialization', 'Load balancer initialized successfully');
+      
+      this.logger.trace('Initialization', 'Initializing worker pool');
+      this.initializeWorkerPool();
+      this.logger.trace('Initialization', 'Worker pool initialized successfully');
+      
+      this.logger.trace('Initialization', 'Starting health checking');
+      this.startHealthChecking();
+      this.logger.trace('Initialization', 'Health checking started successfully');
+      
+      this.logger.trace('Initialization', 'Starting queue processing');
+      this.startQueueProcessing();
+      this.logger.trace('Initialization', 'Queue processing started successfully');
+      
+      this.logger.info('Initialization', 'Universal Worker Pool initialized successfully', {
+        workersCreated: this.workers.size,
+        healthCheckInterval: 30000,
+        loadBalancerType: config.loadBalancing
+      });
+    } catch (error) {
+      this.logger.error('Initialization', 'Failed to initialize UniversalWorkerPool', error as Error);
+      throw error;
+    }
   }
 
   // Initialize load balancing strategy
@@ -174,27 +196,36 @@ export class UniversalWorkerPool {
 
   // Create a new worker instance
   private createWorker(workerId: string): void {
+    const startTime = performance.now();
+    
     try {
-      // Validate worker script before creating worker
-      const workerScript = this.getUniversalWorkerScript();
-      this.validateWorkerScript(workerScript, workerId);
+      this.logger.trace('Worker', `Creating worker: ${workerId}`);
       
-      // For now, create a generic worker that can handle all task types
-      // In a full implementation, this would use the inline worker plugin
-      const workerBlob = new Blob([workerScript], {
-        type: 'application/javascript'
-      });
-      const worker = new Worker(URL.createObjectURL(workerBlob));
+      // Validate worker script before creating worker
+      this.logger.trace('Worker', `Validating worker script for: ${workerId}`);
+      const script = this.getUniversalWorkerScript();
+      this.validateWorkerScript(script, workerId);
+      this.logger.trace('Worker', `Worker script validation passed for: ${workerId}`);
+      
+      // Create the worker
+      this.logger.trace('Worker', `Creating Worker instance for: ${workerId}`);
+      const worker = new Worker(URL.createObjectURL(new Blob([script], { type: 'application/javascript' })));
+      this.logger.trace('Worker', `Worker instance created successfully for: ${workerId}`);
       
       const poolWorker: PoolWorker = {
         id: workerId,
         worker,
         capabilities: {
           workerId,
-          supportedTasks: [UniversalTaskType.DATE_FILTER, UniversalTaskType.METRICS_CALCULATION, UniversalTaskType.TAG_ANALYSIS, UniversalTaskType.SEARCH_FILTER, UniversalTaskType.DATE_RANGE_FILTER, UniversalTaskType.CONTENT_FILTER, UniversalTaskType.METADATA_FILTER, UniversalTaskType.COMPLEX_FILTER, UniversalTaskType.FILTER_VALIDATION],
+          supportedTasks: [
+            UniversalTaskType.DREAM_METRICS_PROCESSING,
+            UniversalTaskType.SENTIMENT_ANALYSIS,
+            UniversalTaskType.ADVANCED_METRICS_CALCULATION,
+            UniversalTaskType.TIME_BASED_METRICS
+          ],
           maxConcurrentTasks: 3,
-          memoryLimit: this.config.memoryLimit,
-          preferredTaskTypes: this.getPreferredTaskTypes(workerId)
+          memoryLimit: 64 * 1024 * 1024, // 64MB per worker
+          preferredTaskTypes: [UniversalTaskType.DREAM_METRICS_PROCESSING]
         },
         activeTasks: new Map(),
         isHealthy: true,
@@ -210,23 +241,32 @@ export class UniversalWorkerPool {
         circuitBreakerOpen: false
       };
 
-      this.setupWorkerEventHandlers(poolWorker);
       this.workers.set(workerId, poolWorker);
+      this.logger.trace('Worker', `Worker added to pool: ${workerId}`);
       
+      // Setup event handlers
+      this.logger.trace('Worker', `Setting up event handlers for: ${workerId}`);
+      this.setupWorkerEventHandlers(poolWorker);
+      this.logger.trace('Worker', `Event handlers setup complete for: ${workerId}`);
+      
+      const creationTime = performance.now() - startTime;
       this.logger.info('Worker', `Created worker: ${workerId}`, {
         workerId,
+        creationTime: `${creationTime.toFixed(2)}ms`,
+        scriptLength: script.length,
         supportedTasks: poolWorker.capabilities.supportedTasks,
         maxConcurrentTasks: poolWorker.capabilities.maxConcurrentTasks
       });
-
+      
     } catch (error) {
-      this.logger.error('Worker', `Failed to create worker: ${workerId}`, 
-        this.logger.enrichError(error as Error, {
-          component: 'UniversalWorkerPool',
-          operation: 'createWorker',
-          metadata: { workerId }
-        })
-      );
+      const creationTime = performance.now() - startTime;
+      this.logger.error('Worker', `Failed to create worker: ${workerId}`, {
+        workerId,
+        error: (error as Error).message,
+        errorStack: (error as Error).stack,
+        creationTime: `${creationTime.toFixed(2)}ms`
+      });
+      throw error;
     }
   }
 
