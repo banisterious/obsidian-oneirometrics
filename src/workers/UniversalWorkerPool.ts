@@ -184,7 +184,24 @@ export class UniversalWorkerPool {
         worker,
         capabilities: {
           workerId,
-          supportedTasks: [UniversalTaskType.DATE_FILTER, UniversalTaskType.METRICS_CALCULATION, UniversalTaskType.TAG_ANALYSIS, UniversalTaskType.SEARCH_FILTER, UniversalTaskType.DATE_RANGE_FILTER, UniversalTaskType.CONTENT_FILTER, UniversalTaskType.METADATA_FILTER, UniversalTaskType.COMPLEX_FILTER, UniversalTaskType.FILTER_VALIDATION],
+          supportedTasks: [
+            UniversalTaskType.DATE_FILTER, 
+            UniversalTaskType.METRICS_CALCULATION, 
+            UniversalTaskType.TAG_ANALYSIS, 
+            UniversalTaskType.SEARCH_FILTER, 
+            UniversalTaskType.DATE_RANGE_FILTER, 
+            UniversalTaskType.CONTENT_FILTER, 
+            UniversalTaskType.METADATA_FILTER, 
+            UniversalTaskType.COMPLEX_FILTER, 
+            UniversalTaskType.FILTER_VALIDATION,
+            // Add missing MetricsCalculator task types - Phase 2.4
+            UniversalTaskType.DREAM_METRICS_PROCESSING,
+            UniversalTaskType.SENTIMENT_ANALYSIS,
+            UniversalTaskType.ADVANCED_METRICS_CALCULATION,
+            UniversalTaskType.TIME_BASED_METRICS,
+            UniversalTaskType.METRICS_AGGREGATION,
+            UniversalTaskType.CONTENT_ANALYSIS
+          ],
           maxConcurrentTasks: 3,
           memoryLimit: this.config.memoryLimit,
           preferredTaskTypes: this.getPreferredTaskTypes(workerId)
