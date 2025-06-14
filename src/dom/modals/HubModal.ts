@@ -161,10 +161,19 @@ export class HubModal extends Modal {
             contentEl.empty();
             contentEl.addClass('oom-metrics-tabs-modal');
             
-            // Create header
-            contentEl.createEl('h1', { 
-                text: 'OneiroMetrics Hub', 
-                cls: 'oom-metrics-tabs-header' 
+            // Create header with title and subtitle
+            const headerContainer = contentEl.createDiv({ 
+                cls: 'oom-hub-header-container' 
+            });
+            
+            headerContainer.createEl('h1', { 
+                text: 'OneiroMetrics Control Center', 
+                cls: 'oom-hub-title' 
+            });
+            
+            headerContainer.createEl('p', { 
+                text: 'Transform your dream journal into meaningful insights and metrics', 
+                cls: 'oom-hub-subtitle' 
             });
             
             // Create two-column layout
