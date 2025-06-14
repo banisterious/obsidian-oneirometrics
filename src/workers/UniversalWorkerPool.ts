@@ -132,27 +132,44 @@ export class UniversalWorkerPool {
     private app: App,
     private config: UniversalPoolConfiguration
   ) {
+    this.logger.trace('Constructor', 'UniversalWorkerPool constructor START', {
+      timestamp: Date.now(),
+      maxWorkers: config.maxWorkers,
+      workerTypes: Object.keys(config.workerTypes),
+      loadBalancing: config.loadBalancing
+    });
+    
     this.logger.info('Initialization', 'UniversalWorkerPool constructor called', {
       maxWorkers: config.maxWorkers,
       workerTypes: Object.keys(config.workerTypes),
       loadBalancing: config.loadBalancing
     });
     
+    this.logger.trace('Constructor', 'Initial logger.info completed', { timestamp: Date.now() });
+    
     try {
+      this.logger.trace('Constructor', 'About to initialize load balancer', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Initializing load balancer');
       this.initializeLoadBalancer();
+      this.logger.trace('Constructor', 'Load balancer initialized', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Load balancer initialized successfully');
       
+      this.logger.trace('Constructor', 'About to initialize worker pool', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Initializing worker pool');
       this.initializeWorkerPool();
+      this.logger.trace('Constructor', 'Worker pool initialized', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Worker pool initialized successfully');
       
+      this.logger.trace('Constructor', 'About to start health checking', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Starting health checking');
       this.startHealthChecking();
+      this.logger.trace('Constructor', 'Health checking started', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Health checking started successfully');
       
+      this.logger.trace('Constructor', 'About to start queue processing', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Starting queue processing');
       this.startQueueProcessing();
+      this.logger.trace('Constructor', 'Queue processing started', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Queue processing started successfully');
       
       this.logger.info('Initialization', 'Universal Worker Pool initialized successfully', {
@@ -185,31 +202,74 @@ export class UniversalWorkerPool {
 
   // Initialize the worker pool
   private initializeWorkerPool(): void {
+    this.logger.trace('WorkerPool', 'initializeWorkerPool START', { timestamp: Date.now() });
     const workerCount = Math.min(this.config.maxWorkers, 4); // Cap at 4 workers
+    this.logger.trace('WorkerPool', 'Worker count calculated', { 
+      workerCount, 
+      maxWorkers: this.config.maxWorkers,
+      timestamp: Date.now() 
+    });
     
     for (let i = 0; i < workerCount; i++) {
+      this.logger.trace('WorkerPool', `About to create worker ${i + 1}`, { 
+        workerIndex: i + 1,
+        workerId: `worker-${i + 1}`,
+        timestamp: Date.now() 
+      });
       this.createWorker(`worker-${i + 1}`);
+      this.logger.trace('WorkerPool', `Worker ${i + 1} created`, { 
+        workerIndex: i + 1,
+        workerId: `worker-${i + 1}`,
+        timestamp: Date.now() 
+      });
     }
 
+    this.logger.trace('WorkerPool', 'About to update statistics', { timestamp: Date.now() });
     this.updateStatistics();
+    this.logger.trace('WorkerPool', 'initializeWorkerPool COMPLETE', { timestamp: Date.now() });
   }
 
   // Create a new worker instance
   private createWorker(workerId: string): void {
+    this.logger.trace('CreateWorker', 'createWorker START', { 
+      workerId, 
+      timestamp: Date.now() 
+    });
     const startTime = performance.now();
     
     try {
       this.logger.trace('Worker', `Creating worker: ${workerId}`);
       
       // Validate worker script before creating worker
+      this.logger.trace('CreateWorker', 'About to validate worker script', { 
+        workerId, 
+        timestamp: Date.now() 
+      });
       this.logger.trace('Worker', `Validating worker script for: ${workerId}`);
       const script = this.getUniversalWorkerScript();
+      this.logger.trace('CreateWorker', 'Worker script obtained', { 
+        workerId, 
+        scriptLength: script.length,
+        timestamp: Date.now() 
+      });
       this.validateWorkerScript(script, workerId);
+      this.logger.trace('CreateWorker', 'Worker script validated', { 
+        workerId, 
+        timestamp: Date.now() 
+      });
       this.logger.trace('Worker', `Worker script validation passed for: ${workerId}`);
       
       // Create the worker
+      this.logger.trace('CreateWorker', 'About to create Worker instance', { 
+        workerId, 
+        timestamp: Date.now() 
+      });
       this.logger.trace('Worker', `Creating Worker instance for: ${workerId}`);
       const worker = new Worker(URL.createObjectURL(new Blob([script], { type: 'application/javascript' })));
+      this.logger.trace('CreateWorker', 'Worker instance created', { 
+        workerId, 
+        timestamp: Date.now() 
+      });
       this.logger.trace('Worker', `Worker instance created successfully for: ${workerId}`);
       
       const poolWorker: PoolWorker = {
@@ -505,13 +565,31 @@ export class UniversalWorkerPool {
 
   // Public method to process a task
   async processTask(task: UniversalTask, callbacks?: TaskCallbacks): Promise<TaskResult> {
+    this.logger.trace('ProcessTask', 'processTask START', {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      priority: task.priority,
+      timestamp: Date.now()
+    });
+
     return new Promise((resolve, reject) => {
+      this.logger.trace('ProcessTask', 'Storing active request', {
+        taskId: task.taskId,
+        timestamp: Date.now()
+      });
+
       // Store the request
       this.activeRequests.set(task.taskId, {
         resolve,
         reject,
         callbacks,
         startTime: Date.now()
+      });
+
+      this.logger.trace('ProcessTask', 'Adding task to queue', {
+        taskId: task.taskId,
+        currentQueueLength: this.taskQueue.length,
+        timestamp: Date.now()
       });
 
       // Add to queue for processing
@@ -532,14 +610,39 @@ export class UniversalWorkerPool {
         queueDepth: this.taskQueue.length
       });
 
+      this.logger.trace('ProcessTask', 'About to call processQueue', {
+        taskId: task.taskId,
+        queueDepth: this.taskQueue.length,
+        timestamp: Date.now()
+      });
+
       // Try to process immediately
       this.processQueue();
+
+      this.logger.trace('ProcessTask', 'processQueue call completed', {
+        taskId: task.taskId,
+        queueDepth: this.taskQueue.length,
+        timestamp: Date.now()
+      });
     });
   }
 
   // Process the task queue
   private processQueue(): void {
-    if (this.taskQueue.length === 0) return;
+    this.logger.trace('ProcessQueue', 'processQueue START', {
+      queueLength: this.taskQueue.length,
+      timestamp: Date.now()
+    });
+    
+    if (this.taskQueue.length === 0) {
+      this.logger.trace('ProcessQueue', 'Queue is empty, returning', { timestamp: Date.now() });
+      return;
+    }
+
+    this.logger.trace('ProcessQueue', 'About to sort queue by priority', {
+      queueLength: this.taskQueue.length,
+      timestamp: Date.now()
+    });
 
     // Sort queue by priority (high -> normal -> low) and queue time
     this.taskQueue.sort((a, b) => {
@@ -549,16 +652,45 @@ export class UniversalWorkerPool {
       return a.queuedAt - b.queuedAt; // Earlier tasks first
     });
 
+    this.logger.trace('ProcessQueue', 'Queue sorted, getting available workers', {
+      queueLength: this.taskQueue.length,
+      totalWorkers: this.workers.size,
+      timestamp: Date.now()
+    });
+
     // Try to assign tasks to available workers
     const availableWorkers = Array.from(this.workers.values()).filter(worker => 
       worker.isHealthy && 
       worker.activeTasks.size < worker.capabilities.maxConcurrentTasks
     );
 
+    this.logger.trace('ProcessQueue', 'Available workers identified', {
+      totalWorkers: this.workers.size,
+      availableWorkers: availableWorkers.length,
+      availableWorkerIds: availableWorkers.map(w => w.id),
+      workerDetails: availableWorkers.map(w => ({
+        id: w.id,
+        isHealthy: w.isHealthy,
+        activeTasks: w.activeTasks.size,
+        maxConcurrentTasks: w.capabilities.maxConcurrentTasks,
+        supportedTasks: w.capabilities.supportedTasks
+      })),
+      timestamp: Date.now()
+    });
+
     let processed = 0;
     for (let i = 0; i < this.taskQueue.length && processed < availableWorkers.length; i++) {
       const queueItem = this.taskQueue[i];
       const { task } = queueItem;
+
+      this.logger.trace('ProcessQueue', `Processing task ${i + 1}/${this.taskQueue.length}`, {
+        taskId: task.taskId,
+        taskType: task.taskType,
+        taskPriority: task.priority,
+        queuedAt: queueItem.queuedAt,
+        attempts: queueItem.attempts,
+        timestamp: Date.now()
+      });
 
       // Find workers that support this task type
       const compatibleWorkers = availableWorkers.filter(worker =>
@@ -566,20 +698,89 @@ export class UniversalWorkerPool {
         worker.activeTasks.size < worker.capabilities.maxConcurrentTasks
       );
 
-      if (compatibleWorkers.length === 0) continue;
+      this.logger.trace('ProcessQueue', 'Compatible workers found', {
+        taskId: task.taskId,
+        taskType: task.taskType,
+        compatibleWorkers: compatibleWorkers.length,
+        compatibleWorkerIds: compatibleWorkers.map(w => w.id),
+        allWorkerCapabilities: availableWorkers.map(w => ({
+          id: w.id,
+          supportedTasks: w.capabilities.supportedTasks,
+          supportsThisTask: w.capabilities.supportedTasks.includes(task.taskType)
+        })),
+        timestamp: Date.now()
+      });
+
+      if (compatibleWorkers.length === 0) {
+        this.logger.trace('ProcessQueue', 'No compatible workers, skipping task', {
+          taskId: task.taskId,
+          taskType: task.taskType,
+          timestamp: Date.now()
+        });
+        continue;
+      }
+
+      this.logger.trace('ProcessQueue', 'About to select worker using load balancer', {
+        taskId: task.taskId,
+        compatibleWorkers: compatibleWorkers.length,
+        loadBalancerType: this.config.loadBalancing,
+        timestamp: Date.now()
+      });
 
       // Select the best worker using load balancer
       const selectedWorker = this.loadBalancer.selectWorker(compatibleWorkers, task);
-      if (!selectedWorker) continue;
+      
+      this.logger.trace('ProcessQueue', 'Load balancer worker selection result', {
+        taskId: task.taskId,
+        selectedWorkerId: selectedWorker?.id || null,
+        selectionSuccessful: !!selectedWorker,
+        timestamp: Date.now()
+      });
+      
+      if (!selectedWorker) {
+        this.logger.trace('ProcessQueue', 'Load balancer returned null, skipping task', {
+          taskId: task.taskId,
+          timestamp: Date.now()
+        });
+        continue;
+      }
+
+      this.logger.trace('ProcessQueue', 'About to assign task to worker', {
+        taskId: task.taskId,
+        selectedWorkerId: selectedWorker.id,
+        timestamp: Date.now()
+      });
 
       // Assign task to worker
       this.assignTaskToWorker(selectedWorker, task);
+      
+      this.logger.trace('ProcessQueue', 'Task assigned, removing from queue', {
+        taskId: task.taskId,
+        selectedWorkerId: selectedWorker.id,
+        queueIndexToRemove: i,
+        timestamp: Date.now()
+      });
       
       // Remove from queue
       this.taskQueue.splice(i, 1);
       i--; // Adjust index since we removed an item
       processed++;
+      
+      this.logger.trace('ProcessQueue', 'Task processing iteration complete', {
+        taskId: task.taskId,
+        selectedWorkerId: selectedWorker.id,
+        processed: processed,
+        remainingQueueLength: this.taskQueue.length,
+        timestamp: Date.now()
+      });
     }
+
+    this.logger.trace('ProcessQueue', 'processQueue COMPLETE', {
+      tasksProcessed: processed,
+      remainingQueueLength: this.taskQueue.length,
+      finalQueueDepth: this.taskQueue.length,
+      timestamp: Date.now()
+    });
 
     this.stats.queueDepth = this.taskQueue.length;
     this.updateStatistics();
@@ -587,7 +788,33 @@ export class UniversalWorkerPool {
 
   // Assign a task to a specific worker
   private assignTaskToWorker(worker: PoolWorker, task: UniversalTask): void {
+    this.logger.trace('AssignTask', 'assignTaskToWorker START', {
+      taskId: task.taskId,
+      taskType: task.taskType,
+      workerId: worker.id,
+      workerActiveTasks: worker.activeTasks.size,
+      workerMaxConcurrent: worker.capabilities.maxConcurrentTasks,
+      workerIsHealthy: worker.isHealthy,
+      timestamp: Date.now()
+    });
+
+    this.logger.trace('AssignTask', 'Adding task to worker active tasks', {
+      taskId: task.taskId,
+      workerId: worker.id,
+      beforeActiveTasksCount: worker.activeTasks.size,
+      timestamp: Date.now()
+    });
+
     worker.activeTasks.set(task.taskId, task);
+
+    this.logger.trace('AssignTask', 'Task added to active tasks, about to post message', {
+      taskId: task.taskId,
+      workerId: worker.id,
+      afterActiveTasksCount: worker.activeTasks.size,
+      messageType: 'PROCESS_TASK',
+      protocolVersion: CURRENT_PROTOCOL_VERSION,
+      timestamp: Date.now()
+    });
 
     worker.worker.postMessage({
       id: task.taskId,
@@ -597,11 +824,25 @@ export class UniversalWorkerPool {
       data: { task }
     });
 
+    this.logger.trace('AssignTask', 'Message posted to worker', {
+      taskId: task.taskId,
+      workerId: worker.id,
+      messagePosted: true,
+      timestamp: Date.now()
+    });
+
     this.logger.info('Task', `Task assigned to worker`, {
       taskId: task.taskId,
       taskType: task.taskType,
       workerId: worker.id,
       activeTasks: worker.activeTasks.size
+    });
+
+    this.logger.trace('AssignTask', 'assignTaskToWorker COMPLETE', {
+      taskId: task.taskId,
+      workerId: worker.id,
+      finalActiveTasksCount: worker.activeTasks.size,
+      timestamp: Date.now()
     });
   }
 
@@ -988,10 +1229,17 @@ class UniversalWorker {
       timestamp: Date.now(),
       data: {
         workerId: this.workerId,
-        supportedTasks: ['date_filter', 'metrics_calculation'],
-        maxConcurrentTasks: 1,
-        memoryLimit: 10 * 1024 * 1024, // 10MB
-        preferredTaskTypes: ['date_filter']
+        supportedTasks: [
+          'dream_metrics_processing',
+          'sentiment_analysis', 
+          'advanced_metrics_calculation',
+          'time_based_metrics',
+          'date_filter', 
+          'metrics_calculation'
+        ],
+        maxConcurrentTasks: 3,
+        memoryLimit: 64 * 1024 * 1024, // 64MB
+        preferredTaskTypes: ['dream_metrics_processing']
       }
     });
   }
@@ -1022,8 +1270,8 @@ new UniversalWorker();
 
   // Generate universal worker script
   private getUniversalWorkerScript(): string {
-    // Use simplified worker script by default to test if complexity is the issue
-    return this.getSimplifiedWorkerScript();
+    // Use full worker script with all task processors
+    // return this.getSimplifiedWorkerScript();
     
     return `
 // Universal Worker Script
@@ -1662,8 +1910,8 @@ class UniversalWorker {
     let positiveCount = 0;
     let negativeCount = 0;
     
-    positiveWords.forEach(word => {
-      const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
+          positiveWords.forEach(word => {
+        const regex = new RegExp('\\b' + word + '\\b', 'g');
       const matches = lowerContent.match(regex);
       if (matches) positiveCount += matches.length;
     });

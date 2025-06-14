@@ -17,7 +17,7 @@ export interface MemoryAdapterConfig {
  * Default configuration
  */
 const DEFAULT_CONFIG: MemoryAdapterConfig = {
-  maxEntries: 1000  // Store up to 1000 log entries by default
+  maxEntries: 50000  // TEMPORARILY INCREASED: Store up to 50000 log entries to capture full initialization from the very beginning
 };
 
 /**
