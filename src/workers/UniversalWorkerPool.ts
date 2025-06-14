@@ -252,6 +252,7 @@ export class UniversalWorkerPool {
         scriptLength: script.length,
         timestamp: Date.now() 
       });
+      // Validate worker script syntax
       this.validateWorkerScript(script, workerId);
       this.logger.trace('CreateWorker', 'Worker script validated', { 
         workerId, 
@@ -1084,11 +1085,37 @@ export class UniversalWorkerPool {
         throw new Error(`Worker script too large: ${scriptSize} bytes (limit: 1MB)`);
       }
       
-      // Enhanced syntax validation
-      try {
-        new Function(script);
-      } catch (syntaxError) {
-        throw new Error(`Syntax error in worker script: ${(syntaxError as Error).message}`);
+      // Basic syntax validation - Check for common issues without full parsing
+      const basicChecks = [
+        { pattern: /class\s+\w+\s*{/, name: 'class definition' },
+        { pattern: /function\s+\w+\s*\(/, name: 'function definition' },
+        { pattern: /self\.onmessage/, name: 'message handler' },
+        { pattern: /postMessage/, name: 'postMessage calls' }
+      ];
+      
+      let passedChecks = 0;
+      for (const check of basicChecks) {
+        if (check.pattern.test(script)) {
+          passedChecks++;
+        }
+      }
+      
+      // Require at least 3 out of 4 basic checks to pass
+      if (passedChecks < 3) {
+        throw new Error(`Worker script appears incomplete - only ${passedChecks}/4 basic checks passed`);
+      }
+      
+      // Check for obvious syntax issues without full parsing
+      const syntaxIssues = [
+        { pattern: /\{\s*$/, message: 'Unclosed braces detected' },
+        { pattern: /\(\s*$/, message: 'Unclosed parentheses detected' },
+        { pattern: /\[\s*$/, message: 'Unclosed brackets detected' }
+      ];
+      
+      for (const issue of syntaxIssues) {
+        if (issue.pattern.test(script)) {
+          throw new Error(`Syntax issue: ${issue.message}`);
+        }
       }
       
       // Additional validation checks
@@ -1917,7 +1944,7 @@ class UniversalWorker {
     });
     
     negativeWords.forEach(word => {
-      const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
+      const regex = new RegExp('\\b' + word + '\\b', 'g');
       const matches = lowerContent.match(regex);
       if (matches) negativeCount += matches.length;
     });

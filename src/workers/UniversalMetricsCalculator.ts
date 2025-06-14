@@ -744,7 +744,7 @@ export class UniversalMetricsCalculator {
             
             // Add timeout to prevent hanging - fallback to sync if worker pool is broken
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Worker pool timeout after 10 seconds')), 10000);
+                setTimeout(() => reject(new Error('Worker pool timeout after 60 seconds')), 60000);
             });
             
             const result = await Promise.race([
@@ -776,7 +776,14 @@ export class UniversalMetricsCalculator {
                 });
             }
         } catch (error) {
-            this.logger?.debug('WorkerPool', 'Worker pool failed with error', { error });
+            // Properly serialize Error objects for logging
+            const errorInfo = {
+                message: (error as Error).message,
+                name: (error as Error).name,
+                stack: (error as Error).stack,
+                toString: (error as Error).toString()
+            };
+            this.logger?.debug('WorkerPool', 'Worker pool failed with error', { error: errorInfo });
             this.logger?.error('WorkerPool', 'Worker pool failed, falling back to sync processing', error as Error);
         }
 
@@ -1505,7 +1512,7 @@ export class UniversalMetricsCalculator {
             
             // Add timeout to prevent hanging - fallback to sync if worker pool is broken
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Worker pool timeout after 10 seconds')), 10000);
+                setTimeout(() => reject(new Error('Worker pool timeout after 60 seconds')), 60000);
             });
             
             const result = await Promise.race([
@@ -1535,7 +1542,14 @@ export class UniversalMetricsCalculator {
                 });
             }
         } catch (error) {
-            this.logger?.debug('WorkerPool', 'Worker pool failed with error', { error });
+            // Properly serialize Error objects for logging
+            const errorInfo = {
+                message: (error as Error).message,
+                name: (error as Error).name,
+                stack: (error as Error).stack,
+                toString: (error as Error).toString()
+            };
+            this.logger?.debug('WorkerPool', 'Worker pool failed with error', { error: errorInfo });
             this.logger?.error('WorkerPool', 'Worker pool failed, falling back to sync processing', error as Error);
         }
 
