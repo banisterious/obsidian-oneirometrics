@@ -1311,13 +1311,13 @@ class UniversalWorker {
     let negativeCount = 0;
     
     positiveWords.forEach(word => {
-      const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
+      const regex = new RegExp('\\b' + word + '\\b', 'g');
       const matches = lowerContent.match(regex);
       if (matches) positiveCount += matches.length;
     });
     
     negativeWords.forEach(word => {
-      const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
+      const regex = new RegExp('\\b' + word + '\\b', 'g');
       const matches = lowerContent.match(regex);
       if (matches) negativeCount += matches.length;
     });
