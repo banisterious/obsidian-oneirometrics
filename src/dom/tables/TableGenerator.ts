@@ -344,8 +344,10 @@ export class TableGenerator {
             // Modify SVG to include width and height attributes
             // Add additional classes for better styling and consistency
             iconHtml = iconHtml
-                .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
-                .replace('stroke-width="2"', 'stroke-width="2.5"');
+                .replace('width="24"', 'width="18"')
+                .replace('height="24"', 'height="18"')
+                .replace('<svg ', '<svg class="oom-metric-icon" ')
+                .replace('stroke-width="2"', 'stroke-width="3"');
             
             // Wrap in a container for better positioning
             return `<span class="oom-metric-icon-container">${iconHtml}</span>`;
@@ -469,8 +471,10 @@ export class TableGenerator {
                 if (svgContent) {
                     // Ensure SVG has proper dimensions and attributes for consistent display
                     const iconHtml = svgContent
-                        .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
-                        .replace('stroke-width="2"', 'stroke-width="2.5"');
+                        .replace('width="24"', 'width="18"')
+                        .replace('height="24"', 'height="18"')
+                        .replace('<svg ', '<svg class="oom-metric-icon" ')
+                        .replace('stroke-width="2"', 'stroke-width="3"');
                     
                     label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
                 }
@@ -514,8 +518,10 @@ export class TableGenerator {
                 const svgContent = lucideIconMap[iconName];
                 if (svgContent) {
                     const iconHtml = svgContent
-                        .replace('<svg ', '<svg width="18" height="18" class="oom-metric-icon" ')
-                        .replace('stroke-width="2"', 'stroke-width="2.5"');
+                        .replace('width="24"', 'width="18"')
+                        .replace('height="24"', 'height="18"')
+                        .replace('<svg ', '<svg class="oom-metric-icon" ')
+                        .replace('stroke-width="2"', 'stroke-width="3"');
                     
                     label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
                 }
