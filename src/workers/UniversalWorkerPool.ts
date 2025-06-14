@@ -240,6 +240,9 @@ export class UniversalWorkerPool {
     };
 
     worker.onerror = (error) => {
+      const workerAge = Date.now() - poolWorker.createdAt;
+      const isImmediateFailure = workerAge < 1000;
+      
       this.logger.error('Worker', `Worker error: ${workerId}`, {
         workerId,
         error: error.message,
@@ -248,15 +251,22 @@ export class UniversalWorkerPool {
         colno: error.colno,
         errorType: error.type,
         timestamp: Date.now(),
-        workerAge: Date.now() - poolWorker.createdAt
+        workerAge,
+        isImmediateFailure,
+        failureCount: poolWorker.failureCount,
+        activeTasks: poolWorker.activeTasks.size
       });
       
-      // Log the worker script for debugging if worker fails immediately
-      if (Date.now() - poolWorker.createdAt < 1000) {
-        this.logger.error('Worker', `Worker failed immediately after creation - script may have syntax errors`, {
+      // Enhanced debugging for immediate failures
+      if (isImmediateFailure) {
+        const script = this.getUniversalWorkerScript();
+        this.logger.error('Worker', `Worker failed immediately after creation - potential script issues`, {
           workerId,
-          scriptLength: this.getUniversalWorkerScript().length,
-          scriptPreview: this.getUniversalWorkerScript().substring(0, 200) + '...'
+          workerAge,
+          scriptLength: script.length,
+          scriptLines: script.split('\n').length,
+          scriptPreview: script.substring(0, 300) + '...',
+          errorLocation: error.lineno ? `Line ${error.lineno}${error.colno ? `, Column ${error.colno}` : ''}` : 'Unknown'
         });
       }
       
@@ -266,7 +276,9 @@ export class UniversalWorkerPool {
     worker.onmessageerror = (error) => {
       this.logger.error('Worker', `Worker message error: ${workerId}`, {
         workerId,
-        error: error.type
+        error: error.type,
+        workerAge: Date.now() - poolWorker.createdAt,
+        activeTasks: poolWorker.activeTasks.size
       });
     };
 
@@ -566,13 +578,33 @@ export class UniversalWorkerPool {
     const FAILURE_THRESHOLD = 5;
     const CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
     
+    // Enhanced circuit breaker logging
+    this.logger.trace('Worker', `Worker failure detected`, {
+      workerId,
+      failureCount: poolWorker.failureCount,
+      failureThreshold: FAILURE_THRESHOLD,
+      timeSinceCreation: Date.now() - poolWorker.createdAt,
+      timeSinceLastFailure: poolWorker.lastFailureTime > 0 ? Date.now() - poolWorker.lastFailureTime : 0,
+      activeTasks: poolWorker.activeTasks.size,
+      taskHistory: poolWorker.taskHistory,
+      circuitBreakerCurrentlyOpen: poolWorker.circuitBreakerOpen
+    });
+    
     if (poolWorker.failureCount >= FAILURE_THRESHOLD) {
       poolWorker.circuitBreakerOpen = true;
       this.logger.error('Worker', `Circuit breaker opened for worker: ${workerId}`, {
         workerId,
         failureCount: poolWorker.failureCount,
+        failureThreshold: FAILURE_THRESHOLD,
         activeTasks: poolWorker.activeTasks.size,
-        workerAge: Date.now() - poolWorker.createdAt
+        workerAge: Date.now() - poolWorker.createdAt,
+        circuitBreakerTimeout: CIRCUIT_BREAKER_TIMEOUT,
+        taskHistory: poolWorker.taskHistory,
+        failurePattern: {
+          averageTimeBetweenFailures: poolWorker.failureCount > 1 ? 
+            (Date.now() - poolWorker.createdAt) / poolWorker.failureCount : 0,
+          immediateFailure: (Date.now() - poolWorker.createdAt) < 1000
+        }
       });
     }
     
@@ -580,7 +612,8 @@ export class UniversalWorkerPool {
       workerId,
       activeTasks: poolWorker.activeTasks.size,
       failureCount: poolWorker.failureCount,
-      circuitBreakerOpen: poolWorker.circuitBreakerOpen
+      circuitBreakerOpen: poolWorker.circuitBreakerOpen,
+      willRecreate: !poolWorker.circuitBreakerOpen
     });
 
     // Requeue active tasks
@@ -588,7 +621,8 @@ export class UniversalWorkerPool {
       this.logger.info('Task', `Requeuing task due to worker failure`, {
         taskId,
         taskType: task.taskType,
-        failedWorkerId: workerId
+        failedWorkerId: workerId,
+        queuedAt: Date.now()
       });
 
       this.taskQueue.unshift({
@@ -603,14 +637,28 @@ export class UniversalWorkerPool {
     
     // Only recreate worker if circuit breaker is not open
     if (!poolWorker.circuitBreakerOpen) {
+      this.logger.trace('Worker', `Attempting worker recreation`, {
+        workerId,
+        failureCount: poolWorker.failureCount,
+        reason: 'circuit_breaker_closed'
+      });
       this.recreateWorker(workerId);
     } else {
       // Schedule circuit breaker reset
+      this.logger.info('Worker', `Scheduling circuit breaker reset`, {
+        workerId,
+        failureCount: poolWorker.failureCount,
+        resetTimeout: CIRCUIT_BREAKER_TIMEOUT,
+        resetTime: new Date(Date.now() + CIRCUIT_BREAKER_TIMEOUT).toISOString()
+      });
+      
       setTimeout(() => {
         if (poolWorker.circuitBreakerOpen) {
           this.logger.info('Worker', `Attempting to reset circuit breaker for worker: ${workerId}`, {
             workerId,
-            failureCount: poolWorker.failureCount
+            failureCount: poolWorker.failureCount,
+            timeInOpenState: Date.now() - poolWorker.lastFailureTime,
+            resetAttempt: true
           });
           poolWorker.circuitBreakerOpen = false;
           poolWorker.failureCount = 0;
@@ -625,9 +673,22 @@ export class UniversalWorkerPool {
 
   // Recreate a failed worker
   private recreateWorker(workerId: string): void {
+    const startTime = performance.now();
+    
     try {
       const oldWorker = this.workers.get(workerId);
+      const hadOldWorker = !!oldWorker;
+      const oldWorkerAge = oldWorker ? Date.now() - oldWorker.createdAt : 0;
+      const oldFailureCount = oldWorker ? oldWorker.failureCount : 0;
+      
       if (oldWorker) {
+        this.logger.trace('Worker', `Terminating old worker before recreation`, {
+          workerId,
+          oldWorkerAge,
+          oldFailureCount,
+          activeTasks: oldWorker.activeTasks.size
+        });
+        
         oldWorker.worker.terminate();
         this.workers.delete(workerId);
       }
@@ -635,13 +696,28 @@ export class UniversalWorkerPool {
       // Create new worker with same ID
       this.createWorker(workerId);
       
-      this.logger.info('Worker', `Worker recreated: ${workerId}`, { workerId });
+      const recreationTime = performance.now() - startTime;
+      
+      this.logger.info('Worker', `Worker recreated: ${workerId}`, { 
+        workerId,
+        hadOldWorker,
+        oldWorkerAge: hadOldWorker ? oldWorkerAge : undefined,
+        oldFailureCount: hadOldWorker ? oldFailureCount : undefined,
+        recreationTime: `${recreationTime.toFixed(2)}ms`,
+        newWorkerCreated: this.workers.has(workerId)
+      });
     } catch (error) {
+      const recreationTime = performance.now() - startTime;
+      
       this.logger.error('Worker', `Failed to recreate worker: ${workerId}`,
         this.logger.enrichError(error as Error, {
           component: 'UniversalWorkerPool',
           operation: 'recreateWorker',
-          metadata: { workerId }
+          metadata: { 
+            workerId,
+            recreationTime: `${recreationTime.toFixed(2)}ms`,
+            workerExists: this.workers.has(workerId)
+          }
         })
       );
     }
@@ -712,34 +788,105 @@ export class UniversalWorkerPool {
 
   // Validate worker script for basic syntax issues
   private validateWorkerScript(script: string, workerId: string): void {
+    const startTime = performance.now();
+    
     try {
       // Basic validation checks
       if (!script || script.trim().length === 0) {
         throw new Error('Worker script is empty');
       }
       
-      if (script.length > 1024 * 1024) { // 1MB limit
-        throw new Error(`Worker script too large: ${script.length} bytes`);
+      const scriptSize = script.length;
+      const scriptLines = script.split('\n').length;
+      
+      if (scriptSize > 1024 * 1024) { // 1MB limit
+        throw new Error(`Worker script too large: ${scriptSize} bytes (limit: 1MB)`);
       }
       
-      // Check for basic syntax issues by attempting to create a function
-      new Function(script);
+      // Enhanced syntax validation
+      try {
+        new Function(script);
+      } catch (syntaxError) {
+        throw new Error(`Syntax error in worker script: ${(syntaxError as Error).message}`);
+      }
+      
+      // Additional validation checks
+      const validationResults = {
+        hasMessageHandler: script.includes('onmessage') || script.includes('addEventListener'),
+        hasErrorHandler: script.includes('onerror') || script.includes('error'),
+        hasPostMessage: script.includes('postMessage'),
+        hasClassDefinition: script.includes('class '),
+        hasSelfReference: script.includes('self.'),
+        scriptComplexity: this.calculateScriptComplexity(script)
+      };
+      
+      const validationTime = performance.now() - startTime;
       
       this.logger.debug('Worker', `Worker script validation passed for ${workerId}`, {
         workerId,
-        scriptLength: script.length,
-        scriptLines: script.split('\n').length
+        scriptLength: scriptSize,
+        scriptLines,
+        validationTime: `${validationTime.toFixed(2)}ms`,
+        validation: validationResults,
+        scriptPreview: script.substring(0, 200) + (script.length > 200 ? '...' : '')
       });
       
+      // Log warnings for potential issues
+      if (!validationResults.hasMessageHandler) {
+        this.logger.warn('Worker', `Worker script may be missing message handler`, {
+          workerId,
+          issue: 'missing_message_handler'
+        });
+      }
+      
+      if (validationResults.scriptComplexity > 0.8) {
+        this.logger.warn('Worker', `Worker script complexity is high`, {
+          workerId,
+          complexity: validationResults.scriptComplexity,
+          recommendation: 'consider_simplification'
+        });
+      }
+      
     } catch (error) {
+      const validationTime = performance.now() - startTime;
+      
       this.logger.error('Worker', `Worker script validation failed for ${workerId}`, {
         workerId,
         error: (error as Error).message,
         scriptLength: script.length,
-        scriptPreview: script.substring(0, 500) + '...'
+        scriptLines: script.split('\n').length,
+        validationTime: `${validationTime.toFixed(2)}ms`,
+        scriptPreview: script.substring(0, 500) + (script.length > 500 ? '...' : ''),
+        errorType: 'validation_failure'
       });
       throw new Error(`Worker script validation failed: ${(error as Error).message}`);
     }
+  }
+
+  // Calculate script complexity score (0-1, where 1 is most complex)
+  private calculateScriptComplexity(script: string): number {
+    const metrics = {
+      lines: script.split('\n').length,
+      functions: (script.match(/function\s+\w+/g) || []).length,
+      classes: (script.match(/class\s+\w+/g) || []).length,
+      loops: (script.match(/\b(for|while|do)\s*\(/g) || []).length,
+      conditionals: (script.match(/\b(if|switch|case)\s*\(/g) || []).length,
+      tryBlocks: (script.match(/\btry\s*\{/g) || []).length,
+      callbacks: (script.match(/\w+\s*=>\s*\{/g) || []).length
+    };
+    
+    // Weighted complexity calculation
+    const complexity = (
+      metrics.lines * 0.001 +
+      metrics.functions * 0.1 +
+      metrics.classes * 0.15 +
+      metrics.loops * 0.2 +
+      metrics.conditionals * 0.1 +
+      metrics.tryBlocks * 0.15 +
+      metrics.callbacks * 0.05
+    ) / 10; // Normalize to 0-1 range
+    
+    return Math.min(complexity, 1);
   }
 
   // Generate simplified worker script for testing
