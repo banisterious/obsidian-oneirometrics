@@ -123,9 +123,12 @@ export class UniversalMetricsCalculator {
 
         this.logger?.trace('Constructor', 'About to create UniversalWorkerPool instance');
         try {
+            console.log('🔍 METRICS CALC DEBUG: About to instantiate UniversalWorkerPool', Date.now());
             this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
+            console.log('🔍 METRICS CALC DEBUG: UniversalWorkerPool instantiated successfully', Date.now());
             this.logger?.trace('Constructor', 'UniversalWorkerPool instance created successfully');
         } catch (error) {
+            console.log('🔍 METRICS CALC DEBUG: UniversalWorkerPool instantiation failed', Date.now(), error);
             this.logger?.error('Constructor', 'Failed to create UniversalWorkerPool', error as Error);
             throw error;
         }
@@ -1498,17 +1501,39 @@ export class UniversalMetricsCalculator {
                 }
             };
 
+            // Measure task data size for performance analysis
+            const taskDataSize = JSON.stringify(task).length;
+            const totalContentLength = entries.reduce((sum, entry) => sum + (entry.content?.length || 0), 0);
+            
+            this.logger?.trace('Performance', `Task data analysis`, {
+                taskId: task.taskId,
+                entriesCount: entries.length,
+                taskDataSizeBytes: taskDataSize,
+                taskDataSizeKB: (taskDataSize / 1024).toFixed(2),
+                taskDataSizeMB: (taskDataSize / (1024 * 1024)).toFixed(2),
+                totalContentLength,
+                averageContentLength: Math.round(totalContentLength / entries.length),
+                serializationOverhead: ((taskDataSize - totalContentLength) / taskDataSize * 100).toFixed(1) + '%'
+            });
+
             this.logger?.debug('WorkerPool', `Created task`, {
                 taskId: task.taskId,
                 taskType: task.taskType,
                 entriesCount: entries.length,
+                taskDataSizeKB: (taskDataSize / 1024).toFixed(2),
                 firstEntry: entries[0] ? {
                     id: entries[0].id,
-                    date: entries[0].date
+                    date: entries[0].date,
+                    contentLength: entries[0].content?.length || 0
                 } : null
             });
 
-            this.logger?.debug('WorkerPool', 'About to call workerPool.processTask', { taskId: task.taskId });
+            this.logger?.debug('WorkerPool', 'About to call workerPool.processTask', { 
+                taskId: task.taskId,
+                taskDataSizeMB: (taskDataSize / (1024 * 1024)).toFixed(2)
+            });
+            
+            const workerPoolStart = performance.now();
             
             // Add timeout to prevent hanging - fallback to sync if worker pool is broken
             const timeoutPromise = new Promise((_, reject) => {
@@ -1520,17 +1545,23 @@ export class UniversalMetricsCalculator {
                 timeoutPromise
             ]) as any;
             
+            const workerPoolTime = performance.now() - workerPoolStart;
+            
+            this.logger?.trace('Performance', `Worker pool processing completed`, {
+                taskId: task.taskId,
+                success: result.success,
+                processingTimeMs: workerPoolTime.toFixed(2),
+                entriesCount: entries.length,
+                entriesPerSecond: (entries.length / (workerPoolTime / 1000)).toFixed(2),
+                taskDataSizeMB: (taskDataSize / (1024 * 1024)).toFixed(2)
+            });
+            
             this.logger?.debug('WorkerPool', 'Worker pool returned result', {
                 success: result.success,
                 dataExists: !!result.data,
                 entriesCount: result.data?.entries?.length || 0,
+                processingTimeMs: workerPoolTime.toFixed(2),
                 error: result.error
-            });
-            
-            this.logger?.debug('WorkerPool', `Worker pool returned result`, {
-                success: result.success,
-                dataExists: !!result.data,
-                entriesCount: result.data?.entries?.length || 0
             });
             
             if (result.success && result.data) {
@@ -1538,7 +1569,8 @@ export class UniversalMetricsCalculator {
                 return result.data;
             } else {
                 this.logger?.warn('WorkerPool', 'Worker pool task failed, falling back to sync', {
-                    error: result.error
+                    error: result.error,
+                    processingTimeMs: workerPoolTime.toFixed(2)
                 });
             }
         } catch (error) {
@@ -1560,6 +1592,8 @@ export class UniversalMetricsCalculator {
     }
 
     private processMetricsSync(entries: MetricsEntry[]): MetricsResult {
+        const syncStart = performance.now();
+        
         this.logger?.info('SyncProcessing', `Processing ${entries.length} entries synchronously`);
         
         const processedEntries: ProcessedMetricsEntry[] = [];
@@ -1570,7 +1604,12 @@ export class UniversalMetricsCalculator {
             
             // Progress summary every 25 entries (at info level)
             if (i % 25 === 0 || i === entries.length - 1) {
-                this.logger?.info('SyncProcessing', `Progress: ${i + 1}/${entries.length} entries processed (${Math.round((i + 1)/entries.length*100)}%)`);
+                const currentTime = performance.now() - syncStart;
+                this.logger?.info('SyncProcessing', `Progress: ${i + 1}/${entries.length} entries processed (${Math.round((i + 1)/entries.length*100)}%)`, {
+                    timeElapsedMs: currentTime.toFixed(2),
+                    entriesPerSecond: ((i + 1) / (currentTime / 1000)).toFixed(2),
+                    estimatedTotalTimeMs: (currentTime / (i + 1) * entries.length).toFixed(2)
+                });
             }
             
             // Detailed per-entry logging (at trace level)
@@ -1614,8 +1653,18 @@ export class UniversalMetricsCalculator {
             processedEntries.push(processedEntry);
         }
 
+        const syncTime = performance.now() - syncStart;
+        
+        this.logger?.trace('Performance', `Sync processing completed`, {
+            totalEntries: processedEntries.length,
+            processingTimeMs: syncTime.toFixed(2),
+            entriesPerSecond: (processedEntries.length / (syncTime / 1000)).toFixed(2),
+            averageTimePerEntryMs: (syncTime / processedEntries.length).toFixed(2)
+        });
+
         this.logger?.info('SyncProcessing', `Sync processing completed`, {
             totalEntries: processedEntries.length,
+            processingTimeMs: syncTime.toFixed(2),
             first3Entries: processedEntries.slice(0, 3).map(e => ({
                 id: e.id,
                 date: e.date,
@@ -1634,7 +1683,7 @@ export class UniversalMetricsCalculator {
                 totalEntries: processedEntries.length,
                 processedEntries: processedEntries.length,
                 failedEntries: 0,
-                processingTime: 0,
+                processingTime: syncTime,
                 cacheHits: 0,
                 cacheMisses: 0,
                 calculationsPerformed: {
@@ -1644,8 +1693,8 @@ export class UniversalMetricsCalculator {
                     aggregations: Object.keys(aggregatedMetrics).length
                 },
                 performance: {
-                    entriesPerSecond: 0,
-                    averageTimePerEntry: 0
+                    entriesPerSecond: processedEntries.length / (syncTime / 1000),
+                    averageTimePerEntry: syncTime / processedEntries.length
                 }
             }
         };

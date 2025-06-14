@@ -363,3 +363,195 @@ try {
 - [ ] Proper error messages for task processing failures
 - [ ] Workers process tasks and return results
 - [ ] Queue processing works efficiently 
+
+# UniversalWorkerPool Performance Investigation
+
+## Initial Problem
+User requested investigation of UniversalWorkerPool failures during scraping and chart loading failures showing placeholders instead of actual charts.
+
+## Initial Hypothesis & Solutions Implemented
+Initially believed UniversalWorkerPool constructor was hanging due to complex worker script (~900 lines). Implemented:
+- Enhanced error debugging with detailed worker logging
+- Circuit breaker pattern (5 failure threshold, 60-second timeout)
+- Worker script validation with size limits and syntax checking
+- Simplified worker implementation for testing
+
+## Log Analysis Breakthrough
+**Challenge**: Enhanced debugging messages weren't appearing in logs despite rebuilds.
+**Discovery**: Logs were capped at 1,000 entries in `src/logging/adapters/MemoryAdapter.ts`, truncating crucial initialization data.
+**Solution**: Progressively increased log cap to 50,000 entries and used fresh plugin directory.
+
+## Major Breakthrough: Real Root Cause
+Log analysis of `logs/oomp-logs-20250613-193852.json` (32.4MB) revealed:
+- ✅ UniversalWorkerPool constructor works perfectly (15ms)
+- ✅ Worker creation successful
+- ✅ Health checking functional
+- ✅ Task queuing works
+- ❌ **Task assignment to workers fails completely**
+
+## Task Type Mismatch Discovery & Fix
+**Root Cause**: Workers only supported `['date_filter', 'metrics_calculation']` but tasks requested `dream_metrics_processing`.
+
+**Evidence**: Log showed "No compatible workers, skipping task" with 0 compatible workers.
+
+**Fix**: 
+1. Updated simplified worker script capabilities to include all task types
+2. Switched UniversalWorkerPool to use full worker script instead of simplified version
+3. Full worker script included correct `dream_metrics_processing` support
+
+## Regex Syntax Error Discovery & Fix
+**Issue**: Worker script validation failing with "Invalid regular expression: missing /" due to double-escaped regex patterns:
+```typescript
+const regex = new RegExp('\\\\b' + word + '\\\\b', 'g'); // ❌ WRONG
+```
+**Fix**: Corrected to single-escaped patterns:
+```typescript
+const regex = new RegExp('\\b' + word + '\\b', 'g'); // ✅ CORRECT
+```
+
+## Worker Script Validation Bug & Fix
+**Issue**: `validateWorkerScript()` using `new Function(script)` incorrectly flagged valid worker scripts as having syntax errors.
+**Problem**: Tried to parse complete JavaScript program with classes as function body.
+**Solution**: Replaced with pattern-based validation checking for essential components without full parsing.
+
+## Success Results
+After fixes, achieved successful processing:
+- ✅ 152 entries processed successfully
+- ✅ 27,656 total words processed  
+- ✅ Processing time: 13.7 seconds
+- ✅ No validation errors
+
+## **MAJOR DISCOVERY: The Mystery of the Constructor Hang**
+
+### **Timeline Analysis from `logs/oomp-logs-20250614-074137.json`**
+- `14:40:28.649Z` - Worker pool failed with timeout error  
+- `14:40:28.650Z` - Falling back to sync processing
+- `14:40:28.653Z` - Started sync processing (152 entries)
+- `14:40:28.762Z` - Sync completed (108ms later)
+
+### **Critical Findings**
+1. **No Constructor Logs**: Despite extensive logging in `UniversalWorkerPool` constructor, NO initialization messages appear
+2. **No Worker Creation**: No worker instantiation or setup messages
+3. **No Task Processing**: No `processTask`, `processQueue`, or task assignment logs
+4. **Constructor Hanging**: The `new UniversalWorkerPool()` call never completes
+
+### **Performance Comparison**
+- ✅ **Sync Processing**: 152 entries in **108ms** (1,402 entries/second) - **BLAZING FAST**
+- ❌ **Worker Pool**: **Never initializes** - hangs indefinitely, times out after 60 seconds
+
+### **Historical Progression**
+1. **Early logs**: "Worker script validation failed: Invalid regular expression"
+2. **Middle logs**: Worker pool completing but taking 13+ seconds (4-5x slower than sync)
+3. **Latest logs**: Worker pool constructor never completing at all
+
+### **Root Cause Hypothesis**
+The `UniversalWorkerPool` constructor is hanging during one of these steps:
+1. **Load balancer initialization** (`initializeLoadBalancer()`)
+2. **Worker pool initialization** (`initializeWorkerPool()`)
+3. **Worker creation** (`createWorker()`) - Most likely candidate
+4. **Health checking setup** (`startHealthChecking()`)
+5. **Queue processing setup** (`startQueueProcessing()`)
+
+### **Evidence Supporting Worker Creation Hang**
+- Constructor has extensive logging at each step
+- No logs appear at all, suggesting hang occurs early
+- Worker creation involves Web Worker instantiation which can hang on:
+  - Invalid worker script syntax
+  - Worker script loading/parsing
+  - Worker message handler setup
+  - Initial worker communication
+
+## **🎉 BREAKTHROUGH: Logger Was the Root Cause!**
+
+### **The Logger Hypothesis Test (`logs/oomp-logs-20250614-080413.json`)**
+
+**Test**: Bypassed logger initialization in `UniversalWorkerPool` constructor:
+```typescript
+// BEFORE: Hanging logger initialization
+private logger: ContextualLogger = getLogger('UniversalWorkerPool') as ContextualLogger;
+
+// AFTER: Bypass with no-op logger
+private logger: ContextualLogger = {
+  trace: () => {}, debug: () => {}, info: () => {}, 
+  warn: () => {}, error: () => {}, enrichError: (error: Error) => error
+} as any;
+```
+
+### **🎯 BREAKTHROUGH RESULTS**
+
+**✅ Constructor Success**: 
+- UniversalWorkerPool constructor completed successfully
+- 4 workers created (`totalWorkers: 4`)
+- 1 active worker (`activeWorkers: 1`)
+- Statistics working properly
+- **No more constructor hang!**
+
+**🚀 Sync Processing Performance**: 
+- 152 entries in **30.20ms** (5,033 entries/second)
+- Even faster than previous 108ms result
+- Absolutely blazing performance
+
+**❌ Worker Pool Task Processing**: 
+- Constructor works, but tasks still timeout after 60 seconds
+- Tasks get queued (`totalTasks: 1`) but never complete (`completedTasks: 0`)
+- Overall time: 62.8 seconds (60s timeout + 30ms sync fallback)
+
+### **Root Cause Analysis Complete**
+
+1. **✅ SOLVED: Constructor Hang** = `getLogger('UniversalWorkerPool')` initialization issue
+2. **🔍 NEW ISSUE: Task Processing Hang** = Worker script execution or task assignment issue
+
+### **Logger Initialization Problem**
+
+**Issue Location**: `getLogger('UniversalWorkerPool')` in class field initialization
+```typescript
+export class UniversalWorkerPool {
+  private logger: ContextualLogger = getLogger('UniversalWorkerPool') as ContextualLogger; // ← HANGS HERE
+```
+
+**Initialization Sequence Problem**:
+1. `initializeLogUI(this.plugin)` creates `new MemoryAdapter()` with 50,000 entry limit
+2. `LogManager.getInstance().addAdapter(memoryAdapter)` adds adapter
+3. `getLogger('UniversalWorkerPool')` triggers LogManager singleton creation
+4. **Circular dependency or initialization deadlock occurs**
+
+**Evidence**:
+- No constructor logs appear despite extensive trace/info logging
+- Logger bypass allows constructor to complete successfully
+- MemoryAdapter with 50,000 entry limit may cause performance issues
+- Complex initialization sequence in `src/plugin/PluginLoader.ts`
+
+## **Next Steps: Two-Phase Fix Strategy**
+
+### **Phase 1: Fix Logger Issue (PRIORITY)**
+1. **Investigate `getLogger()` hang** - Check LogManager singleton initialization
+2. **Test MemoryAdapter performance** - 50,000 entries may be too large
+3. **Simplify logger initialization** - Avoid circular dependencies
+4. **Add initialization timeout** - Prevent infinite hangs
+
+### **Phase 2: Debug Task Processing (After Logger Fixed)**
+1. **Add detailed worker communication logs** - Track task flow
+2. **Investigate worker script execution** - Are workers receiving tasks?
+3. **Check task assignment logic** - Are tasks being sent properly?
+4. **Analyze worker message passing** - Are workers responding?
+
+## **Performance Implications & Recommendations**
+
+### **Key Findings**
+- **Sync processing is extremely efficient** (5,033 entries/second)
+- **Logger initialization is blocking** - Critical infrastructure issue
+- **Worker pool has potential** but needs task processing fix
+- **Immediate fallback works perfectly** - Good user experience
+
+### **Strategic Recommendations**
+1. **Fix logger first** - Essential for debugging other issues
+2. **Keep sync as primary** - It's faster and more reliable
+3. **Worker pool as enhancement** - Optional performance feature
+4. **Implement fast timeouts** - 5-second constructor timeout
+5. **Focus on reliability** - Sync processing is proven to work
+
+### **Expected Outcomes**
+- ✅ Working logger enables proper debugging
+- ✅ Clear visibility into worker communication
+- ✅ Faster resolution of remaining issues
+- ✅ Better long-term debugging capabilities 

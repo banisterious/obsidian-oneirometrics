@@ -102,7 +102,29 @@ class TaskAffinityBalancer implements LoadBalancer {
 }
 
 export class UniversalWorkerPool {
-  private logger: ContextualLogger = getLogger('UniversalWorkerPool') as ContextualLogger;
+  // DEBUG: Test if logger initialization is hanging
+  static {
+    console.log('🔍 CLASS DEBUG: UniversalWorkerPool class loading', Date.now());
+  }
+  
+  // TEMPORARILY bypass logger to test if it's causing the hang
+  private logger: ContextualLogger = {
+    trace: () => {},
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    enrichError: (error: Error) => error
+  } as any;
+  
+  // Original logger initialization (commented out for testing)
+  // private logger: ContextualLogger = (() => {
+  //   console.log('🔍 LOGGER DEBUG: About to call getLogger', Date.now());
+  //   const logger = getLogger('UniversalWorkerPool') as ContextualLogger;
+  //   console.log('🔍 LOGGER DEBUG: getLogger completed', Date.now());
+  //   return logger;
+  // })();
+  
   private workers = new Map<string, PoolWorker>();
   private taskQueue: QueuedTask[] = [];
   private activeRequests = new Map<string, {
@@ -132,6 +154,9 @@ export class UniversalWorkerPool {
     private app: App,
     private config: UniversalPoolConfiguration
   ) {
+    // IMMEDIATE logging to see if we even get into the constructor
+    console.log('🔍 CONSTRUCTOR DEBUG: UniversalWorkerPool constructor ENTRY', Date.now());
+    
     this.logger.trace('Constructor', 'UniversalWorkerPool constructor START', {
       timestamp: Date.now(),
       maxWorkers: config.maxWorkers,
@@ -139,45 +164,74 @@ export class UniversalWorkerPool {
       loadBalancing: config.loadBalancing
     });
     
+    console.log('🔍 CONSTRUCTOR DEBUG: About to log info message', Date.now());
+    
     this.logger.info('Initialization', 'UniversalWorkerPool constructor called', {
       maxWorkers: config.maxWorkers,
       workerTypes: Object.keys(config.workerTypes),
       loadBalancing: config.loadBalancing
     });
     
+    console.log('🔍 CONSTRUCTOR DEBUG: Info message logged', Date.now());
+    
     this.logger.trace('Constructor', 'Initial logger.info completed', { timestamp: Date.now() });
     
+    console.log('🔍 CONSTRUCTOR DEBUG: About to enter try block', Date.now());
+    
     try {
+      console.log('🔍 CONSTRUCTOR DEBUG: Inside try block', Date.now());
+      
       this.logger.trace('Constructor', 'About to initialize load balancer', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Initializing load balancer');
+      
+      console.log('🔍 CONSTRUCTOR DEBUG: About to call initializeLoadBalancer', Date.now());
       this.initializeLoadBalancer();
+      console.log('🔍 CONSTRUCTOR DEBUG: initializeLoadBalancer completed', Date.now());
+      
       this.logger.trace('Constructor', 'Load balancer initialized', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Load balancer initialized successfully');
       
       this.logger.trace('Constructor', 'About to initialize worker pool', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Initializing worker pool');
+      
+      console.log('🔍 CONSTRUCTOR DEBUG: About to call initializeWorkerPool', Date.now());
       this.initializeWorkerPool();
+      console.log('🔍 CONSTRUCTOR DEBUG: initializeWorkerPool completed', Date.now());
+      
       this.logger.trace('Constructor', 'Worker pool initialized', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Worker pool initialized successfully');
       
       this.logger.trace('Constructor', 'About to start health checking', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Starting health checking');
+      
+      console.log('🔍 CONSTRUCTOR DEBUG: About to call startHealthChecking', Date.now());
       this.startHealthChecking();
+      console.log('🔍 CONSTRUCTOR DEBUG: startHealthChecking completed', Date.now());
+      
       this.logger.trace('Constructor', 'Health checking started', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Health checking started successfully');
       
       this.logger.trace('Constructor', 'About to start queue processing', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Starting queue processing');
+      
+      console.log('🔍 CONSTRUCTOR DEBUG: About to call startQueueProcessing', Date.now());
       this.startQueueProcessing();
+      console.log('🔍 CONSTRUCTOR DEBUG: startQueueProcessing completed', Date.now());
+      
       this.logger.trace('Constructor', 'Queue processing started', { timestamp: Date.now() });
       this.logger.trace('Initialization', 'Queue processing started successfully');
+      
+      console.log('🔍 CONSTRUCTOR DEBUG: About to log final success message', Date.now());
       
       this.logger.info('Initialization', 'Universal Worker Pool initialized successfully', {
         workersCreated: this.workers.size,
         healthCheckInterval: 30000,
         loadBalancerType: config.loadBalancing
       });
+      
+      console.log('🔍 CONSTRUCTOR DEBUG: Constructor completed successfully', Date.now());
     } catch (error) {
+      console.log('🔍 CONSTRUCTOR DEBUG: Constructor threw error', Date.now(), error);
       this.logger.error('Initialization', 'Failed to initialize UniversalWorkerPool', error as Error);
       throw error;
     }
@@ -231,6 +285,8 @@ export class UniversalWorkerPool {
 
   // Create a new worker instance
   private createWorker(workerId: string): void {
+    console.log('🔍 CREATE WORKER DEBUG: createWorker START', workerId, Date.now());
+    
     this.logger.trace('CreateWorker', 'createWorker START', { 
       workerId, 
       timestamp: Date.now() 
@@ -241,19 +297,29 @@ export class UniversalWorkerPool {
       this.logger.trace('Worker', `Creating worker: ${workerId}`);
       
       // Validate worker script before creating worker
+      console.log('🔍 CREATE WORKER DEBUG: About to validate worker script', workerId, Date.now());
+      
       this.logger.trace('CreateWorker', 'About to validate worker script', { 
         workerId, 
         timestamp: Date.now() 
       });
       this.logger.trace('Worker', `Validating worker script for: ${workerId}`);
+      
+      console.log('🔍 CREATE WORKER DEBUG: About to get worker script', workerId, Date.now());
       const script = this.getUniversalWorkerScript();
+      console.log('🔍 CREATE WORKER DEBUG: Worker script obtained', workerId, script.length, Date.now());
+      
       this.logger.trace('CreateWorker', 'Worker script obtained', { 
         workerId, 
         scriptLength: script.length,
         timestamp: Date.now() 
       });
+      
+      console.log('🔍 CREATE WORKER DEBUG: About to validate script', workerId, Date.now());
       // Validate worker script syntax
       this.validateWorkerScript(script, workerId);
+      console.log('🔍 CREATE WORKER DEBUG: Script validation completed', workerId, Date.now());
+      
       this.logger.trace('CreateWorker', 'Worker script validated', { 
         workerId, 
         timestamp: Date.now() 
@@ -261,12 +327,26 @@ export class UniversalWorkerPool {
       this.logger.trace('Worker', `Worker script validation passed for: ${workerId}`);
       
       // Create the worker
+      console.log('🔍 CREATE WORKER DEBUG: About to create Worker instance', workerId, Date.now());
+      
       this.logger.trace('CreateWorker', 'About to create Worker instance', { 
         workerId, 
         timestamp: Date.now() 
       });
       this.logger.trace('Worker', `Creating Worker instance for: ${workerId}`);
-      const worker = new Worker(URL.createObjectURL(new Blob([script], { type: 'application/javascript' })));
+      
+      console.log('🔍 CREATE WORKER DEBUG: About to create Blob', workerId, Date.now());
+      const blob = new Blob([script], { type: 'application/javascript' });
+      console.log('🔍 CREATE WORKER DEBUG: Blob created', workerId, Date.now());
+      
+      console.log('🔍 CREATE WORKER DEBUG: About to create URL', workerId, Date.now());
+      const url = URL.createObjectURL(blob);
+      console.log('🔍 CREATE WORKER DEBUG: URL created', workerId, Date.now());
+      
+      console.log('🔍 CREATE WORKER DEBUG: About to instantiate Worker', workerId, Date.now());
+      const worker = new Worker(url);
+      console.log('🔍 CREATE WORKER DEBUG: Worker instantiated', workerId, Date.now());
+      
       this.logger.trace('CreateWorker', 'Worker instance created', { 
         workerId, 
         timestamp: Date.now() 
@@ -566,23 +646,49 @@ export class UniversalWorkerPool {
 
   // Public method to process a task
   async processTask(task: UniversalTask, callbacks?: TaskCallbacks): Promise<TaskResult> {
+    const performanceStart = performance.now();
+    
     this.logger.trace('ProcessTask', 'processTask START', {
       taskId: task.taskId,
       taskType: task.taskType,
       priority: task.priority,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      performanceStart
     });
 
     return new Promise((resolve, reject) => {
+      const queueStart = performance.now();
+      
       this.logger.trace('ProcessTask', 'Storing active request', {
         taskId: task.taskId,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        timeFromStart: queueStart - performanceStart
       });
 
-      // Store the request
+      // Store the request with performance tracking
       this.activeRequests.set(task.taskId, {
-        resolve,
-        reject,
+        resolve: (result: TaskResult) => {
+          const totalTime = performance.now() - performanceStart;
+          this.logger.info('Performance', `Task completed: ${task.taskId}`, {
+            taskId: task.taskId,
+            taskType: task.taskType,
+            totalTimeMs: totalTime.toFixed(2),
+            queueTimeMs: (queueStart - performanceStart).toFixed(2),
+            processingTimeMs: (performance.now() - queueStart).toFixed(2),
+            success: result.success
+          });
+          resolve(result);
+        },
+        reject: (error: any) => {
+          const totalTime = performance.now() - performanceStart;
+          this.logger.warn('Performance', `Task failed: ${task.taskId}`, {
+            taskId: task.taskId,
+            taskType: task.taskType,
+            totalTimeMs: totalTime.toFixed(2),
+            error: error.message
+          });
+          reject(error);
+        },
         callbacks,
         startTime: Date.now()
       });
@@ -590,7 +696,8 @@ export class UniversalWorkerPool {
       this.logger.trace('ProcessTask', 'Adding task to queue', {
         taskId: task.taskId,
         currentQueueLength: this.taskQueue.length,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        timeFromStart: (performance.now() - performanceStart).toFixed(2)
       });
 
       // Add to queue for processing
@@ -608,13 +715,15 @@ export class UniversalWorkerPool {
         taskId: task.taskId,
         taskType: task.taskType,
         priority: task.priority,
-        queueDepth: this.taskQueue.length
+        queueDepth: this.taskQueue.length,
+        queueTimeMs: (performance.now() - performanceStart).toFixed(2)
       });
 
       this.logger.trace('ProcessTask', 'About to call processQueue', {
         taskId: task.taskId,
         queueDepth: this.taskQueue.length,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        timeFromStart: (performance.now() - performanceStart).toFixed(2)
       });
 
       // Try to process immediately
@@ -623,7 +732,8 @@ export class UniversalWorkerPool {
       this.logger.trace('ProcessTask', 'processQueue call completed', {
         taskId: task.taskId,
         queueDepth: this.taskQueue.length,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        timeFromStart: (performance.now() - performanceStart).toFixed(2)
       });
     });
   }
