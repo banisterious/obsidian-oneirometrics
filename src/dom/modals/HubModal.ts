@@ -31,6 +31,7 @@ import {
     normalizeSelectionMode
 } from '../../utils/selection-mode-helpers';
 import { SettingsAdapter } from '../../state/adapters/SettingsAdapter';
+import { TemplateWizardModal } from './TemplateWizardModal';
 
 // Import metrics functionality from settings
 import { 
@@ -1662,7 +1663,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             cls: 'oom-button-primary'
         });
         createBtn.addEventListener('click', () => {
-            this.enterWizardMode();
+            const wizardModal = new TemplateWizardModal(this.app, this.plugin);
+            wizardModal.open();
         });
         
         // Template import/export section
@@ -3284,10 +3286,10 @@ Full debug info in logs/console`);
                 .setDesc('Enter the markdown content for your template. Use callouts like > [!journal-entry] for structure.');
             
             // Create a dedicated container for the textarea to give it more space
-            const textareaContainer = container.createDiv({ cls: 'oom-direct-input-container' });
+            const textareaContainer = contentSetting.settingEl.createDiv({ cls: 'oom-direct-input-container' });
             
             const textarea = textareaContainer.createEl('textarea', {
-                cls: 'oom-direct-input-textarea',
+                cls: 'oom-wizard-textarea',
                 attr: {
                     placeholder: `Enter your template content here...
 
@@ -3308,9 +3310,6 @@ Example:
 > > > Confidence Score: 1-5`
                 }
             });
-            
-            // Style the textarea - use CSS class
-            textarea.addClass('oom-wizard-textarea');
             
             // Set initial value - this was missing proper restoration for editing!
             textarea.value = this.wizardState!.content || '';

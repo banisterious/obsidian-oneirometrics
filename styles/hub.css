@@ -267,6 +267,10 @@
     }
 }
 
+.oom-wizard-footer .oom-button-container {
+    margin-top: 0;
+}
+
 /* =============================================================================
    TEMPLATE ACTION BUTTONS - Icon Button System
    ============================================================================= */
@@ -880,7 +884,12 @@
     background-color: var(--background-modifier-hover);
 }
 
-/* Template Wizard Textarea */
+/* Template Wizard Direct Input */
+.oom-direct-input-container {
+    margin: 1em 0;
+    width: 100%;
+}
+
 .oom-wizard-textarea {
     width: 100%;
     min-height: 300px;

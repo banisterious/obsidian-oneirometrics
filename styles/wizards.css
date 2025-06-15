@@ -1,0 +1,665 @@
+/* =============================================================================
+   WIZARDS COMPONENT - Template Creation & Other Wizard Interfaces
+   ============================================================================= */
+
+/* COMPONENT OVERVIEW:
+   - Template Wizard Modal (Material Design approach)
+   - Step-by-step wizard interface patterns
+   - Monochrome design following Obsidian aesthetics
+   - Lucide icon integration
+   - Responsive design patterns
+   
+   DESIGN PRINCIPLES:
+   - Clean, distraction-free interface
+   - Clear visual hierarchy and progress indication
+   - Accessibility-first approach
+   - Theme-agnostic monochrome palette
+   */
+
+/* =============================================================================
+   TEMPLATE WIZARD MODAL - Main Container
+   ============================================================================= */
+
+/* Modal container override for template wizard */
+.modal.oom-template-wizard-modal {
+    --modal-max-height: 90vh;
+    --modal-max-width: 800px;
+    width:800px;
+}
+
+.modal.oom-template-wizard-modal .modal-bg {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal.oom-template-wizard-modal .modal-container {
+    max-width: var(--modal-max-width);
+    max-height: var(--modal-max-height);
+    margin: auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--background-modifier-border);
+    overflow: hidden;
+}
+
+/* Template wizard content structure */
+.oom-template-wizard-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--background-primary);
+}
+
+/* =============================================================================
+   WIZARD HEADER - Title, Step Indicator, Close Button
+   ============================================================================= */
+
+.oom-wizard-header {
+    padding: var(--oom-spacing-lg);
+    background: var(--background-primary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.oom-wizard-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-normal);
+}
+
+/* Step indicator */
+.oom-step-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+}
+
+.oom-step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-step-number.active {
+    background: var(--text-normal);
+    color: var(--background-primary);
+}
+
+.oom-step-number.completed {
+    background: var(--text-normal);
+    color: var(--background-primary);
+}
+
+.oom-step-number.inactive {
+    background: var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.oom-step-divider {
+    width: 20px;
+    height: 1px;
+    background: var(--background-modifier-border);
+}
+
+/* Close button */
+.oom-wizard-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: var(--oom-spacing-sm);
+    border-radius: var(--oom-radius-sm);
+    color: var(--text-muted);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-wizard-close:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.oom-wizard-close svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+/* =============================================================================
+   WIZARD CONTENT - Main Step Container
+   ============================================================================= */
+
+.oom-wizard-content {
+    flex: 1;
+    padding: var(--oom-spacing-xl);
+    overflow-y: auto;
+    min-height: 400px;
+}
+
+.oom-step-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 var(--oom-spacing-sm) 0;
+    color: var(--text-normal);
+}
+
+.oom-step-description {
+    color: var(--text-muted);
+    margin: 0 0 var(--oom-spacing-xl) 0;
+    font-size: 16px;
+    line-height: var(--oom-line-height-normal);
+}
+
+/* =============================================================================
+   METHOD SELECTION CARDS - Step 1 Interface
+   ============================================================================= */
+
+.oom-method-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--oom-spacing-md);
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.oom-method-card {
+    background: var(--background-primary);
+    border: 2px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    padding: var(--oom-spacing-lg);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+    position: relative;
+}
+
+.oom-method-card:hover {
+    border-color: var(--text-normal);
+    box-shadow: var(--oom-shadow-md);
+    transform: translateY(-2px);
+}
+
+.oom-method-card.selected {
+    border-color: var(--text-normal);
+    background: var(--background-secondary);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+.oom-method-content {
+    text-align: center;
+}
+
+.oom-method-icon {
+    margin-bottom: var(--oom-spacing-md);
+    display: flex;
+    justify-content: center;
+}
+
+.oom-method-icon svg {
+    width: 32px;
+    height: 32px;
+    stroke-width: 2;
+    color: var(--text-normal);
+}
+
+.oom-method-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 var(--oom-spacing-sm) 0;
+    color: var(--text-normal);
+}
+
+.oom-method-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* =============================================================================
+   WIZARD FORM ELEMENTS - Inputs, Textareas, Dropdowns
+   ============================================================================= */
+
+/* Override Obsidian's setting styles for wizard */
+.oom-wizard-content .setting-item {
+    border: none;
+    padding: var(--oom-spacing-md) 0;
+}
+
+.oom-wizard-content .setting-item-info {
+    flex-grow: 1;
+}
+
+.oom-wizard-content .setting-item-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-normal);
+    margin-bottom: var(--oom-spacing-xs);
+}
+
+.oom-wizard-content .setting-item-description {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: var(--oom-spacing-sm);
+}
+
+.oom-wizard-content .setting-item-control {
+    margin-top: var(--oom-spacing-sm);
+}
+
+/* Text inputs */
+.oom-wizard-content input[type="text"] {
+    width: 100%;
+    padding: 12px var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    font-size: 14px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    transition: all var(--oom-transition-normal);
+}
+
+.oom-wizard-content input[type="text"]:focus {
+    outline: none;
+    border-color: var(--text-normal);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.oom-wizard-content input[type="text"]::placeholder {
+    color: var(--text-muted);
+}
+
+/* Textarea styling - prominent and well-sized */
+.oom-wizard-textarea {
+    width: 100% !important;
+    min-height: 320px !important;
+    padding: var(--oom-spacing-md) !important;
+    border: 1px solid var(--background-modifier-border) !important;
+    border-radius: var(--oom-radius-md) !important;
+    font-family: var(--font-monospace) !important;
+    font-size: 13px !important;
+    line-height: var(--oom-line-height-normal) !important;
+    resize: vertical !important;
+    background: var(--background-primary) !important;
+    color: var(--text-normal) !important;
+    transition: all var(--oom-transition-normal) !important;
+}
+
+.oom-wizard-textarea:focus {
+    outline: none !important;
+    border-color: var(--text-normal) !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.oom-wizard-textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Dropdown styling */
+.oom-wizard-content select {
+    width: 100%;
+    padding: 12px var(--oom-spacing-md);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-sm);
+    font-size: 14px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+}
+
+.oom-wizard-content select:focus {
+    outline: none;
+    border-color: var(--text-normal);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Content section layout for proper textarea placement */
+.oom-content-section {
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.oom-content-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-normal);
+    margin: 0 0 var(--oom-spacing-xs) 0;
+}
+
+.oom-content-description {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin: 0 0 var(--oom-spacing-md) 0;
+}
+
+/* =============================================================================
+   HELPER CHIPS - Content Creation Assistance
+   ============================================================================= */
+
+.oom-content-helpers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--oom-spacing-sm);
+    margin: var(--oom-spacing-md) 0 0 0;
+}
+
+.oom-helper-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: var(--oom-spacing-sm) 12px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.oom-helper-chip:hover {
+    background: var(--text-normal);
+    color: var(--background-primary);
+    border-color: var(--text-normal);
+    transform: translateY(-1px);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+.oom-helper-chip-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+}
+
+/* =============================================================================
+   PREVIEW CARD - Template Content Preview
+   ============================================================================= */
+
+.oom-preview-card {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--oom-radius-md);
+    padding: 20px;
+    margin: var(--oom-spacing-lg) 0;
+}
+
+.oom-preview-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 0 var(--oom-spacing-md) 0;
+    color: var(--text-normal);
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+}
+
+.oom-preview-title svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+.oom-preview-content {
+    font-family: var(--font-monospace);
+    font-size: 12px;
+    white-space: pre-wrap;
+    color: var(--text-normal);
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--background-primary);
+    padding: var(--oom-spacing-md);
+    border-radius: var(--oom-radius-sm);
+    border: 1px solid var(--background-modifier-border-focus);
+    margin: 0;
+}
+
+/* =============================================================================
+   WIZARD FOOTER - Progress & Navigation
+   ============================================================================= */
+
+.oom-wizard-footer {
+    padding: 20px var(--oom-spacing-lg);
+    background: var(--background-secondary);
+    border-top: 1px solid var(--background-modifier-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.oom-footer-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--oom-spacing-md);
+}
+
+.oom-progress-text {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Override positioning for wizard modal progress text */
+.oom-template-wizard-modal .oom-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 29%;
+    transform: translate(-50%, -50%);
+}
+
+.oom-progress-indicator {
+    width: 80px;
+    height: 3px;
+    background: var(--background-modifier-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.oom-progress-fill {
+    height: 100%;
+    background: var(--text-normal);
+    transition: width 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    width: 0;
+}
+
+.oom-footer-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+/* =============================================================================
+   WIZARD BUTTONS - Navigation & Actions
+   ============================================================================= */
+
+.oom-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--oom-spacing-sm);
+    padding: 10px 20px;
+    border-radius: var(--oom-radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+    text-decoration: none;
+    border: none;
+}
+
+.oom-btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-btn-ghost:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+    border-color: var(--text-normal);
+}
+
+.oom-btn-primary {
+    background: var(--text-normal);
+    color: var(--background-primary);
+    border: 1px solid var(--text-normal);
+}
+
+.oom-btn-primary:hover {
+    background: var(--text-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--oom-shadow-sm);
+}
+
+.oom-btn-primary:disabled {
+    background: var(--background-modifier-border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    border-color: var(--background-modifier-border);
+}
+
+.oom-btn-icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - Mobile & Tablet Adaptations
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    .modal.oom-template-wizard-modal .modal-container {
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+        border: none;
+    }
+    
+    .oom-method-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .oom-wizard-header,
+    .oom-wizard-content,
+    .oom-wizard-footer {
+        padding: var(--oom-spacing-md);
+    }
+    
+    .oom-footer-buttons {
+        flex-direction: column-reverse;
+        width: 100%;
+    }
+    
+    .oom-btn {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .oom-step-title {
+        font-size: 20px;
+    }
+    
+    .oom-step-description {
+        font-size: 14px;
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY & REDUCED MOTION SUPPORT
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .oom-method-card,
+    .oom-helper-chip,
+    .oom-btn,
+    .oom-progress-fill {
+        transition: none;
+    }
+    
+    .oom-method-card:hover,
+    .oom-btn-primary:hover {
+        transform: none;
+    }
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+    .oom-method-card {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-method-card.selected {
+        background-color: Highlight;
+        color: HighlightText;
+        border-color: Highlight;
+    }
+    
+    .oom-btn-ghost {
+        border: 1px solid ButtonText;
+    }
+    
+    .oom-btn-primary {
+        background-color: Highlight;
+        color: HighlightText;
+        border-color: Highlight;
+    }
+}
+
+/* =============================================================================
+   PLACEHOLDER & EMPTY STATES
+   ============================================================================= */
+
+.oom-placeholder-text {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--background-secondary);
+    border-radius: var(--oom-radius-md);
+    border: 1px solid var(--background-modifier-border);
+}
+
+/* =============================================================================
+   FUTURE WIZARD PATTERNS - Extensible Base Styles
+   ============================================================================= */
+
+/* Base wizard modal class for consistency across different wizard types */
+.oom-wizard-modal {
+    /* Standard wizard sizing */
+    --wizard-max-width: 800px;
+    --wizard-max-height: 90vh;
+}
+
+/* Common wizard step patterns */
+.oom-wizard-step-hidden {
+    display: none;
+}
+
+.oom-wizard-step-visible {
+    display: block;
+}
+
+/* Common wizard validation states */
+.oom-wizard-field-error {
+    border-color: var(--text-error);
+}
+
+.oom-wizard-field-success {
+    border-color: var(--text-success);
+}
+
+.oom-wizard-error-message {
+    color: var(--text-error);
+    font-size: 12px;
+    margin-top: var(--oom-spacing-xs);
+}
