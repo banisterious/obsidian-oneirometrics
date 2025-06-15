@@ -113,9 +113,54 @@ private safelyEmptyContainer(container: HTMLElement): void {
 }
 ```
 
-#### Additional Files with innerHTML/outerHTML Issues
-**Files:** PatternTooltips.ts, EnhancedDateNavigatorModal.ts, FilterDisplayManager.ts  
-**Status:** 🔍 **PENDING DETAILED ANALYSIS** - Awaiting comprehensive audit similar to HubModal.ts
+#### Target Files for Phase 1 Analysis - COMPLETED
+**High Priority Files:** All analyzed and categorized  
+**Status:** ✅ **ANALYSIS COMPLETE** - Ready for implementation
+
+#### 2. EnhancedDateNavigatorModal.ts - ANALYSIS COMPLETED
+**File:** `src/dom/modals/EnhancedDateNavigatorModal.ts`  
+**Issue:** 6 instances of innerHTML usage (4 write, 2 read)  
+**Security Risk:** 2 Medium risk, 4 Low risk instances  
+**Priority:** Medium - Date navigation modal  
+**Status:** 🔍 **ANALYZED** - Ready for remediation
+
+**Detailed Findings:**
+
+**MEDIUM RISK (2 instances):**
+- **Line 349:** Month option with entry indicator - `monthOption.innerHTML = monthName + indicator`
+  - **Fix:** Use DOM manipulation: `monthOption.textContent` + `createEl('span')`
+- **Line 1960:** Filter display update with dynamic text
+  - **Fix:** Use `empty()` + `createEl()` methods for safe construction
+
+**LOW RISK (4 instances):**
+- **Lines 201, 212:** Navigation buttons with arrow characters (`innerHTML = '‹'`, `innerHTML = '›'`)
+  - **Fix:** Replace with `textContent = '‹'` and `textContent = '›'`
+- **Lines 1486, 1514:** Debug logging (read-only operations)
+  - **Fix:** Safe as-is - read operations only
+
+#### 3. PatternTooltips.ts - ANALYSIS COMPLETED
+**File:** `src/dom/date-navigator/PatternTooltips.ts`  
+**Issue:** 2 instances (1 innerHTML, 1 outerHTML)  
+**Security Risk:** 1 High risk, 1 Low risk instance  
+**Priority:** High - Dynamic content generation  
+**Status:** 🔍 **ANALYZED** - Ready for remediation
+
+**Detailed Findings:**
+
+**HIGH RISK (1 instance):**
+- **Line 53:** Tooltip content injection - `tooltip.innerHTML = this.generateTooltip(entry, patterns)`
+  - **Risk:** Direct injection of user content (dream titles, dates) without sanitization
+  - **Fix:** Modify `generateTooltip()` to return DOM elements, use `appendChild()`
+
+**LOW RISK (1 instance):**
+- **Line 220:** DOM element serialization - `return barContainer.outerHTML`
+  - **Risk:** Controlled element conversion to string
+  - **Fix:** Return DOM element directly, use `appendChild()` instead of HTML string
+
+#### Remaining Files Requiring Future Analysis
+**Scope:** 30+ additional files with innerHTML/outerHTML usage (114 total instances across codebase)  
+**Status:** 📋 **DEFERRED** - Will require comprehensive audit after Phase 1 completion  
+**Note:** Full codebase audit needed for complete security compliance
 
 ## Issue 2: var Usage - Replace with const/let
 
