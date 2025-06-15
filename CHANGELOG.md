@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.16.2](#0162---2025-06-15)
   - [Version 0.15.0](#0150---2025-06-10)
   - [Version 0.13.0](#0130---2025-06-05)
   - [Version 0.11.1](#0111---2025-06-03)
@@ -21,6 +22,10 @@
 
 ## [Unreleased]
 
+## Released Versions
+
+## [0.16.2] - 2025-06-15
+
 ### Added
 - **CSV Export System**: Comprehensive data export functionality across all chart visualizations
   - Export buttons integrated into all 5 chart tabs (Statistics, Trends, Compare, Correlations, Heatmap)
@@ -33,8 +38,6 @@
 ### Fixed
 - **Template Wizard Direct Input**: Resolved missing textarea issue by creating dedicated TemplateWizardModal with proper Material Design interface
 - **Template Import/Export**: Fixed format mismatch that prevented single template JSON imports from working correctly
-
-## Released Versions
 
 ## [0.15.0] - 2025-06-09
 
