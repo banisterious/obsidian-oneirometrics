@@ -3070,7 +3070,7 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (18.6 KB)
+   COMPONENT: UTILITIES (20.6 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -3698,6 +3698,67 @@ td:has(.oom-metric-icon-container) {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* =============================================================================
+   DROPDOWN POSITIONING UTILITIES - For Autocomplete and Suggestion Systems
+   ============================================================================= */
+
+/* Base dropdown positioning (used by autocomplete.ts fallback positioning)
+   Replaces inline styles: position: absolute, top/left/width from getBoundingClientRect */
+.oom-dropdown-absolute {
+    position: absolute;
+    z-index: 1000;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    box-shadow: var(--shadow-s);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Dynamic positioning using CSS custom properties 
+   Used for setting top/left/width values dynamically from JavaScript */
+.oom-dropdown-positioned {
+    top: var(--oom-dropdown-top, auto);
+    left: var(--oom-dropdown-left, auto);
+    width: var(--oom-dropdown-width, auto);
+}
+
+/* Suggestion container positioning for folder autocomplete
+   Replaces inline styles: --oom-suggestion-top, --oom-suggestion-left, --oom-suggestion-width */
+.oom-suggestion-positioned {
+    position: absolute;
+    top: var(--oom-suggestion-top, auto);
+    left: var(--oom-suggestion-left, auto);
+    width: var(--oom-suggestion-width, auto);
+    z-index: 1000;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    box-shadow: var(--shadow-s);
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Performance optimization for dropdown elements */
+.oom-dropdown-absolute,
+.oom-dropdown-positioned,
+.oom-suggestion-positioned {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Utility for matching input width - common pattern in autocomplete */
+.oom-dropdown-match-input-width {
+    width: var(--oom-input-width, 100%);
+}
+
+/* Utility for dropdown below element - common positioning pattern */
+.oom-dropdown-below {
+    top: var(--oom-element-bottom, 100%);
+    left: var(--oom-element-left, 0);
+    min-width: var(--oom-element-width, 200px);
 }
 
 /* =============================================================================

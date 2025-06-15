@@ -227,12 +227,13 @@ class MultiSelectNotesSuggest {
                 }]
             });
         } else {
-            // Fallback positioning
+            // Fallback positioning using CSS utility classes
             const rect = referenceEl.getBoundingClientRect();
-            this.suggestEl.style.position = "absolute";
-            this.suggestEl.style.top = `${rect.bottom}px`;
-            this.suggestEl.style.left = `${rect.left}px`;
-            this.suggestEl.style.width = `${rect.width}px`;
+            this.suggestEl.addClass('oom-dropdown-absolute');
+            this.suggestEl.addClass('oom-dropdown-positioned');
+            this.suggestEl.style.setProperty('--oom-dropdown-top', `${rect.bottom}px`);
+            this.suggestEl.style.setProperty('--oom-dropdown-left', `${rect.left}px`);
+            this.suggestEl.style.setProperty('--oom-dropdown-width', `${rect.width}px`);
         }
     }
 
@@ -446,8 +447,7 @@ export function createFolderAutocomplete({
                 });
             });
             suggestionContainer.classList.add('oom-suggestions-visible');
-            const inputRect = input.getBoundingClientRect();
-            const containerRect = containerEl.getBoundingClientRect();
+            suggestionContainer.classList.add('oom-suggestion-positioned');
             suggestionContainer.style.setProperty('--oom-suggestion-top', `${input.offsetTop + input.offsetHeight}px`);
             suggestionContainer.style.setProperty('--oom-suggestion-left', `${input.offsetLeft}px`);
             suggestionContainer.style.setProperty('--oom-suggestion-width', `${input.offsetWidth}px`);
@@ -642,12 +642,13 @@ class MultiSelectFoldersSuggest {
                 }]
             });
         } else {
-            // Fallback positioning
+            // Fallback positioning using CSS utility classes
             const rect = referenceEl.getBoundingClientRect();
-            this.suggestEl.style.position = "absolute";
-            this.suggestEl.style.top = `${rect.bottom}px`;
-            this.suggestEl.style.left = `${rect.left}px`;
-            this.suggestEl.style.width = `${rect.width}px`;
+            this.suggestEl.addClass('oom-dropdown-absolute');
+            this.suggestEl.addClass('oom-dropdown-positioned');
+            this.suggestEl.style.setProperty('--oom-dropdown-top', `${rect.bottom}px`);
+            this.suggestEl.style.setProperty('--oom-dropdown-left', `${rect.left}px`);
+            this.suggestEl.style.setProperty('--oom-dropdown-width', `${rect.width}px`);
         }
     }
 
