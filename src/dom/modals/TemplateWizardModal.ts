@@ -5,7 +5,7 @@
  * step-by-step interface following Material Design principles.
  */
 
-import { App, Modal, Setting, Notice, DropdownComponent, TextAreaComponent, TextComponent, setIcon } from 'obsidian';
+import { App, Modal, Setting, Notice, DropdownComponent, TextAreaComponent, TextComponent, setIcon, TFile } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
 import { CalloutStructure, JournalTemplate } from '../../types/journal-check';
 import safeLogger from '../../logging/safe-logger';
@@ -21,6 +21,7 @@ interface TemplateWizardState {
     templaterFile: string;
     currentStep: number;
     isValid: boolean;
+    editingTemplateId?: string; // For editing existing templates
 }
 
 export class TemplateWizardModal extends Modal {
@@ -30,6 +31,7 @@ export class TemplateWizardModal extends Modal {
     private footerContainer: HTMLElement;
     private progressFill: HTMLElement;
     private stepIndicatorContainer: HTMLElement;
+    private isEditMode: boolean = false;
     
     // Form elements for state management
     private nameInput: TextComponent | null = null;
@@ -37,19 +39,41 @@ export class TemplateWizardModal extends Modal {
     private contentTextarea: TextAreaComponent | null = null;
     private structureDropdown: DropdownComponent | null = null;
 
-    constructor(app: App, plugin: DreamMetricsPlugin) {
+    constructor(app: App, plugin: DreamMetricsPlugin, existingTemplate?: JournalTemplate) {
         super(app);
         this.plugin = plugin;
-        this.wizardState = {
-            method: null,
-            templateName: '',
-            templateDescription: '',
-            content: '',
-            structure: null,
-            templaterFile: '',
-            currentStep: 1,
-            isValid: false
-        };
+        this.isEditMode = !!existingTemplate;
+        
+        if (existingTemplate) {
+            // Initialize wizard state from existing template
+            const method = this.determineTemplateMethod(existingTemplate);
+            const structure = method === 'structure' ? this.findStructureById(existingTemplate.structure) : null;
+            const startStep = this.determineStartingStep(method);
+            
+            this.wizardState = {
+                method,
+                templateName: existingTemplate.name,
+                templateDescription: existingTemplate.description || '',
+                content: existingTemplate.content || '',
+                structure,
+                templaterFile: existingTemplate.templaterFile || '',
+                currentStep: startStep,
+                isValid: true,
+                editingTemplateId: existingTemplate.id
+            };
+        } else {
+            // Initialize empty wizard state for new template
+            this.wizardState = {
+                method: null,
+                templateName: '',
+                templateDescription: '',
+                content: '',
+                structure: null,
+                templaterFile: '',
+                currentStep: 1,
+                isValid: false
+            };
+        }
     }
 
     onOpen() {
@@ -84,8 +108,8 @@ export class TemplateWizardModal extends Modal {
         const header = this.contentEl.createDiv({ cls: 'oom-wizard-header' });
         
         // Title
-        const titleEl = header.createEl('h1', { 
-            text: 'Create Template',
+        header.createEl('h1', { 
+            text: this.isEditMode ? 'Edit Template' : 'Create Template',
             cls: 'oom-wizard-title'
         });
         
@@ -400,9 +424,10 @@ export class TemplateWizardModal extends Modal {
         // Template name
         new Setting(container)
             .setName('Template Name')
+            .setDesc('Enter a descriptive name for this template')
             .addText(text => {
                 this.nameInput = text;
-                text.setValue(this.wizardState.templateName)
+                text.setValue(this.wizardState.templateName || '')
                     .setPlaceholder('Enter template name...')
                     .onChange(value => {
                         this.wizardState.templateName = value;
@@ -423,6 +448,9 @@ export class TemplateWizardModal extends Modal {
                 availableStructures.forEach(structure => {
                     dropdown.addOption(structure.id, `${structure.name} - ${structure.description}`);
                 });
+                
+                // Set current value if any
+                dropdown.setValue(this.wizardState.structure?.id || '');
                 
                 dropdown.onChange(value => {
                     if (value) {
@@ -454,12 +482,88 @@ export class TemplateWizardModal extends Modal {
             cls: 'oom-step-description'
         });
         
-        // Implementation for Templater selection would go here
-        // This is a placeholder for now
-        container.createEl('p', {
-            text: 'Templater integration coming soon...',
-            cls: 'oom-placeholder-text'
-        });
+        // Check Templater availability
+        const templaterEnabled = !!(this.plugin.templaterIntegration?.isTemplaterInstalled?.());
+        let templaterTemplates: string[] = [];
+        
+        if (templaterEnabled) {
+            templaterTemplates = this.plugin.templaterIntegration?.getTemplaterTemplates?.() || [];
+        }
+        
+        if (!templaterEnabled) {
+            container.createEl('p', {
+                text: 'Templater plugin not found. Please install and enable the Templater plugin to use this feature.',
+                cls: 'oom-placeholder-text'
+            });
+            return;
+        }
+        
+        if (templaterTemplates.length === 0) {
+            container.createEl('p', {
+                text: 'No Templater templates found. Please create some templates in your Templater folder first.',
+                cls: 'oom-placeholder-text'
+            });
+            return;
+        }
+        
+        // Templater file selection
+        new Setting(container)
+            .setName('Templater Template')
+            .setDesc('Select from your available Templater templates')
+            .addDropdown(dropdown => {
+                this.structureDropdown = dropdown; // Reuse for templater
+                dropdown.addOption('', 'Select a template...');
+                
+                templaterTemplates.forEach(template => {
+                    dropdown.addOption(template, template);
+                });
+                
+                dropdown.setValue(this.wizardState.templaterFile || '');
+                dropdown.onChange(async (value) => {
+                    this.wizardState.templaterFile = value;
+                    if (value) {
+                        // Auto-generate template name from filename
+                        if (!this.wizardState.templateName) {
+                            this.wizardState.templateName = this.generateTemplateNameFromFile(value);
+                            if (this.nameInput) {
+                                this.nameInput.setValue(this.wizardState.templateName);
+                            }
+                        }
+                        
+                        // Load template content for preview
+                        try {
+                            const templateContent = await this.loadTemplaterTemplateContent(value);
+                            this.wizardState.content = templateContent;
+                        } catch (error) {
+                            this.wizardState.content = `Error loading template: ${(error as Error).message}`;
+                        }
+                    } else {
+                        this.wizardState.content = '';
+                    }
+                    this.validateCurrentStep();
+                    this.renderFooterButtons(this.footerContainer.querySelector('.oom-footer-buttons') as HTMLElement);
+                });
+            });
+        
+        // Template name
+        new Setting(container)
+            .setName('Template Name')
+            .setDesc('Enter a name for this template (auto-generated from filename)')
+            .addText(text => {
+                this.nameInput = text;
+                text.setValue(this.wizardState.templateName || '')
+                    .setPlaceholder('Will be auto-generated from filename')
+                    .onChange(value => {
+                        this.wizardState.templateName = value;
+                        this.validateCurrentStep();
+                        this.renderFooterButtons(this.footerContainer.querySelector('.oom-footer-buttons') as HTMLElement);
+                    });
+            });
+        
+        // Preview if file is selected
+        if (this.wizardState.templaterFile && this.wizardState.content) {
+            this.renderPreview(container, 'Templater Template Preview', this.wizardState.content);
+        }
     }
 
     private renderPreviewAndConfirm() {
@@ -536,6 +640,14 @@ export class TemplateWizardModal extends Modal {
             default:
                 this.wizardState.isValid = false;
         }
+        
+        safeLogger.trace('TemplateWizardModal', 'validateCurrentStep', {
+            currentStep: this.wizardState.currentStep,
+            method: this.wizardState.method,
+            templateName: this.wizardState.templateName,
+            contentLength: this.wizardState.content?.length || 0,
+            isValid: this.wizardState.isValid
+        });
     }
 
     private async createTemplate() {
@@ -552,7 +664,7 @@ export class TemplateWizardModal extends Modal {
         
         try {
             const template: JournalTemplate = {
-                id: Date.now().toString(),
+                id: this.wizardState.editingTemplateId || Date.now().toString(),
                 name: this.wizardState.templateName,
                 description: this.wizardState.templateDescription,
                 content: this.wizardState.content,
@@ -585,13 +697,15 @@ export class TemplateWizardModal extends Modal {
                 totalTemplates: this.plugin.settings.linting?.templates?.length || 0
             });
             
-            new Notice(`Template "${template.name}" created successfully!`);
-            safeLogger.debug('TemplateWizardModal', 'Template created successfully', { templateName: template.name });
+            const actionText = this.isEditMode ? 'updated' : 'created';
+            new Notice(`Template "${template.name}" ${actionText} successfully!`);
+            safeLogger.debug('TemplateWizardModal', `Template ${actionText} successfully`, { templateName: template.name });
             
             this.close();
         } catch (error) {
-            safeLogger.error('TemplateWizardModal', 'Failed to create template', error);
-            new Notice('Failed to create template. Please try again.');
+            const actionText = this.isEditMode ? 'update' : 'create';
+            safeLogger.error('TemplateWizardModal', `Failed to ${actionText} template`, error);
+            new Notice(`Failed to ${actionText} template. Please try again.`);
         }
     }
 
@@ -649,14 +763,31 @@ export class TemplateWizardModal extends Modal {
                 templateId: template.id
             });
 
-            // Add the new template to the templates array
-            this.plugin.settings.linting.templates.push(template);
-            
-            const templatesAfterCount = this.plugin.settings.linting.templates.length;
-            safeLogger.trace('TemplateWizardModal', 'Template added to array', {
-                templatesAfterCount,
-                templateAdded: templatesAfterCount > templatesBeforeCount
-            });
+            if (this.wizardState.editingTemplateId) {
+                // Update existing template
+                const existingIndex = this.plugin.settings.linting.templates.findIndex(t => t.id === this.wizardState.editingTemplateId);
+                if (existingIndex !== -1) {
+                    this.plugin.settings.linting.templates[existingIndex] = template;
+                    safeLogger.trace('TemplateWizardModal', 'Template updated in array', {
+                        existingIndex,
+                        templateId: template.id
+                    });
+                } else {
+                    safeLogger.warn('TemplateWizardModal', 'Could not find existing template to update, adding as new', {
+                        editingTemplateId: this.wizardState.editingTemplateId
+                    });
+                    this.plugin.settings.linting.templates.push(template);
+                }
+            } else {
+                // Add new template to the templates array
+                this.plugin.settings.linting.templates.push(template);
+                
+                const templatesAfterCount = this.plugin.settings.linting.templates.length;
+                safeLogger.trace('TemplateWizardModal', 'Template added to array', {
+                    templatesAfterCount,
+                    templateAdded: templatesAfterCount > templatesBeforeCount
+                });
+            }
             
             // Save settings to persist the template
             safeLogger.trace('TemplateWizardModal', 'Calling plugin.saveSettings()');
@@ -872,6 +1003,94 @@ Example:
         }
         
         return content;
+    }
+
+    private generateTemplateNameFromFile(filename: string): string {
+        // Remove extension and convert to title case
+        const name = filename.replace(/\.[^/.]+$/, '');
+        return name.replace(/[-_]/g, ' ')
+                  .replace(/\b\w/g, l => l.toUpperCase()) + ' Template';
+    }
+
+    private async loadTemplaterTemplateContent(templatePath: string): Promise<string> {
+        try {
+            const file = this.app.vault.getAbstractFileByPath(templatePath);
+            if (file instanceof TFile) {
+                return await this.app.vault.read(file);
+            } else {
+                throw new Error(`Template file not found: ${templatePath}`);
+            }
+        } catch (error) {
+            safeLogger.error('TemplateWizardModal', 'Error loading Templater template content', { 
+                templatePath, 
+                error: error instanceof Error ? error.message : String(error) 
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Determine the template creation method based on template properties
+     */
+    private determineTemplateMethod(template: JournalTemplate): TemplateCreationMethod {
+        // Check for Templater template first
+        if (template.isTemplaterTemplate && template.templaterFile) {
+            return 'templater';
+        }
+        
+        // Check for structure-based template
+        if (template.structure && template.structure.trim() !== '') {
+            const availableStructures = this.getAvailableStructures();
+            const matchingStructure = availableStructures.find(s => s.id === template.structure);
+            
+            if (matchingStructure && template.content) {
+                // Check if content looks structure-generated
+                const hasStructureMarkers = template.content.includes('[!journal-entry]') ||
+                                          template.content.includes('[!dream-diary]') ||
+                                          template.content.includes('[!dream-metrics]');
+                
+                if (hasStructureMarkers) {
+                    return 'structure';
+                }
+            }
+        }
+        
+        // Default to direct input
+        return 'direct';
+    }
+
+    /**
+     * Find a structure by its ID
+     */
+    private findStructureById(structureId: string): CalloutStructure | null {
+        if (!structureId) return null;
+        
+        const availableStructures = this.getAvailableStructures();
+        return availableStructures.find(s => s.id === structureId) || null;
+    }
+
+    /**
+     * Determine the starting step based on template method
+     */
+    private determineStartingStep(method: TemplateCreationMethod): number {
+        switch (method) {
+            case 'structure':
+                return 3; // Go to preview step for structure-based templates
+            case 'templater':
+            case 'direct':
+            default:
+                return 2; // Go to content creation step
+        }
+    }
+
+    /**
+     * Update the modal title based on edit mode
+     */
+    private updateModalTitle() {
+        const titleEl = this.contentEl.querySelector('.oom-wizard-title');
+        if (titleEl) {
+            titleEl.textContent = this.isEditMode ? 'Edit Template' : 'Create Template';
+        }
     }
 
     private cleanup() {

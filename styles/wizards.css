@@ -306,7 +306,7 @@
 /* Dropdown styling */
 .oom-wizard-content select {
     width: 100%;
-    padding: 12px var(--oom-spacing-md);
+    /*padding: 12px var(--oom-spacing-md);*/
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--oom-radius-sm);
     font-size: 14px;

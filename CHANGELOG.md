@@ -30,6 +30,10 @@
   - Error handling with user-friendly notifications and robust data validation
   - Responsive design with styled export buttons and mobile compatibility
 
+### Fixed
+- **Template Wizard Direct Input**: Resolved missing textarea issue by creating dedicated TemplateWizardModal with proper Material Design interface
+- **Template Import/Export**: Fixed format mismatch that prevented single template JSON imports from working correctly
+
 ## Released Versions
 
 ## [0.15.0] - 2025-06-09

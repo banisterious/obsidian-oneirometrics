@@ -3563,70 +3563,15 @@ Example:
      * Edit an existing template in the wizard
      */
     private editExistingTemplate(template: JournalTemplate) {
-        // Enter wizard mode with the existing template data
-        this.journalStructureMode = 'wizard';
-        
-        // Determine the method based on template properties - improved logic
-        let method: TemplateCreationMethod = 'direct'; // Default to direct if unsure
-        
-        if (template.isTemplaterTemplate && template.templaterFile) {
-            method = 'templater';
-        } else if (template.structure && template.structure.trim() !== '') {
-            // Only use structure method if the template actually has a defined structure
-            // AND the content looks like it was generated from a structure
-            const availableStructures = this.getAvailableStructures();
-            const matchingStructure = availableStructures.find(s => s.id === template.structure);
-            
-            if (matchingStructure) {
-                // Check if content looks structure-generated vs. direct input
-                const hasStructureMarkers = template.content?.includes('[!journal-entry]') ||
-                                          template.content?.includes('[!dream-diary]') ||
-                                          template.content?.includes('[!dream-metrics]');
-                
-                if (hasStructureMarkers) {
-                    method = 'structure';
-                } else {
-                    // Content doesn't match structure patterns, likely direct input with assigned structure
-                    method = 'direct';
-                }
-            }
-        }
-        
-        safeLogger.debug('Template', 'Edit Template - Detected method', {
-            method,
+        safeLogger.debug('Template', 'Opening TemplateWizardModal for editing', {
             templateName: template.name,
-            templateStructure: template.structure,
-            contentPreview: template.content?.substring(0, 100)
+            templateId: template.id,
+            templateStructure: template.structure
         });
         
-        // Find the structure if it exists and method is structure
-        let structure: CalloutStructure | null = null;
-        if (method === 'structure' && template.structure) {
-            structure = this.getAvailableStructures().find(s => s.id === template.structure) || null;
-        }
-        
-        // Set appropriate wizard step based on method
-        let startStep = 2; // Default to step 2 for most methods
-        if (method === 'structure') {
-            startStep = 3; // Go to final preview step for structure method
-        }
-        
-        this.wizardState = {
-            method,
-            templaterFile: template.templaterFile || '',
-            structure,
-            content: template.content || '',
-            templateName: template.name,
-            templateDescription: template.description || '',
-            isValid: true,
-            currentStep: startStep,
-            editingTemplateId: template.id // Store the ID so we know we're editing
-        };
-        
-        safeLogger.debug('Template', 'Wizard state for editing', { wizardState: this.wizardState });
-        
-        // Re-render in wizard mode
-        this.loadJournalStructureContent();
+        // Open the new dedicated TemplateWizardModal for editing
+        const wizardModal = new TemplateWizardModal(this.app, this.plugin, template);
+        wizardModal.open();
     }
     
     /**
@@ -6179,13 +6124,39 @@ Example:
         try {
             const importData = JSON.parse(fileContent);
             
-            // Validate import data structure
-            if (!importData.templates || !Array.isArray(importData.templates)) {
-                new Notice('Invalid template file format. Expected JSON with templates array.');
+            let importedTemplates: any[];
+            let importFormat: string;
+            
+            // Handle both single template and templates array formats
+            if (importData.templates && Array.isArray(importData.templates)) {
+                // Multi-template format: { templates: [...] }
+                importedTemplates = importData.templates;
+                importFormat = 'multi-template array';
+                this.logger.debug('Templates', `Import detected multi-template format with ${importedTemplates.length} templates`);
+            } else if (importData.name && importData.content !== undefined) {
+                // Single template format: { name: "...", content: "...", ... }
+                importedTemplates = [importData];
+                importFormat = 'single template';
+                this.logger.debug('Templates', `Import detected single template format: "${importData.name}"`);
+            } else {
+                this.logger.warn('Templates', 'Import failed: invalid format', { 
+                    hasTemplatesArray: !!importData.templates,
+                    hasName: !!importData.name,
+                    hasContent: importData.content !== undefined,
+                    keys: Object.keys(importData)
+                });
+                new Notice('Invalid template file format. Expected either a single template object or JSON with templates array.');
                 return;
             }
             
-            const importedTemplates = importData.templates;
+            // Validate that we have at least one template
+            if (!importedTemplates.length) {
+                this.logger.warn('Templates', 'Import failed: no templates found', { importFormat });
+                new Notice('No templates found in the imported file.');
+                return;
+            }
+            
+            this.logger.info('Templates', `Processing ${importedTemplates.length} template(s) from ${importFormat}`, { filename });
             const existingTemplates = this.plugin.settings.linting?.templates || [];
             
             // Check for conflicts and show import dialog
@@ -6548,6 +6519,7 @@ Example:
     private exportTemplateAsJSON(template: JournalTemplate) {
         const content = template.content || '';
         const jsonData = JSON.stringify({
+            id: template.id,
             name: template.name,
             description: template.description,
             content: content,
