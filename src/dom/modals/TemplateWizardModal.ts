@@ -170,7 +170,8 @@ export class TemplateWizardModal extends Modal {
 
     private updateProgress() {
         const progress = (this.wizardState.currentStep / 3) * 100;
-        this.progressFill.style.width = `${progress}%`;
+        this.progressFill.classList.add('oom-progress-bar');
+        this.progressFill.style.setProperty('--oom-progress-width', `${progress}%`);
     }
 
     private renderFooterButtons(container: HTMLElement) {
@@ -356,10 +357,9 @@ export class TemplateWizardModal extends Modal {
             }
         });
         
-        // Set initial value and styling
+        // Set initial value and styling using CSS utility classes
         textarea.value = this.wizardState.content || '';
-        textarea.style.minHeight = '320px';
-        textarea.style.fontFamily = 'var(--font-monospace)';
+        textarea.classList.add('oom-textarea-template');
         
         // Create TextAreaComponent wrapper for compatibility
         this.contentTextarea = {

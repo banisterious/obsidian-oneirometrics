@@ -11752,7 +11752,7 @@ input[type="date"]:focus-visible {
 
 
 /* =============================================================================
-   COMPONENT: WIZARDS (17.1 KB)
+   COMPONENT: WIZARDS (17.7 KB)
    ============================================================================= */
 /* =============================================================================
    WIZARDS COMPONENT - Template Creation & Other Wizard Interfaces
@@ -12418,4 +12418,23 @@ input[type="date"]:focus-visible {
     color: var(--text-error);
     font-size: 12px;
     margin-top: var(--oom-spacing-xs);
+}
+
+/* =============================================================================
+   TEMPLATE WIZARD TEXTAREA UTILITIES
+   ============================================================================= */
+
+/* Template content textarea styling */
+.oom-textarea-template {
+    min-height: 320px;
+    font-family: var(--font-monospace);
+    resize: vertical;
+    border-radius: var(--radius-s);
+}
+
+/* Code-style textarea utility for template editing */
+.oom-textarea-code {
+    font-family: var(--font-monospace);
+    background: var(--background-primary-alt);
+    border: 1px solid var(--background-modifier-border);
 }

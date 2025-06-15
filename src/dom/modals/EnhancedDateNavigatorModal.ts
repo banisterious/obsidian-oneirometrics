@@ -376,12 +376,12 @@ export class EnhancedDateNavigatorModal extends Modal {
             });
         });
 
-        // Position menu relative to button
+        // Position menu relative to button using CSS utility classes
         const rect = triggerButton.getBoundingClientRect();
-        menu.style.position = 'fixed';
-        menu.style.top = `${rect.bottom + 4}px`;
-        menu.style.left = `${rect.left}px`;
-        menu.style.zIndex = '1000';
+        menu.classList.add('oom-dropdown-absolute');
+        menu.classList.add('oom-dropdown-positioned');
+        menu.style.setProperty('--oom-dropdown-top', `${rect.bottom + 4}px`);
+        menu.style.setProperty('--oom-dropdown-left', `${rect.left}px`);
 
         document.body.appendChild(menu);
 
