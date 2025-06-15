@@ -132,7 +132,7 @@ export class FilterManager {
         
         // Apply will-change to the table container for better performance
         if (tableContainer) {
-            tableContainer.setAttribute('style', 'will-change: contents;');
+            tableContainer.classList.add('oom-perf-will-change-contents');
         }
         
         this.logger?.log('Filter', `Applying filter: ${dateRange}`, {

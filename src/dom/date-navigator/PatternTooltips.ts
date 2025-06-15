@@ -207,9 +207,17 @@ export class PatternTooltips {
         const percentage = Math.min(100, (normalizedValue / maxValue) * 100);
         const barColor = this.getMetricBarColor(metricName, normalizedValue, maxValue);
         
-        return `<span class="oom-tooltip-bar">
-            <span class="oom-tooltip-bar-fill" style="--bar-width: ${percentage}%; --bar-color: ${barColor};"></span>
-        </span>`;
+        // Create elements to avoid inline styles in HTML templates
+        const barContainer = document.createElement('span');
+        barContainer.className = 'oom-tooltip-bar';
+        
+        const barFill = document.createElement('span');
+        barFill.className = 'oom-tooltip-bar-fill oom-tooltip-bar-dynamic';
+        barFill.style.setProperty('--bar-width', `${percentage}%`);
+        barFill.style.setProperty('--bar-color', barColor);
+        
+        barContainer.appendChild(barFill);
+        return barContainer.outerHTML;
     }
     
     /**

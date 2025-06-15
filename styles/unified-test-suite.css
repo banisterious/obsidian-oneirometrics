@@ -1056,4 +1056,20 @@
         flex-direction: column;
         align-items: flex-start;
     }
+}
+
+/* =============================================================================
+   TEST TEXTAREA UTILITIES - Replaces inline style height/width assignments
+   ============================================================================= */
+
+/* Large textarea for test modals - replaces style.height = '300px'; style.width = '100%' */
+.oom-test-textarea-large {
+    height: 300px !important;
+    width: 100% !important;
+}
+
+/* Medium textarea for test modals - replaces style.height = '150px'; style.width = '100%' */
+.oom-test-textarea-medium {
+    height: 150px !important;
+    width: 100% !important;
 } 

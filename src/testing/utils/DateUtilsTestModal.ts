@@ -94,8 +94,7 @@ export class DateUtilsTestModal extends Modal {
         this.updatePlaceholder();
         
         // Make the text area larger
-        this.textArea.inputEl.style.height = '150px';
-        this.textArea.inputEl.style.width = '100%';
+        this.textArea.inputEl.classList.add('oom-test-textarea-medium');
         
         // Sample inputs button
         new Setting(inputSection)

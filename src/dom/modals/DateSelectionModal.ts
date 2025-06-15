@@ -215,7 +215,7 @@ export class DateSelectionModal extends Modal {
         // ✅ ACCESSIBILITY: Make calendar container focusable with Tab key
         // This allows Tab navigation to reach the calendar, then arrow keys work within it
         calendarContainer.setAttribute('tabindex', '0');
-        calendarContainer.style.outline = 'none'; // Remove default focus outline (we'll style the focused cell instead)
+        calendarContainer.addClass('oom-focus-no-outline'); // Remove default focus outline (we'll style the focused cell instead)
         
         // Days of week header
         const daysHeader = calendarContainer.createDiv('oom-days-header');
@@ -1857,12 +1857,7 @@ export class DateSelectionModal extends Modal {
         const announcement = document.createElement('div');
         announcement.setAttribute('aria-live', 'polite');
         announcement.setAttribute('aria-atomic', 'true');
-        announcement.className = 'sr-only';
-        announcement.style.position = 'absolute';
-        announcement.style.left = '-10000px';
-        announcement.style.width = '1px';
-        announcement.style.height = '1px';
-        announcement.style.overflow = 'hidden';
+        announcement.className = 'oom-sr-only oom-live-region';
         announcement.textContent = message;
         
         document.body.appendChild(announcement);

@@ -72,8 +72,7 @@ export class TestModal extends Modal {
             });
         
         // Make the text area larger
-        this.textArea.inputEl.style.height = '300px';
-        this.textArea.inputEl.style.width = '100%';
+        this.textArea.inputEl.classList.add('oom-test-textarea-large');
         
         // Sample content button
         new Setting(contentSection)

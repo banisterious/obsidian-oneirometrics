@@ -116,7 +116,8 @@ export class ProgressIndicator {
         }
         
         if (this.progressBar) {
-            this.progressBar.style.width = `${progress.progress}%`;
+            this.progressBar.classList.add('oom-progress-bar-dynamic');
+            this.progressBar.style.setProperty('--oom-progress-width', `${progress.progress}%`);
         }
     }
 

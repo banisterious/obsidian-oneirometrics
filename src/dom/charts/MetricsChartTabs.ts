@@ -926,6 +926,7 @@ export class MetricsChartTabs {
                 
                 // Apply intensity-based styling
                 dayDiv.classList.add('oom-heatmap-day-data');
+                // INTENTIONAL: Dynamic heatmap intensity - cannot be predetermined in CSS
                 dayDiv.style.setProperty('--intensity', intensity.toString());
                 dayDiv.title = `${dateStr}: ${metricName} = ${value.toFixed(2)}`;
                 

@@ -165,7 +165,8 @@ export class TableManager {
                         row.classList.remove('oom-row--hidden');
                         
                         // Make sure inline style display is removed if it exists
-                        (row as HTMLElement).style.removeProperty('display');
+                        row.classList.remove('oom-display-none');
+                        row.classList.add('oom-display-reset');
                         
                         // Initialize date attributes during this pass for efficiency
                         this.initializeDateAttributesForRow(row, i);

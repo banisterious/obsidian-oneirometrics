@@ -131,7 +131,6 @@ import {
 
 // Import test modals
 import { WebWorkerTestModal } from './src/workers/ui/WebWorkerTestModal';
-import { DateNavigatorTestModal } from './src/workers/ui/DateNavigatorTestModal';
 import { MetricsCalculatorTestModal } from './src/workers/ui/MetricsCalculatorTestModal';
 import { TemplateTabsModal } from './src/templates/ui/TemplateTabsModal';
 import { UnifiedTestSuiteModal } from './src/testing/ui/UnifiedTestSuiteModal';

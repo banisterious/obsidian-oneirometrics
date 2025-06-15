@@ -131,7 +131,7 @@ export class FilterUI {
         
         // Apply will-change to the table container for better performance
         if (tableContainer) {
-            tableContainer.setAttribute('style', 'will-change: contents;');
+            tableContainer.classList.add('oom-perf-will-change-contents');
         }
         
         this.logger?.debug('Filter', `Applying filter: ${dateRange}`, {
@@ -360,7 +360,8 @@ export class FilterUI {
                 
                 // Remove the will-change property to free up resources
                 if (tableContainer) {
-                    (tableContainer as HTMLElement).style.willChange = 'auto';
+                    tableContainer.classList.remove('oom-perf-will-change-contents', 'oom-perf-will-change-transform-contents');
+                    tableContainer.classList.add('oom-perf-will-change-auto');
                 }
             }
         };
@@ -623,7 +624,7 @@ export class FilterUI {
         const tableContainer = previewEl.querySelector('.oom-table-container');
         if (tableContainer) {
             // Set will-change to optimize for upcoming changes
-            tableContainer.setAttribute('style', 'will-change: transform, contents; contain: content;');
+            tableContainer.classList.add('oom-perf-will-change-transform-contents');
         }
         
         // Store the date range values safely

@@ -64,7 +64,7 @@ export class CustomDateRangeFilter {
         const tableContainer = previewEl.querySelector('.oom-table-container');
         if (tableContainer) {
             // Set will-change to optimize for upcoming changes
-            tableContainer.setAttribute('style', 'will-change: transform, contents; contain: content;');
+            tableContainer.classList.add('oom-perf-will-change-transform-contents');
         }
         
         // Store the date range values safely

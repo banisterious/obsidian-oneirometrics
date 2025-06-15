@@ -62,7 +62,8 @@ export function createModal(app: App, config: ModalConfig = {}): Modal {
         ? `${finalConfig.width}px` 
         : finalConfig.width;
       
-      contentEl.style.width = width;
+      contentEl.addClass('oom-modal-dynamic-width');
+      contentEl.style.setProperty('--oom-modal-width', width);
     }
     
     // Apply height if provided
@@ -71,7 +72,8 @@ export function createModal(app: App, config: ModalConfig = {}): Modal {
         ? `${finalConfig.height}px` 
         : finalConfig.height;
       
-      contentEl.style.height = height;
+      contentEl.addClass('oom-modal-dynamic-height');
+      contentEl.style.setProperty('--oom-modal-height', height);
     }
     
     // Add title if provided
@@ -163,7 +165,8 @@ export function createProgressModal(app: App, config: ModalConfig = {}): {
   
   // Helper function to update progress
   const updateProgress = (percent: number, text?: string, details?: string) => {
-    progressBar.style.width = `${percent}%`;
+    progressBar.addClass('oom-progress-bar-dynamic');
+    progressBar.style.setProperty('--oom-progress-width', `${percent}%`);
     
     if (text !== undefined) {
       progressText.textContent = text;

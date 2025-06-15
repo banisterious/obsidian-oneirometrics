@@ -61,6 +61,12 @@
     cursor: wait;
 }
 
+/* Focus outline removal utility for accessibility scenarios
+   Replaces: style.outline = 'none' in DateSelectionModal.ts */
+.oom-focus-no-outline {
+    outline: none;
+}
+
 /* Interactive state utility using Obsidian's native hover color
    Pattern: background-color on hover - Found throughout components */
 .u-state--interactive:hover {
@@ -685,6 +691,63 @@
     top: var(--oom-element-bottom, 100%);
     left: var(--oom-element-left, 0);
     min-width: var(--oom-element-width, 200px);
+}
+
+/* =============================================================================
+   MODAL SIZING UTILITIES - Dynamic Width/Height for ModalFactory
+   Replaces inline style width/height assignments in ModalFactory.ts
+   ============================================================================= */
+
+/* Dynamic modal width utility - replaces contentEl.style.width = width */
+.oom-modal-dynamic-width {
+    width: var(--oom-modal-width, auto);
+}
+
+/* Dynamic modal height utility - replaces contentEl.style.height = height */
+.oom-modal-dynamic-height {
+    height: var(--oom-modal-height, auto);
+}
+
+/* Dynamic progress bar utility - replaces progressBar.style.width = `${percent}%` */
+.oom-progress-bar-dynamic {
+    width: var(--oom-progress-width, 0%);
+    transition: width 0.2s ease-in-out;
+}
+
+/* =============================================================================
+   PERFORMANCE OPTIMIZATION UTILITIES - will-change Properties
+   Replaces inline style will-change assignments in FilterUI.ts and related components
+   ============================================================================= */
+
+/* Performance utility for table content changes - replaces setAttribute('style', 'will-change: contents;') */
+.oom-perf-will-change-contents {
+    will-change: contents;
+}
+
+/* Performance utility for transform and content changes - replaces setAttribute('style', 'will-change: transform, contents; contain: content;') */
+.oom-perf-will-change-transform-contents {
+    will-change: transform, contents;
+    contain: content;
+}
+
+/* Performance utility to reset will-change - replaces style.willChange = 'auto' */
+.oom-perf-will-change-auto {
+    will-change: auto;
+}
+
+/* Tooltip bar dynamic styling - replaces HTML style attributes in PatternTooltips.ts */
+.oom-tooltip-bar-dynamic {
+    width: var(--bar-width, 0%);
+    background-color: var(--bar-color, #ccc);
+}
+
+/* Display utility classes - replaces inline style.removeProperty('display') and style.display assignments */
+.oom-display-none {
+    display: none;
+}
+
+.oom-display-reset {
+    display: revert;
 }
 
 /* =============================================================================
