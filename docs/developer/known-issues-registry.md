@@ -87,6 +87,7 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
 | REFACTOR-25-001 | Event System Refactoring | Complete metrics note failure after refactoring event handling system | Critical - Plugin non-functional for its primary purpose | 2025-05-24 | 2025-07-15 |
+| ISSUE-25-014 | UniversalWorkerPool | Background worker script syntax errors causing continuous worker recreation (~90 errors per scrape) | Low - User experience unaffected due to sync fallback; performance overhead acceptable (~10s scraping) | 2025-06-15 | Deferred - Non-critical optimization |
 
 #### Issue Details: REFACTOR-25-001
 
@@ -107,6 +108,32 @@ This is a compound issue affecting multiple components. The refactoring effort t
 - UI rendering problems
 
 For complete details on this issue, including analysis, implementation plans, and resolution approach, see the [Scraping and Metrics Note Issues](./implementation/refactoring-lessons-learned.md#1-scraping-and-metrics-note-issues) section in the Refactoring Lessons Learned document.
+
+#### Issue Details: ISSUE-25-014
+
+**UniversalWorkerPool Background Worker Script Errors**
+
+This issue involves background worker script syntax errors that cause continuous worker recreation during scraping operations. Despite the errors, user experience remains unaffected due to effective sync fallback mechanisms.
+
+**Technical Root Cause:**
+- Worker scripts fail immediately after instantiation due to syntax errors (likely double-escaped regex patterns)
+- Pattern: ~90 worker errors per scrape operation with continuous worker recreation
+- Sync fallback system successfully masks the issue from users
+
+**End-User Impact:**
+- ✅ **No visible impact** - Charts and tables appear reliably on first try
+- ✅ **Acceptable performance** - ~10 second scraping duration
+- ✅ **No user-facing errors** - All functionality works as expected
+
+**Current Workaround:**
+- Sync fallback processing handles all metrics calculation successfully
+- Worker pool errors are logged but don't block functionality
+- Performance overhead is acceptable for current use cases
+
+**Investigation Reference:**
+For complete technical investigation, root cause analysis, and resolution options, see [UniversalWorkerPool Investigation](./implementation/universal-worker-pool-investigation.md#phase-2-result-processing-pipeline-investigation--resolution).
+
+**Resolution Priority:** Deferred - Low impact optimization rather than critical bug
 
 ### CSS Architecture Issues
 

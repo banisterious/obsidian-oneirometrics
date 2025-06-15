@@ -3593,9 +3593,12 @@ Example:
             }
         }
         
-        console.log('?? Edit Template - Detected method:', method, 'for template:', template.name);
-        console.log('?? Template has structure:', template.structure);
-        console.log('?? Template content preview:', template.content?.substring(0, 100));
+        safeLogger.debug('Template', 'Edit Template - Detected method', {
+            method,
+            templateName: template.name,
+            templateStructure: template.structure,
+            contentPreview: template.content?.substring(0, 100)
+        });
         
         // Find the structure if it exists and method is structure
         let structure: CalloutStructure | null = null;
@@ -3621,7 +3624,7 @@ Example:
             editingTemplateId: template.id // Store the ID so we know we're editing
         };
         
-        console.log('?? Wizard state for editing:', this.wizardState);
+        safeLogger.debug('Template', 'Wizard state for editing', { wizardState: this.wizardState });
         
         // Re-render in wizard mode
         this.loadJournalStructureContent();
@@ -4018,8 +4021,10 @@ Example:
             templaterFile: this.wizardState.templaterFile || ''
         };
         
-        console.log('?? Saving template with structure ID:', template.structure);
-        console.log('?? Template data:', template);
+        safeLogger.debug('Template', 'Saving template', { 
+            structureId: template.structure,
+            templateData: template 
+        });
         
         this.saveTemplate(template);
     }
