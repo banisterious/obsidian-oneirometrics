@@ -8,14 +8,16 @@
 ## 🔍 CURRENT STATUS - REQUIRES ATTENTION
 
 **⚠️ Project Status: SIGNIFICANT INLINE STYLES REMAIN** 
-- **Total Inline Styles Found:** 67 instances across 17 files
+- **Total Inline Styles Found:** 78 instances across 18 files
 - **Inline Styles Eliminated (Previous Phases):** 523+ instances (previous work preserved)
-- **Remaining Inline Styles:** **67 instances** - Requires immediate attention for Obsidian review
+- **Remaining Inline Styles:** **78 instances** - Requires immediate attention for Obsidian review
 - **CSS Classes Created:** 100+ new utility and component classes (previous work)
 - **CSS Infrastructure Added:** 15KB+ of organized, maintainable stylesheets (previous work)
 
 **⚠️ CRITICAL FINDINGS:**
-The previous audit claiming "100% completion with zero remaining inline styles" was inaccurate. This comprehensive re-audit has identified 67 remaining inline style instances that must be addressed before Obsidian Community Plugin submission.
+The previous audit claiming "100% completion with zero remaining inline styles" was inaccurate. This comprehensive re-audit has identified 78 remaining inline style instances that must be addressed before Obsidian Community Plugin submission.
+
+**⚠️ ADDITIONAL FINDING:** Obsidian's review bot identified 11 additional inline styles in `autocomplete.ts` that were initially missed in the audit.
 
 ## Table of Contents
 
@@ -49,6 +51,7 @@ The previous audit claiming "100% completion with zero remaining inline styles" 
 | DateNavigator.ts | Direct Styles | 5 | Archive | N/A (Archive) |
 | OneiroMetricsModal.bak.ts | Direct Styles | 2 | Archive | N/A (Archive) |
 | PatternTooltips.ts | HTML style | 1 | Medium | enhanced-date-navigator.css |
+| **autocomplete.ts** | **Direct Styles & CSS Properties** | **11** | **High** | **utilities.css** |
 
 ### Available CSS Component Stylesheets
 
@@ -74,7 +77,7 @@ Based on the build-css.js component system, the following stylesheets are availa
 
 ## Categorized Remaining Inline Styles
 
-### 🚨 HIGH PRIORITY - Production UI Components (32 instances)
+### 🚨 HIGH PRIORITY - Production UI Components (43 instances)
 
 #### 1. PatternRenderer.ts (12 instances)
 **File:** `src/dom/date-navigator/PatternRenderer.ts`
@@ -157,6 +160,30 @@ menu.style.left = `${rect.left}px`;         // → for dynamic positioning
 menu.style.zIndex = '1000';                 // → Use CSS variables
 ```
 **Priority:** High - Dynamic positioning can use CSS custom properties pattern
+
+#### 7. autocomplete.ts (11 instances) 🚨 **FOUND BY OBSIDIAN REVIEW BOT**
+**File:** `autocomplete.ts` (root level)
+**Type:** Direct Style Assignments & CSS Custom Properties
+**Lines:** 232-235, 451-453, 647-650
+**Target:** `utilities.css`
+**Impact:** Autocomplete suggestion positioning and dropdown display
+**Strategy:** Create reusable dropdown positioning utility classes
+```typescript
+// MultiSelectNotesSuggest fallback positioning (Lines 232-235)
+this.suggestEl.style.position = "absolute";     // → Create .oom-dropdown-absolute class
+this.suggestEl.style.top = `${rect.bottom}px`;  // → Use CSS custom properties
+this.suggestEl.style.left = `${rect.left}px`;   // → for dynamic positioning
+this.suggestEl.style.width = `${rect.width}px`; // → Create utility classes
+
+// Single folder suggestion positioning (Lines 451-453)
+suggestionContainer.style.setProperty('--oom-suggestion-top', `${input.offsetTop + input.offsetHeight}px`);
+suggestionContainer.style.setProperty('--oom-suggestion-left', `${input.offsetLeft}px`);
+suggestionContainer.style.setProperty('--oom-suggestion-width', `${input.offsetWidth}px`);
+
+// MultiSelectFoldersSuggest fallback positioning (Lines 647-650) - Duplicate pattern
+```
+**Priority:** High - Used across multiple autocomplete interfaces, critical for functionality
+**Recommendation:** Create shared dropdown positioning utilities in utilities.css, consolidate duplicate positioning logic
 
 ### 🟡 MEDIUM PRIORITY - Component Specific (18 instances)
 
@@ -305,9 +332,9 @@ The previous inline style elimination project (Phases 1A through 7M-1) successfu
 ## Recommended Action Plan
 
 ### Phase 1: Critical Production Components (Immediate)
-**Target:** 32 high-priority instances in production UI components
+**Target:** 43 high-priority instances in production UI components
 **Timeline:** Before Obsidian review submission
-**Target Stylesheets:** enhanced-date-navigator.css, tables.css, hub.css, wizards.css
+**Target Stylesheets:** enhanced-date-navigator.css, tables.css, hub.css, wizards.css, utilities.css
 
 | Component | Instances | Target Stylesheet | Action Required |
 |-----------|-----------|------------------|-----------------|
@@ -317,6 +344,7 @@ The previous inline style elimination project (Phases 1A through 7M-1) successfu
 | HubModal.ts | 3 | hub.css | Convert progress bar, create overflow utility |
 | TemplateWizardModal.ts | 3 | wizards.css | Create textarea and progress utilities |
 | EnhancedDateNavigatorModal.ts | 4 | enhanced-date-navigator.css | Create dropdown positioning utilities |
+| **autocomplete.ts** | **11** | **utilities.css** | **Create shared dropdown positioning utilities** |
 
 ### Phase 2: Medium Priority Components (Soon)
 **Target:** 18 medium-priority instances in supporting components
@@ -382,6 +410,6 @@ Screen reader accessibility positioning should be:
 ---
 
 **Audit Completed:** June 15, 2025  
-**Status:** 67 inline styles identified requiring attention  
+**Status:** 78 inline styles identified requiring attention (67 initial + 11 found by Obsidian review bot in autocomplete.ts)  
 **Next Review:** After Phase 1 completion  
 **Auditor:** Claude Code Assistant
