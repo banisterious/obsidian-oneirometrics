@@ -15,6 +15,7 @@ export interface ScrapeEventData {
     error?: Error;
     processingTime?: number;
     entriesFound?: number;
+    isHandled?: boolean; // Flag to prevent multiple handlers from processing the same event
 }
 
 export interface ScrapeEvent {

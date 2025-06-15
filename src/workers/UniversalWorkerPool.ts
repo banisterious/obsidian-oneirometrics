@@ -99,7 +99,24 @@ class TaskAffinityBalancer implements LoadBalancer {
 }
 
 export class UniversalWorkerPool {
-  private logger: ContextualLogger = getLogger('UniversalWorkerPool') as ContextualLogger;
+  private _logger: ContextualLogger | null = null;
+  private get logger(): ContextualLogger {
+    if (!this._logger) {
+      try {
+        this._logger = getLogger('UniversalWorkerPool') as ContextualLogger;
+      } catch (error) {
+        // Fallback to console logging
+        this._logger = {
+          debug: (...args: any[]) => console.debug('[UniversalWorkerPool]', ...args),
+          info: (...args: any[]) => console.info('[UniversalWorkerPool]', ...args),
+          warn: (...args: any[]) => console.warn('[UniversalWorkerPool]', ...args),
+          error: (...args: any[]) => console.error('[UniversalWorkerPool]', ...args),
+          trace: (...args: any[]) => console.trace('[UniversalWorkerPool]', ...args)
+        } as ContextualLogger;
+      }
+    }
+    return this._logger;
+  }
   private workers = new Map<string, PoolWorker>();
   private taskQueue: QueuedTask[] = [];
   private activeRequests = new Map<string, {
@@ -172,12 +189,23 @@ export class UniversalWorkerPool {
   // Create a new worker instance
   private createWorker(workerId: string): void {
     try {
+      this.logger.debug('Worker', `Creating worker: ${workerId}`);
+      
       // For now, create a generic worker that can handle all task types
       // In a full implementation, this would use the inline worker plugin
-      const workerBlob = new Blob([this.getUniversalWorkerScript()], {
+      const workerScript = this.getUniversalWorkerScript();
+      this.logger.debug('Worker', `Worker script generated, length: ${workerScript.length}`);
+      
+      const workerBlob = new Blob([workerScript], {
         type: 'application/javascript'
       });
-      const worker = new Worker(URL.createObjectURL(workerBlob));
+      this.logger.debug('Worker', `Worker blob created, size: ${workerBlob.size}`);
+      
+      const blobUrl = URL.createObjectURL(workerBlob);
+      this.logger.debug('Worker', `Blob URL created: ${blobUrl}`);
+      
+      const worker = new Worker(blobUrl);
+      this.logger.debug('Worker', `Worker instantiated: ${workerId}`);
       
       const poolWorker: PoolWorker = {
         id: workerId,
@@ -243,15 +271,23 @@ export class UniversalWorkerPool {
 
     worker.onmessage = (event) => {
       const message = event.data;
+      this.logger.debug('Worker', `Message received from worker: ${workerId}`, {
+        messageType: message?.type,
+        messageId: message?.id,
+        messageData: message?.data ? Object.keys(message.data) : 'none'
+      });
       this.handleWorkerMessage(workerId, message);
     };
 
     worker.onerror = (error) => {
       this.logger.error('Worker', `Worker error: ${workerId}`, {
         workerId,
-        error: error.message,
-        filename: error.filename,
-        lineno: error.lineno
+        error: error.message || 'Unknown error',
+        filename: error.filename || 'Unknown file',
+        lineno: error.lineno || 'Unknown line',
+        colno: error.colno || 'Unknown column',
+        type: error.type || 'Unknown type',
+        stack: error.error?.stack || 'No stack available'
       });
       
       this.handleWorkerFailure(workerId);
@@ -260,7 +296,8 @@ export class UniversalWorkerPool {
     worker.onmessageerror = (error) => {
       this.logger.error('Worker', `Worker message error: ${workerId}`, {
         workerId,
-        error: error.type
+        error: error.type || 'Unknown message error',
+        data: error.data || 'No error data available'
       });
     };
 
@@ -677,10 +714,40 @@ export class UniversalWorkerPool {
 // Universal Worker Script
 // Handles multiple task types in a single worker
 
+try {
+
 class UniversalWorker {
   constructor() {
-    this.workerId = 'universal-' + Math.random().toString(36).substr(2, 9);
-    this.setupMessageHandlers();
+    try {
+      this.workerId = 'universal-' + Math.random().toString(36).substr(2, 9);
+      this.setupMessageHandlers();
+      // Send initialization success message
+      self.postMessage({
+        id: 'init-' + this.workerId,
+        type: 'WORKER_LOG',
+        timestamp: Date.now(),
+        data: {
+          level: 'info',
+          category: 'Worker',
+          message: 'Worker initialized successfully',
+          context: { workerId: this.workerId },
+          workerId: this.workerId
+        }
+      });
+    } catch (error) {
+      self.postMessage({
+        id: 'init-error',
+        type: 'WORKER_LOG',
+        timestamp: Date.now(),
+        data: {
+          level: 'error',
+          category: 'Worker',
+          message: 'Worker initialization failed: ' + error.message,
+          context: { error: error.stack || error.toString() },
+          workerId: 'unknown'
+        }
+      });
+    }
   }
 
   setupMessageHandlers() {
@@ -1082,17 +1149,24 @@ class UniversalWorker {
         }
         
         // Advanced metrics if enabled
+        let advancedMetrics = undefined;
         if (options?.enableAdvancedMetrics) {
-          const advanced = this.calculateAdvancedMetricsWorker(entry.content || '');
-          Object.assign(calculatedMetrics, advanced);
-          statistics.calculationsPerformed.advanced++;
+          try {
+            advancedMetrics = this.calculateAdvancedMetricsWorker(entry.content || '');
+            if (advancedMetrics && typeof advancedMetrics === 'object') {
+              Object.assign(calculatedMetrics, advancedMetrics);
+            }
+            statistics.calculationsPerformed.advanced++;
+          } catch (error) {
+            // Advanced metrics failed, continue without them
+          }
         }
 
         processedEntries.push({
           ...entry,
           calculatedMetrics,
           sentimentScore,
-          advancedMetrics: options?.enableAdvancedMetrics ? this.calculateAdvancedMetricsWorker(entry.content || '') : undefined
+          advancedMetrics
         });
         
         statistics.processedEntries++;
@@ -1302,30 +1376,44 @@ class UniversalWorker {
   // =============================================================================
 
   calculateSentiment(content) {
-    // Basic sentiment analysis
-    const positiveWords = ['happy', 'joy', 'love', 'peaceful', 'beautiful', 'wonderful', 'amazing', 'good', 'great', 'excellent', 'pleasant', 'delight', 'calm', 'safe', 'clarity', 'flying', 'float', 'success', 'achieve', 'accomplish'];
-    const negativeWords = ['sad', 'fear', 'anxious', 'angry', 'terrified', 'nightmare', 'falling', 'chase', 'dark', 'scary', 'bad', 'awful', 'terrible', 'horror', 'trapped', 'confused', 'lost', 'danger', 'threat', 'panic', 'death'];
-    
-    const lowerContent = content.toLowerCase();
-    let positiveCount = 0;
-    let negativeCount = 0;
-    
-    positiveWords.forEach(word => {
-      const regex = new RegExp('\\b' + word + '\\b', 'g');
-      const matches = lowerContent.match(regex);
-      if (matches) positiveCount += matches.length;
-    });
-    
-    negativeWords.forEach(word => {
-      const regex = new RegExp('\\b' + word + '\\b', 'g');
-      const matches = lowerContent.match(regex);
-      if (matches) negativeCount += matches.length;
-    });
-    
-    if (positiveCount === 0 && negativeCount === 0) return 0;
-    
-    const total = positiveCount + negativeCount;
-    return Math.round(((positiveCount - negativeCount) / total) * 100) / 100;
+    try {
+      if (!content || typeof content !== 'string') return 0;
+      
+      // Basic sentiment analysis
+      const positiveWords = ['happy', 'joy', 'love', 'peaceful', 'beautiful', 'wonderful', 'amazing', 'good', 'great', 'excellent', 'pleasant', 'delight', 'calm', 'safe', 'clarity', 'flying', 'float', 'success', 'achieve', 'accomplish'];
+      const negativeWords = ['sad', 'fear', 'anxious', 'angry', 'terrified', 'nightmare', 'falling', 'chase', 'dark', 'scary', 'bad', 'awful', 'terrible', 'horror', 'trapped', 'confused', 'lost', 'danger', 'threat', 'panic', 'death'];
+      
+      const lowerContent = content.toLowerCase();
+      let positiveCount = 0;
+      let negativeCount = 0;
+      
+      positiveWords.forEach(word => {
+        try {
+          const regex = new RegExp('\\\\\\\\b' + word + '\\\\\\\\b', 'g');
+          const matches = lowerContent.match(regex);
+          if (matches) positiveCount += matches.length;
+        } catch (e) {
+          // Skip invalid regex patterns
+        }
+      });
+      
+      negativeWords.forEach(word => {
+        try {
+          const regex = new RegExp('\\\\\\\\b' + word + '\\\\\\\\b', 'g');
+          const matches = lowerContent.match(regex);
+          if (matches) negativeCount += matches.length;
+        } catch (e) {
+          // Skip invalid regex patterns
+        }
+      });
+      
+      if (positiveCount === 0 && negativeCount === 0) return 0;
+      
+      const total = positiveCount + negativeCount;
+      return Math.round(((positiveCount - negativeCount) / total) * 100) / 100;
+    } catch (error) {
+      return 0;
+    }
   }
 
   calculateSentimentDetailed(content) {
@@ -1341,25 +1429,33 @@ class UniversalWorker {
   }
 
   calculateAdvancedMetricsWorker(content) {
-    const metrics = {};
-    
-    const wordCount = content.trim().split(/\s+/).length;
-    metrics['Words'] = wordCount;
-    
-    const sentenceCount = (content.match(/[.!?]+\s/g) || []).length + 1;
-    metrics['Sentences'] = sentenceCount;
-    
-    if (sentenceCount > 0) {
-      metrics['Words per Sentence'] = Math.round((wordCount / sentenceCount) * 10) / 10;
+    try {
+      const metrics = {};
+      
+      if (!content || typeof content !== 'string') {
+        return { Words: 0, Sentences: 0, Characters: 0, Paragraphs: 0 };
+      }
+      
+      const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      metrics['Words'] = wordCount;
+      
+      const sentenceCount = Math.max(1, (content.match(/[.!?]+\s/g) || []).length + 1);
+      metrics['Sentences'] = sentenceCount;
+      
+      if (sentenceCount > 0) {
+        metrics['Words per Sentence'] = Math.round((wordCount / sentenceCount) * 10) / 10;
+      }
+      
+      metrics['Characters'] = content.replace(/\s/g, '').length;
+      
+      // Additional metrics
+      const paragraphCount = Math.max(1, content.split(/\n\s*\n/).length);
+      metrics['Paragraphs'] = paragraphCount;
+      
+      return metrics;
+    } catch (error) {
+      return { Words: 0, Sentences: 0, Characters: 0, Paragraphs: 0 };
     }
-    
-    metrics['Characters'] = content.replace(/\s/g, '').length;
-    
-    // Additional metrics
-    const paragraphCount = content.split(/\n\s*\n/).length;
-    metrics['Paragraphs'] = paragraphCount;
-    
-    return metrics;
   }
 
   calculateTimeBasedMetricsWorker(entries) {
@@ -1529,7 +1625,37 @@ class UniversalWorker {
 }
 
 // Initialize the worker
-new UniversalWorker();
+try {
+  new UniversalWorker();
+} catch (error) {
+  self.postMessage({
+    id: 'fatal-error',
+    type: 'WORKER_LOG',
+    timestamp: Date.now(),
+    data: {
+      level: 'error',
+      category: 'Worker',
+      message: 'Fatal worker initialization error: ' + error.message,
+      context: { error: error.stack || error.toString() },
+      workerId: 'unknown'
+    }
+  });
+}
+
+} catch (globalError) {
+  self.postMessage({
+    id: 'global-error',
+    type: 'WORKER_LOG',
+    timestamp: Date.now(),
+    data: {
+      level: 'error',
+      category: 'Worker',
+      message: 'Global worker script error: ' + globalError.message,
+      context: { error: globalError.stack || globalError.toString() },
+      workerId: 'unknown'
+    }
+  });
+}
     `;
   }
 
@@ -1566,7 +1692,7 @@ new UniversalWorker();
     }
 
     // Terminate all workers
-    for (const [workerId, poolWorker] of this.workers) {
+    for (const [, poolWorker] of this.workers) {
       poolWorker.worker.terminate();
     }
 

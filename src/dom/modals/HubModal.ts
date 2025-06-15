@@ -6859,6 +6859,8 @@ Example:
         // Listen for backup warning events
         this.plugin.scrapeEventEmitter.on('backup-warning', (event) => {
             if (event.data?.onProceed && event.data?.onCancel) {
+                // Mark as handled by HubModal to prevent global fallback handler
+                event.data.isHandled = true;
                 this.showBackupWarning(event.data.onProceed, event.data.onCancel);
             }
         });

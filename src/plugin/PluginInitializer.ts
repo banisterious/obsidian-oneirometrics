@@ -2,7 +2,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { App, Notice } from 'obsidian';
+import { App, Notice, Modal } from 'obsidian';
 import type DreamMetricsPlugin from '../../main';
 import { PluginLoader } from './PluginLoader';
 import { DateFilter } from '../dom/filters';
@@ -24,7 +24,7 @@ import { DateNavigatorManager } from '../dom/date-navigator/DateNavigatorManager
 import { LogFileManager } from '../logging/LogFileManager';
 
 // Import ScrapeEventEmitter for real-time feedback
-import { ScrapeEventEmitter } from '../events/ScrapeEvents';
+import { ScrapeEventEmitter, SCRAPE_EVENTS } from '../events/ScrapeEvents';
 
 // Import the safe logger for early logging
 import safeLogger from '../logging/safe-logger';
@@ -143,6 +143,9 @@ export class PluginInitializer {
 
         // Initialize ScrapeEventEmitter
         this.plugin.scrapeEventEmitter = new ScrapeEventEmitter();
+        
+        // Setup global backup warning event handlers to ensure they're always available
+        this.setupGlobalBackupWarningHandlers();
     }
 
     /**
@@ -232,5 +235,100 @@ export class PluginInitializer {
     private setupGlobalVariables(): void {
         setGlobalLogger(this.plugin.logger);
         setGlobalContentToggler(this.plugin.contentToggler);
+    }
+
+    /**
+     * Setup global backup warning event handlers to ensure they're always available
+     * This fixes the issue where backup warnings hang when no listeners are present
+     */
+    private setupGlobalBackupWarningHandlers(): void {
+        // Set up a fallback handler that only triggers if no other handlers are present
+        // We'll use a timeout to check if the event was handled by other listeners
+        this.plugin.scrapeEventEmitter.on(SCRAPE_EVENTS.BACKUP_WARNING, (event) => {
+            const { message, data } = event;
+            
+            // Set a timeout to allow other handlers (like HubModal) to handle the event first
+            setTimeout(() => {
+                // Check if the event was already handled (we can detect this by checking if callbacks were called)
+                if (data?.isHandled !== true) {
+                    this.plugin.logger?.debug('BackupWarning', 'Global fallback backup warning handler triggered');
+                    
+                    if (data?.onProceed && data?.onCancel) {
+                        // Mark as handled by our global handler
+                        data.isHandled = true;
+                        this.showGlobalBackupWarning(message, data.onProceed, data.onCancel);
+                    } else {
+                        this.plugin.logger?.warn('BackupWarning', 'Backup warning event missing proceed/cancel callbacks', { event });
+                        // Default to proceeding if callbacks are missing
+                        new Notice('Warning: Backup is disabled. Proceeding with update...');
+                        if (data?.onProceed) {
+                            data.onProceed();
+                        }
+                    }
+                }
+            }, 100); // 100ms delay to allow other handlers to process first
+        });
+        
+        this.plugin.logger?.debug('PluginInit', 'Global backup warning event handlers setup complete');
+    }
+
+    /**
+     * Show global backup warning modal when no other UI is handling it
+     */
+    private showGlobalBackupWarning(message: string, onProceed: () => void, onCancel: () => void): void {
+        // Create a simple confirmation dialog for backup warning
+        class BackupWarningModal extends Modal {
+            constructor(app: App, private message: string, private onProceed: () => void, private onCancel: () => void) {
+                super(app);
+            }
+            
+            onOpen() {
+                const { contentEl } = this;
+                contentEl.empty();
+                
+                // Title
+                contentEl.createEl('h2', { 
+                    text: 'Backup Warning',
+                    cls: 'oom-modal-title'
+                });
+                
+                // Message
+                contentEl.createEl('p', { 
+                    text: this.message,
+                    cls: 'oom-modal-message'
+                });
+                
+                // Button container
+                const buttonContainer = contentEl.createEl('div', {
+                    cls: 'oom-modal-buttons'
+                });
+                
+                // Proceed button
+                const proceedBtn = buttonContainer.createEl('button', {
+                    text: 'Proceed',
+                    cls: 'mod-cta'
+                });
+                proceedBtn.onclick = () => {
+                    this.close();
+                    this.onProceed();
+                };
+                
+                // Cancel button
+                const cancelBtn = buttonContainer.createEl('button', {
+                    text: 'Cancel',
+                    cls: 'mod-muted'
+                });
+                cancelBtn.onclick = () => {
+                    this.close();
+                    this.onCancel();
+                };
+                
+                // Focus the proceed button by default
+                proceedBtn.focus();
+            }
+        }
+        
+        const modal = new BackupWarningModal(this.app, message, onProceed, onCancel);
+        modal.open();
     }
 } 
