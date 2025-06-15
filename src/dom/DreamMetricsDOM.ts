@@ -9,6 +9,22 @@ import safeLogger from '../logging/safe-logger';
 // Import the global logger from main.ts - will be initialized when plugin loads
 declare const globalLogger: any;
 
+/**
+ * CSS INLINE STYLES DOCUMENTATION:
+ * This file contains 7 intentional CSS custom property assignments for table virtualization.
+ * These cannot be converted to static CSS classes because they set dynamic values for:
+ * 
+ * 1. --oom-total-rows: Total number of rows for scroll calculation (data-dependent)
+ * 2. --oom-row-height: Row height in pixels (configurable performance optimization)
+ * 3. --oom-row-index: Individual row position for virtualization (dynamic per row)
+ * 4. --oom-row-display: Row display property for show/hide functionality (dynamic state)
+ * 5. --oom-visible-rows: Number of visible rows in viewport (dynamic based on container)
+ * 
+ * These CSS custom properties are essential for the virtual scrolling performance system
+ * that enables smooth handling of large datasets without DOM performance degradation.
+ * The virtualization system requires dynamic values that cannot be predetermined.
+ */
+
 export class DreamMetricsDOM {
     private container: HTMLElement;
     private state: DreamMetricsState;
@@ -111,14 +127,14 @@ export class DreamMetricsDOM {
         // Create a single container for all rows
         const rowsContainer = document.createElement('div');
         rowsContainer.className = 'oom-virtualized-rows-container';
-        rowsContainer.style.setProperty('--oom-total-rows', totalRows.toString());
-        rowsContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+        rowsContainer.style.setProperty('--oom-total-rows', totalRows.toString()); // INTENTIONAL: Data-dependent total row count
+        rowsContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
         tbody.appendChild(rowsContainer);
 
         // Create a single row template
         const rowTemplate = document.createElement('tr');
         rowTemplate.className = 'oom-dream-row oom-virtualized-table-template';
-        rowTemplate.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+        rowTemplate.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
         rowsContainer.appendChild(rowTemplate);
 
         // Debounce scroll handler with RAF
@@ -161,9 +177,9 @@ export class DreamMetricsDOM {
                 const entry = entries[i];
                 const row = rowTemplate.cloneNode(true) as HTMLElement;
                 row.className = 'oom-dream-row oom-virtualized';
-                row.style.setProperty('--oom-row-index', i.toString());
-                row.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
-                row.style.setProperty('--oom-row-display', 'table-row');
+                row.style.setProperty('--oom-row-index', i.toString()); // INTENTIONAL: Dynamic row positioning for virtualization
+                row.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
+                row.style.setProperty('--oom-row-display', 'table-row'); // INTENTIONAL: Dynamic row display state
                 row.setAttribute('data-source', getSourceFile(entry));
 
                 // Add date cell
@@ -250,8 +266,8 @@ export class DreamMetricsDOM {
         const container = table.parentElement as HTMLElement;
         if (container) {
             container.onscroll = debouncedScroll;
-            container.style.setProperty('--oom-visible-rows', this.VISIBLE_ROWS.toString());
-            container.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+            container.style.setProperty('--oom-visible-rows', this.VISIBLE_ROWS.toString()); // INTENTIONAL: Dynamic viewport size
+            container.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
         }
 
         // Initial render

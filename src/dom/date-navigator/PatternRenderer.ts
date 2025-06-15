@@ -3,6 +3,22 @@ import type { EnhancedNavigationState } from '../modals/EnhancedDateNavigatorMod
 
 /**
  * Renders dream pattern visualizations on calendar days based on the selected visualization style
+ * 
+ * CSS INLINE STYLES DOCUMENTATION:
+ * This file contains 12 intentional CSS custom property assignments that set dynamic values
+ * based on dream pattern data. These cannot be converted to static CSS classes because:
+ * 
+ * 1. --pattern-color: Set from dream entry quality metrics (dynamic colors)
+ * 2. --pattern-opacity: Calculated from quality scores (0.0 to 1.0 range)
+ * 3. --pattern-background: Generated gradient strings based on pattern analysis
+ * 4. --metric-color: Individual metric colors from pattern calculation
+ * 5. --metric-opacity: Quality-based opacity values with minimum thresholds
+ * 6. --legend-color: Pattern-specific colors for legend rendering
+ * 7. --legend-gradient: Dynamically generated CSS gradients for quality levels
+ * 
+ * These CSS custom properties are the recommended approach for dynamic styling in modern
+ * web development and are preferred over direct style manipulation. They maintain theme
+ * compatibility while allowing data-driven visual representation.
  */
 export class PatternRenderer {
     private visualizationStyle: EnhancedNavigationState['visualizationStyle'];
@@ -90,8 +106,8 @@ export class PatternRenderer {
         const indicators = dayElement.querySelectorAll('.oomp-pattern-indicator, .oomp-metric-overlay, .oomp-pattern-icon');
         indicators.forEach(indicator => indicator.remove());
         
-        // Clear background gradients
-        dayElement.style.setProperty('--pattern-background', '');
+        // Clear background gradients - Reset dynamic pattern styling
+        dayElement.style.setProperty('--pattern-background', ''); // INTENTIONAL: Resets dynamic gradient
     }
     
     /**
@@ -107,8 +123,8 @@ export class PatternRenderer {
         
         // Create pattern indicator dot
         const indicator = dayElement.createDiv({ cls: 'oomp-pattern-indicator' });
-        indicator.style.setProperty('--pattern-color', primaryPattern.visualStyle.color);
-        indicator.style.setProperty('--pattern-opacity', primaryPattern.visualStyle.opacity.toString());
+        indicator.style.setProperty('--pattern-color', primaryPattern.visualStyle.color); // INTENTIONAL: Dynamic pattern color
+        indicator.style.setProperty('--pattern-opacity', primaryPattern.visualStyle.opacity.toString()); // INTENTIONAL: Quality-based opacity
     }
     
     /**
@@ -124,7 +140,7 @@ export class PatternRenderer {
         
         // Apply background gradient
         if (primaryPattern.visualStyle.backgroundGradient) {
-            dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient);
+            dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient); // INTENTIONAL: Dynamic gradient string
         }
         
         // Add quality score indicator in bottom-right
@@ -143,7 +159,7 @@ export class PatternRenderer {
         const qualityLevel = this.getQualityLevel(primaryPattern.qualityScore);
         dayElement.classList.add(`oomp-quality-${qualityLevel}`);
         if (primaryPattern.visualStyle.backgroundGradient) {
-            dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient);
+            dayElement.style.setProperty('--pattern-background', primaryPattern.visualStyle.backgroundGradient); // INTENTIONAL: Dynamic gradient string
         }
         
         // Create metric overlay grid
@@ -160,8 +176,8 @@ export class PatternRenderer {
         
         metrics.forEach(metric => {
             const dot = overlay.createDiv({ cls: `oomp-metric-dot oomp-${metric.name}` });
-            dot.style.setProperty('--metric-color', metric.color);
-            dot.style.setProperty('--metric-opacity', Math.max(0.2, metric.opacity).toString());
+            dot.style.setProperty('--metric-color', metric.color); // INTENTIONAL: Metric-specific color
+            dot.style.setProperty('--metric-opacity', Math.max(0.2, metric.opacity).toString()); // INTENTIONAL: Quality-based opacity with minimum
         });
     }
     
@@ -182,8 +198,8 @@ export class PatternRenderer {
         const iconElement = dayElement.createDiv({ cls: 'oomp-pattern-icon' });
         iconElement.textContent = icon;
         // Positioning handled by CSS class
-        iconElement.style.setProperty('--pattern-opacity', primaryPattern.visualStyle.opacity.toString());
-        iconElement.style.setProperty('--pattern-color', primaryPattern.visualStyle.color);
+        iconElement.style.setProperty('--pattern-opacity', primaryPattern.visualStyle.opacity.toString()); // INTENTIONAL: Quality-based opacity
+        iconElement.style.setProperty('--pattern-color', primaryPattern.visualStyle.color); // INTENTIONAL: Dynamic pattern color
     }
     
     /**
@@ -223,7 +239,7 @@ export class PatternRenderer {
             if (activePatterns.has(pattern.key)) {
                 const item = container.createDiv({ cls: 'oomp-legend-item' });
                 const dot = item.createDiv({ cls: 'oomp-legend-dot' });
-                dot.style.setProperty('--legend-color', pattern.color);
+                dot.style.setProperty('--legend-color', pattern.color); // INTENTIONAL: Pattern-specific legend color
                 item.createSpan({ text: pattern.label });
             }
         });
@@ -244,7 +260,7 @@ export class PatternRenderer {
             const gradient = item.createDiv({ cls: 'oomp-legend-gradient' });
             // Width handled by CSS class
             // Height handled by CSS class
-            gradient.style.setProperty('--legend-gradient', `linear-gradient(135deg, ${level.color}40, ${level.color}10)`);
+            gradient.style.setProperty('--legend-gradient', `linear-gradient(135deg, ${level.color}40, ${level.color}10)`); // INTENTIONAL: Dynamic gradient for quality level
             item.createSpan({ text: level.label });
         });
     }
@@ -266,7 +282,7 @@ export class PatternRenderer {
             // Width handled by CSS class
             // Height handled by CSS class
             // Border radius handled by CSS class
-            dot.style.setProperty('--legend-color', metric.color);
+            dot.style.setProperty('--legend-color', metric.color); // INTENTIONAL: Metric-specific legend color
             item.createSpan({ text: metric.label });
         });
     }

@@ -688,6 +688,21 @@
 }
 
 /* =============================================================================
+   TABLE UTILITIES - Reset and Override Classes  
+   ============================================================================= */
+
+/* Utility to reset overflow-x property (used in HubModal for markdown renderer cleanup) */
+.oom-table-reset-overflow {
+    overflow-x: initial !important;
+}
+
+/* Progress bar utilities for dynamic width values */
+.oom-progress-bar {
+    width: var(--oom-progress-width, 0%);
+    transition: width var(--oom-transition-normal, 0.2s ease);
+}
+
+/* =============================================================================
    ERROR BOUNDARY VISIBILITY STATES
    ============================================================================= */
 

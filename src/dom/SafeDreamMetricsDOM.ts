@@ -3,6 +3,19 @@
  * 
  * This class implements robust DOM operations for dream metrics visualization with
  * comprehensive error handling, fallbacks, and recovery mechanisms.
+ * 
+ * CSS INLINE STYLES DOCUMENTATION:
+ * This file contains 6 intentional CSS custom property assignments for table virtualization.
+ * These cannot be converted to static CSS classes because they set dynamic values for:
+ * 
+ * 1. --oom-visible-rows: Number of visible rows in viewport (dynamic based on container height)
+ * 2. --oom-row-height: Row height in pixels (configurable performance optimization)
+ * 3. --oom-total-rows: Total number of rows for scroll calculation (data-dependent)
+ * 4. --oom-row-index: Individual row position for virtualization (dynamic per row)
+ * 
+ * These CSS custom properties are essential for the virtual scrolling performance system
+ * that enables smooth handling of large datasets without DOM performance degradation.
+ * The virtualization system requires dynamic values that cannot be predetermined.
  */
 
 import { App } from 'obsidian';
@@ -239,8 +252,8 @@ export class SafeDreamMetricsDOM implements DOMComponent {
           });
           
           // Set virtualization properties
-          tableContainer.style.setProperty('--oom-visible-rows', this.VISIBLE_ROWS.toString());
-          tableContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+          tableContainer.style.setProperty('--oom-visible-rows', this.VISIBLE_ROWS.toString()); // INTENTIONAL: Dynamic viewport size
+          tableContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
           
           const table = this.domSafetyGuard.createElement('table', {
             className: 'oom-table',
@@ -361,8 +374,8 @@ export class SafeDreamMetricsDOM implements DOMComponent {
       });
       
       // Set dynamic properties for the total scrollable area
-      rowsContainer.style.setProperty('--oom-total-rows', totalRows.toString());
-      rowsContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+      rowsContainer.style.setProperty('--oom-total-rows', totalRows.toString()); // INTENTIONAL: Data-dependent total row count
+      rowsContainer.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
       
       // Render initial visible rows
       this.renderVisibleRows(rowsContainer, entries, 0);
@@ -494,8 +507,8 @@ export class SafeDreamMetricsDOM implements DOMComponent {
           
           // Position using CSS custom properties for virtualization
           row.classList.add('oom-virtualized');
-          row.style.setProperty('--oom-row-index', i.toString());
-          row.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`);
+          row.style.setProperty('--oom-row-index', i.toString()); // INTENTIONAL: Dynamic row positioning for virtualization
+          row.style.setProperty('--oom-row-height', `${this.ROW_HEIGHT}px`); // INTENTIONAL: Dynamic row height for virtualization
           
           // Generate a unique ID for the entry
           const entryId = this.getEntryId(entry, i);

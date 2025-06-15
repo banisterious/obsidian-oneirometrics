@@ -3070,7 +3070,7 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (20.6 KB)
+   COMPONENT: UTILITIES (21.2 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -3759,6 +3759,21 @@ td:has(.oom-metric-icon-container) {
     top: var(--oom-element-bottom, 100%);
     left: var(--oom-element-left, 0);
     min-width: var(--oom-element-width, 200px);
+}
+
+/* =============================================================================
+   TABLE UTILITIES - Reset and Override Classes  
+   ============================================================================= */
+
+/* Utility to reset overflow-x property (used in HubModal for markdown renderer cleanup) */
+.oom-table-reset-overflow {
+    overflow-x: initial !important;
+}
+
+/* Progress bar utilities for dynamic width values */
+.oom-progress-bar {
+    width: var(--oom-progress-width, 0%);
+    transition: width var(--oom-transition-normal, 0.2s ease);
 }
 
 /* =============================================================================

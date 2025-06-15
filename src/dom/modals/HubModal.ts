@@ -585,8 +585,8 @@ The plugin does not prescribe any particular interpretation or meaning to dream 
                     this.plugin
                 );
                 
-                // Remove inline styles added by MarkdownRenderer
-                tableDiv.style.removeProperty('overflow-x');
+                // Remove inline styles added by MarkdownRenderer using CSS utility class
+                tableDiv.classList.add('oom-table-reset-overflow');
             } catch (error) {
                 safeLogger.error('UI', 'Error rendering markdown for scoring table', error as Error);
             }
@@ -5283,7 +5283,8 @@ Example:
                 const file = filesToAnalyze[i];
                 const progress = (i / filesToAnalyze.length) * 100;
                 
-                progressFill.style.width = `${progress}%`;
+                progressFill.classList.add('oom-progress-bar');
+                progressFill.style.setProperty('--oom-progress-width', `${progress}%`);
                 statusText.textContent = `Analyzing ${file.name} (${i + 1}/${filesToAnalyze.length})`;
                 
                 console.log('?? About to analyze file', i + 1, '/', filesToAnalyze.length, ':', file.name);
@@ -5570,7 +5571,7 @@ Example:
     private renderCalloutTree(container: HTMLElement, nodes: CalloutNode[], depth: number) {
         nodes.forEach((node, index) => {
             const nodeEl = container.createDiv({ cls: 'oom-tree-node' });
-            // Set depth as a CSS custom property for styling
+            // Set depth as a CSS custom property for styling - INTENTIONAL: Dynamic tree hierarchy depth
             nodeEl.style.setProperty('--depth', depth.toString());
             
             // Create tree line indicators
