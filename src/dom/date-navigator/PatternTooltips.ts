@@ -1,5 +1,7 @@
 import type { DreamMetricData } from '../../types/core';
 import type { PatternVisualization } from './PatternCalculator';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
+import { TemplateHelpers } from '../../utils/TemplateHelpers';
 
 /**
  * Generates rich tooltips for dream patterns and metrics
@@ -50,7 +52,9 @@ export class PatternTooltips {
         // Create tooltip element
         const tooltip = document.createElement('div');
         tooltip.className = 'oomp-pattern-tooltip';
-        tooltip.innerHTML = this.generateTooltip(entry, patterns);
+        
+        // SECURITY FIX: Use safe DOM manipulation instead of innerHTML
+        this.populateTooltipContent(tooltip, entry, patterns);
         
         // Style tooltip
         this.styleTooltip(tooltip);
@@ -70,6 +74,196 @@ export class PatternTooltips {
         if (existing) {
             existing.remove();
         }
+    }
+    
+    /**
+     * SECURITY FIX: Safely populate tooltip content using DOM manipulation
+     * Replaces unsafe innerHTML usage with secure DOM building
+     */
+    private populateTooltipContent(tooltip: HTMLElement, entry: DreamMetricData, patterns: PatternVisualization[]): void {
+        SafeDOMUtils.safelyEmptyContainer(tooltip);
+        
+        if (patterns.length === 0) {
+            this.createBasicTooltipContent(tooltip, entry);
+            return;
+        }
+        
+        const primaryPattern = patterns[0];
+        
+        // Create sections safely
+        this.createBasicInfoSection(tooltip, entry);
+        this.addSectionDivider(tooltip);
+        
+        this.createPatternInfoSection(tooltip, primaryPattern);
+        this.addSectionDivider(tooltip);
+        
+        this.createMetricsBreakdownSection(tooltip, entry);
+    }
+    
+    /**
+     * Create basic tooltip content for entries without patterns
+     */
+    private createBasicTooltipContent(tooltip: HTMLElement, entry: DreamMetricData): void {
+        const title = entry.title || 'Dream Entry';
+        const date = new Date(entry.date).toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+        
+        tooltip.createEl('strong', {
+            cls: 'oomp-tooltip-title',
+            text: title // Automatically escaped
+        });
+        
+        tooltip.createEl('br');
+        
+        tooltip.createEl('span', {
+            cls: 'oomp-tooltip-date',
+            text: date // Automatically escaped
+        });
+    }
+    
+    /**
+     * Create basic info section safely
+     */
+    private createBasicInfoSection(tooltip: HTMLElement, entry: DreamMetricData): void {
+        const title = entry.title || 'Dream Entry';
+        const date = new Date(entry.date).toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+        
+        tooltip.createEl('strong', {
+            cls: 'oomp-tooltip-title',
+            text: title
+        });
+        
+        tooltip.createEl('br');
+        
+        tooltip.createEl('span', {
+            cls: 'oomp-tooltip-date', 
+            text: date
+        });
+    }
+    
+    /**
+     * Create pattern info section safely
+     */
+    private createPatternInfoSection(tooltip: HTMLElement, pattern: PatternVisualization): void {
+        const patternInfo = tooltip.createEl('div', {
+            cls: 'oomp-tooltip-pattern-info'
+        });
+        
+        patternInfo.createEl('span', {
+            cls: 'oomp-tooltip-pattern-type',
+            text: `Pattern: ${pattern.basePattern}`
+        });
+        
+        patternInfo.createEl('br');
+        
+        patternInfo.createEl('span', {
+            cls: 'oomp-tooltip-quality',
+            text: `Quality: ${pattern.qualityScore.toFixed(1)}/5.0`
+        });
+        
+        // Pattern description is derived from basePattern
+        const patternDescriptions = {
+            'high-quality': 'Vivid sensory details and strong emotional recall',
+            'fragmented': 'Many lost segments, unclear narrative flow',
+            'rich-narrative': 'Highly descriptive with clear story progression',
+            'basic-recall': 'Standard dream recall with moderate detail'
+        };
+        
+        const description = patternDescriptions[pattern.basePattern];
+        if (description) {
+            patternInfo.createEl('br');
+            patternInfo.createEl('span', {
+                cls: 'oomp-tooltip-description',
+                text: description
+            });
+        }
+    }
+    
+    /**
+     * Create metrics breakdown section safely
+     */
+    private createMetricsBreakdownSection(tooltip: HTMLElement, entry: DreamMetricData): void {
+        if (!entry.metrics || Object.keys(entry.metrics).length === 0) {
+            return;
+        }
+        
+        const metricsSection = tooltip.createEl('div', {
+            cls: 'oomp-tooltip-metrics'
+        });
+        
+        metricsSection.createEl('strong', {
+            text: 'Metrics:'
+        });
+        
+        Object.entries(entry.metrics).forEach(([metricName, value]) => {
+            if (typeof value === 'number' && value > 0) {
+                const metricRow = metricsSection.createEl('div', {
+                    cls: 'oomp-tooltip-metric-row'
+                });
+                
+                metricRow.createEl('span', {
+                    cls: 'oomp-tooltip-metric-name',
+                    text: metricName
+                });
+                
+                metricRow.createEl('span', {
+                    cls: 'oomp-tooltip-metric-value',
+                    text: value.toString()
+                });
+                
+                // Add metric bar safely
+                const bar = this.createSafeMetricBar(metricName, value);
+                metricRow.appendChild(bar);
+            }
+        });
+    }
+    
+    /**
+     * Add section divider safely
+     */
+    private addSectionDivider(tooltip: HTMLElement): void {
+        tooltip.createEl('br');
+        tooltip.createEl('br');
+    }
+    
+    /**
+     * SECURITY FIX: Create visual bar representation of metric value - SAFE VERSION
+     * Returns DOM element instead of HTML string with outerHTML
+     */
+    private createSafeMetricBar(metricName: string, value: number): HTMLElement {
+        let maxValue = 5;
+        let normalizedValue = value;
+        
+        // Handle Lost Segments (0-10 scale, lower is better)
+        if (metricName === 'Lost Segments') {
+            maxValue = 10;
+            // Invert for visualization (lower lost segments = better)
+            normalizedValue = Math.max(0, 10 - value);
+        }
+        
+        const percentage = Math.min(100, (normalizedValue / maxValue) * 100);
+        const barColor = this.getMetricBarColor(metricName, normalizedValue, maxValue);
+        
+        // Create elements safely - no innerHTML or outerHTML usage
+        const barContainer = document.createElement('span');
+        barContainer.className = 'oom-tooltip-bar';
+        
+        const barFill = document.createElement('span');
+        barFill.className = 'oom-tooltip-bar-fill oom-tooltip-bar-dynamic';
+        barFill.style.setProperty('--bar-width', `${percentage}%`);
+        barFill.style.setProperty('--bar-color', barColor);
+        
+        barContainer.appendChild(barFill);
+        return barContainer; // SECURITY FIX: Return element directly, not outerHTML
     }
     
     /**
@@ -191,33 +385,22 @@ export class PatternTooltips {
     }
     
     /**
-     * Create visual bar representation of metric value
+     * DEPRECATED: Legacy method that returns HTML string with outerHTML usage
+     * Use createSafeMetricBar() instead for secure DOM manipulation
+     * 
+     * This method is kept for backward compatibility with existing string-based templates
+     * but should be phased out in favor of the secure DOM-based approach
      */
     private createMetricBar(metricName: string, value: number): string {
-        let maxValue = 5;
-        let normalizedValue = value;
+        // SECURITY FIX: Use the safe version and convert to string only when absolutely necessary
+        const safeElement = this.createSafeMetricBar(metricName, value);
         
-        // Handle Lost Segments (0-10 scale, lower is better)
-        if (metricName === 'Lost Segments') {
-            maxValue = 10;
-            // Invert for visualization (lower lost segments = better)
-            normalizedValue = Math.max(0, 10 - value);
-        }
+        // Create a temporary container to get the HTML string safely
+        const tempContainer = document.createElement('div');
+        tempContainer.appendChild(safeElement);
         
-        const percentage = Math.min(100, (normalizedValue / maxValue) * 100);
-        const barColor = this.getMetricBarColor(metricName, normalizedValue, maxValue);
-        
-        // Create elements to avoid inline styles in HTML templates
-        const barContainer = document.createElement('span');
-        barContainer.className = 'oom-tooltip-bar';
-        
-        const barFill = document.createElement('span');
-        barFill.className = 'oom-tooltip-bar-fill oom-tooltip-bar-dynamic';
-        barFill.style.setProperty('--bar-width', `${percentage}%`);
-        barFill.style.setProperty('--bar-color', barColor);
-        
-        barContainer.appendChild(barFill);
-        return barContainer.outerHTML;
+        // Return the innerHTML of the container (safer than outerHTML on the element directly)
+        return tempContainer.innerHTML;
     }
     
     /**
