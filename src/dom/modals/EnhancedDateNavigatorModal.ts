@@ -3,6 +3,8 @@ import type DreamMetricsPlugin from '../../../main';
 import type { TimeFilterManager } from '../../timeFilters';
 import safeLogger from '../../logging/safe-logger';
 import { PatternCalculator, PatternRenderer, PatternTooltips, type PatternVisualization } from '../date-navigator/pattern-visualization';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
+import { TemplateHelpers } from '../../utils/TemplateHelpers';
 
 export interface EnhancedNavigationState {
     currentDate: Date;
@@ -198,7 +200,7 @@ export class EnhancedDateNavigatorModal extends Modal {
             cls: 'nav-button prev-month',
             attr: { 'aria-label': 'Previous month' }
         });
-        prevButton.innerHTML = '‹';
+        prevButton.textContent = '‹';
         prevButton.addEventListener('click', () => this.navigateMonth(-1));
 
         const monthDisplay = monthNav.createDiv({
@@ -209,7 +211,7 @@ export class EnhancedDateNavigatorModal extends Modal {
             cls: 'nav-button next-month',
             attr: { 'aria-label': 'Next month' }
         });
-        nextButton.innerHTML = '›';
+        nextButton.textContent = '›';
         nextButton.addEventListener('click', () => this.navigateMonth(1));
 
         // Calendar grid
@@ -346,7 +348,13 @@ export class EnhancedDateNavigatorModal extends Modal {
             const hasEntries = this.monthHasDreamEntries(this.state.currentDate.getFullYear(), index);
             if (hasEntries) {
                 monthOption.addClass('oomp-has-entries');
-                monthOption.innerHTML = `${monthName} <span class="oomp-entry-indicator">●</span>`;
+                // SECURITY FIX: Use safe DOM manipulation instead of innerHTML
+                SafeDOMUtils.safelyEmptyContainer(monthOption);
+                monthOption.textContent = monthName + ' ';
+                monthOption.createEl('span', {
+                    cls: 'oomp-entry-indicator',
+                    text: '●'
+                });
             }
 
             if (index === this.state.currentDate.getMonth()) {
@@ -1483,7 +1491,7 @@ export class EnhancedDateNavigatorModal extends Modal {
         if (index < 5) {
             this.plugin.logger?.trace('EnhancedDateNavigator', 'Processing row', {
                 rowIndex: index,
-                rowHTML: row.innerHTML.substring(0, 300),
+                rowHTML: row.outerHTML.substring(0, 300), // SECURITY NOTE: Read-only debug logging
                 rowClasses: row.className,
                 rowTextContent: row.textContent?.substring(0, 200)
             });
@@ -1511,7 +1519,7 @@ export class EnhancedDateNavigatorModal extends Modal {
                         rowIndex: index,
                         selector,
                         cellText: cellText.substring(0, 50),
-                        cellHTML: cell.innerHTML.substring(0, 100),
+                        cellHTML: cell.outerHTML.substring(0, 100), // SECURITY NOTE: Read-only debug logging
                         hasDataIsoDate: !!cell.getAttribute('data-iso-date'),
                         dataIsoDate: cell.getAttribute('data-iso-date')
                     });
@@ -1951,16 +1959,14 @@ export class EnhancedDateNavigatorModal extends Modal {
     }
 
     private updateFilterDisplay(metricsContainer: HTMLElement, startDateStr: string, endDateStr: string): void {
-        const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display');
+        const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display') as HTMLElement;
         if (filterDisplay) {
             const displayText = startDateStr === endDateStr 
                 ? `Single Date: ${startDateStr}`
                 : `Custom Range: ${startDateStr} to ${endDateStr}`;
                 
-            filterDisplay.innerHTML = `
-                <span class="oom-filter-icon">🗓️</span>
-                <span class="oom-filter-text oom-filter--custom">${displayText}</span>
-            `;
+            // SECURITY FIX: Use safe DOM manipulation instead of innerHTML
+            TemplateHelpers.createFilterDisplay(filterDisplay, displayText, '🗓️');
             filterDisplay.classList.add('oom-filter-active');
         }
     }

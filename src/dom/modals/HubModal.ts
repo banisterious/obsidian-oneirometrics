@@ -32,6 +32,8 @@ import {
 } from '../../utils/selection-mode-helpers';
 import { SettingsAdapter } from '../../state/adapters/SettingsAdapter';
 import { TemplateWizardModal } from './TemplateWizardModal';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
+import { TemplateHelpers } from '../../utils/TemplateHelpers';
 
 // Import metrics functionality from settings
 import { 
@@ -1800,7 +1802,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         previewContainer.classList.remove('oom-hidden');
                         
                         // Populate preview if not already done
-                        if (previewContainer.innerHTML === '') {
+                        if (!previewContainer.hasChildNodes()) {
                             this.populateTemplatePreview(previewContainer, template);
                         }
                     }
@@ -3807,20 +3809,8 @@ Example:
                 
                 // Add explanation
                 const explanation = this.wizardPreviewEl.createEl('div', { cls: 'oom-templater-explanation' });
-                explanation.innerHTML = `
-                    <p><strong>Templater Support:</strong></p>
-                    <ul>
-                        <li><strong>Dynamic Version:</strong> Uses Templater's JavaScript execution and interactive prompts</li>
-                        <li><strong>Static Fallback:</strong> Converts Templater syntax to placeholders for manual replacement</li>
-                        <li><strong>Your Template Features:</strong>
-                            <ul>
-                                <li><code>tp.system.prompt()</code> ? Interactive user prompts</li>
-                                <li><code>&lt;%* ... -%&gt;</code> ? JavaScript execution blocks</li>
-                                <li><code>&lt;% variable %&gt;</code> ? Variable insertion</li>
-                            </ul>
-                        </li>
-                    </ul>
-                `;
+                // SECURITY FIX: Use safe DOM manipulation instead of innerHTML
+                TemplateHelpers.createTemplaterExplanation(explanation);
                 explanation.classList.add('oom-explanation');
                 
                 
@@ -4673,7 +4663,7 @@ Example:
         
         // Show loading state
         resultsContainer.classList.remove('oom-hidden');
-        resultsContainer.innerHTML = '';
+        SafeDOMUtils.safelyEmptyContainer(resultsContainer);
         resultsContainer.createEl('p', { text: '?? Validating template...', cls: 'oom-validation-loading' });
         
         console.log('?? Debug template validation:');
@@ -5708,7 +5698,7 @@ Example:
      */
     private checkBrowserCacheForTemplates(containerEl: HTMLElement) {
         const resultsEl = containerEl.createDiv({ cls: 'oom-recovery-results' });
-        resultsEl.innerHTML = '';
+        SafeDOMUtils.safelyEmptyContainer(resultsEl);
         
         resultsEl.createEl('h4', { text: '?? Browser Cache Search Results' });
         
@@ -5782,7 +5772,7 @@ Example:
      */
     private showManualTemplateRestore(containerEl: HTMLElement) {
         const restoreEl = containerEl.createDiv({ cls: 'oom-manual-restore' });
-        restoreEl.innerHTML = '';
+        SafeDOMUtils.safelyEmptyContainer(restoreEl);
         
         restoreEl.createEl('h4', { text: '?? Manual Template Restoration' });
         restoreEl.createEl('p', { 
@@ -6626,7 +6616,7 @@ Example:
                 cls: 'oom-drag-handle',
                 attr: { 'data-index': key }
             });
-            dragHandle.innerHTML = '??';
+            dragHandle.textContent = '⚐';
         };
 
         // Function to check if a metric should be displayed in settings
@@ -6697,13 +6687,13 @@ Example:
         }
 
         // Clear existing content
-        enabledSection.innerHTML = '';
+        SafeDOMUtils.safelyEmptyContainer(enabledSection);
         enabledSection.createEl('h3', { 
             text: 'Enabled Metrics',
             cls: 'oom-hub-section-title' 
         });
 
-        disabledSection.innerHTML = '';
+        SafeDOMUtils.safelyEmptyContainer(disabledSection);
         disabledSection.createEl('h3', { 
             text: 'Disabled Metrics',
             cls: 'oom-hub-section-title' 
