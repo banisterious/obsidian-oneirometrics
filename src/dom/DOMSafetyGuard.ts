@@ -241,7 +241,13 @@ export class DOMSafetyGuard {
           if (key === 'className') {
             element.className = String(value);
           } else if (key === 'innerHTML') {
-            element.innerHTML = String(value);
+            // SECURITY FIX: innerHTML usage removed from DOMSafetyGuard
+            safeLogger.error('DOM', 'SECURITY WARNING: innerHTML usage blocked in DOMSafetyGuard.setElementProps()', {
+              element: element.tagName,
+              attemptedValue: String(value).substring(0, 100),
+              recommendation: 'Use SafeDOMUtils.safelyEmptyContainer() and DOM createElement methods instead'
+            });
+            throw new Error('innerHTML usage is not allowed in DOMSafetyGuard for security reasons');
           } else if (key === 'textContent') {
             element.textContent = String(value);
           } else if (key.startsWith('data-')) {
