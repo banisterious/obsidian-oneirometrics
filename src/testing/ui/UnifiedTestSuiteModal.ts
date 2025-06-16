@@ -1636,7 +1636,8 @@ export class UnifiedTestSuiteModal extends Modal {
                 
                 for (const child of children) {
                     try {
-                        await this.app.vault.delete(child);
+                        // DATA SAFETY FIX: Use fileManager.trashFile instead of vault.delete
+                        await this.app.fileManager.trashFile(child);
                         deletedCount++;
                     } catch (error) {
                         this.logger.warn('TestData', `Failed to delete test file: ${child.path} - ${(error as Error).message}`);

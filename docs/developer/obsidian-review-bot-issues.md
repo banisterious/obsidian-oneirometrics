@@ -253,40 +253,77 @@ private safelyEmptyContainer(container: HTMLElement): void {
 **Official Obsidian Guidance:**
 "You should change all instances of var to either const or let. var has function-level scope, so it can easily lead to bugs if you're not careful."
 
-### 🚨 IDENTIFIED FILES WITH VAR USAGE
+### ✅ ANALYSIS COMPLETE - FALSE POSITIVE
 
 **Files:** FilterDisplayManager.ts, TableManager.ts, FilterManager.ts, PluginLoader.ts, EventHandler.ts  
-**Issue:** Use of `var` declarations instead of `const`/`let`  
-**Risk:** Function-level scoping can lead to unexpected behavior and bugs  
+**Issue:** Use of `var` declarations flagged by review bot  
+**Analysis Result:** FALSE POSITIVE - All `var` usage is in TypeScript `declare global` blocks  
 **Priority:** Medium - Code quality and maintainability  
-**Status:** 🔍 **IDENTIFIED** - Awaiting comprehensive audit and remediation
+**Status:** ✅ **RESOLVED** - No action required
 
-**Recommended Solution:**
-- Replace `var` with `const` for values that don't change
-- Replace `var` with `let` for values that need reassignment
-- Review scoping to ensure proper block-level scope behavior
+**Technical Analysis:**
+
+All detected `var` usage is within TypeScript `declare global` blocks:
+```typescript
+declare global {
+    var customDateRange: { start: string, end: string } | null;
+    var globalLogger: any;
+}
+```
+
+**Why this is correct:**
+- `declare global` statements describe existing global variables
+- In global scope, `var` is the appropriate declaration type in JavaScript
+- TypeScript's `declare global` with `var` correctly models global variable behavior
+- Using `let`/`const` in global declarations would be incorrect TypeScript
+
+**Review Bot Limitation:**
+- The review bot appears to be doing simple pattern matching for `var` keywords
+- It doesn't understand the context of TypeScript ambient declarations
+- This is a known limitation of automated code analysis tools
+
+**Recommendation:** No changes needed. The code follows correct TypeScript patterns for global variable declarations.
 
 ## Issue 3: Hardcoded .obsidian Directory
 
 **Official Obsidian Guidance:**
 "Obsidian's configuration directory isn't necessarily .obsidian, it can be configured by the user. You can access the configured value from Vault#configDir"
 
-### 🚨 IDENTIFIED FILES WITH HARDCODED PATHS
+### ✅ FIXED - COMPATIBILITY ISSUE RESOLVED
 
 **File:** HubModal.ts  
 **Issue:** Hardcoded reference to `.obsidian` directory  
 **Risk:** Plugin may fail when users have custom configuration directories  
 **Priority:** High - Compatibility issue  
-**Status:** 🔍 **IDENTIFIED** - Awaiting location identification and fix
+**Status:** ✅ **FIXED** - Now uses dynamic configuration directory
 
-**Recommended Solution:**
+**Implementation Summary:**
+
+**✅ HARDCODED PATHS FIXED (Lines 5761-5763):**
+- **Original:** Hardcoded `.obsidian/plugins/oneirometrics/` paths in user guidance
+- **Fixed:** Dynamic paths using `this.plugin.app.vault.configDir`
+- **Compatibility Improvement:** Now works with custom Obsidian configuration directories
+
+**Technical Implementation:**
 ```typescript
-// ❌ AVOID - Hardcoded path
-const configPath = '.obsidian/...';
+// BEFORE - Hardcoded paths
+pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/' });
+pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/data.json (main settings file)' });
+pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/backups/ (if any)' });
 
-// ✅ RECOMMENDED - Use Vault API
-const configPath = this.app.vault.configDir + '/...';
+// AFTER - Dynamic configuration directory
+const configDir = this.plugin.app.vault.configDir;
+pathsList.createEl('li', { text: `${configDir}/plugins/oneirometrics/` });
+pathsList.createEl('li', { text: `${configDir}/plugins/oneirometrics/data.json (main settings file)` });
+pathsList.createEl('li', { text: `${configDir}/plugins/oneirometrics/backups/ (if any)` });
 ```
+
+**Compatibility Benefits:**
+- **Custom Config Support:** Works with users who have customized their Obsidian configuration directory
+- **Portable:** Plugin guidance now adapts to any Obsidian setup
+- **Future-Proof:** Uses official Obsidian API instead of assumptions
+
+**Build Status:** ✅ **SUCCESS** - Compatibility fix implemented without breaking changes
 
 ## Issue 4: Desktop-Only Classes on Mobile
 

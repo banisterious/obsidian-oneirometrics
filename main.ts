@@ -952,7 +952,7 @@ export default class DreamMetricsPlugin extends Plugin {
         this.addCommand({
             id: 'date-nav-open-accessible',
             name: 'Date Navigator: Open',
-            hotkeys: [{ modifiers: ['Ctrl', 'Shift'], key: 'd' }],
+            // HOTKEY FIX: Removed default hotkey - let users configure manually
             checkCallback: (checking: boolean) => {
                 const isReady = this.validateAccessibilityContext();
                 

@@ -5758,9 +5758,11 @@ Example:
         });
         
         const pathsList = resultsEl.createEl('ul');
-        pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/' });
-        pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/data.json (main settings file)' });
-        pathsList.createEl('li', { text: '.obsidian/plugins/oneirometrics/backups/ (if any)' });
+        // COMPATIBILITY FIX: Use vault.configDir instead of hardcoded .obsidian
+        const configDir = this.plugin.app.vault.configDir;
+        pathsList.createEl('li', { text: `${configDir}/plugins/oneirometrics/` });
+        pathsList.createEl('li', { text: `${configDir}/plugins/oneirometrics/data.json (main settings file)` });
+        pathsList.createEl('li', { text: `${configDir}/plugins/oneirometrics/backups/ (if any)` });
         
         resultsEl.createEl('p', { 
             text: 'You can also check for .bak files or temporary files with your template content.' 

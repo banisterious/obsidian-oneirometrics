@@ -126,8 +126,10 @@ export class PluginLoader {
         }
 
         // Initialize logs directory for plugin logs
+        // MOBILE COMPATIBILITY FIX: Check for desktop-only FileSystemAdapter
         if (this.app.vault.adapter instanceof FileSystemAdapter) {
-            const baseFolder = (this.app.vault.adapter as FileSystemAdapter).getBasePath();
+            // Desktop: Full file system access for logging
+            const baseFolder = this.app.vault.adapter.getBasePath();
             
             try {
                 // Check if logs directory exists
@@ -141,6 +143,9 @@ export class PluginLoader {
                     safeLogger.error('Plugin', "Could not create logs directory", mkdirError instanceof Error ? mkdirError : new Error(String(mkdirError)));
                 }
             }
+        } else {
+            // Mobile: Limited file system access - log directory creation not supported
+            safeLogger.info('Plugin', 'Running on mobile - skipping logs directory initialization');
         }
     }
 
@@ -150,8 +155,10 @@ export class PluginLoader {
     private async cleanupLogs(): Promise<void> {
         try {
             // Check if logs directory exists
+            // MOBILE COMPATIBILITY FIX: Check for desktop-only FileSystemAdapter
             if (this.app.vault.adapter instanceof FileSystemAdapter) {
-                const baseFolder = (this.app.vault.adapter as FileSystemAdapter).getBasePath();
+                // Desktop: Full file system access for cleanup
+                const baseFolder = this.app.vault.adapter.getBasePath();
                 const logsPath = `${baseFolder}/logs`;
                 
                 safeLogger.info('Plugin', 'Cleaning up old log files from previous versions');
@@ -198,6 +205,9 @@ export class PluginLoader {
                 } catch (error) {
                     safeLogger.warn('Plugin', 'Error cleaning up log files');
                 }
+            } else {
+                // Mobile: No file system cleanup needed
+                safeLogger.info('Plugin', 'Running on mobile - skipping logs cleanup');
             }
         } catch (e) {
             safeLogger.warn('Plugin', 'Error in cleanupLogs');

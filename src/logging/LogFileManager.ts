@@ -114,9 +114,16 @@ export class LogFileManager {
             const separator = '\n\n' + '-'.repeat(80) + '\n';
             const newContent = `${separator}Console Log Capture - ${timestamp}\n${separator}\n${filteredLogs}\n`;
 
+            // TYPE SAFETY FIX: Check if logFile is actually a TFile
+            if (!(logFile instanceof TFile)) {
+                this.logger.error('Log', 'Log file is not a TFile instance');
+                new Notice('Error: Log file is not a valid file');
+                return;
+            }
+
             // Append to existing content
-            const existingContent = await this.app.vault.read(logFile as TFile);
-            await this.app.vault.modify(logFile as TFile, existingContent + newContent);
+            const existingContent = await this.app.vault.read(logFile);
+            await this.app.vault.modify(logFile, existingContent + newContent);
 
             new Notice('Console logs copied to debug file');
             this.logger.log('Log', 'Console logs copied to debug file');
@@ -159,7 +166,8 @@ export class LogFileManager {
                 .sort((a, b) => b.stat.mtime - a.stat.mtime);
             
             for (let i = this.MAX_BACKUPS; i < backupFiles.length; i++) {
-                await this.app.vault.delete(backupFiles[i]);
+                // DATA SAFETY FIX: Use fileManager.trashFile instead of vault.delete
+                await this.app.fileManager.trashFile(backupFiles[i]);
             }
         } catch (error) {
             this.logger.error('Log', 'Failed to cleanup old backups', error as Error);
