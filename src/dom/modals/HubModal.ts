@@ -7,6 +7,32 @@
  */
 
 import { App, Modal, MarkdownRenderer, setIcon, Setting, Notice, TFile, ButtonComponent, DropdownComponent, TextAreaComponent, TextComponent, TFolder } from 'obsidian';
+
+// Type interfaces for Obsidian internal APIs
+interface ObsidianSettings {
+    open: (tabId?: string) => void;
+    openTabById: (tabId: string) => void;
+}
+
+interface AppWithSettings extends App {
+    setting: ObsidianSettings;
+    plugins: {
+        plugins: {
+            [key: string]: {
+                settings?: {
+                    templates_folder?: string;
+                    [key: string]: any;
+                };
+                [key: string]: any;
+            };
+        };
+    };
+}
+
+interface MetricWithName {
+    name: string;
+    [key: string]: any;
+}
 import DreamMetricsPlugin from '../../../main';
 import { DreamMetric, DateHandlingConfig, DatePlacement, SelectionMode } from '../../types/core';
 import { CalloutStructure, JournalTemplate, JournalStructureSettings } from '../../types/journal-check';
@@ -977,8 +1003,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             this.close();
             
             // Then open the Obsidian Settings to OneiroMetrics tab
-            (this.app as any).setting.open();
-            (this.app as any).setting.openTabById('oneirometrics');
+            const appWithSettings = this.app as AppWithSettings;
+            appWithSettings.setting.open();
+            appWithSettings.setting.openTabById('oneirometrics');
         });
         
         this.createQuickActionButton(quickActionsGrid, 'Help & Docs', 'help-circle', () => {
@@ -1300,7 +1327,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 this.app.workspace.openLinkText(this.plugin.settings.projectNote, '', true);
             } else {
                 new Notice('Metrics note not found. Please set the path in settings.');
-                (this.app as any).setting.open('oneirometrics');
+                (this.app as AppWithSettings).setting.open('oneirometrics');
             }
         });
     }
@@ -2665,7 +2692,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         if (templaterEnabled) {
             // Get the Templater plugin instance to check its settings
             try {
-                const templaterPlugin = (this.plugin.app as any).plugins?.plugins?.['templater-obsidian'];
+                const templaterPlugin = (this.plugin.app as AppWithSettings).plugins?.plugins?.['templater-obsidian'];
                 if (templaterPlugin) {
                     // Fix: Use templates_folder (with 's') not template_folder
                     templaterTemplateFolder = templaterPlugin.settings?.templates_folder || 'Not configured';
@@ -2735,12 +2762,14 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         settingsBtn.addEventListener('click', () => {
             if (templaterEnabled) {
                 // Open Obsidian settings to Templater tab
-                (this.app as any).setting.open();
-                (this.app as any).setting.openTabById('templater-obsidian');
+                const appWithSettings = this.app as AppWithSettings;
+                appWithSettings.setting.open();
+                appWithSettings.setting.openTabById('templater-obsidian');
             } else {
                 // Open community plugins to install Templater
-                (this.app as any).setting.open();
-                (this.app as any).setting.openTabById('community-plugins');
+                const appWithSettings = this.app as AppWithSettings;
+                appWithSettings.setting.open();
+                appWithSettings.setting.openTabById('community-plugins');
                 new Notice('Search for "Templater" in the Community Plugins tab');
             }
         });
@@ -2754,7 +2783,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             
             debugBtn.addEventListener('click', () => {
                 try {
-                    const templaterPlugin = (this.plugin.app as any).plugins?.plugins?.['templater-obsidian'];
+                    const templaterPlugin = (this.plugin.app as AppWithSettings).plugins?.plugins?.['templater-obsidian'];
                     const debugInfo = {
                         pluginFound: !!templaterPlugin,
                         pluginEnabled: templaterPlugin?.manifest?.id === 'templater-obsidian',
@@ -3126,7 +3155,7 @@ Full debug info in logs/console`);
             if (templaterEnabled) {
                 // Get the Templater plugin instance to check its settings
                 try {
-                    const templaterPlugin = (this.plugin.app as any).plugins?.plugins?.['templater-obsidian'];
+                    const templaterPlugin = (this.plugin.app as AppWithSettings).plugins?.plugins?.['templater-obsidian'];
                     if (templaterPlugin) {
                         templaterTemplateFolder = templaterPlugin.settings?.templates_folder || 'Not configured';
                         templaterTemplates = this.plugin.templaterIntegration?.getTemplaterTemplates?.() || [];
@@ -3332,7 +3361,7 @@ Example:
                 },
                 getValue: () => textarea.value,
                 inputEl: textarea
-            } as any;
+            } as TextAreaComponent;
             
             // Helper buttons - replace simple button with dropdown
             const helpersContainer = container.createDiv({ cls: 'oom-content-helpers' });
@@ -4545,7 +4574,7 @@ Example:
             
             // Calendar metrics
             const calendarMetricsText = config.preferredMetrics.calendar.length > 0 
-                ? config.preferredMetrics.calendar.map(metric => (metric as any).name).join(', ')
+                ? config.preferredMetrics.calendar.join(', ')
                 : 'Using defaults';
             
             new Setting(preferencesSection)
@@ -4560,7 +4589,7 @@ Example:
 
             // Charts metrics  
             const chartMetricsText = config.preferredMetrics.charts.length > 0
-                ? config.preferredMetrics.charts.map(metric => (metric as any).name).join(', ')
+                ? config.preferredMetrics.charts.join(', ')
                 : 'Using defaults';
                 
             new Setting(preferencesSection)
@@ -4666,14 +4695,16 @@ Example:
         SafeDOMUtils.safelyEmptyContainer(resultsContainer);
         resultsContainer.createEl('p', { text: '?? Validating template...', cls: 'oom-validation-loading' });
         
-        console.log('?? Debug template validation:');
-        console.log('Template structure ID:', template.structure);
-        console.log('Template is Templater:', template.isTemplaterTemplate);
-        console.log('Template Templater file:', template.templaterFile);
-        console.log('Template content length:', template.content?.length || 0);
+        // LOGGING FIX: Use proper logger instead of console.log
+        this.logger.debug('TemplateValidation', 'Debug template validation', {
+            structureId: template.structure,
+            isTemplater: template.isTemplaterTemplate,
+            templaterFile: template.templaterFile,
+            contentLength: template.content?.length || 0
+        });
         
         // Clear loading state
-        resultsContainer.innerHTML = '';
+        SafeDOMUtils.safelyEmptyContainer(resultsContainer);
         
         // Determine template type and validate accordingly
         if (template.isTemplaterTemplate) {
@@ -6271,7 +6302,7 @@ Example:
                         },
                         quickFixesEnabled: true
                     }
-                } as any;
+                } as JournalStructureSettings;
             }
 
             let importCount = 0;

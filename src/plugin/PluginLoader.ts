@@ -46,12 +46,18 @@ import safeLogger from '../logging/safe-logger';
 
 // Import plugin compatibility utilities
 import { initializePluginCompatibility } from '../utils/plugin-compatibility';
+import DreamMetricsPlugin from '../../main';
 
-// Global logger variable (matches main.ts declaration)
-let globalLogger: any = safeLogger;
+// Global logger variable with proper typing
+let globalLogger: typeof safeLogger = safeLogger;
 
-// Create the global ContentToggler variable
-(window as any).globalContentToggler = null; // Initialize with null until properly set
+// Create the global ContentToggler variable with proper typing
+interface GlobalWindow {
+    globalContentToggler: ContentToggler | null;
+    oneiroMetricsPlugin?: Plugin;
+}
+
+(window as GlobalWindow).globalContentToggler = null; // Initialize with null until properly set
 
 // Global instance for content toggling (used by global functions)
 declare global {
@@ -84,12 +90,12 @@ export class PluginLoader {
         await this.setupRibbonIcons();
         
         // Register the settings tab
-        this.plugin.addSettingTab(new DreamMetricsSettingTab(this.app, this.plugin as any));
+        this.plugin.addSettingTab(new DreamMetricsSettingTab(this.app, this.plugin as DreamMetricsPlugin));
         
         // Set plugin instance for global access (used by filter persistence)
         // Only set if not already defined to avoid overriding the one set in onload
-        if (!(window as any).oneiroMetricsPlugin) {
-            (window as any).oneiroMetricsPlugin = this.plugin;
+        if (!(window as GlobalWindow).oneiroMetricsPlugin) {
+            (window as GlobalWindow).oneiroMetricsPlugin = this.plugin;
             globalLogger?.debug('State', 'Set global plugin instance for filter persistence');
         }
     }
@@ -99,12 +105,13 @@ export class PluginLoader {
      */
     private async initializePluginCompatibility(): Promise<void> {
         try {
-            const plugin = this.plugin as any;
+            // Use targeted typing for required functionality
+        const pluginWithSettings = this.plugin as DreamMetricsPlugin;
             
             safeLogger.debug('DreamMetricsPlugin', 'Initializing plugin compatibility');
             
             // Use our compatibility utility
-            await initializePluginCompatibility(this.app, this.plugin, plugin.settings);
+            await initializePluginCompatibility(this.app, this.plugin, pluginWithSettings.settings);
             
             safeLogger.debug('DreamMetricsPlugin', 'Plugin compatibility initialized');
         } catch (e) {
@@ -239,22 +246,22 @@ export class PluginLoader {
      * Initialize the settings manager
      */
     private async initializeSettingsManager(): Promise<void> {
-        // Access the plugin's settingsManager property
-        const plugin = this.plugin as any;
+        // Access plugin as DreamMetricsPlugin for type safety
+        const plugin = this.plugin as DreamMetricsPlugin;
         
-        // Initialize settings manager first
-        plugin.settingsManager = new SettingsManager(this.plugin);
-        await plugin.settingsManager.loadSettings();
-        plugin.settings = plugin.settingsManager.settings;
-        plugin.expandedStates = plugin.settingsManager.expandedStates;
-        plugin.loadedSettings = plugin.settingsManager.loadedSettings;
+        // Initialize settings manager first (access internal properties)
+        (plugin as any).settingsManager = new SettingsManager(this.plugin);
+        await (plugin as any).settingsManager.loadSettings();
+        plugin.settings = (plugin as any).settingsManager.settings;
+        // Note: expandedStates is handled by the settings manager and is a Set<string>
+        (plugin as any).loadedSettings = (plugin as any).settingsManager.loadedSettings;
     }
 
     /**
      * Initialize the service registry
      */
     private async initializeServiceRegistry(): Promise<void> {
-        const plugin = this.plugin as any;
+        const plugin = this.plugin as DreamMetricsPlugin;
         const settings: DreamMetricsSettings = plugin.settings;
 
         try {
@@ -361,8 +368,8 @@ export class PluginLoader {
             }
             
             // Update the global logger with the configured instance
-            globalLogger = logger;
-            plugin.logger = logger;
+            globalLogger = logger as any;
+            (plugin as any).logger = logger;
             
             // Update the logger in the registry with the fully configured version
             upgradeService(SERVICE_NAMES.LOGGER, logger);
@@ -370,7 +377,7 @@ export class PluginLoader {
             
             // Force re-configuration to ensure settings are applied
             if (settings.logging?.level) {
-                plugin.setLogLevel(settings.logging.level);
+                (plugin as any).setLogLevel(settings.logging.level as any);
                 globalLogger.info('Plugin', `Log level enforced during startup: ${settings.logging.level}`);
             }
             
@@ -395,7 +402,7 @@ export class PluginLoader {
      * Initialize plugin components
      */
     private async initializeComponents(): Promise<void> {
-        const plugin = this.plugin as any;
+        const plugin = this.plugin as DreamMetricsPlugin;
         const settings: DreamMetricsSettings = plugin.settings;
         
         // Initialize mutable state and app state
@@ -452,7 +459,7 @@ export class PluginLoader {
         
         // Initialize the linting engine with safe property access
         const journalStructure = getJournalStructure(settings);
-        plugin.lintingEngine = new LintingEngine(this.plugin as any, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
+        plugin.lintingEngine = new LintingEngine(plugin, journalStructure || DEFAULT_JOURNAL_STRUCTURE_SETTINGS);
         
         // Initialize date navigator for reuse
         // plugin.dateNavigatorIntegration = new DateNavigatorIntegration(this.app, this.plugin as any);
@@ -461,22 +468,22 @@ export class PluginLoader {
         plugin.dateRangeService = new DateRangeService(this.app);
         
         // Initialize the ProjectNoteManager
-        plugin.projectNoteManager = new ProjectNoteManager(this.app, plugin, settings, plugin.logger);
+        (plugin as any).projectNoteManager = new ProjectNoteManager(this.app, plugin, settings, (plugin as any).logger);
         
         // Initialize the RibbonManager
-        plugin.ribbonManager = new RibbonManager(this.app, settings, this.plugin as any, plugin.logger);
+        (plugin as any).ribbonManager = new RibbonManager(this.app, settings, plugin, (plugin as any).logger);
         
         // Initialize the ContentToggler
-        const contentToggler = new ContentToggler(plugin.logger);
+        const contentToggler = new ContentToggler((plugin as any).logger);
         globalContentToggler = contentToggler;  // Set the global instance for legacy code
-        plugin.contentToggler = contentToggler; // Store on the plugin instance
+        (plugin as any).contentToggler = contentToggler; // Store on the plugin instance
     }
 
     /**
      * Register event listeners for the plugin
      */
     private async registerEventListeners(): Promise<void> {
-        const plugin = this.plugin as any;
+        const plugin = this.plugin as DreamMetricsPlugin;
         const settings: DreamMetricsSettings = plugin.settings;
 
         // Register event listeners for when the active leaf changes
@@ -498,11 +505,11 @@ export class PluginLoader {
                         }
                         
                         // Always call updateProjectNoteView to manage the oom-project-note-view class
-                        if (typeof plugin.updateProjectNoteView === 'function') {
-                            plugin.updateProjectNoteView();
+                        if (typeof (plugin as any).updateProjectNoteView === 'function') {
+                            (plugin as any).updateProjectNoteView();
                         } else if (isProjectNote) {
                             // Fallback to direct event listener attachment only for project notes
-                            plugin.attachProjectNoteEventListeners();
+                            (plugin as any).attachProjectNoteEventListeners?.();
                         }
                     }
                 }, 500); // 500ms delay to ensure content is rendered
@@ -518,7 +525,7 @@ export class PluginLoader {
                 }
                 
                 // Apply initial filters if available
-                plugin.applyInitialFilters();
+                (plugin as any).applyInitialFilters();
                 
                 // Also check if metrics note is already open and set up event handlers
                 setTimeout(() => {
@@ -533,8 +540,8 @@ export class PluginLoader {
                         }
                         
                         // Always call updateProjectNoteView to manage the oom-project-note-view class
-                        if (typeof plugin.updateProjectNoteView === 'function') {
-                            plugin.updateProjectNoteView();
+                        if (typeof (plugin as any).updateProjectNoteView === 'function') {
+                            (plugin as any).updateProjectNoteView();
                         }
                     }
                 }, 1000);
@@ -559,14 +566,14 @@ export class PluginLoader {
      * Setup ribbon icons
      */
     private async setupRibbonIcons(): Promise<void> {
-        const plugin = this.plugin as any;
+        const plugin = this.plugin as DreamMetricsPlugin;
         
         // Wait for Obsidian layout to be ready before adding ribbon icons
         // This ensures our button appears after other plugins have loaded
         this.app.workspace.onLayoutReady(() => {
             // Initialize ribbon icons if the RibbonManager exists
-            if (plugin.ribbonManager) {
-                plugin.ribbonManager.updateRibbonIcons();
+            if ((plugin as any).ribbonManager) {
+                (plugin as any).ribbonManager.updateRibbonIcons();
             }
 
             // Note: Web Worker test ribbon button removed - available via command palette only

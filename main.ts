@@ -650,7 +650,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private updateTestRibbon() {
         // Remove all test buttons
         document.querySelectorAll('.oom-ribbon-test-btn').forEach(btn => btn.remove());
-        if ((this.settings as any).showTestRibbonButton) {
+        if (this.settings.showTestRibbonButton) {
             const btn = this.addRibbonIcon('wand', 'Test Ribbon Button', () => {
                 new Notice('Test button clicked!');
             });
@@ -1064,4 +1064,8 @@ declare global {
 }
 
 // Debug helper - expose content expansion function to window object for console debugging
-(window as any).debugContentExpansion = debugContentExpansion;
+interface DebugWindow extends Window {
+    debugContentExpansion: (showExpanded?: boolean) => string;
+}
+
+(window as DebugWindow).debugContentExpansion = debugContentExpansion;
