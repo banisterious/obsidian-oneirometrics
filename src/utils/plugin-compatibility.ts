@@ -8,6 +8,10 @@ import { App, Plugin, TFolder } from 'obsidian';
 import { DreamMetricsSettings } from '../types/core';
 import { getProjectNotePath } from './settings-helpers';
 import { initializeFolderNotesCompatibility } from '../plugin/FolderNotesAdapter';
+import { getLogger } from '../logging';
+
+// Initialize logger for plugin compatibility
+const logger = getLogger('PluginCompatibility');
 
 /**
  * Initialize compatibility with other plugins like folder-notes
@@ -26,7 +30,7 @@ export async function initializePluginCompatibility(
         initializeFolderNotesCompatibility(app, plugin);
         
     } catch (error) {
-        console.warn('OneiroMetrics: Error initializing plugin compatibility', error);
+        logger.warn('System', 'Failed to initialize plugin compatibility system', error);
     }
 }
 

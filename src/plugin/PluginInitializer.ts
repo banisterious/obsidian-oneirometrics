@@ -82,10 +82,8 @@ export class PluginInitializer {
             const logger = this.plugin.logger || safeLogger;
             logger.info('Plugin', 'OneiroMetrics plugin loaded successfully');
         } catch (error) {
-            console.error('Failed to initialize OneiroMetrics plugin:', error);
-            
-            // Use safeLogger for error logging since plugin.logger might not be available yet
-            safeLogger.error('Plugin', 'Failed to initialize OneiroMetrics plugin', 
+            // Use safeLogger for critical initialization error - plugin.logger not available yet
+            safeLogger.error('Plugin', 'CRITICAL: Failed to initialize OneiroMetrics plugin', 
                 error instanceof Error ? error : new Error(String(error)));
             
             new Notice('Failed to initialize OneiroMetrics plugin: ' + (error instanceof Error ? error.message : String(error)));

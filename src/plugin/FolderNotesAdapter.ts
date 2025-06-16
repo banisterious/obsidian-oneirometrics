@@ -7,6 +7,10 @@
  */
 
 import { App, Plugin, TAbstractFile } from 'obsidian';
+import { getLogger } from '../logging';
+
+// Initialize logger for FolderNotesAdapter
+const logger = getLogger('FolderNotesAdapter');
 
 /**
  * Interface representing a minimal subset of the folder-notes plugin API
@@ -45,7 +49,7 @@ export function getFolderNotesPlugin(app: App): FolderNotesPlugin | null {
         const extApp = app as ExtendedApp;
         return extApp.plugins?.plugins?.['folder-notes'] as FolderNotesPlugin;
     } catch (e) {
-        console.warn('OneiroMetrics: Error accessing folder-notes plugin', e);
+        logger.warn('PluginCompatibility', 'folder-notes plugin not accessible or not installed', e);
         return null;
     }
 }
@@ -88,15 +92,15 @@ export function patchFolderNotesPlugin(app: App): void {
                     // Call the original function
                     return originalGetEl.call(folderNotes, path);
                 } catch (e) {
-                    console.warn(`OneiroMetrics: Error in patched folder-notes getEl for path: ${path}`, e);
+                    logger.warn('PluginCompatibility', `folder-notes getEl failed for path: ${path}`, e);
                     return null;
                 }
             };
             
-            console.debug('OneiroMetrics: Successfully patched folder-notes getEl function');
+            logger.debug('PluginCompatibility', 'Successfully patched folder-notes getEl function');
         }
     } catch (e) {
-        console.warn('OneiroMetrics: Error patching folder-notes plugin', e);
+        logger.warn('PluginCompatibility', 'Failed to patch folder-notes plugin', e);
     }
 }
 
@@ -136,15 +140,15 @@ export function initializeFolderNotesCompatibility(app: App, plugin: Plugin): vo
             // @ts-ignore - 'plugin-load' is a custom event not in the typings
             app.workspace.on('plugin-load', (loadedPlugin: Plugin) => {
                 if (loadedPlugin && loadedPlugin.manifest && loadedPlugin.manifest.id === 'folder-notes') {
-                    console.debug('OneiroMetrics: folder-notes plugin loaded, applying patch');
+                    logger.debug('PluginCompatibility', 'folder-notes plugin loaded, applying compatibility patch');
                     patchFolderNotesPlugin(app);
                 }
             });
         } catch (e) {
-            console.warn('OneiroMetrics: Error registering plugin-load event listener', e);
+            logger.warn('PluginCompatibility', 'Failed to register folder-notes plugin-load event listener', e);
         }
         
     } catch (e) {
-        console.warn('OneiroMetrics: Error initializing folder-notes compatibility', e);
+        logger.warn('PluginCompatibility', 'Failed to initialize folder-notes compatibility system', e);
     }
 } 

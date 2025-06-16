@@ -4676,7 +4676,7 @@ Example:
                                 }
                             } catch (error) {
                                 new Notice(`? Migration failed: ${(error as Error).message}`);
-                                console.error('Settings migration error:', error);
+                                this.logger.error('SettingsMigration', 'Settings migration failed', error);
                             }
                         });
                 });
@@ -5336,8 +5336,7 @@ Example:
         } catch (error) {
             this.logger.error('ContentAnalysis', `CRITICAL ERROR in analysis: ${(error as Error).message}`, error);
             progressContainer.remove();
-            console.error('Analysis failed:', error);
-            new Notice(`Analysis failed: ${(error as Error).message}`);
+            new Notice(`Analysis failed: ${(error as Error).message}. Check console for details.`);
             this.isScraping = false;
             this.updateAnalyzeButtonState();
         }
@@ -5415,7 +5414,7 @@ Example:
             
         } catch (error) {
             this.logger.error('ContentAnalysis', `Failed to analyze file ${file.name}`, error);
-            console.warn(`Failed to analyze file ${file.path}:`, error);
+            // Note: This is a per-file error during batch analysis, logged but no user notification needed
         }
     }
     

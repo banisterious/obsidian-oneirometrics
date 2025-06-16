@@ -1,5 +1,6 @@
 import { App, Modal, Notice, Setting } from 'obsidian';
 import DreamMetricsPlugin from '../../../main';
+import { getLogger } from '../../logging';
 
 // Simple helper functions for component metrics configuration
 function getComponentMetrics(settings: any, component: 'calendar' | 'charts') {
@@ -25,6 +26,7 @@ export class ComponentMetricsModal extends Modal {
     private onSave: () => void;
     private availableMetrics: string[] = [];
     private selectedMetrics: string[] = [];
+    private logger = getLogger('ComponentMetricsModal');
 
     constructor(
         app: App, 
@@ -220,7 +222,7 @@ export class ComponentMetricsModal extends Modal {
             
             this.close();
         } catch (error) {
-            console.error('Error saving component metrics configuration:', error);
+            this.logger.error('ConfigSave', 'Failed to save component metrics configuration', error);
             new Notice('Error saving configuration. Please try again.');
         }
     }

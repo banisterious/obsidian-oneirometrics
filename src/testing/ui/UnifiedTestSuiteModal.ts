@@ -607,8 +607,8 @@ export class UnifiedTestSuiteModal extends Modal {
         logLevelSelect.value = currentLogLevel;
         
         // Debug logging to track log level reading
-        console.log(`[OneiroMetrics Debug] Test Suite reading log level: ${currentLogLevel}`);
-        console.log(`[OneiroMetrics Debug] Full logging settings:`, (this.plugin as any).settings?.logging);
+        this.logger.debug('TestSuite', `Reading log level: ${currentLogLevel}`);
+        this.logger.debug('TestSuite', 'Full logging settings', (this.plugin as any).settings?.logging);
         
         // Add change handler
         logLevelSelect.addEventListener('change', () => {
@@ -679,7 +679,7 @@ export class UnifiedTestSuiteModal extends Modal {
             const loggerInstance = this.plugin.logger || this.plugin.getLogger?.();
             if (loggerInstance && typeof loggerInstance.setLevel === 'function') {
                 loggerInstance.setLevel(newLevel);
-                console.log(`[OneiroMetrics Debug] Updated logger level to: ${newLevel}`);
+                this.logger.debug('TestSuite', `Updated logger level to: ${newLevel}`);
             }
         } else {
             new Notice('Unable to update log level - settings not available');
@@ -1185,18 +1185,17 @@ export class UnifiedTestSuiteModal extends Modal {
                         await this.app.vault.create(filePath, noteContent);
                         createdCount++;
                         if (createdCount <= 3) {
-                            console.log(`[OneiroMetrics] Created enhanced note: ${filePath}`);
+                            this.logger.debug('TestData', `Created enhanced note: ${filePath}`);
                         }
                     } else {
-                        console.log(`[OneiroMetrics] Skipped existing file: ${filePath}`);
+                        this.logger.debug('TestData', `Skipped existing file: ${filePath}`);
                     }
                 } catch (error) {
-                    console.error(`[OneiroMetrics] Failed to create note: ${filePath}`, error);
-                    this.logger.warn('TestData', `Failed to create test note: ${filePath} - ${(error as Error).message}`);
+                    this.logger.error('TestData', `Failed to create test note: ${filePath}`, error);
                 }
             }
             
-            console.log(`[OneiroMetrics] Enhanced note creation complete. Created: ${createdCount}, Total generated: ${data.length}`);
+            this.logger.debug('TestData', `Enhanced note creation complete. Created: ${createdCount}, Total generated: ${data.length}`);
             
             // Update test results
             const result = {
@@ -1211,7 +1210,7 @@ export class UnifiedTestSuiteModal extends Modal {
             new Notice(`✅ Generated ${createdCount} enhanced test dream notes with ${config.includeMetrics.length} metrics`);
             
         } catch (error) {
-            console.error(`[OneiroMetrics] Enhanced test data generation failed:`, error);
+            this.logger.error('TestData', 'Enhanced test data generation failed', error);
             
             const result = {
                 testName: `Generate enhanced dataset`,
@@ -1295,9 +1294,9 @@ export class UnifiedTestSuiteModal extends Modal {
         
         // TRACE: Log the original template content with detailed line inspection
         // First, test if trace logging is working
-        console.log('[DEBUG] Testing trace logging before template debugging...');
+        this.logger.debug('TestSuite', 'Testing trace logging before template debugging');
         this.logger.trace('TemplateDebug', 'TRACE LOG TEST - If you see this, trace logging is working');
-        console.log('[DEBUG] Testing other log levels for comparison...');
+        this.logger.debug('TestSuite', 'Testing other log levels for comparison');
         this.logger.debug('TemplateDebug', 'DEBUG LOG TEST');
         this.logger.info('TemplateDebug', 'INFO LOG TEST');
         
@@ -1532,18 +1531,17 @@ export class UnifiedTestSuiteModal extends Modal {
                         await this.app.vault.create(filePath, noteContent);
                         createdCount++;
                         if (createdCount <= 3) {
-                            console.log(`[OneiroMetrics] Created note: ${filePath}`);
+                            this.logger.debug('TestData', `Created note: ${filePath}`);
                         }
                     } else {
-                        console.log(`[OneiroMetrics] Skipped existing file: ${filePath}`);
+                        this.logger.debug('TestData', `Skipped existing file: ${filePath}`);
                     }
                 } catch (error) {
-                    console.error(`[OneiroMetrics] Failed to create note: ${filePath}`, error);
-                    this.logger.warn('TestData', `Failed to create test note: ${filePath} - ${(error as Error).message}`);
+                    this.logger.error('TestData', `Failed to create test note: ${filePath}`, error);
                 }
             }
             
-            console.log(`[OneiroMetrics] Note creation complete. Created: ${createdCount}, Total generated: ${data.length}`);
+            this.logger.debug('TestData', `Note creation complete. Created: ${createdCount}, Total generated: ${data.length}`);
             
             // Update test results
             const result = {
@@ -1558,7 +1556,7 @@ export class UnifiedTestSuiteModal extends Modal {
             new Notice(`✅ Generated ${createdCount} custom test dream notes`);
             
         } catch (error) {
-            console.error(`[OneiroMetrics] Test data generation failed:`, error);
+            this.logger.error('TestData', 'Test data generation failed', error);
             
             const result = {
                 testName: `Generate custom dataset`,
@@ -1661,7 +1659,7 @@ export class UnifiedTestSuiteModal extends Modal {
             logLevelSelect.value = currentLogLevel;
             
             // Debug logging
-            console.log(`[OneiroMetrics Debug] Refreshed log level display to: ${currentLogLevel}`);
+            this.logger.debug('TestSuite', `Refreshed log level display to: ${currentLogLevel}`);
         }
     }
     
@@ -1670,11 +1668,11 @@ export class UnifiedTestSuiteModal extends Modal {
         const templateId = plugin.settings?.testDataTemplate;
         
         // DEBUG: Log which path we're taking
-        console.log('[DEBUG] createDreamNoteContent called, templateId:', templateId);
+        this.logger.debug('TestData', 'createDreamNoteContent called', { templateId });
         
         // If no template is specified, use the default format
         if (!templateId) {
-            console.log('[DEBUG] No templateId, using default format');
+            this.logger.debug('TestData', 'No templateId provided, using default format');
             return this.createDefaultDreamNoteContent(entry, calloutName);
         }
         
@@ -1683,7 +1681,7 @@ export class UnifiedTestSuiteModal extends Modal {
         const selectedTemplate = existingTemplates.find((template: any) => template.id === templateId);
         
         if (!selectedTemplate) {
-            console.log(`[OneiroMetrics] Template with ID ${templateId} not found, using default format`);
+            this.logger.debug('TestData', `Template with ID ${templateId} not found, using default format`);
             return this.createDefaultDreamNoteContent(entry, calloutName);
         }
         
@@ -1696,7 +1694,7 @@ export class UnifiedTestSuiteModal extends Modal {
                 if (templateFile && 'path' in templateFile) {
                     noteContent = await this.app.vault.read(templateFile as any);
                 } else {
-                    console.log(`[OneiroMetrics] Templater file ${selectedTemplate.templaterFile} not found, using stored content`);
+                    this.logger.debug('TestData', `Templater file ${selectedTemplate.templaterFile} not found, using stored content`);
                 }
             }
             
@@ -1778,7 +1776,7 @@ export class UnifiedTestSuiteModal extends Modal {
             return noteContent;
             
         } catch (error) {
-            console.error(`[OneiroMetrics] Error processing template ${selectedTemplate.name}:`, error);
+            this.logger.error('TestData', `Error processing template ${selectedTemplate.name}`, error);
             new Notice(`Failed to process template ${selectedTemplate.name}, using default format`);
             return this.createDefaultDreamNoteContent(entry, calloutName);
         }
@@ -2007,7 +2005,7 @@ ${entry.content}
             new LogViewerModal(this.app, memoryAdapter).open();
         }).catch(error => {
             new Notice('Failed to open log viewer');
-            console.error('Error opening log viewer:', error);
+            this.logger.error('UI', 'Failed to open log viewer', error);
         });
     }
 

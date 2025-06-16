@@ -4,6 +4,7 @@
 import { App } from 'obsidian';
 import { getLogger } from '../logging';
 import type { ContextualLogger } from '../logging';
+import safeLogger from '../logging/safe-logger';
 import { 
   UniversalTask,
   UniversalTaskType,
@@ -105,13 +106,13 @@ export class UniversalWorkerPool {
       try {
         this._logger = getLogger('UniversalWorkerPool') as ContextualLogger;
       } catch (error) {
-        // Fallback to console logging
+        // Fallback to safe logger when structured logging fails
         this._logger = {
-          debug: (...args: any[]) => console.debug('[UniversalWorkerPool]', ...args),
-          info: (...args: any[]) => console.info('[UniversalWorkerPool]', ...args),
-          warn: (...args: any[]) => console.warn('[UniversalWorkerPool]', ...args),
-          error: (...args: any[]) => console.error('[UniversalWorkerPool]', ...args),
-          trace: (...args: any[]) => console.trace('[UniversalWorkerPool]', ...args)
+          debug: (category: string, message: string, ...args: any[]) => safeLogger.debug('UniversalWorkerPool', `${category}: ${message}`, ...args),
+          info: (category: string, message: string, ...args: any[]) => safeLogger.info('UniversalWorkerPool', `${category}: ${message}`, ...args),
+          warn: (category: string, message: string, ...args: any[]) => safeLogger.warn('UniversalWorkerPool', `${category}: ${message}`, ...args),
+          error: (category: string, message: string, ...args: any[]) => safeLogger.error('UniversalWorkerPool', `${category}: ${message}`, ...args),
+          trace: (category: string, message: string, ...args: any[]) => safeLogger.debug('UniversalWorkerPool', `${category}: ${message}`, ...args)
         } as ContextualLogger;
       }
     }

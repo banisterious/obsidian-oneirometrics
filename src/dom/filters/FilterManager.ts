@@ -637,7 +637,8 @@ export class FilterManager {
                     });
                 }
             } catch (e) {
-                console.error('Failed to update summary table:', e);
+                this.logger?.error?.('FilterManager', 'Failed to update summary table', e);
+                new Notice('Error updating summary table. Please refresh the view.');
             }
         }
     }
