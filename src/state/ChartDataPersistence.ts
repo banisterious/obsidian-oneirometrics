@@ -199,9 +199,33 @@ export class ChartDataPersistence {
             return false;
         }
 
-        // Scrape ID check (most important - data content match)
+        // Scrape ID check with more lenient validation
+        // Allow minor differences due to DOM extraction vs file parsing variations
         if (savedData.scrapeId !== currentScrapeId) {
-            return false;
+            this.logger?.debug('ChartDataPersistence', 'Scrape ID mismatch, checking if difference is acceptable', {
+                saved: savedData.scrapeId,
+                current: currentScrapeId,
+                savedEntryCount: savedData.entryCount,
+                currentEntryCount: currentEntries.length
+            });
+            
+            // If entry counts match and data is recent (less than 1 hour old), allow mismatch
+            // This handles cases where DOM extraction produces slightly different metric signatures
+            // than the original file parsing due to processing differences
+            const oneHour = 60 * 60 * 1000;
+            const isRecent = Date.now() - savedData.timestamp < oneHour;
+            const entriesMatch = savedData.entryCount === currentEntries.length;
+            
+            if (!isRecent || !entriesMatch) {
+                this.logger?.debug('ChartDataPersistence', 'Scrape ID mismatch not acceptable', {
+                    isRecent,
+                    entriesMatch,
+                    age: Date.now() - savedData.timestamp
+                });
+                return false;
+            }
+            
+            this.logger?.debug('ChartDataPersistence', 'Scrape ID mismatch accepted due to recent cache and matching entry count');
         }
 
         // Quick sanity checks
@@ -336,9 +360,35 @@ export class ChartDataPersistence {
             // Check if scrape ID matches (data hasn't changed)
             if (cachedData.scrapeId !== currentScrapeId) {
                 if (this.logger) {
-                    this.logger.debug('ChartDataPersistence', 'Cache invalid: scrape ID mismatch');
+                    this.logger.debug('ChartDataPersistence', 'Scrape ID mismatch, checking if difference is acceptable', {
+                        saved: cachedData.scrapeId,
+                        current: currentScrapeId,
+                        savedEntryCount: cachedData.entryCount,
+                        currentEntryCount: currentEntryCount
+                    });
                 }
-                return false;
+                
+                // If entry counts match and data is recent (less than 1 hour old), allow mismatch
+                // This handles cases where DOM extraction produces slightly different metric signatures
+                // than the original file parsing due to processing differences
+                const oneHour = 60 * 60 * 1000;
+                const isRecent = Date.now() - cachedData.timestamp < oneHour;
+                const entriesMatch = cachedData.entryCount === currentEntryCount;
+                
+                if (!isRecent || !entriesMatch) {
+                    if (this.logger) {
+                        this.logger.debug('ChartDataPersistence', 'Cache invalid: scrape ID mismatch not acceptable', {
+                            isRecent,
+                            entriesMatch,
+                            age: Date.now() - cachedData.timestamp
+                        });
+                    }
+                    return false;
+                }
+                
+                if (this.logger) {
+                    this.logger.debug('ChartDataPersistence', 'Cache invalid: scrape ID mismatch accepted due to recent cache and matching entry count');
+                }
             }
 
             // Check entry count

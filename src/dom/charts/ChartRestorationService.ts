@@ -31,17 +31,44 @@ export class ChartRestorationService {
 
     /**
      * Attempt to restore charts from cached data when OneiroMetrics note is viewed
+     * Includes retry logic to wait for DOM structure to be ready
      */
-    public async attemptChartRestoration(): Promise<boolean> {
-        this.logger?.debug('ChartRestoration', 'attemptChartRestoration called');
+    public async attemptChartRestoration(attempt: number = 0): Promise<boolean> {
+        const maxAttempts = 5;
+        const baseDelay = 300;
+        
+        this.logger?.debug('ChartRestoration', `attemptChartRestoration called (attempt ${attempt + 1}/${maxAttempts})`);
         
         try {
-            // Find the chart placeholder
+            // Check if the note has the required OneiroMetrics DOM structure
+            const metricsContainer = document.querySelector('#oom-metrics-container');
+            const dreamEntriesTable = document.querySelector('#oom-dream-entries-table');
             const chartPlaceholder = document.querySelector('#oom-chart-tabs-placeholder');
-            if (!chartPlaceholder) {
-                this.logger?.debug('ChartRestoration', 'No chart placeholder found, note may not have chart structure');
-                return false;
+            
+            this.logger?.debug('ChartRestoration', 'DOM structure check', {
+                hasMetricsContainer: !!metricsContainer,
+                hasDreamEntriesTable: !!dreamEntriesTable,
+                hasChartPlaceholder: !!chartPlaceholder,
+                attempt: attempt + 1
+            });
+            
+            // If DOM structure isn't ready yet, retry with exponential backoff
+            if (!metricsContainer || !dreamEntriesTable || !chartPlaceholder) {
+                if (attempt < maxAttempts - 1) {
+                    const delay = baseDelay * Math.pow(1.5, attempt);
+                    this.logger?.debug('ChartRestoration', `DOM not ready, retrying in ${delay}ms (attempt ${attempt + 1}/${maxAttempts})`);
+                    
+                    setTimeout(() => {
+                        this.attemptChartRestoration(attempt + 1);
+                    }, delay);
+                    return false;
+                } else {
+                    this.logger?.debug('ChartRestoration', 'Max attempts reached - note does not have OneiroMetrics structure');
+                    return false;
+                }
             }
+            
+            this.logger?.debug('ChartRestoration', 'DOM structure ready, proceeding with chart restoration');
 
             // Get dream entries from the DOM
             const dreamEntries = this.extractDreamEntriesFromDOM();

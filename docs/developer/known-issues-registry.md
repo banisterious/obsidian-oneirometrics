@@ -81,7 +81,7 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-013 | Enhanced Date Navigator | Keyboard navigation (arrow keys) in compact month grids (dual/quarter view) does not work properly across multiple month calendars | Medium - Users can tab to grids but arrow keys don't navigate within individual month grids, affecting accessibility | 2025-01-15 | TBD |
-| ISSUE-25-015 | Chart Display | Charts at the top of OneiroMetrics Note fail to display (showing only placeholder content) consistently on note open, Obsidian reload, and even fresh scrapes, while Dream Entries table renders correctly | High - Charts consistently fail to display on initial scrape/load, requiring manual "Rescrape Metrics" to fix. Likely related to ISSUE-25-014 (WorkerPool failure causing sync fallback data handoff issues) | 2025-06-25 | TBD |
+| ISSUE-25-015 | Chart Display | Charts at the top of OneiroMetrics Note fail to display (showing only placeholder content) consistently on note open, Obsidian reload, and even fresh scrapes, while Dream Entries table renders correctly | High - Charts consistently fail to display on initial scrape/load, requiring manual "Rescrape Metrics" to fix. Likely related to ISSUE-25-014 (WorkerPool failure causing sync fallback data handoff issues) | 2025-06-25 | **RESOLVED** - Fixed overly strict cache validation that rejected valid cached charts due to DOM vs file parsing differences |
 
 ### Scraping and Metrics Note Issues
 
@@ -243,6 +243,7 @@ Issues can be resolved in multiple ways:
 | ISSUE-25-010 | Statistics Table | Multiple "Words" rows appearing in Statistics Table with different values | Fully Fixed - Consolidated word count metrics into single row with standardized calculation | 2025-01-15 |
 | ISSUE-25-011 | Ribbon UI | Debug "Test Calendar" button appearing in ribbon that opens Date Navigator test functionality | Fully Fixed - Removed the button by commenting out the addCalendarDebugRibbon call in PluginLoader.ts | 2025-06-15 |
 | ISSUE-25-012 | CSS Architecture | Chaotic stylesheet organization with duplications, inconsistent naming, and maintenance difficulties | Fully Fixed - Completed comprehensive CSS refactoring with component-based organization, eliminated duplications, and implemented CSS variable system | 2025-01-15 |
+| ISSUE-25-015 | Chart Display | Charts consistently failed to display on initial note load/reload, requiring manual "Rescrape Metrics" to fix | Fully Fixed - Fixed overly strict cache validation that rejected valid cached charts due to DOM extraction vs file parsing producing different metric signatures | 2025-06-25 |
 
 > Note: Some issues with workarounds (like ISSUE-25-003) remain in the Active Issues section until a proper fix is implemented, even if they are no longer blocking development.
 

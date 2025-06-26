@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Unreleased](#unreleased)
 - [Released Versions](#released-versions)
+  - [Version 0.16.4](#0164---2025-06-25)
   - [Version 0.16.2](#0162---2025-06-15)
   - [Version 0.15.0](#0150---2025-06-10)
   - [Version 0.13.0](#0130---2025-06-05)
@@ -23,6 +24,31 @@
 ## [Unreleased]
 
 ## Released Versions
+
+## [0.16.4] - 2025-06-25
+
+### Fixed
+- **Chart Display Reliability**: Resolved critical issue where charts failed to display consistently on note open/reload ✅ **CRITICAL FIX**
+  - Fixed overly strict cache validation that rejected valid cached charts due to scrape ID mismatches
+  - Enhanced cache validation to accept recent cache data (< 1 hour) with matching entry counts
+  - Implemented lenient validation for DOM extraction vs file parsing differences
+  - Added exponential backoff retry logic for chart restoration with proper DOM readiness checking
+  - Fixed double-escaped regex patterns in UniversalWorkerPool worker scripts
+  - Charts now reliably display on first scrape and after note reloads without requiring manual "Rescrape Metrics"
+
+### Technical Improvements
+- **Enhanced ChartDataPersistence**: Improved cache validation logic to handle data extraction method differences
+  - Modified `validateCachedData()` to allow scrape ID mismatches for recent, matching data
+  - Added detailed debug logging for cache validation decisions
+  - Implemented graceful handling of DOM vs file parsing signature variations
+- **Improved ChartRestorationService**: Added robust retry mechanism for chart initialization
+  - Implemented exponential backoff retry logic (5 attempts, 300ms base delay)
+  - Enhanced DOM readiness checking before chart restoration attempts
+  - Better error handling and logging for troubleshooting chart display issues
+- **Fixed UniversalWorkerPool**: Corrected regex pattern escaping in worker scripts
+  - Fixed double-escaped regex patterns that caused continuous worker script failures
+  - Maintained sync fallback functionality for seamless user experience
+  - Reduced worker pool error noise while preserving performance
 
 ## [0.16.2] - 2025-06-15
 

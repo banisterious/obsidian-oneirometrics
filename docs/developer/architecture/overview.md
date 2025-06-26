@@ -16,6 +16,7 @@
 - [Performance Considerations](#performance-considerations)
 - [Security and Error Handling](#security-and-error-handling)
 - [v0.14.0 Architecture Enhancements](#v0140-architecture-enhancements)
+- [v0.16.4 Chart Display Reliability](#v0164-chart-display-reliability)
 - [Next Steps](#next-steps)
 - [OneiroMetrics Plugin Overview](#oneirometrics-plugin-overview)
 - [Core Features](#core-features)
@@ -377,6 +378,42 @@ The v0.14.0 enhancements integrate seamlessly with the existing modular architec
 - Chart tabs extended with contextual export capabilities
 - Date Navigator integrated with enhanced calendar filtering
 - Settings components upgraded with advanced configuration options
+
+## v0.16.4 Chart Display Reliability
+
+Version 0.16.4 addresses critical chart display reliability issues that prevented charts from appearing on initial note loads and Obsidian reloads.
+
+### Issue Resolution: Chart Cache Validation
+
+**Problem Identified:**
+Charts consistently failed to display after successful scrapes due to overly strict cache validation. The system would save chart data correctly but reject it during restoration due to data signature mismatches between file parsing (during scrape) and DOM extraction (during reload).
+
+**Root Cause Analysis:**
+1. **Save Path**: File parsing during scrape produced metric signature (161 entries, 767 total metrics)
+2. **Restore Path**: DOM extraction during reload produced different signature (161 entries, 966 total metrics) 
+3. **Cache Rejection**: Strict validation rejected valid cache due to signature mismatch
+4. **User Impact**: Charts showed placeholders, requiring manual "Rescrape Metrics" to fix
+
+**Architecture Enhancement:**
+Implemented lenient cache validation in `ChartDataPersistence` that:
+- Maintains strict validation for older cache data (>1 hour) and structural differences
+- Allows signature mismatches for recent cache (<1 hour) with matching entry counts
+- Preserves data integrity while improving user experience
+- Enables reliable chart restoration across reload scenarios
+
+**Technical Implementation:**
+- Enhanced `validateCachedData()` method with time-based validation logic
+- Added detailed debug logging for cache validation decisions
+- Preserved backward compatibility with existing cache structure
+- Maintained performance characteristics of chart restoration system
+
+**User Experience Improvement:**
+- ✅ Charts now display consistently on note load/reload
+- ✅ Eliminated need for manual "Rescrape Metrics" intervention
+- ✅ Preserved chart data persistence and performance benefits
+- ✅ Maintained data integrity safeguards for genuinely stale cache
+
+This enhancement significantly improves plugin reliability and user satisfaction by ensuring charts display properly in all common usage scenarios.
 
 ## Next Steps
 
