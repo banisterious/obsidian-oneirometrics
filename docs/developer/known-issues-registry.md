@@ -81,6 +81,7 @@ This document tracks technical issues, limitations, and known bugs that have bee
 | ID | Component | Description | Impact | Discovered | Target Resolution |
 |----|-----------|-------------|--------|------------|-------------------|
 | ISSUE-25-013 | Enhanced Date Navigator | Keyboard navigation (arrow keys) in compact month grids (dual/quarter view) does not work properly across multiple month calendars | Medium - Users can tab to grids but arrow keys don't navigate within individual month grids, affecting accessibility | 2025-01-15 | TBD |
+| ISSUE-25-015 | Chart Display | Charts at the top of OneiroMetrics Note fail to display (showing only placeholder content) consistently on note open, Obsidian reload, and even fresh scrapes, while Dream Entries table renders correctly | High - Charts consistently fail to display on initial scrape/load, requiring manual "Rescrape Metrics" to fix. Likely related to ISSUE-25-014 (WorkerPool failure causing sync fallback data handoff issues) | 2025-06-25 | TBD |
 
 ### Scraping and Metrics Note Issues
 

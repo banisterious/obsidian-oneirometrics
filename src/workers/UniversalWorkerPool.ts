@@ -1390,7 +1390,7 @@ class UniversalWorker {
       
       positiveWords.forEach(word => {
         try {
-          const regex = new RegExp('\\\\\\\\b' + word + '\\\\\\\\b', 'g');
+          const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
           const matches = lowerContent.match(regex);
           if (matches) positiveCount += matches.length;
         } catch (e) {
@@ -1400,7 +1400,7 @@ class UniversalWorker {
       
       negativeWords.forEach(word => {
         try {
-          const regex = new RegExp('\\\\\\\\b' + word + '\\\\\\\\b', 'g');
+          const regex = new RegExp('\\\\b' + word + '\\\\b', 'g');
           const matches = lowerContent.match(regex);
           if (matches) negativeCount += matches.length;
         } catch (e) {
