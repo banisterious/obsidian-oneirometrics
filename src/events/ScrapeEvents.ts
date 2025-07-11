@@ -97,7 +97,10 @@ export class ScrapeEventEmitter {
                 try {
                     listener(event);
                 } catch (error) {
-                    console.error(`Error in scrape event listener for ${event.type}:`, error);
+                    // Use safeLogger instead of console.error to comply with Obsidian guidelines
+                    import('../logging/safe-logger').then(({ default: safeLogger }) => {
+                        safeLogger.error('ScrapeEvents', `Error in scrape event listener for ${event.type}:`, error as Error);
+                    });
                 }
             });
         }

@@ -11,10 +11,13 @@ import { isDebugMode } from './utils/debug-mode';
 
 // Only show deprecation warnings in development mode
 if (isDebugMode()) {
-  console.warn(
-    "DEPRECATION WARNING: Importing from src/types.ts is deprecated. " +
-    "Import from src/types/ instead. This file will be removed in a future version."
-  );
+  // Using safeLogger instead of console.warn to comply with Obsidian guidelines
+  import('./logging/safe-logger').then(({ default: safeLogger }) => {
+    safeLogger.warn('Types', 
+      "DEPRECATION WARNING: Importing from src/types.ts is deprecated. " +
+      "Import from src/types/ instead. This file will be removed in a future version."
+    );
+  });
 }
 
 import { LintingSettings } from './journal_check/types';

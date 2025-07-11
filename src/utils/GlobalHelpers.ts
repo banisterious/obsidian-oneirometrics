@@ -111,7 +111,10 @@ export function toggleContentVisibility(button: HTMLElement) {
         // Fallback to plugin instance if global isn't set
         window.oneiroMetricsPlugin.contentToggler.toggleContentVisibility(button);
     } else {
-        console.error('[OneiroMetrics] ContentToggler not initialized for toggle operation');
+        // Use safeLogger instead of console.error to comply with Obsidian guidelines
+        import('../logging/safe-logger').then(({ default: safeLogger }) => {
+            safeLogger.error('GlobalHelpers', 'ContentToggler not initialized for toggle operation');
+        });
     }
 }
 
@@ -125,7 +128,10 @@ export function expandAllContentSections(previewEl: HTMLElement) {
         // Fallback to plugin instance if global isn't set
         window.oneiroMetricsPlugin.contentToggler.expandAllContentSections(previewEl);
     } else {
-        console.error('[OneiroMetrics] ContentToggler not initialized for expand operation');
+        // Use safeLogger instead of console.error to comply with Obsidian guidelines
+        import('../logging/safe-logger').then(({ default: safeLogger }) => {
+            safeLogger.error('GlobalHelpers', 'ContentToggler not initialized for expand operation');
+        });
     }
 }
 
