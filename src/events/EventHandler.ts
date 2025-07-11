@@ -63,7 +63,9 @@ export class EventHandler {
         
         // CRITICAL FIX: Robust, failsafe filter application in event listeners
         // Check if filters are already applied before trying again
-        if ((window as any).oomFiltersApplied) {
+        // Extend window interface for this specific property
+        const windowWithFilters = window as Window & { oomFiltersApplied?: boolean };
+        if (windowWithFilters.oomFiltersApplied) {
             this.logger?.info('Filter', 'Filters already applied, skipping filter application in event listeners');
         }
         
@@ -109,8 +111,15 @@ export class EventHandler {
         this.attachClickEvent(settingsBtn, () => {
             this.logger?.debug('UI', 'Settings button clicked');
             new Notice('Opening settings...');
-            (this.app as any).setting.open();
-            (this.app as any).setting.openTabById('oneirometrics');
+            // Using type assertion for Obsidian's internal API
+            const appWithSettings = this.app as App & {
+                setting: {
+                    open(): void;
+                    openTabById(id: string): void;
+                }
+            };
+            appWithSettings.setting.open();
+            appWithSettings.setting.openTabById('oneirometrics');
         }, 'Settings button');
         
         // Find the date navigator button with multiple fallbacks

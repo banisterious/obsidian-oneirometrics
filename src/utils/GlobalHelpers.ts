@@ -8,13 +8,25 @@ import { Notice } from 'obsidian';
 import { lucideIconMap } from '../../settings';
 import { globalLogger, globalContentToggler } from '../globals';
 
+// Define minimal interface for plugin to avoid circular dependencies
+interface MinimalPlugin {
+    contentToggler?: {
+        toggleContentVisibility(button: HTMLElement): void;
+        expandAllContentSections(previewEl: HTMLElement): void;
+    };
+}
+
 /**
  * Helper function to safely access settings properties
  * Handles type compatibility during refactoring
  */
-export function safeSettingsAccess(settings: any, propName: string, defaultValue: any = undefined) {
+export function safeSettingsAccess<T = unknown>(
+    settings: Record<string, unknown> | null | undefined, 
+    propName: string, 
+    defaultValue: T | undefined = undefined
+): T | undefined {
     if (!settings) return defaultValue;
-    return settings[propName] !== undefined ? settings[propName] : defaultValue;
+    return settings[propName] !== undefined ? settings[propName] as T : defaultValue;
 }
 
 /**
@@ -107,9 +119,12 @@ export function getMetricIcon(iconName: string): string | null {
 export function toggleContentVisibility(button: HTMLElement) {
     if (globalContentToggler) {
         globalContentToggler.toggleContentVisibility(button);
-    } else if (window.oneiroMetricsPlugin && window.oneiroMetricsPlugin.contentToggler) {
+    } else if (window.oneiroMetricsPlugin) {
         // Fallback to plugin instance if global isn't set
-        window.oneiroMetricsPlugin.contentToggler.toggleContentVisibility(button);
+        const plugin = window.oneiroMetricsPlugin as MinimalPlugin;
+        if (plugin.contentToggler) {
+            plugin.contentToggler.toggleContentVisibility(button);
+        }
     } else {
         // Use safeLogger instead of console.error to comply with Obsidian guidelines
         import('../logging/safe-logger').then(({ default: safeLogger }) => {
@@ -124,9 +139,12 @@ export function toggleContentVisibility(button: HTMLElement) {
 export function expandAllContentSections(previewEl: HTMLElement) {
     if (globalContentToggler) {
         globalContentToggler.expandAllContentSections(previewEl);
-    } else if (window.oneiroMetricsPlugin && window.oneiroMetricsPlugin.contentToggler) {
+    } else if (window.oneiroMetricsPlugin) {
         // Fallback to plugin instance if global isn't set
-        window.oneiroMetricsPlugin.contentToggler.expandAllContentSections(previewEl);
+        const plugin = window.oneiroMetricsPlugin as MinimalPlugin;
+        if (plugin.contentToggler) {
+            plugin.contentToggler.expandAllContentSections(previewEl);
+        }
     } else {
         // Use safeLogger instead of console.error to comply with Obsidian guidelines
         import('../logging/safe-logger').then(({ default: safeLogger }) => {

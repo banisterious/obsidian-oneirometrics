@@ -249,12 +249,18 @@ export class PluginLoader {
         // Access plugin as DreamMetricsPlugin for type safety
         const plugin = this.plugin as DreamMetricsPlugin;
         
+        // Use index signature to access private properties during initialization
+        const pluginInternal = plugin as DreamMetricsPlugin & {
+            [key: string]: unknown;
+        };
+        
         // Initialize settings manager first (access internal properties)
-        (plugin as any).settingsManager = new SettingsManager(this.plugin);
-        await (plugin as any).settingsManager.loadSettings();
-        plugin.settings = (plugin as any).settingsManager.settings;
+        const settingsManager = new SettingsManager(this.plugin);
+        pluginInternal['settingsManager'] = settingsManager;
+        await settingsManager.loadSettings();
+        plugin.settings = settingsManager.settings;
         // Note: expandedStates is handled by the settings manager and is a Set<string>
-        (plugin as any).loadedSettings = (plugin as any).settingsManager.loadedSettings;
+        pluginInternal['loadedSettings'] = settingsManager.loadedSettings;
     }
 
     /**
