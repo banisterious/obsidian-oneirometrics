@@ -3070,7 +3070,7 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (23.4 KB)
+   COMPONENT: UTILITIES (23.6 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -3249,6 +3249,15 @@ td:has(.oom-metric-icon-container) {
     white-space: nowrap;
     overflow: hidden;
     clip: var(--oom-utility-sr-clip);
+}
+
+/* Screen reader announcement - used by DateNavigator.announceToScreenReader() */
+.sr-only {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 .oom-focus-visible:focus {

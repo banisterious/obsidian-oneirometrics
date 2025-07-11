@@ -522,11 +522,6 @@ export class DateNavigator {
         announcement.setAttribute('aria-live', 'polite');
         announcement.setAttribute('aria-atomic', 'true');
         announcement.className = 'sr-only';
-        announcement.style.position = 'absolute';
-        announcement.style.left = '-10000px';
-        announcement.style.width = '1px';
-        announcement.style.height = '1px';
-        announcement.style.overflow = 'hidden';
         announcement.textContent = message;
         
         document.body.appendChild(announcement);

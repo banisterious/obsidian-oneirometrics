@@ -177,6 +177,15 @@
     clip: var(--oom-utility-sr-clip);
 }
 
+/* Screen reader announcement - used by DateNavigator.announceToScreenReader() */
+.sr-only {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
 .oom-focus-visible:focus {
     outline: var(--oom-focus-outline);
     outline-offset: var(--oom-focus-outline-offset);
