@@ -1072,4 +1072,62 @@
 .oom-test-textarea-medium {
     height: 150px !important;
     width: 100% !important;
+}
+
+/* =============================================================================
+   WEB WORKER TEST MODAL STYLES
+   Used by src/workers/ui/WebWorkerTestModal.ts
+   ============================================================================= */
+
+/* Test controls container */
+.test-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Test result container */
+.test-result {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.test-result.passed {
+    background-color: var(--color-green);
+    color: var(--text-on-accent);
+}
+
+.test-result.failed {
+    background-color: var(--color-red);
+    color: var(--text-on-accent);
+}
+
+.test-result h4 {
+    margin: 0 0 5px 0;
+}
+
+/* Test details text */
+.test-details {
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+/* Test error display */
+.test-error {
+    font-family: monospace;
+    background-color: rgba(0,0,0,0.1);
+    padding: 5px;
+    border-radius: 2px;
+    margin-top: 5px;
+}
+
+/* Test summary container */
+.test-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: var(--background-secondary);
+    border-radius: 6px;
 } 

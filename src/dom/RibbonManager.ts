@@ -7,7 +7,6 @@
 import { App, Plugin } from 'obsidian';
 import { DreamMetricsSettings } from '../types/core';
 import { ILogger } from '../logging/LoggerTypes';
-import { shouldShowRibbonButtons } from '../utils/settings-helpers';
 import { ModalsManager } from './modals/ModalsManager';
 import { getProjectNotePath } from '../utils/settings-helpers';
 
@@ -22,18 +21,12 @@ export class RibbonManager {
     ) {}
     
     /**
-     * Update ribbon icons based on settings
+     * Update ribbon icons
+     * Note: Per Obsidian reviewer feedback, we always show ribbon icons
      */
     public updateRibbonIcons(): void {
-        const shouldShow = shouldShowRibbonButtons(this.settings);
-        
-        if (shouldShow) {
-            this.addRibbonIcons();
-        } else {
-            this.removeRibbonIcons();
-        }
-        
-        this.logger?.debug('UI', 'Updated ribbon icons', { visible: shouldShow });
+        this.addRibbonIcons();
+        this.logger?.debug('UI', 'Updated ribbon icons');
     }
     
     /**
@@ -47,7 +40,7 @@ export class RibbonManager {
     }
     
     /**
-     * Add ribbon icons based on settings
+     * Add ribbon icons
      */
     public addRibbonIcons(): void {
         // Remove existing icons first

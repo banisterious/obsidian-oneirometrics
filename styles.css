@@ -3070,7 +3070,7 @@ td:has(.oom-metric-icon-container) {
 } 
 
 /* =============================================================================
-   COMPONENT: UTILITIES (23.6 KB)
+   COMPONENT: UTILITIES (24.9 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Utilities Component
@@ -3903,6 +3903,59 @@ td:has(.oom-metric-icon-container) {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+/* =============================================================================
+   PROGRESS INDICATOR UTILITIES - Full-Screen Overlay Progress Indicator
+   Used by src/workers/ui/ProgressIndicator.ts
+   ============================================================================= */
+
+/* Main progress indicator overlay container */
+.oom-progress-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(var(--background-primary), 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: 4px;
+}
+
+/* Content container for progress indicator */
+.oom-progress-content {
+    text-align: center;
+    padding: 20px;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+}
+
+/* Progress text/status message */
+.oom-progress-text {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--text-normal);
+}
+
+/* Progress bar container/track */
+.oom-progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: var(--background-modifier-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+/* Progress bar fill - uses existing .oom-progress-bar class */
+.oom-progress-bar-container .oom-progress-bar {
+    height: 100%;
+    background: var(--interactive-accent);
+    border-radius: 3px;
 } 
 
 /* =============================================================================
@@ -7305,7 +7358,7 @@ h2.oom-metrics-tabs-label {
 } 
 
 /* =============================================================================
-   COMPONENT: UNIFIED-TEST-SUITE (26.6 KB)
+   COMPONENT: UNIFIED-TEST-SUITE (27.8 KB)
    ============================================================================= */
 /* =============================================================================
    UNIFIED TEST SUITE - Complete Modal System & Configuration Components
@@ -8381,6 +8434,64 @@ h2.oom-metrics-tabs-label {
 .oom-test-textarea-medium {
     height: 150px !important;
     width: 100% !important;
+}
+
+/* =============================================================================
+   WEB WORKER TEST MODAL STYLES
+   Used by src/workers/ui/WebWorkerTestModal.ts
+   ============================================================================= */
+
+/* Test controls container */
+.test-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Test result container */
+.test-result {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.test-result.passed {
+    background-color: var(--color-green);
+    color: var(--text-on-accent);
+}
+
+.test-result.failed {
+    background-color: var(--color-red);
+    color: var(--text-on-accent);
+}
+
+.test-result h4 {
+    margin: 0 0 5px 0;
+}
+
+/* Test details text */
+.test-details {
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+/* Test error display */
+.test-error {
+    font-family: monospace;
+    background-color: rgba(0,0,0,0.1);
+    padding: 5px;
+    border-radius: 2px;
+    margin-top: 5px;
+}
+
+/* Test summary container */
+.test-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: var(--background-secondary);
+    border-radius: 6px;
 } 
 
 /* =============================================================================

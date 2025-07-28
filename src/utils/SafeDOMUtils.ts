@@ -1,3 +1,5 @@
+import { sanitizeHTMLToDom } from 'obsidian';
+
 /**
  * Safe DOM Manipulation Utilities
  * 
@@ -11,13 +13,12 @@ export class SafeDOMUtils {
     
     /**
      * Safely empty a container without using innerHTML = ''
+     * Uses Obsidian's built-in empty() method
      * 
      * @param container - The container element to empty
      */
     static safelyEmptyContainer(container: HTMLElement): void {
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
+        container.empty();
     }
     
     /**

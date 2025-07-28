@@ -199,7 +199,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add OneiroMetrics Hub command (always available)
         this.addCommand({
             id: 'open-oneirometrics-hub',
-            name: 'Open Hub',
+            name: 'Open hub',
             callback: () => {
                 const modalsManager = new ModalsManager(this.app, this, this.logger);
                 modalsManager.openHubModal();
@@ -209,7 +209,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add Unified Test Suite Modal command (only available when logging is enabled)
         this.addCommand({
             id: 'open-unified-test-suite',
-            name: 'Open Unified Test Suite',
+            name: 'Open unified test suite',
             checkCallback: (checking: boolean) => {
                 const logLevel = this.settings?.logging?.level || 'off';
                 if (logLevel === 'off') return false;
@@ -226,7 +226,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Add Enhanced Date Navigator command (for testing/preview)
         this.addCommand({
             id: 'open-enhanced-date-navigator-preview',
-            name: 'Enhanced Date Navigator (Preview)',
+            name: 'Enhanced date navigator (preview)',
             callback: () => {
                 const { EnhancedDateNavigatorModal } = require('./src/dom/modals/EnhancedDateNavigatorModal');
                 const modal = new EnhancedDateNavigatorModal(this.app, this.timeFilterManager, this);
@@ -238,19 +238,8 @@ export default class DreamMetricsPlugin extends Plugin {
     onunload() {
         safeLogger.info('Plugin', 'Unloading Dream Metrics plugin');
         
-        // Remove ribbon icons - safely check if ribbonManager exists
-        if (this.ribbonManager) {
-            this.ribbonManager.removeRibbonIcons();
-        } else {
-            // Fallback: clean up ribbon icons directly
-            this.ribbonIcons.forEach(icon => icon.remove());
-            this.ribbonIcons = [];
-            
-            if (this.journalManagerRibbonEl) {
-                this.journalManagerRibbonEl.remove();
-                this.journalManagerRibbonEl = null;
-            }
-        }
+        // Note: Per Obsidian reviewer feedback, we do not remove ribbon icons
+        // as they are automatically cleaned up by Obsidian
         
         // Clean up any registered event listeners and observers
         for (const cleanup of this.cleanupFunctions) {
@@ -625,16 +614,14 @@ export default class DreamMetricsPlugin extends Plugin {
                 this.journalManagerRibbonEl = null;
             }
             
-            // Only add ribbon icons if enabled in settings
-            if (this.settings?.showRibbonButtons) {
-                // Add OneiroMetrics Hub button with lucide-shell icon
-                const metricsHubRibbonEl = this.addRibbonIcon('lucide-shell', 'OneiroMetrics Hub', () => {
-                    // Use ModalsManager to open the consolidated hub
-                    const modalsManager = new ModalsManager(this.app, this, this.logger);
-                    modalsManager.openHubModal();
-                });
-                this.ribbonIcons.push(metricsHubRibbonEl);
-            }
+            // Add ribbon icons (per Obsidian reviewer feedback, no toggle needed)
+            // Add OneiroMetrics Hub button with lucide-shell icon
+            const metricsHubRibbonEl = this.addRibbonIcon('lucide-shell', 'OneiroMetrics Hub', () => {
+                // Use ModalsManager to open the consolidated hub
+                const modalsManager = new ModalsManager(this.app, this, this.logger);
+                modalsManager.openHubModal();
+            });
+            this.ribbonIcons.push(metricsHubRibbonEl);
         }
     }
 
@@ -650,12 +637,7 @@ export default class DreamMetricsPlugin extends Plugin {
     private updateTestRibbon() {
         // Remove all test buttons
         document.querySelectorAll('.oom-ribbon-test-btn').forEach(btn => btn.remove());
-        if (this.settings.showTestRibbonButton) {
-            const btn = this.addRibbonIcon('wand', 'Test Ribbon Button', () => {
-                new Notice('Test button clicked!');
-            });
-            btn.addClass('oom-ribbon-test-btn');
-        }
+        // Note: Per Obsidian reviewer feedback, we don't use toggles for ribbon buttons
     }
 
     /**
@@ -872,7 +854,7 @@ export default class DreamMetricsPlugin extends Plugin {
         
         this.addCommand({
             id: 'open-date-navigator-accessible',
-            name: 'Open Date Navigator (Accessible)',
+            name: 'Open date navigator (accessible)',
             callback: () => {
                 this.logger?.debug('Accessibility', 'Opening Date Navigator');
                 this.openDateNavigatorAccessible();
@@ -951,7 +933,7 @@ export default class DreamMetricsPlugin extends Plugin {
         // Essential Date Navigator opening command
         this.addCommand({
             id: 'date-nav-open-accessible',
-            name: 'Date Navigator: Open',
+            name: 'Date navigator: open',
             // HOTKEY FIX: Removed default hotkey - let users configure manually
             checkCallback: (checking: boolean) => {
                 const isReady = this.validateAccessibilityContext();

@@ -8,7 +8,7 @@
 import { DreamMetricData, DreamMetricsSettings, DreamMetric } from '../../types/core';
 import { ILogger } from '../../logging/LoggerTypes';
 import safeLogger from '../../logging/safe-logger';
-import { RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER, lucideIconMap } from '../../../settings';
+import { RECOMMENDED_METRICS_ORDER, DISABLED_METRICS_ORDER } from '../../../settings';
 import { parseDate, formatDate } from '../../utils/date-utils';
 import { ChartTabsManager } from '../charts/ChartTabsManager';
 import { App, Plugin } from 'obsidian';
@@ -101,8 +101,7 @@ export class TableGenerator {
         // Add metric column headers
         for (const metric of sortedEnabledMetrics) {
             const metricClass = `column-metric-${metric.name.toLowerCase().replace(/\s+/g, "-")}`;
-            const iconHtml = this.getMetricIcon(metric.icon) || '';
-            content += `<th class="${metricClass}"><span class="oom-metric-header">${iconHtml} ${metric.name}</span></th>\n`;
+            content += `<th class="${metricClass}"><span class="oom-metric-header">${metric.name}</span></th>\n`;
         }
         content += "</tr>\n</thead>\n<tbody>\n";
         
@@ -326,56 +325,6 @@ export class TableGenerator {
         });
     }
     
-    /**
-     * Get an icon for a metric
-     */
-    private getMetricIcon(iconName: string | undefined): string | null {
-        if (!iconName) return null;
-        
-        // Special case handling for known icons that might have naming inconsistencies
-        if (iconName === 'circle-off') iconName = 'circle-minus';
-        if (iconName === 'circle') iconName = 'circle-dot';
-        if (iconName === 'x') iconName = 'x-circle';
-        
-        // Check if it's a Lucide icon from our map
-        let iconHtml = lucideIconMap?.[iconName];
-        
-        if (iconHtml) {
-            // Modify SVG to include width and height attributes
-            // Add additional classes for better styling and consistency
-            iconHtml = iconHtml
-                .replace('width="24"', 'width="18"')
-                .replace('height="24"', 'height="18"')
-                .replace('<svg ', '<svg class="oom-metric-icon" ')
-                .replace('stroke-width="2"', 'stroke-width="3"');
-            
-            // Wrap in a container for better positioning
-            return `<span class="oom-metric-icon-container">${iconHtml}</span>`;
-        }
-        
-        // If no icon found but we have a name, use a text fallback
-        if (iconName) {
-            // Simple visual indicator of the icon type
-            switch (iconName.toLowerCase()) {
-                case 'circle':
-                case 'circle-dot':
-                    return `<span class="oom-icon-text">●</span>`;
-                case 'x':
-                case 'x-circle':
-                    return `<span class="oom-icon-text">✕</span>`;
-                case 'square':
-                    return `<span class="oom-icon-text">■</span>`;
-                case 'triangle':
-                    return `<span class="oom-icon-text">▲</span>`;
-                case 'star':
-                    return `<span class="oom-icon-text">★</span>`;
-                default:
-                    return `<span class="oom-icon-text oom-icon-${iconName}">•</span>`;
-            }
-        }
-        
-        return null;
-    }
     
     /**
      * Generate the summary table with metrics statistics
@@ -460,25 +409,7 @@ export class TableGenerator {
             let label = name;
             const metric = metricsLookup[name];
             
-            // CRITICAL FIX: Proper icon handling and display
-            if (metric?.icon) {
-                // Ensure icon name is valid, use fallbacks for problematic icons
-                let iconName = metric.icon;
-                if (iconName === 'circle-off') iconName = 'circle-minus';
-                
-                // Get icon from lucideIconMap
-                const svgContent = lucideIconMap[iconName];
-                if (svgContent) {
-                    // Ensure SVG has proper dimensions and attributes for consistent display
-                    const iconHtml = svgContent
-                        .replace('width="24"', 'width="18"')
-                        .replace('height="24"', 'height="18"')
-                        .replace('<svg ', '<svg class="oom-metric-icon" ')
-                        .replace('stroke-width="2"', 'stroke-width="3"');
-                    
-                    label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
-                }
-            }
+            // Use metric name as label (no icons)
             
             content += "<tr>\n";
             content += `<td>${label}</td>\n`;
@@ -510,22 +441,7 @@ export class TableGenerator {
             let label = name;
             const metric = metricsLookup[name];
             
-            // Handle icons the same way as above for consistency
-            if (metric?.icon) {
-                let iconName = metric.icon;
-                if (iconName === 'circle-off') iconName = 'circle-minus';
-                
-                const svgContent = lucideIconMap[iconName];
-                if (svgContent) {
-                    const iconHtml = svgContent
-                        .replace('width="24"', 'width="18"')
-                        .replace('height="24"', 'height="18"')
-                        .replace('<svg ', '<svg class="oom-metric-icon" ')
-                        .replace('stroke-width="2"', 'stroke-width="3"');
-                    
-                    label = `<span class="oom-metric-icon-container">${iconHtml}</span> ${name}`;
-                }
-            }
+            // No icons - just use metric name
             
             content += "<tr>\n";
             content += `<td>${label}</td>\n`;

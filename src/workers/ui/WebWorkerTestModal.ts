@@ -60,61 +60,7 @@ export class WebWorkerTestModal extends Modal {
 
     // Results container
     this.testsContainer = contentEl.createDiv('tests-container');
-    this.addStyles();
-  }
-
-  private addStyles(): void {
-    const style = document.createElement('style');
-    style.textContent = `
-      .test-controls {
-        margin-bottom: 20px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      
-      .test-result {
-        margin: 10px 0;
-        padding: 10px;
-        border-radius: 4px;
-        border: 1px solid var(--background-modifier-border);
-      }
-      
-      .test-result.passed {
-        background-color: var(--color-green);
-        color: var(--text-on-accent);
-      }
-      
-      .test-result.failed {
-        background-color: var(--color-red);
-        color: var(--text-on-accent);
-      }
-      
-      .test-result h4 {
-        margin: 0 0 5px 0;
-      }
-      
-      .test-details {
-        font-size: 0.9em;
-        margin: 5px 0;
-      }
-      
-      .test-error {
-        font-family: monospace;
-        background-color: rgba(0,0,0,0.1);
-        padding: 5px;
-        border-radius: 2px;
-        margin-top: 5px;
-      }
-      
-      .test-summary {
-        margin: 20px 0;
-        padding: 15px;
-        background-color: var(--background-secondary);
-        border-radius: 6px;
-      }
-    `;
-    document.head.appendChild(style);
+    // Styles are now in styles/unified-test-suite.css
   }
 
   private async runAllTests(): Promise<void> {

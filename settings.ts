@@ -1,9 +1,8 @@
-import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent, Scope } from "obsidian";
+import { App, PluginSettingTab, Setting, Modal, TextComponent, ButtonComponent, Notice, TFile, TFolder, ExtraButtonComponent, MarkdownRenderer, getIcon, DropdownComponent, ToggleComponent, Scope, setIcon, AbstractInputSuggest } from "obsidian";
 import { DEFAULT_METRICS, DreamMetricsSettings } from "./src/types/core";
 import { LogLevel } from "./src/types/logging";
 import { DreamMetric, SelectionMode } from "./src/types/core";
 import DreamMetricsPlugin from "./main";
-import { Eye, Heart, CircleMinus, PenTool, CheckCircle, UsersRound, UserCog, Users, UserCheck, UserX, Sparkles, Wand2, Zap, Glasses, Link, Ruler, Layers } from 'lucide-static';
 import { debug, info, error } from './src/logging';
 import { ModalsManager } from './src/dom/modals/ModalsManager';
 import { defaultLintingSettings } from './src/types/journal-check-defaults';
@@ -69,45 +68,48 @@ import { JournalStructureSettings as LintingSettings } from './src/types/journal
 interface IconCategory {
     name: string;
     description: string;
-    icons: Record<string, string>;
+    icons: string[];
 }
 
 export const iconCategories: IconCategory[] = [
     {
         name: "Metrics",
         description: "Icons for core metrics",
-        icons: {
-            eye: Eye,
-            heart: Heart,
-            'circle-minus': CircleMinus,
-            'pen-tool': PenTool,
-            'check-circle': CheckCircle,
-            sparkles: Sparkles,
-            'wand-2': Wand2,
-            zap: Zap,
-            glasses: Glasses,
-            link: Link,
-            ruler: Ruler,
-            layers: Layers
-        }
+        icons: [
+            'eye',
+            'heart',
+            'circle-minus',
+            'pen-tool',
+            'check-circle',
+            'sparkles',
+            'wand-2',
+            'zap',
+            'glasses',
+            'link',
+            'ruler',
+            'layers'
+        ]
     },
     {
         name: "Characters",
         description: "Icons for character-related metrics",
-        icons: {
-            'user-cog': UserCog,
-            users: Users,
-            'user-check': UserCheck,
-            'user-x': UserX,
-            'users-round': UsersRound
-        }
+        icons: [
+            'user-cog',
+            'users',
+            'user-check',
+            'user-x',
+            'users-round'
+        ]
     }
 ];
 
-// For backward compatibility
-export const lucideIconMap: Record<string, string> = Object.assign({}, 
-    ...iconCategories.map(category => category.icons)
-);
+// For backward compatibility - map icon names to themselves
+export const lucideIconMap: Record<string, string> = {};
+iconCategories.forEach(category => {
+    category.icons.forEach(icon => {
+        lucideIconMap[icon] = icon;
+    });
+});
 
 // Helper function to ensure a metric has all required properties
 // Uses standardizeMetric under the hood to ensure proper type compatibility
@@ -174,7 +176,7 @@ export class MetricEditorModal extends Modal {
         contentEl.empty();
         contentEl.addClass('oom-metric-editor-modal');
 
-        contentEl.createEl('h2', { text: this.isEditing ? 'Edit Metric' : 'Add New Metric', cls: 'oom-modal-title' });
+        contentEl.createEl('h2', { text: this.isEditing ? 'Edit metric' : 'Add new metric', cls: 'oom-modal-title' });
 
         const nameSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
         const nameSetting = new Setting(nameSection)
@@ -225,7 +227,7 @@ export class MetricEditorModal extends Modal {
         // Function to render icons for a category
         const renderIconGrid = (category: IconCategory) => {
             iconGrid.empty();
-            Object.entries(category.icons).forEach(([iconName, iconSVG]: [string, string]) => {
+            category.icons.forEach((iconName: string) => {
                 const iconBtn = iconGrid.createEl('button', {
                     cls: 'oom-icon-picker-btn u-padding--xs',
                     attr: { 
@@ -234,16 +236,12 @@ export class MetricEditorModal extends Modal {
                         'data-icon-name': iconName
                     }
                 });
-                // Parse the SVG string and set it safely
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(iconSVG, 'image/svg+xml');
-                const svgElement = svgDoc.documentElement;
-                if (svgElement && svgElement.tagName === 'svg') {
-                    iconBtn.appendChild(svgElement.cloneNode(true));
-                }
+                // Use Obsidian's setIcon function
+                setIcon(iconBtn, iconName);
+                
                 if (this.metric.icon === iconName) iconBtn.classList.add('selected');
                 iconBtn.onclick = () => {
-                    this.metric.icon = String(iconName);
+                    this.metric.icon = iconName;
                     Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
                     iconBtn.classList.add('selected');
                     this.updatePreview();
@@ -257,10 +255,13 @@ export class MetricEditorModal extends Modal {
         // Add search functionality
         searchInput.oninput = (e) => {
             const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
-            const allIcons = Object.assign({}, ...iconCategories.map(category => category.icons));
+            const allIcons: string[] = [];
+            iconCategories.forEach(category => {
+                allIcons.push(...category.icons);
+            });
             
             iconGrid.empty();
-            Object.entries(allIcons).forEach(([iconName, iconSVG]: [string, string]) => {
+            allIcons.forEach((iconName: string) => {
                 if (iconName.toLowerCase().includes(searchTerm)) {
                     const iconBtn = iconGrid.createEl('button', {
                         cls: 'oom-icon-picker-btn u-padding--xs',
@@ -270,16 +271,12 @@ export class MetricEditorModal extends Modal {
                             'data-icon-name': iconName
                         }
                     });
-                    // Parse the SVG string and set it safely
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(iconSVG, 'image/svg+xml');
-                const svgElement = svgDoc.documentElement;
-                if (svgElement && svgElement.tagName === 'svg') {
-                    iconBtn.appendChild(svgElement.cloneNode(true));
-                }
+                    // Use Obsidian's setIcon function
+                    setIcon(iconBtn, iconName);
+                    
                     if (this.metric.icon === iconName) iconBtn.classList.add('selected');
                     iconBtn.onclick = () => {
-                        this.metric.icon = String(iconName);
+                        this.metric.icon = iconName;
                         Array.from(iconGrid.children).forEach(btn => btn.classList.remove('selected'));
                         iconBtn.classList.add('selected');
                         this.updatePreview();
@@ -391,7 +388,7 @@ export class MetricEditorModal extends Modal {
         cancelBtn.onClick(() => this.close());
 
         const saveBtn = new ButtonComponent(buttonContainer)
-            .setButtonText(this.isEditing ? 'Save Changes' : 'Add Metric')
+            .setButtonText(this.isEditing ? 'Save changes' : 'Add metric')
             .setCta();
         saveBtn.buttonEl.classList.add('oom-modal-button');
         saveBtn.onClick(() => {
@@ -422,17 +419,12 @@ export class MetricEditorModal extends Modal {
         const range = getMetricRange(this.metric);
         const sampleValue = Math.floor((range.min + range.max) / 2);
         const metricLine = previewEl.createEl('div', { cls: 'oom-metric-preview-line' });
-        if (this.metric.icon && lucideIconMap[this.metric.icon]) {
+        if (this.metric.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = 'oom-metric-icon';
             
-            // Parse the SVG string and set it safely
-            const parser = new DOMParser();
-            const svgDoc = parser.parseFromString(lucideIconMap[this.metric.icon], 'image/svg+xml');
-            const svgElement = svgDoc.documentElement;
-            if (svgElement && svgElement.tagName === 'svg') {
-                iconSpan.appendChild(svgElement.cloneNode(true));
-            }
+            // Use Obsidian's setIcon function
+            setIcon(iconSpan, this.metric.icon);
             
             metricLine.appendChild(iconSpan);
         }
@@ -1112,119 +1104,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
      * Add styles for template manager
      */
     private addTemplateManagerStyles() {
-        // Remove existing styles
-        const existingStyles = document.getElementById('oom-template-manager-styles');
-        if (existingStyles) {
-            existingStyles.remove();
-        }
-        
-        // Add styles
-        const styleEl = document.createElement('style');
-        styleEl.id = 'oom-template-manager-styles';
-        styleEl.textContent = `
-            .oom-template-list-container {
-                margin-top: 1em;
-                padding: 1em;
-                border-radius: 5px;
-                background-color: var(--background-secondary);
-            }
-            
-            .oom-template-item {
-                margin-bottom: 1em;
-                padding: 1em;
-                border-radius: 5px;
-                background-color: var(--background-primary);
-            }
-            
-            .oom-template-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .oom-template-header h4 {
-                margin: 0;
-            }
-            
-            .oom-template-actions {
-                display: flex;
-                gap: 0.5em;
-            }
-            
-            .oom-template-edit-button, 
-            .oom-template-delete-button,
-            .oom-template-preview-toggle {
-                padding: 0.25em 0.5em;
-                border: none;
-                border-radius: 3px;
-                cursor: pointer;
-            }
-            
-            .oom-template-edit-button {
-                background-color: var(--interactive-accent);
-                color: var(--text-on-accent);
-            }
-            
-            .oom-template-delete-button {
-                background-color: var(--text-error);
-                color: var(--background-primary);
-            }
-            
-            .oom-template-preview-toggle {
-                background-color: var(--background-modifier-border);
-                margin-top: 0.5em;
-            }
-            
-            .oom-template-preview-container {
-                margin-top: 0.5em;
-                padding: 0.5em;
-                background-color: var(--background-secondary);
-                border-radius: 3px;
-                max-height: 200px;
-                overflow-y: auto;
-            }
-            
-            .oom-template-preview-content {
-                white-space: pre-wrap;
-                margin: 0;
-            }
-            
-            .oom-template-description {
-                margin: 0.5em 0;
-                font-style: italic;
-            }
-            
-            .oom-template-structure {
-                margin: 0.5em 0;
-                font-size: 0.9em;
-                color: var(--text-muted);
-            }
-            
-            .oom-modal-buttons {
-                display: flex;
-                justify-content: flex-end;
-                gap: 1em;
-                margin-top: 1em;
-            }
-            
-            .oom-button-cancel,
-            .oom-button-delete {
-                padding: 0.25em 1em;
-                border-radius: 3px;
-                cursor: pointer;
-            }
-            
-            .oom-button-cancel {
-                background-color: var(--background-modifier-border);
-            }
-            
-            .oom-button-delete {
-                background-color: var(--text-error);
-                color: var(--background-primary);
-            }
-        `;
-        
-        document.head.appendChild(styleEl);
+        // Note: Styles for template manager are now in settings.css component stylesheet
+        // Per Obsidian reviewer feedback, we should not inject styles dynamically
     }
 
     addMissingMetrics(containerEl: HTMLElement) {
@@ -1257,7 +1138,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         
         // Add a restore all button
         const restoreAllButton = buttonContainer.createEl('button', {
-            text: 'Restore All Metrics',
+            text: 'Restore all metrics',
             cls: 'mod-cta'
         });
         
@@ -1299,7 +1180,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         
         // Also add a create manually button as another option
         const createManuallyButton = buttonContainer.createEl('button', {
-            text: 'Create Manually',
+            text: 'Create manually',
             cls: 'mod-warning'
         });
         
@@ -1488,188 +1369,8 @@ function sortMetricEntriesByOrder(
   }
 }
 
-// Suggestion classes based on Templater's implementation
-class SuggestionDisplay {
-    private owner: any;
-    private containerEl: HTMLElement;
-    private values: any[] = [];
-    private suggestions: HTMLElement[] = [];
-    private selectedItem: number = 0;
 
-    constructor(owner: any, containerEl: HTMLElement, scope: Scope) {
-        this.owner = owner;
-        this.containerEl = containerEl;
-        
-        containerEl.on("click", ".suggestion-item", this.onSuggestionClick.bind(this));
-        containerEl.on("mousemove", ".suggestion-item", this.onSuggestionMouseover.bind(this));
-        
-        scope.register([], "ArrowUp", (evt) => {
-            if (!evt.isComposing) {
-                this.setSelectedItem(this.selectedItem - 1, true);
-                return false;
-            }
-        });
-        
-        scope.register([], "ArrowDown", (evt) => {
-            if (!evt.isComposing) {  
-                this.setSelectedItem(this.selectedItem + 1, true);
-                return false;
-            }
-        });
-        
-        scope.register([], "Enter", (evt) => {
-            if (!evt.isComposing) {
-                this.useSelectedItem(evt);
-                return false;
-            }
-        });
-    }
-
-    private onSuggestionClick(evt: MouseEvent, target: HTMLElement) {
-        evt.preventDefault();
-        const index = this.suggestions.indexOf(target);
-        this.setSelectedItem(index, false);
-        this.useSelectedItem(evt);
-    }
-
-    private onSuggestionMouseover(evt: MouseEvent, target: HTMLElement) {
-        const index = this.suggestions.indexOf(target);
-        this.setSelectedItem(index, false);
-    }
-
-    setSuggestions(items: any[]) {
-        this.containerEl.empty();
-        const suggestions: HTMLElement[] = [];
-        
-        items.forEach(item => {
-            const suggestionEl = this.containerEl.createDiv("suggestion-item");
-            this.owner.renderSuggestion(item, suggestionEl);
-            suggestions.push(suggestionEl);
-        });
-        
-        this.values = items;
-        this.suggestions = suggestions;
-        this.setSelectedItem(0, false);
-    }
-
-    private useSelectedItem(evt: Event) {
-        const selectedValue = this.values[this.selectedItem];
-        if (selectedValue) {
-            this.owner.selectSuggestion(selectedValue, evt);
-        }
-    }
-
-    private setSelectedItem(index: number, scroll: boolean) {
-        const wrappedIndex = ((index % this.suggestions.length) + this.suggestions.length) % this.suggestions.length;
-        const currentSelected = this.suggestions[this.selectedItem];
-        const newSelected = this.suggestions[wrappedIndex];
-        
-        currentSelected?.removeClass("is-selected");
-        newSelected?.addClass("is-selected");
-        
-        this.selectedItem = wrappedIndex;
-        
-        if (scroll) {
-            newSelected?.scrollIntoView(false);
-        }
-    }
-}
-
-abstract class BaseSuggest {
-    protected app: App;
-    protected inputEl: HTMLInputElement;
-    protected scope: Scope;
-    protected suggestEl: HTMLElement;
-    protected suggest: SuggestionDisplay;
-    protected popper: any;
-
-    constructor(app: App, inputEl: HTMLInputElement) {
-        this.app = app;
-        this.inputEl = inputEl;
-        this.scope = new Scope();
-        
-        this.suggestEl = createDiv("suggestion-container");
-        const suggestionDiv = this.suggestEl.createDiv("suggestion");
-        this.suggest = new SuggestionDisplay(this, suggestionDiv, this.scope);
-        
-        this.scope.register([], "Escape", this.close.bind(this));
-        
-        this.inputEl.addEventListener("input", this.onInputChanged.bind(this));
-        this.inputEl.addEventListener("focus", this.onInputChanged.bind(this));
-        this.inputEl.addEventListener("blur", this.close.bind(this));
-        
-        this.suggestEl.on("mousedown", ".suggestion-container", (evt) => {
-            evt.preventDefault();
-        });
-    }
-
-    abstract getSuggestions(query: string): any[];
-    abstract renderSuggestion(item: any, el: HTMLElement): void;
-    abstract selectSuggestion(item: any, evt?: Event): void;
-
-    private onInputChanged() {
-        const query = this.inputEl.value;
-        const suggestions = this.getSuggestions(query);
-        
-        if (!suggestions) {
-            this.close();
-            return;
-        }
-        
-        if (suggestions.length > 0) {
-            this.suggest.setSuggestions(suggestions);
-            this.open(document.body, this.inputEl);
-        } else {
-            this.close();
-        }
-    }
-
-    private open(container: HTMLElement, referenceEl: HTMLElement) {
-        this.app.keymap.pushScope(this.scope);
-        container.appendChild(this.suggestEl);
-        
-        // Use Obsidian's positioning if available, otherwise fallback to simple positioning
-        if ((window as any).Popper) {
-            this.popper = (window as any).Popper.createPopper(referenceEl, this.suggestEl, {
-                placement: "bottom-start",
-                modifiers: [{
-                    name: "sameWidth",
-                    enabled: true,
-                    fn: ({ state, instance }: any) => {
-                        const width = `${state.rects.reference.width}px`;
-                        if (state.styles.popper.width !== width) {
-                            state.styles.popper.width = width;
-                            instance.update();
-                        }
-                    },
-                    phase: "beforeWrite",
-                    requires: ["computeStyles"]
-                }]
-            });
-        } else {
-            // Fallback positioning
-            const rect = referenceEl.getBoundingClientRect();
-            this.suggestEl.style.position = "absolute";
-            this.suggestEl.style.top = `${rect.bottom}px`;
-            this.suggestEl.style.left = `${rect.left}px`;
-            this.suggestEl.style.width = `${rect.width}px`;
-        }
-    }
-
-    private close() {
-        this.app.keymap.popScope(this.scope);
-        this.suggest.setSuggestions([]);
-        
-        if (this.popper) {
-            this.popper.destroy();
-            this.popper = null;
-        }
-        
-        this.suggestEl.detach();
-    }
-}
-
-export class FileSuggest extends BaseSuggest {
+export class FileSuggest extends AbstractInputSuggest<TFile> {
     getSuggestions(query: string): TFile[] {
         const files = this.app.vault.getAllLoadedFiles();
         const markdownFiles: TFile[] = [];
@@ -1691,14 +1392,12 @@ export class FileSuggest extends BaseSuggest {
     }
 
     selectSuggestion(file: TFile) {
-        this.inputEl.value = file.path;
-        this.inputEl.trigger("input");
-        // Use the inherited close method
-        (this as any).close();
+        this.setValue(file.path);
+        this.close();
     }
 }
 
-export class FolderSuggest extends BaseSuggest {
+export class FolderSuggest extends AbstractInputSuggest<TFolder> {
     getSuggestions(query: string): TFolder[] {
         const files = this.app.vault.getAllLoadedFiles();
         const folders: TFolder[] = [];
@@ -1718,9 +1417,7 @@ export class FolderSuggest extends BaseSuggest {
     }
 
     selectSuggestion(folder: TFolder) {
-        this.inputEl.value = folder.path;
-        this.inputEl.trigger("input");
-        // Use the inherited close method
-        (this as any).close();
+        this.setValue(folder.path);
+        this.close();
     }
 }

@@ -152,8 +152,8 @@ export class FilterEvents {
      * @param range - The date range to save
      */
     private saveLastCustomRange(range: { start: string, end: string }): void {
-        localStorage.setItem(CUSTOM_RANGE_KEY, JSON.stringify(range));
-        this.logger?.debug('Filter', 'Saved custom range to localStorage', { range });
+        this.app.saveLocalStorage(CUSTOM_RANGE_KEY, range);
+        this.logger?.debug('Filter', 'Saved custom range to vault-specific localStorage', { range });
     }
     
     /**
@@ -162,19 +162,13 @@ export class FilterEvents {
      * @returns The saved date range, or null if none exists
      */
     public loadLastCustomRange(): { start: string, end: string } | null {
-        const data = localStorage.getItem(CUSTOM_RANGE_KEY);
-        if (!data) {
-            this.logger?.debug('Filter', 'No custom range found in localStorage');
+        const range = this.app.loadLocalStorage(CUSTOM_RANGE_KEY);
+        if (!range) {
+            this.logger?.debug('Filter', 'No custom range found in vault-specific localStorage');
             return null;
         }
-        try {
-            const range = JSON.parse(data);
-            this.logger?.debug('Filter', 'Loaded custom range from localStorage', { range });
-            return range;
-        } catch (e) {
-            this.logger?.error('Filter', 'Failed to parse custom range from localStorage', e);
-            return null;
-        }
+        this.logger?.debug('Filter', 'Loaded custom range from vault-specific localStorage', { range });
+        return range;
     }
     
     /**
@@ -186,7 +180,7 @@ export class FilterEvents {
     private saveFavoriteRange(name: string, range: { start: string, end: string }): void {
         const saved = this.loadFavoriteRanges();
         saved[name] = range;
-        localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
+        this.app.saveLocalStorage(SAVED_RANGES_KEY, saved);
         this.logger?.debug('Filter', 'Saved favorite range', { name, range });
     }
     
@@ -196,13 +190,9 @@ export class FilterEvents {
      * @returns Record of saved favorites
      */
     public loadFavoriteRanges(): Record<string, { start: string, end: string }> {
-        const data = localStorage.getItem(SAVED_RANGES_KEY);
-        if (!data) return {};
-        try {
-            return JSON.parse(data);
-        } catch {
-            return {};
-        }
+        const ranges = this.app.loadLocalStorage(SAVED_RANGES_KEY);
+        if (!ranges || typeof ranges !== 'object') return {};
+        return ranges;
     }
     
     /**
@@ -213,7 +203,7 @@ export class FilterEvents {
     private deleteFavoriteRange(name: string): void {
         const saved = this.loadFavoriteRanges();
         delete saved[name];
-        localStorage.setItem(SAVED_RANGES_KEY, JSON.stringify(saved));
+        this.app.saveLocalStorage(SAVED_RANGES_KEY, saved);
         this.logger?.debug('Filter', 'Deleted favorite range', { name });
         new Notice(`Deleted favorite: ${name}`);
     }

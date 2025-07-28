@@ -57,7 +57,7 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   wait: number
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: number | null = null;
   let pendingPromise: Promise<ReturnType<T>> | null = null;
   let resolvePromise: ((value: ReturnType<T>) => void) | null = null;
   
@@ -74,11 +74,11 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
     
     // Clear any existing timeout
     if (timeout) {
-      clearTimeout(timeout);
+      window.clearTimeout(timeout);
     }
     
     // Create a new timeout
-    timeout = setTimeout(async () => {
+    timeout = window.setTimeout(async () => {
       if (resolvePromise) {
         const result = await fn(...args);
         resolvePromise(result);
@@ -111,7 +111,7 @@ export async function safeFetch<T>(
     const signal = controller.signal;
     
     // Set timeout
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
     
     try {
       // Perform fetch with signal
@@ -130,7 +130,7 @@ export async function safeFetch<T>(
       return data as T;
     } finally {
       // Clear timeout
-      clearTimeout(timeout);
+      window.clearTimeout(timeout);
     }
   });
 }
@@ -161,7 +161,7 @@ export async function retryWithBackoff<T>(
       }
       
       // Wait with exponential backoff
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise(resolve => window.setTimeout(resolve, delay));
       
       // Increase delay for next retry
       delay *= 2;

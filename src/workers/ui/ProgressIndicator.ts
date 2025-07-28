@@ -42,62 +42,7 @@ export class ProgressIndicator {
         // Add to container
         this.container.appendChild(this.progressElement);
 
-        // Add CSS styles
-        this.addProgressStyles();
-    }
-
-    /**
-     * Add CSS styles for the progress indicator
-     */
-    private addProgressStyles(): void {
-        const style = document.createElement('style');
-        style.textContent = `
-            .oom-progress-indicator {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(var(--background-primary), 0.9);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 100;
-                border-radius: 4px;
-            }
-
-            .oom-progress-content {
-                text-align: center;
-                padding: 20px;
-                background: var(--background-secondary);
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                min-width: 200px;
-            }
-
-            .oom-progress-text {
-                margin-bottom: 10px;
-                font-size: 14px;
-                color: var(--text-normal);
-            }
-
-            .oom-progress-bar-container {
-                width: 100%;
-                height: 6px;
-                background: var(--background-modifier-border);
-                border-radius: 3px;
-                overflow: hidden;
-            }
-
-            .oom-progress-bar {
-                height: 100%;
-                background: var(--interactive-accent);
-                border-radius: 3px;
-                transition: width 0.3s ease;
-                width: 0%;
-            }
-        `;
-        document.head.appendChild(style);
+        // Styles are now in styles/utilities.css
     }
 
     /**

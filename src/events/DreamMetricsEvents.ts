@@ -374,12 +374,12 @@ export class DreamMetricsEvents {
                 return;
             }
             
-            // Load saved favorite ranges from localStorage
+            // Load saved favorite ranges from vault-specific localStorage
             const loadFavoriteRanges = (): Record<string, { start: string, end: string }> => {
                 try {
-                    const data = localStorage.getItem('oneirometrics-saved-custom-ranges');
-                    if (!data) return {};
-                    return JSON.parse(data);
+                    const ranges = this.app?.loadLocalStorage('oneirometrics-saved-custom-ranges');
+                    if (!ranges || typeof ranges !== 'object') return {};
+                    return ranges;
                 } catch (error) {
                     safeLogger.error('Events', 'Error loading favorite ranges', error);
                     return {};
@@ -396,7 +396,7 @@ export class DreamMetricsEvents {
                     
                     const saved = loadFavoriteRanges();
                     saved[name] = range;
-                    localStorage.setItem('oneirometrics-saved-custom-ranges', JSON.stringify(saved));
+                    this.app?.saveLocalStorage('oneirometrics-saved-custom-ranges', saved);
                     safeLogger.debug('Events', `Saved favorite range: ${name}`, range);
                 } catch (error) {
                     safeLogger.error('Events', 'Error saving favorite range', error);
@@ -413,7 +413,7 @@ export class DreamMetricsEvents {
                     
                     const saved = loadFavoriteRanges();
                     delete saved[name];
-                    localStorage.setItem('oneirometrics-saved-custom-ranges', JSON.stringify(saved));
+                    this.app?.saveLocalStorage('oneirometrics-saved-custom-ranges', saved);
                     safeLogger.debug('Events', `Deleted favorite range: ${name}`);
                 } catch (error) {
                     safeLogger.error('Events', 'Error deleting favorite range', error);
