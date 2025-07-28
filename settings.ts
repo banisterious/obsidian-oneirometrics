@@ -523,7 +523,7 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             // Header section
             const header = content.createDiv({ cls: 'oom-onboarding-header' });
             header.createSpan({ cls: 'oom-onboarding-icon', text: '🌙' });
-            header.createEl('h3', { text: 'Welcome to OneiroMetrics v0.16.0!' });
+            header.createEl('h3', { text: 'Welcome to OneiroMetrics v0.17.0!' });
             const dismissBtn = header.createEl('button', { 
                 cls: 'oom-onboarding-dismiss',
                 attr: { 'aria-label': 'Dismiss' },
