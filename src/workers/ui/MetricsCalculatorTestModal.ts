@@ -109,7 +109,7 @@ export class MetricsCalculatorTestModal extends Modal {
 
     for (const suite of testSuites) {
       this.currentTest++;
-      progressEl.innerHTML = `<p>Running ${suite.name} (${this.currentTest}/${this.totalTests})...</p>`;
+      progressEl.textContent = `Running ${suite.name} (${this.currentTest}/${this.totalTests})...`;
       
       try {
         const suiteResult = await suite.runner();
@@ -139,7 +139,7 @@ export class MetricsCalculatorTestModal extends Modal {
       }
     }
 
-    progressEl.innerHTML = '<p>All tests completed!</p>';
+    progressEl.textContent = 'All tests completed!';
     this.renderSummary(resultsEl);
   }
 

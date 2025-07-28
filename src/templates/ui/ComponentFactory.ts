@@ -11,6 +11,7 @@ import { createEventHandler } from './EventHandling';
 import { DreamMetric } from '../../types/core';
 import { warn } from '../../logging';
 import safeLogger from '../../logging/safe-logger';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
 
 /**
  * Options for creating a component
@@ -159,7 +160,7 @@ export function createUIComponent<K extends keyof HTMLElementTagNameMap>(
   
   // Clear and append the new element
   if (component['container']) {
-    component['container'].innerHTML = '';
+    SafeDOMUtils.safelyEmptyContainer(component['container']);
     component['container'].appendChild(element);
   }
   

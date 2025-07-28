@@ -7,6 +7,7 @@ import type { ContextualLogger } from '../../logging';
 import { DreamMetricData } from '../../types';
 import { UniversalWorkerPool } from '../UniversalWorkerPool';
 import { UniversalDateNavigatorManager } from '../UniversalDateNavigatorManager';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
 import { 
   UniversalTask,
   UniversalTaskType,
@@ -663,7 +664,7 @@ export class UniversalWorkerPoolTestModal extends Modal {
     const container = this.contentEl.querySelector('#test-results-container');
     if (!container) return;
 
-    container.innerHTML = '';
+    SafeDOMUtils.safelyEmptyContainer(container as HTMLElement);
 
     this.testResults.forEach(result => {
       const resultDiv = container.createDiv({ cls: `test-result test-${result.status}` });

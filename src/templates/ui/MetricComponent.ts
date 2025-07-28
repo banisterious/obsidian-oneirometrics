@@ -115,15 +115,20 @@ export class MetricComponent extends EventableComponent {
       
       // Direct HTML approach (based on main.ts line 2037)
       if (typeof lucideIconMap === 'object' && lucideIconMap && this.metric.icon in lucideIconMap) {
-        // Use direct HTML with the SVG content from lucideIconMap
-        this.iconElement.innerHTML = lucideIconMap[this.metric.icon];
+        // Parse the SVG string and set it safely
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(lucideIconMap[this.metric.icon], 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        if (svgElement && svgElement.tagName === 'svg') {
+          this.iconElement.appendChild(svgElement.cloneNode(true));
+        }
       } else {
         // Fallback if lucideIconMap isn't available or doesn't contain the icon
         try {
           setIcon(this.iconElement, this.metric.icon);
           
           // If setIcon didn't work, use fallback
-          if (!this.iconElement.querySelector('svg') && !this.iconElement.innerHTML.trim()) {
+          if (!this.iconElement.querySelector('svg') && !this.iconElement.textContent?.trim()) {
             this.iconElement.addClass('oom-icon-fallback');
             this.iconElement.setText(this.metric.icon.substring(0, 1).toUpperCase());
           }
@@ -161,7 +166,12 @@ export class MetricComponent extends EventableComponent {
       
       // Direct HTML approach for the edit button
       if (typeof lucideIconMap === 'object' && lucideIconMap && 'pencil' in lucideIconMap) {
-        this.editButton.innerHTML = lucideIconMap['pencil'];
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(lucideIconMap['pencil'], 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        if (svgElement && svgElement.tagName === 'svg') {
+          this.editButton.appendChild(svgElement.cloneNode(true));
+        }
       } else {
         setIcon(this.editButton, 'pencil');
       }
@@ -183,7 +193,12 @@ export class MetricComponent extends EventableComponent {
       
       // Direct HTML approach for the toggle button
       if (typeof lucideIconMap === 'object' && lucideIconMap && toggleIcon in lucideIconMap) {
-        this.toggleButton.innerHTML = lucideIconMap[toggleIcon];
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(lucideIconMap[toggleIcon], 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        if (svgElement && svgElement.tagName === 'svg') {
+          this.toggleButton.appendChild(svgElement.cloneNode(true));
+        }
       } else {
         setIcon(this.toggleButton, toggleIcon);
       }
@@ -199,7 +214,16 @@ export class MetricComponent extends EventableComponent {
         
         // Direct HTML approach for updating the toggle button
         if (typeof lucideIconMap === 'object' && lucideIconMap && newToggleIcon in lucideIconMap) {
-          this.toggleButton!.innerHTML = lucideIconMap[newToggleIcon];
+          // Clear existing content
+          while (this.toggleButton!.firstChild) {
+            this.toggleButton!.removeChild(this.toggleButton!.firstChild);
+          }
+          const parser = new DOMParser();
+          const svgDoc = parser.parseFromString(lucideIconMap[newToggleIcon], 'image/svg+xml');
+          const svgElement = svgDoc.documentElement;
+          if (svgElement && svgElement.tagName === 'svg') {
+            this.toggleButton!.appendChild(svgElement.cloneNode(true));
+          }
         } else {
           setIcon(this.toggleButton!, newToggleIcon);
         }

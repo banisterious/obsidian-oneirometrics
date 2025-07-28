@@ -8,6 +8,7 @@ import { DreamMetric, DreamMetricData } from '../../types/core';
 import { EventableComponent, ComponentEventHandler } from './BaseComponent';
 import { createMetricSlider, createComponentHeader, createComponentButton } from './ComponentFactory';
 import { adaptMetricForUI } from './MetricComponent';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
 
 /**
  * Properties for the MetricsEditor component
@@ -107,7 +108,7 @@ export class MetricsEditor extends EventableComponent {
     }
     
     // Clear container
-    this.container.innerHTML = '';
+    SafeDOMUtils.safelyEmptyContainer(this.container);
     
     // Create header
     const header = createComponentHeader(this.title, 'bar-chart-2');

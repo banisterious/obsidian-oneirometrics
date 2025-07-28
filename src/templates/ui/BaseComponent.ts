@@ -12,6 +12,7 @@ import { findElement, addClass, removeClass, createElement } from '../../utils/d
 import { withErrorHandling, isObject } from '../../utils/defensive-utils';
 import safeLogger from '../../logging/safe-logger';
 import { ErrorBoundaryOptions } from '../../types/ui-types';
+import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
 
 /**
  * Base component class that all UI components should extend
@@ -139,7 +140,7 @@ export class BaseComponent {
   protected renderErrorFallback(): void {
     try {
       // Clear the container
-      this.container.innerHTML = '';
+      SafeDOMUtils.safelyEmptyContainer(this.container);
       
       // Add error class
       addClass(this.container, 'oom-component-error');
@@ -162,7 +163,10 @@ export class BaseComponent {
       this.container.appendChild(retryButton);
     } catch (fallbackError) {
       // Last resort - if even the fallback fails
-      this.container.innerHTML = '<div class="oom-critical-error">Component Error</div>';
+      SafeDOMUtils.safelyEmptyContainer(this.container);
+      const errorDiv = createElement('div', { className: 'oom-critical-error' });
+      errorDiv.textContent = 'Component Error';
+      this.container.appendChild(errorDiv);
       safeLogger.error('UIComponent', 'Error rendering fallback UI:', fallbackError);
     }
   }
@@ -173,7 +177,7 @@ export class BaseComponent {
   retry(): void {
     this.hasError = false;
     removeClass(this.container, 'oom-component-error');
-    this.container.innerHTML = '';
+    SafeDOMUtils.safelyEmptyContainer(this.container);
     this.isRendered = false;
     this.render();
   }

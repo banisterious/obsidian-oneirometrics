@@ -234,7 +234,13 @@ export class MetricEditorModal extends Modal {
                         'data-icon-name': iconName
                     }
                 });
-                iconBtn.innerHTML = iconSVG;
+                // Parse the SVG string and set it safely
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(iconSVG, 'image/svg+xml');
+                const svgElement = svgDoc.documentElement;
+                if (svgElement && svgElement.tagName === 'svg') {
+                    iconBtn.appendChild(svgElement.cloneNode(true));
+                }
                 if (this.metric.icon === iconName) iconBtn.classList.add('selected');
                 iconBtn.onclick = () => {
                     this.metric.icon = String(iconName);
@@ -264,7 +270,13 @@ export class MetricEditorModal extends Modal {
                             'data-icon-name': iconName
                         }
                     });
-                    iconBtn.innerHTML = iconSVG;
+                    // Parse the SVG string and set it safely
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(iconSVG, 'image/svg+xml');
+                const svgElement = svgDoc.documentElement;
+                if (svgElement && svgElement.tagName === 'svg') {
+                    iconBtn.appendChild(svgElement.cloneNode(true));
+                }
                     if (this.metric.icon === iconName) iconBtn.classList.add('selected');
                     iconBtn.onclick = () => {
                         this.metric.icon = String(iconName);
@@ -412,8 +424,16 @@ export class MetricEditorModal extends Modal {
         const metricLine = previewEl.createEl('div', { cls: 'oom-metric-preview-line' });
         if (this.metric.icon && lucideIconMap[this.metric.icon]) {
             const iconSpan = document.createElement('span');
-            iconSpan.innerHTML = lucideIconMap[this.metric.icon];
             iconSpan.className = 'oom-metric-icon';
+            
+            // Parse the SVG string and set it safely
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(lucideIconMap[this.metric.icon], 'image/svg+xml');
+            const svgElement = svgDoc.documentElement;
+            if (svgElement && svgElement.tagName === 'svg') {
+                iconSpan.appendChild(svgElement.cloneNode(true));
+            }
+            
             metricLine.appendChild(iconSpan);
         }
         
@@ -504,24 +524,38 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         // Onboarding Banner - dismissible welcome message
         if (!this.plugin.settings.onboardingDismissed) {
             const onboardingBanner = containerEl.createDiv({ cls: 'oom-onboarding-banner' });
-            onboardingBanner.innerHTML = `
-                <div class="oom-onboarding-content">
-                    <div class="oom-onboarding-header">
-                        <span class="oom-onboarding-icon">🌙</span>
-                        <h3>Welcome to OneiroMetrics v0.16.0!</h3>
-                        <button class="oom-onboarding-dismiss" aria-label="Dismiss">&times;</button>
-                    </div>
-                    <p>Get started by exploring the <strong>OneiroMetrics Hub</strong> - your central command center for dream tracking and analytics.</p>
-                    <div class="oom-onboarding-actions">
-                        <button class="oom-onboarding-hub-btn">Open OneiroMetrics Hub</button>
-                        <button class="oom-onboarding-dismiss-btn">Got it, dismiss</button>
-                    </div>
-                </div>
-            `;
+            
+            // Create content structure using DOM methods
+            const content = onboardingBanner.createDiv({ cls: 'oom-onboarding-content' });
+            
+            // Header section
+            const header = content.createDiv({ cls: 'oom-onboarding-header' });
+            header.createSpan({ cls: 'oom-onboarding-icon', text: '🌙' });
+            header.createEl('h3', { text: 'Welcome to OneiroMetrics v0.16.0!' });
+            const dismissBtn = header.createEl('button', { 
+                cls: 'oom-onboarding-dismiss',
+                attr: { 'aria-label': 'Dismiss' },
+                text: '×'
+            });
+            
+            // Description paragraph
+            const description = content.createEl('p');
+            description.appendText('Get started by exploring the ');
+            description.createEl('strong', { text: 'OneiroMetrics Hub' });
+            description.appendText(' - your central command center for dream tracking and analytics.');
+            
+            // Action buttons
+            const actions = content.createDiv({ cls: 'oom-onboarding-actions' });
+            const hubBtn = actions.createEl('button', { 
+                cls: 'oom-onboarding-hub-btn',
+                text: 'Open OneiroMetrics Hub'
+            });
+            const dismissTextBtn = actions.createEl('button', { 
+                cls: 'oom-onboarding-dismiss-btn',
+                text: 'Got it, dismiss'
+            });
 
-            // Handle dismiss button
-            const dismissBtn = onboardingBanner.querySelector('.oom-onboarding-dismiss') as HTMLElement;
-            const dismissTextBtn = onboardingBanner.querySelector('.oom-onboarding-dismiss-btn') as HTMLElement;
+            // Handle dismiss button - no need for querySelector now
             
             const dismissOnboarding = async () => {
                 this.plugin.settings.onboardingDismissed = true;
@@ -529,12 +563,11 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
                 onboardingBanner.remove();
             };
 
-            dismissBtn?.addEventListener('click', dismissOnboarding);
-            dismissTextBtn?.addEventListener('click', dismissOnboarding);
+            dismissBtn.addEventListener('click', dismissOnboarding);
+            dismissTextBtn.addEventListener('click', dismissOnboarding);
 
             // Handle Hub button
-            const hubBtn = onboardingBanner.querySelector('.oom-onboarding-hub-btn') as HTMLElement;
-            hubBtn?.addEventListener('click', () => {
+            hubBtn.addEventListener('click', () => {
                 // Close the settings modal first
                 (this.app as any).setting.close();
                 
@@ -660,7 +693,22 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         
         // Add collapsible toggle to the setting element
         const advancedToggle = advancedSetting.settingEl.createDiv({ cls: 'oom-collapsible-toggle' });
-        advancedToggle.innerHTML = '<svg viewBox="0 0 100 100" class="oom-chevron-right"><path fill="none" stroke="currentColor" stroke-width="15" d="M30,10 L70,50 L30,90"/></svg>';
+        
+        // Create chevron SVG safely
+        const createChevronSvg = (direction: 'right' | 'down') => {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 100 100');
+            svg.setAttribute('class', `oom-chevron-${direction}`);
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', 'currentColor');
+            path.setAttribute('stroke-width', '15');
+            path.setAttribute('d', direction === 'right' ? 'M30,10 L70,50 L30,90' : 'M10,30 L50,70 L90,30');
+            svg.appendChild(path);
+            return svg;
+        };
+        
+        advancedToggle.appendChild(createChevronSvg('right'));
         advancedToggle.style.position = 'absolute';
         advancedToggle.style.right = '0';
         advancedToggle.style.top = '50%';
@@ -681,11 +729,13 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             const isCollapsed = advancedSection.hasClass('collapsed');
             advancedSection.toggleClass('collapsed', !isCollapsed);
             if (isCollapsed) {
-                advancedToggle.innerHTML = '<svg viewBox="0 0 100 100" class="oom-chevron-down"><path fill="none" stroke="currentColor" stroke-width="15" d="M10,30 L50,70 L90,30"/></svg>';
+                advancedToggle.empty();
+                advancedToggle.appendChild(createChevronSvg('down'));
                 advancedContent.classList.add('oom-advanced-content--expanded');
                 advancedContent.classList.remove('oom-advanced-content--collapsed');
             } else {
-                advancedToggle.innerHTML = '<svg viewBox="0 0 100 100" class="oom-chevron-right"><path fill="none" stroke="currentColor" stroke-width="15" d="M30,10 L70,50 L30,90"/></svg>';
+                advancedToggle.empty();
+                advancedToggle.appendChild(createChevronSvg('right'));
                 advancedContent.classList.add('oom-advanced-content--collapsed');
                 advancedContent.classList.remove('oom-advanced-content--expanded');
             }

@@ -19,18 +19,25 @@ export class ProgressIndicator {
     private createProgressUI(): void {
         this.progressElement = document.createElement('div');
         this.progressElement.className = 'oom-progress-indicator oom-hidden';
-        this.progressElement.innerHTML = `
-            <div class="oom-progress-content">
-                <div class="oom-progress-text">Processing...</div>
-                <div class="oom-progress-bar-container">
-                    <div class="oom-progress-bar"></div>
-                </div>
-            </div>
-        `;
-
-        // Get references to child elements
-        this.statusText = this.progressElement.querySelector('.oom-progress-text');
-        this.progressBar = this.progressElement.querySelector('.oom-progress-bar');
+        
+        // Create structure using DOM methods
+        const progressContent = document.createElement('div');
+        progressContent.className = 'oom-progress-content';
+        
+        this.statusText = document.createElement('div');
+        this.statusText.className = 'oom-progress-text';
+        this.statusText.textContent = 'Processing...';
+        progressContent.appendChild(this.statusText);
+        
+        const progressBarContainer = document.createElement('div');
+        progressBarContainer.className = 'oom-progress-bar-container';
+        
+        this.progressBar = document.createElement('div');
+        this.progressBar.className = 'oom-progress-bar';
+        progressBarContainer.appendChild(this.progressBar);
+        
+        progressContent.appendChild(progressBarContainer);
+        this.progressElement.appendChild(progressContent);
 
         // Add to container
         this.container.appendChild(this.progressElement);
