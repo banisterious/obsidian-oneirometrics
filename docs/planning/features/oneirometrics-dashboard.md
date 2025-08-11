@@ -1,9 +1,9 @@
 # OneiroMetrics Dashboard Migration Plan
 
-**Document Version:** 1.0
-**Date:** August 11, 2025
-**Author:** John Banister
-**Status:** Draft
+- **Document Version:** 1.0
+- **Date:** August 11, 2025
+- **Author:** John Banister
+- **Status:** Draft
 
 ## Executive Summary
 
