@@ -214,6 +214,235 @@ Dream Entries (Vault)
 | Performance regression | Medium | Comprehensive benchmarking |
 | Theme compatibility | Low | Use native components |
 | Data loss | High | Implement robust backup |
+| Loss of virtual scrolling performance | High | Port existing virtualization logic |
+| Chart functionality regression | High | Reuse Chart.js configurations |
+| State management inconsistencies | Medium | Implement comprehensive state migration |
+
+## Critical Functionality to Preserve
+
+### Metrics Table Core Features
+Based on analysis of `DreamMetricsDOM.ts` and `TableGenerator.ts`:
+
+1. **Virtual Scrolling System**
+   - Current implementation uses CSS custom properties for dynamic row positioning
+   - Handles 20 visible rows at a time with 50px row height
+   - Smooth scrolling with RAF-based debouncing
+   - Must preserve: `--oom-total-rows`, `--oom-row-height`, `--oom-row-index` CSS variables
+
+2. **Row Expansion/Collapse**
+   - Tracks expanded state in `expandedRows: Set<string>`
+   - Smooth content reveal with "Read more"/"Show less" toggle
+   - Preserves scroll position when expanding
+   - Links to source files with proper Obsidian internal-link formatting
+
+3. **Date Handling & Sorting**
+   - Chronological ordering (oldest first)
+   - Multiple date formats supported via `parseDate()` utility
+   - Date attributes stored as: `data-date`, `data-date-raw`, `data-iso-date`
+
+4. **Dynamic Metric Columns**
+   - Respects enabled/disabled metrics from settings
+   - Follows `RECOMMENDED_METRICS_ORDER` for column ordering
+   - Metric headers with descriptions in tooltips
+
+### Chart System Features
+Based on analysis of `MetricsChartTabs.ts`:
+
+1. **Six Chart Types**
+   - Statistics: Sortable summary table with export
+   - Trends: Line/area charts with decomposition
+   - Compare: Bar charts, box plots, violin plots
+   - Correlations: Scatter plots, correlation matrices
+   - Heatmap: Calendar visualization
+   - Insights: Advanced analytics
+
+2. **Accessibility Features**
+   - Full ARIA support with roles and descriptions
+   - Keyboard navigation (Arrow keys, Home/End)
+   - Screen reader announcements for tab changes
+   - Proper focus management
+
+3. **Export Pipeline**
+   - CSV export for each chart type
+   - Type-specific export options
+   - Uses `CSVExportPipeline` class
+
+## Regression Testing Strategy
+
+### 1. Feature Parity Tests
+Create automated tests to verify all existing features work identically:
+
+```typescript
+// Example test structure for TestSuiteModal.ts
+interface DashboardRegressionTests {
+  tableTests: {
+    virtualScrolling: () => boolean;
+    rowExpansion: () => boolean;
+    dateFiltering: () => boolean;
+    metricOrdering: () => boolean;
+  };
+  chartTests: {
+    tabNavigation: () => boolean;
+    chartRendering: () => boolean;
+    dataAccuracy: () => boolean;
+    exportFunctionality: () => boolean;
+  };
+}
+```
+
+### 2. Performance Benchmarks
+Establish baseline metrics before migration:
+- Initial render time for 100, 500, 1000 entries
+- Scroll performance (FPS during scroll)
+- Tab switch latency
+- Memory usage over time
+
+### 3. Visual Regression Testing
+- Screenshot comparisons of table layouts
+- Chart rendering consistency
+- Theme compatibility checks
+
+### 4. State Preservation Tests
+- Filter persistence across sessions
+- Expanded row state retention
+- Active chart tab memory
+- Custom date range storage
+
+## Additional Critical Features Discovered
+
+### Filter System Complexity
+Based on analysis of `FilterManager.ts` and `DateFilter.ts`:
+
+1. **Multi-layer Persistence**
+   - Settings storage: `settings.lastAppliedFilter`
+   - LocalStorage backup: `oom-last-applied-filter`
+   - Global variable: `window.customDateRange`
+   - Session state: `oomIntendedFilter`
+
+2. **Date Navigation Integration**
+   - `forceApplyDateFilter()` for external date selection
+   - Date format normalization (YYYY-MM-DD)
+   - Timezone-aware date handling
+   - Integration with DateNavigator modal
+
+3. **Filter Types**
+   - Standard ranges: today, yesterday, thisWeek, thisMonth, etc.
+   - Custom date ranges with start/end dates
+   - "All Time" default option
+   - Filter count display ("X entries visible")
+
+## Implementation Recommendations
+
+### 1. Phased Migration Approach
+
+#### Phase 0: Pre-migration (Week 0)
+1. **Create comprehensive test suite**
+   - Add regression tests to TestSuiteModal.ts
+   - Document all current behaviors
+   - Capture performance baselines
+   - Screenshot all views/states
+
+2. **Build compatibility layer**
+   - Create adapter classes for existing APIs
+   - Implement legacy event handlers
+   - Ensure backward compatibility
+
+#### Modified Phase 1: Foundation with Compatibility (Week 1-2)
+1. Create `OneiroMetricsDashboardView` with legacy support
+2. **Port existing DOM structure** first (don't redesign yet)
+3. Implement dual-rendering mode:
+   ```typescript
+   class OneiroMetricsDashboardView extends ItemView {
+     private legacyMode: boolean = true;
+     private legacyDOM: DreamMetricsDOM;
+     private modernRenderer: DashboardRenderer;
+     
+     async onOpen() {
+       if (this.legacyMode) {
+         // Use existing rendering logic
+         this.legacyDOM = new DreamMetricsDOM(...);
+         this.legacyDOM.render();
+       } else {
+         // Use new optimized renderer
+         this.modernRenderer.render();
+       }
+     }
+   }
+   ```
+
+### 2. Feature-by-Feature Migration
+
+Instead of rebuilding from scratch, migrate features individually:
+
+1. **Virtual Scrolling Migration**
+   - Extract current implementation into reusable module
+   - Test thoroughly before switching
+   - Keep CSS custom properties approach
+
+2. **Chart System Migration**
+   - Reuse existing Chart.js configurations
+   - Port tab management logic as-is
+   - Maintain export pipeline compatibility
+
+3. **Filter System Migration**
+   - Preserve all persistence layers
+   - Keep global variable compatibility
+   - Maintain event system
+
+### 3. Testing Strategy
+
+#### Automated Testing
+```typescript
+// Add to TestSuiteModal.ts
+class DashboardMigrationTests {
+  async testTableRendering() {
+    // Compare old vs new HTML structure
+    const oldHTML = await this.renderLegacyTable(testData);
+    const newHTML = await this.renderDashboardTable(testData);
+    return this.compareStructures(oldHTML, newHTML);
+  }
+  
+  async testFilterPersistence() {
+    // Test all persistence layers work
+    await this.setFilter('last30');
+    await this.reloadPlugin();
+    return this.getActiveFilter() === 'last30';
+  }
+  
+  async testVirtualScrollPerformance() {
+    // Measure scroll FPS
+    const metrics = await this.measureScrollPerformance(1000);
+    return metrics.fps >= 30;
+  }
+}
+```
+
+#### Manual Testing Checklist
+- [ ] All date filters work correctly
+- [ ] Row expansion maintains state
+- [ ] Charts render identically
+- [ ] Keyboard navigation works
+- [ ] Theme compatibility verified
+- [ ] Export functions work
+- [ ] Links navigate correctly
+- [ ] Performance meets targets
+
+### 4. Rollback Plan
+
+1. **Feature flags for gradual rollout**
+   ```typescript
+   settings.useDashboardView = false; // Default to legacy
+   ```
+
+2. **Keep legacy code intact** during migration
+   - Don't delete old implementations
+   - Maintain dual code paths
+   - Allow instant rollback
+
+3. **User opt-in beta**
+   - "Try new dashboard (Beta)" command
+   - Feedback collection mechanism
+   - Easy switch back option
 
 ### Success Metrics
 
@@ -297,6 +526,69 @@ private updateTableRow(entry: DreamMetricData): void {
 
 [To be added: Detailed performance comparison data]
 
+## Risk Mitigation Recommendations Summary
+
+### High-Priority Risks to Mitigate
+
+1. **Data Loss Prevention**
+   - Implement automatic backups before migration
+   - Create data validation tests
+   - Provide manual export option before switching
+
+2. **Performance Regression Prevention**
+   - Keep virtual scrolling implementation
+   - Maintain current row height (50px) and visible rows (20)
+   - Use same RAF-based scroll debouncing
+   - Preserve CSS custom properties approach
+
+3. **Feature Parity Assurance**
+   - Create side-by-side comparison tests
+   - Document every user interaction
+   - Test with real user data sets
+   - Verify all keyboard shortcuts work
+
+4. **User Trust Maintenance**
+   - Clear communication about changes
+   - Opt-in beta period
+   - Easy rollback mechanism
+   - Preserve exact visual appearance initially
+
+### Technical Debt Considerations
+
+1. **Don't Fix What Isn't Broken**
+   - Virtual scrolling works well - keep it
+   - Chart.js integration is solid - reuse it
+   - Filter persistence is complex but functional - port as-is
+
+2. **Incremental Improvements Only**
+   - Focus on ItemView benefits (lifecycle, state)
+   - Don't redesign UI in first phase
+   - Performance optimizations come after stability
+
+3. **Maintain Compatibility**
+   - Keep global variables for now
+   - Preserve event system
+   - Support existing CSS classes
+   - Don't break third-party integrations
+
+### Migration Success Criteria
+
+1. **Zero Functional Regression**
+   - All current features work identically
+   - No performance degradation
+   - No visual differences initially
+
+2. **Smooth Transition**
+   - Users can switch back anytime
+   - Settings preserved perfectly
+   - No data migration required
+
+3. **Clear Benefits**
+   - Faster subsequent updates (after initial load)
+   - Better memory management
+   - More stable state handling
+
 ---
 
 **Document Status**: This is a living document that will be updated as the implementation progresses.
+**Last Updated**: Added comprehensive risk analysis and mitigation strategies based on codebase analysis.
