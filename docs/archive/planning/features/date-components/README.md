@@ -23,7 +23,7 @@ These three documents contained significant overlap and duplication:
 
 ## 🔗 **New Unified Document**
 
-**Location**: `docs/planning/features/date-calendar-unified.md`
+**Location**: `docs/archive/planning/features/2025-completed/date-calendar-unified.md`
 
 **Benefits of Unification**:
 - **Eliminated Duplication**: Single source of truth for date-related features
@@ -50,4 +50,4 @@ These three documents contained significant overlap and duplication:
 
 **Do not use these archived documents for development planning.** They contain outdated information and conflicting completion status. Always refer to the unified document for current planning and implementation status.
 
-**Current Document**: `docs/planning/features/date-calendar-unified.md` 
+**Current Document**: `docs/archive/planning/features/2025-completed/date-calendar-unified.md` 

@@ -26,6 +26,22 @@ The OneiroMetrics team is working on several exciting enhancements. While we can
 
 ### Coming Soon (Next 1-2 Releases)
 
+#### OneiroMetrics Dashboard
+- **Native Obsidian View**: Transform static HTML metrics into performant ItemView
+- **Real-time Updates**: Instant updates without manual refresh
+- **Virtual Scrolling**: Handle thousands of entries smoothly
+- **Persistent State**: Remember filters, expanded rows, and view preferences
+
+> See [OneiroMetrics Dashboard Migration Plan](./oneirometrics-dashboard.md) for detailed implementation strategy.
+
+#### Frontmatter Properties Support
+- **Property Mapping**: Map metrics to Obsidian frontmatter properties
+- **Multi-format Support**: Handle both compact and expanded YAML arrays
+- **Dataview Integration**: Enable powerful queries through frontmatter
+- **Backward Compatibility**: Maintain existing callout-based system
+
+> See [Frontmatter Properties Support](./frontmatter-properties-support.md) for technical details.
+
 #### Enhanced Date Tools
 - **Multi-month Calendar View**: View and select dates across multiple months
 - **Week Numbers**: Display week numbers in the calendar for better reference
@@ -65,6 +81,15 @@ The OneiroMetrics team is working on several exciting enhancements. While we can
 - **Mobile Optimization**: Improved experience on mobile devices
 
 ### Long-Term Vision (6+ Months)
+
+#### Oneirograph - Advanced Dream Visualization
+- **Force-Directed Graph**: Interactive network visualization of dream connections
+- **Theme Clustering**: Automatic grouping of related dreams by themes
+- **Character Networks**: Visualize relationships between dream characters
+- **Temporal Patterns**: Show how dream themes evolve over time
+- **Interactive Exploration**: Click, zoom, and filter dream networks
+
+> See [Oneirograph Planning Document](./oneirograph.md) for the complete vision.
 
 #### Dream Analysis Features
 - **Dream Sequence Visualization**: Interactive timeline of dream sequences
@@ -137,6 +162,9 @@ As we add features, we remain committed to excellent performance:
 ## Related Documentation
 
 - [Project Roadmap](../roadmap.md): High-level project direction
-- [Date & Calendar Features](./date-calendar-unified.md): Unified plan for date-related functionality
+- [OneiroMetrics Dashboard](./oneirometrics-dashboard.md): Dashboard migration plan
+- [Frontmatter Properties Support](./frontmatter-properties-support.md): Frontmatter integration plan
+- [Oneirograph](./oneirograph.md): Advanced visualization planning
+- [Date & Calendar Features](../../archive/planning/features/2025-completed/date-calendar-unified.md): Unified plan for date-related functionality
 - [Metrics Enhancements Plan](./metrics-enhancements.md): Metrics system improvements
 - [Dream Journal Manager Plan](./dream-journal-manager.md): Dream Journal Manager enhancements 

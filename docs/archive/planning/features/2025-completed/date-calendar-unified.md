@@ -304,7 +304,7 @@
 ✅ src/dom/modals/EnhancedDateNavigatorModal.ts    - Main modal implementation
 ✅ src/dom/modals/index.ts                         - Export integration  
 ✅ main.ts                                         - Command registration
-✅ docs/planning/features/date-calendar-unified.md - Updated planning doc
+✅ docs/archive/planning/features/2025-completed/date-calendar-unified.md - Updated planning doc
 ```
 
 #### **🎨 CSS Architecture:**

@@ -160,7 +160,7 @@ docs/
 | DREAM_JOURNAL_MANAGER_PLAN.md | planning/features/dream-journal-manager.md | |
 | JOURNAL_STRUCTURE_CHECK_IMPLEMENTATION_PLAN.md | planning/features/journal-structure-check.md | Consider archiving if fully implemented |
 | METRICS_ENHANCEMENTS_PLAN.md | archive/features/metrics-visualization-unified-completed.md | **COMPLETED 2025-06-06** - Consolidated and archived |
-| DATE_TOOLS_PLAN.md | planning/features/date-calendar-unified.md | Replaced by date-calendar-unified.md |
+| DATE_TOOLS_PLAN.md | archive/planning/features/2025-completed/date-calendar-unified.md | Replaced by date-calendar-unified.md |
 | TEMPLATER_INTEGRATION_PLAN.md | planning/features/templater-integration.md | |
 | VIRTUALIZATION_PLAN.md | planning/features/virtualization.md | |
 | TODO_NPM_UPGRADE.md | planning/tasks/npm-upgrade.md | |

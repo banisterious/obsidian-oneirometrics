@@ -3,7 +3,7 @@
 **Archive Date**: 2025-06-06  
 **Status**: This document has been **ARCHIVED** and consolidated into a unified planning document.
 
-**🔗 Current Document**: [`docs/planning/features/date-calendar-unified.md`](../../features/date-calendar-unified.md)
+**🔗 Current Document**: [`docs/archive/planning/features/2025-completed/date-calendar-unified.md`](../../features/date-calendar-unified.md)
 
 **⚠️ DO NOT USE for development planning.** This archived document contains outdated information and conflicting completion status. Always refer to the unified document for current planning and implementation status.
 
@@ -659,6 +659,6 @@ The Month View feature provides a powerful visual tool for navigating and unders
 ## Resources
 
 - Obsidian API Documentation: https://github.com/obsidianmd/obsidian-api
-- Technical Documentation: [Date & Calendar Features](../../../planning/features/date-calendar-unified.md)
+- Technical Documentation: [Date & Calendar Features](../../../archive/planning/features/2025-completed/date-calendar-unified.md)
 - Accessibility Guidelines: [docs/developer/implementation/accessibility.md]
 - Related Features: [Custom Date Filter, Date Comparison Tools] 

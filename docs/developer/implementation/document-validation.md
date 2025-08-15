@@ -31,7 +31,7 @@ This script currently validates the following documents:
 - developer/testing/performance-testing.md
 - developer/testing/ui-testing.md
 - developer/testing/accessibility-testing.md
-- planning/features/date-calendar-unified.md
+- archive/planning/features/2025-completed/date-calendar-unified.md
 
 ### 1.2. check-docs.js
 

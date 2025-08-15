@@ -6,7 +6,7 @@
 > **Status**: Functionality implemented - archived to avoid confusion between old plan and new implementation  
 > 
 > **Previous Project**: [📋 Journal Structure Integration 2025](../../../archive/planning/features/journal-structure-integration-2025.md) (**COMPLETED**)  
-> **Current Active Project**: [🧠 Smart Journal Analysis 2025](../../planning/features/smart-journal-analysis-2025.md) - Advanced intelligence features including enhanced validation
+> **Current Active Project**: [🧠 Smart Journal Analysis 2025](../../archive/planning/features/2025-completed/smart-journal-analysis-2025.md) - Advanced intelligence features including enhanced validation
 
 ---
 

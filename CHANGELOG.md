@@ -401,7 +401,7 @@
 - **Web Worker Plan Document:** Created technical plan to use web workers
   - Plan to offload date filtering operations from the UI thread
   - Will eliminate performance issues with large datasets
-  - Located at `docs/planning/features/web-worker-architecture-plan.md`
+  - Located at `docs/archive/planning/features/2025-completed/web-worker-architecture-plan.md`
 - **Journal Structure Check Feature:** Implemented first phase of the Journal Structure Check system
   - Template creation and management for consistent journal entries
   - Support for both flat and nested journal structures

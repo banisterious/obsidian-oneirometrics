@@ -24,12 +24,29 @@
 - [Custom Date Filter Improvements](#custom-date-filter-improvements)
 
 ## Current Focus
-- Custom Date Tools UI Enhancements
-  - Calendar preview optimization
-  - Accessibility improvements
-  - Mobile responsiveness
-  - Theme compatibility
-  - Performance optimization
+
+### OneiroMetrics Dashboard Migration
+- Transform static HTML metrics into native Obsidian ItemView
+- Implement virtual scrolling for performance
+- Add real-time updates without manual refresh
+- Preserve all existing functionality during migration
+
+See [OneiroMetrics Dashboard Migration Plan](./features/oneirometrics-dashboard.md) for detailed implementation strategy.
+
+### Frontmatter Properties Integration
+- Enable metrics storage in frontmatter properties
+- Support both compact and expanded YAML formats
+- Maintain backward compatibility with callouts
+- Enable Dataview queries on metrics
+
+See [Frontmatter Properties Support](./features/frontmatter-properties-support.md) for technical specifications.
+
+### Custom Date Tools UI Enhancements
+- Calendar preview optimization
+- Accessibility improvements
+- Mobile responsiveness
+- Theme compatibility
+- Performance optimization
 
 ## Planned Features
 
@@ -44,7 +61,7 @@
 - [ ] Date range comparison
 - [ ] Advanced filtering options
 
-See [Date & Calendar Features](./features/date-calendar-unified.md) for detailed implementation specifications.
+See [Date & Calendar Features](../archive/planning/features/2025-completed/date-calendar-unified.md) for detailed implementation specifications.
 
 ### Journal Structure Check
 - [x] ~~Basic structure validation~~ (**COMPLETED in Journal Structure Integration 2025**)
@@ -56,7 +73,7 @@ See [Date & Calendar Features](./features/date-calendar-unified.md) for detailed
 
 > **✅ COMPLETED**: Journal Structure functionality has been fully implemented as part of the [Journal Structure Integration Project 2025](../archive/planning/features/journal-structure-integration-2025.md).
 > 
-> **🚀 NEXT PHASE**: Advanced features now tracked in [Smart Journal Analysis 2025](./features/smart-journal-analysis-2025.md) including auto-detection, content analysis, and migration tools.
+> **🚀 NEXT PHASE**: Advanced features now tracked in [Smart Journal Analysis 2025](../archive/planning/features/2025-completed/smart-journal-analysis-2025.md) including auto-detection, content analysis, and migration tools.
 
 See [Journal Structure Guidelines](../user/guides/journal-structure.md) for structure rules and best practices.
 
@@ -110,16 +127,28 @@ See [Dream Journal Manager Plan](./features/dream-journal-manager.md) for detail
 - [ ] Export/Import functionality
 
 ## Future Considerations
+
+### Oneirograph - Advanced Dream Network Visualization
+- Force-directed graph visualization of dream connections
+- Interactive exploration with zoom, pan, and filtering
+- Automatic theme clustering and character networks
+- Temporal pattern analysis
+- Integration with existing metrics system
+
+See [Oneirograph Planning Document](./features/oneirograph.md) for the complete vision.
+
+### AI-Powered Features
 - AI-powered suggestions
 - Advanced rule creation
 - Custom visualization options
 - Mobile optimization
-- Advanced time filter features
-  - Pattern recognition
-  - Trend analysis
-  - Custom date range templates
-  - Export/import date ranges
-  - **Possible TODO:** Allow user-defined custom presets to appear in the dropdown alongside built-in presets
+
+### Advanced Time Filter Features
+- Pattern recognition
+- Trend analysis
+- Custom date range templates
+- Export/import date ranges
+- **Possible TODO:** Allow user-defined custom presets to appear in the dropdown alongside built-in presets
 
 ### Documentation Maintenance
 - Consider deleting archived documentation files from `docs/archive/legacy/` after thorough testing period
@@ -163,7 +192,7 @@ These features are under consideration but not yet planned for implementation. T
 - Some features may be combined or split during development
 - All features are subject to change
 
-For details about the date tools implementation, see [Date & Calendar Features](./features/date-calendar-unified.md).
+For details about the date tools implementation, see [Date & Calendar Features](../archive/planning/features/2025-completed/date-calendar-unified.md).
 
 ### Custom Date Filter Improvements
 - [ ] Multi-month view
@@ -178,6 +207,9 @@ For details about the date tools implementation, see [Date & Calendar Features](
 - [Metrics Reference](../user/reference/metrics.md)
 - [Architecture Overview](../developer/architecture/overview.md)
 - [Implementation Details](../developer/implementation/)
+- [OneiroMetrics Dashboard Migration](./features/oneirometrics-dashboard.md)
+- [Frontmatter Properties Support](./features/frontmatter-properties-support.md)
+- [Oneirograph Vision](./features/oneirograph.md)
 
 ## TODOs and Technical Debt
 

@@ -116,7 +116,7 @@ The consolidated `DateSelectionModal` now provides:
 
 **Files Modified**:
 - `src/dom/modals/DateSelectionModal.ts` (enhanced with accessibility)
-- `docs/planning/features/date-calendar-unified.md` (updated status)
+- `docs/archive/planning/features/2025-completed/date-calendar-unified.md` (updated status)
 - `main.ts` (updated comments)
 
 **Files Removed**:

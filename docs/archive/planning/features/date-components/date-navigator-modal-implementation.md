@@ -3,7 +3,7 @@
 **Archive Date**: 2025-01-06  
 **Status**: This document has been **ARCHIVED** and consolidated into a unified planning document.
 
-**🔗 Current Document**: [`docs/planning/features/date-calendar-unified.md`](../../../planning/features/date-calendar-unified.md)
+**🔗 Current Document**: [`docs/archive/planning/features/2025-completed/date-calendar-unified.md`](../../../archive/planning/features/2025-completed/date-calendar-unified.md)
 
 **⚠️ DO NOT USE for current planning.** This archived document contains implementation details and architectural decisions that have been incorporated into the unified document. Most features described as "planned" in this document are now completed.
 

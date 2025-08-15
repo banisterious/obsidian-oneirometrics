@@ -3,7 +3,7 @@
 > **📋 PLAN STATUS: COMPLETED** ✅  
 > This plan has been successfully completed as of January 2025. All phases (Core Integration, Structure Management UI, and Hub Consolidation) have been delivered.
 > 
-> **🔗 Next Phase**: Continue with [Smart Journal Analysis - 2025](../../planning/features/smart-journal-analysis-2025.md) for advanced intelligence features including auto-detection, content analysis, and migration tools.
+> **🔗 Next Phase**: Continue with [Smart Journal Analysis - 2025](../2025-completed/smart-journal-analysis-2025.md) for advanced intelligence features including auto-detection, content analysis, and migration tools.
 
 ## 📋 **Table of Contents**
 
