@@ -21,6 +21,7 @@ import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { getDreamEntryDate } from '../utils/date-utils';
 import { UniversalWorkerPool } from './UniversalWorkerPool';
+import { EnhancedMetricsExtractor } from '../parsing/frontmatter/EnhancedMetricsExtractor';
 import { 
     UniversalPoolConfiguration,
     UniversalTask,
@@ -64,6 +65,7 @@ export class UniversalMetricsCalculator {
     private cache = new Map<string, CacheEntry>();
     private readonly maxCacheSize = 50 * 1024 * 1024; // 50MB
     private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
+    private enhancedExtractor: EnhancedMetricsExtractor;
     
     // Performance tracking
     private stats = {
@@ -117,10 +119,18 @@ export class UniversalMetricsCalculator {
 
         this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
         
+        // Initialize enhanced extractor for frontmatter support
+        this.enhancedExtractor = new EnhancedMetricsExtractor(
+            this.app,
+            this.settings,
+            this.logger || console as any
+        );
+        
         this.logger?.info('Initialization', 'Universal Metrics Calculator initialized', {
             maxWorkers: defaultConfig.maxWorkers,
             cacheEnabled: true,
-            poolConfig: defaultConfig
+            poolConfig: defaultConfig,
+            frontmatterEnabled: this.settings.frontmatter?.enabled || false
         });
     }
 
@@ -1071,9 +1081,65 @@ export class UniversalMetricsCalculator {
                     lineCount: content.split('\n').length
                 });
                 
-                // Use simplified extraction logic for now
-                // In a full implementation, this would use the complex parsing from MetricsProcessor
+                // Extract entries from callouts
                 const { entries, dreamDiaryCalloutsInFile, debugInfo } = this.parseJournalEntries(content, path);
+                
+                // Check if any metrics have frontmatter properties configured
+                const hasFrontmatterMetrics = Object.values(this.settings.metrics).some(
+                    metric => metric.frontmatterProperty && metric.enabled
+                );
+                
+                // If frontmatter metrics are configured, enhance entries with frontmatter data
+                if (hasFrontmatterMetrics && entries.length > 0) {
+                    this.logger?.debug('Extract', `Checking frontmatter for ${path}`);
+                    
+                    try {
+                        // Extract frontmatter metrics
+                        const { metrics: frontmatterMetrics, conflicts } = 
+                            await this.enhancedExtractor.extractMetricsFromFile(file, null);
+                        
+                        if (Object.keys(frontmatterMetrics).length > 0) {
+                            this.logger?.debug('Extract', `Found frontmatter metrics in ${path}`, {
+                                metrics: frontmatterMetrics,
+                                conflicts: conflicts.length
+                            });
+                            
+                            // Apply frontmatter metrics to all entries from this file
+                            for (const entry of entries) {
+                                // Merge frontmatter metrics into entry
+                                const mergedMetrics = { ...entry.metrics };
+                                
+                                // Convert frontmatter metrics to number format
+                                for (const [key, value] of Object.entries(frontmatterMetrics)) {
+                                    if (key.startsWith('_')) continue;
+                                    
+                                    if (typeof value === 'number') {
+                                        mergedMetrics[key] = value;
+                                    } else if (typeof value === 'string') {
+                                        const num = parseFloat(value);
+                                        if (!isNaN(num)) {
+                                            mergedMetrics[key] = num;
+                                        }
+                                    }
+                                }
+                                
+                                entry.metrics = mergedMetrics;
+                                
+                                // Add metadata about source
+                                if (!entry.metadata) {
+                                    entry.metadata = {};
+                                }
+                                entry.metadata.metricsSource = frontmatterMetrics._source || 'mixed';
+                                entry.metadata.hasConflicts = conflicts.length > 0;
+                            }
+                        }
+                    } catch (error) {
+                        this.logger?.error('Extract', 
+                            `Failed to extract frontmatter metrics from ${path}`, 
+                            error as Error
+                        );
+                    }
+                }
                 
                 this.logger?.debug('Extract', `Extracted ${entries.length} entries from ${path}`, {
                     entries: entries.map(e => ({
@@ -1081,7 +1147,9 @@ export class UniversalMetricsCalculator {
                         date: e.date,
                         title: e.title,
                         contentLength: e.content?.length || 0,
-                        source: e.source
+                        source: e.source,
+                        metricsCount: Object.keys(e.metrics).length,
+                        metricsSource: e.metadata?.metricsSource
                     }))
                 });
                 

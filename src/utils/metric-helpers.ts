@@ -158,6 +158,7 @@ export function standardizeMetric(metric: Partial<DreamMetric | CoreDreamMetric>
   if (input.type) result.type = input.type;
   if (input.format) result.format = input.format;
   if (input.options) result.options = Array.isArray(input.options) ? [...input.options] : [input.options];
+  if (input.frontmatterProperty) result.frontmatterProperty = input.frontmatterProperty;
   
   // Add legacy properties if they exist in the input
   if (input.range || input.min !== undefined || input.max !== undefined) {

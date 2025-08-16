@@ -96,6 +96,9 @@ export interface DreamMetric {
      * Will be replaced with a more appropriate concept in future versions 
      */
     step?: number;
+    
+    /** Frontmatter property name for this metric */
+    frontmatterProperty?: string;
 }
 
 /**
@@ -133,7 +136,7 @@ export interface DreamMetricData {
 /**
  * Date placement options for callouts
  */
-export type DatePlacement = 'none' | 'header' | 'field';
+export type DatePlacement = 'none' | 'header' | 'field' | 'frontmatter';
 
 /**
  * Date handling configuration
@@ -147,6 +150,9 @@ export interface DateHandlingConfig {
     
     /** Date format for fields (when placement is 'field') */
     fieldFormat?: string;
+    
+    /** Frontmatter property name for date (when placement is 'frontmatter') */
+    frontmatterProperty?: string;
     
     /** Whether to include block references with dates */
     includeBlockReferences?: boolean;
@@ -317,6 +323,32 @@ export interface DreamMetricsSettings {
     
     /** Expanded states for content sections */
     expandedStates?: Record<string, boolean>;
+    
+    /** Frontmatter property support configuration */
+    frontmatter?: {
+        /** Whether frontmatter support is enabled */
+        enabled: boolean;
+        
+        /** Individual metric configurations */
+        metricConfigs: Array<{
+            metricName: string;
+            propertyName: string;
+            format: 'single' | 'array';
+            enabled: boolean;
+            priority: number;
+            autoDetectType?: boolean;
+            coerceType?: boolean;
+        }>;
+        
+        /** Default conflict resolution mode */
+        conflictResolution: 'frontmatter' | 'callout' | 'newest' | 'manual';
+        
+        /** Whether to preserve callouts when syncing */
+        preserveCallouts: boolean;
+        
+        /** Configuration version for migrations */
+        configVersion: string;
+    };
     
     /** Developer mode settings */
     developerMode?: {

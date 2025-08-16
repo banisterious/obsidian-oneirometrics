@@ -1488,6 +1488,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Include Date Fields Setting (Master Toggle)
         let dateFieldsEnabled = false;
         let dateOptionsContainer: HTMLElement;
+        let frontmatterPropertyContainer: HTMLElement;
         
         const dateFieldsSetting = new Setting(settingsContainer)
             .setName('Include Date Fields')
@@ -1529,10 +1530,11 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             .addDropdown(dropdown => {
                 dropdown.addOption('field', 'Field - "Date:" inside callout content');
                 dropdown.addOption('header', 'Header - In callout title "[!journal] June 2, 2025"');
+                dropdown.addOption('frontmatter', 'Frontmatter - Specify below');
                 
                 const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
                 dropdown.setValue(dateConfig.placement === 'none' ? 'field' : dateConfig.placement)
-                    .onChange(async (value: 'field' | 'header') => {
+                    .onChange(async (value: 'field' | 'header' | 'frontmatter') => {
                         if (!this.plugin.settings.dateHandling) {
                             this.plugin.settings.dateHandling = {
                                 placement: 'field',
@@ -1543,6 +1545,38 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                             };
                         }
                         this.plugin.settings.dateHandling.placement = value;
+                        await this.plugin.saveSettings();
+                        
+                        // Show/hide frontmatter property field
+                        if (frontmatterPropertyContainer) {
+                            frontmatterPropertyContainer.style.display = value === 'frontmatter' ? 'block' : 'none';
+                        }
+                    });
+            });
+
+        // Frontmatter Property Field (only visible when placement is 'frontmatter')
+        frontmatterPropertyContainer = dateOptionsContainer.createDiv({ cls: 'oom-frontmatter-property-container' });
+        frontmatterPropertyContainer.style.display = 
+            this.plugin.settings.dateHandling?.placement === 'frontmatter' ? 'block' : 'none';
+        
+        new Setting(frontmatterPropertyContainer)
+            .setName('Frontmatter Date Property')
+            .setDesc('The frontmatter property name containing the date (e.g., "date", "dream-date")')
+            .addText(text => {
+                const dateConfig = this.plugin.settings.dateHandling || { frontmatterProperty: '' };
+                text.setPlaceholder('date')
+                    .setValue(dateConfig.frontmatterProperty || '')
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'frontmatter',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.frontmatterProperty = value;
                         await this.plugin.saveSettings();
                     });
             });
@@ -2271,6 +2305,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Include Date Fields Setting (Master Toggle)
         let dateFieldsEnabled = false;
         let dateOptionsContainer: HTMLElement;
+        let frontmatterPropertyContainer: HTMLElement;
         
         const dateFieldsSetting = new Setting(settingsContainer)
             .setName('Include Date Fields')
@@ -2312,10 +2347,11 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             .addDropdown(dropdown => {
                 dropdown.addOption('field', 'Field - "Date:" inside callout content');
                 dropdown.addOption('header', 'Header - In callout title "[!journal] June 2, 2025"');
+                dropdown.addOption('frontmatter', 'Frontmatter - Specify below');
                 
                 const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
                 dropdown.setValue(dateConfig.placement === 'none' ? 'field' : dateConfig.placement)
-                    .onChange(async (value: 'field' | 'header') => {
+                    .onChange(async (value: 'field' | 'header' | 'frontmatter') => {
                         if (!this.plugin.settings.dateHandling) {
                             this.plugin.settings.dateHandling = {
                                 placement: 'field',
@@ -2326,6 +2362,38 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                             };
                         }
                         this.plugin.settings.dateHandling.placement = value;
+                        await this.plugin.saveSettings();
+                        
+                        // Show/hide frontmatter property field
+                        if (frontmatterPropertyContainer) {
+                            frontmatterPropertyContainer.style.display = value === 'frontmatter' ? 'block' : 'none';
+                        }
+                    });
+            });
+
+        // Frontmatter Property Field (only visible when placement is 'frontmatter')
+        frontmatterPropertyContainer = dateOptionsContainer.createDiv({ cls: 'oom-frontmatter-property-container' });
+        frontmatterPropertyContainer.style.display = 
+            this.plugin.settings.dateHandling?.placement === 'frontmatter' ? 'block' : 'none';
+        
+        new Setting(frontmatterPropertyContainer)
+            .setName('Frontmatter Date Property')
+            .setDesc('The frontmatter property name containing the date (e.g., "date", "dream-date")')
+            .addText(text => {
+                const dateConfig = this.plugin.settings.dateHandling || { frontmatterProperty: '' };
+                text.setPlaceholder('date')
+                    .setValue(dateConfig.frontmatterProperty || '')
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'frontmatter',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.frontmatterProperty = value;
                         await this.plugin.saveSettings();
                     });
             });
@@ -4405,12 +4473,13 @@ Example:
                     // Merge the template with our metric and ensure all required properties
                     const metricData = {
                         ...metricTemplate,
+                        ...metric, // Include all properties from the submitted metric
                         name: metric.name,
                         enabled: true,
-                        icon: metricTemplate.icon || 'help-circle',
-                        minValue: metricTemplate.minValue || 1,
-                        maxValue: metricTemplate.maxValue || 5,
-                        description: metricTemplate.description || ''
+                        icon: metric.icon || metricTemplate.icon || 'help-circle',
+                        minValue: metric.minValue || metricTemplate.minValue || 1,
+                        maxValue: metric.maxValue || metricTemplate.maxValue || 5,
+                        description: metric.description || metricTemplate.description || ''
                     };
                     // Use our helper to ensure the metric is complete
                     const completeMetric = ensureCompleteMetric(metricData);
@@ -6602,9 +6671,10 @@ Example:
                 .addToggle(toggle => {
                     toggle.setValue(isMetricEnabled(metric))
                         .onChange(async (value) => {
-                            setMetricEnabled(metric, value);
-                await this.plugin.saveSettings();
-                this.loadMetricsSettingsContent(); // Refresh the content
+                            // Update the metric directly
+                            this.plugin.settings.metrics[key].enabled = value;
+                            await this.plugin.saveSettings();
+                            this.loadMetricsSettingsContent(); // Refresh the content
                         });
                 })
                 .addExtraButton(button => {
@@ -6619,8 +6689,18 @@ Example:
                                 Object.values(this.plugin.settings.metrics),
                                 async (updatedMetric) => {
                                     // Use our helper to ensure the metric is complete
-                                    const { ensureCompleteMetric } = require('../../utils/metric-helpers');
+                                    this.logger.info('MetricEdit', 'Saving updated metric', {
+                                        originalMetric: metric,
+                                        updatedMetric,
+                                        hasFrontmatterProperty: !!updatedMetric.frontmatterProperty,
+                                        frontmatterValue: updatedMetric.frontmatterProperty
+                                    });
                                     const completeUpdatedMetric = ensureCompleteMetric(updatedMetric);
+                                    this.logger.info('MetricEdit', 'After ensureCompleteMetric', {
+                                        completeMetric: completeUpdatedMetric,
+                                        hasFrontmatterProperty: !!completeUpdatedMetric.frontmatterProperty,
+                                        frontmatterValue: completeUpdatedMetric.frontmatterProperty
+                                    });
                                     this.plugin.settings.metrics[updatedMetric.name] = completeUpdatedMetric;
                                     // If the name was changed, remove the old key
                                     if (updatedMetric.name !== key) {

@@ -390,9 +390,10 @@ export function getDreamEntryDate(
     filePath: string, 
     fileContent: string,
     dateHandling?: {
-        placement: 'none' | 'header' | 'field';
+        placement: 'none' | 'header' | 'field' | 'frontmatter';
         headerFormat?: string;
         fieldFormat?: string;
+        frontmatterProperty?: string;
         includeBlockReferences?: boolean;
         blockReferenceFormat?: string;
     }
@@ -400,7 +401,16 @@ export function getDreamEntryDate(
     try {
         // If dateHandling is configured, try those methods first
         if (dateHandling) {
-            // 1. Try header date extraction if placement is 'header'
+            // 1. Try frontmatter date extraction if placement is 'frontmatter'
+            if (dateHandling.placement === 'frontmatter' && dateHandling.frontmatterProperty) {
+                const frontmatterDate = extractDateFromFrontmatter(fileContent, dateHandling.frontmatterProperty);
+                if (frontmatterDate) {
+                    safeLogger.debug('Date', 'Found date via frontmatter extraction', { frontmatterDate, property: dateHandling.frontmatterProperty });
+                    return frontmatterDate;
+                }
+            }
+            
+            // 2. Try header date extraction if placement is 'header'
             if (dateHandling.placement === 'header') {
                 const headerDate = extractDateFromHeader(journalLines, dateHandling.headerFormat || 'MMMM d, yyyy');
                 if (headerDate) {
@@ -409,7 +419,7 @@ export function getDreamEntryDate(
                 }
             }
             
-            // 2. Try field date extraction if placement is 'field'
+            // 3. Try field date extraction if placement is 'field'
             if (dateHandling.placement === 'field') {
                 const fieldDate = extractDateFromField(journalLines, dateHandling.fieldFormat || 'Date:');
                 if (fieldDate) {
@@ -418,7 +428,7 @@ export function getDreamEntryDate(
                 }
             }
             
-            // 3. Try block reference with custom format if enabled
+            // 4. Try block reference with custom format if enabled
             if (dateHandling.includeBlockReferences) {
                 const blockDate = extractDateFromBlockReference(journalLines, dateHandling.blockReferenceFormat || '^YYYYMMDD');
                 if (blockDate) {
@@ -598,6 +608,40 @@ function extractDateFromBlockReference(journalLines: string[], blockFormat: stri
         return null;
     } catch (error) {
         safeLogger.warn('Date', 'Error extracting date from block reference', { error });
+        return null;
+    }
+}
+
+/**
+ * Extracts date from frontmatter property
+ * Handles YAML frontmatter format
+ */
+function extractDateFromFrontmatter(fileContent: string, propertyName: string): string | null {
+    try {
+        // Extract frontmatter section
+        const frontmatterMatch = fileContent.match(/^---\s*\n([\s\S]*?)\n---/);
+        if (!frontmatterMatch) return null;
+        
+        const yamlContent = frontmatterMatch[1];
+        
+        // Create regex to match the property
+        // Handle both quoted and unquoted values
+        const propertyRegex = new RegExp(`^${propertyName}:\\s*['"]?([^'"\n]+)['"]?\\s*$`, 'm');
+        const match = yamlContent.match(propertyRegex);
+        
+        if (match && match[1]) {
+            const dateText = match[1].trim();
+            
+            // Try to parse the date
+            const parsedDate = parseDate(dateText);
+            if (parsedDate) {
+                return parsedDate.toISOString().split('T')[0];
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        safeLogger.warn('Date', 'Error extracting date from frontmatter', { error, propertyName });
         return null;
     }
 }

@@ -114,8 +114,9 @@ iconCategories.forEach(category => {
 // Helper function to ensure a metric has all required properties
 // Uses standardizeMetric under the hood to ensure proper type compatibility
 export function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric {
-    // Start with at least these required properties
+    // Start with all properties from the original metric
     const metricWithRequired = {
+        ...metric, // Include all original properties
         name: metric.name || '',
         icon: metric.icon || '',
         minValue: metric.minValue || 1,
@@ -147,8 +148,9 @@ function validateMetricRange(min: number, max: number): string | null {
     return null;
 }
 
-function validateMetricDescription(description: string): string | null {
-    if (!description.trim()) return "Description cannot be empty";
+function validateMetricDescription(description: string | undefined): string | null {
+    // Description is optional, so empty or undefined is valid
+    if (!description || !description.trim()) return null;
     if (description.length > 200) return "Description must be 200 characters or less";
     return null;
 }
@@ -160,6 +162,7 @@ export class MetricEditorModal extends Modal {
     private existingMetrics: DreamMetric[];
     private isEditing: boolean;
     private previewInterval: number;
+    private originalName: string;
 
     constructor(app: App, metric: DreamMetric, existingMetrics: DreamMetric[], onSubmit: (metric: DreamMetric) => void, isEditing: boolean = false) {
         super(app);
@@ -169,6 +172,7 @@ export class MetricEditorModal extends Modal {
         this.existingMetrics = existingMetrics;
         this.onSubmit = onSubmit;
         this.isEditing = isEditing;
+        this.originalName = metric.name || '';
     }
 
     onOpen() {
@@ -338,19 +342,39 @@ export class MetricEditorModal extends Modal {
 
         const descSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
         const descSetting = new Setting(descSection)
-            .setName('Description')
+            .setName('Description (optional)')
             .setDesc('A description of what this metric measures')
             .addTextArea(text => {
-                text.setValue(this.metric.description)
+                text.setValue(this.metric.description || '')
                     .onChange(value => {
                         const error = validateMetricDescription(value);
-                        descSetting.setDesc(error || 'A description of what this metric measures');
+                        descSetting.setDesc(error || 'A description of what this metric measures (optional)');
                         descSetting.controlEl.classList.toggle('is-invalid', !!error);
                         this.metric.description = value;
                         this.updatePreview();
                     });
             });
 
+        // Frontmatter property
+        const frontmatterSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
+        new Setting(frontmatterSection)
+            .setName('Frontmatter property')
+            .setDesc('Optional: Map this metric to a frontmatter property (e.g., dream-lucidity-level)')
+            .addText(text => {
+                // Generate suggested property name based on metric name
+                const suggestedProperty = `dream-${this.metric.name.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+                    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+                    .replace(/-+/g, '-')           // Replace multiple hyphens with single
+                    .trim()}`;
+                
+                text.setValue(this.metric.frontmatterProperty || '')
+                    .setPlaceholder(suggestedProperty)
+                    .onChange(value => {
+                        this.metric.frontmatterProperty = value.trim() || undefined;
+                        this.updatePreview();
+                    });
+            });
         // Enabled toggle
         new Setting(contentEl.createEl('div', { cls: 'oom-metric-editor-section' }))
             .setName('Enabled')
@@ -359,7 +383,7 @@ export class MetricEditorModal extends Modal {
                 toggle
                     .setValue(isMetricEnabled(this.metric))
                     .onChange(value => {
-                        setMetricEnabled(this.metric, value);
+                        this.metric.enabled = value;
                         this.updatePreview();
                     });
             });
@@ -453,10 +477,23 @@ export class MetricEditorModal extends Modal {
                 text: `Valid range: ${range.min} to ${range.max}`
             });
         }
+        
+        // Show frontmatter property if set
+        if (this.metric.frontmatterProperty) {
+            previewEl.createEl('div', {
+                cls: 'oom-preview-frontmatter',
+                text: `Frontmatter property: ${this.metric.frontmatterProperty}`
+            });
+        }
     }
 
     private validateAll(): boolean {
-        const nameError = validateMetricName(this.metric.name, this.existingMetrics);
+        // When editing, exclude the original metric from name validation
+        const metricsForValidation = this.isEditing 
+            ? this.existingMetrics.filter(m => m.name !== this.originalName)
+            : this.existingMetrics;
+        
+        const nameError = validateMetricName(this.metric.name, metricsForValidation);
         const rangeError = validateMetricRange(
             getMetricMinValue(this.metric), 
             getMetricMaxValue(this.metric)
@@ -464,6 +501,9 @@ export class MetricEditorModal extends Modal {
         const descError = validateMetricDescription(this.metric.description);
 
         if (nameError || rangeError || descError) {
+            // Show specific error message
+            const errorMsg = nameError || rangeError || descError;
+            new Notice(`Validation error: ${errorMsg}`);
             return false;
         }
 
