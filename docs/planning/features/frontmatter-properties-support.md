@@ -2,7 +2,6 @@
 
 - **Document Version:** 1.0
 - **Date:** August 15, 2025
-- **Author:** OneiroMetrics Development Team
 - **Status:** Planning
 - **Priority:** High
 - **Estimated Effort:** 3-4 weeks
@@ -82,6 +81,14 @@ Implement comprehensive frontmatter property support that:
 
 ## Technical Architecture
 
+### Core Design Principles
+
+1. **Non-Breaking Changes**: All existing functionality must continue to work without modification
+2. **Progressive Enhancement**: Frontmatter support is additive, not replacement
+3. **Performance First**: No degradation for users who don't enable frontmatter
+4. **Type Safety**: Full TypeScript support with strict typing
+5. **Extensibility**: Easy to add new property types and formats
+
 ### Component Overview
 
 ```typescript
@@ -93,6 +100,8 @@ interface FrontmatterMetricConfig {
     arrayFormat?: 'compact' | 'expanded'; // For array types
     enabled: boolean;
     priority: number;              // Resolution priority (1-100)
+    autoDetectType?: boolean;      // Auto-detect if property is array/single
+    coerceType?: boolean;          // Convert single values to arrays if needed
 }
 
 interface FrontmatterParser {
@@ -234,9 +243,32 @@ export class FrontmatterMetricSource implements MetricSource {
     }
     
     private convertValue(value: any, config: FrontmatterMetricConfig): any {
-        if (config.format === 'array') {
-            return Array.isArray(value) ? value : [value];
+        // Auto-detect type if enabled
+        if (config.autoDetectType) {
+            if (Array.isArray(value)) {
+                return value;
+            } else if (typeof value === 'string' && value.includes(',')) {
+                // Handle comma-separated values
+                return value.split(',').map(v => v.trim());
+            }
+            return value;
         }
+        
+        // Use configured format
+        if (config.format === 'array') {
+            if (Array.isArray(value)) {
+                return value;
+            } else if (config.coerceType && value !== undefined && value !== null) {
+                // Convert single value to array if coercion enabled
+                return [value];
+            }
+        }
+        
+        // For single format, extract first item if array provided
+        if (config.format === 'single' && Array.isArray(value)) {
+            return value[0];
+        }
+        
         return value;
     }
     
@@ -250,7 +282,46 @@ export class FrontmatterMetricSource implements MetricSource {
 
 ### Phase 2: Settings UI Integration (Week 1-2)
 
-#### 2.1 Enhanced Metric Settings Interface
+#### 2.1 Type Flexibility and Smart Detection
+
+The system will provide flexible type handling rather than hard-coding property types:
+
+1. **Auto-Detection Mode**: The system can automatically detect whether a property contains single values or arrays
+2. **User Configuration**: Users can manually specify the expected format for each metric
+3. **Type Coercion**: Optional conversion between formats (e.g., single value → array)
+4. **Graceful Handling**: The system adapts to whatever format the user provides
+
+Example configurations:
+```typescript
+// Themes metric - flexible array handling
+{
+    metricName: 'themes',
+    propertyName: 'dream-themes',
+    format: 'array',
+    autoDetectType: true,  // Accepts both arrays and comma-separated strings
+    coerceType: true       // Single theme becomes array of one
+}
+
+// Lucidity metric - expects single value
+{
+    metricName: 'lucidity',
+    propertyName: 'dream-lucidity-level',
+    format: 'single',
+    autoDetectType: false,
+    coerceType: false
+}
+
+// Characters metric - smart array detection
+{
+    metricName: 'characters',
+    propertyName: 'dream-characters-list',
+    format: 'array',
+    autoDetectType: true,  // Handles: ["A", "B"] or "A, B" or "A"
+    coerceType: true
+}
+```
+
+#### 2.2 Enhanced Metric Settings Interface
 
 ```typescript
 export class MetricPropertySettings {
@@ -1012,22 +1083,24 @@ describe('Performance', () => {
 
 ## User Experience Considerations
 
-### Onboarding Flow
+### Configuration Discovery
 
-1. **First-Time Setup Wizard**
-   - Detect existing frontmatter usage
-   - Suggest optimal configuration
-   - Provide migration options
+Users will discover and configure frontmatter support through:
 
-2. **Interactive Tutorial**
-   - Step-by-step property mapping
-   - Live preview of results
-   - Sample data for testing
+1. **Settings Tab Enhancement**
+   - Clear toggle to enable/disable frontmatter support
+   - Intuitive property mapping interface
+   - Visual indicators showing active mappings
 
-3. **Help Documentation**
-   - Comprehensive user guide
-   - Video tutorials
-   - FAQ section
+2. **Documentation Integration**
+   - In-app help tooltips explaining each setting
+   - Link to comprehensive documentation
+   - Example configurations for common use cases
+
+3. **Smart Defaults**
+   - Sensible default property names based on metric names
+   - Auto-detection of existing frontmatter patterns
+   - One-click application of recommended settings
 
 ### Visual Feedback
 
@@ -1102,20 +1175,144 @@ class FrontmatterErrorHandler {
 }
 ```
 
+## Real-World Usage Examples
+
+### Example 1: Comprehensive Dream Entry with Rich Frontmatter
+
+```markdown
+---
+created: 20250708 09:08:09 am
+modified: 20250815 11:54:14 am
+title: 20250708 Sphere
+aliases: []
+categories: [Dream entry]
+dream-date: 2025-07-08
+dream-title: Sphere
+dream-sensory-detail: 3
+dream-emotional-recall: 2
+dream-lost-segments: 2
+dream-descriptiveness: 3
+dream-confidence-score: 4
+dream-character-roles: 1
+dream-characters-count: 2
+dream-familiar-count: 0
+dream-unfamiliar-count: 2
+dream-characters-list: [Captain, Subordinate]
+dream-character-clarity-familiarity: 1
+dream-themes: [Dimension Travel, Disclosure, Disparity, Exploration]
+dream-symbolic-content: []
+dream-lucidity-level: 1
+dream-coherence: 4
+dream-environmental-familiarity: 1
+dream-time-distortion: 1
+dream-ease-of-recall: 4
+dream-recall-stability: 4
+---
+
+# Sphere
+
+I found myself in a vast spherical chamber with the Captain and a subordinate...
+```
+
+### Example 2: Simplified Entry Format
+
+```markdown
+---
+dream-date: 2025-01-15
+dream-lucidity-level: 7
+dream-coherence: 8
+dream-themes: [Flying, Ocean, Freedom]
+dream-emotional-recall: 9
+---
+
+# Ocean Flight
+
+A vivid lucid dream where I realized I was dreaming while standing on a cliff...
+```
+
+### Example 3: Mixed Frontmatter and Callout Usage
+
+```markdown
+---
+dream-date: 2025-01-14
+dream-lucidity-level: 5
+dream-coherence: 6
+dream-ease-of-recall: 7
+---
+
+# The Library
+
+Walking through an endless library with shifting shelves...
+
+> [!dream-metrics]
+> - Themes:: Knowledge, Mystery, Transformation
+> - Characters:: Librarian, Shadow Figure
+> - Sensory Detail:: 8
+> - Environmental Familiarity:: 3
+```
+
+### Example 4: Research-Oriented Format
+
+```markdown
+---
+dream-date: 2025-01-10
+dream-session-id: "REM-042"
+dream-lucidity-level: 8
+dream-coherence: 9
+dream-sensory-detail: 10
+dream-emotional-recall: 7
+dream-time-distortion: 3
+dream-themes: [Laboratory, Experiment, Discovery]
+dream-induction-method: "WILD"
+dream-reality-checks: 4
+dream-sleep-stage: "REM-3"
+---
+
+# Laboratory Lucid Experience
+
+Became lucid using WILD technique. Full sensory awareness maintained throughout...
+```
+
+### Example 5: Minimal Quick Entry
+
+```markdown
+---
+dream-date: 2025-01-16
+dream-lucidity-level: 2
+dream-themes: [Work, Anxiety]
+dream-ease-of-recall: 3
+---
+
+Brief anxiety dream about missing a deadline at work. Low lucidity, fragmented recall.
+```
+
 ## Integration Examples
 
 ### Dataview Integration
 
 ```dataview
 TABLE
-  lucidity_level as "Lucidity",
-  vividness as "Vividness",
-  themes as "Themes",
-  characters as "Characters"
+  dream-lucidity-level as "Lucidity",
+  dream-coherence as "Coherence",
+  dream-themes as "Themes",
+  dream-emotional-recall as "Emotional Recall",
+  dream-ease-of-recall as "Recall Ease"
 FROM "Dreams"
-WHERE type = "dream-journal"
-SORT date DESC
+WHERE categories = "Dream entry"
+SORT dream-date DESC
 LIMIT 10
+```
+
+```dataview
+TABLE WITHOUT ID
+  link(file.link, dream-title) as "Dream",
+  dream-date as "Date",
+  dream-lucidity-level as "Lucidity",
+  length(dream-characters-list) as "Characters",
+  join(dream-themes, ", ") as "Themes"
+FROM "Dreams"
+WHERE dream-lucidity-level >= 5
+SORT dream-lucidity-level DESC
 ```
 
 ### Templater Integration
@@ -1489,3 +1686,265 @@ See `/docs/templates/frontmatter-examples/` for complete template examples.
 ### Appendix C: API Documentation
 
 Full API documentation will be available at `/docs/developer/api/frontmatter/` upon implementation.
+
+### Appendix D: Validation Rules and Constraints
+
+```typescript
+interface ValidationRule {
+    metricName: string;
+    propertyName: string;
+    validators: Validator[];
+    customMessage?: string;
+}
+
+interface Validator {
+    type: 'required' | 'range' | 'pattern' | 'custom';
+    config?: any;
+    validate(value: any): ValidationResult;
+}
+
+// Example validators
+const metricValidators: ValidationRule[] = [
+    {
+        metricName: 'lucidity',
+        propertyName: 'lucidity_level',
+        validators: [
+            { type: 'range', config: { min: 0, max: 10 } },
+            { type: 'pattern', config: /^\d+(\.\d{1,2})?$/ }
+        ]
+    },
+    {
+        metricName: 'themes',
+        propertyName: 'themes',
+        validators: [
+            { 
+                type: 'custom', 
+                validate: (value) => {
+                    if (!Array.isArray(value)) return { valid: false, error: 'Must be an array' };
+                    if (value.length > 20) return { valid: false, error: 'Maximum 20 themes allowed' };
+                    return { valid: true };
+                }
+            }
+        ]
+    }
+];
+```
+
+### Appendix E: Property Naming Conventions
+
+#### Recommended Naming Patterns
+
+1. **Snake Case** (Recommended for YAML compatibility)
+   - `lucidity_level`
+   - `dream_emotions`
+   - `recall_clarity`
+
+2. **Camel Case** (For JavaScript/TypeScript compatibility)
+   - `lucidityLevel`
+   - `dreamEmotions`
+   - `recallClarity`
+
+3. **Kebab Case** (Alternative, less common)
+   - `lucidity-level`
+   - `dream-emotions`
+   - `recall-clarity`
+
+#### Reserved Property Names
+
+The following property names should not be used for custom metrics:
+
+- `date`, `created`, `modified`, `updated`
+- `tags`, `aliases`, `cssclass`
+- `type`, `id`, `title`
+- Any Obsidian reserved frontmatter properties
+
+### Appendix F: Sync Strategy Between Sources
+
+```typescript
+interface SyncStrategy {
+    direction: 'frontmatter-to-callout' | 'callout-to-frontmatter' | 'bidirectional';
+    trigger: 'on-save' | 'on-change' | 'manual';
+    conflictResolution: 'newest' | 'oldest' | 'prompt';
+}
+
+class MetricSynchronizer {
+    private pendingSync = new Map<string, SyncOperation>();
+    
+    async syncMetrics(file: TFile, strategy: SyncStrategy): Promise<void> {
+        if (strategy.trigger === 'manual') return;
+        
+        const operation = this.createSyncOperation(file, strategy);
+        
+        // Debounce rapid changes
+        const existing = this.pendingSync.get(file.path);
+        if (existing) {
+            clearTimeout(existing.timeout);
+        }
+        
+        operation.timeout = setTimeout(() => {
+            this.executeSync(operation);
+            this.pendingSync.delete(file.path);
+        }, 1000);
+        
+        this.pendingSync.set(file.path, operation);
+    }
+    
+    private async executeSync(operation: SyncOperation): Promise<void> {
+        const { file, strategy } = operation;
+        
+        // Extract metrics from both sources
+        const frontmatter = await this.extractFrontmatter(file);
+        const callouts = await this.extractCallouts(file);
+        
+        // Determine sync direction
+        let source: DreamMetricData;
+        let target: 'frontmatter' | 'callout';
+        
+        switch (strategy.direction) {
+            case 'frontmatter-to-callout':
+                source = frontmatter;
+                target = 'callout';
+                break;
+            case 'callout-to-frontmatter':
+                source = callouts;
+                target = 'frontmatter';
+                break;
+            case 'bidirectional':
+                // Use conflict resolution to determine source
+                source = await this.resolveConflicts(frontmatter, callouts, strategy);
+                target = 'both';
+                break;
+        }
+        
+        // Apply sync
+        await this.applySyncToFile(file, source, target);
+    }
+}
+```
+
+### Appendix G: Security Considerations
+
+#### Input Validation
+
+```typescript
+class SecurityValidator {
+    private readonly MAX_PROPERTY_LENGTH = 1000;
+    private readonly MAX_ARRAY_ITEMS = 100;
+    private readonly FORBIDDEN_PATTERNS = [
+        /<script/i,
+        /javascript:/i,
+        /on\w+=/i,
+        /data:text\/html/i
+    ];
+    
+    validatePropertyValue(value: any): SecurityValidationResult {
+        // Check for script injection
+        if (typeof value === 'string') {
+            if (value.length > this.MAX_PROPERTY_LENGTH) {
+                return { safe: false, reason: 'Value exceeds maximum length' };
+            }
+            
+            for (const pattern of this.FORBIDDEN_PATTERNS) {
+                if (pattern.test(value)) {
+                    return { safe: false, reason: 'Potentially unsafe content detected' };
+                }
+            }
+        }
+        
+        // Check array sizes
+        if (Array.isArray(value)) {
+            if (value.length > this.MAX_ARRAY_ITEMS) {
+                return { safe: false, reason: 'Array exceeds maximum size' };
+            }
+            
+            // Recursively validate array items
+            for (const item of value) {
+                const result = this.validatePropertyValue(item);
+                if (!result.safe) return result;
+            }
+        }
+        
+        // Check object depth
+        if (typeof value === 'object' && value !== null) {
+            const depth = this.getObjectDepth(value);
+            if (depth > 5) {
+                return { safe: false, reason: 'Object nesting too deep' };
+            }
+        }
+        
+        return { safe: true };
+    }
+    
+    private getObjectDepth(obj: any, currentDepth = 0): number {
+        if (currentDepth > 10) return currentDepth; // Prevent infinite recursion
+        
+        let maxDepth = currentDepth;
+        
+        for (const value of Object.values(obj)) {
+            if (typeof value === 'object' && value !== null) {
+                const depth = this.getObjectDepth(value, currentDepth + 1);
+                maxDepth = Math.max(maxDepth, depth);
+            }
+        }
+        
+        return maxDepth;
+    }
+}
+```
+
+#### Data Privacy
+
+- No frontmatter data is sent to external services
+- Property mappings are stored locally in plugin settings
+- Validation occurs entirely client-side
+- No telemetry includes actual metric values
+
+### Appendix H: Accessibility Enhancements
+
+```typescript
+class FrontmatterAccessibility {
+    enhanceFormField(container: HTMLElement, config: FrontmatterMetricConfig): void {
+        const field = container.querySelector('input, select, textarea');
+        if (!field) return;
+        
+        // Add ARIA labels
+        field.setAttribute('aria-label', `${config.metricName} property mapping`);
+        field.setAttribute('aria-describedby', `${config.metricName}-help`);
+        
+        // Add help text
+        const helpText = container.createDiv({
+            cls: 'setting-item-description',
+            attr: { id: `${config.metricName}-help` }
+        });
+        helpText.textContent = this.getHelpText(config);
+        
+        // Add keyboard navigation hints
+        if (config.format === 'array') {
+            field.setAttribute('aria-keyshortcuts', 'Enter');
+            helpText.textContent += ' Press Enter to add multiple values.';
+        }
+        
+        // Add validation feedback
+        field.addEventListener('blur', () => {
+            const value = (field as HTMLInputElement).value;
+            const isValid = this.validateMapping(value);
+            
+            field.setAttribute('aria-invalid', (!isValid).toString());
+            if (!isValid) {
+                this.announceError(`Invalid property name for ${config.metricName}`);
+            }
+        });
+    }
+    
+    private announceError(message: string): void {
+        // Create live region for screen reader announcements
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'alert');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.textContent = message;
+        
+        document.body.appendChild(announcement);
+        setTimeout(() => announcement.remove(), 3000);
+    }
+}
+```
