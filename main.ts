@@ -135,6 +135,9 @@ import { MetricsCalculatorTestModal } from './src/workers/ui/MetricsCalculatorTe
 import { TemplateTabsModal } from './src/templates/ui/TemplateTabsModal';
 import { UnifiedTestSuiteModal } from './src/testing/ui/UnifiedTestSuiteModal';
 
+// Import dashboard view
+import { OneiroMetricsDashboardView, ONEIROMETRICS_DASHBOARD_VIEW_TYPE } from './src/views/dashboard/OneiroMetricsDashboardView';
+
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
     ribbonIconEl: HTMLElement;
@@ -196,6 +199,12 @@ export default class DreamMetricsPlugin extends Plugin {
         const initializer = new PluginInitializer(this, this.app);
         await initializer.initializePlugin();
         
+        // Register the dashboard view
+        this.registerView(
+            ONEIROMETRICS_DASHBOARD_VIEW_TYPE,
+            (leaf) => new OneiroMetricsDashboardView(leaf, this)
+        );
+        
         // Add OneiroMetrics Hub command (always available)
         this.addCommand({
             id: 'open-oneirometrics-hub',
@@ -233,10 +242,57 @@ export default class DreamMetricsPlugin extends Plugin {
                 modal.open();
             }
         });
+        
+        // Add OneiroMetrics Dashboard command
+        this.addCommand({
+            id: 'open-oneirometrics-dashboard',
+            name: 'Open dashboard',
+            callback: async () => {
+                // Close any existing dashboard views first
+                this.app.workspace.detachLeavesOfType(ONEIROMETRICS_DASHBOARD_VIEW_TYPE);
+                
+                // Open the dashboard in the right pane
+                const leaf = this.app.workspace.getRightLeaf(false);
+                if (leaf) {
+                    await leaf.setViewState({
+                        type: ONEIROMETRICS_DASHBOARD_VIEW_TYPE,
+                        active: true
+                    });
+                    
+                    // Focus the new view
+                    this.app.workspace.revealLeaf(leaf);
+                }
+            }
+        });
+        
+        // Add OneiroMetrics Dashboard (Beta) command for legacy mode testing
+        this.addCommand({
+            id: 'open-oneirometrics-dashboard-beta',
+            name: 'Open dashboard (beta)',
+            callback: async () => {
+                // Close any existing dashboard views first
+                this.app.workspace.detachLeavesOfType(ONEIROMETRICS_DASHBOARD_VIEW_TYPE);
+                
+                // Open the dashboard in a new tab
+                const leaf = this.app.workspace.getLeaf('tab');
+                if (leaf) {
+                    await leaf.setViewState({
+                        type: ONEIROMETRICS_DASHBOARD_VIEW_TYPE,
+                        active: true
+                    });
+                    
+                    // Focus the new view
+                    this.app.workspace.revealLeaf(leaf);
+                }
+            }
+        });
     }
 
     onunload() {
         safeLogger.info('Plugin', 'Unloading Dream Metrics plugin');
+        
+        // Detach all dashboard views
+        this.app.workspace.detachLeavesOfType(ONEIROMETRICS_DASHBOARD_VIEW_TYPE);
         
         // Note: Per Obsidian reviewer feedback, we do not remove ribbon icons
         // as they are automatically cleaned up by Obsidian

@@ -12637,3 +12637,389 @@ input[type="date"]:focus-visible {
     background: var(--background-primary-alt);
     border: 1px solid var(--background-modifier-border);
 }
+
+/* =============================================================================
+   COMPONENT: DASHBOARD (7.9 KB)
+   ============================================================================= */
+/* OneiroMetrics Dashboard Styles */
+/* Following Obsidian UI patterns and theme compatibility */
+
+/* Main container */
+.oneirometrics-dashboard {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-primary);
+}
+
+.oom-dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--size-4-2);
+    gap: var(--size-4-2);
+    overflow: hidden;
+}
+
+/* Header section */
+.oom-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--size-4-2);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-dashboard-header h2 {
+    margin: 0;
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight);
+    color: var(--text-normal);
+}
+
+.oom-update-info {
+    font-size: var(--font-smaller);
+    color: var(--text-muted);
+}
+
+/* Controls section */
+.oom-dashboard-controls {
+    display: flex;
+    gap: var(--size-4-2);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.oom-search-container {
+    flex: 1;
+    min-width: 200px;
+}
+
+.oom-filter-container {
+    min-width: 150px;
+}
+
+.oom-refresh-button {
+    padding: var(--size-4-1) var(--size-4-3);
+    background-color: var(--interactive-normal);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.oom-refresh-button:hover {
+    background-color: var(--interactive-hover);
+}
+
+.oom-refresh-button:active {
+    background-color: var(--interactive-accent);
+}
+
+/* Table container */
+.oom-table-container {
+    flex: 1;
+    overflow: auto;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    padding: var(--size-4-2);
+}
+
+/* Virtual scrolling support - matching existing implementation */
+.oom-table-container.virtual-scroll {
+    --oom-total-rows: 0;
+    --oom-row-height: 50px;
+    --oom-visible-rows: 20;
+    position: relative;
+    overflow-y: auto;
+}
+
+.oom-virtual-table {
+    position: relative;
+    height: calc(var(--oom-total-rows) * var(--oom-row-height));
+}
+
+.oom-virtual-row {
+    position: absolute;
+    top: calc(var(--oom-row-index) * var(--oom-row-height));
+    height: var(--oom-row-height);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--size-4-2);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Table styles */
+.oom-metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.oom-metrics-table thead {
+    position: sticky;
+    top: 0;
+    background-color: var(--background-secondary);
+    z-index: 1;
+}
+
+.oom-metrics-table th {
+    text-align: left;
+    padding: var(--size-4-2);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--background-modifier-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.oom-metrics-table th:hover {
+    color: var(--text-normal);
+}
+
+.oom-metrics-table th.sortable::after {
+    content: ' ⇅';
+    opacity: 0.3;
+}
+
+.oom-metrics-table th.sorted-asc::after {
+    content: ' ↑';
+    opacity: 1;
+}
+
+.oom-metrics-table th.sorted-desc::after {
+    content: ' ↓';
+    opacity: 1;
+}
+
+.oom-metrics-table td {
+    padding: var(--size-4-2);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Row expansion */
+.oom-row-expandable {
+    cursor: pointer;
+}
+
+.oom-row-expandable:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-row-expanded {
+    background-color: var(--background-primary-alt);
+}
+
+.oom-content-cell {
+    max-width: 400px;
+}
+
+.oom-content-preview {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oom-content-expanded {
+    white-space: normal;
+    line-height: var(--line-height-normal);
+}
+
+.oom-expand-toggle {
+    color: var(--text-accent);
+    cursor: pointer;
+    font-size: var(--font-smaller);
+    margin-left: var(--size-4-1);
+}
+
+.oom-expand-toggle:hover {
+    text-decoration: underline;
+}
+
+/* Empty state */
+.oom-empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--size-4-8);
+    font-size: var(--font-ui-medium);
+}
+
+/* Loading state */
+.oom-dashboard-container.is-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.oom-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-primary-alt);
+    z-index: 100;
+}
+
+.oom-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--background-modifier-border);
+    border-top-color: var(--text-accent);
+    border-radius: 50%;
+    animation: oom-spin 1s linear infinite;
+}
+
+@keyframes oom-spin {
+    to { transform: rotate(360deg); }
+}
+
+.oom-loading-overlay p {
+    margin-top: var(--size-4-3);
+    color: var(--text-muted);
+}
+
+/* Error state */
+.oom-error-container {
+    padding: var(--size-4-4);
+    background-color: var(--background-modifier-error);
+    border: 1px solid var(--text-error);
+    border-radius: var(--radius-m);
+    margin: var(--size-4-2);
+}
+
+.oom-error-message {
+    color: var(--text-error);
+    margin: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .oom-dashboard-container {
+        padding: var(--size-4-1);
+    }
+    
+    .oom-dashboard-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .oom-search-container,
+    .oom-filter-container {
+        width: 100%;
+    }
+    
+    .oom-metrics-table {
+        font-size: var(--font-smaller);
+    }
+    
+    .oom-metrics-table th,
+    .oom-metrics-table td {
+        padding: var(--size-4-1);
+    }
+    
+    /* Ensure 44px minimum touch targets on mobile */
+    .oom-refresh-button,
+    .oom-expand-toggle {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Accessibility */
+.oom-dashboard-container:focus-visible,
+.oom-metrics-table th:focus-visible,
+.oom-metrics-table td:focus-visible,
+.oom-refresh-button:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.oom-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Theme compatibility for popular themes */
+.theme-dark .oom-dashboard-container {
+    background-color: var(--background-primary);
+}
+
+.theme-light .oom-dashboard-container {
+    background-color: var(--background-primary);
+}
+
+/* Minimal theme compatibility */
+body.minimal-theme .oom-dashboard-container {
+    --size-4-1: var(--size-2-1);
+    --size-4-2: var(--size-2-2);
+    --size-4-3: var(--size-2-3);
+}
+
+/* Blue Topaz theme compatibility */
+body.blue-topaz-theme .oom-metrics-table th {
+    background-color: var(--background-secondary-alt);
+}
+
+/* Shimmering Focus theme compatibility */
+body.shimmering-focus .oom-dashboard-header {
+    border-bottom-color: var(--divider-color);
+}
+
+/* ============================================
+   PLACEHOLDER STYLES
+   ============================================ */
+
+.oom-dashboard-placeholder {
+    text-align: center;
+    padding: 3rem 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.oom-dashboard-placeholder h3 {
+    color: var(--text-normal);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.oom-dashboard-placeholder p {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.oom-dashboard-placeholder ul {
+    text-align: left;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.oom-dashboard-placeholder li {
+    color: var(--text-normal);
+    margin-bottom: 0.5rem;
+}
+
+.oom-dashboard-placeholder .oom-muted {
+    font-style: italic;
+    font-size: 0.9em;
+    margin-top: 2rem;
+}
