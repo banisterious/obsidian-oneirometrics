@@ -1091,12 +1091,12 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             text: 'Extract dream metrics from journal entries.'
         });
         
-        // OneiroMetrics Note Section (mirrored from Settings - exactly matches Settings style)
+        // OneiroMetrics note section (mirrored from Settings - exactly matches Settings style)
         const projectNoteSection = this.contentContainer.createDiv({ cls: 'oom-modal-section' });
         
         // Create a Setting-style implementation for consistency with Settings tab
         const projectNoteSetting = new Setting(projectNoteSection)
-            .setName('OneiroMetrics Note')
+            .setName('OneiroMetrics note')
             .setDesc('The note where OneiroMetrics tables will be written')
             .addSearch(search => {
                 search.setPlaceholder('Example: Journals/Dream Diary/Metrics/Metrics.md')
@@ -1114,7 +1114,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Selection Mode (moved from Settings - identical implementation)
         const selectionModeSetting = new Setting(this.contentContainer)
-            .setName('Select Notes/Folders')
+            .setName('Select notes/folders')
             .setDesc('How to select notes for analyzing')
             .addDropdown(drop => {
                 drop.addOption('notes', 'Selected Notes');
@@ -1211,9 +1211,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
             // Exclusion fields - only show in folder mode
             
-            // Exclude Notes - multi-select autocomplete like selectedNotes
+            // Exclude notes - multi-select autocomplete like selectedNotes
             const excludeNotesSection = new Setting(this.contentContainer)
-                .setName('Exclude Notes')
+                .setName('Exclude notes')
                 .setDesc('Skip specific notes within the selected folder');
             
             const excludeNotesContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container oom-exclude-notes-container' });
@@ -1230,9 +1230,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             });
             excludeNotesSection.controlEl.appendChild(excludeNotesContainer);
             
-            // Exclude Subfolders - multi-select autocomplete like excludeNotes
+            // Exclude subfolders - multi-select autocomplete like excludeNotes
             const excludeSubfoldersSection = new Setting(this.contentContainer)
-                .setName('Exclude Subfolders')
+                .setName('Exclude subfolders')
                 .setDesc('Skip specific subfolders within the selected folder');
             
             const excludeSubfoldersContainer = this.contentContainer.createEl('div', { cls: 'oom-multiselect-search-container oom-exclude-subfolders-container' });
@@ -1345,17 +1345,18 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // First paragraph
         welcomeText.createEl('p', { 
-            text: 'The settings below control how callouts are generated and recognized throughout the plugin, and include tools for creating and managing journal templates.'
+            text: 'The settings below control how dream entries are recognized and parsed throughout the plugin, and include tools for creating and managing templates.'
         });
         
         // Second paragraph with link
         const secondPara = welcomeText.createEl('p');
+        secondPara.appendText('When enabled below, ');
         const calloutsLink = secondPara.createEl('a', {
-            text: 'Callouts',
+            text: 'callout structures',
             href: 'https://help.obsidian.md/callouts'
         });
         calloutsLink.setAttribute('target', '_blank');
-        secondPara.appendText(' are used here in order to identify the journal, dream entry, and dream metrics sections for the Dream Scrape tool and other plugin features.');
+        secondPara.appendText(' are used in order to identify the journal, dream entry, and dream metrics sections for the Dream Scrape tool and other plugin features.');
 
         // Global state for all sections
         let calloutMetadata = '';
@@ -1449,9 +1450,68 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             cls: 'oom-callout-settings' 
         });
 
-        // Journal Callout Name Setting
+        // Add two new toggles for dream entry types
+        let plainTextDreamsEnabled = this.plugin.settings.dateHandling?.plainTextDreams ?? false;
+        let calloutBasedDreamsEnabled = this.plugin.settings.dateHandling?.calloutBasedDreams ?? true;
+        let calloutSettingsContainer: HTMLElement;
+        
+        // Plain text dream entries toggle
         new Setting(settingsContainer)
-            .setName('Journal Callout Name')
+            .setName('Plain text dream entries')
+            .setDesc('Parse dream entries from plain text files without callout structures')
+            .addToggle(toggle => {
+                toggle.setValue(plainTextDreamsEnabled)
+                    .onChange(async (value) => {
+                        plainTextDreamsEnabled = value;
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.plainTextDreams = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+        
+        // Callout-based dream entries toggle
+        new Setting(settingsContainer)
+            .setName('Callout-based dream entries')
+            .setDesc('Parse dream entries from callout structures in your notes')
+            .addToggle(toggle => {
+                toggle.setValue(calloutBasedDreamsEnabled)
+                    .onChange(async (value) => {
+                        calloutBasedDreamsEnabled = value;
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.calloutBasedDreams = value;
+                        
+                        // Show/hide callout settings container
+                        if (calloutSettingsContainer) {
+                            calloutSettingsContainer.style.display = value ? 'block' : 'none';
+                        }
+                        
+                        await this.plugin.saveSettings();
+                    });
+            });
+        
+        // Callout settings container (only visible when callout-based is enabled)
+        calloutSettingsContainer = settingsContainer.createDiv({ cls: 'oom-callout-settings-container' });
+        calloutSettingsContainer.style.display = calloutBasedDreamsEnabled ? 'block' : 'none';
+        
+        // Journal callout name setting
+        new Setting(calloutSettingsContainer)
+            .setName('Journal callout name')
             .setDesc('Name of the callout block used for journal entries (e.g., "journal")')
             .addText(text => text
                 .setPlaceholder('journal')
@@ -1461,9 +1521,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     await this.plugin.saveSettings();
                 }));
 
-        // Dream Diary Callout Name Setting
-        new Setting(settingsContainer)
-            .setName('Dream Diary Callout Name')
+        // Dream diary callout name setting
+        new Setting(calloutSettingsContainer)
+            .setName('Dream diary callout name')
             .setDesc('Name of the callout block used for dream diary entries (e.g., "dream-diary")')
             .addText(text => text
                 .setPlaceholder('dream-diary')
@@ -1473,9 +1533,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     await this.plugin.saveSettings();
                 }));
 
-        // Metrics Callout Name Setting (moved from settings page)
-        new Setting(settingsContainer)
-            .setName('Metrics Callout Name')
+        // Metrics callout name setting (moved from settings page)
+        new Setting(calloutSettingsContainer)
+            .setName('Metrics callout name')
             .setDesc('Name of the callout block used for dream metrics (e.g., "dream-metrics")')
             .addText(text => text
                 .setPlaceholder('dream-metrics')
@@ -1485,14 +1545,14 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     await this.plugin.saveSettings();
                 }));
 
-        // Include Date Fields Setting (Master Toggle)
+        // Include date fields setting (Master Toggle)
         let dateFieldsEnabled = false;
         let dateOptionsContainer: HTMLElement;
         let frontmatterPropertyContainer: HTMLElement;
         
         const dateFieldsSetting = new Setting(settingsContainer)
-            .setName('Include Date Fields')
-            .setDesc('Include date information in Journal and Dream Diary callouts. Disable this if you use daily notes with dates in filenames or headers.')
+            .setName('Dates in properties or callouts')
+            .setDesc('Locate and parse date information in journal/dream diary callouts, or in properties. Disable this if you use daily notes with dates in filenames or headers.')
             .addToggle(toggle => {
                 const dateConfig = this.plugin.settings.dateHandling || { placement: 'field' };
                 dateFieldsEnabled = dateConfig.placement !== 'none';
@@ -1523,10 +1583,10 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         dateOptionsContainer.classList.toggle('oom-display-block', dateFieldsEnabled);
         dateOptionsContainer.classList.toggle('oom-display-none', !dateFieldsEnabled);
 
-        // Date Placement Dropdown
+        // Date placement dropdown
         new Setting(dateOptionsContainer)
-            .setName('Date Placement')
-            .setDesc('Choose where to place date information in callouts')
+            .setName('Date placement')
+            .setDesc('Where to look for date information')
             .addDropdown(dropdown => {
                 dropdown.addOption('field', 'Field - "Date:" inside callout content');
                 dropdown.addOption('header', 'Header - In callout title "[!journal] June 2, 2025"');
@@ -1554,13 +1614,13 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Frontmatter Property Field (only visible when placement is 'frontmatter')
+        // Frontmatter property field (only visible when placement is 'frontmatter')
         frontmatterPropertyContainer = dateOptionsContainer.createDiv({ cls: 'oom-frontmatter-property-container' });
         frontmatterPropertyContainer.style.display = 
             this.plugin.settings.dateHandling?.placement === 'frontmatter' ? 'block' : 'none';
         
         new Setting(frontmatterPropertyContainer)
-            .setName('Frontmatter Date Property')
+            .setName('Date property name')
             .setDesc('The frontmatter property name containing the date (e.g., "date", "dream-date")')
             .addText(text => {
                 const dateConfig = this.plugin.settings.dateHandling || { frontmatterProperty: '' };
@@ -1581,9 +1641,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Block References Toggle
+        // Block references toggle
         new Setting(dateOptionsContainer)
-            .setName('Include Block References')
+            .setName('Include block references')
             .setDesc('Add block references like "^20250602" to date entries for easy linking')
             .addToggle(toggle => {
                 const dateConfig = this.plugin.settings.dateHandling || { includeBlockReferences: false };
@@ -1603,9 +1663,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Date Format Setting
+        // Date format setting
         const dateFormatSetting = new Setting(dateOptionsContainer)
-            .setName('Date Format')
+            .setName('Date format')
             .setDesc('Format for dates using Moment.js syntax.')
             .addText(text => {
                 const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
@@ -1677,9 +1737,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Callout Metadata Field
+        // Callout metadata field
         new Setting(settingsContainer)
-            .setName('Callout Metadata')
+            .setName('Callout metadata')
             .setDesc('Default metadata to include in all callouts (applies to all sections below)')
             .addText(text => text
                 .setPlaceholder('Enter metadata')
@@ -1689,11 +1749,67 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     await this.plugin.saveSettings();
                 }));
 
+        // Dream Title in Properties Toggle
+        let dreamTitlePropertyContainer: HTMLElement;
+        
+        new Setting(settingsContainer)
+            .setName('Dream title in properties')
+            .setDesc('Store dream titles in frontmatter properties')
+            .addToggle(toggle => {
+                const dateConfig = this.plugin.settings.dateHandling || {} as DateHandlingConfig;
+                toggle.setValue(dateConfig.dreamTitleInProperties || false)
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.dreamTitleInProperties = value;
+                        await this.plugin.saveSettings();
+                        
+                        // Show/hide dream title property field
+                        if (dreamTitlePropertyContainer) {
+                            dreamTitlePropertyContainer.style.display = value ? 'block' : 'none';
+                        }
+                    });
+            });
+
+        // Dream Title Property Field (only visible when dreamTitleInProperties is true)
+        dreamTitlePropertyContainer = settingsContainer.createDiv({ cls: 'oom-dream-title-property-container' });
+        dreamTitlePropertyContainer.style.display = 
+            this.plugin.settings.dateHandling?.dreamTitleInProperties ? 'block' : 'none';
+        
+        new Setting(dreamTitlePropertyContainer)
+            .setName('Dream title property')
+            .setDesc('The frontmatter property name for dream titles (e.g., "dream-title", "title")')
+            .addText(text => {
+                const dateConfig = this.plugin.settings.dateHandling || {} as DateHandlingConfig;
+                text.setPlaceholder('dream-title')
+                    .setValue(dateConfig.dreamTitleProperty || '')
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.dreamTitleProperty = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
         // Add section separator before Template Management
         this.contentContainer.createEl('div', { cls: 'oom-section-border' });
 
-        // Template Management Section
-        new Setting(this.contentContainer).setName('Template Management');
+        // Template management section
+        new Setting(this.contentContainer).setName('Template management');
         
         this.contentContainer.createEl('p', { 
             text: 'Create and manage journal templates using the unified template wizard. Templates define the structure and content for your journal entries.',
@@ -1732,7 +1848,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Template import/export section
         const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
-        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('h3', { text: 'Import/export templates' });
         importExportSection.createEl('p', { 
             text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
             cls: 'oom-setting-desc'
@@ -1742,7 +1858,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
-            text: 'Export Templates',
+            text: 'Export templates',
             cls: 'oom-button'
         });
         exportBtn.addEventListener('click', () => {
@@ -1751,7 +1867,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Import button  
         const importBtn = buttonContainer.createEl('button', {
-            text: 'Import Templates',
+            text: 'Import templates',
             cls: 'oom-button'
         });
         importBtn.addEventListener('click', () => {
@@ -1761,7 +1877,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Individual template export (if templates exist)
         if (templates.length > 0) {
             const individualExportBtn = buttonContainer.createEl('button', {
-                text: 'Export Selected',
+                text: 'Export selected',
                 cls: 'oom-button'
             });
             individualExportBtn.addEventListener('click', () => {
@@ -1933,7 +2049,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Template import/export section
         const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
-        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('h3', { text: 'Import/export templates' });
         importExportSection.createEl('p', { 
             text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
             cls: 'oom-setting-desc'
@@ -1946,7 +2062,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
-            text: 'Export Templates',
+            text: 'Export templates',
             cls: 'oom-button'
         });
         exportBtn.addEventListener('click', () => {
@@ -1955,7 +2071,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Import button  
         const importBtn = buttonContainer.createEl('button', {
-            text: 'Import Templates',
+            text: 'Import templates',
             cls: 'oom-button'
         });
         importBtn.addEventListener('click', () => {
@@ -1965,7 +2081,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Individual template export (if templates exist)
         if (templates.length > 0) {
             const individualExportBtn = buttonContainer.createEl('button', {
-                text: 'Export Selected',
+                text: 'Export selected',
                 cls: 'oom-button'
             });
             individualExportBtn.addEventListener('click', () => {
@@ -2340,10 +2456,10 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         dateOptionsContainer.classList.toggle('oom-display-block', dateFieldsEnabled);
         dateOptionsContainer.classList.toggle('oom-display-none', !dateFieldsEnabled);
 
-        // Date Placement Dropdown
+        // Date placement dropdown
         new Setting(dateOptionsContainer)
-            .setName('Date Placement')
-            .setDesc('Choose where to place date information in callouts')
+            .setName('Date placement')
+            .setDesc('Where to look for date information')
             .addDropdown(dropdown => {
                 dropdown.addOption('field', 'Field - "Date:" inside callout content');
                 dropdown.addOption('header', 'Header - In callout title "[!journal] June 2, 2025"');
@@ -2371,13 +2487,13 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Frontmatter Property Field (only visible when placement is 'frontmatter')
+        // Frontmatter property field (only visible when placement is 'frontmatter')
         frontmatterPropertyContainer = dateOptionsContainer.createDiv({ cls: 'oom-frontmatter-property-container' });
         frontmatterPropertyContainer.style.display = 
             this.plugin.settings.dateHandling?.placement === 'frontmatter' ? 'block' : 'none';
         
         new Setting(frontmatterPropertyContainer)
-            .setName('Frontmatter Date Property')
+            .setName('Date property name')
             .setDesc('The frontmatter property name containing the date (e.g., "date", "dream-date")')
             .addText(text => {
                 const dateConfig = this.plugin.settings.dateHandling || { frontmatterProperty: '' };
@@ -2398,9 +2514,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Block References Toggle
+        // Block references toggle
         new Setting(dateOptionsContainer)
-            .setName('Include Block References')
+            .setName('Include block references')
             .setDesc('Add block references like "^20250602" to date entries for easy linking')
             .addToggle(toggle => {
                 const dateConfig = this.plugin.settings.dateHandling || { includeBlockReferences: false };
@@ -2420,9 +2536,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Date Format Setting
+        // Date format setting
         const dateFormatSetting = new Setting(dateOptionsContainer)
-            .setName('Date Format')
+            .setName('Date format')
             .setDesc('Format for dates using Moment.js syntax.')
             .addText(text => {
                 const dateConfig = this.plugin.settings.dateHandling || { headerFormat: 'MMMM d, yyyy' };
@@ -2494,9 +2610,9 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     });
             });
 
-        // Callout Metadata Field
+        // Callout metadata field
         new Setting(settingsContainer)
-            .setName('Callout Metadata')
+            .setName('Callout metadata')
             .setDesc('Default metadata to include in all callouts (applies to all sections below)')
             .addText(text => text
                 .setPlaceholder('Enter metadata')
@@ -2505,6 +2621,62 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     calloutMetadata = value;
                     await this.plugin.saveSettings();
                 }));
+
+        // Dream Title in Properties Toggle
+        let dreamTitlePropertyContainer: HTMLElement;
+        
+        new Setting(settingsContainer)
+            .setName('Dream title in properties')
+            .setDesc('Store dream titles in frontmatter properties')
+            .addToggle(toggle => {
+                const dateConfig = this.plugin.settings.dateHandling || {} as DateHandlingConfig;
+                toggle.setValue(dateConfig.dreamTitleInProperties || false)
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.dreamTitleInProperties = value;
+                        await this.plugin.saveSettings();
+                        
+                        // Show/hide dream title property field
+                        if (dreamTitlePropertyContainer) {
+                            dreamTitlePropertyContainer.style.display = value ? 'block' : 'none';
+                        }
+                    });
+            });
+
+        // Dream Title Property Field (only visible when dreamTitleInProperties is true)
+        dreamTitlePropertyContainer = settingsContainer.createDiv({ cls: 'oom-dream-title-property-container' });
+        dreamTitlePropertyContainer.style.display = 
+            this.plugin.settings.dateHandling?.dreamTitleInProperties ? 'block' : 'none';
+        
+        new Setting(dreamTitlePropertyContainer)
+            .setName('Dream title property')
+            .setDesc('The frontmatter property name for dream titles (e.g., "dream-title", "title")')
+            .addText(text => {
+                const dateConfig = this.plugin.settings.dateHandling || {} as DateHandlingConfig;
+                text.setPlaceholder('dream-title')
+                    .setValue(dateConfig.dreamTitleProperty || '')
+                    .onChange(async (value) => {
+                        if (!this.plugin.settings.dateHandling) {
+                            this.plugin.settings.dateHandling = {
+                                placement: 'field',
+                                headerFormat: 'MMMM d, yyyy',
+                                fieldFormat: 'Date:',
+                                includeBlockReferences: false,
+                                blockReferenceFormat: '^YYYYMMDD'
+                            };
+                        }
+                        this.plugin.settings.dateHandling.dreamTitleProperty = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
 
         // Add section separator before Template Management
         this.contentContainer.createEl('div', { cls: 'oom-section-border' });
@@ -2548,7 +2720,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         
         // Template import/export section
         const importExportSection = templateSection.createDiv({ cls: 'oom-template-import-export' });
-        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('h3', { text: 'Import/export templates' });
         importExportSection.createEl('p', { 
             text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
             cls: 'oom-setting-desc'
@@ -2561,7 +2733,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
-            text: 'Export Templates',
+            text: 'Export templates',
             cls: 'oom-button'
         });
         exportBtn.addEventListener('click', () => {
@@ -2570,7 +2742,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Import button  
         const importBtn = buttonContainer.createEl('button', {
-            text: 'Import Templates',
+            text: 'Import templates',
             cls: 'oom-button'
         });
         importBtn.addEventListener('click', () => {
@@ -2580,7 +2752,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
         // Individual template export (if templates exist)
         if (templates.length > 0) {
             const individualExportBtn = buttonContainer.createEl('button', {
-                text: 'Export Selected',
+                text: 'Export selected',
                 cls: 'oom-button'
             });
             individualExportBtn.addEventListener('click', () => {
@@ -2902,7 +3074,7 @@ Full debug info in logs/console`);
         
         // Template import/export section
         const importExportSection = containerEl.createDiv({ cls: 'oom-template-import-export' });
-        importExportSection.createEl('h3', { text: 'Import/Export Templates' });
+        importExportSection.createEl('h3', { text: 'Import/export templates' });
         importExportSection.createEl('p', { 
             text: 'Save templates to files or load templates from files. Great for sharing templates between vaults or backing up your configurations.',
             cls: 'oom-setting-desc'
@@ -2915,7 +3087,7 @@ Full debug info in logs/console`);
 
         // Export button
         const exportBtn = buttonContainer.createEl('button', {
-            text: 'Export Templates',
+            text: 'Export templates',
             cls: 'oom-button'
         });
         exportBtn.addEventListener('click', () => {
@@ -2924,7 +3096,7 @@ Full debug info in logs/console`);
 
         // Import button  
         const importBtn = buttonContainer.createEl('button', {
-            text: 'Import Templates',
+            text: 'Import templates',
             cls: 'oom-button'
         });
         importBtn.addEventListener('click', () => {
@@ -2934,7 +3106,7 @@ Full debug info in logs/console`);
         // Individual template export (if templates exist)
         if (templates.length > 0) {
             const individualExportBtn = buttonContainer.createEl('button', {
-                text: 'Export Selected',
+                text: 'Export selected',
                 cls: 'oom-button'
             });
             individualExportBtn.addEventListener('click', () => {

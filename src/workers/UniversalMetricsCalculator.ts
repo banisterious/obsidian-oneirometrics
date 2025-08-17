@@ -21,7 +21,7 @@ import { ILogger } from '../logging/LoggerTypes';
 import { getSelectedFolder, getSelectionMode } from '../utils/settings-helpers';
 import { getDreamEntryDate } from '../utils/date-utils';
 import { UniversalWorkerPool } from './UniversalWorkerPool';
-import { EnhancedMetricsExtractor } from '../parsing/frontmatter/EnhancedMetricsExtractor';
+// import { EnhancedMetricsExtractor } from '../parsing/frontmatter/EnhancedMetricsExtractor';
 import { 
     UniversalPoolConfiguration,
     UniversalTask,
@@ -65,7 +65,7 @@ export class UniversalMetricsCalculator {
     private cache = new Map<string, CacheEntry>();
     private readonly maxCacheSize = 50 * 1024 * 1024; // 50MB
     private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
-    private enhancedExtractor: EnhancedMetricsExtractor;
+    // private enhancedExtractor: EnhancedMetricsExtractor;
     
     // Performance tracking
     private stats = {
@@ -120,11 +120,12 @@ export class UniversalMetricsCalculator {
         this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
         
         // Initialize enhanced extractor for frontmatter support
-        this.enhancedExtractor = new EnhancedMetricsExtractor(
-            this.app,
-            this.settings,
-            this.logger || console as any
-        );
+        // NOTE: Commenting out for now as it causes worker pool failures
+        // this.enhancedExtractor = new EnhancedMetricsExtractor(
+        //     this.app,
+        //     this.settings,
+        //     this.logger || console as any
+        // );
         
         this.logger?.info('Initialization', 'Universal Metrics Calculator initialized', {
             maxWorkers: defaultConfig.maxWorkers,
@@ -138,6 +139,11 @@ export class UniversalMetricsCalculator {
      * Gets the active journal structures from settings, with fallback to defaults
      */
     private getActiveStructures(): CalloutStructure[] {
+        // If callout-based parsing is disabled, return empty array
+        if (!this.settings.dateHandling?.calloutBasedDreams) {
+            return [];
+        }
+        
         const journalStructure = getJournalStructure(this.settings);
         
         // Get user's callout settings
@@ -405,6 +411,161 @@ export class UniversalMetricsCalculator {
     }
 
     /**
+     * Extracts title from frontmatter property
+     */
+    private extractTitleFromFrontmatter(fileContent: string, propertyName: string): string | null {
+        try {
+            // Extract frontmatter section
+            const frontmatterMatch = fileContent.match(/^---\s*\n([\s\S]*?)\n---/);
+            if (!frontmatterMatch) return null;
+            
+            const yamlContent = frontmatterMatch[1];
+            
+            // Create regex to match the property
+            // Handle both quoted and unquoted values
+            const propertyRegex = new RegExp(`^${propertyName}:\\s*['"]?([^'"\n]+)['"]?\\s*$`, 'm');
+            const match = yamlContent.match(propertyRegex);
+            
+            if (match && match[1]) {
+                const title = match[1].trim();
+                this.logger?.debug('Parse', `Extracted title from frontmatter property '${propertyName}': ${title}`);
+                return title;
+            }
+            
+            return null;
+        } catch (error) {
+            this.logger?.warn('Parse', `Error extracting title from frontmatter`, { error, propertyName });
+            return null;
+        }
+    }
+
+    /**
+     * Parse a flat dream entry (no callout structure, just content)
+     */
+    private parseFlatDreamEntry(content: string, filePath: string): { entries: MetricsEntry[], dreamDiaryCalloutsInFile: number, debugInfo: any[] } {
+        this.logger?.info('Parse', `Parsing flat dream entry from ${filePath}`);
+        const entries: MetricsEntry[] = [];
+        const debugInfo: any[] = [];
+        
+        // Extract date from file path or frontmatter
+        const date = this.extractDateFromContent([], filePath, content);
+        
+        // Extract title from frontmatter if configured, otherwise use filename
+        let title = '';
+        
+        // Check if we should extract title from frontmatter
+        if (this.settings.dateHandling?.dreamTitleInProperties && 
+            this.settings.dateHandling?.dreamTitleProperty) {
+            this.logger?.debug('Parse', 'Attempting to extract title from frontmatter for flat entry', {
+                propertyName: this.settings.dateHandling.dreamTitleProperty,
+                file: filePath
+            });
+            const frontmatterTitle = this.extractTitleFromFrontmatter(
+                content, 
+                this.settings.dateHandling.dreamTitleProperty
+            );
+            if (frontmatterTitle) {
+                this.logger?.info('Parse', 'Successfully extracted title from frontmatter for flat entry', {
+                    frontmatterTitle,
+                    file: filePath
+                });
+                title = frontmatterTitle;
+            }
+        }
+        
+        // If no frontmatter title, use filename
+        if (!title) {
+            const fileName = filePath.split('/').pop() || '';
+            title = fileName.replace(/\.md$/, '');
+            this.logger?.debug('Parse', 'Using filename as title for flat entry', { title, filePath });
+        }
+        
+        // Process the entire content as dream content
+        const processedContent = this.processDreamContent(content);
+        
+        // Extract metrics from frontmatter if enabled
+        // Note: We can't use FrontmatterPropertyParser here because it requires the App instance
+        // which isn't available in worker context. Instead, we'll use a simple regex approach.
+        let metrics: Record<string, number> = {};
+        if (this.settings.frontmatter?.enabled) {
+            try {
+                // Extract frontmatter section
+                const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+                if (frontmatterMatch) {
+                    const yamlContent = frontmatterMatch[1];
+                    
+                    // Extract metrics based on configured frontmatter properties
+                    for (const [metricName, metric] of Object.entries(this.settings.metrics)) {
+                        if (metric.frontmatterProperty && metric.enabled) {
+                            // Create regex to match the property
+                            const propertyRegex = new RegExp(`^${metric.frontmatterProperty}:\\s*['"]?([^'"\n]+)['"]?\\s*$`, 'm');
+                            const match = yamlContent.match(propertyRegex);
+                            
+                            if (match && match[1]) {
+                                const value = match[1].trim();
+                                const num = parseFloat(value);
+                                if (!isNaN(num)) {
+                                    metrics[metricName] = num;
+                                }
+                            }
+                        }
+                    }
+                    
+                    this.logger?.debug('Parse', 'Extracted metrics from frontmatter for flat entry', {
+                        file: filePath,
+                        metricsCount: Object.keys(metrics).length,
+                        metrics
+                    });
+                }
+            } catch (error) {
+                this.logger?.warn('Parse', 'Failed to extract metrics from frontmatter for flat entry', {
+                    file: filePath,
+                    error
+                });
+            }
+        }
+        
+        const entry = {
+            id: `flat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            date: date,
+            title: title,
+            content: processedContent,
+            wordCount: processedContent.split(/\s+/).filter(w => w.length > 0).length,
+            metrics: metrics,
+            source: filePath,
+            metadata: {
+                source: filePath,
+                lineNumber: 0,
+                isFlatEntry: true
+            }
+        };
+        
+        entries.push(entry);
+        
+        debugInfo.push({
+            file: filePath,
+            type: 'flat_entry',
+            title,
+            date,
+            metricsCount: Object.keys(metrics).length,
+            contentLength: processedContent.length
+        });
+        
+        this.logger?.info('Parse', `Created flat dream entry from ${filePath}`, {
+            title,
+            date,
+            wordCount: entry.wordCount,
+            metricsCount: Object.keys(metrics).length
+        });
+        
+        return { 
+            entries, 
+            dreamDiaryCalloutsInFile: 0, // No callouts in flat entries
+            debugInfo 
+        };
+    }
+
+    /**
      * Main entry point - maintains compatibility with MetricsProcessor.scrapeMetrics()
      */
     public async scrapeMetrics(): Promise<void> {
@@ -664,7 +825,11 @@ export class UniversalMetricsCalculator {
      */
     public processDreamContent(content: string): string {
         try {
-            let processedContent = content.replace(/\[!.*?\]/g, '')
+            // First, remove frontmatter if present
+            let processedContent = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
+            
+            // Then apply the existing content processing
+            processedContent = processedContent.replace(/\[!.*?\]/g, '')
                            .replace(/!\[\[.*?\]\]/g, '')
                            .replace(/\[\[.*?\]\]/g, '')
                            .trim();
@@ -1085,12 +1250,14 @@ export class UniversalMetricsCalculator {
                 const { entries, dreamDiaryCalloutsInFile, debugInfo } = this.parseJournalEntries(content, path);
                 
                 // Check if any metrics have frontmatter properties configured
+                // NOTE: Temporarily disabled due to worker pool issues
+                /*
                 const hasFrontmatterMetrics = Object.values(this.settings.metrics).some(
                     metric => metric.frontmatterProperty && metric.enabled
                 );
                 
                 // If frontmatter metrics are configured, enhance entries with frontmatter data
-                if (hasFrontmatterMetrics && entries.length > 0) {
+                if (hasFrontmatterMetrics && entries.length > 0 && this.enhancedExtractor) {
                     this.logger?.debug('Extract', `Checking frontmatter for ${path}`);
                     
                     try {
@@ -1140,6 +1307,7 @@ export class UniversalMetricsCalculator {
                         );
                     }
                 }
+                */
                 
                 this.logger?.debug('Extract', `Extracted ${entries.length} entries from ${path}`, {
                     entries: entries.map(e => ({
@@ -1169,6 +1337,25 @@ export class UniversalMetricsCalculator {
         this.logger?.debug('Parse', `Starting journal parsing for ${filePath}`);
         const entries: MetricsEntry[] = [];
         const lines = content.split('\n');
+        
+        // Check user's preferences for plain text and callout-based entries
+        const plainTextEnabled = this.settings.dateHandling?.plainTextDreams ?? false;
+        const calloutBasedEnabled = this.settings.dateHandling?.calloutBasedDreams ?? true;
+        
+        // Check if this file has any callout structures
+        const hasCalloutStructure = lines.some(line => /^\s*>\s*\[!/.test(line));
+        
+        // If plain text is enabled AND no callout structure found, treat as flat dream entry
+        if (plainTextEnabled && !hasCalloutStructure) {
+            this.logger?.info('Parse', `Using plain text structure for ${filePath}`);
+            return this.parseFlatDreamEntry(content, filePath);
+        }
+        
+        // If callout-based is disabled, skip callout parsing
+        if (!calloutBasedEnabled) {
+            this.logger?.info('Parse', `Callout-based parsing disabled, skipping ${filePath}`);
+            return { entries: [], dreamDiaryCalloutsInFile: 0, debugInfo: [] };
+        }
         
         // Parsing timeout (30 seconds)
         const parseStartTime = performance.now();
@@ -1438,7 +1625,34 @@ export class UniversalMetricsCalculator {
                     
                     // Extract title using structure-aware method
                     const diaryLine = diary.lines[0];
-                    const title = this.extractTitleFromChildCallout(diaryLine, diary.calloutType || 'dream-diary');
+                    let title = this.extractTitleFromChildCallout(diaryLine, diary.calloutType || 'dream-diary');
+                    
+                    // Check if we should extract title from frontmatter
+                    if (this.settings.dateHandling?.dreamTitleInProperties && 
+                        this.settings.dateHandling?.dreamTitleProperty) {
+                        this.logger?.debug('Parse', 'Attempting to extract title from frontmatter', {
+                            propertyName: this.settings.dateHandling.dreamTitleProperty,
+                            file: filePath,
+                            currentTitle: title
+                        });
+                        const frontmatterTitle = this.extractTitleFromFrontmatter(
+                            content, 
+                            this.settings.dateHandling.dreamTitleProperty
+                        );
+                        if (frontmatterTitle) {
+                            this.logger?.info('Parse', 'Successfully extracted title from frontmatter', {
+                                frontmatterTitle,
+                                previousTitle: title,
+                                file: filePath
+                            });
+                            title = frontmatterTitle;
+                        } else {
+                            this.logger?.debug('Parse', 'No frontmatter title found', {
+                                propertyName: this.settings.dateHandling.dreamTitleProperty,
+                                file: filePath
+                            });
+                        }
+                    }
                     
                     // Extract block ID if present
                     const blockIdMatch = diaryLine.match(/\^(\d{8})/);

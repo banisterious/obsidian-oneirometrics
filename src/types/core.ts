@@ -159,6 +159,18 @@ export interface DateHandlingConfig {
     
     /** Block reference format (e.g., '^YYYYMMDD') */
     blockReferenceFormat?: string;
+    
+    /** Whether to store dream titles in frontmatter properties */
+    dreamTitleInProperties?: boolean;
+    
+    /** Frontmatter property name for dream title */
+    dreamTitleProperty?: string;
+    
+    /** Whether to parse plain text dream entries without callout structures */
+    plainTextDreams?: boolean;
+    
+    /** Whether to parse callout-based dream entries */
+    calloutBasedDreams?: boolean;
 }
 
 /**
