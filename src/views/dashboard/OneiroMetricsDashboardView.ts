@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App, Menu } from 'obsidian';
-import type OneiroMetricsPlugin from '../../../main';
+import type DreamMetricsPlugin from '../../../main';
 import type { DreamMetricData } from '../../../types';
 import type { DreamMetricsSettings } from '../../../types';
 
@@ -22,6 +22,8 @@ interface DashboardState {
     expandedRows: Set<string>;
     isLoading: boolean;
     lastUpdate: number;
+    entriesMap: Map<string, DreamMetricData>; // For quick lookups
+    pendingUpdates: Set<string>; // Track entries that need updating
 }
 
 interface ViewPreferences {
@@ -32,7 +34,7 @@ interface ViewPreferences {
 }
 
 export class OneiroMetricsDashboardView extends ItemView {
-    private plugin: OneiroMetricsPlugin;
+    private plugin: DreamMetricsPlugin;
     private state: DashboardState;
     private preferences: ViewPreferences;
     public containerEl: HTMLElement;
@@ -45,7 +47,27 @@ export class OneiroMetricsDashboardView extends ItemView {
     private tableGenerator: TableGenerator | null = null;
     private contentToggler: ContentToggler;
     
-    constructor(leaf: WorkspaceLeaf, plugin: OneiroMetricsPlugin) {
+    // File watcher and performance monitoring
+    private fileWatcherRef: any = null;
+    private performanceMetrics: {
+        lastFullRender: number;
+        lastIncrementalUpdate: number;
+        fullRenderCount: number;
+        incrementalUpdateCount: number;
+        averageFullRenderTime: number;
+        averageIncrementalTime: number;
+        timeSaved: number;
+    } = {
+        lastFullRender: 0,
+        lastIncrementalUpdate: 0,
+        fullRenderCount: 0,
+        incrementalUpdateCount: 0,
+        averageFullRenderTime: 0,
+        averageIncrementalTime: 0,
+        timeSaved: 0
+    };
+    
+    constructor(leaf: WorkspaceLeaf, plugin: DreamMetricsPlugin) {
         super(leaf);
         this.plugin = plugin;
         
@@ -59,7 +81,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             searchQuery: '',
             expandedRows: new Set(),
             isLoading: false,
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            entriesMap: new Map(),
+            pendingUpdates: new Set()
         };
         
         // Initialize preferences from settings
@@ -86,6 +110,49 @@ export class OneiroMetricsDashboardView extends ItemView {
         return 'chart-line';
     }
     
+    // Public method to show performance stats - can be called from plugin commands
+    public showPerformanceStats() {
+        if (this.performanceMetrics.fullRenderCount === 0 && 
+            this.performanceMetrics.incrementalUpdateCount === 0) {
+            new Notice('No performance data available yet. Try making some changes to dream entries.');
+            return;
+        }
+        
+        const stats = [
+            `OneiroMetrics Dashboard Performance:`,
+            `• Full renders: ${this.performanceMetrics.fullRenderCount} (avg: ${this.performanceMetrics.averageFullRenderTime.toFixed(1)}ms)`,
+            `• Incremental updates: ${this.performanceMetrics.incrementalUpdateCount} (avg: ${this.performanceMetrics.averageIncrementalTime.toFixed(1)}ms)`,
+            `• Total time saved: ${(this.performanceMetrics.timeSaved / 1000).toFixed(1)}s`
+        ];
+        
+        if (this.performanceMetrics.averageFullRenderTime > 0) {
+            const efficiency = ((1 - this.performanceMetrics.averageIncrementalTime / 
+                              this.performanceMetrics.averageFullRenderTime) * 100).toFixed(1);
+            stats.push(`• Efficiency gain: ${efficiency}%`);
+        }
+        
+        new Notice(stats.join('\n'), 8000);
+        
+        // Also log detailed stats
+        this.logPerformanceMetrics();
+    }
+    
+    // Public method to manually trigger incremental update - useful for testing
+    public async triggerIncrementalUpdate() {
+        const startTime = performance.now();
+        
+        this.plugin.logger?.info('Dashboard', 'Manual incremental update triggered');
+        
+        // Re-load entries and perform incremental update
+        const newEntries = await this.loadDreamEntriesQuiet();
+        this.updateEntriesIncremental(newEntries);
+        
+        const updateTime = performance.now() - startTime;
+        this.trackIncrementalPerformance(updateTime);
+        
+        new Notice(`Incremental update completed in ${updateTime.toFixed(1)}ms`);
+    }
+    
     async onOpen() {
         const { contentEl } = this;
         contentEl.empty();
@@ -99,10 +166,19 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Initialize the dashboard
         await this.initializeDashboard();
+        
+        // Set up file watcher for automatic updates
+        this.setupFileWatcher();
     }
     
     async onClose() {
-        // Cleanup
+        // Cleanup file watcher
+        this.cleanupFileWatcher();
+        
+        // Log performance metrics before closing
+        this.logPerformanceMetrics();
+        
+        // Cleanup DOM
         this.containerEl?.empty();
     }
     
@@ -200,6 +276,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private async loadDreamEntriesLegacy() {
+        const startTime = performance.now();
         this.plugin.logger?.info('Dashboard', 'Loading dream entries using UniversalMetricsCalculator');
         
         try {
@@ -263,14 +340,20 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.plugin.logger?.info('Dashboard', `Extracted ${dreamEntries.length} dream entries`);
             
             // Update state with the extracted entries
-            this.state.entries = dreamEntries;
-            this.state.filteredEntries = dreamEntries;
+            this.updateEntriesIncremental(dreamEntries);
+            
+            // Track initial load as incremental update if entries already existed
+            if (this.state.entries.length > 0) {
+                const loadTime = performance.now() - startTime;
+                this.trackIncrementalPerformance(loadTime);
+            }
             
         } catch (error) {
             this.plugin.logger?.error('Dashboard', 'Failed to load dream entries', error);
             this.showError('Failed to load dream entries');
             this.state.entries = [];
             this.state.filteredEntries = [];
+            this.state.entriesMap.clear();
         }
     }
     
@@ -387,6 +470,8 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private renderTable() {
+        const startTime = performance.now();
+        
         const tableContainer = this.containerEl.querySelector('.oom-table-container') as HTMLElement;
         if (!tableContainer) return;
         
@@ -414,6 +499,10 @@ export class OneiroMetricsDashboardView extends ItemView {
             // Future optimized implementation
             this.renderTableOptimized(tableContainer);
         }
+        
+        // Track performance for full renders
+        const renderTime = performance.now() - startTime;
+        this.trackFullRenderPerformance(renderTime);
     }
     
     private renderTableLegacy(container: HTMLElement) {
@@ -727,6 +816,10 @@ export class OneiroMetricsDashboardView extends ItemView {
         // Sort the filtered entries
         this.sortEntries();
         
+        // When sort changes, we need a full re-render since order changed
+        // Clear pending updates to force full render
+        this.state.pendingUpdates.clear();
+        
         // Re-render the table
         this.renderTable();
     }
@@ -785,6 +878,10 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Update filter count display
         this.updateFilterCount();
+        
+        // When filters change, we need a full re-render since visible entries changed
+        // Clear pending updates to force full render
+        this.state.pendingUpdates.clear();
         
         // Re-render the table
         this.renderTable();
@@ -886,13 +983,10 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         try {
             // Show notice
-            new Notice('Dashboard refresh initiated (beta mode)');
+            new Notice('Refreshing dashboard...');
             
-            // Load fresh data
+            // Load fresh data - incremental updates will be handled automatically
             await this.loadDreamEntries();
-            
-            // Apply current filters
-            this.applyFilters();
             
             // Update last update time
             this.state.lastUpdate = Date.now();
@@ -901,8 +995,16 @@ export class OneiroMetricsDashboardView extends ItemView {
                 this.updateLastUpdateTime(updateInfo as HTMLElement);
             }
             
-            // Since we're in beta, show a different message
-            new Notice('Dashboard refreshed. Full data loading coming in next update.');
+            // Show completion notice with update summary
+            const updateCount = this.state.pendingUpdates.size;
+            if (updateCount > 0) {
+                new Notice(`Dashboard refreshed: ${updateCount} entries updated`);
+            } else {
+                new Notice('Dashboard refreshed: No changes detected');
+            }
+            
+            // Clear pending updates
+            this.state.pendingUpdates.clear();
         } catch (error) {
             this.plugin.logger?.error('Dashboard', 'Refresh failed', error);
             new Notice('Failed to refresh dream metrics');
@@ -943,4 +1045,689 @@ export class OneiroMetricsDashboardView extends ItemView {
         const dateStr = now.toLocaleDateString();
         element.setText(`Last updated: ${dateStr} at ${timeStr}`);
     }
+    
+    // Incremental update methods
+    private updateEntriesIncremental(newEntries: DreamMetricData[]) {
+        this.plugin.logger?.debug('Dashboard', 'Starting incremental update', {
+            newEntriesCount: newEntries.length,
+            existingEntriesCount: this.state.entries.length
+        });
+        
+        // Create a map of new entries for quick lookup
+        const newEntriesMap = new Map<string, DreamMetricData>();
+        for (const entry of newEntries) {
+            const id = this.getEntryId(entry);
+            newEntriesMap.set(id, entry);
+        }
+        
+        // Find entries that need updating
+        const toUpdate = new Set<string>();
+        const toAdd: DreamMetricData[] = [];
+        const toRemove = new Set<string>();
+        
+        // Check existing entries
+        for (const [id, existingEntry] of this.state.entriesMap) {
+            const newEntry = newEntriesMap.get(id);
+            if (!newEntry) {
+                // Entry was removed
+                toRemove.add(id);
+            } else if (this.hasEntryChanged(existingEntry, newEntry)) {
+                // Entry was modified
+                toUpdate.add(id);
+            }
+        }
+        
+        // Check for new entries
+        for (const [id, newEntry] of newEntriesMap) {
+            if (!this.state.entriesMap.has(id)) {
+                toAdd.push(newEntry);
+            }
+        }
+        
+        this.plugin.logger?.info('Dashboard', 'Incremental update analysis', {
+            toUpdate: toUpdate.size,
+            toAdd: toAdd.length,
+            toRemove: toRemove.size
+        });
+        
+        // Apply updates
+        if (toUpdate.size > 0 || toAdd.length > 0 || toRemove.size > 0) {
+            // Update the entries map
+            for (const id of toRemove) {
+                this.state.entriesMap.delete(id);
+            }
+            
+            for (const entry of toAdd) {
+                const id = this.getEntryId(entry);
+                this.state.entriesMap.set(id, entry);
+            }
+            
+            for (const id of toUpdate) {
+                const newEntry = newEntriesMap.get(id);
+                if (newEntry) {
+                    this.state.entriesMap.set(id, newEntry);
+                }
+            }
+            
+            // Rebuild the entries array
+            this.state.entries = Array.from(this.state.entriesMap.values());
+            
+            // Store pending updates for incremental rendering
+            this.state.pendingUpdates = new Set([...toUpdate, ...toAdd.map(e => this.getEntryId(e))]);
+            
+            // Re-apply filters and sorting
+            this.applyFilters();
+            
+            // If table exists, update incrementally
+            if (this.isTableRendered()) {
+                this.applyIncrementalUpdates(toUpdate, toAdd, toRemove);
+            } else {
+                // First render, do full render
+                this.renderTable();
+            }
+        } else {
+            this.plugin.logger?.debug('Dashboard', 'No changes detected, skipping update');
+        }
+    }
+    
+    private getEntryId(entry: DreamMetricData): string {
+        return `${entry.date}_${entry.title}`;
+    }
+    
+    private hasEntryChanged(oldEntry: DreamMetricData, newEntry: DreamMetricData): boolean {
+        // Check if content changed
+        if (oldEntry.content !== newEntry.content) return true;
+        
+        // Check if word count changed
+        if (oldEntry.wordCount !== newEntry.wordCount) return true;
+        
+        // Check if metrics changed
+        const oldMetrics = oldEntry.metrics || {};
+        const newMetrics = newEntry.metrics || {};
+        
+        // Check if metric keys are different
+        const oldKeys = Object.keys(oldMetrics);
+        const newKeys = Object.keys(newMetrics);
+        if (oldKeys.length !== newKeys.length) return true;
+        
+        // Check each metric value
+        for (const key of oldKeys) {
+            if (!newKeys.includes(key)) return true;
+            
+            const oldValue = oldMetrics[key];
+            const newValue = newMetrics[key];
+            
+            // Handle array comparison for text metrics
+            if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+                if (oldValue.length !== newValue.length) return true;
+                for (let i = 0; i < oldValue.length; i++) {
+                    if (oldValue[i] !== newValue[i]) return true;
+                }
+            } else if (oldValue !== newValue) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private isTableRendered(): boolean {
+        const table = this.containerEl.querySelector('.oom-dashboard-table');
+        return !!table;
+    }
+    
+    private applyIncrementalUpdates(toUpdate: Set<string>, toAdd: DreamMetricData[], toRemove: Set<string>) {
+        this.plugin.logger?.debug('Dashboard', 'Applying incremental updates to DOM');
+        
+        const table = this.containerEl.querySelector('.oom-dashboard-table');
+        if (!table) return;
+        
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        
+        // Remove deleted entries
+        for (const id of toRemove) {
+            const row = tbody.querySelector(`tr[data-id="${id}"]`);
+            if (row) {
+                row.remove();
+            }
+        }
+        
+        // Update modified entries
+        for (const id of toUpdate) {
+            const entry = this.state.entriesMap.get(id);
+            if (!entry) continue;
+            
+            // Check if entry is in filtered results
+            const isVisible = this.state.filteredEntries.some(e => this.getEntryId(e) === id);
+            if (!isVisible) continue;
+            
+            const row = tbody.querySelector(`tr[data-id="${id}"]`);
+            if (row) {
+                this.updateTableRow(row as HTMLTableRowElement, entry);
+            }
+        }
+        
+        // Add new entries (if they pass filters)
+        for (const entry of toAdd) {
+            const id = this.getEntryId(entry);
+            const isVisible = this.state.filteredEntries.some(e => this.getEntryId(e) === id);
+            if (isVisible) {
+                const newRow = this.createTableRow(entry);
+                
+                // Find the correct position based on current sort
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                let insertBefore: Element | null = null;
+                
+                for (const row of rows) {
+                    const rowEntry = this.getEntryFromRow(row as HTMLTableRowElement);
+                    if (rowEntry && this.compareEntries(entry, rowEntry) < 0) {
+                        insertBefore = row;
+                        break;
+                    }
+                }
+                
+                if (insertBefore) {
+                    tbody.insertBefore(newRow, insertBefore);
+                } else {
+                    tbody.appendChild(newRow);
+                }
+            }
+        }
+        
+        // Update filter count
+        this.updateFilterCount();
+        
+        this.plugin.logger?.info('Dashboard', 'Incremental updates applied');
+    }
+    
+    private updateTableRow(row: HTMLTableRowElement, entry: DreamMetricData) {
+        // Update content cell
+        const contentContainer = row.querySelector('.oom-content-container');
+        if (contentContainer) {
+            const preview = contentContainer.querySelector('.oom-content-preview');
+            const full = contentContainer.querySelector('.oom-content-full');
+            
+            if (preview) {
+                preview.textContent = entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '');
+            }
+            if (full) {
+                full.textContent = entry.content;
+            }
+        }
+        
+        // Update metric cells
+        const enabledMetrics = Object.entries(this.plugin.settings.metrics)
+            .filter(([_, metric]) => metric.enabled)
+            .map(([key, metric]) => ({ key, name: metric.name }));
+            
+        for (const metric of enabledMetrics) {
+            const cell = row.querySelector(`.metric-${metric.key}`);
+            if (cell) {
+                const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+                cell.textContent = this.formatMetricValue(value, metric.name);
+            }
+        }
+    }
+    
+    private createTableRow(entry: DreamMetricData): HTMLTableRowElement {
+        const row = document.createElement('tr');
+        row.setAttribute('data-id', this.getEntryId(entry));
+        row.setAttribute('data-date', entry.date);
+        row.setAttribute('data-title', entry.title);
+        row.classList.add('oom-dashboard-row');
+        
+        // Date cell
+        const dateCell = row.createEl('td', { cls: 'oom-date-cell' });
+        const dateLink = dateCell.createEl('a', { 
+            text: entry.date,
+            cls: 'oom-date-link',
+            href: '#'
+        });
+        
+        dateLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const file = this.app.vault.getAbstractFileByPath(entry.source as string);
+            if (file instanceof TFile) {
+                await this.app.workspace.getLeaf().openFile(file);
+            }
+        });
+        
+        // Title cell with context menu
+        const titleCell = row.createEl('td', { 
+            text: entry.title,
+            cls: 'oom-title-cell'
+        });
+        
+        titleCell.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const menu = new Menu();
+            const file = this.app.vault.getAbstractFileByPath(entry.source as string);
+            if (!(file instanceof TFile)) return;
+            
+            menu.addItem((item) => {
+                item.setTitle('Open in new tab')
+                    .setIcon('file-plus')
+                    .onClick(() => {
+                        this.app.workspace.getLeaf('tab').openFile(file);
+                    });
+            });
+            
+            menu.addItem((item) => {
+                item.setTitle('Open to the right')
+                    .setIcon('separator-vertical')
+                    .onClick(() => {
+                        this.app.workspace.getLeaf('split').openFile(file);
+                    });
+            });
+            
+            menu.addItem((item) => {
+                item.setTitle('Reveal in navigation')
+                    .setIcon('folder-open')
+                    .onClick(() => {
+                        const fileExplorer = this.app.workspace.getLeavesOfType('file-explorer')[0];
+                        if (fileExplorer) {
+                            (fileExplorer.view as any).revealInFolder(file);
+                        }
+                    });
+            });
+            
+            menu.showAtMouseEvent(e);
+        });
+        
+        // Content cell with expand/collapse
+        const contentCell = row.createEl('td', { cls: 'oom-content-cell' });
+        const contentContainer = contentCell.createEl('div', { cls: 'oom-content-container' });
+        
+        // Add expand toggle
+        const expandToggle = contentContainer.createEl('span', { 
+            cls: 'oom-expand-toggle',
+            text: '▶'
+        });
+        
+        // Add content preview
+        const contentPreview = contentContainer.createEl('div', { 
+            cls: 'oom-content-preview',
+            text: entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '')
+        });
+        
+        // Add full content (hidden by default)
+        const contentFull = contentContainer.createEl('div', { 
+            cls: 'oom-content-full',
+            text: entry.content,
+            attr: { style: 'display: none;' }
+        });
+        
+        // Get enabled metrics
+        const enabledMetrics = Object.entries(this.plugin.settings.metrics)
+            .filter(([_, metric]) => metric.enabled)
+            .map(([key, metric]) => ({ key, name: metric.name }));
+        
+        // Metric cells
+        for (const metric of enabledMetrics) {
+            const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+            const displayValue = this.formatMetricValue(value, metric.name);
+            
+            row.createEl('td', { 
+                text: displayValue,
+                cls: `metric-${metric.key}` 
+            });
+        }
+        
+        return row;
+    }
+    
+    private getEntryFromRow(row: HTMLTableRowElement): DreamMetricData | null {
+        const id = row.getAttribute('data-id');
+        if (!id) return null;
+        
+        return this.state.entriesMap.get(id) || null;
+    }
+    
+    private compareEntries(a: DreamMetricData, b: DreamMetricData): number {
+        const column = this.state.sortColumn;
+        const direction = this.state.sortDirection;
+        
+        let aVal: any = '';
+        let bVal: any = '';
+        
+        if (column === 'date') {
+            aVal = new Date(a.date || '').getTime();
+            bVal = new Date(b.date || '').getTime();
+        } else if (column === 'title') {
+            aVal = a.title || '';
+            bVal = b.title || '';
+        } else if (column in (a.metrics || {})) {
+            aVal = a.metrics?.[column] || 0;
+            bVal = b.metrics?.[column] || 0;
+        }
+        
+        if (direction === 'asc') {
+            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+        } else {
+            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+        }
+    }
+    
+    private formatMetricValue(value: any, metricName: string): string {
+        // Special handling for Dream Themes and other list/tag type metrics
+        if (metricName === 'Dream Themes' || metricName === 'Characters List' || metricName === 'Symbolic Content') {
+            
+            // If the value is an array, join it with commas
+            if (Array.isArray(value)) {
+                // Handle malformed arrays where first element starts with [ and last ends with ]
+                const cleanedArray = value.map((item, index) => {
+                    let cleaned = String(item);
+                    // Remove opening bracket from first element
+                    if (index === 0) {
+                        cleaned = cleaned.replace(/^\[/, '');
+                    }
+                    // Remove closing bracket from last element
+                    if (index === value.length - 1) {
+                        cleaned = cleaned.replace(/\]$/, '');
+                    }
+                    return cleaned.trim();
+                });
+                return cleanedArray.join(', ');
+            } else if (typeof value === 'string' && value !== '0' && value !== '') {
+                // If it's already a string and not just '0' or empty
+                // Strip square brackets if present (from YAML array syntax)
+                // Also handle cases where there might be quotes inside brackets
+                const processed = (value as string)
+                    .replace(/^\[|\]$/g, '') // Remove outer brackets
+                    .replace(/^[\"']|[\"']$/g, '') // Remove quotes if present
+                    .trim();
+                
+                return processed;
+                
+            } else if (String(value) === '0' || String(value) === '' || value === 0) {
+                // If it's 0 or empty string (checking both as string and number), show as empty
+                return '';
+            }
+        }
+        
+        return String(value);
+    }
+    
+    // File watcher methods
+    private setupFileWatcher() {
+        this.plugin.logger?.info('Dashboard', 'Setting up file watcher for automatic updates');
+        
+        // Watch for vault changes
+        this.fileWatcherRef = this.app.vault.on('modify', async (file) => {
+            // Only process markdown files
+            if (!(file instanceof TFile) || file.extension !== 'md') {
+                return;
+            }
+            
+            // Check if this file is in the selected folder
+            const selectedFolder = this.plugin.settings.selectedFolder || 'Dream Journal';
+            if (!file.path.startsWith(selectedFolder)) {
+                return;
+            }
+            
+            this.plugin.logger?.debug('Dashboard', 'File modified, triggering incremental update', {
+                file: file.path
+            });
+            
+            // Debounce updates to avoid excessive processing
+            if (this.updateDebounceTimer) {
+                clearTimeout(this.updateDebounceTimer);
+            }
+            
+            this.updateDebounceTimer = setTimeout(async () => {
+                await this.handleFileChange(file);
+            }, 500);
+        });
+        
+        // Also watch for file deletions
+        this.registerEvent(
+            this.app.vault.on('delete', async (file) => {
+                if (!(file instanceof TFile) || file.extension !== 'md') {
+                    return;
+                }
+                
+                const selectedFolder = this.plugin.settings.selectedFolder || 'Dream Journal';
+                if (!file.path.startsWith(selectedFolder)) {
+                    return;
+                }
+                
+                this.plugin.logger?.debug('Dashboard', 'File deleted, triggering incremental update', {
+                    file: file.path
+                });
+                
+                await this.handleFileChange(null, file.path);
+            })
+        );
+        
+        // Watch for file creations
+        this.registerEvent(
+            this.app.vault.on('create', async (file) => {
+                if (!(file instanceof TFile) || file.extension !== 'md') {
+                    return;
+                }
+                
+                const selectedFolder = this.plugin.settings.selectedFolder || 'Dream Journal';
+                if (!file.path.startsWith(selectedFolder)) {
+                    return;
+                }
+                
+                this.plugin.logger?.debug('Dashboard', 'File created, triggering incremental update', {
+                    file: file.path
+                });
+                
+                // Wait a bit for the file to be fully written
+                setTimeout(async () => {
+                    await this.handleFileChange(file);
+                }, 1000);
+            })
+        );
+        
+        // Watch for settings changes that affect metrics
+        // Periodically check if metrics configuration has changed
+        // Since Obsidian plugins don't have built-in settings change events,
+        // we'll check when the view regains focus
+        this.registerDomEvent(window, 'focus', () => {
+            // Check if metrics configuration changed
+            const enabledMetrics = Object.entries(this.plugin.settings.metrics)
+                .filter(([_, metric]) => metric.enabled)
+                .map(([key]) => key);
+            
+            if (!this.lastEnabledMetrics) {
+                this.lastEnabledMetrics = enabledMetrics;
+            } else if (!this.arraysEqual(enabledMetrics, this.lastEnabledMetrics)) {
+                this.plugin.logger?.info('Dashboard', 'Metrics configuration changed, re-rendering table');
+                this.lastEnabledMetrics = enabledMetrics;
+                
+                // Clear pending updates to force full render when metrics change
+                this.state.pendingUpdates.clear();
+                
+                // Re-load entries and render
+                this.loadDreamEntries().then(() => {
+                    this.renderTable();
+                });
+            }
+        });
+    }
+    
+    private cleanupFileWatcher() {
+        if (this.fileWatcherRef) {
+            this.app.vault.offref(this.fileWatcherRef);
+            this.fileWatcherRef = null;
+        }
+        
+        if (this.updateDebounceTimer) {
+            clearTimeout(this.updateDebounceTimer);
+            this.updateDebounceTimer = null;
+        }
+    }
+    
+    private async handleFileChange(file: TFile | null, deletedPath?: string) {
+        const startTime = performance.now();
+        
+        try {
+            // Re-load dream entries
+            const newEntries = await this.loadDreamEntriesQuiet();
+            
+            // Perform incremental update
+            this.updateEntriesIncremental(newEntries);
+            
+            // Track performance
+            const updateTime = performance.now() - startTime;
+            this.trackIncrementalPerformance(updateTime);
+            
+            // Update last update time
+            this.state.lastUpdate = Date.now();
+            const updateInfo = this.containerEl.querySelector('.oom-update-info');
+            if (updateInfo) {
+                this.updateLastUpdateTime(updateInfo as HTMLElement);
+            }
+            
+            this.plugin.logger?.info('Dashboard', 'Incremental update completed', {
+                time: updateTime.toFixed(2) + 'ms',
+                file: file?.path || deletedPath
+            });
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to handle file change', error);
+        }
+    }
+    
+    // Helper method to load entries without showing loading UI
+    private async loadDreamEntriesQuiet(): Promise<DreamMetricData[]> {
+        try {
+            // Re-use the same loading logic as loadDreamEntriesLegacy but without UI updates
+            const { UniversalMetricsCalculator } = await import('../../workers/UniversalMetricsCalculator');
+            const calculator = new UniversalMetricsCalculator(
+                this.app,
+                this.plugin,
+                false, // Disable worker pool
+                this.plugin.logger
+            );
+            
+            const files = await this.getFilesToProcess();
+            if (!files || files.length === 0) {
+                return [];
+            }
+            
+            const dreamEntries: DreamMetricData[] = [];
+            
+            for (const filePath of files) {
+                const file = this.app.vault.getAbstractFileByPath(filePath);
+                if (!(file instanceof TFile)) continue;
+                
+                try {
+                    const content = await this.app.vault.read(file);
+                    
+                    // Parse entries using the calculator's methods
+                    const { entries } = await this.extractEntriesFromFile(content, filePath, calculator);
+                    
+                    // Convert to DreamMetricData format
+                    for (const entry of entries) {
+                        const dreamData: DreamMetricData = {
+                            date: entry.date,
+                            title: entry.title || 'Untitled Dream',
+                            content: entry.content || '',
+                            source: filePath,
+                            wordCount: entry.wordCount || 0,
+                            metrics: entry.metrics || {}
+                        };
+                        dreamEntries.push(dreamData);
+                    }
+                } catch (error) {
+                    this.plugin.logger?.error('Dashboard', `Error processing file ${filePath}`, error);
+                }
+            }
+            
+            return dreamEntries;
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to load dream entries quietly', error);
+            return [];
+        }
+    }
+    
+    // Performance monitoring methods
+    private trackFullRenderPerformance(renderTime: number) {
+        this.performanceMetrics.lastFullRender = renderTime;
+        this.performanceMetrics.fullRenderCount++;
+        
+        // Update average
+        const totalTime = this.performanceMetrics.averageFullRenderTime * 
+                         (this.performanceMetrics.fullRenderCount - 1) + renderTime;
+        this.performanceMetrics.averageFullRenderTime = 
+            totalTime / this.performanceMetrics.fullRenderCount;
+        
+        this.plugin.logger?.debug('Dashboard', 'Full render performance', {
+            time: renderTime.toFixed(2) + 'ms',
+            average: this.performanceMetrics.averageFullRenderTime.toFixed(2) + 'ms',
+            count: this.performanceMetrics.fullRenderCount
+        });
+    }
+    
+    private trackIncrementalPerformance(updateTime: number) {
+        this.performanceMetrics.lastIncrementalUpdate = updateTime;
+        this.performanceMetrics.incrementalUpdateCount++;
+        
+        // Update average
+        const totalTime = this.performanceMetrics.averageIncrementalTime * 
+                         (this.performanceMetrics.incrementalUpdateCount - 1) + updateTime;
+        this.performanceMetrics.averageIncrementalTime = 
+            totalTime / this.performanceMetrics.incrementalUpdateCount;
+        
+        // Calculate time saved vs full render
+        const estimatedFullRenderTime = this.performanceMetrics.averageFullRenderTime || 100;
+        const timeSaved = Math.max(0, estimatedFullRenderTime - updateTime);
+        this.performanceMetrics.timeSaved += timeSaved;
+        
+        this.plugin.logger?.debug('Dashboard', 'Incremental update performance', {
+            time: updateTime.toFixed(2) + 'ms',
+            average: this.performanceMetrics.averageIncrementalTime.toFixed(2) + 'ms',
+            timeSaved: timeSaved.toFixed(2) + 'ms',
+            totalTimeSaved: (this.performanceMetrics.timeSaved / 1000).toFixed(2) + 's',
+            count: this.performanceMetrics.incrementalUpdateCount
+        });
+    }
+    
+    private logPerformanceMetrics() {
+        if (this.performanceMetrics.fullRenderCount === 0 && 
+            this.performanceMetrics.incrementalUpdateCount === 0) {
+            return;
+        }
+        
+        this.plugin.logger?.info('Dashboard', 'Performance metrics summary', {
+            fullRenders: {
+                count: this.performanceMetrics.fullRenderCount,
+                averageTime: this.performanceMetrics.averageFullRenderTime.toFixed(2) + 'ms'
+            },
+            incrementalUpdates: {
+                count: this.performanceMetrics.incrementalUpdateCount,
+                averageTime: this.performanceMetrics.averageIncrementalTime.toFixed(2) + 'ms'
+            },
+            totalTimeSaved: (this.performanceMetrics.timeSaved / 1000).toFixed(2) + ' seconds',
+            efficiency: this.performanceMetrics.averageFullRenderTime > 0 ?
+                ((1 - this.performanceMetrics.averageIncrementalTime / 
+                  this.performanceMetrics.averageFullRenderTime) * 100).toFixed(1) + '%' : 'N/A'
+        });
+        
+        // Show a notice with performance summary if significant time was saved
+        if (this.performanceMetrics.timeSaved > 5000) { // More than 5 seconds saved
+            new Notice(
+                `OneiroMetrics Dashboard saved ${(this.performanceMetrics.timeSaved / 1000).toFixed(1)}s ` +
+                `with incremental updates (${this.performanceMetrics.incrementalUpdateCount} updates)`
+            );
+        }
+    }
+    
+    // Helper methods
+    private arraysEqual(a: string[], b: string[]): boolean {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
+    }
+    
+    private updateDebounceTimer: NodeJS.Timeout | null = null;
+    private lastEnabledMetrics: string[] | null = null;
 }
