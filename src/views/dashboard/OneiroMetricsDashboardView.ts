@@ -9,6 +9,7 @@ import { DreamMetricsDOM } from '../../dom/DreamMetricsDOM';
 import { TableGenerator } from '../../dom/tables/TableGenerator';
 import { FilterManager } from '../../dom/filters/FilterManager';
 import { ContentToggler } from '../../dom/content/ContentToggler';
+import { VirtualScroller } from './VirtualScroller';
 
 export const ONEIROMETRICS_DASHBOARD_VIEW_TYPE = 'oneirometrics-dashboard';
 
@@ -41,11 +42,12 @@ export class OneiroMetricsDashboardView extends ItemView {
     private searchComponent: SearchComponent;
     private filterDropdown: DropdownComponent;
     
-    // Legacy compatibility - will be replaced with optimized renderer
-    private legacyMode: boolean = true;
+    // Virtual scrolling is enabled by default - set to true to use legacy mode
+    private legacyMode: boolean = false; // Virtual scrolling is enabled by default
     private legacyDOM: DreamMetricsDOM | null = null;
     private tableGenerator: TableGenerator | null = null;
     private contentToggler: ContentToggler;
+    public virtualScroller: VirtualScroller | null = null;
     
     // File watcher and performance monitoring
     private fileWatcherRef: any = null;
@@ -110,6 +112,33 @@ export class OneiroMetricsDashboardView extends ItemView {
         return 'chart-line';
     }
     
+    /**
+     * Get virtual scroller instance for testing and debugging
+     */
+    public getVirtualScroller(): VirtualScroller | null {
+        return this.virtualScroller;
+    }
+    
+    /**
+     * Check if virtual scrolling is enabled
+     */
+    public isVirtualScrollingEnabled(): boolean {
+        return !this.legacyMode && this.virtualScroller !== null;
+    }
+    
+    /**
+     * Get dashboard performance metrics
+     */
+    public getDashboardMetrics(): any {
+        return {
+            ...this.performanceMetrics,
+            virtualScrollerMetrics: this.virtualScroller?.getPerformanceMetrics() || null,
+            entriesCount: this.state.entries.length,
+            filteredEntriesCount: this.state.filteredEntries.length,
+            isVirtualScrolling: this.isVirtualScrollingEnabled()
+        };
+    }
+    
     // Public method to show performance stats - can be called from plugin commands
     public showPerformanceStats() {
         if (this.performanceMetrics.fullRenderCount === 0 && 
@@ -153,6 +182,89 @@ export class OneiroMetricsDashboardView extends ItemView {
         new Notice(`Incremental update completed in ${updateTime.toFixed(1)}ms`);
     }
     
+    // Public method to test virtual scrolling performance
+    public testVirtualScrolling() {
+        // Check if virtual scrolling is active
+        const isVirtualActive = !this.legacyMode && this.virtualScroller !== null;
+        
+        if (!isVirtualActive) {
+            const info = [
+                `Virtual Scrolling Status: INACTIVE`,
+                `• Mode: ${this.legacyMode ? 'Legacy Mode (virtual disabled)' : 'Not initialized'}`,
+                `• Total entries: ${this.state.filteredEntries.length}`,
+                `• Recommendation: Virtual scrolling should be active for ${this.state.filteredEntries.length} entries`
+            ];
+            new Notice(info.join('\n'), 8000);
+            return;
+        }
+        
+        const metrics = this.virtualScroller!.getPerformanceMetrics();
+        const scrollViewport = this.containerEl.querySelector('.oom-scroll-viewport') as HTMLElement;
+        
+        // Get detailed information about rendered rows
+        const visibleRows = scrollViewport?.querySelectorAll('.oom-dream-row').length || 0;
+        const topSpacer = scrollViewport?.querySelector('.oom-virtual-spacer-top') as HTMLElement;
+        const bottomSpacer = scrollViewport?.querySelector('.oom-virtual-spacer-bottom') as HTMLElement;
+        
+        // Calculate performance rating
+        const performanceRating = this.getPerformanceRating(metrics.averageRenderTime);
+        
+        const info = [
+            `Virtual Scrolling Status: ACTIVE ✓`,
+            ``,
+            `Configuration:`,
+            `• Total entries: ${this.state.filteredEntries.length}`,
+            `• Configured visible rows: ${this.preferences.visibleRows}`,
+            `• Row height: ${this.preferences.rowHeight}px`,
+            `• Viewport height: ${this.preferences.rowHeight * this.preferences.visibleRows}px`,
+            ``,
+            `Current State:`,
+            `• Actual rendered rows: ${visibleRows}`,
+            `• Top spacer: ${topSpacer?.style.height || '0px'}`,
+            `• Bottom spacer: ${bottomSpacer?.style.height || '0px'}`,
+            `• Scroll container: ${scrollViewport ? 'Found ✓' : 'Not found ✗'}`,
+            `• Container height: ${scrollViewport?.offsetHeight || 0}px`,
+            ``,
+            `Performance:`,
+            `• Average render time: ${metrics.averageRenderTime.toFixed(2)}ms`,
+            `• Total renders: ${metrics.totalRenders}`,
+            `• Performance rating: ${performanceRating}`,
+            `• Memory efficiency: ${this.calculateMemoryEfficiency(visibleRows, this.state.filteredEntries.length)}`
+        ];
+        
+        new Notice(info.join('\n'), 12000);
+        
+        this.plugin.logger?.info('Dashboard', 'Virtual scrolling test complete', {
+            isActive: true,
+            legacyMode: this.legacyMode,
+            totalEntries: this.state.filteredEntries.length,
+            configuredVisibleRows: this.preferences.visibleRows,
+            actualVisibleRows: visibleRows,
+            rowHeight: this.preferences.rowHeight,
+            metrics,
+            viewportFound: !!scrollViewport,
+            viewportHeight: scrollViewport?.offsetHeight || 0,
+            topSpacerHeight: topSpacer?.style.height,
+            bottomSpacerHeight: bottomSpacer?.style.height,
+            performanceRating
+        });
+    }
+    
+    private getPerformanceRating(avgRenderTime: number): string {
+        if (avgRenderTime === 0) return 'No data yet';
+        if (avgRenderTime < 16.67) return 'Excellent (60+ FPS)';
+        if (avgRenderTime < 33.33) return 'Good (30-60 FPS)';
+        if (avgRenderTime < 50) return 'Fair (20-30 FPS)';
+        return 'Poor (<20 FPS)';
+    }
+    
+    private calculateMemoryEfficiency(visibleRows: number, totalEntries: number): string {
+        if (totalEntries === 0) return 'N/A';
+        const efficiency = ((visibleRows / totalEntries) * 100).toFixed(1);
+        const saved = 100 - parseFloat(efficiency);
+        return `${saved.toFixed(1)}% memory saved (${visibleRows}/${totalEntries} rows in DOM)`;
+    }
+    
     async onOpen() {
         const { contentEl } = this;
         contentEl.empty();
@@ -172,6 +284,12 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     async onClose() {
+        // Clean up virtual scroller
+        if (this.virtualScroller) {
+            this.virtualScroller.destroy();
+            this.virtualScroller = null;
+        }
+        
         // Cleanup file watcher
         this.cleanupFileWatcher();
         
@@ -492,11 +610,12 @@ export class OneiroMetricsDashboardView extends ItemView {
             return;
         }
         
-        // Legacy mode: Use existing table rendering infrastructure
+        // Use virtual scrolling by default, legacy mode as fallback
         if (this.legacyMode) {
+            this.plugin.logger?.debug('Dashboard', 'Using legacy table rendering');
             this.renderTableLegacy(tableContainer);
         } else {
-            // Future optimized implementation
+            this.plugin.logger?.debug('Dashboard', 'Using virtual scrolling rendering');
             this.renderTableOptimized(tableContainer);
         }
         
@@ -735,11 +854,72 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private renderTableOptimized(container: HTMLElement) {
-        // Phase 2: Future optimized implementation with incremental updates
-        container.createEl('p', { 
-            text: 'Optimized renderer coming soon...',
-            cls: 'oom-empty-state'
-        });
+        // Virtual scrolling implementation
+        const startTime = performance.now();
+        
+        try {
+            // Clean up existing virtual scroller if any
+            if (this.virtualScroller) {
+                this.virtualScroller.destroy();
+                this.virtualScroller = null;
+            }
+            
+            // Get enabled metrics from settings
+            const enabledMetrics = Object.values(this.plugin.settings.metrics)
+                .filter(m => m.enabled)
+                .map(m => ({ key: m.name.toLowerCase().replace(/\s+/g, '-'), name: m.name }));
+            
+            // Initialize virtual scroller
+            this.virtualScroller = new VirtualScroller({
+                container,
+                entries: this.state.filteredEntries,
+                rowHeight: this.preferences.rowHeight,
+                visibleRows: this.preferences.visibleRows,
+                enabledMetrics,
+                expandedRows: this.state.expandedRows,
+                plugin: this.plugin,
+                onRowExpand: (id, isExpanded) => {
+                    // Update state when row is expanded/collapsed
+                    if (isExpanded) {
+                        this.state.expandedRows.add(id);
+                    } else {
+                        this.state.expandedRows.delete(id);
+                    }
+                    // Track in performance metrics
+                    this.plugin.logger?.debug('Dashboard', 'Row expansion toggled', { id, isExpanded });
+                },
+                onRowClick: (entry) => {
+                    // Optional: Track clicked entries or perform other actions
+                    this.plugin.logger?.debug('Dashboard', 'Row clicked', { entry });
+                },
+                onSort: (column) => {
+                    // Handle sorting
+                    this.handleSort(column);
+                }
+            });
+            
+            // Track performance
+            const renderTime = performance.now() - startTime;
+            this.performanceMetrics.lastFullRender = renderTime;
+            this.performanceMetrics.fullRenderCount++;
+            this.performanceMetrics.averageFullRenderTime = 
+                (this.performanceMetrics.averageFullRenderTime * (this.performanceMetrics.fullRenderCount - 1) + renderTime) 
+                / this.performanceMetrics.fullRenderCount;
+            
+            this.plugin.logger?.info('Dashboard', 'Virtual scrolling initialized', {
+                renderTime: renderTime.toFixed(2),
+                totalEntries: this.state.filteredEntries.length,
+                enabledMetrics: enabledMetrics.length,
+                viewportHeight: this.preferences.rowHeight * this.preferences.visibleRows,
+                performanceMetrics: this.virtualScroller.getPerformanceMetrics()
+            });
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to initialize virtual scrolling', error);
+            // Fallback to legacy mode
+            this.legacyMode = true;
+            this.renderTableLegacy(container);
+        }
     }
     
     private attachTableEventHandlers(container: HTMLElement) {
@@ -816,12 +996,18 @@ export class OneiroMetricsDashboardView extends ItemView {
         // Sort the filtered entries
         this.sortEntries();
         
-        // When sort changes, we need a full re-render since order changed
-        // Clear pending updates to force full render
-        this.state.pendingUpdates.clear();
-        
-        // Re-render the table
-        this.renderTable();
+        // Update the view based on current mode
+        if (this.virtualScroller && !this.legacyMode) {
+            // For virtual scroller, just update entries
+            this.virtualScroller.updateEntries(this.state.filteredEntries);
+        } else {
+            // When sort changes in legacy mode, we need a full re-render since order changed
+            // Clear pending updates to force full render
+            this.state.pendingUpdates.clear();
+            
+            // Re-render the table
+            this.renderTable();
+        }
     }
     
     private sortEntries() {
@@ -879,12 +1065,17 @@ export class OneiroMetricsDashboardView extends ItemView {
         // Update filter count display
         this.updateFilterCount();
         
-        // When filters change, we need a full re-render since visible entries changed
-        // Clear pending updates to force full render
-        this.state.pendingUpdates.clear();
-        
-        // Re-render the table
-        this.renderTable();
+        // Update virtual scroller if it exists
+        if (this.virtualScroller) {
+            this.virtualScroller.updateEntries(this.state.filteredEntries);
+        } else {
+            // When filters change, we need a full re-render since visible entries changed
+            // Clear pending updates to force full render
+            this.state.pendingUpdates.clear();
+            
+            // Re-render the table
+            this.renderTable();
+        }
     }
     
     private applyDateFilter(entries: DreamMetricData[], filter: DateFilter): DreamMetricData[] {
@@ -1005,6 +1196,18 @@ export class OneiroMetricsDashboardView extends ItemView {
             
             // Clear pending updates
             this.state.pendingUpdates.clear();
+            
+            // If using virtual scroller, update it directly for better performance
+            if (this.virtualScroller && !this.legacyMode) {
+                this.virtualScroller.updateEntries(this.state.filteredEntries);
+                
+                // Log performance metrics
+                const metrics = this.virtualScroller.getPerformanceMetrics();
+                this.plugin.logger?.debug('Dashboard', 'Virtual scroller performance', {
+                    averageRenderTime: metrics.averageRenderTime.toFixed(2),
+                    totalRenders: metrics.totalRenders
+                });
+            }
         } catch (error) {
             this.plugin.logger?.error('Dashboard', 'Refresh failed', error);
             new Notice('Failed to refresh dream metrics');
@@ -1172,65 +1375,91 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private isTableRendered(): boolean {
+        // Check if virtual scroller is initialized
+        if (this.virtualScroller && !this.legacyMode) {
+            return true;
+        }
+        
+        // Check for legacy table
         const table = this.containerEl.querySelector('.oom-dashboard-table');
         return !!table;
     }
     
     private applyIncrementalUpdates(toUpdate: Set<string>, toAdd: DreamMetricData[], toRemove: Set<string>) {
-        this.plugin.logger?.debug('Dashboard', 'Applying incremental updates to DOM');
+        this.plugin.logger?.debug('Dashboard', 'Applying incremental updates');
         
-        const table = this.containerEl.querySelector('.oom-dashboard-table');
-        if (!table) return;
-        
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-        
-        // Remove deleted entries
-        for (const id of toRemove) {
-            const row = tbody.querySelector(`tr[data-id="${id}"]`);
-            if (row) {
-                row.remove();
-            }
-        }
-        
-        // Update modified entries
-        for (const id of toUpdate) {
-            const entry = this.state.entriesMap.get(id);
-            if (!entry) continue;
+        // If using virtual scroller, just update the entries
+        if (this.virtualScroller && !this.legacyMode) {
+            // Apply filters to get updated filtered entries
+            this.applyFilters();
             
-            // Check if entry is in filtered results
-            const isVisible = this.state.filteredEntries.some(e => this.getEntryId(e) === id);
-            if (!isVisible) continue;
+            // Update virtual scroller with new entries
+            this.virtualScroller.updateEntries(this.state.filteredEntries);
             
-            const row = tbody.querySelector(`tr[data-id="${id}"]`);
-            if (row) {
-                this.updateTableRow(row as HTMLTableRowElement, entry);
-            }
-        }
-        
-        // Add new entries (if they pass filters)
-        for (const entry of toAdd) {
-            const id = this.getEntryId(entry);
-            const isVisible = this.state.filteredEntries.some(e => this.getEntryId(e) === id);
-            if (isVisible) {
-                const newRow = this.createTableRow(entry);
-                
-                // Find the correct position based on current sort
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                let insertBefore: Element | null = null;
-                
-                for (const row of rows) {
-                    const rowEntry = this.getEntryFromRow(row as HTMLTableRowElement);
-                    if (rowEntry && this.compareEntries(entry, rowEntry) < 0) {
-                        insertBefore = row;
-                        break;
-                    }
+            // Log performance
+            const metrics = this.virtualScroller.getPerformanceMetrics();
+            this.plugin.logger?.info('Dashboard', 'Virtual scroller incremental update', {
+                updated: toUpdate.size,
+                added: toAdd.length,
+                removed: toRemove.size,
+                avgRenderTime: metrics.averageRenderTime.toFixed(2),
+                totalRenders: metrics.totalRenders
+            });
+        } else {
+            // Legacy DOM manipulation for non-virtual scrolling mode
+            const table = this.containerEl.querySelector('.oom-dashboard-table');
+            if (!table) return;
+            
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Remove deleted entries
+            for (const id of toRemove) {
+                const row = tbody.querySelector(`tr[data-id="${id}"]`);
+                if (row) {
+                    row.remove();
                 }
+            }
+            
+            // Update modified entries
+            for (const id of toUpdate) {
+                const entry = this.state.entriesMap.get(id);
+                if (!entry) continue;
                 
-                if (insertBefore) {
-                    tbody.insertBefore(newRow, insertBefore);
-                } else {
-                    tbody.appendChild(newRow);
+                // Check if entry is in filtered results
+                const isVisible = this.state.filteredEntries.some(e => this.getEntryId(e) === id);
+                if (!isVisible) continue;
+                
+                const row = tbody.querySelector(`tr[data-id="${id}"]`);
+                if (row) {
+                    this.updateTableRow(row as HTMLTableRowElement, entry);
+                }
+            }
+            
+            // Add new entries (if they pass filters)
+            for (const entry of toAdd) {
+                const id = this.getEntryId(entry);
+                const isVisible = this.state.filteredEntries.some(e => this.getEntryId(e) === id);
+                if (isVisible) {
+                    const newRow = this.createTableRow(entry);
+                    
+                    // Find the correct position based on current sort
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    let insertBefore: Element | null = null;
+                    
+                    for (const row of rows) {
+                        const rowEntry = this.getEntryFromRow(row as HTMLTableRowElement);
+                        if (rowEntry && this.compareEntries(entry, rowEntry) < 0) {
+                            insertBefore = row;
+                            break;
+                        }
+                    }
+                    
+                    if (insertBefore) {
+                        tbody.insertBefore(newRow, insertBefore);
+                    } else {
+                        tbody.appendChild(newRow);
+                    }
                 }
             }
         }

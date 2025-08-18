@@ -12639,7 +12639,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (9.1 KB)
+   COMPONENT: DASHBOARD (11.7 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12728,29 +12728,169 @@ input[type="date"]:focus-visible {
     padding: var(--size-4-2);
 }
 
-/* Virtual scrolling support - matching existing implementation */
-.oom-table-container.virtual-scroll {
+/* Virtual scrolling support - enhanced implementation */
+.oom-virtual-scroll-container {
     --oom-total-rows: 0;
     --oom-row-height: 50px;
     --oom-visible-rows: 20;
     position: relative;
+    width: 100%;
+}
+
+.oom-scroll-viewport {
+    position: relative;
     overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
 }
 
 .oom-virtual-table {
-    position: relative;
-    height: calc(var(--oom-total-rows) * var(--oom-row-height));
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
 }
 
-.oom-virtual-row {
-    position: absolute;
-    top: calc(var(--oom-row-index) * var(--oom-row-height));
-    height: var(--oom-row-height);
+.oom-virtual-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--background-primary);
+    border-bottom: 2px solid var(--background-modifier-border);
+}
+
+.oom-virtual-table thead th {
+    padding: var(--size-4-2) var(--size-4-3);
+    text-align: left;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.oom-virtual-table thead th.sortable {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.oom-virtual-table thead th.sortable:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+/* Virtual spacers for maintaining scroll height */
+.oom-virtual-spacer-top,
+.oom-virtual-spacer-bottom {
     width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 0 var(--size-4-2);
+    pointer-events: none;
+    visibility: hidden;
+}
+
+/* Virtual row styles */
+.oom-dream-row {
+    height: var(--oom-row-height, 50px);
     border-bottom: 1px solid var(--background-modifier-border);
+    transition: background-color 0.15s ease;
+}
+
+.oom-dream-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.oom-dream-row td {
+    padding: var(--size-4-2) var(--size-4-3);
+    vertical-align: middle;
+}
+
+/* Date and title cells */
+.oom-date-cell {
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.oom-title-cell {
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.oom-title-link {
+    color: var(--text-accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.oom-title-link:hover {
+    text-decoration: underline;
+}
+
+/* Content cell styles */
+.oom-content-cell {
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.oom-content-container {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-2);
+}
+
+.oom-expand-toggle {
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.oom-expand-toggle:hover {
+    color: var(--text-normal);
+}
+
+.oom-content-preview,
+.oom-content-full {
+    flex: 1;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.oom-content-preview {
+    color: var(--text-muted);
+}
+
+.oom-content-full {
+    color: var(--text-normal);
+}
+
+/* Metric cells */
+.oom-dream-row td[class*="metric-"] {
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Performance optimizations */
+.oom-virtual-scroll-container * {
+    will-change: auto;
+}
+
+.oom-scroll-viewport::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.oom-scroll-viewport::-webkit-scrollbar-track {
+    background: var(--background-primary);
+}
+
+.oom-scroll-viewport::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.oom-scroll-viewport::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-hover);
 }
 
 /* Table styles */
