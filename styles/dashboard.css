@@ -111,19 +111,22 @@
 }
 
 /* Table styles */
-.oom-metrics-table {
+.oom-metrics-table,
+.oom-dashboard-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.oom-metrics-table thead {
+.oom-metrics-table thead,
+.oom-dashboard-table thead {
     position: sticky;
     top: 0;
     background-color: var(--background-secondary);
     z-index: 1;
 }
 
-.oom-metrics-table th {
+.oom-metrics-table th,
+.oom-dashboard-table th {
     text-align: left;
     padding: var(--size-4-2);
     font-weight: var(--font-semibold);
@@ -133,26 +136,31 @@
     user-select: none;
 }
 
-.oom-metrics-table th:hover {
+.oom-metrics-table th:hover,
+.oom-dashboard-table th:hover {
     color: var(--text-normal);
 }
 
-.oom-metrics-table th.sortable::after {
+.oom-metrics-table th.sortable::after,
+.oom-dashboard-table th.sortable::after {
     content: ' ⇅';
     opacity: 0.3;
 }
 
-.oom-metrics-table th.sorted-asc::after {
+.oom-metrics-table th.sorted-asc::after,
+.oom-dashboard-table th.sorted-asc::after {
     content: ' ↑';
     opacity: 1;
 }
 
-.oom-metrics-table th.sorted-desc::after {
+.oom-metrics-table th.sorted-desc::after,
+.oom-dashboard-table th.sorted-desc::after {
     content: ' ↓';
     opacity: 1;
 }
 
-.oom-metrics-table td {
+.oom-metrics-table td,
+.oom-dashboard-table td {
     padding: var(--size-4-2);
     border-bottom: 1px solid var(--background-modifier-border);
 }
@@ -174,10 +182,23 @@
     max-width: 400px;
 }
 
+.oom-content-container {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-1);
+}
+
 .oom-content-preview {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+}
+
+.oom-content-full {
+    white-space: pre-wrap;
+    line-height: var(--line-height-normal);
+    flex: 1;
 }
 
 .oom-content-expanded {
@@ -188,12 +209,40 @@
 .oom-expand-toggle {
     color: var(--text-accent);
     cursor: pointer;
-    font-size: var(--font-smaller);
-    margin-left: var(--size-4-1);
+    font-size: var(--font-ui-small);
+    margin-right: var(--size-4-1);
+    user-select: none;
+    transition: transform 0.2s ease;
 }
 
 .oom-expand-toggle:hover {
+    color: var(--text-accent-hover);
+}
+
+/* Source link styles */
+.oom-source-cell {
+    white-space: nowrap;
+}
+
+.oom-source-link {
+    color: var(--text-accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.oom-source-link:hover {
     text-decoration: underline;
+}
+
+/* Date and title cells */
+.oom-date-cell {
+    white-space: nowrap;
+    font-family: var(--font-monospace);
+}
+
+.oom-title-cell {
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
 }
 
 /* Empty state */

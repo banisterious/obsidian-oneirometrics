@@ -61,7 +61,7 @@ interface CacheEntry {
 
 export class UniversalMetricsCalculator {
     private readonly settings: DreamMetricsSettings;
-    private workerPool: UniversalWorkerPool;
+    private workerPool?: UniversalWorkerPool;
     private cache = new Map<string, CacheEntry>();
     private readonly maxCacheSize = 50 * 1024 * 1024; // 50MB
     private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
@@ -80,44 +80,47 @@ export class UniversalMetricsCalculator {
     constructor(
         private app: App,
         private plugin: DreamMetricsPlugin,
-        poolConfig?: UniversalPoolConfiguration,
+        poolConfig?: UniversalPoolConfiguration | false,
         private logger?: ILogger
     ) {
         this.settings = plugin.settings;
         
-        // Create default pool configuration for metrics calculations
-        const defaultConfig: UniversalPoolConfiguration = {
-            workerTypes: {
-                [UniversalTaskType.DREAM_METRICS_PROCESSING]: {
-                    dedicatedWorkers: 2,
-                    fallbackEnabled: true,
-                    cacheEnabled: true
+        // If poolConfig is explicitly false, don't initialize the worker pool
+        if (poolConfig !== false) {
+            // Create default pool configuration for metrics calculations
+            const defaultConfig: UniversalPoolConfiguration = {
+                workerTypes: {
+                    [UniversalTaskType.DREAM_METRICS_PROCESSING]: {
+                        dedicatedWorkers: 2,
+                        fallbackEnabled: true,
+                        cacheEnabled: true
+                    },
+                    [UniversalTaskType.SENTIMENT_ANALYSIS]: {
+                        dedicatedWorkers: 1,
+                        fallbackEnabled: true,
+                        cacheEnabled: true
+                    },
+                    [UniversalTaskType.ADVANCED_METRICS_CALCULATION]: {
+                        dedicatedWorkers: 1,
+                        fallbackEnabled: true,
+                        cacheEnabled: true
+                    },
+                    [UniversalTaskType.TIME_BASED_METRICS]: {
+                        dedicatedWorkers: 1,
+                        fallbackEnabled: true,
+                        cacheEnabled: true
+                    }
                 },
-                [UniversalTaskType.SENTIMENT_ANALYSIS]: {
-                    dedicatedWorkers: 1,
-                    fallbackEnabled: true,
-                    cacheEnabled: true
-                },
-                [UniversalTaskType.ADVANCED_METRICS_CALCULATION]: {
-                    dedicatedWorkers: 1,
-                    fallbackEnabled: true,
-                    cacheEnabled: true
-                },
-                [UniversalTaskType.TIME_BASED_METRICS]: {
-                    dedicatedWorkers: 1,
-                    fallbackEnabled: true,
-                    cacheEnabled: true
-                }
-            },
-            loadBalancing: 'task-affinity',
-            healthCheckInterval: 30000,
-            maxWorkers: Math.max(2, Math.min(navigator.hardwareConcurrency || 4, 6)),
-            batchSize: 100,
-            memoryLimit: 256 * 1024 * 1024, // 256MB
-            priorityMode: 'performance'
-        };
+                loadBalancing: 'task-affinity',
+                healthCheckInterval: 30000,
+                maxWorkers: Math.max(2, Math.min(navigator.hardwareConcurrency || 4, 6)),
+                batchSize: 100,
+                memoryLimit: 256 * 1024 * 1024, // 256MB
+                priorityMode: 'performance'
+            };
 
-        this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
+            this.workerPool = new UniversalWorkerPool(this.app, poolConfig || defaultConfig);
+        }
         
         // Initialize enhanced extractor for frontmatter support
         // NOTE: Commenting out for now as it causes worker pool failures
@@ -128,9 +131,8 @@ export class UniversalMetricsCalculator {
         // );
         
         this.logger?.info('Initialization', 'Universal Metrics Calculator initialized', {
-            maxWorkers: defaultConfig.maxWorkers,
+            workerPoolEnabled: poolConfig !== false,
             cacheEnabled: true,
-            poolConfig: defaultConfig,
             frontmatterEnabled: this.settings.frontmatter?.enabled || false
         });
     }
@@ -738,7 +740,7 @@ export class UniversalMetricsCalculator {
                     totalWords,
                     processingTime: `${Math.round(processingTime)}ms`,
                     cacheHitRate: this.getCacheHitRate(),
-                    workerPoolStats: this.workerPool.getStatistics()
+                    workerPoolStats: this.workerPool?.getStatistics()
                 });
             } else {
                 // Emit completion event for no metrics found
@@ -908,6 +910,9 @@ export class UniversalMetricsCalculator {
                 setTimeout(() => reject(new Error('Worker pool timeout after 10 seconds')), 10000);
             });
             
+            if (!this.workerPool) {
+                throw new Error('Worker pool not initialized');
+            }
             const result = await Promise.race([
                 this.workerPool.processTask(task),
                 timeoutPromise
@@ -981,6 +986,9 @@ export class UniversalMetricsCalculator {
                 }
             };
 
+            if (!this.workerPool) {
+                throw new Error('Worker pool not initialized');
+            }
             const result = await this.workerPool.processTask(task);
             if (result.success && result.data?.sentimentResult) {
                 const sentiment = result.data.sentimentResult;
@@ -1036,6 +1044,9 @@ export class UniversalMetricsCalculator {
                 }
             };
 
+            if (!this.workerPool) {
+                throw new Error('Worker pool not initialized');
+            }
             const result = await this.workerPool.processTask(task);
             if (result.success && result.data?.timeBasedMetrics) {
                 const timeMetrics = result.data.timeBasedMetrics;
@@ -1332,7 +1343,7 @@ export class UniversalMetricsCalculator {
         return { entries: dreamEntries, debugInfo: allDebugInfo };
     }
 
-    private parseJournalEntries(content: string, filePath: string): { entries: MetricsEntry[], dreamDiaryCalloutsInFile: number, debugInfo: any[] } {
+    public parseJournalEntries(content: string, filePath: string): { entries: MetricsEntry[], dreamDiaryCalloutsInFile: number, debugInfo: any[] } {
         // Use the same sophisticated parsing logic as MetricsProcessor
         this.logger?.debug('Parse', `Starting journal parsing for ${filePath}`);
         const entries: MetricsEntry[] = [];
@@ -1776,6 +1787,9 @@ export class UniversalMetricsCalculator {
                 setTimeout(() => reject(new Error('Worker pool timeout after 10 seconds')), 10000);
             });
             
+            if (!this.workerPool) {
+                throw new Error('Worker pool not initialized');
+            }
             const result = await Promise.race([
                 this.workerPool.processTask(task),
                 timeoutPromise
@@ -2139,7 +2153,7 @@ export class UniversalMetricsCalculator {
             ...this.stats,
             cacheHitRate: this.getCacheHitRate(),
             cacheSize: this.cache.size,
-            workerPoolStats: this.workerPool.getStatistics()
+            workerPoolStats: this.workerPool?.getStatistics()
         };
     }
 
@@ -2149,6 +2163,6 @@ export class UniversalMetricsCalculator {
     }
 
     public getWorkerPoolInfo(): any {
-        return this.workerPool.getWorkerInfo();
+        return this.workerPool?.getWorkerInfo();
     }
 } 

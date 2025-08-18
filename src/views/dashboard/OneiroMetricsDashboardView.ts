@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile } from 'obsidian';
+import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App } from 'obsidian';
 import type OneiroMetricsPlugin from '../../../main';
 import type { DreamMetricData } from '../../../types';
 import type { DreamMetricsSettings } from '../../../types';
@@ -200,30 +200,141 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private async loadDreamEntriesLegacy() {
-        // For now, just show a message that data loading is in progress
-        // The full implementation will come in Phase 2
-        this.plugin.logger?.info('Dashboard', 'Dashboard is in beta - data loading coming soon');
+        this.plugin.logger?.info('Dashboard', 'Loading dream entries using UniversalMetricsCalculator');
         
-        // Show a placeholder message
-        const tableContainer = this.containerEl.querySelector('.oom-table-container');
-        if (tableContainer) {
-            tableContainer.empty();
-            const placeholder = tableContainer.createDiv({ cls: 'oom-dashboard-placeholder' });
-            placeholder.createEl('h3', { text: 'OneiroMetrics Dashboard (Beta)' });
-            placeholder.createEl('p', { text: 'The dashboard is currently in development.' });
-            placeholder.createEl('p', { text: 'To view your dream metrics:' });
-            const list = placeholder.createEl('ul');
-            list.createEl('li', { text: 'Use the "Dream Scrape" command to update your metrics' });
-            list.createEl('li', { text: 'Open your OneiroMetrics note to view the current data' });
-            placeholder.createEl('p', { 
-                text: 'The dashboard will soon provide live updates without needing to regenerate the HTML table.',
-                cls: 'oom-muted'
+        try {
+            // Create a UniversalMetricsCalculator instance for the dashboard
+            // Pass false as poolConfig to prevent worker pool initialization
+            const { UniversalMetricsCalculator } = await import('../../workers/UniversalMetricsCalculator');
+            const calculator = new UniversalMetricsCalculator(
+                this.app,
+                this.plugin,
+                false, // Disable worker pool for dashboard use
+                this.plugin.logger
+            );
+            
+            // Get files to process based on current settings
+            this.plugin.logger?.debug('Dashboard', 'About to get files to process');
+            const files = await this.getFilesToProcess();
+            this.plugin.logger?.debug('Dashboard', 'Got files result', { 
+                filesFound: files?.length || 0,
+                filesArray: files 
             });
+            
+            if (!files || files.length === 0) {
+                this.plugin.logger?.info('Dashboard', 'No files found to process');
+                this.state.entries = [];
+                this.state.filteredEntries = [];
+                return;
+            }
+            
+            this.plugin.logger?.info('Dashboard', `Processing ${files.length} files for dashboard`);
+            
+            // Extract dream entries from files
+            const dreamEntries: DreamMetricData[] = [];
+            
+            for (const filePath of files) {
+                const file = this.app.vault.getAbstractFileByPath(filePath);
+                if (!(file instanceof TFile)) continue;
+                
+                try {
+                    const content = await this.app.vault.read(file);
+                    
+                    // Parse entries using the calculator's methods
+                    const { entries } = await this.extractEntriesFromFile(content, filePath, calculator);
+                    
+                    // Convert to DreamMetricData format
+                    for (const entry of entries) {
+                        const dreamData: DreamMetricData = {
+                            date: entry.date,
+                            title: entry.title || 'Untitled Dream',
+                            content: entry.content || '',
+                            source: filePath,
+                            wordCount: entry.wordCount || 0,
+                            metrics: entry.metrics || {}
+                        };
+                        dreamEntries.push(dreamData);
+                    }
+                } catch (error) {
+                    this.plugin.logger?.error('Dashboard', `Error processing file ${filePath}`, error);
+                }
+            }
+            
+            this.plugin.logger?.info('Dashboard', `Extracted ${dreamEntries.length} dream entries`);
+            
+            // Update state with the extracted entries
+            this.state.entries = dreamEntries;
+            this.state.filteredEntries = dreamEntries;
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to load dream entries', error);
+            this.showError('Failed to load dream entries');
+            this.state.entries = [];
+            this.state.filteredEntries = [];
+        }
+    }
+    
+    private async getFilesToProcess(): Promise<string[]> {
+        const settings = this.plugin.settings;
+        let files: string[] = [];
+        
+        // Check if settings exist
+        if (!settings) {
+            this.plugin.logger?.error('Dashboard', 'Settings not available');
+            return [];
         }
         
-        // Set empty entries for now
-        this.state.entries = [];
-        this.state.filteredEntries = [];
+        this.plugin.logger?.debug('Dashboard', 'Getting files to process', {
+            hasSettings: !!settings,
+            selectionMode: settings.selectionMode,
+            selectedFolder: settings.selectedFolder,
+            selectedNotesCount: settings.selectedNotes?.length || 0,
+            excludedNotesCount: settings.excludedNotes?.length || 0,
+            excludedSubfoldersCount: settings.excludedSubfolders?.length || 0
+        });
+        
+        // Handle all selection modes: 'folder', 'automatic', 'notes', 'manual'
+        if ((settings.selectionMode === 'folder' || settings.selectionMode === 'automatic') && settings.selectedFolder) {
+            // Get files from folder
+            const folder = this.app.vault.getAbstractFileByPath(settings.selectedFolder);
+            this.plugin.logger?.debug('Dashboard', 'Folder lookup result', {
+                folderPath: settings.selectedFolder,
+                folderExists: !!folder,
+                hasChildren: folder && 'children' in folder
+            });
+            
+            if (folder && 'children' in folder) {
+                const gatherFiles = (folder: any, acc: string[]) => {
+                    for (const child of folder.children) {
+                        if (child && 'extension' in child && child.extension === 'md') {
+                            if (!settings.excludedNotes?.includes(child.path)) {
+                                acc.push(child.path);
+                            }
+                        } else if (child && 'children' in child) {
+                            if (!settings.excludedSubfolders?.includes(child.path)) {
+                                gatherFiles(child, acc);
+                            }
+                        }
+                    }
+                };
+                gatherFiles(folder, files);
+            }
+        } else if ((settings.selectionMode === 'notes' || settings.selectionMode === 'manual') && settings.selectedNotes) {
+            files = settings.selectedNotes;
+        }
+        
+        this.plugin.logger?.debug('Dashboard', 'Files found for processing', {
+            fileCount: files.length,
+            files: files.slice(0, 5) // Show first 5 files for debugging
+        });
+        
+        return files;
+    }
+    
+    private async extractEntriesFromFile(content: string, filePath: string, calculator: any): Promise<{ entries: any[] }> {
+        // Use the calculator's parseJournalEntries method
+        const result = calculator.parseJournalEntries(content, filePath);
+        return { entries: result.entries || [] };
     }
     
     private parseMetricsFromContent(content: string): DreamMetricData[] {
@@ -307,37 +418,106 @@ export class OneiroMetricsDashboardView extends ItemView {
     
     private renderTableLegacy(container: HTMLElement) {
         try {
-            // Initialize table generator if not already done
-            if (!this.tableGenerator) {
-                this.tableGenerator = new TableGenerator(
-                    this.plugin.settings,
-                    this.plugin.logger
-                );
+            // Create a simple table directly without TableGenerator for now
+            const table = container.createEl('table', { cls: 'oom-dashboard-table' });
+            
+            // Create table header
+            const thead = table.createEl('thead');
+            const headerRow = thead.createEl('tr');
+            
+            // Basic columns
+            headerRow.createEl('th', { text: 'Date', cls: 'sortable', attr: { 'data-column': 'date' } });
+            headerRow.createEl('th', { text: 'Title', cls: 'sortable', attr: { 'data-column': 'title' } });
+            headerRow.createEl('th', { text: 'Content', cls: 'oom-content-header' });
+            
+            // Add metric columns for enabled metrics
+            const enabledMetrics = Object.entries(this.plugin.settings.metrics)
+                .filter(([_, metric]) => metric.enabled)
+                .map(([key, metric]) => ({ key, name: metric.name }));
+            
+            for (const metric of enabledMetrics) {
+                headerRow.createEl('th', { 
+                    text: metric.name, 
+                    cls: 'sortable metric-header', 
+                    attr: { 'data-column': metric.key } 
+                });
             }
             
-            // Create table HTML using existing infrastructure
-            // The generateMetricsTable expects metrics data and entries
-            const metricsData: Record<string, number[]> = {};
+            headerRow.createEl('th', { text: 'Source', cls: 'oom-source-header' });
             
-            // Convert entries to the format expected by TableGenerator
+            // Create table body
+            const tbody = table.createEl('tbody');
+            
+            // Render rows
             for (const entry of this.state.filteredEntries) {
-                for (const [key, value] of Object.entries(entry.metrics || {})) {
-                    if (!metricsData[key]) {
-                        metricsData[key] = [];
+                const row = tbody.createEl('tr', { 
+                    attr: { 
+                        'data-id': `${entry.date}_${entry.title}`,
+                        'data-date': entry.date,
+                        'data-title': entry.title
                     }
-                    if (typeof value === 'number') {
-                        metricsData[key].push(value);
-                    }
+                });
+                
+                // Date cell
+                row.createEl('td', { 
+                    text: entry.date,
+                    cls: 'oom-date-cell'
+                });
+                
+                // Title cell
+                row.createEl('td', { 
+                    text: entry.title,
+                    cls: 'oom-title-cell'
+                });
+                
+                // Content cell with expand/collapse
+                const contentCell = row.createEl('td', { cls: 'oom-content-cell' });
+                const contentContainer = contentCell.createEl('div', { cls: 'oom-content-container' });
+                
+                // Add expand toggle
+                const expandToggle = contentContainer.createEl('span', { 
+                    cls: 'oom-expand-toggle',
+                    text: '▶'
+                });
+                
+                // Add content preview
+                const contentPreview = contentContainer.createEl('div', { 
+                    cls: 'oom-content-preview',
+                    text: entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '')
+                });
+                
+                // Add full content (hidden by default)
+                const contentFull = contentContainer.createEl('div', { 
+                    cls: 'oom-content-full',
+                    text: entry.content,
+                    attr: { style: 'display: none;' }
+                });
+                
+                // Metric cells
+                for (const metric of enabledMetrics) {
+                    const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+                    row.createEl('td', { 
+                        text: String(value),
+                        cls: `metric-${metric.key}` 
+                    });
                 }
+                
+                // Source cell with link
+                const sourceCell = row.createEl('td', { cls: 'oom-source-cell' });
+                const sourceLink = sourceCell.createEl('a', { 
+                    text: entry.source.split('/').pop() || 'Unknown',
+                    cls: 'oom-source-link',
+                    href: '#'
+                });
+                sourceLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Open the source file
+                    const file = this.app.vault.getAbstractFileByPath(entry.source);
+                    if (file instanceof TFile) {
+                        this.app.workspace.getLeaf().openFile(file);
+                    }
+                });
             }
-            
-            const tableHTML = this.tableGenerator.generateMetricsTable(
-                metricsData,
-                this.state.filteredEntries
-            );
-            
-            // Insert table HTML
-            container.innerHTML = tableHTML;
             
             // Add virtual scrolling support
             container.addClass('virtual-scroll');
@@ -370,11 +550,24 @@ export class OneiroMetricsDashboardView extends ItemView {
         container.querySelectorAll('.oom-expand-toggle').forEach(toggle => {
             toggle.addEventListener('click', (e) => {
                 e.preventDefault();
-                const row = (e.target as HTMLElement).closest('tr');
-                if (row) {
-                    const id = row.getAttribute('data-id');
-                    if (id) {
-                        this.toggleRowExpansion(id);
+                const toggleEl = e.target as HTMLElement;
+                const contentContainer = toggleEl.parentElement;
+                if (contentContainer) {
+                    const preview = contentContainer.querySelector('.oom-content-preview') as HTMLElement;
+                    const full = contentContainer.querySelector('.oom-content-full') as HTMLElement;
+                    
+                    if (full && preview) {
+                        if (full.style.display === 'none') {
+                            // Expand
+                            full.style.display = 'block';
+                            preview.style.display = 'none';
+                            toggleEl.textContent = '▼'; // Down arrow
+                        } else {
+                            // Collapse
+                            full.style.display = 'none';
+                            preview.style.display = 'block';
+                            toggleEl.textContent = '▶'; // Right arrow
+                        }
                     }
                 }
             });

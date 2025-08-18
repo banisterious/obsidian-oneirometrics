@@ -184,6 +184,25 @@ export class HubModal extends Modal {
         this.excludedSubfolders = [...(this.plugin.settings.excludedSubfolders || [])];
     }
     
+    /**
+     * Creates a complete DateHandlingConfig object with all required fields
+     * This ensures that all fields are present when creating a new dateHandling object
+     */
+    private createCompleteDateHandlingConfig(): DateHandlingConfig {
+        return {
+            placement: 'field',
+            headerFormat: 'MMMM d, yyyy',
+            fieldFormat: 'Date:',
+            frontmatterProperty: '',
+            includeBlockReferences: false,
+            blockReferenceFormat: '^YYYYMMDD',
+            dreamTitleInProperties: false,
+            dreamTitleProperty: '',
+            plainTextDreams: false,
+            calloutBasedDreams: true
+        };
+    }
+    
     onOpen() {
         try {
             const { contentEl } = this;
@@ -1370,13 +1389,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Date handling helpers
         const getDateConfig = (): DateHandlingConfig => {
-            return this.plugin.settings.dateHandling || {
-                placement: 'field',
-                headerFormat: 'MMMM d, yyyy',
-                fieldFormat: 'Date:',
-                includeBlockReferences: false,
-                blockReferenceFormat: '^YYYYMMDD'
-            };
+            return this.plugin.settings.dateHandling || this.createCompleteDateHandlingConfig();
         };
 
         const formatDateForHeader = (date: Date = new Date()): string => {
@@ -1464,13 +1477,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .onChange(async (value) => {
                         plainTextDreamsEnabled = value;
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.plainTextDreams = value;
                         await this.plugin.saveSettings();
@@ -1486,13 +1493,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .onChange(async (value) => {
                         calloutBasedDreamsEnabled = value;
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.calloutBasedDreams = value;
                         
@@ -1560,13 +1561,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .onChange(async (value) => {
                         dateFieldsEnabled = value;
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.placement = value ? 'field' : 'none';
                         
@@ -1596,13 +1591,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 dropdown.setValue(dateConfig.placement === 'none' ? 'field' : dateConfig.placement)
                     .onChange(async (value: 'field' | 'header' | 'frontmatter') => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.placement = value;
                         await this.plugin.saveSettings();
@@ -1628,13 +1617,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .setValue(dateConfig.frontmatterProperty || '')
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'frontmatter',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
+                            this.plugin.settings.dateHandling.placement = 'frontmatter';
                         }
                         this.plugin.settings.dateHandling.frontmatterProperty = value;
                         await this.plugin.saveSettings();
@@ -1650,13 +1634,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 toggle.setValue(dateConfig.includeBlockReferences || false)
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.includeBlockReferences = value;
                         await this.plugin.saveSettings();
@@ -1673,13 +1651,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .setValue(dateConfig.headerFormat || 'MMMM d, yyyy')
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.headerFormat = value || 'MMMM d, yyyy';
                         
@@ -1760,13 +1732,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 toggle.setValue(dateConfig.dreamTitleInProperties || false)
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.dreamTitleInProperties = value;
                         await this.plugin.saveSettings();
@@ -1792,13 +1758,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .setValue(dateConfig.dreamTitleProperty || '')
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.dreamTitleProperty = value;
                         await this.plugin.saveSettings();
@@ -2302,13 +2262,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
 
         // Date handling helpers
         const getDateConfig = (): DateHandlingConfig => {
-            return this.plugin.settings.dateHandling || {
-                placement: 'field',
-                headerFormat: 'MMMM d, yyyy',
-                fieldFormat: 'Date:',
-                includeBlockReferences: false,
-                blockReferenceFormat: '^YYYYMMDD'
-            };
+            return this.plugin.settings.dateHandling || this.createCompleteDateHandlingConfig();
         };
 
         const formatDateForHeader = (date: Date = new Date()): string => {
@@ -2433,13 +2387,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .onChange(async (value) => {
                         dateFieldsEnabled = value;
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.placement = value ? 'field' : 'none';
                         
@@ -2469,13 +2417,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 dropdown.setValue(dateConfig.placement === 'none' ? 'field' : dateConfig.placement)
                     .onChange(async (value: 'field' | 'header' | 'frontmatter') => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.placement = value;
                         await this.plugin.saveSettings();
@@ -2501,13 +2443,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .setValue(dateConfig.frontmatterProperty || '')
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'frontmatter',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
+                            this.plugin.settings.dateHandling.placement = 'frontmatter';
                         }
                         this.plugin.settings.dateHandling.frontmatterProperty = value;
                         await this.plugin.saveSettings();
@@ -2523,13 +2460,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 toggle.setValue(dateConfig.includeBlockReferences || false)
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.includeBlockReferences = value;
                         await this.plugin.saveSettings();
@@ -2546,13 +2477,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .setValue(dateConfig.headerFormat || 'MMMM d, yyyy')
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.headerFormat = value || 'MMMM d, yyyy';
                         
@@ -2633,13 +2558,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                 toggle.setValue(dateConfig.dreamTitleInProperties || false)
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.dreamTitleInProperties = value;
                         await this.plugin.saveSettings();
@@ -2665,13 +2584,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                     .setValue(dateConfig.dreamTitleProperty || '')
                     .onChange(async (value) => {
                         if (!this.plugin.settings.dateHandling) {
-                            this.plugin.settings.dateHandling = {
-                                placement: 'field',
-                                headerFormat: 'MMMM d, yyyy',
-                                fieldFormat: 'Date:',
-                                includeBlockReferences: false,
-                                blockReferenceFormat: '^YYYYMMDD'
-                            };
+                            this.plugin.settings.dateHandling = this.createCompleteDateHandlingConfig();
                         }
                         this.plugin.settings.dateHandling.dreamTitleProperty = value;
                         await this.plugin.saveSettings();

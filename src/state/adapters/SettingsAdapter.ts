@@ -144,14 +144,19 @@ export class SettingsAdapter {
    * @returns DateHandlingConfig object
    */
   private getDateHandlingConfig(settings: any): DateHandlingConfig {
-    // If new dateHandling config exists, use it
+    // If new dateHandling config exists, use it with all fields preserved
     if (settings.dateHandling) {
       return {
         placement: settings.dateHandling.placement || 'field',
         headerFormat: settings.dateHandling.headerFormat || 'MMMM d, yyyy',
         fieldFormat: settings.dateHandling.fieldFormat || 'Date:',
+        frontmatterProperty: settings.dateHandling.frontmatterProperty || '',
         includeBlockReferences: settings.dateHandling.includeBlockReferences ?? false,
-        blockReferenceFormat: settings.dateHandling.blockReferenceFormat || '^YYYYMMDD'
+        blockReferenceFormat: settings.dateHandling.blockReferenceFormat || '^YYYYMMDD',
+        dreamTitleInProperties: settings.dateHandling.dreamTitleInProperties ?? false,
+        dreamTitleProperty: settings.dateHandling.dreamTitleProperty || '',
+        plainTextDreams: settings.dateHandling.plainTextDreams ?? false,
+        calloutBasedDreams: settings.dateHandling.calloutBasedDreams ?? true
       };
     }
     
@@ -161,8 +166,13 @@ export class SettingsAdapter {
         placement: settings.includeDateFields ? 'field' : 'none',
         headerFormat: 'MMMM d, yyyy',
         fieldFormat: 'Date:',
+        frontmatterProperty: '',
         includeBlockReferences: false,
-        blockReferenceFormat: '^YYYYMMDD'
+        blockReferenceFormat: '^YYYYMMDD',
+        dreamTitleInProperties: false,
+        dreamTitleProperty: '',
+        plainTextDreams: false,
+        calloutBasedDreams: true
       };
     }
     
@@ -171,8 +181,13 @@ export class SettingsAdapter {
       placement: 'field',
       headerFormat: 'MMMM d, yyyy',
       fieldFormat: 'Date:',
+      frontmatterProperty: '',
       includeBlockReferences: false,
-      blockReferenceFormat: '^YYYYMMDD'
+      blockReferenceFormat: '^YYYYMMDD',
+      dreamTitleInProperties: false,
+      dreamTitleProperty: '',
+      plainTextDreams: false,
+      calloutBasedDreams: true
     };
   }
 
