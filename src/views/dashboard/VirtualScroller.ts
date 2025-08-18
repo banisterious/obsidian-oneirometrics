@@ -354,12 +354,17 @@ export class VirtualScroller {
         // Metric cells
         for (const metric of this.enabledMetrics) {
             const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
-            const displayValue = this.formatMetricValue(value, metric.name);
-            
-            row.createEl('td', { 
-                text: displayValue,
+            const metricCell = row.createEl('td', { 
                 cls: `metric-${metric.key}` 
             });
+            
+            // Check if this is a text metric that should be displayed as a list
+            if (metric.name === 'Dream Themes' || metric.name === 'Characters List' || metric.name === 'Symbolic Content') {
+                this.renderMetricAsList(metricCell, value, metric.name);
+            } else {
+                const displayValue = this.formatMetricValue(value, metric.name);
+                metricCell.textContent = displayValue;
+            }
         }
         
         return row;
@@ -376,10 +381,10 @@ export class VirtualScroller {
             text: isExpanded ? '▼' : '▶'
         });
         
-        // Content preview
+        // Content preview - show more meaningful content (400 chars)
         const contentPreview = container.createEl('div', { 
             cls: 'oom-content-preview',
-            text: entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '')
+            text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : '')
         });
         
         // Full content (conditionally visible)
@@ -394,27 +399,44 @@ export class VirtualScroller {
             contentPreview.style.display = 'none';
         }
         
-        // Attach expand handler
-        expandToggle.addEventListener('click', (e) => {
+        // Store references on the element for the handler to use
+        (expandToggle as any)._contentPreview = contentPreview;
+        (expandToggle as any)._contentFull = contentFull;
+        (expandToggle as any)._entryId = entryId;
+        
+        // Attach expand handler using arrow function to preserve 'this' context
+        const clickHandler = (e: MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
             
-            const newExpanded = !isExpanded;
+            // Get stored references
+            const toggle = e.currentTarget as HTMLElement;
+            const storedEntryId = (toggle as any)._entryId;
+            const storedPreview = (toggle as any)._contentPreview;
+            const storedFull = (toggle as any)._contentFull;
+            
+            // Always check current state from expandedRows
+            const currentlyExpanded = this.expandedRows.has(storedEntryId);
+            const newExpanded = !currentlyExpanded;
             
             if (newExpanded) {
-                this.expandedRows.add(entryId);
-                expandToggle.textContent = '▼';
-                contentFull.style.display = 'block';
-                contentPreview.style.display = 'none';
+                this.expandedRows.add(storedEntryId);
+                toggle.textContent = '▼';
+                storedFull.style.display = 'block';
+                storedPreview.style.display = 'none';
             } else {
-                this.expandedRows.delete(entryId);
-                expandToggle.textContent = '▶';
-                contentFull.style.display = 'none';
-                contentPreview.style.display = 'block';
+                this.expandedRows.delete(storedEntryId);
+                toggle.textContent = '▶';
+                storedFull.style.display = 'none';
+                storedPreview.style.display = 'block';
             }
             
-            this.onRowExpand?.(entryId, newExpanded);
-        });
+            this.onRowExpand?.(storedEntryId, newExpanded);
+        };
+        
+        // Remove any existing handler before adding new one
+        (expandToggle as any)._clickHandler = clickHandler;
+        expandToggle.addEventListener('click', clickHandler);
     }
     
     private attachTitleHandlers(titleLink: HTMLElement, entry: DreamMetricData): void {
@@ -495,28 +517,46 @@ export class VirtualScroller {
         return '';
     }
     
-    private formatMetricValue(value: any, metricName: string): string {
-        // Special handling for list/tag type metrics
-        if (metricName === 'Dream Themes' || metricName === 'Characters List' || metricName === 'Symbolic Content') {
-            if (Array.isArray(value)) {
-                const cleanedArray = value.map((item, index) => {
-                    let cleaned = String(item);
-                    if (index === 0) cleaned = cleaned.replace(/^\[/, '');
-                    if (index === value.length - 1) cleaned = cleaned.replace(/\]$/, '');
-                    return cleaned.trim();
-                });
-                return cleanedArray.join(', ');
-            } else if (typeof value === 'string' && value !== '0' && value !== '') {
-                const processed = value
-                    .replace(/^\[|\]$/g, '')
-                    .replace(/^["']|["']$/g, '')
-                    .trim();
-                return processed;
-            } else if (String(value) === '0' || String(value) === '' || value === 0) {
-                return '';
+    private renderMetricAsList(cell: HTMLElement, value: any, metricName: string): void {
+        // Parse the value into an array of items
+        let items: string[] = [];
+        
+        if (Array.isArray(value)) {
+            items = value.map((item, index) => {
+                let cleaned = String(item);
+                // Remove brackets from first and last elements if present
+                if (index === 0) cleaned = cleaned.replace(/^\[/, '');
+                if (index === value.length - 1) cleaned = cleaned.replace(/\]$/, '');
+                return cleaned.trim();
+            }).filter(item => item && item !== '0');
+        } else if (typeof value === 'string' && value !== '0' && value !== '') {
+            // Parse string value, removing brackets and splitting by comma
+            const processed = value
+                .replace(/^\[|\]$/g, '')  // Remove outer brackets
+                .replace(/^["']|["']$/g, '') // Remove quotes if present
+                .trim();
+            
+            if (processed) {
+                // Split by comma and clean each item
+                items = processed.split(',').map(item => item.trim()).filter(item => item);
             }
         }
         
+        // If we have items, create a bulleted list
+        if (items.length > 0) {
+            const list = cell.createEl('ul', { cls: 'oom-metric-list' });
+            items.forEach(item => {
+                list.createEl('li', { text: item });
+            });
+        } else {
+            // If no items, leave cell empty
+            cell.textContent = '';
+        }
+    }
+    
+    private formatMetricValue(value: any, metricName: string): string {
+        // Note: Text metrics are now handled by renderMetricAsList
+        // This method handles numeric and other non-list metrics
         return String(value);
     }
     

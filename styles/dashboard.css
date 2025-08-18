@@ -78,11 +78,13 @@
 /* Table container */
 .oom-table-container {
     flex: 1;
-    overflow: auto;
+    overflow: hidden; /* Prevent double scrollbar */
     background-color: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-m);
     padding: var(--size-4-2);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Virtual scrolling support - enhanced implementation */
@@ -100,12 +102,14 @@
     overflow-x: auto;
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-s);
+    flex: 1; /* Take remaining space */
+    height: 100%;
 }
 
 .oom-virtual-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto; /* Auto layout for dynamic column widths */
 }
 
 .oom-virtual-table thead {
@@ -116,17 +120,75 @@
     border-bottom: 2px solid var(--background-modifier-border);
 }
 
+.oom-virtual-table thead tr {
+    min-height: 60px; /* Ensure header row has enough height for wrapped text */
+}
+
 .oom-virtual-table thead th {
     padding: var(--size-4-2) var(--size-4-3);
     text-align: left;
     font-weight: var(--font-semibold);
     white-space: nowrap;
     user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    min-height: 60px; /* Ensure enough height for wrapped text */
+}
+
+/* Specific column header widths to match cell widths */
+.oom-virtual-table thead th:nth-child(1) { /* Date column */
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    white-space: nowrap; /* Keep date header single line */
+}
+
+.oom-virtual-table thead th:nth-child(2) { /* Title column */
+    width: 250px;
+    min-width: 200px;
+    max-width: 300px;
+    white-space: nowrap; /* Keep title header single line */
+}
+
+.oom-virtual-table thead th:nth-child(3) { /* Content column */
+    width: 400px;
+    min-width: 350px;
+    max-width: 500px;
+    white-space: nowrap; /* Keep content header single line */
+}
+
+/* Metric columns (4th child onwards) - Allow text wrapping */
+.oom-virtual-table thead th:nth-child(n+4) {
+    width: 110px;
+    min-width: 100px;
+    max-width: 120px;
+    text-align: center;
+    white-space: normal; /* Allow text wrapping */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    hyphens: auto;
+    padding: var(--size-4-3) var(--size-4-2); /* Slightly more vertical padding */
+}
+
+/* Text metric headers - wider to accommodate lists and allow wrapping */
+.oom-virtual-table thead th.metric-dream-themes,
+.oom-virtual-table thead th.metric-symbolic-content,
+.oom-virtual-table thead th.metric-characters-list {
+    width: 150px;
+    min-width: 120px;
+    max-width: 200px;
+    white-space: normal; /* Allow text wrapping */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
 }
 
 .oom-virtual-table thead th.sortable {
     cursor: pointer;
     transition: background-color 0.15s ease;
+    position: relative;
 }
 
 .oom-virtual-table thead th.sortable:hover {
@@ -157,15 +219,20 @@
     vertical-align: middle;
 }
 
-/* Date and title cells */
+/* Date and title cells with proper widths */
 .oom-date-cell {
-    min-width: 100px;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
     white-space: nowrap;
 }
 
 .oom-title-cell {
+    width: 250px;
     min-width: 200px;
     max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .oom-title-link {
@@ -178,9 +245,10 @@
     text-decoration: underline;
 }
 
-/* Content cell styles */
+/* Content cell styles with proper width */
 .oom-content-cell {
-    min-width: 300px;
+    width: 400px;
+    min-width: 350px;
     max-width: 500px;
 }
 
@@ -211,20 +279,65 @@
     word-wrap: break-word;
     white-space: pre-wrap;
     line-height: 1.5;
+    overflow: hidden;
 }
 
 .oom-content-preview {
     color: var(--text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limit to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: none; /* Override the previous max-height */
 }
 
 .oom-content-full {
     color: var(--text-normal);
+    max-height: none; /* No limit for expanded content */
 }
 
-/* Metric cells */
+/* Metric cells with consistent widths */
 .oom-dream-row td[class*="metric-"] {
+    width: 100px;
     min-width: 80px;
+    max-width: 120px;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Bulleted list styles for text metrics */
+.oom-metric-list {
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    list-style-position: inside;
+    font-size: var(--font-smaller);
+    line-height: 1.4;
+}
+
+.oom-metric-list li {
+    margin: 0;
+    padding: 0 0 2px 0;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Adjust cells containing lists to allow wrapping */
+.oom-dream-row td.metric-dream-themes,
+.oom-dream-row td.metric-symbolic-content,
+.oom-dream-row td.metric-characters-list {
+    white-space: normal;
+    text-overflow: unset;
+    overflow: visible;
+    text-align: left;
+    padding: var(--size-4-1) var(--size-4-2);
+    width: 150px;
+    min-width: 120px;
+    max-width: 200px;
 }
 
 /* Performance optimizations */
@@ -274,6 +387,8 @@
     border-bottom: 2px solid var(--background-modifier-border);
     cursor: pointer;
     user-select: none;
+    vertical-align: middle;
+    min-height: 60px;
 }
 
 .oom-metrics-table th:hover,
@@ -305,6 +420,18 @@
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
+/* Allow wrapping for metric column headers in regular tables */
+.oom-metrics-table th.metric-header,
+.oom-dashboard-table th.metric-header {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    hyphens: auto;
+    max-width: 120px;
+    text-align: center;
+}
+
 /* Row expansion */
 .oom-row-expandable {
     cursor: pointer;
@@ -318,9 +445,7 @@
     background-color: var(--background-primary-alt);
 }
 
-.oom-content-cell {
-    max-width: 400px;
-}
+/* Duplicate style - now using the main definition above */
 
 .oom-content-container {
     display: flex;
@@ -328,12 +453,7 @@
     gap: var(--size-4-1);
 }
 
-.oom-content-preview {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-}
+/* Duplicate style - now using the main definition above */
 
 .oom-content-full {
     white-space: pre-wrap;
@@ -374,9 +494,8 @@
     text-decoration: underline;
 }
 
-/* Date and title cells */
+/* Date and title cells - additional styling */
 .oom-date-cell {
-    white-space: nowrap;
     font-family: var(--font-monospace);
 }
 
@@ -443,6 +562,30 @@
 .oom-loading-overlay p {
     margin-top: var(--size-4-3);
     color: var(--text-muted);
+}
+
+/* Specific header class styles for better control */
+.oom-header-date {
+    white-space: nowrap !important;
+    text-align: left !important;
+}
+
+.oom-header-title {
+    white-space: nowrap !important;
+    text-align: left !important;
+}
+
+.oom-header-content {
+    white-space: nowrap !important;
+    text-align: left !important;
+}
+
+.oom-header-metric {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+    line-height: 1.3 !important;
 }
 
 /* Error state */

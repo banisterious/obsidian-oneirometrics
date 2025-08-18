@@ -377,16 +377,9 @@ export class OneiroMetricsDashboardView extends ItemView {
         try {
             this.plugin.logger?.debug('Dashboard', 'Loading dream entries...');
             
-            // Check if we're in legacy mode
-            if (this.legacyMode) {
-                // Use existing infrastructure
-                await this.loadDreamEntriesLegacy();
-            } else {
-                // Future optimized implementation
-                // Phase 2: Direct integration with UniversalMetricsCalculator
-                this.state.entries = [];
-                this.state.filteredEntries = [];
-            }
+            // Always use the loading implementation
+            // The difference between legacy and optimized is in the rendering, not loading
+            await this.loadDreamEntriesLegacy();
         } catch (error) {
             this.plugin.logger?.error('Dashboard', 'Failed to load dream entries', error);
             this.showError('Failed to load dream entries');
@@ -430,13 +423,33 @@ export class OneiroMetricsDashboardView extends ItemView {
             
             for (const filePath of files) {
                 const file = this.app.vault.getAbstractFileByPath(filePath);
-                if (!(file instanceof TFile)) continue;
+                if (!(file instanceof TFile)) {
+                    this.plugin.logger?.warn('Dashboard', 'File not found or not a TFile', { filePath });
+                    continue;
+                }
                 
                 try {
                     const content = await this.app.vault.read(file);
                     
+                    this.plugin.logger?.debug('Dashboard', 'Processing file', {
+                        filePath,
+                        fileSize: content.length,
+                        hasContent: content.length > 0
+                    });
+                    
                     // Parse entries using the calculator's methods
                     const { entries } = await this.extractEntriesFromFile(content, filePath, calculator);
+                    
+                    this.plugin.logger?.debug('Dashboard', 'Extracted entries from file', {
+                        filePath,
+                        entriesCount: entries.length,
+                        entriesDetails: entries.map(e => ({
+                            date: e.date,
+                            title: e.title,
+                            hasContent: !!e.content,
+                            hasMetrics: !!e.metrics
+                        }))
+                    });
                     
                     // Convert to DreamMetricData format
                     for (const entry of entries) {
@@ -451,7 +464,11 @@ export class OneiroMetricsDashboardView extends ItemView {
                         dreamEntries.push(dreamData);
                     }
                 } catch (error) {
-                    this.plugin.logger?.error('Dashboard', `Error processing file ${filePath}`, error);
+                    this.plugin.logger?.error('Dashboard', 'Error processing file', {
+                        filePath,
+                        error: error instanceof Error ? error.message : String(error),
+                        stack: error instanceof Error ? error.stack : undefined
+                    });
                 }
             }
             
@@ -491,34 +508,66 @@ export class OneiroMetricsDashboardView extends ItemView {
             selectedFolder: settings.selectedFolder,
             selectedNotesCount: settings.selectedNotes?.length || 0,
             excludedNotesCount: settings.excludedNotes?.length || 0,
-            excludedSubfoldersCount: settings.excludedSubfolders?.length || 0
+            excludedSubfoldersCount: settings.excludedSubfolders?.length || 0,
+            plainTextDreams: settings.dateHandling?.plainTextDreams,
+            calloutBasedDreams: settings.dateHandling?.calloutBasedDreams
         });
         
         // Handle all selection modes: 'folder', 'automatic', 'notes', 'manual'
         if ((settings.selectionMode === 'folder' || settings.selectionMode === 'automatic') && settings.selectedFolder) {
+            this.plugin.logger?.info('Dashboard', 'Using folder selection mode', {
+                selectionMode: settings.selectionMode,
+                selectedFolder: settings.selectedFolder
+            });
+            
             // Get files from folder
             const folder = this.app.vault.getAbstractFileByPath(settings.selectedFolder);
             this.plugin.logger?.debug('Dashboard', 'Folder lookup result', {
                 folderPath: settings.selectedFolder,
                 folderExists: !!folder,
-                hasChildren: folder && 'children' in folder
+                isFolder: folder && 'children' in folder,
+                folderType: folder ? folder.constructor.name : 'null'
             });
             
             if (folder && 'children' in folder) {
-                const gatherFiles = (folder: any, acc: string[]) => {
+                const gatherFiles = (folder: any, acc: string[], depth: number = 0) => {
+                    this.plugin.logger?.debug('Dashboard', 'Gathering files from folder', {
+                        folderPath: folder.path,
+                        childrenCount: folder.children?.length || 0,
+                        depth
+                    });
+                    
                     for (const child of folder.children) {
                         if (child && 'extension' in child && child.extension === 'md') {
                             if (!settings.excludedNotes?.includes(child.path)) {
                                 acc.push(child.path);
+                                this.plugin.logger?.debug('Dashboard', 'Added file', {
+                                    path: child.path,
+                                    totalFiles: acc.length
+                                });
+                            } else {
+                                this.plugin.logger?.debug('Dashboard', 'Excluded note', { path: child.path });
                             }
                         } else if (child && 'children' in child) {
                             if (!settings.excludedSubfolders?.includes(child.path)) {
-                                gatherFiles(child, acc);
+                                this.plugin.logger?.debug('Dashboard', 'Entering subfolder', { path: child.path });
+                                gatherFiles(child, acc, depth + 1);
+                            } else {
+                                this.plugin.logger?.debug('Dashboard', 'Excluded subfolder', { path: child.path });
                             }
                         }
                     }
                 };
                 gatherFiles(folder, files);
+                
+                this.plugin.logger?.info('Dashboard', 'File gathering complete', {
+                    totalFiles: files.length,
+                    firstFewFiles: files.slice(0, 3)
+                });
+            } else {
+                this.plugin.logger?.warn('Dashboard', 'Folder not found or not a folder', {
+                    selectedFolder: settings.selectedFolder
+                });
             }
         } else if ((settings.selectionMode === 'notes' || settings.selectionMode === 'manual') && settings.selectedNotes) {
             files = settings.selectedNotes;
@@ -534,7 +583,21 @@ export class OneiroMetricsDashboardView extends ItemView {
     
     private async extractEntriesFromFile(content: string, filePath: string, calculator: any): Promise<{ entries: any[] }> {
         // Use the calculator's parseJournalEntries method
+        this.plugin.logger?.debug('Dashboard', 'Calling parseJournalEntries', {
+            filePath,
+            contentLength: content.length,
+            contentPreview: content.substring(0, 100)
+        });
+        
         const result = calculator.parseJournalEntries(content, filePath);
+        
+        this.plugin.logger?.debug('Dashboard', 'parseJournalEntries result', {
+            filePath,
+            entriesCount: result?.entries?.length || 0,
+            hasEntries: !!result?.entries,
+            firstEntry: result?.entries?.[0] || null
+        });
+        
         return { entries: result.entries || [] };
     }
     
@@ -768,70 +831,68 @@ export class OneiroMetricsDashboardView extends ItemView {
                 const contentCell = row.createEl('td', { cls: 'oom-content-cell' });
                 const contentContainer = contentCell.createEl('div', { cls: 'oom-content-container' });
                 
+                // Generate unique ID for this entry
+                const entryId = `${entry.date}_${entry.title}`;
+                const isExpanded = this.state.expandedRows.has(entryId);
+                
                 // Add expand toggle
                 const expandToggle = contentContainer.createEl('span', { 
                     cls: 'oom-expand-toggle',
-                    text: '▶'
+                    text: isExpanded ? '▼' : '▶'
                 });
                 
                 // Add content preview
                 const contentPreview = contentContainer.createEl('div', { 
                     cls: 'oom-content-preview',
-                    text: entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '')
+                    text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : ''),
+                    attr: { style: isExpanded ? 'display: none;' : 'display: block;' }
                 });
                 
-                // Add full content (hidden by default)
+                // Add full content
                 const contentFull = contentContainer.createEl('div', { 
                     cls: 'oom-content-full',
                     text: entry.content,
-                    attr: { style: 'display: none;' }
+                    attr: { style: isExpanded ? 'display: block;' : 'display: none;' }
+                });
+                
+                // Attach expand handler directly to avoid closure issues
+                expandToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Always check current state from expandedRows
+                    const currentlyExpanded = this.state.expandedRows.has(entryId);
+                    const newExpanded = !currentlyExpanded;
+                    
+                    if (newExpanded) {
+                        this.state.expandedRows.add(entryId);
+                        expandToggle.textContent = '▼';
+                        contentFull.style.display = 'block';
+                        contentPreview.style.display = 'none';
+                    } else {
+                        this.state.expandedRows.delete(entryId);
+                        expandToggle.textContent = '▶';
+                        contentFull.style.display = 'none';
+                        contentPreview.style.display = 'block';
+                    }
+                    
+                    // Track in performance metrics
+                    this.plugin.logger?.debug('Dashboard', 'Row expansion toggled', { id: entryId, isExpanded: newExpanded });
                 });
                 
                 // Metric cells
                 for (const metric of enabledMetrics) {
                     const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
-                    let displayValue = String(value);
-                    
-                    // Special handling for Dream Themes and other list/tag type metrics
-                    if (metric.name === 'Dream Themes' || metric.name === 'Characters List' || metric.name === 'Symbolic Content') {
-                        
-                        // If the value is an array, join it with commas
-                        if (Array.isArray(value)) {
-                            // Handle malformed arrays where first element starts with [ and last ends with ]
-                            const cleanedArray = value.map((item, index) => {
-                                let cleaned = String(item);
-                                // Remove opening bracket from first element
-                                if (index === 0) {
-                                    cleaned = cleaned.replace(/^\[/, '');
-                                }
-                                // Remove closing bracket from last element
-                                if (index === value.length - 1) {
-                                    cleaned = cleaned.replace(/\]$/, '');
-                                }
-                                return cleaned.trim();
-                            });
-                            displayValue = cleanedArray.join(', ');
-                        } else if (typeof value === 'string' && value !== '0' && value !== '') {
-                            // If it's already a string and not just '0' or empty
-                            // Strip square brackets if present (from YAML array syntax)
-                            // Also handle cases where there might be quotes inside brackets
-                            const processed = (value as string)
-                                .replace(/^\[|\]$/g, '') // Remove outer brackets
-                                .replace(/^["']|["']$/g, '') // Remove quotes if present
-                                .trim();
-                            
-                            displayValue = processed;
-                            
-                        } else if (String(value) === '0' || String(value) === '' || value === 0) {
-                            // If it's 0 or empty string (checking both as string and number), show as empty
-                            displayValue = '';
-                        }
-                    }
-                    
-                    row.createEl('td', { 
-                        text: displayValue,
+                    const metricCell = row.createEl('td', { 
                         cls: `metric-${metric.key}` 
                     });
+                    
+                    // Check if this is a text metric that should be displayed as a list
+                    if (metric.name === 'Dream Themes' || metric.name === 'Characters List' || metric.name === 'Symbolic Content') {
+                        this.renderMetricAsList(metricCell, value, metric.name);
+                    } else {
+                        metricCell.textContent = String(value);
+                    }
                 }
             }
             
@@ -850,6 +911,43 @@ export class OneiroMetricsDashboardView extends ItemView {
                 text: 'Failed to render table. Please check the console for errors.',
                 cls: 'oom-error-message'
             });
+        }
+    }
+    
+    private renderMetricAsList(cell: HTMLElement, value: any, metricName: string): void {
+        // Parse the value into an array of items
+        let items: string[] = [];
+        
+        if (Array.isArray(value)) {
+            items = value.map((item, index) => {
+                let cleaned = String(item);
+                // Remove brackets from first and last elements if present
+                if (index === 0) cleaned = cleaned.replace(/^\[/, '');
+                if (index === value.length - 1) cleaned = cleaned.replace(/\]$/, '');
+                return cleaned.trim();
+            }).filter(item => item && item !== '0');
+        } else if (typeof value === 'string' && value !== '0' && value !== '') {
+            // Parse string value, removing brackets and splitting by comma
+            const processed = value
+                .replace(/^\[|\]$/g, '')  // Remove outer brackets
+                .replace(/^["']|["']$/g, '') // Remove quotes if present
+                .trim();
+            
+            if (processed) {
+                // Split by comma and clean each item
+                items = processed.split(',').map(item => item.trim()).filter(item => item);
+            }
+        }
+        
+        // If we have items, create a bulleted list
+        if (items.length > 0) {
+            const list = cell.createEl('ul', { cls: 'oom-metric-list' });
+            items.forEach(item => {
+                list.createEl('li', { text: item });
+            });
+        } else {
+            // If no items, leave cell empty
+            cell.textContent = '';
         }
     }
     
@@ -923,32 +1021,8 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private attachTableEventHandlers(container: HTMLElement) {
-        // Content expansion handlers
-        container.querySelectorAll('.oom-expand-toggle').forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                const toggleEl = e.target as HTMLElement;
-                const contentContainer = toggleEl.parentElement;
-                if (contentContainer) {
-                    const preview = contentContainer.querySelector('.oom-content-preview') as HTMLElement;
-                    const full = contentContainer.querySelector('.oom-content-full') as HTMLElement;
-                    
-                    if (full && preview) {
-                        if (full.style.display === 'none') {
-                            // Expand
-                            full.style.display = 'block';
-                            preview.style.display = 'none';
-                            toggleEl.textContent = '▼'; // Down arrow
-                        } else {
-                            // Collapse
-                            full.style.display = 'none';
-                            preview.style.display = 'block';
-                            toggleEl.textContent = '▶'; // Right arrow
-                        }
-                    }
-                }
-            });
-        });
+        // Note: Expand/collapse handlers are now attached directly when creating rows
+        // to avoid closure and event delegation issues with virtual scrolling
         
         // Sort handlers
         container.querySelectorAll('th.sortable').forEach(header => {
@@ -1478,7 +1552,7 @@ export class OneiroMetricsDashboardView extends ItemView {
             const full = contentContainer.querySelector('.oom-content-full');
             
             if (preview) {
-                preview.textContent = entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '');
+                preview.textContent = entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : '');
             }
             if (full) {
                 full.textContent = entry.content;
@@ -1568,23 +1642,53 @@ export class OneiroMetricsDashboardView extends ItemView {
         const contentCell = row.createEl('td', { cls: 'oom-content-cell' });
         const contentContainer = contentCell.createEl('div', { cls: 'oom-content-container' });
         
+        // Generate unique ID for this entry
+        const entryId = `${entry.date}_${entry.title}`;
+        const isExpanded = this.state.expandedRows.has(entryId);
+        
         // Add expand toggle
         const expandToggle = contentContainer.createEl('span', { 
             cls: 'oom-expand-toggle',
-            text: '▶'
+            text: isExpanded ? '▼' : '▶'
         });
         
         // Add content preview
         const contentPreview = contentContainer.createEl('div', { 
             cls: 'oom-content-preview',
-            text: entry.content.substring(0, 150) + (entry.content.length > 150 ? '...' : '')
+            text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : ''),
+            attr: { style: isExpanded ? 'display: none;' : 'display: block;' }
         });
         
-        // Add full content (hidden by default)
+        // Add full content
         const contentFull = contentContainer.createEl('div', { 
             cls: 'oom-content-full',
             text: entry.content,
-            attr: { style: 'display: none;' }
+            attr: { style: isExpanded ? 'display: block;' : 'display: none;' }
+        });
+        
+        // Attach expand handler directly to avoid closure issues
+        expandToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Always check current state from expandedRows
+            const currentlyExpanded = this.state.expandedRows.has(entryId);
+            const newExpanded = !currentlyExpanded;
+            
+            if (newExpanded) {
+                this.state.expandedRows.add(entryId);
+                expandToggle.textContent = '▼';
+                contentFull.style.display = 'block';
+                contentPreview.style.display = 'none';
+            } else {
+                this.state.expandedRows.delete(entryId);
+                expandToggle.textContent = '▶';
+                contentFull.style.display = 'none';
+                contentPreview.style.display = 'block';
+            }
+            
+            // Track in performance metrics
+            this.plugin.logger?.debug('Dashboard', 'Row expansion toggled', { id: entryId, isExpanded: newExpanded });
         });
         
         // Get enabled metrics
