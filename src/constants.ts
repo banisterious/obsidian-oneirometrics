@@ -85,21 +85,17 @@ export const DEFAULT_METRICS: DreamMetric[] = [
     {
         name: 'Characters List',
         icon: 'users-round',
-        minValue: 0,
-        maxValue: 0,
         description: 'List of characters that appeared in the dream',
         enabled: false,
-        type: 'text',
+        type: 'string',
         format: 'list'
     },
     {
-        name: 'Dream Theme',
+        name: 'Dream Themes',
         icon: 'sparkles',
-        minValue: 0,
-        maxValue: 0,
         description: 'Main themes or motifs in the dream',
         enabled: false,
-        type: 'text',
+        type: 'string',
         format: 'tags'
     },
     {

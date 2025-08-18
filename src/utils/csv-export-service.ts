@@ -341,7 +341,7 @@ export class CSVExportPipeline implements CSVExportService, TabSpecificExporter 
     /**
      * Calculate a quality score based on metrics
      */
-    private calculateQualityScore(metrics: Record<string, number | string>, metricNames: string[]): number {
+    private calculateQualityScore(metrics: Record<string, number | string | string[]>, metricNames: string[]): number {
         const numericMetrics = metricNames
             .map(name => metrics[name])
             .filter(value => typeof value === 'number') as number[];

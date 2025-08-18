@@ -488,47 +488,115 @@ export class UniversalMetricsCalculator {
         // Extract metrics from frontmatter if enabled
         // Note: We can't use FrontmatterPropertyParser here because it requires the App instance
         // which isn't available in worker context. Instead, we'll use a simple regex approach.
-        let metrics: Record<string, number> = {};
-        if (this.settings.frontmatter?.enabled) {
+        let metrics: Record<string, number | string | string[]> = {};
+        
+        // Always try to extract metrics from frontmatter if there are configured metrics with frontmatterProperty
+        const hasConfiguredFrontmatterMetrics = Object.values(this.settings.metrics || {})
+            .some(metric => metric.frontmatterProperty && metric.enabled);
+            
+        if (hasConfiguredFrontmatterMetrics) {
             try {
                 // Extract frontmatter section
                 const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
                 if (frontmatterMatch) {
                     const yamlContent = frontmatterMatch[1];
                     
+                    this.logger?.debug('Parse', 'Found frontmatter in flat entry', {
+                        file: filePath,
+                        yamlLength: yamlContent.length,
+                        yamlPreview: yamlContent.substring(0, 200)
+                    });
+                    
                     // Extract metrics based on configured frontmatter properties
-                    for (const [metricName, metric] of Object.entries(this.settings.metrics)) {
+                    for (const [metricId, metric] of Object.entries(this.settings.metrics || {})) {
                         if (metric.frontmatterProperty && metric.enabled) {
-                            // Create regex to match the property
-                            const propertyRegex = new RegExp(`^${metric.frontmatterProperty}:\\s*['"]?([^'"\n]+)['"]?\\s*$`, 'm');
-                            const match = yamlContent.match(propertyRegex);
+                            // Try multiple regex patterns to be more flexible with YAML formatting
+                            const patterns = [
+                                // Standard YAML with quotes
+                                new RegExp(`^${this.escapeRegex(metric.frontmatterProperty)}:\\s*["']([^"']+)["']\\s*$`, 'm'),
+                                // Standard YAML without quotes
+                                new RegExp(`^${this.escapeRegex(metric.frontmatterProperty)}:\\s*([^\\n]+)\\s*$`, 'm'),
+                                // YAML with spaces around colon
+                                new RegExp(`^${this.escapeRegex(metric.frontmatterProperty)}\\s*:\\s*([^\\n]+)\\s*$`, 'm')
+                            ];
                             
-                            if (match && match[1]) {
-                                const value = match[1].trim();
-                                const num = parseFloat(value);
-                                if (!isNaN(num)) {
-                                    metrics[metricName] = num;
+                            let value: string | null = null;
+                            for (const pattern of patterns) {
+                                const match = yamlContent.match(pattern);
+                                if (match && match[1]) {
+                                    value = match[1].trim();
+                                    break;
                                 }
+                            }
+                            
+                            if (value !== null) {
+                                // Remove quotes if present
+                                value = value.replace(/^["']|["']$/g, '');
+                                
+                                // Check if metric is text-based
+                                if (metric.type === 'string') {
+                                    // Store text value directly or as array if comma-separated
+                                    metrics[metric.name] = value.includes(',') 
+                                        ? value.split(',').map(v => v.trim()).filter(v => v.length > 0)
+                                        : value;
+                                    this.logger?.info('Parse', `Extracted text metric from frontmatter: ${metric.name} = ${value}`, {
+                                        file: filePath,
+                                        property: metric.frontmatterProperty,
+                                        rawValue: value,
+                                        type: 'text'
+                                    });
+                                } else {
+                                    // Handle numeric metrics
+                                    const num = parseFloat(value);
+                                    if (!isNaN(num)) {
+                                        // Use the metric's display name, not the ID
+                                        metrics[metric.name] = num;
+                                        this.logger?.info('Parse', `Extracted metric from frontmatter: ${metric.name} = ${num}`, {
+                                            file: filePath,
+                                            property: metric.frontmatterProperty,
+                                            rawValue: value
+                                        });
+                                    } else {
+                                        this.logger?.debug('Parse', `Non-numeric value for metric ${metric.name}: ${value}`, {
+                                            file: filePath,
+                                            property: metric.frontmatterProperty
+                                        });
+                                    }
+                                }
+                            } else {
+                                this.logger?.trace('Parse', `Property ${metric.frontmatterProperty} not found in frontmatter`, {
+                                    file: filePath,
+                                    metricName: metric.name
+                                });
                             }
                         }
                     }
                     
-                    this.logger?.debug('Parse', 'Extracted metrics from frontmatter for flat entry', {
+                    this.logger?.info('Parse', 'Extracted metrics from frontmatter for flat entry', {
                         file: filePath,
                         metricsCount: Object.keys(metrics).length,
                         metrics
+                    });
+                } else {
+                    this.logger?.debug('Parse', 'No frontmatter found in flat entry', {
+                        file: filePath
                     });
                 }
             } catch (error) {
                 this.logger?.warn('Parse', 'Failed to extract metrics from frontmatter for flat entry', {
                     file: filePath,
-                    error
+                    error: error instanceof Error ? error.message : String(error)
                 });
             }
+        } else {
+            this.logger?.debug('Parse', 'No metrics configured with frontmatter properties', {
+                file: filePath,
+                metricsCount: Object.keys(this.settings.metrics || {}).length
+            });
         }
         
         const entry = {
-            id: `flat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            id: `flat_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
             date: date,
             title: title,
             content: processedContent,
@@ -602,12 +670,14 @@ export class UniversalMetricsCalculator {
 
             // Extract dream entries from files
             const { entries, debugInfo } = await this.extractDreamEntries(files);
-            this.logger?.debug('Scrape', `Extracted ${entries.length} dream entries`, { 
+            this.logger?.info('Scrape', `Extracted ${entries.length} dream entries`, { 
                 first3Entries: entries.slice(0, 3).map(e => ({
                     date: e.date,
                     title: e.title,
                     contentLength: e.content?.length || 0,
-                    metadata: e.metadata
+                    metadata: e.metadata,
+                    metricsKeys: Object.keys(e.metrics || {}),
+                    metricsData: e.metrics || {}
                 }))
             });
             
@@ -630,7 +700,7 @@ export class UniversalMetricsCalculator {
             entriesProcessed = entries.length;
 
             // Process entries and collect metrics
-            let metrics: Record<string, number[]> = {};
+            let metrics: Record<string, any[]> = {};
             let processedEntries: DreamMetricData[] = [];
             let foundAnyMetrics = false;
             
@@ -679,7 +749,8 @@ export class UniversalMetricsCalculator {
                         content: entry.content || '',
                         metrics: entry.calculatedMetrics,
                         source: entry.metadata?.source as string || 'unknown',
-                        wordCount: entry.calculatedMetrics['Words'] || entry.calculatedMetrics['Word Count'] || 0
+                        wordCount: (typeof entry.calculatedMetrics['Words'] === 'number' ? entry.calculatedMetrics['Words'] : 0) || 
+                                   (typeof entry.calculatedMetrics['Word Count'] === 'number' ? entry.calculatedMetrics['Word Count'] : 0) || 0
                     };
                     processedEntries.push(dreamData);
                     
@@ -770,45 +841,88 @@ export class UniversalMetricsCalculator {
     /**
      * Process metrics text - maintains compatibility with MetricsProcessor.processMetrics()
      */
-    public processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number> {
-        const dreamMetrics: Record<string, number> = {};
+    public processMetrics(metricsText: string, metrics: Record<string, number[]>): Record<string, number | string | string[]> {
+        const dreamMetrics: Record<string, number | string | string[]> = {};
         
         this.logger?.debug('ProcessMetrics', `Processing metrics text: "${metricsText}"`);
         
         try {
-            const metricPairs = metricsText.split(',').map(pair => pair.trim());
-            this.logger?.debug('ProcessMetrics', `Split into metric pairs:`, metricPairs);
+            // Parse metrics more intelligently to handle text values with commas
+            // First, try to identify metric names by looking for known metrics
+            const knownMetrics = Object.values(this.settings.metrics || {}).map(m => m.name);
             
-            for (const pair of metricPairs) {
-                const [name, value] = pair.split(':').map(s => s.trim());
+            // Use a regex to match metric patterns (name: value)
+            // This handles both "MetricName: value" and variations
+            const metricPattern = /([^:,]+?):\s*([^:]+?)(?=(?:,\s*[^:,]+?:|$))/g;
+            let match;
+            
+            while ((match = metricPattern.exec(metricsText)) !== null) {
+                const name = match[1].trim();
+                let value = match[2].trim();
+                
+                // Remove trailing comma if present
+                if (value.endsWith(',')) {
+                    value = value.slice(0, -1).trim();
+                }
+                
                 this.logger?.debug('ProcessMetrics', `Processing pair: name="${name}", value="${value}"`);
                 
                 if (name) {
-                    let numValue = 0;
-                    
-                    // Handle placeholder values and convert to numbers
-                    if (value === '—' || value === '-' || value === '' || value === 'undefined') {
-                        numValue = 0; // Convert placeholders to 0
-                        this.logger?.debug('ProcessMetrics', `Converted placeholder "${value}" to 0 for metric "${name}"`);
-                    } else if (!isNaN(Number(value))) {
-                        numValue = Number(value);
-                    } else {
-                        this.logger?.debug('ProcessMetrics', `Skipped invalid value: name="${name}", value="${value}"`);
-                        continue; // Skip invalid non-numeric values
-                    }
-                    
-                    const metricName = Object.values(this.settings.metrics).find(
+                    // Find the metric definition to check if it's text-based
+                    const metricDef = Object.values(this.settings.metrics).find(
                         m => m.name.toLowerCase() === name.toLowerCase()
-                    )?.name || name;
+                    );
+                    const metricName = metricDef?.name || name;
                     
-                    dreamMetrics[metricName] = numValue;
-                    
-                    if (!metrics[metricName]) {
-                        metrics[metricName] = [];
+                    // Check if this is a text-based metric
+                    if (metricDef && metricDef.type === 'string') {
+                        // Handle text-based metrics
+                        if (value && value !== '—' && value !== '-' && value !== 'undefined') {
+                            // For text metrics, preserve the value as-is (may contain commas)
+                            // Check if it looks like a list
+                            if (value.includes(',')) {
+                                // Split and clean list items
+                                dreamMetrics[metricName] = value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+                            } else {
+                                dreamMetrics[metricName] = value;
+                            }
+                            
+                            if (!metrics[metricName]) {
+                                metrics[metricName] = [];
+                            }
+                            // For aggregation purposes, store as array element
+                            metrics[metricName].push(dreamMetrics[metricName] as any);
+                            
+                            this.logger?.debug('ProcessMetrics', `Successfully parsed text metric: ${metricName} = "${value}"`);
+                        } else {
+                            // Empty text value
+                            dreamMetrics[metricName] = '';
+                            this.logger?.debug('ProcessMetrics', `Empty text value for metric "${metricName}"`);
+                        }
+                    } else {
+                        // Handle numeric metrics
+                        let numValue = 0;
+                        
+                        // Handle placeholder values and convert to numbers
+                        if (value === '—' || value === '-' || value === '' || value === 'undefined') {
+                            numValue = 0; // Convert placeholders to 0
+                            this.logger?.debug('ProcessMetrics', `Converted placeholder "${value}" to 0 for metric "${name}"`);
+                        } else if (!isNaN(Number(value))) {
+                            numValue = Number(value);
+                        } else {
+                            this.logger?.debug('ProcessMetrics', `Skipped invalid value: name="${name}", value="${value}"`);
+                            continue; // Skip invalid non-numeric values
+                        }
+                        
+                        dreamMetrics[metricName] = numValue;
+                        
+                        if (!metrics[metricName]) {
+                            metrics[metricName] = [];
+                        }
+                        metrics[metricName].push(numValue);
+                        
+                        this.logger?.debug('ProcessMetrics', `Successfully parsed: ${metricName} = ${numValue}`);
                     }
-                    metrics[metricName].push(numValue);
-                    
-                    this.logger?.debug('ProcessMetrics', `Successfully parsed: ${metricName} = ${numValue}`);
                 } else {
                     this.logger?.debug('ProcessMetrics', `Skipped pair with empty name: value="${value}"`);
                 }
@@ -1287,11 +1401,17 @@ export class UniversalMetricsCalculator {
                                 // Merge frontmatter metrics into entry
                                 const mergedMetrics = { ...entry.metrics };
                                 
-                                // Convert frontmatter metrics to number format
+                                // Convert frontmatter metrics to appropriate format based on metric type
                                 for (const [key, value] of Object.entries(frontmatterMetrics)) {
                                     if (key.startsWith('_')) continue;
                                     
-                                    if (typeof value === 'number') {
+                                    // Find the metric definition to check if it's text-based
+                                    const metricDef = Object.values(this.settings.metrics || {}).find(m => m.name === key);
+                                    
+                                    if (metricDef && metricDef.type === 'string') {
+                                        // Keep text values as-is (string or array)
+                                        mergedMetrics[key] = value;
+                                    } else if (typeof value === 'number') {
                                         mergedMetrics[key] = value;
                                     } else if (typeof value === 'string') {
                                         const num = parseFloat(value);
@@ -1674,7 +1794,86 @@ export class UniversalMetricsCalculator {
                         const processedContent = this.processDreamContent(dreamContent);
                         
                         // Only process metrics if we have explicit metrics text
-                        const basicMetrics = metricsText.trim() ? this.processMetrics(metricsText, {}) : {};
+                        let basicMetrics: Record<string, number | string | string[]> = metricsText.trim() ? this.processMetrics(metricsText, {}) : {};
+                        
+                        // Also extract metrics from frontmatter if configured
+                        const hasConfiguredFrontmatterMetrics = Object.values(this.settings.metrics || {})
+                            .some(metric => metric.frontmatterProperty && metric.enabled);
+                            
+                        if (hasConfiguredFrontmatterMetrics) {
+                            try {
+                                // Extract frontmatter section from the original content
+                                const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+                                if (frontmatterMatch) {
+                                    const yamlContent = frontmatterMatch[1];
+                                    
+                                    // Extract metrics based on configured frontmatter properties
+                                    for (const [metricId, metric] of Object.entries(this.settings.metrics || {})) {
+                                        if (metric.frontmatterProperty && metric.enabled) {
+                                            // Skip if we already have this metric from callout text
+                                            if (basicMetrics[metric.name]) {
+                                                continue;
+                                            }
+                                            
+                                            // Try multiple regex patterns to be more flexible with YAML formatting
+                                            const patterns = [
+                                                // Standard YAML with quotes
+                                                new RegExp(`^${this.escapeRegex(metric.frontmatterProperty)}:\\s*["']([^"']+)["']\\s*$`, 'm'),
+                                                // Standard YAML without quotes
+                                                new RegExp(`^${this.escapeRegex(metric.frontmatterProperty)}:\\s*([^\\n]+)\\s*$`, 'm'),
+                                                // YAML with spaces around colon
+                                                new RegExp(`^${this.escapeRegex(metric.frontmatterProperty)}\\s*:\\s*([^\\n]+)\\s*$`, 'm')
+                                            ];
+                                            
+                                            let value: string | null = null;
+                                            for (const pattern of patterns) {
+                                                const match = yamlContent.match(pattern);
+                                                if (match && match[1]) {
+                                                    value = match[1].trim();
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            if (value !== null) {
+                                                // Remove quotes if present
+                                                value = value.replace(/^["']|["']$/g, '');
+                                                
+                                                // Check if metric is text-based
+                                                if (metric.type === 'string') {
+                                                    // Store text value directly or as array if comma-separated
+                                                    basicMetrics[metric.name] = value.includes(',') 
+                                                        ? value.split(',').map(v => v.trim()).filter(v => v.length > 0)
+                                                        : value;
+                                                    this.logger?.debug('Parse', `Extracted text metric from frontmatter for callout entry: ${metric.name} = ${value}`, {
+                                                        file: filePath,
+                                                        property: metric.frontmatterProperty,
+                                                        diaryIdx: diary.idx,
+                                                        type: 'text'
+                                                    });
+                                                } else {
+                                                    // Handle numeric metrics
+                                                    const num = parseFloat(value);
+                                                    if (!isNaN(num)) {
+                                                        // Use the metric's display name, not the ID
+                                                        basicMetrics[metric.name] = num;
+                                                        this.logger?.debug('Parse', `Extracted metric from frontmatter for callout entry: ${metric.name} = ${num}`, {
+                                                            file: filePath,
+                                                            property: metric.frontmatterProperty,
+                                                            diaryIdx: diary.idx
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                this.logger?.debug('Parse', 'Failed to extract frontmatter metrics for callout entry', {
+                                    file: filePath,
+                                    error: error instanceof Error ? error.message : String(error)
+                                });
+                            }
+                        }
                         
                         const entry = {
                             id: blockId || `entry_${diary.idx}_${Date.now()}`,
@@ -1855,7 +2054,7 @@ export class UniversalMetricsCalculator {
             
             // ONLY preserve metrics from the [!dream-metrics] callout (these are the REAL metrics)
             // DO NOT add any calculated metrics that would contaminate the results
-            const calculatedMetrics: Record<string, number> = { ...entry.metrics || {} };
+            const calculatedMetrics: Record<string, number | string | string[]> = { ...entry.metrics || {} };
             
             // Only add basic word count if it was explicitly in the callout
             if (!calculatedMetrics['Words'] && !calculatedMetrics['Word Count'] && entry.metrics && Object.keys(entry.metrics).some(key => key.toLowerCase().includes('words'))) {
@@ -2137,9 +2336,16 @@ export class UniversalMetricsCalculator {
         }
         return hash.toString();
     }
+    
+    /**
+     * Escapes special regex characters in a string
+     */
+    private escapeRegex(str: string): string {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
 
     private generateTaskId(): string {
-        return `metrics_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        return `metrics_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     }
 
     private getCacheHitRate(): number {

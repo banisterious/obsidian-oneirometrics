@@ -49,11 +49,11 @@ export interface DreamMetric {
     /** The Lucide icon identifier for the metric */
     icon: string;
     
-    /** The minimum allowed value for this metric */
-    minValue: number;
+    /** The minimum allowed value for this metric (not applicable for text metrics) */
+    minValue?: number;
     
-    /** The maximum allowed value for this metric */
-    maxValue: number;
+    /** The maximum allowed value for this metric (not applicable for text metrics) */
+    maxValue?: number;
     
     /** Optional description of what the metric measures and how to score it */
     description?: string;
@@ -127,7 +127,7 @@ export interface DreamMetricData {
     wordCount?: number;
     
     /** Record of metrics extracted from the dream entry */
-    metrics: Record<string, number | string>;
+    metrics: Record<string, number | string | string[]>;
     
     /** Optional metadata from the callout containing the dream entry */
     calloutMetadata?: CalloutMetadata[] | CalloutMetadata;
@@ -532,7 +532,7 @@ export const DEFAULT_METRICS: DreamMetric[] = [
         format: "list"
     },
     {
-        name: "Dream Theme",
+        name: "Dream Themes",
         description: "The dominant subjects, ideas, or emotional undercurrents present in your dream.",
         icon: "sparkles",
         minValue: 0,

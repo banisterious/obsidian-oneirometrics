@@ -114,13 +114,17 @@ iconCategories.forEach(category => {
 // Helper function to ensure a metric has all required properties
 // Uses standardizeMetric under the hood to ensure proper type compatibility
 export function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric {
+    // Check if this is a text-based metric
+    const isTextMetric = metric.type === 'string' || metric.type === 'text';
+    
     // Start with all properties from the original metric
     const metricWithRequired = {
         ...metric, // Include all original properties
         name: metric.name || '',
         icon: metric.icon || '',
-        minValue: metric.minValue || 1,
-        maxValue: metric.maxValue || 5,
+        // Only set minValue/maxValue for non-text metrics
+        minValue: isTextMetric ? undefined : (metric.minValue ?? 1),
+        maxValue: isTextMetric ? undefined : (metric.maxValue ?? 5),
         description: metric.description || '',
         enabled: metric.enabled !== undefined ? metric.enabled : true
     };
@@ -133,7 +137,7 @@ export function ensureCompleteMetric(metric: Partial<DreamMetric>): DreamMetric 
 function validateMetricName(name: string, existingMetrics: DreamMetric[]): string | null {
     if (!name.trim()) return "Name cannot be empty";
     if (name.length > 50) return "Name must be 50 characters or less";
-    if (!/^[a-zA-Z0-9\s-]+$/.test(name)) return "Name can only contain letters, numbers, spaces, and hyphens";
+    if (!/^[a-zA-Z0-9\s\-/]+$/.test(name)) return "Name can only contain letters, numbers, spaces, hyphens, and forward slashes";
     if (existingMetrics.some(m => m.name.toLowerCase() === name.toLowerCase())) {
         return "A metric with this name already exists";
     }
@@ -185,12 +189,12 @@ export class MetricEditorModal extends Modal {
         const nameSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
         const nameSetting = new Setting(nameSection)
             .setName('Name')
-            .setDesc('The name of the metric (letters, numbers, spaces, and hyphens only)')
+            .setDesc('The name of the metric (letters, numbers, spaces, hyphens, and forward slashes only)')
             .addText(text => {
                 text.setValue(this.metric.name)
                     .onChange(value => {
                         const error = validateMetricName(value, this.existingMetrics);
-                        nameSetting.setDesc(error || 'The name of the metric (letters, numbers, spaces, and hyphens only)');
+                        nameSetting.setDesc(error || 'The name of the metric (letters, numbers, spaces, hyphens, and forward slashes only)');
                         nameSetting.controlEl.classList.toggle('is-invalid', !!error);
                         this.metric.name = value;
                         renderRangeSection();
@@ -304,6 +308,19 @@ export class MetricEditorModal extends Modal {
         const rangeSection = contentEl.createEl('div', { cls: 'oom-metric-editor-section' });
         let rangeSetting: Setting | null = null;
         const renderRangeSection = () => {
+            // Clear the section first
+            rangeSection.empty();
+            
+            // Check if this is a text-based metric
+            const textMetricNames = ['Dream Themes', 'Characters List', 'Symbolic Content'];
+            const isTextMetric = this.metric.type === 'string' || 
+                                this.metric.type === 'text' || 
+                                textMetricNames.includes(this.metric.name);
+            if (isTextMetric) {
+                // Don't show range for text metrics
+                return;
+            }
+            
             const { min, max } = getMetricRange(this.metric);
             
             rangeSetting = new Setting(rangeSection)
@@ -362,11 +379,15 @@ export class MetricEditorModal extends Modal {
             .setDesc('Optional: Map this metric to a frontmatter property (e.g., dream-lucidity-level)')
             .addText(text => {
                 // Generate suggested property name based on metric name
-                const suggestedProperty = `dream-${this.metric.name.toLowerCase()
+                const cleanedName = this.metric.name.toLowerCase()
                     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
                     .replace(/\s+/g, '-')          // Replace spaces with hyphens
                     .replace(/-+/g, '-')           // Replace multiple hyphens with single
-                    .trim()}`;
+                    .trim();
+                // Don't add "dream-" prefix if the name already starts with "dream"
+                const suggestedProperty = cleanedName.startsWith('dream') 
+                    ? cleanedName 
+                    : `dream-${cleanedName}`;
                 
                 text.setValue(this.metric.frontmatterProperty || '')
                     .setPlaceholder(suggestedProperty)

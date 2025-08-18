@@ -12639,7 +12639,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (8.9 KB)
+   COMPONENT: DASHBOARD (9.1 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12886,6 +12886,19 @@ input[type="date"]:focus-visible {
 .oom-title-cell {
     font-weight: var(--font-medium);
     color: var(--text-normal);
+}
+
+/* Title link styles */
+.oom-title-link {
+    color: var(--text-accent);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease-in-out;
+}
+
+.oom-title-link:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
 }
 
 /* Empty state */

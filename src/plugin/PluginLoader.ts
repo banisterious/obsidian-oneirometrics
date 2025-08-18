@@ -289,7 +289,7 @@ export class PluginLoader {
             const requiredMetrics = [
                 "Sensory Detail", "Emotional Recall", "Lost Segments", "Descriptiveness", 
                 "Confidence Score", "Character Roles", "Characters Count", "Familiar Count", 
-                "Unfamiliar Count", "Characters List", "Dream Theme", "Character Clarity/Familiarity", "Lucidity Level", 
+                "Unfamiliar Count", "Characters List", "Dream Themes", "Character Clarity/Familiarity", "Lucidity Level", 
                 "Dream Coherence", "Environmental Familiarity", "Ease of Recall", "Recall Stability"
             ];
             

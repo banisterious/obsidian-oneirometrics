@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App } from 'obsidian';
+import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App, Menu } from 'obsidian';
 import type OneiroMetricsPlugin from '../../../main';
 import type { DreamMetricData } from '../../../types';
 import type { DreamMetricsSettings } from '../../../types';
@@ -436,14 +436,14 @@ export class OneiroMetricsDashboardView extends ItemView {
                 .map(([key, metric]) => ({ key, name: metric.name }));
             
             for (const metric of enabledMetrics) {
+                // Display "Themes" instead of "Dream Themes" in the header
+                const displayName = metric.name === 'Dream Themes' ? 'Themes' : metric.name;
                 headerRow.createEl('th', { 
-                    text: metric.name, 
+                    text: displayName, 
                     cls: 'sortable metric-header', 
                     attr: { 'data-column': metric.key } 
                 });
             }
-            
-            headerRow.createEl('th', { text: 'Source', cls: 'oom-source-header' });
             
             // Create table body
             const tbody = table.createEl('tbody');
@@ -464,10 +464,96 @@ export class OneiroMetricsDashboardView extends ItemView {
                     cls: 'oom-date-cell'
                 });
                 
-                // Title cell
-                row.createEl('td', { 
+                // Title cell - make it clickable
+                const titleCell = row.createEl('td', { cls: 'oom-title-cell' });
+                const titleLink = titleCell.createEl('a', { 
                     text: entry.title,
-                    cls: 'oom-title-cell'
+                    cls: 'oom-title-link',
+                    href: '#'
+                });
+                // Helper function to get source path
+                const getSourcePath = (): string => {
+                    const source = entry.source;
+                    if (typeof source === 'string') {
+                        return source;
+                    } else if (source && typeof source === 'object') {
+                        const sourceObj = source as { file: string; id?: string };
+                        return sourceObj.file;
+                    }
+                    return '';
+                };
+                
+                titleLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sourcePath = getSourcePath();
+                    if (sourcePath) {
+                        const file = this.app.vault.getAbstractFileByPath(sourcePath);
+                        if (file instanceof TFile) {
+                            this.app.workspace.getLeaf().openFile(file);
+                        }
+                    }
+                });
+                
+                // Add right-click context menu
+                titleLink.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    const sourcePath = getSourcePath();
+                    if (!sourcePath) return;
+                    
+                    const file = this.app.vault.getAbstractFileByPath(sourcePath);
+                    if (!(file instanceof TFile)) return;
+                    
+                    const menu = new Menu();
+                    
+                    menu.addItem((item) => {
+                        item.setTitle('Open in new tab')
+                            .setIcon('file-plus')
+                            .onClick(() => {
+                                this.app.workspace.getLeaf('tab').openFile(file);
+                            });
+                    });
+                    
+                    menu.addItem((item) => {
+                        item.setTitle('Open to the right')
+                            .setIcon('separator-vertical')
+                            .onClick(() => {
+                                this.app.workspace.getLeaf('split').openFile(file);
+                            });
+                    });
+                    
+                    menu.addItem((item) => {
+                        item.setTitle('Open to the left')
+                            .setIcon('separator-vertical')
+                            .onClick(() => {
+                                const leaf = this.app.workspace.getLeaf('split');
+                                this.app.workspace.setActiveLeaf(leaf, { focus: true });
+                                const leftLeaf = this.app.workspace.getLeaf('split');
+                                leftLeaf.openFile(file);
+                            });
+                    });
+                    
+                    menu.addItem((item) => {
+                        item.setTitle('Open in new window')
+                            .setIcon('maximize')
+                            .onClick(() => {
+                                this.app.workspace.getLeaf('window').openFile(file);
+                            });
+                    });
+                    
+                    menu.addSeparator();
+                    
+                    menu.addItem((item) => {
+                        item.setTitle('Reveal in navigation')
+                            .setIcon('folder-open')
+                            .onClick(() => {
+                                const fileExplorer = this.app.workspace.getLeavesOfType('file-explorer')[0];
+                                if (fileExplorer) {
+                                    (fileExplorer.view as any).revealInFolder(file);
+                                }
+                            });
+                    });
+                    
+                    menu.showAtMouseEvent(e);
                 });
                 
                 // Content cell with expand/collapse
@@ -496,27 +582,49 @@ export class OneiroMetricsDashboardView extends ItemView {
                 // Metric cells
                 for (const metric of enabledMetrics) {
                     const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+                    let displayValue = String(value);
+                    
+                    // Special handling for Dream Themes and other list/tag type metrics
+                    if (metric.name === 'Dream Themes' || metric.name === 'Characters List' || metric.name === 'Symbolic Content') {
+                        
+                        // If the value is an array, join it with commas
+                        if (Array.isArray(value)) {
+                            // Handle malformed arrays where first element starts with [ and last ends with ]
+                            const cleanedArray = value.map((item, index) => {
+                                let cleaned = String(item);
+                                // Remove opening bracket from first element
+                                if (index === 0) {
+                                    cleaned = cleaned.replace(/^\[/, '');
+                                }
+                                // Remove closing bracket from last element
+                                if (index === value.length - 1) {
+                                    cleaned = cleaned.replace(/\]$/, '');
+                                }
+                                return cleaned.trim();
+                            });
+                            displayValue = cleanedArray.join(', ');
+                        } else if (typeof value === 'string' && value !== '0' && value !== '') {
+                            // If it's already a string and not just '0' or empty
+                            // Strip square brackets if present (from YAML array syntax)
+                            // Also handle cases where there might be quotes inside brackets
+                            const processed = (value as string)
+                                .replace(/^\[|\]$/g, '') // Remove outer brackets
+                                .replace(/^["']|["']$/g, '') // Remove quotes if present
+                                .trim();
+                            
+                            displayValue = processed;
+                            
+                        } else if (String(value) === '0' || String(value) === '' || value === 0) {
+                            // If it's 0 or empty string (checking both as string and number), show as empty
+                            displayValue = '';
+                        }
+                    }
+                    
                     row.createEl('td', { 
-                        text: String(value),
+                        text: displayValue,
                         cls: `metric-${metric.key}` 
                     });
                 }
-                
-                // Source cell with link
-                const sourceCell = row.createEl('td', { cls: 'oom-source-cell' });
-                const sourceLink = sourceCell.createEl('a', { 
-                    text: entry.source.split('/').pop() || 'Unknown',
-                    cls: 'oom-source-link',
-                    href: '#'
-                });
-                sourceLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // Open the source file
-                    const file = this.app.vault.getAbstractFileByPath(entry.source);
-                    if (file instanceof TFile) {
-                        this.app.workspace.getLeaf().openFile(file);
-                    }
-                });
             }
             
             // Add virtual scrolling support

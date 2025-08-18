@@ -544,7 +544,7 @@ Understanding how memory works, particularly the nature of dream recall and its 
 
 - **Characters Count/List**: Influenced by Hall and Van de Castle's system of dream content analysis
 - **Environmental Familiarity**: Draws from research on place recognition and environmental psychology
-- **Dream Theme**: Inspired by archetypal and thematic approaches to dream interpretation
+- **Dream Themes**: Inspired by archetypal and thematic approaches to dream interpretation
 
 #### Lucidity and Awareness
 
@@ -726,7 +726,7 @@ This metric serves as a **qualitative record of all distinct individual characte
 - **Example Format within Callout:** \`Characters List: Mom (fam), Friend Alex (fam), Mysterious Man (unfam), Talking Raven (unfam)\`
 - **Score:** This metric does not have a numerical score (1-5); it is a list of descriptive entries.
 `,
-            'Dream Theme': `
+            'Dream Themes': `
 This metric aims to identify the dominant subjects, ideas, or emotional undercurrents present in your dream. Instead of a numerical score, you will select one or more keywords or categories that best represent the core themes of the dream.
 
 * **Possible Categories/Keywords (Examples - User-definable list in plugin recommended):**
@@ -767,7 +767,7 @@ This metric assesses **how readily and effortlessly you could remember the dream
 This metric assesses **how well your memory of the dream holds up and remains consistent in the minutes and hours immediately following waking**. It measures the resilience of your dream recall against the natural process of forgetting. Tracking recall stability can help you understand if your current dream capture methods are sufficient to preserve details before they fade, and highlight whether certain dreams are inherently more "sticky" than others.
 `,
             'Symbolic Content': `
-This metric helps you identify and track the specific symbols that appear in your dreams. While your Dream Theme might capture the overall subject, Symbolic Content focuses on individual elements like a lion, a red door, or a recurring specific action that seems to carry deeper meaning. This can be recorded as a list of keywords or tags, allowing you to recognize your unique symbolic language and discover recurring motifs over time.
+This metric helps you identify and track the specific symbols that appear in your dreams. While your Dream Themes might capture the overall subject, Symbolic Content focuses on individual elements like a lion, a red door, or a recurring specific action that seems to carry deeper meaning. This can be recorded as a list of keywords or tags, allowing you to recognize your unique symbolic language and discover recurring motifs over time.
 `,
             'Time Distortion': `
 Time Distortion assesses the surreal nature of time's flow within your dream. Unlike waking life, dream time can speed up, slow down, jump abruptly, or even have events happening simultaneously. This 1-5 scale helps you quantify how linear or chaotic the passage of time felt, offering insights into how your mind processes temporal experiences in different dream states.
@@ -920,7 +920,7 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
     
     private getDreamExperienceMetrics(): DreamMetric[] {
         const allMetrics = this.getAllMetrics();
-        const orderedNames = ['Dream Theme', 'Symbolic Content', 'Lucidity Level', 'Dream Coherence', 'Environmental Familiarity', 'Time Distortion'];
+        const orderedNames = ['Dream Themes', 'Symbolic Content', 'Lucidity Level', 'Dream Coherence', 'Environmental Familiarity', 'Time Distortion'];
         
         // Return metrics in the exact order specified
         return orderedNames

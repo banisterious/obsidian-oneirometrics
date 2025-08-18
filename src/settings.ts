@@ -16,7 +16,7 @@ const DISABLED_METRICS_ORDER = [
   'Familiar Count',
   'Unfamiliar Count',
   'Characters List',
-  'Dream Theme',
+  'Dream Themes',
   'Character Clarity/Familiarity',
   'Lucidity Level',
   'Dream Coherence',

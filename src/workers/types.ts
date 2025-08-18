@@ -397,7 +397,7 @@ export interface MetricsEntry {
     title?: string;
     content: string;
     wordCount?: number;
-    metrics?: Record<string, number>;
+    metrics?: Record<string, number | string | string[]>;
     source?: string;
     metadata?: Record<string, any>;
 }
@@ -472,7 +472,7 @@ export interface ProcessedMetricsEntry {
     title?: string;
     content: string;
     originalWordCount?: number;
-    calculatedMetrics: Record<string, number>;
+    calculatedMetrics: Record<string, number | string | string[]>;
     sentimentScore?: number;
     advancedMetrics?: Record<string, number>;
     metadata?: Record<string, any>;

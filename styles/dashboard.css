@@ -245,6 +245,19 @@
     color: var(--text-normal);
 }
 
+/* Title link styles */
+.oom-title-link {
+    color: var(--text-accent);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease-in-out;
+}
+
+.oom-title-link:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+}
+
 /* Empty state */
 .oom-empty-state {
     text-align: center;

@@ -993,7 +993,7 @@ export class UnifiedTestSuiteModal extends Modal {
             { name: 'Familiar Count', description: 'Number of familiar characters from waking life (0-20)' },
             { name: 'Unfamiliar Count', description: 'Number of unfamiliar characters/strangers (0-20)' },
             { name: 'Characters List', description: 'List of all characters that appeared in dream' },
-            { name: 'Dream Theme', description: 'Dominant subjects, ideas, or emotional undercurrents' },
+            { name: 'Dream Themes', description: 'Dominant subjects, ideas, or emotional undercurrents' },
             { name: 'Symbolic Content', description: 'Meaningful or symbolic objects, figures, actions' },
             { name: 'Character Clarity/Familiarity', description: 'Distinctness and recognizability of characters (1-5)' },
             { name: 'Lucidity Level', description: 'Degree of awareness that you are dreaming (1-5)' },
