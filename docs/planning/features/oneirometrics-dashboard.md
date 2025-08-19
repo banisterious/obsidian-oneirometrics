@@ -1,9 +1,9 @@
 # OneiroMetrics Dashboard Migration Plan
 
-- **Document Version:** 1.1
+- **Document Version:** 1.2
 - **Date:** August 18, 2025
 - **Author:** John Banister
-- **Status:** In Progress
+- **Status:** In Progress - Core Implementation Complete
 
 ## Executive Summary
 
@@ -385,18 +385,57 @@ Based on analysis of `FilterManager.ts` and `DateFilter.ts`:
 
 ### Pending Features
 
-#### 🔄 Performance Optimizations
-- [ ] Incremental updates (only update changed rows)
-- [ ] Virtual scrolling for large datasets
+#### ✅ Performance Optimizations - MOSTLY COMPLETE
+- [x] Incremental updates (only update changed rows) - DONE
+- [x] Virtual scrolling for large datasets - DONE
 - [ ] Caching layer for parsed entries
 - [ ] Lazy loading of content
 
-#### 🔄 Advanced Features
-- [ ] Export functionality (CSV, JSON)
-- [ ] Metric aggregation statistics
-- [ ] Custom date range picker
-- [ ] Advanced search with metric filtering
+#### 🔄 Features Requiring Migration from Existing Code
+
+##### Sorting Functionality - MIGRATION NEEDED
+- **Current Implementation**: `DreamMetricsDOM.ts` and `TableGenerator.ts`
+- **Features to migrate**:
+  - Click headers to sort
+  - Visual sort indicators (⇅, ↑, ↓)
+  - Multi-column sorting support
+  - Sort state persistence
+- **Effort**: Low - Logic exists, needs adaptation for virtual scrolling
+
+##### Search and Filtering - MIGRATION NEEDED
+- **Current Implementation**: `FilterManager.ts`, `FilterUI.ts`, `DateFilter.ts`
+- **Features to migrate**:
+  - Live search with highlighting
+  - Date range filters (today, yesterday, this week, etc.)
+  - Custom date range picker
+  - Filter persistence across sessions
+  - Filter count display
+- **Effort**: Medium - Need to integrate with dashboard state management
+
+##### Export Functionality - MIGRATION NEEDED
+- **Current Implementation**: `csv-export-service.ts`
+- **Features to migrate**:
+  - CSV export with all columns
+  - JSON export support
+  - Date range exports
+  - Selected columns export
+- **Effort**: Low - Straightforward adaptation needed
+
+##### Metric Aggregation & Charts - MAJOR MIGRATION NEEDED
+- **Current Implementation**: `MetricsChartTabs.ts`, `ChartTabsManager.ts`
+- **Features to migrate**:
+  - 6 chart types (Statistics, Trends, Compare, Correlations, Heatmap, Insights)
+  - Chart.js integration
+  - Chart-specific export functionality
+  - Accessibility features (ARIA, keyboard nav)
+  - Chart state persistence
+- **Effort**: High - Complex system requiring significant integration work
+
+#### 🔄 New Features (Not in Current Implementation)
 - [ ] Batch operations (select multiple entries)
+- [ ] Advanced metric filtering
+- [ ] Real-time updates when files change
+- [ ] Metric threshold alerts
 
 #### 🔄 Migration Tools
 - [ ] Command to migrate from static HTML
@@ -409,6 +448,36 @@ Based on analysis of `FilterManager.ts` and `DateFilter.ts`:
 - Improved structured logging throughout
 - Proper TypeScript typing for all interfaces
 - Clean separation of concerns between view and data layers
+
+## Migration Priority Recommendations
+
+### Recommended Migration Order
+
+1. **Sorting Functionality** (1-2 days)
+   - Low effort, high impact
+   - Essential for usability
+   - Good foundation for other features
+
+2. **Export Functionality** (1-2 days)
+   - Low effort, high value
+   - Users need to export their data
+   - Can reuse existing CSV service
+
+3. **Search and Filtering** (3-4 days)
+   - Medium effort, critical feature
+   - Already partially implemented
+   - Need to integrate FilterManager
+
+4. **Metric Aggregation & Charts** (5-7 days)
+   - High effort, high value
+   - Most complex migration
+   - Consider phased approach per chart type
+
+### Features That Can Wait
+- Batch operations (new feature)
+- Advanced metric filtering (enhancement)
+- Metric threshold alerts (new feature)
+- Migration tools (can run both versions in parallel)
 
 ## Implementation Recommendations
 
