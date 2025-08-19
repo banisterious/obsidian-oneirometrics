@@ -73,13 +73,14 @@ export class OneiroMetricsDashboardView extends ItemView {
         super(leaf);
         this.plugin = plugin;
         
-        // Initialize state
+        // Initialize state with saved sort preferences or defaults
+        const savedSort = this.plugin.settings?.dashboardSort || { column: 'date', direction: 'asc' };
         this.state = {
             entries: [],
             filteredEntries: [],
             currentFilter: (this.plugin.settings?.lastAppliedFilter || 'all') as DateFilter,
-            sortColumn: 'date',
-            sortDirection: 'asc',
+            sortColumn: savedSort.column || 'date',  // Default to Date column
+            sortDirection: (savedSort.direction || 'asc') as 'asc' | 'desc',  // Default ascending (oldest first)
             searchQuery: '',
             expandedRows: new Set(),
             isLoading: false,
@@ -311,6 +312,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             // Load initial data
             await this.loadDreamEntries();
             
+            // Apply initial sort (Date ascending by default)
+            this.sortEntries();
+            
             // Render the table
             this.renderTable();
             
@@ -476,6 +480,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             
             // Update state with the extracted entries
             this.updateEntriesIncremental(dreamEntries);
+            
+            // Apply initial sort after loading entries
+            this.sortEntries();
             
             // Track initial load as incremental update if entries already existed
             if (this.state.entries.length > 0) {
@@ -696,9 +703,17 @@ export class OneiroMetricsDashboardView extends ItemView {
             const thead = table.createEl('thead');
             const headerRow = thead.createEl('tr');
             
-            // Basic columns
-            headerRow.createEl('th', { text: 'Date', cls: 'sortable', attr: { 'data-column': 'date' } });
-            headerRow.createEl('th', { text: 'Title', cls: 'sortable', attr: { 'data-column': 'title' } });
+            // Basic columns with sort indicators
+            const dateHeader = headerRow.createEl('th', { 
+                text: 'Date', 
+                cls: this.getHeaderClass('date'),
+                attr: { 'data-column': 'date' } 
+            });
+            const titleHeader = headerRow.createEl('th', { 
+                text: 'Title', 
+                cls: this.getHeaderClass('title'),
+                attr: { 'data-column': 'title' } 
+            });
             headerRow.createEl('th', { text: 'Content', cls: 'oom-content-header' });
             
             // Add metric columns for enabled metrics
@@ -711,7 +726,7 @@ export class OneiroMetricsDashboardView extends ItemView {
                 const displayName = metric.name === 'Dream Themes' ? 'Themes' : metric.name;
                 headerRow.createEl('th', { 
                     text: displayName, 
-                    cls: 'sortable metric-header', 
+                    cls: this.getHeaderClass(metric.key) + ' metric-header', 
                     attr: { 'data-column': metric.key } 
                 });
             }
@@ -967,7 +982,7 @@ export class OneiroMetricsDashboardView extends ItemView {
                 .filter(m => m.enabled)
                 .map(m => ({ key: m.name.toLowerCase().replace(/\s+/g, '-'), name: m.name }));
             
-            // Initialize virtual scroller
+            // Initialize virtual scroller with sort state
             this.virtualScroller = new VirtualScroller({
                 container,
                 entries: this.state.filteredEntries,
@@ -976,6 +991,8 @@ export class OneiroMetricsDashboardView extends ItemView {
                 enabledMetrics,
                 expandedRows: this.state.expandedRows,
                 plugin: this.plugin,
+                sortColumn: this.state.sortColumn,
+                sortDirection: this.state.sortDirection,
                 onRowExpand: (id, isExpanded) => {
                     // Update state when row is expanded/collapsed
                     if (isExpanded) {
@@ -1058,6 +1075,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private handleSort(column: string) {
+        // Update sort state
         if (this.state.sortColumn === column) {
             // Toggle direction
             this.state.sortDirection = this.state.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -1067,13 +1085,19 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.state.sortDirection = 'asc';
         }
         
+        // Save sort preferences to settings
+        this.saveSortPreferences();
+        
         // Sort the filtered entries
         this.sortEntries();
         
+        // Update visual indicators
+        this.updateSortIndicators();
+        
         // Update the view based on current mode
         if (this.virtualScroller && !this.legacyMode) {
-            // For virtual scroller, just update entries
-            this.virtualScroller.updateEntries(this.state.filteredEntries);
+            // For virtual scroller, update entries with sort state
+            this.virtualScroller.updateEntries(this.state.filteredEntries, this.state.sortColumn, this.state.sortDirection);
         } else {
             // When sort changes in legacy mode, we need a full re-render since order changed
             // Clear pending updates to force full render
@@ -1111,6 +1135,61 @@ export class OneiroMetricsDashboardView extends ItemView {
         });
     }
     
+    /**
+     * Get the appropriate CSS class for a table header based on sort state
+     */
+    private getHeaderClass(column: string): string {
+        let classes = 'sortable';
+        
+        if (this.state.sortColumn === column) {
+            classes += this.state.sortDirection === 'asc' ? ' sorted-asc' : ' sorted-desc';
+        }
+        
+        return classes;
+    }
+    
+    /**
+     * Update sort indicators on all table headers
+     */
+    private updateSortIndicators() {
+        // Find all sortable headers
+        const headers = this.containerEl.querySelectorAll('th.sortable');
+        
+        headers.forEach(header => {
+            const column = header.getAttribute('data-column');
+            if (!column) return;
+            
+            // Remove existing sort classes
+            header.classList.remove('sorted-asc', 'sorted-desc');
+            
+            // Add appropriate sort class if this is the sorted column
+            if (column === this.state.sortColumn) {
+                header.classList.add(this.state.sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+        });
+    }
+    
+    /**
+     * Save sort preferences to plugin settings
+     */
+    private saveSortPreferences() {
+        if (!this.plugin.settings) return;
+        
+        // Save the current sort state
+        this.plugin.settings.dashboardSort = {
+            column: this.state.sortColumn,
+            direction: this.state.sortDirection
+        };
+        
+        // Save settings
+        this.plugin.saveSettings();
+        
+        this.plugin.logger?.debug('Dashboard', 'Sort preferences saved', {
+            column: this.state.sortColumn,
+            direction: this.state.sortDirection
+        });
+    }
+    
     private handleSearch(query: string) {
         this.state.searchQuery = query;
         this.applyFilters();
@@ -1141,7 +1220,7 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Update virtual scroller if it exists
         if (this.virtualScroller) {
-            this.virtualScroller.updateEntries(this.state.filteredEntries);
+            this.virtualScroller.updateEntries(this.state.filteredEntries, this.state.sortColumn, this.state.sortDirection);
         } else {
             // When filters change, we need a full re-render since visible entries changed
             // Clear pending updates to force full render
@@ -1273,7 +1352,7 @@ export class OneiroMetricsDashboardView extends ItemView {
             
             // If using virtual scroller, update it directly for better performance
             if (this.virtualScroller && !this.legacyMode) {
-                this.virtualScroller.updateEntries(this.state.filteredEntries);
+                this.virtualScroller.updateEntries(this.state.filteredEntries, this.state.sortColumn, this.state.sortDirection);
                 
                 // Log performance metrics
                 const metrics = this.virtualScroller.getPerformanceMetrics();
@@ -1467,8 +1546,8 @@ export class OneiroMetricsDashboardView extends ItemView {
             // Apply filters to get updated filtered entries
             this.applyFilters();
             
-            // Update virtual scroller with new entries
-            this.virtualScroller.updateEntries(this.state.filteredEntries);
+            // Update virtual scroller with new entries and sort state
+            this.virtualScroller.updateEntries(this.state.filteredEntries, this.state.sortColumn, this.state.sortDirection);
             
             // Log performance
             const metrics = this.virtualScroller.getPerformanceMetrics();

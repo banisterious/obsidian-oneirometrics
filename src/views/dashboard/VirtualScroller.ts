@@ -24,6 +24,8 @@ interface VirtualScrollerOptions {
     enabledMetrics: Array<{ key: string; name: string }>;
     expandedRows: Set<string>;
     plugin: DreamMetricsPlugin;
+    sortColumn?: string;
+    sortDirection?: 'asc' | 'desc';
     onRowExpand?: (id: string, isExpanded: boolean) => void;
     onRowClick?: (entry: DreamMetricData) => void;
     onSort?: (column: string) => void;
@@ -49,6 +51,8 @@ export class VirtualScroller {
     private enabledMetrics: Array<{ key: string; name: string }>;
     private expandedRows: Set<string>;
     private plugin: DreamMetricsPlugin;
+    private sortColumn: string;
+    private sortDirection: 'asc' | 'desc';
     
     // Callbacks
     private onRowExpand?: (id: string, isExpanded: boolean) => void;
@@ -82,6 +86,8 @@ export class VirtualScroller {
         this.enabledMetrics = options.enabledMetrics;
         this.expandedRows = options.expandedRows;
         this.plugin = options.plugin;
+        this.sortColumn = options.sortColumn || 'date';
+        this.sortDirection = options.sortDirection || 'asc';
         this.onRowExpand = options.onRowExpand;
         this.onRowClick = options.onRowClick;
         this.onSort = options.onSort;
@@ -146,17 +152,17 @@ export class VirtualScroller {
         const thead = this.tableEl!.createEl('thead');
         const headerRow = thead.createEl('tr');
         
-        // Date column
+        // Date column with sort indicator
         const dateHeader = headerRow.createEl('th', { 
             text: 'Date',
-            cls: 'sortable oom-header-date',
+            cls: this.getHeaderClass('date') + ' oom-header-date',
             attr: { 'data-column': 'date' }
         });
         
-        // Title column
+        // Title column with sort indicator
         const titleHeader = headerRow.createEl('th', { 
             text: 'Title',
-            cls: 'sortable oom-header-title',
+            cls: this.getHeaderClass('title') + ' oom-header-title',
             attr: { 'data-column': 'title' }
         });
         
@@ -166,12 +172,12 @@ export class VirtualScroller {
             cls: 'oom-header-content'
         });
         
-        // Metric columns
+        // Metric columns with sort indicators
         const metricHeaders: HTMLElement[] = [];
         for (const metric of this.enabledMetrics) {
             const metricHeader = headerRow.createEl('th', { 
                 text: metric.name,
-                cls: `sortable oom-header-metric metric-${metric.key}`,
+                cls: this.getHeaderClass(metric.key) + ` oom-header-metric metric-${metric.key}`,
                 attr: { 'data-column': metric.key }
             });
             metricHeaders.push(metricHeader);
@@ -604,10 +610,53 @@ export class VirtualScroller {
         this.container.style.setProperty('--oom-visible-rows', String(this.visibleRows));
     }
     
+    /**
+     * Get the appropriate CSS class for a table header based on sort state
+     */
+    private getHeaderClass(column: string): string {
+        let classes = 'sortable';
+        
+        if (this.sortColumn === column) {
+            classes += this.sortDirection === 'asc' ? ' sorted-asc' : ' sorted-desc';
+        }
+        
+        return classes;
+    }
+    
+    /**
+     * Update sort state and re-render headers
+     */
+    public updateSortState(column: string, direction: 'asc' | 'desc'): void {
+        this.sortColumn = column;
+        this.sortDirection = direction;
+        
+        // Update header classes
+        const headers = this.tableEl?.querySelectorAll('th.sortable');
+        if (headers) {
+            headers.forEach(header => {
+                const col = header.getAttribute('data-column');
+                if (!col) return;
+                
+                // Remove existing sort classes
+                header.classList.remove('sorted-asc', 'sorted-desc');
+                
+                // Add appropriate sort class if this is the sorted column
+                if (col === this.sortColumn) {
+                    header.classList.add(this.sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
+        }
+    }
+    
     // Public methods for updating data
     
-    public updateEntries(entries: DreamMetricData[]): void {
+    public updateEntries(entries: DreamMetricData[], sortColumn?: string, sortDirection?: 'asc' | 'desc'): void {
         this.entries = entries;
+        
+        // Update sort state if provided
+        if (sortColumn !== undefined && sortDirection !== undefined) {
+            this.updateSortState(sortColumn, sortDirection);
+        }
         
         // Reset scroll position
         if (this.scrollContainer) {

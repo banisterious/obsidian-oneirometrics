@@ -294,6 +294,14 @@ export interface DreamMetricsSettings {
     /** Custom date range for filter persistence */
     customDateRange?: { start: string, end: string };
     
+    /** Dashboard sort preferences */
+    dashboardSort?: {
+        /** Column to sort by */
+        column: string;
+        /** Sort direction */
+        direction: 'asc' | 'desc';
+    };
+    
     /** Configuration for logging */
     logging: {
         /** Log level */
