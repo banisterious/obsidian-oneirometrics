@@ -12639,7 +12639,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (24.5 KB)
+   COMPONENT: DASHBOARD (27.1 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12739,6 +12739,129 @@ input[type="date"]:focus-visible {
 .oom-custom-date-modal {
     width: 480px;
     max-width: 90vw;
+}
+
+/* Charts Section in Dashboard */
+.oom-dashboard-charts-section {
+    margin-top: var(--size-4-4);
+    padding: var(--size-4-2);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+}
+
+.oom-dashboard-charts-header {
+    margin-bottom: var(--size-4-3);
+}
+
+.oom-dashboard-charts-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.oom-dashboard-charts-title h3 {
+    margin: 0;
+    font-size: var(--h3-size);
+    font-weight: var(--h3-weight);
+    color: var(--text-normal);
+}
+
+.oom-charts-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-s);
+    transition: all 0.2s ease;
+}
+
+.oom-charts-toggle:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.oom-charts-toggle.collapsed .oom-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.oom-toggle-icon {
+    transition: transform 0.2s ease;
+}
+
+.oom-dashboard-charts-container {
+    min-height: 400px;
+    transition: all 0.3s ease;
+}
+
+.oom-chart-tabs-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: var(--size-4-4);
+}
+
+.oom-charts-placeholder-text {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.oom-charts-error {
+    padding: var(--size-4-3);
+    margin: var(--size-4-2) 0;
+    background-color: var(--background-modifier-error);
+    border: 1px solid var(--background-modifier-error-hover);
+    border-radius: var(--radius-s);
+    color: var(--text-error);
+}
+
+/* Statistics table within charts */
+.oom-statistics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--size-4-2);
+}
+
+.oom-statistics-table th,
+.oom-statistics-table td {
+    padding: var(--size-4-2);
+    text-align: left;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.oom-statistics-table th {
+    font-weight: var(--font-semibold);
+    background-color: var(--background-secondary-alt);
+    color: var(--text-normal);
+}
+
+.oom-statistics-table td {
+    color: var(--text-muted);
+}
+
+.oom-statistics-table td.metric-name {
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
+}
+
+.oom-statistics-table td.metric-avg,
+.oom-statistics-table td.metric-total {
+    font-weight: var(--font-semibold);
+    color: var(--text-accent);
+}
+
+.oom-no-data {
+    text-align: center;
+    padding: var(--size-4-4);
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 .oom-modal-description {

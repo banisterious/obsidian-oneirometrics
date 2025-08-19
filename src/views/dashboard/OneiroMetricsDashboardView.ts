@@ -12,6 +12,7 @@ import { CustomDateRangeModal } from './CustomDateRangeModal';
 import { DashboardDateNavigatorModal } from './DashboardDateNavigatorModal';
 import { ContentToggler } from '../../dom/content/ContentToggler';
 import { VirtualScroller } from './VirtualScroller';
+import { DashboardChartsIntegration } from './DashboardChartsIntegration';
 
 export const ONEIROMETRICS_DASHBOARD_VIEW_TYPE = 'oneirometrics-dashboard';
 
@@ -53,6 +54,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     private tableGenerator: TableGenerator | null = null;
     private contentToggler: ContentToggler;
     public virtualScroller: VirtualScroller | null = null;
+    private chartsIntegration: DashboardChartsIntegration | null = null;
     
     // File watcher and performance monitoring
     private fileWatcherRef: any = null;
@@ -307,6 +309,12 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.virtualScroller = null;
         }
         
+        // Clean up charts integration
+        if (this.chartsIntegration) {
+            this.chartsIntegration.destroy();
+            this.chartsIntegration = null;
+        }
+        
         // Cleanup file watcher
         this.cleanupFileWatcher();
         
@@ -420,6 +428,27 @@ export class OneiroMetricsDashboardView extends ItemView {
     private createTableContainer() {
         const tableContainer = this.containerEl.createDiv({ cls: 'oom-table-container' });
         // Table will be rendered here
+        
+        // Initialize charts integration below the table
+        this.initializeChartsIntegration();
+    }
+    
+    private async initializeChartsIntegration() {
+        try {
+            // Create charts integration instance
+            this.chartsIntegration = new DashboardChartsIntegration(
+                this.app,
+                this.plugin,
+                this.plugin.logger
+            );
+            
+            // Initialize charts section in the dashboard
+            await this.chartsIntegration.initialize(this.containerEl);
+            
+            this.plugin.logger?.debug('Dashboard', 'Charts integration initialized');
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to initialize charts integration', error);
+        }
     }
     
     private async loadDreamEntries() {
@@ -528,6 +557,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             
             // Apply initial sort after loading entries
             this.sortEntries();
+            
+            // Update charts with new data
+            await this.updateChartsWithData();
             
             // Track initial load as incremental update if entries already existed
             if (this.state.entries.length > 0) {
@@ -1151,6 +1183,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             // Re-render the table
             this.renderTable();
         }
+        
+        // Update charts after sorting (data order may affect certain visualizations)
+        this.updateChartsWithData();
     }
     
     private sortEntries() {
@@ -1356,6 +1391,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             totalEntries: this.state.entries.length,
             filteredEntries: this.state.filteredEntries.length
         });
+        
+        // Update charts with filtered data
+        this.updateChartsWithData();
     }
     
     private applyDateFilter(entries: DreamMetricData[], filter: DateFilter): DreamMetricData[] {
@@ -1513,6 +1551,9 @@ export class OneiroMetricsDashboardView extends ItemView {
                     totalRenders: metrics.totalRenders
                 });
             }
+            
+            // Update charts with refreshed data
+            await this.updateChartsWithData();
         } catch (error) {
             this.plugin.logger?.error('Dashboard', 'Refresh failed', error);
             new Notice('Failed to refresh dream metrics');
@@ -2109,6 +2150,8 @@ export class OneiroMetricsDashboardView extends ItemView {
                 // Re-load entries and render
                 this.loadDreamEntries().then(() => {
                     this.renderTable();
+                    // Update charts with new metrics configuration
+                    this.updateChartsWithData();
                 });
             }
         });
@@ -2290,6 +2333,40 @@ export class OneiroMetricsDashboardView extends ItemView {
             if (a[i] !== b[i]) return false;
         }
         return true;
+    }
+    
+    /**
+     * Update charts with current filtered data
+     */
+    private async updateChartsWithData(): Promise<void> {
+        if (!this.chartsIntegration) {
+            this.plugin.logger?.debug('Dashboard', 'Charts integration not initialized, skipping update');
+            return;
+        }
+        
+        try {
+            // Use filtered entries for charts (respects current filters)
+            const entriesToChart = this.state.filteredEntries;
+            
+            if (entriesToChart.length === 0) {
+                this.plugin.logger?.debug('Dashboard', 'No entries to chart');
+                return;
+            }
+            
+            // Get enabled metrics from settings
+            const enabledMetrics = this.plugin.settings?.metrics || {};
+            
+            this.plugin.logger?.debug('Dashboard', 'Updating charts', {
+                entriesCount: entriesToChart.length,
+                enabledMetricsCount: Object.values(enabledMetrics).filter((m: any) => m.enabled).length
+            });
+            
+            // Update charts with data
+            await this.chartsIntegration.updateCharts(entriesToChart, enabledMetrics);
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to update charts', error);
+        }
     }
     
     private updateDebounceTimer: NodeJS.Timeout | null = null;
