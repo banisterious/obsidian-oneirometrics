@@ -1,13 +1,15 @@
-import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App, Menu } from 'obsidian';
+import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App, Menu, Modal, ButtonComponent } from 'obsidian';
 import type DreamMetricsPlugin from '../../../main';
 import type { DreamMetricData } from '../../../types';
 import type { DreamMetricsSettings } from '../../../types';
 
 // Date filter types
-type DateFilter = 'all' | 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'lastMonth' | 'last30' | 'last90' | 'thisYear' | 'custom';
+type DateFilter = 'all' | 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'lastMonth' | 'last30' | 'last90' | 'thisYear' | 'last7' | 'custom';
 import { DreamMetricsDOM } from '../../dom/DreamMetricsDOM';
 import { TableGenerator } from '../../dom/tables/TableGenerator';
-import { FilterManager } from '../../dom/filters/FilterManager';
+import { FilterPersistenceManager } from './DashboardFilterPersistence';
+import { CustomDateRangeModal } from './CustomDateRangeModal';
+import { DashboardDateNavigatorModal } from './DashboardDateNavigatorModal';
 import { ContentToggler } from '../../dom/content/ContentToggler';
 import { VirtualScroller } from './VirtualScroller';
 
@@ -17,6 +19,7 @@ interface DashboardState {
     entries: DreamMetricData[];
     filteredEntries: DreamMetricData[];
     currentFilter: DateFilter;
+    customDateRange?: { start: string; end: string }; // For custom date ranges
     sortColumn: string;
     sortDirection: 'asc' | 'desc';
     searchQuery: string;
@@ -41,6 +44,8 @@ export class OneiroMetricsDashboardView extends ItemView {
     public containerEl: HTMLElement;
     private searchComponent: SearchComponent;
     private filterDropdown: DropdownComponent;
+    private filterPersistenceManager: FilterPersistenceManager;
+    private customDateRangeButton: ButtonComponent | null = null;
     
     // Virtual scrolling is enabled by default - set to true to use legacy mode
     private legacyMode: boolean = false; // Virtual scrolling is enabled by default
@@ -73,12 +78,23 @@ export class OneiroMetricsDashboardView extends ItemView {
         super(leaf);
         this.plugin = plugin;
         
+        // Initialize filter persistence manager
+        this.filterPersistenceManager = new FilterPersistenceManager(
+            this.plugin.settings,
+            () => this.plugin.saveSettings(),
+            this.plugin.logger
+        );
+        
+        // Load persisted filter state
+        const persistedFilter = this.filterPersistenceManager.loadFilter();
+        
         // Initialize state with saved sort preferences or defaults
         const savedSort = this.plugin.settings?.dashboardSort || { column: 'date', direction: 'asc' };
         this.state = {
             entries: [],
             filteredEntries: [],
-            currentFilter: (this.plugin.settings?.lastAppliedFilter || 'all') as DateFilter,
+            currentFilter: persistedFilter.filter as DateFilter,
+            customDateRange: persistedFilter.customDateRange,
             sortColumn: savedSort.column || 'date',  // Default to Date column
             sortDirection: (savedSort.direction || 'asc') as 'asc' | 'desc',  // Default ascending (oldest first)
             searchQuery: '',
@@ -346,9 +362,12 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.handleSearch(value);
         });
         
-        // Filter dropdown
+        // Filter container with dropdown and custom range button
         const filterContainer = controls.createDiv({ cls: 'oom-filter-container' });
-        this.filterDropdown = new DropdownComponent(filterContainer);
+        
+        // Filter dropdown
+        const dropdownContainer = filterContainer.createDiv({ cls: 'oom-dropdown-container' });
+        this.filterDropdown = new DropdownComponent(dropdownContainer);
         this.filterDropdown.addOption('all', 'All Time');
         this.filterDropdown.addOption('today', 'Today');
         this.filterDropdown.addOption('yesterday', 'Yesterday');
@@ -356,13 +375,39 @@ export class OneiroMetricsDashboardView extends ItemView {
         this.filterDropdown.addOption('lastWeek', 'Last Week');
         this.filterDropdown.addOption('thisMonth', 'This Month');
         this.filterDropdown.addOption('lastMonth', 'Last Month');
+        this.filterDropdown.addOption('last7', 'Last 7 Days');
         this.filterDropdown.addOption('last30', 'Last 30 Days');
         this.filterDropdown.addOption('last90', 'Last 90 Days');
         this.filterDropdown.addOption('thisYear', 'This Year');
+        this.filterDropdown.addOption('custom', 'Custom Range');
+        
+        // Set initial value from state
+        this.filterDropdown.setValue(this.state.currentFilter);
         
         this.filterDropdown.onChange((value) => {
-            this.handleFilterChange(value as DateFilter);
+            if (value === 'custom') {
+                this.openCustomDateRangeModal();
+            } else {
+                this.handleFilterChange(value as DateFilter);
+            }
         });
+        
+        // Custom date range button
+        const customRangeContainer = filterContainer.createDiv({ cls: 'oom-custom-range-container' });
+        this.customDateRangeButton = new ButtonComponent(customRangeContainer);
+        this.customDateRangeButton.setButtonText('📅 Custom Range');
+        this.customDateRangeButton.onClick(() => {
+            this.openCustomDateRangeModal();
+        });
+        
+        // Add active class if custom filter is active
+        if (this.state.currentFilter === 'custom' && this.state.customDateRange) {
+            this.customDateRangeButton.buttonEl.addClass('active');
+        }
+        
+        // Filter info display
+        const filterInfo = filterContainer.createDiv({ cls: 'oom-filter-info' });
+        this.updateFilterInfo(filterInfo);
         
         // Refresh button
         const refreshBtn = controls.createEl('button', {
@@ -1197,7 +1242,78 @@ export class OneiroMetricsDashboardView extends ItemView {
     
     private handleFilterChange(filter: DateFilter) {
         this.state.currentFilter = filter;
+        
+        // Clear custom date range if not using custom filter
+        if (filter !== 'custom') {
+            this.state.customDateRange = undefined;
+            this.customDateRangeButton?.buttonEl.removeClass('active');
+        }
+        
+        // Persist filter change
+        this.filterPersistenceManager.saveFilter(filter, this.state.customDateRange);
+        
         this.applyFilters();
+        this.updateFilterInfo();
+    }
+    
+    private openCustomDateRangeModal() {
+        // Use the enhanced date navigator modal with month/dual-month/quarter views
+        const modal = new DashboardDateNavigatorModal(
+            this.app,
+            this.plugin,
+            (start: string, end: string) => {
+                // Handle custom date range selection
+                this.state.currentFilter = 'custom';
+                this.state.customDateRange = { start, end };
+                
+                // Update UI
+                this.filterDropdown.setValue('custom');
+                this.customDateRangeButton?.buttonEl.addClass('active');
+                
+                // Persist filter change
+                this.filterPersistenceManager.saveFilter('custom', this.state.customDateRange);
+                
+                // Apply filters
+                this.applyFilters();
+                this.updateFilterInfo();
+                
+                new Notice(`Custom date range applied: ${start} to ${end}`);
+            },
+            this.state.customDateRange
+        );
+        modal.open();
+    }
+    
+    private updateFilterInfo(container?: HTMLElement) {
+        const filterInfo = container || this.containerEl.querySelector('.oom-filter-info') as HTMLElement;
+        if (!filterInfo) return;
+        
+        filterInfo.empty();
+        
+        if (this.state.currentFilter === 'custom' && this.state.customDateRange) {
+            filterInfo.createEl('span', {
+                text: `📅 ${this.state.customDateRange.start} to ${this.state.customDateRange.end}`,
+                cls: 'oom-custom-range-display'
+            });
+        } else if (this.state.currentFilter !== 'all') {
+            const filterLabels: Record<string, string> = {
+                'today': 'Today',
+                'yesterday': 'Yesterday',
+                'thisWeek': 'This Week',
+                'lastWeek': 'Last Week',
+                'thisMonth': 'This Month',
+                'lastMonth': 'Last Month',
+                'last7': 'Last 7 Days',
+                'last30': 'Last 30 Days',
+                'last90': 'Last 90 Days',
+                'thisYear': 'This Year'
+            };
+            
+            filterInfo.createEl('span', {
+                text: `🔍 ${filterLabels[this.state.currentFilter] || this.state.currentFilter}`,
+                cls: 'oom-filter-display'
+            });
+        }
     }
     
     private applyFilters() {
@@ -1213,7 +1329,9 @@ export class OneiroMetricsDashboardView extends ItemView {
             filtered = this.applySearchFilter(filtered, this.state.searchQuery);
         }
         
+        // Sort the filtered entries based on current sort state
         this.state.filteredEntries = filtered;
+        this.sortEntries();
         
         // Update filter count display
         this.updateFilterCount();
@@ -1229,11 +1347,33 @@ export class OneiroMetricsDashboardView extends ItemView {
             // Re-render the table
             this.renderTable();
         }
+        
+        // Log filter application
+        this.plugin.logger?.info('Dashboard', 'Filters applied', {
+            filter: this.state.currentFilter,
+            customRange: this.state.customDateRange,
+            searchQuery: this.state.searchQuery,
+            totalEntries: this.state.entries.length,
+            filteredEntries: this.state.filteredEntries.length
+        });
     }
     
     private applyDateFilter(entries: DreamMetricData[], filter: DateFilter): DreamMetricData[] {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        // Handle custom date range
+        if (filter === 'custom' && this.state.customDateRange) {
+            const { start, end } = this.state.customDateRange;
+            const startDate = new Date(start + 'T00:00:00');
+            const endDate = new Date(end + 'T23:59:59');
+            
+            return entries.filter(entry => {
+                if (!entry.date) return false;
+                const entryDate = new Date(entry.date);
+                return entryDate >= startDate && entryDate <= endDate;
+            });
+        }
         
         return entries.filter(entry => {
             if (!entry.date) return false;
@@ -1263,6 +1403,10 @@ export class OneiroMetricsDashboardView extends ItemView {
                     const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
                     const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1);
                     return entryDate >= lastMonthStart && entryDate < lastMonthEnd;
+                case 'last7':
+                    const sevenDaysAgo = new Date(today);
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    return entryDate >= sevenDaysAgo;
                 case 'last30':
                     const thirtyDaysAgo = new Date(today);
                     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1314,12 +1458,20 @@ export class OneiroMetricsDashboardView extends ItemView {
         // Update the header with count
         const header = this.containerEl.querySelector('.oom-dashboard-header h2');
         if (header) {
+            let headerText = 'Dream Metrics Dashboard';
+            
+            // Add count information
             if (count < total) {
-                header.textContent = `Dream Metrics Dashboard (${count} of ${total} entries)`;
+                headerText += ` (${count} of ${total} entries visible)`;
             } else {
-                header.textContent = `Dream Metrics Dashboard (${total} entries)`;
+                headerText += ` (${total} entries)`;
             }
+            
+            header.textContent = headerText;
         }
+        
+        // Update filter info display as well
+        this.updateFilterInfo();
     }
     
     private async refresh() {

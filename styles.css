@@ -12639,7 +12639,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (15.7 KB)
+   COMPONENT: DASHBOARD (24.5 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12697,7 +12697,96 @@ input[type="date"]:focus-visible {
 }
 
 .oom-filter-container {
+    display: flex;
+    gap: var(--size-4-2);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.oom-dropdown-container {
     min-width: 150px;
+}
+
+.oom-custom-range-container {
+    display: flex;
+    align-items: center;
+}
+
+.oom-custom-range-container button.active {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-filter-info {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: var(--size-4-1) var(--size-4-2);
+    background-color: var(--background-secondary-alt);
+    border-radius: var(--radius-s);
+    font-size: var(--font-smaller);
+    color: var(--text-muted);
+}
+
+.oom-filter-display,
+.oom-custom-range-display {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+/* Custom date range modal styles */
+.oom-custom-date-modal {
+    width: 480px;
+    max-width: 90vw;
+}
+
+.oom-modal-description {
+    color: var(--text-muted);
+    margin-bottom: var(--size-4-4);
+}
+
+.oom-date-input {
+    width: 100%;
+    padding: var(--size-4-1) var(--size-4-2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.oom-quick-ranges {
+    margin: var(--size-4-4) 0;
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-m);
+}
+
+.oom-quick-ranges h3 {
+    margin: 0 0 var(--size-4-2) 0;
+    font-size: var(--font-small);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+}
+
+.oom-quick-range-buttons {
+    display: flex;
+    gap: var(--size-4-2);
+    flex-wrap: wrap;
+}
+
+.oom-quick-range-buttons button {
+    padding: var(--size-4-1) var(--size-4-2);
+    font-size: var(--font-smaller);
+}
+
+.oom-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-4);
+    padding-top: var(--size-4-3);
+    border-top: 1px solid var(--background-modifier-border);
 }
 
 .oom-refresh-button {
@@ -13367,4 +13456,320 @@ body.shimmering-focus .oom-dashboard-header {
     font-style: italic;
     font-size: 0.9em;
     margin-top: 2rem;
+}
+
+/* ============================================
+   ENHANCED DATE NAVIGATOR MODAL STYLES
+   ============================================ */
+
+.oomp-dashboard-date-navigator .modal-container {
+    max-width: 900px;
+    width: 90%;
+}
+
+.enhanced-date-navigator-container.dashboard-variant {
+    padding: var(--size-4-4);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.dashboard-date-navigator-title {
+    text-align: center;
+    margin-bottom: var(--size-4-4);
+    color: var(--text-normal);
+    font-size: var(--h2-size);
+}
+
+/* Navigation Header */
+.nav-header-section {
+    margin-bottom: var(--size-4-3);
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: var(--size-4-3);
+}
+
+.nav-controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--size-4-2);
+    flex-wrap: wrap;
+}
+
+.view-mode-controls {
+    display: flex;
+    gap: var(--size-2-1);
+}
+
+.view-mode-controls button {
+    padding: var(--size-2-1) var(--size-4-2);
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-mode-controls button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.view-mode-controls button.active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.month-nav-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.nav-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+.current-month-display {
+    font-weight: 500;
+    color: var(--text-normal);
+    min-width: 150px;
+    text-align: center;
+}
+
+/* Selection Controls */
+.selection-controls-section {
+    margin-bottom: var(--size-4-3);
+    padding-bottom: var(--size-4-2);
+    border-bottom: 1px solid var(--background-modifier-border-focus);
+}
+
+.quick-ranges {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2-1);
+    flex-wrap: wrap;
+}
+
+.quick-ranges-label {
+    color: var(--text-muted);
+    font-size: var(--font-smaller);
+}
+
+.quick-range-btn {
+    padding: var(--size-2-1) var(--size-2-3);
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-size: var(--font-smaller);
+    transition: all 0.2s ease;
+}
+
+.quick-range-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+/* Calendar Section */
+.calendar-section {
+    margin-bottom: var(--size-4-3);
+}
+
+.single-month-view,
+.dual-month-view,
+.quarter-view {
+    display: flex;
+    gap: var(--size-4-3);
+    justify-content: center;
+}
+
+.dual-month-view {
+    flex-wrap: wrap;
+}
+
+.month-container,
+.quarter-month {
+    flex: 1;
+    min-width: 280px;
+    max-width: 350px;
+}
+
+.month-header {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin-bottom: var(--size-4-2);
+    font-size: var(--font-ui-medium);
+}
+
+.month-header.compact {
+    font-size: var(--font-ui-small);
+    margin-bottom: var(--size-2-2);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
+}
+
+.calendar-grid.compact {
+    gap: 0;
+}
+
+.day-header {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    padding: var(--size-2-2);
+    text-align: center;
+    font-size: var(--font-smaller);
+    font-weight: 500;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.calendar-day {
+    background: var(--background-primary);
+    border: 1px solid transparent;
+    padding: var(--size-2-2);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-normal);
+}
+
+.calendar-grid.compact .calendar-day {
+    padding: var(--size-2-1);
+    min-height: 24px;
+    font-size: var(--font-smaller);
+}
+
+.calendar-day:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+.calendar-day.today {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.calendar-day.selected {
+    background: var(--interactive-accent-hover);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.calendar-day.in-range {
+    background: var(--background-modifier-success);
+    color: var(--text-normal);
+}
+
+.calendar-day.other-month {
+    color: var(--text-faint);
+    background: var(--background-secondary-alt);
+}
+
+/* Action Section */
+.action-section {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: var(--size-4-3);
+}
+
+.selection-info {
+    text-align: center;
+    margin-bottom: var(--size-4-2);
+    padding: var(--size-2-3) var(--size-4-2);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: var(--size-4-2);
+}
+
+.action-buttons button {
+    padding: var(--size-2-3) var(--size-4-3);
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.action-buttons button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.action-buttons .primary-btn {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.action-buttons .primary-btn:hover {
+    background: var(--interactive-accent-hover);
+}
+
+.action-buttons .cancel-btn:hover {
+    background: var(--background-modifier-error-hover);
+    border-color: var(--background-modifier-error);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-controls-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .dual-month-view,
+    .quarter-view {
+        flex-direction: column;
+    }
+    
+    .month-container,
+    .quarter-month {
+        max-width: none;
+    }
+    
+    .quick-ranges {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
 }
