@@ -999,7 +999,13 @@ export class OneiroMetricsDashboardView extends ItemView {
                 
                 // Metric cells
                 for (const metric of enabledMetrics) {
-                    const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+                    let value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+                    
+                    // Special handling for Words metric - use wordCount property
+                    if (metric.name === 'Words' && entry.wordCount !== undefined) {
+                        value = entry.wordCount;
+                    }
+                    
                     const metricCell = row.createEl('td', { 
                         cls: `metric-${metric.key}` 
                     });
@@ -1995,7 +2001,13 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Metric cells
         for (const metric of enabledMetrics) {
-            const value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+            let value = entry.metrics[metric.key] || entry.metrics[metric.name] || 0;
+            
+            // Special handling for Words metric - use wordCount property
+            if (metric.name === 'Words' && entry.wordCount !== undefined) {
+                value = entry.wordCount;
+            }
+            
             const displayValue = this.formatMetricValue(value, metric.name);
             
             row.createEl('td', { 

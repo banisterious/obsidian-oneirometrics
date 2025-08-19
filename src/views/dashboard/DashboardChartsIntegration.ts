@@ -248,7 +248,12 @@ export class DashboardChartsIntegration {
             
             const values: number[] = [];
             for (const entry of entries) {
-                const value = entry.metrics?.[key] || entry.metrics?.[metric.name] || 0;
+                let value = entry.metrics?.[key] || entry.metrics?.[metric.name] || 0;
+                
+                // Special handling for Words metric - use wordCount property
+                if (metric.name === 'Words' && entry.wordCount !== undefined) {
+                    value = entry.wordCount;
+                }
                 
                 // Handle different value types
                 if (typeof value === 'number') {
@@ -300,7 +305,12 @@ export class DashboardChartsIntegration {
             
             const values: number[] = [];
             for (const entry of entries) {
-                const value = entry.metrics?.[key] || entry.metrics?.[metric.name] || 0;
+                let value = entry.metrics?.[key] || entry.metrics?.[metric.name] || 0;
+                
+                // Special handling for Words metric - use wordCount property
+                if (metric.name === 'Words' && entry.wordCount !== undefined) {
+                    value = entry.wordCount;
+                }
                 
                 if (typeof value === 'number') {
                     values.push(value);
