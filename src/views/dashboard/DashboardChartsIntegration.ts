@@ -372,6 +372,18 @@ export class DashboardChartsIntegration {
     }
 
     /**
+     * Get the currently active chart tab
+     */
+    public getActiveTab(): string {
+        // Return the active tab from the chart tabs manager
+        // Default to 'statistics' if not available
+        if (this.chartTabsManager) {
+            return this.chartTabsManager.getActiveTab() || 'statistics';
+        }
+        return 'statistics';
+    }
+    
+    /**
      * Clean up and destroy charts
      */
     public destroy(): void {

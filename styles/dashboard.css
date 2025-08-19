@@ -48,6 +48,47 @@
     flex-wrap: wrap;
 }
 
+/* Export button styles */
+.oom-export-container {
+    display: inline-block;
+    position: relative;
+}
+
+.oom-export-button {
+    padding: var(--size-4-1) var(--size-4-3);
+    background-color: var(--interactive-normal);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.oom-export-dropdown-arrow {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-left: 2px;
+}
+
+.oom-export-button:hover {
+    background-color: var(--interactive-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.oom-export-button:hover .oom-export-dropdown-arrow {
+    opacity: 1;
+}
+
+.oom-export-button:active {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
 .oom-search-container {
     flex: 1;
     min-width: 200px;
@@ -1252,4 +1293,73 @@ body.shimmering-focus .oom-dashboard-header {
     .action-buttons {
         flex-direction: column;
     }
+}
+
+/* Export Modal Styles */
+.oom-export-type-container,
+.oom-export-scope-container,
+.oom-export-format-container,
+.oom-export-chart-tab-container,
+.oom-export-options-container,
+.oom-export-preview-container {
+    margin-bottom: var(--size-4-4);
+}
+
+.oom-export-type-container h3,
+.oom-export-scope-container h3,
+.oom-export-format-container h3,
+.oom-export-chart-tab-container h3,
+.oom-export-options-container h3,
+.oom-export-preview-container h3 {
+    margin-bottom: var(--size-4-2);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+}
+
+.oom-export-info {
+    margin-top: var(--size-4-2);
+    padding: var(--size-4-2);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-small);
+}
+
+.oom-export-scope-detail {
+    color: var(--text-muted);
+}
+
+.oom-export-option {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-2);
+}
+
+.oom-export-option-label {
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.oom-export-preview-info {
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-export-preview-text {
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    white-space: pre-line;
+}
+
+.oom-export-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-4);
+    padding-top: var(--size-4-3);
+    border-top: 1px solid var(--background-modifier-border);
 }

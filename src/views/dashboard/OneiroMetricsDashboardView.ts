@@ -13,6 +13,8 @@ import { DashboardDateNavigatorModal } from './DashboardDateNavigatorModal';
 import { ContentToggler } from '../../dom/content/ContentToggler';
 import { VirtualScroller } from './VirtualScroller';
 import { DashboardChartsIntegration } from './DashboardChartsIntegration';
+import { CSVExportPipeline, BaseExportOptions, ExportFormat, StatisticsExportOptions, TabType } from '../../utils/csv-export-service';
+import { DashboardExportModal } from './DashboardExportModal';
 
 export const ONEIROMETRICS_DASHBOARD_VIEW_TYPE = 'oneirometrics-dashboard';
 
@@ -55,6 +57,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     private contentToggler: ContentToggler;
     public virtualScroller: VirtualScroller | null = null;
     private chartsIntegration: DashboardChartsIntegration | null = null;
+    private csvExportPipeline: CSVExportPipeline;
     
     // File watcher and performance monitoring
     private fileWatcherRef: any = null;
@@ -117,6 +120,9 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Initialize content toggler
         this.contentToggler = new ContentToggler(this.plugin.logger);
+        
+        // Initialize CSV export pipeline
+        this.csvExportPipeline = new CSVExportPipeline('OneiroMetrics');
     }
     
     getViewType(): string {
@@ -423,6 +429,25 @@ export class OneiroMetricsDashboardView extends ItemView {
             cls: 'oom-refresh-button'
         });
         refreshBtn.addEventListener('click', () => this.refresh());
+        
+        // Export button with dropdown
+        const exportContainer = controls.createDiv({ cls: 'oom-export-container' });
+        const exportBtn = exportContainer.createEl('button', {
+            text: 'Export',
+            cls: 'oom-export-button'
+        });
+        
+        // Add dropdown arrow to export button
+        exportBtn.createEl('span', {
+            text: ' ▼',
+            cls: 'oom-export-dropdown-arrow'
+        });
+        
+        // Create context menu on click
+        exportBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.showExportMenu(event, exportBtn);
+        });
     }
     
     private createTableContainer() {
@@ -2371,4 +2396,215 @@ export class OneiroMetricsDashboardView extends ItemView {
     
     private updateDebounceTimer: NodeJS.Timeout | null = null;
     private lastEnabledMetrics: string[] | null = null;
+    
+    /**
+     * Show export menu with quick actions
+     */
+    private showExportMenu(event: MouseEvent, triggerEl: HTMLElement): void {
+        const menu = new Menu();
+        
+        // Quick export current view as CSV
+        menu.addItem((item) => {
+            item
+                .setTitle('Export Current View (CSV)')
+                .setIcon('download')
+                .onClick(async () => {
+                    await this.quickExportTableData('csv', true);
+                });
+        });
+        
+        // Quick export all data as CSV
+        menu.addItem((item) => {
+            item
+                .setTitle('Export All Data (CSV)')
+                .setIcon('database')
+                .onClick(async () => {
+                    await this.quickExportTableData('csv', false);
+                });
+        });
+        
+        // Export current view as JSON
+        menu.addItem((item) => {
+            item
+                .setTitle('Export Current View (JSON)')
+                .setIcon('code')
+                .onClick(async () => {
+                    await this.quickExportTableData('json', true);
+                });
+        });
+        
+        menu.addSeparator();
+        
+        // Export chart data (if charts are visible)
+        if (this.chartsIntegration) {
+            menu.addItem((item) => {
+                item
+                    .setTitle('Export Chart Data')
+                    .setIcon('bar-chart')
+                    .onClick(async () => {
+                        await this.exportCurrentChartData();
+                    });
+            });
+            
+            menu.addSeparator();
+        }
+        
+        // Advanced export options (opens modal)
+        menu.addItem((item) => {
+            item
+                .setTitle('Advanced Export Options...')
+                .setIcon('settings')
+                .onClick(() => {
+                    this.handleExportClick();
+                });
+        });
+        
+        // Show the menu
+        menu.showAtMouseEvent(event);
+    }
+    
+    /**
+     * Quick export table data without opening modal
+     */
+    private async quickExportTableData(format: 'csv' | 'json', useFiltered: boolean): Promise<void> {
+        try {
+            const entriesToExport = useFiltered ? this.state.filteredEntries : this.state.entries;
+            
+            if (entriesToExport.length === 0) {
+                new Notice('No data to export');
+                return;
+            }
+            
+            // Show loading notice
+            const loadingNotice = new Notice('Exporting data...', 0);
+            
+            // Prepare export options
+            const options: StatisticsExportOptions = {
+                format: format as ExportFormat,
+                includeMetadata: true,
+                dateRange: this.state.customDateRange ? {
+                    start: this.state.customDateRange.start,
+                    end: this.state.customDateRange.end
+                } : undefined,
+                selectedMetrics: this.getEnabledMetrics(),
+                normalization: 'none',
+                includeCalculated: true,
+                includeQualityScore: true,
+                includeEntryDetails: true,
+                groupBy: 'date'
+            };
+            
+            // Export the data
+            const exportContent = await this.csvExportPipeline.exportStatisticsData(
+                entriesToExport,
+                options
+            );
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().split('T')[0];
+            const scopeSuffix = useFiltered ? `-${this.state.currentFilter}` : '-all';
+            const filename = `oneirometrics-dashboard${scopeSuffix}-${timestamp}.${format}`;
+            
+            // Trigger download
+            this.csvExportPipeline.triggerDownload(exportContent, filename, 'statistics');
+            
+            // Hide loading notice and show success
+            loadingNotice.hide();
+            new Notice(`Exported ${entriesToExport.length} entries as ${format.toUpperCase()}`);
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Quick export failed', error);
+            new Notice('Failed to export data');
+        }
+    }
+    
+    /**
+     * Export current chart data
+     */
+    private async exportCurrentChartData(): Promise<void> {
+        try {
+            // Get the currently active chart tab
+            const activeTab = this.chartsIntegration?.getActiveTab() || 'statistics';
+            
+            const exportOptions = {
+                format: 'csv' as ExportFormat,
+                includeMetadata: true,
+                dateRange: this.state.customDateRange ? {
+                    start: this.state.customDateRange.start,
+                    end: this.state.customDateRange.end
+                } : undefined,
+                selectedMetrics: this.getEnabledMetrics(),
+                normalization: 'none' as const,
+                includeCalculated: true,
+                tabType: activeTab as TabType,
+                dataStructure: this.getDataStructureForTab(activeTab as TabType)
+            };
+            
+            // Export chart data
+            const exportContent = await this.csvExportPipeline.exportChartData(
+                this.state.filteredEntries,
+                activeTab as TabType,
+                exportOptions
+            );
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().split('T')[0];
+            const filename = `oneirometrics-${activeTab}-${timestamp}.csv`;
+            
+            // Trigger download
+            this.csvExportPipeline.triggerDownload(exportContent, filename, activeTab as TabType);
+            
+            new Notice(`Exported ${activeTab} chart data`);
+            
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Chart export failed', error);
+            new Notice('Failed to export chart data');
+        }
+    }
+    
+    /**
+     * Get data structure for tab type
+     */
+    private getDataStructureForTab(tabType: TabType): 'raw' | 'aggregated' | 'statistical' | 'calendar' {
+        switch (tabType) {
+            case 'statistics': return 'raw';
+            case 'trends': return 'aggregated';
+            case 'compare': return 'statistical';
+            case 'correlations': return 'statistical';
+            case 'heatmap': return 'calendar';
+            case 'insights': return 'statistical';
+            default: return 'raw';
+        }
+    }
+    
+    /**
+     * Get enabled metrics from settings
+     */
+    private getEnabledMetrics(): string[] {
+        return Object.entries(this.plugin.settings.metrics)
+            .filter(([_, metric]) => metric.enabled)
+            .map(([key, _]) => key);
+    }
+    
+    /**
+     * Handle export button click - opens export modal
+     */
+    private async handleExportClick(): Promise<void> {
+        try {
+            // Open export modal with current state
+            const modal = new DashboardExportModal(
+                this.app,
+                this.plugin,
+                this.state.filteredEntries,
+                this.state.entries,
+                this.state.currentFilter,
+                this.state.customDateRange,
+                this.csvExportPipeline
+            );
+            modal.open();
+        } catch (error) {
+            this.plugin.logger?.error('Dashboard', 'Failed to open export modal', error);
+            new Notice('Failed to open export options');
+        }
+    }
 }
