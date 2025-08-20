@@ -130,7 +130,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     getDisplayText(): string {
-        return 'OneiroMetrics Dashboard';
+        return 'OneiroMetrics';
     }
     
     getIcon(): string {
@@ -358,7 +358,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     
     private createHeader() {
         const header = this.containerEl.createDiv({ cls: 'oom-dashboard-header' });
-        header.createEl('h2', { text: 'Dream Metrics Dashboard' });
+        header.createEl('h2', { text: 'OneiroMetrics' });
         
         // Add last update time
         const updateInfo = header.createDiv({ cls: 'oom-update-info' });
@@ -451,10 +451,14 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private createTableContainer() {
-        const tableContainer = this.containerEl.createDiv({ cls: 'oom-table-container' });
+        // Create content wrapper for proper flex layout
+        const contentWrapper = this.containerEl.createDiv({ cls: 'oom-dashboard-content' });
+        
+        // Create table container inside content wrapper
+        const tableContainer = contentWrapper.createDiv({ cls: 'oom-table-container' });
         // Table will be rendered here
         
-        // Initialize charts integration below the table
+        // Initialize charts integration below the table (also inside content wrapper)
         this.initializeChartsIntegration();
     }
     
@@ -467,8 +471,11 @@ export class OneiroMetricsDashboardView extends ItemView {
                 this.plugin.logger
             );
             
-            // Initialize charts section in the dashboard
-            await this.chartsIntegration.initialize(this.containerEl);
+            // Initialize charts section in the content wrapper
+            const contentWrapper = this.containerEl.querySelector('.oom-dashboard-content') as HTMLElement;
+            if (contentWrapper) {
+                await this.chartsIntegration.initialize(contentWrapper);
+            }
             
             this.plugin.logger?.debug('Dashboard', 'Charts integration initialized');
         } catch (error) {
@@ -960,16 +967,14 @@ export class OneiroMetricsDashboardView extends ItemView {
                 
                 // Add content preview
                 const contentPreview = contentContainer.createEl('div', { 
-                    cls: 'oom-content-preview',
-                    text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : ''),
-                    attr: { style: isExpanded ? 'display: none;' : 'display: block;' }
+                    cls: `oom-content-preview ${isExpanded ? 'hidden' : ''}`,
+                    text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : '')
                 });
                 
                 // Add full content
                 const contentFull = contentContainer.createEl('div', { 
-                    cls: 'oom-content-full',
-                    text: entry.content,
-                    attr: { style: isExpanded ? 'display: block;' : 'display: none;' }
+                    cls: `oom-content-full ${isExpanded ? '' : 'hidden'}`,
+                    text: entry.content
                 });
                 
                 // Attach expand handler directly to avoid closure issues
@@ -984,13 +989,13 @@ export class OneiroMetricsDashboardView extends ItemView {
                     if (newExpanded) {
                         this.state.expandedRows.add(entryId);
                         expandToggle.textContent = '▼';
-                        contentFull.style.display = 'block';
-                        contentPreview.style.display = 'none';
+                        contentFull.classList.remove('hidden');
+                        contentPreview.classList.add('hidden');
                     } else {
                         this.state.expandedRows.delete(entryId);
                         expandToggle.textContent = '▶';
-                        contentFull.style.display = 'none';
-                        contentPreview.style.display = 'block';
+                        contentFull.classList.add('hidden');
+                        contentPreview.classList.remove('hidden');
                     }
                     
                     // Track in performance metrics
@@ -1957,16 +1962,14 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Add content preview
         const contentPreview = contentContainer.createEl('div', { 
-            cls: 'oom-content-preview',
-            text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : ''),
-            attr: { style: isExpanded ? 'display: none;' : 'display: block;' }
+            cls: `oom-content-preview ${isExpanded ? 'hidden' : ''}`,
+            text: entry.content.substring(0, 400) + (entry.content.length > 400 ? '...' : '')
         });
         
         // Add full content
         const contentFull = contentContainer.createEl('div', { 
-            cls: 'oom-content-full',
-            text: entry.content,
-            attr: { style: isExpanded ? 'display: block;' : 'display: none;' }
+            cls: `oom-content-full ${isExpanded ? '' : 'hidden'}`,
+            text: entry.content
         });
         
         // Attach expand handler directly to avoid closure issues
@@ -1981,13 +1984,13 @@ export class OneiroMetricsDashboardView extends ItemView {
             if (newExpanded) {
                 this.state.expandedRows.add(entryId);
                 expandToggle.textContent = '▼';
-                contentFull.style.display = 'block';
-                contentPreview.style.display = 'none';
+                contentFull.classList.remove('hidden');
+                contentPreview.classList.add('hidden');
             } else {
                 this.state.expandedRows.delete(entryId);
                 expandToggle.textContent = '▶';
-                contentFull.style.display = 'none';
-                contentPreview.style.display = 'block';
+                contentFull.classList.add('hidden');
+                contentPreview.classList.remove('hidden');
             }
             
             // Track in performance metrics

@@ -1,6 +1,57 @@
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
 
+/* Virtual Scrolling Styles */
+.oom-virtual-scroll-container {
+    height: 100%;
+    overflow: hidden;
+}
+
+.oom-scroll-viewport {
+    height: var(--viewport-height);
+    overflow-y: auto;
+    position: relative;
+}
+
+.oom-virtual-table tbody {
+    position: relative;
+}
+
+.oom-virtual-spacer-top,
+.oom-virtual-spacer-bottom {
+    height: 0;
+    display: block;
+}
+
+/* Content visibility toggling */
+.oom-content-preview,
+.oom-content-full {
+    display: block;
+}
+
+.oom-content-preview.hidden {
+    display: none;
+}
+
+.oom-content-full.hidden {
+    display: none;
+}
+
+/* Sortable headers */
+.sortable {
+    cursor: pointer;
+}
+
+/* Chart container visibility */
+.oom-dashboard-charts-container {
+    display: block;
+    transition: height 0.2s ease;
+}
+
+.oom-dashboard-charts-container.collapsed {
+    display: none;
+}
+
 /* Main container */
 .oneirometrics-dashboard {
     height: 100%;
@@ -15,6 +66,15 @@
     flex-direction: column;
     height: 100%;
     padding: var(--size-4-2);
+    gap: var(--size-4-2);
+    overflow: hidden;
+}
+
+/* Content wrapper for table and charts */
+.oom-dashboard-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     gap: var(--size-4-2);
     overflow: hidden;
 }

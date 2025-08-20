@@ -4,6 +4,35 @@
    ============================================================================= */
 
 /* =============================================================================
+   MIGRATION NOTICE - Legacy Metrics Note
+   ============================================================================= */
+
+.oom-migration-notice {
+    background: var(--background-modifier-info);
+    padding: 1em;
+    margin: 1em 0;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--background-modifier-border-hover);
+}
+
+.oom-migration-notice strong {
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+.oom-migration-notice > div {
+    margin-top: 0.8em;
+}
+
+.oom-migration-notice button:first-child {
+    margin-right: 0.5em;
+}
+
+.oom-migration-notice button:last-child {
+    font-size: 0.9em;
+}
+
+/* =============================================================================
    TABLE CONTAINERS - Layout Foundation
    ============================================================================= */
 

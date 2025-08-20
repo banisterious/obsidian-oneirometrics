@@ -998,18 +998,15 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             this.selectTab('journal-structure');
         });
         
-        this.createQuickActionButton(quickActionsGrid, 'View Metrics', 'bar-chart', () => {
-            const projectNote = this.plugin.settings.projectNote;
-            if (projectNote) {
-                const file = this.app.vault.getAbstractFileByPath(projectNote);
-                if (file) {
-                    this.app.workspace.openLinkText(projectNote, '', true);
-                } else {
-                    new Notice('Metrics note not found. Please set the path in settings.');
-                }
-            } else {
-                new Notice('No metrics note configured. Please set the path in settings.');
-            }
+        this.createQuickActionButton(quickActionsGrid, 'View Dream Metrics', 'chart-line', () => {
+            // Close the hub modal
+            this.close();
+            
+            // Open the new OneiroMetrics view (formerly dashboard)
+            this.app.workspace.getLeaf(false).setViewState({
+                type: 'oneirometrics-dashboard',
+                active: true
+            });
         });
         
         this.createQuickActionButton(quickActionsGrid, 'View Metrics Descriptions', 'book-open', () => {

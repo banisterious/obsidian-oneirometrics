@@ -12,7 +12,7 @@
 ### Table of Contents
 
 - [OneiroMetrics Hub](#oneirometrics-hub)
-- [OneiroMetrics Note](#oneirometrics-note)
+- [OneiroMetrics Dashboard](#oneirometrics-dashboard)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
 - [Settings](#settings)
@@ -31,17 +31,17 @@ Access all plugin features through the main hub interface:
 - **Journal Structure:** Validate and maintain consistent dream journal entry formats
 - **Templates:** Create and manage dream journal templates with dynamic placeholders
 
-## OneiroMetrics Note
+## OneiroMetrics Dashboard
 
-Your centralized dashboard for dream analysis and insights:
+Your real-time dashboard for dream analysis and insights:
 
-- **Summary Statistics:** Overview of metrics averages, ranges, and entry counts
+- **Live Updates:** Dynamic view that updates in real-time as you add entries
 - **Interactive Charts:** Multiple visualization tabs (Statistics, Trends, Compare, Correlations, Heatmap, Insights)
 - **Advanced Analytics:** Trend analysis, outlier detection, correlation analysis, and pattern recognition
-- **Data Export:** Export charts and data in CSV format with complete statistical metadata
-- **Dream Entries Table:** Sortable, filterable table of all dream entries with expandable content
-- **Date Navigator:** Filter entries by date ranges with calendar picker and saved favorites
-- **Responsive Design:** Mobile-optimized interface with accessibility support
+- **Data Export:** Export charts and data in multiple formats with complete statistical metadata
+- **Dream Entries Table:** Sortable, filterable table with virtual scrolling for performance
+- **Date Navigator:** Advanced filtering with month, dual-month, and quarter views
+- **Enhanced Performance:** Optimized for large datasets with incremental updates
 
 <p align="center">
   <img src="docs/images/OneiroMetrics-Note.gif" alt="Animated demonstration of the OneiroMetrics metrics view" width="600"/>
@@ -78,10 +78,10 @@ If you find this plugin useful, please consider supporting its development!
 - Access all plugin features from the centralized hub interface
 
 **Metrics Analysis:**
-- View your OneiroMetrics Note in Reading View for best experience
-- Use date filtering to analyze specific time periods
-- Sort and filter dream entries in the interactive table
-- Explore different chart visualizations for deeper insights
+- Access the OneiroMetrics Dashboard through the Hub or command palette
+- Use advanced date filtering to analyze specific time periods
+- Sort and filter dream entries in the high-performance table
+- Explore different chart visualizations with real-time updates
 
 **Data Management:**
 - Configure which notes and folders to analyze
@@ -94,7 +94,7 @@ If you find this plugin useful, please consider supporting its development!
 ## Settings
 
 **Core Configuration:**
-- **OneiroMetrics Note:** Specify where your analysis dashboard is stored
+- **OneiroMetrics Note:** Configure the data source for analysis (legacy feature)
 - **Selected Notes/Folders:** Choose which notes to include in analysis
 - **Metrics:** Customize tracked metrics with names, icons, ranges, and descriptions
 
@@ -112,8 +112,9 @@ If you find this plugin useful, please consider supporting its development!
 
 ## Documentation
 
-- [Project Overview](docs/developer/architecture/overview.md)
 - [Usage Guide](docs/user/guides/usage.md)
+- [Dashboard Migration Guide](docs/user/guides/dashboard-migration.md)
+- [Project Overview](docs/developer/architecture/overview.md)
 - [Known Issues](ISSUES.md)
 
 ---

@@ -643,8 +643,8 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
 
         // OneiroMetrics Note Setting with Obsidian's built-in search like Templater
         const oneiroMetricsNoteSetting = new Setting(containerEl)
-            .setName('OneiroMetrics note')
-            .setDesc('The note where OneiroMetrics tables will be written')
+            .setName('OneiroMetrics note (Legacy)')
+            .setDesc('⚠️ DEPRECATED: This setting is only used for the legacy Metrics Note. Use the new OneiroMetrics Dashboard instead (accessible via the Hub). The dashboard provides real-time updates and better performance without requiring a separate note file.')
             .addSearch(search => {
                 search.setPlaceholder('Example: Journals/Dream Diary/Metrics/Metrics.md')
                     .setValue(getProjectNotePath(this.plugin.settings))

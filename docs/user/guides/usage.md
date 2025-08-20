@@ -64,9 +64,9 @@ The plugin enables you to:
    - Or click the wand icon in the ribbon
 
 2. **Configure Basic Options**
-   - Set your OneiroMetrics Note path (where metrics tables will be stored)
    - Select notes to include in your dream analysis
    - Choose your preferred metrics to track
+   - Configure display preferences
 
 ### First Steps
 
@@ -80,24 +80,25 @@ The plugin enables you to:
    - Or manually add a dream entry with metrics (see [Adding Dream Metrics](#adding-dream-metrics))
 
 3. **Generate Metrics**
-   - Click the OneiroMetrics ribbon icon
+   - Click the OneiroMetrics ribbon icon to open the Hub
    - Select "Scrape Metrics" to analyze your dreams
-   - View the generated metrics table in your configured project note
+   - View results in the new OneiroMetrics Dashboard
 
-## Dream Journal Manager
+## OneiroMetrics Hub
 
-> **New Feature:** The Dream Journal Manager is a comprehensive unified interface for managing all aspects of dream journaling.
+The OneiroMetrics Hub provides a comprehensive unified interface for managing all aspects of dream journaling and analysis.
 
 ### Interface Overview
 
-The Dream Journal Manager provides a tabbed interface with three main sections:
+The OneiroMetrics Hub provides a comprehensive interface with multiple sections:
 - **Dream Scraper:** Analyze dream entries and generate metrics
 - **Journal Structure:** Configure templates and journal organization
 - **Templates:** Create and manage dream journal templates
+- **Quick Actions:** Access the new OneiroMetrics Dashboard and other features
 
-To access the Dream Journal Manager:
+To access the OneiroMetrics Hub:
 - Click the OneiroMetrics ribbon icon
-- Use the command palette and search for "Open Dream Journal Manager"
+- Use the command palette and search for "Open OneiroMetrics Hub"
 
 ### Dream Scraper Tab
 
@@ -115,7 +116,7 @@ This tab provides tools for extracting and analyzing dream data:
 
 - **Controls:**
   - Settings button for quick access to plugin configuration
-  - Open OneiroMetrics button to view your results
+  - View Dream Metrics button to open the new dashboard
   - Clear button to reset selections
 
 ### Journal Structure Tab
@@ -285,9 +286,9 @@ For more detailed information and advanced template techniques, see the [Templat
 To analyze your dream entries:
 
 1. **Access the Dream Scraper:**
-   - Through the Dream Journal Manager
+   - Through the OneiroMetrics Hub
    - Via the ribbon icon or command palette
-   - Select "Scrape Metrics"
+   - Navigate to the Dream Scraper tab
 
 2. **Select Source:**
    - Choose individual notes or a folder
@@ -295,18 +296,17 @@ To analyze your dream entries:
    - Preview selected sources before scraping
 
 3. **Run Analysis:**
-   - Click "Scrape Metrics" to begin analysis
+   - Click "Scrape Notes" to begin analysis
    - The plugin will:
-     - Create a backup of your project note
-     - Show a confirmation dialog
-     - Update the metrics table
-     - Preserve any content before/after the table
+     - Show real-time progress
+     - Update the dashboard automatically
+     - Display results in the OneiroMetrics Dashboard
 
 > **Tip:** The Dream Scrape interface includes a **Settings** button for quick access to plugin settings.
 
-### Metrics Table
+### OneiroMetrics Dashboard
 
-The generated metrics table includes two main sections:
+The OneiroMetrics Dashboard provides real-time visualization of your dream data:
 
 #### Summary Section
 - Average values for each metric
@@ -321,9 +321,9 @@ The generated metrics table includes two main sections:
 - All configured metrics
 - Optimized column widths for readability
 
-### Table Features
+### Dashboard Features
 
-The metrics table offers several powerful features:
+The OneiroMetrics Dashboard offers several powerful features:
 
 - **Sortable Columns:** Click column headers to sort
 - **Content Expansion:** Show more/less for dream content
@@ -370,18 +370,18 @@ For detailed information on date handling, see the [Date & Calendar Features](..
 ### Accessing Settings
 
 Access OneiroMetrics settings in several ways:
-- **Dream Scrape modal:** Click 'Settings' button
-- **OneiroMetrics note:** Click 'Settings' button at the top
+- **OneiroMetrics Hub:** Click 'Settings' button in the Dream Scraper tab
+- **OneiroMetrics Dashboard:** Access settings through the Hub
 - **Command palette:** Search for "OneiroMetrics Settings"
 - **Ribbon icon:** Right-click the wand icon and select settings
 
 ### Configuring Metrics
 
-#### Project Note Path
-- Set the path where your metrics table will be stored
+#### Data Source Configuration
+- Select which notes and folders to analyze
 - Use the smart file suggestion system
-- The file will be created if it doesn't exist
-- Backups are created automatically before changes
+- Configure metric preferences
+- All data is displayed in the real-time dashboard
 
 #### Metric Editor
 - Add, edit, or remove metrics with real-time validation

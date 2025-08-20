@@ -121,7 +121,11 @@ export class DashboardChartsIntegration {
             toggleBtn.classList.toggle('collapsed', !isExpanded);
             
             // Toggle container visibility
-            container.style.display = isExpanded ? 'block' : 'none';
+            if (isExpanded) {
+                container.classList.remove('collapsed');
+            } else {
+                container.classList.add('collapsed');
+            }
             
             // Update chart visibility if initialized
             if (this.chartTabsManager) {

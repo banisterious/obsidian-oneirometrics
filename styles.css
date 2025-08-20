@@ -2219,12 +2219,41 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: TABLES (17.8 KB)
+   COMPONENT: TABLES (18.5 KB)
    ============================================================================= */
 /* =============================================================================
    OneiroMetrics Tables Component
    Theme-agnostic structural styling for all table components
    ============================================================================= */
+
+/* =============================================================================
+   MIGRATION NOTICE - Legacy Metrics Note
+   ============================================================================= */
+
+.oom-migration-notice {
+    background: var(--background-modifier-info);
+    padding: 1em;
+    margin: 1em 0;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--background-modifier-border-hover);
+}
+
+.oom-migration-notice strong {
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+.oom-migration-notice > div {
+    margin-top: 0.8em;
+}
+
+.oom-migration-notice button:first-child {
+    margin-right: 0.5em;
+}
+
+.oom-migration-notice button:last-child {
+    font-size: 0.9em;
+}
 
 /* =============================================================================
    TABLE CONTAINERS - Layout Foundation
@@ -12639,10 +12668,61 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (29.7 KB)
+   COMPONENT: DASHBOARD (30.7 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
+
+/* Virtual Scrolling Styles */
+.oom-virtual-scroll-container {
+    height: 100%;
+    overflow: hidden;
+}
+
+.oom-scroll-viewport {
+    height: var(--viewport-height);
+    overflow-y: auto;
+    position: relative;
+}
+
+.oom-virtual-table tbody {
+    position: relative;
+}
+
+.oom-virtual-spacer-top,
+.oom-virtual-spacer-bottom {
+    height: 0;
+    display: block;
+}
+
+/* Content visibility toggling */
+.oom-content-preview,
+.oom-content-full {
+    display: block;
+}
+
+.oom-content-preview.hidden {
+    display: none;
+}
+
+.oom-content-full.hidden {
+    display: none;
+}
+
+/* Sortable headers */
+.sortable {
+    cursor: pointer;
+}
+
+/* Chart container visibility */
+.oom-dashboard-charts-container {
+    display: block;
+    transition: height 0.2s ease;
+}
+
+.oom-dashboard-charts-container.collapsed {
+    display: none;
+}
 
 /* Main container */
 .oneirometrics-dashboard {
@@ -12658,6 +12738,15 @@ input[type="date"]:focus-visible {
     flex-direction: column;
     height: 100%;
     padding: var(--size-4-2);
+    gap: var(--size-4-2);
+    overflow: hidden;
+}
+
+/* Content wrapper for table and charts */
+.oom-dashboard-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     gap: var(--size-4-2);
     overflow: hidden;
 }

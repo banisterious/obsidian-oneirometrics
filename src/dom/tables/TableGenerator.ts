@@ -53,6 +53,16 @@ export class TableGenerator {
         
         content += '<div class="oom-metrics-container" id="oom-metrics-container">\n';
         
+        // Add migration notice for the new OneiroMetrics view
+        content += '<div class="oom-migration-notice">\n';
+        content += '<strong>📊 New OneiroMetrics View Available!</strong>\n';
+        content += 'Experience real-time updates, better performance, and enhanced features with the new OneiroMetrics view.<br>\n';
+        content += '<div>\n';
+        content += '<button onclick="app.commands.executeCommandById(\'oneirometrics:open-dashboard\')" class="mod-cta">Open OneiroMetrics View</button>\n';
+        content += '<button onclick="this.parentElement.parentElement.style.display=\'none\'">Dismiss</button>\n';
+        content += '</div>\n';
+        content += '</div>\n';
+        
         // Add chart tabs container placeholder - this will be populated by initializeChartTabs
         content += '<div id="oom-chart-tabs-placeholder"></div>\n';
         

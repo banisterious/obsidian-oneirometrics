@@ -105,11 +105,9 @@ export class VirtualScroller {
             cls: 'oom-scroll-viewport'
         });
         
-        // Set viewport height
+        // Set viewport height using CSS custom property
         const viewportHeight = this.rowHeight * this.visibleRows;
-        this.scrollContainer.style.height = `${viewportHeight}px`;
-        this.scrollContainer.style.overflowY = 'auto';
-        this.scrollContainer.style.position = 'relative';
+        this.scrollContainer.style.setProperty('--viewport-height', `${viewportHeight}px`);
         
         // Create table structure
         this.tableEl = this.scrollContainer.createEl('table', { 
@@ -121,21 +119,19 @@ export class VirtualScroller {
         
         // Create tbody with virtual spacers
         this.tbodyEl = this.tableEl.createEl('tbody');
-        this.tbodyEl.style.position = 'relative';
+        // Position is set via CSS class oom-virtual-table
         
         // Create virtual spacers for maintaining scroll height
         this.virtualSpacerTop = this.tbodyEl.createEl('tr', { 
             cls: 'oom-virtual-spacer-top' 
         });
-        this.virtualSpacerTop.style.height = '0px';
-        this.virtualSpacerTop.style.display = 'block';
+        // Initial height set via CSS, will be updated dynamically
         
         this.virtualSpacerBottom = this.tbodyEl.createEl('tr', { 
             cls: 'oom-virtual-spacer-bottom' 
         });
         const totalHeight = this.entries.length * this.rowHeight;
-        this.virtualSpacerBottom.style.height = `${totalHeight}px`;
-        this.virtualSpacerBottom.style.display = 'block';
+        this.virtualSpacerBottom.style.height = `${totalHeight}px`; // Dynamic height must remain inline
         
         // Initial render
         this.updateVisibleRange();
@@ -197,8 +193,7 @@ export class VirtualScroller {
             this.onSort?.(column);
         });
         
-        // Add visual feedback on hover
-        header.style.cursor = 'pointer';
+        // Cursor pointer is set via CSS class 'sortable'
     }
     
     private attachScrollHandler(): void {
@@ -264,12 +259,12 @@ export class VirtualScroller {
         // Update spacers
         if (this.virtualSpacerTop) {
             const topHeight = this.startIndex * this.rowHeight;
-            this.virtualSpacerTop.style.height = `${topHeight}px`;
+            this.virtualSpacerTop.style.height = `${topHeight}px`; // Dynamic height must remain inline
         }
         
         if (this.virtualSpacerBottom) {
             const bottomHeight = Math.max(0, (this.entries.length - this.endIndex) * this.rowHeight);
-            this.virtualSpacerBottom.style.height = `${bottomHeight}px`;
+            this.virtualSpacerBottom.style.height = `${bottomHeight}px`; // Dynamic height must remain inline
         }
     }
     
@@ -406,9 +401,11 @@ export class VirtualScroller {
         });
         
         if (!isExpanded) {
-            contentFull.style.display = 'none';
+            contentFull.classList.add('hidden');
+            contentPreview.classList.remove('hidden');
         } else {
-            contentPreview.style.display = 'none';
+            contentPreview.classList.add('hidden');
+            contentFull.classList.remove('hidden');
         }
         
         // Store references on the element for the handler to use
@@ -434,13 +431,13 @@ export class VirtualScroller {
             if (newExpanded) {
                 this.expandedRows.add(storedEntryId);
                 toggle.textContent = '▼';
-                storedFull.style.display = 'block';
-                storedPreview.style.display = 'none';
+                storedFull.classList.remove('hidden');
+                storedPreview.classList.add('hidden');
             } else {
                 this.expandedRows.delete(storedEntryId);
                 toggle.textContent = '▶';
-                storedFull.style.display = 'none';
-                storedPreview.style.display = 'block';
+                storedFull.classList.add('hidden');
+                storedPreview.classList.remove('hidden');
             }
             
             this.onRowExpand?.(storedEntryId, newExpanded);
