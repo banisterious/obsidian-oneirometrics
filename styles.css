@@ -12668,7 +12668,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (31.2 KB)
+   COMPONENT: DASHBOARD (31.5 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12829,9 +12829,10 @@ input[type="date"]:focus-visible {
 /* Controls section */
 .oom-dashboard-controls {
     display: flex;
-    gap: var(--size-4-2);
+    gap: var(--size-4-3);
     align-items: center;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: var(--size-4-2);
 }
 
 /* Export button styles */
@@ -12875,34 +12876,46 @@ input[type="date"]:focus-visible {
     color: var(--text-on-accent);
 }
 
-.oom-search-container {
-    flex: 1;
-    min-width: 200px;
-}
 
 .oom-filter-container {
     display: flex;
     gap: var(--size-4-2);
     align-items: center;
-    flex-wrap: wrap;
 }
 
-.oom-dropdown-container {
+/* Style dropdown directly */
+.oom-filter-container .dropdown {
     min-width: 150px;
+    display: inline-flex;
 }
 
-.oom-custom-range-container {
-    display: flex;
+/* Custom range button styling */
+.oom-filter-container button {
+    white-space: nowrap;
+    display: inline-flex;
     align-items: center;
 }
 
-.oom-custom-range-container button.active {
+/* Ensure all direct children are inline */
+.oom-filter-container > * {
+    display: inline-flex;
+}
+
+/* Action buttons group */
+.oom-action-buttons {
+    display: flex;
+    gap: var(--size-4-2);
+    align-items: center;
+    margin-left: auto;
+}
+
+.oom-filter-container button.active {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
 }
 
 .oom-filter-info {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--size-4-1);
     padding: var(--size-4-1) var(--size-4-2);
@@ -12910,6 +12923,7 @@ input[type="date"]:focus-visible {
     border-radius: var(--radius-s);
     font-size: var(--font-smaller);
     color: var(--text-muted);
+    margin-left: auto;
 }
 
 .oom-filter-display,
@@ -13625,7 +13639,6 @@ input[type="date"]:focus-visible {
         align-items: stretch;
     }
     
-    .oom-search-container,
     .oom-filter-container {
         width: 100%;
     }

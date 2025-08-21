@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, SearchComponent, DropdownComponent, Notice, prepareSimpleSearch, TFile, App, Menu, Modal, ButtonComponent } from 'obsidian';
+import { ItemView, WorkspaceLeaf, DropdownComponent, Notice, TFile, Menu, ButtonComponent } from 'obsidian';
 import type DreamMetricsPlugin from '../../../main';
 import type { DreamMetricData } from '../../../types';
 import type { DreamMetricsSettings } from '../../../types';
@@ -25,7 +25,6 @@ interface DashboardState {
     customDateRange?: { start: string; end: string }; // For custom date ranges
     sortColumn: string;
     sortDirection: 'asc' | 'desc';
-    searchQuery: string;
     expandedRows: Set<string>;
     isLoading: boolean;
     lastUpdate: number;
@@ -46,7 +45,6 @@ export class OneiroMetricsDashboardView extends ItemView {
     private state: DashboardState;
     private preferences: ViewPreferences;
     public containerEl: HTMLElement;
-    private searchComponent: SearchComponent;
     private filterDropdown: DropdownComponent;
     private filterPersistenceManager: FilterPersistenceManager;
     private customDateRangeButton: ButtonComponent | null = null;
@@ -109,7 +107,6 @@ export class OneiroMetricsDashboardView extends ItemView {
             customDateRange: persistedFilter.customDateRange,
             sortColumn: savedSort.column || 'date',  // Default to Date column
             sortDirection: (savedSort.direction || 'asc') as 'asc' | 'desc',  // Default ascending (oldest first)
-            searchQuery: '',
             expandedRows: new Set(),
             isLoading: false,
             lastUpdate: Date.now(),
@@ -495,20 +492,11 @@ export class OneiroMetricsDashboardView extends ItemView {
     private createControls() {
         const controls = this.contentContainer.createDiv({ cls: 'oom-dashboard-controls' });
         
-        // Search component
-        const searchContainer = controls.createDiv({ cls: 'oom-search-container' });
-        this.searchComponent = new SearchComponent(searchContainer);
-        this.searchComponent.setPlaceholder('Search dream entries...');
-        this.searchComponent.onChange((value) => {
-            this.handleSearch(value);
-        });
-        
         // Filter container with dropdown and custom range button
         const filterContainer = controls.createDiv({ cls: 'oom-filter-container' });
         
-        // Filter dropdown
-        const dropdownContainer = filterContainer.createDiv({ cls: 'oom-dropdown-container' });
-        this.filterDropdown = new DropdownComponent(dropdownContainer);
+        // Filter dropdown - add directly to filter container
+        this.filterDropdown = new DropdownComponent(filterContainer);
         this.filterDropdown.addOption('all', 'All Time');
         this.filterDropdown.addOption('today', 'Today');
         this.filterDropdown.addOption('yesterday', 'Yesterday');
@@ -533,9 +521,8 @@ export class OneiroMetricsDashboardView extends ItemView {
             }
         });
         
-        // Custom date range button
-        const customRangeContainer = filterContainer.createDiv({ cls: 'oom-custom-range-container' });
-        this.customDateRangeButton = new ButtonComponent(customRangeContainer);
+        // Custom date range button - add directly to filter container
+        this.customDateRangeButton = new ButtonComponent(filterContainer);
         this.customDateRangeButton.setButtonText('📅 Custom Range');
         this.customDateRangeButton.onClick(() => {
             this.openCustomDateRangeModal();
@@ -550,15 +537,18 @@ export class OneiroMetricsDashboardView extends ItemView {
         const filterInfo = filterContainer.createDiv({ cls: 'oom-filter-info' });
         this.updateFilterInfo(filterInfo);
         
+        // Action buttons group
+        const actionButtons = controls.createDiv({ cls: 'oom-action-buttons' });
+        
         // Refresh button
-        const refreshBtn = controls.createEl('button', {
+        const refreshBtn = actionButtons.createEl('button', {
             text: 'Refresh',
             cls: 'oom-refresh-button'
         });
         refreshBtn.addEventListener('click', () => this.refresh());
         
         // Export button with dropdown
-        const exportContainer = controls.createDiv({ cls: 'oom-export-container' });
+        const exportContainer = actionButtons.createDiv({ cls: 'oom-export-container' });
         const exportBtn = exportContainer.createEl('button', {
             text: 'Export',
             cls: 'oom-export-button'
@@ -1407,10 +1397,6 @@ export class OneiroMetricsDashboardView extends ItemView {
         });
     }
     
-    private handleSearch(query: string) {
-        this.state.searchQuery = query;
-        this.applyFilters();
-    }
     
     private handleFilterChange(filter: DateFilter) {
         this.state.currentFilter = filter;
@@ -1496,10 +1482,6 @@ export class OneiroMetricsDashboardView extends ItemView {
             filtered = this.applyDateFilter(filtered, this.state.currentFilter);
         }
         
-        // Apply search filter
-        if (this.state.searchQuery) {
-            filtered = this.applySearchFilter(filtered, this.state.searchQuery);
-        }
         
         // Sort the filtered entries based on current sort state
         this.state.filteredEntries = filtered;
@@ -1524,7 +1506,6 @@ export class OneiroMetricsDashboardView extends ItemView {
         this.plugin.logger?.info('Dashboard', 'Filters applied', {
             filter: this.state.currentFilter,
             customRange: this.state.customDateRange,
-            searchQuery: this.state.searchQuery,
             totalEntries: this.state.entries.length,
             filteredEntries: this.state.filteredEntries.length
         });
@@ -1599,32 +1580,6 @@ export class OneiroMetricsDashboardView extends ItemView {
         });
     }
     
-    private applySearchFilter(entries: DreamMetricData[], query: string): DreamMetricData[] {
-        if (!query) return entries;
-        
-        const searchFn = prepareSimpleSearch(query);
-        
-        return entries.filter(entry => {
-            // Search in title
-            if (entry.title && searchFn(entry.title).score > 0) {
-                return true;
-            }
-            
-            // Search in content
-            if (entry.content && searchFn(entry.content).score > 0) {
-                return true;
-            }
-            
-            // Search in source if available  
-            if (entry.source && typeof entry.source === 'string') {
-                if (searchFn(entry.source).score > 0) {
-                    return true;
-                }
-            }
-            
-            return false;
-        });
-    }
     
     private updateFilterCount() {
         const count = this.state.filteredEntries.length;
