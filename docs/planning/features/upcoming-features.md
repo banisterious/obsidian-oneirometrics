@@ -26,21 +26,21 @@ The OneiroMetrics team is working on several exciting enhancements. While we can
 
 ### Coming Soon (Next 1-2 Releases)
 
-#### OneiroMetrics Dashboard
+#### ✅ OneiroMetrics Dashboard (Complete)
 - **Native Obsidian View**: Transform static HTML metrics into performant ItemView
 - **Real-time Updates**: Instant updates without manual refresh
 - **Virtual Scrolling**: Handle thousands of entries smoothly
 - **Persistent State**: Remember filters, expanded rows, and view preferences
 
-> See [OneiroMetrics Dashboard Migration Plan](./oneirometrics-dashboard.md) for detailed implementation strategy.
+> See [OneiroMetrics Dashboard Migration Plan](../archived/oneirometrics-dashboard.md) for implementation details.
 
-#### Frontmatter Properties Support
+#### ✅ Frontmatter Properties Support (Complete)
 - **Property Mapping**: Map metrics to Obsidian frontmatter properties
 - **Multi-format Support**: Handle both compact and expanded YAML arrays
 - **Dataview Integration**: Enable powerful queries through frontmatter
 - **Backward Compatibility**: Maintain existing callout-based system
 
-> See [Frontmatter Properties Support](./frontmatter-properties-support.md) for technical details.
+> See [Frontmatter Properties Support](../archived/frontmatter-properties-support.md) for technical details.
 
 #### Enhanced Date Tools
 - **Multi-month Calendar View**: View and select dates across multiple months
@@ -82,14 +82,16 @@ The OneiroMetrics team is working on several exciting enhancements. While we can
 
 ### Long-Term Vision (6+ Months)
 
-#### Oneirograph - Advanced Dream Visualization
-- **Force-Directed Graph**: Interactive network visualization of dream connections
-- **Theme Clustering**: Automatic grouping of related dreams by themes
-- **Character Networks**: Visualize relationships between dream characters
-- **Temporal Patterns**: Show how dream themes evolve over time
-- **Interactive Exploration**: Click, zoom, and filter dream networks
+#### Dream Taxonomy & Oneirograph Integration
+- **Hierarchical Dream Taxonomy**: Three-tier system (Clusters → Vectors → Themes)
+- **Default Taxonomy**: 14 clusters with 300+ pre-defined themes
+- **Customizable Structure**: Full drag-and-drop editing of taxonomy
+- **Oneirograph Visualization**: Force-directed graph based on taxonomy structure
+- **Progressive Disclosure**: Zoom from clusters to individual dreams
+- **Theme Networks**: Visualize connections between related dreams
+- **Interactive Exploration**: Click, zoom, filter, and navigate dream landscape
 
-> See [Oneirograph Planning Document](./oneirograph.md) for the complete vision.
+> See [Dream Taxonomy & Oneirograph Integration Plan](./dream-taxonomy-oneirograph-integration.md) for comprehensive implementation details.
 
 #### Dream Analysis Features
 - **Dream Sequence Visualization**: Interactive timeline of dream sequences
@@ -162,9 +164,9 @@ As we add features, we remain committed to excellent performance:
 ## Related Documentation
 
 - [Project Roadmap](../roadmap.md): High-level project direction
-- [OneiroMetrics Dashboard](./oneirometrics-dashboard.md): Dashboard migration plan
-- [Frontmatter Properties Support](./frontmatter-properties-support.md): Frontmatter integration plan
-- [Oneirograph](./oneirograph.md): Advanced visualization planning
+- [Dream Taxonomy & Oneirograph Integration](./dream-taxonomy-oneirograph-integration.md): Comprehensive visualization and taxonomy plan
+- [OneiroMetrics Dashboard](../archived/oneirometrics-dashboard.md): Dashboard migration plan (Complete)
+- [Frontmatter Properties Support](../archived/frontmatter-properties-support.md): Frontmatter integration plan (Complete)
 - [Date & Calendar Features](../../archive/planning/features/2025-completed/date-calendar-unified.md): Unified plan for date-related functionality
 - [Metrics Enhancements Plan](./metrics-enhancements.md): Metrics system improvements
 - [Dream Journal Manager Plan](./dream-journal-manager.md): Dream Journal Manager enhancements 
