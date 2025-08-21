@@ -12668,7 +12668,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (31.5 KB)
+   COMPONENT: DASHBOARD (31.4 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12877,28 +12877,26 @@ input[type="date"]:focus-visible {
 }
 
 
-.oom-filter-container {
+/* Filter buttons group - mirrors action buttons */
+.oom-filter-buttons {
     display: flex;
     gap: var(--size-4-2);
     align-items: center;
+    flex: 1;
 }
 
-/* Style dropdown directly */
-.oom-filter-container .dropdown {
+/* Dropdown wrapper */
+.oom-dropdown-wrapper {
+    display: inline-block;
+}
+
+.oom-dropdown-wrapper .dropdown {
     min-width: 150px;
-    display: inline-flex;
 }
 
 /* Custom range button styling */
-.oom-filter-container button {
+.oom-custom-range-button {
     white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Ensure all direct children are inline */
-.oom-filter-container > * {
-    display: inline-flex;
 }
 
 /* Action buttons group */
@@ -12909,7 +12907,7 @@ input[type="date"]:focus-visible {
     margin-left: auto;
 }
 
-.oom-filter-container button.active {
+.oom-custom-range-button.active {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
 }
@@ -13639,7 +13637,7 @@ input[type="date"]:focus-visible {
         align-items: stretch;
     }
     
-    .oom-filter-container {
+    .oom-filter-buttons {
         width: 100%;
     }
     

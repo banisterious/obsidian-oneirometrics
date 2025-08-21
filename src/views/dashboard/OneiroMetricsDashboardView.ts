@@ -47,7 +47,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     public containerEl: HTMLElement;
     private filterDropdown: DropdownComponent;
     private filterPersistenceManager: FilterPersistenceManager;
-    private customDateRangeButton: ButtonComponent | null = null;
+    private customDateRangeButton: HTMLButtonElement | null = null;
     
     // Virtual scrolling is enabled by default - set to true to use legacy mode
     private legacyMode: boolean = false; // Virtual scrolling is enabled by default
@@ -492,11 +492,14 @@ export class OneiroMetricsDashboardView extends ItemView {
     private createControls() {
         const controls = this.contentContainer.createDiv({ cls: 'oom-dashboard-controls' });
         
-        // Filter container with dropdown and custom range button
-        const filterContainer = controls.createDiv({ cls: 'oom-filter-container' });
+        // Filter buttons group (mirroring action buttons structure)
+        const filterButtons = controls.createDiv({ cls: 'oom-filter-buttons' });
         
-        // Filter dropdown - add directly to filter container
-        this.filterDropdown = new DropdownComponent(filterContainer);
+        // Create a wrapper for the dropdown to control its layout
+        const dropdownWrapper = filterButtons.createDiv({ cls: 'oom-dropdown-wrapper' });
+        
+        // Filter dropdown
+        this.filterDropdown = new DropdownComponent(dropdownWrapper);
         this.filterDropdown.addOption('all', 'All Time');
         this.filterDropdown.addOption('today', 'Today');
         this.filterDropdown.addOption('yesterday', 'Yesterday');
@@ -521,20 +524,25 @@ export class OneiroMetricsDashboardView extends ItemView {
             }
         });
         
-        // Custom date range button - add directly to filter container
-        this.customDateRangeButton = new ButtonComponent(filterContainer);
-        this.customDateRangeButton.setButtonText('📅 Custom Range');
-        this.customDateRangeButton.onClick(() => {
+        // Custom date range button - create as plain button like Refresh
+        const customRangeBtn = filterButtons.createEl('button', {
+            text: '📅 Custom Range',
+            cls: 'oom-custom-range-button'
+        });
+        customRangeBtn.addEventListener('click', () => {
             this.openCustomDateRangeModal();
         });
         
         // Add active class if custom filter is active
         if (this.state.currentFilter === 'custom' && this.state.customDateRange) {
-            this.customDateRangeButton.buttonEl.addClass('active');
+            customRangeBtn.addClass('active');
         }
         
-        // Filter info display
-        const filterInfo = filterContainer.createDiv({ cls: 'oom-filter-info' });
+        // Store reference for later use
+        this.customDateRangeButton = customRangeBtn;
+        
+        // Filter info display - put it after the buttons
+        const filterInfo = filterButtons.createDiv({ cls: 'oom-filter-info' });
         this.updateFilterInfo(filterInfo);
         
         // Action buttons group
@@ -1404,7 +1412,7 @@ export class OneiroMetricsDashboardView extends ItemView {
         // Clear custom date range if not using custom filter
         if (filter !== 'custom') {
             this.state.customDateRange = undefined;
-            this.customDateRangeButton?.buttonEl.removeClass('active');
+            this.customDateRangeButton?.removeClass('active');
         }
         
         // Persist filter change
@@ -1426,7 +1434,7 @@ export class OneiroMetricsDashboardView extends ItemView {
                 
                 // Update UI
                 this.filterDropdown.setValue('custom');
-                this.customDateRangeButton?.buttonEl.addClass('active');
+                this.customDateRangeButton?.addClass('active');
                 
                 // Persist filter change
                 this.filterPersistenceManager.saveFilter('custom', this.state.customDateRange);
