@@ -31,6 +31,7 @@ interface DashboardState {
     lastUpdate: number;
     entriesMap: Map<string, DreamMetricData>; // For quick lookups
     pendingUpdates: Set<string>; // Track entries that need updating
+    activeTab: 'entries' | 'analytics';
 }
 
 interface ViewPreferences {
@@ -58,6 +59,12 @@ export class OneiroMetricsDashboardView extends ItemView {
     public virtualScroller: VirtualScroller | null = null;
     private chartsIntegration: DashboardChartsIntegration | null = null;
     private csvExportPipeline: CSVExportPipeline;
+    
+    // Tab navigation
+    private tabContainer: HTMLElement;
+    private contentContainer: HTMLElement;
+    private entriesTabButton: HTMLElement;
+    private analyticsTabButton: HTMLElement;
     
     // File watcher and performance monitoring
     private fileWatcherRef: any = null;
@@ -107,7 +114,8 @@ export class OneiroMetricsDashboardView extends ItemView {
             isLoading: false,
             lastUpdate: Date.now(),
             entriesMap: new Map(),
-            pendingUpdates: new Set()
+            pendingUpdates: new Set(),
+            activeTab: 'entries'
         };
         
         // Initialize preferences from settings
@@ -333,11 +341,11 @@ export class OneiroMetricsDashboardView extends ItemView {
     
     private async initializeDashboard() {
         try {
-            // For now, we'll start with a simple structure
-            // Phase 1: Basic rendering with existing data
+            // Create header
             this.createHeader();
-            this.createControls();
-            this.createTableContainer();
+            
+            // Create main tab navigation
+            this.createMainTabs();
             
             // Load initial data
             await this.loadDreamEntries();
@@ -345,8 +353,8 @@ export class OneiroMetricsDashboardView extends ItemView {
             // Apply initial sort (Date ascending by default)
             this.sortEntries();
             
-            // Render the table
-            this.renderTable();
+            // Initialize the default tab (Dream Entries)
+            this.switchToTab('entries');
             
         } catch (error) {
             console.error('Failed to initialize dashboard:', error);
@@ -365,8 +373,100 @@ export class OneiroMetricsDashboardView extends ItemView {
         this.updateLastUpdateTime(updateInfo);
     }
     
+    private createMainTabs() {
+        // Create tab container
+        this.tabContainer = this.containerEl.createDiv({ cls: 'oom-dashboard-tabs' });
+        
+        // Create tab buttons
+        this.entriesTabButton = this.tabContainer.createEl('button', {
+            text: '📊 Dream Entries',
+            cls: 'oom-tab-button active',
+            attr: {
+                'data-tab': 'entries',
+                'aria-selected': 'true',
+                'role': 'tab'
+            }
+        });
+        
+        this.analyticsTabButton = this.tabContainer.createEl('button', {
+            text: '📈 Analytics & Insights',
+            cls: 'oom-tab-button',
+            attr: {
+                'data-tab': 'analytics',
+                'aria-selected': 'false',
+                'role': 'tab'
+            }
+        });
+        
+        // Create content container
+        this.contentContainer = this.containerEl.createDiv({ cls: 'oom-dashboard-content-container' });
+        
+        // Add click handlers
+        this.entriesTabButton.addEventListener('click', () => this.switchToTab('entries'));
+        this.analyticsTabButton.addEventListener('click', () => this.switchToTab('analytics'));
+    }
+    
+    private switchToTab(tab: 'entries' | 'analytics') {
+        // Update state
+        this.state.activeTab = tab;
+        
+        // Update tab buttons
+        if (tab === 'entries') {
+            this.entriesTabButton.addClass('active');
+            this.entriesTabButton.setAttribute('aria-selected', 'true');
+            this.analyticsTabButton.removeClass('active');
+            this.analyticsTabButton.setAttribute('aria-selected', 'false');
+        } else {
+            this.analyticsTabButton.addClass('active');
+            this.analyticsTabButton.setAttribute('aria-selected', 'true');
+            this.entriesTabButton.removeClass('active');
+            this.entriesTabButton.setAttribute('aria-selected', 'false');
+        }
+        
+        // Clear content container
+        this.contentContainer.empty();
+        
+        // Render appropriate content
+        if (tab === 'entries') {
+            this.renderEntriesTab();
+        } else {
+            this.renderAnalyticsTab();
+        }
+    }
+    
+    private renderEntriesTab() {
+        // Create controls (search & filters)
+        this.createControls();
+        
+        // Create table container
+        this.createTableContainer();
+        
+        // Render the table
+        this.renderTable();
+    }
+    
+    private async renderAnalyticsTab() {
+        // Create charts integration instance if not already done
+        if (!this.chartsIntegration) {
+            this.chartsIntegration = new DashboardChartsIntegration(
+                this.app,
+                this.plugin,
+                this.plugin.logger
+            );
+        }
+        
+        // Initialize charts in the content container
+        await this.chartsIntegration.initialize(this.contentContainer);
+        
+        // Update with current data
+        await this.chartsIntegration.updateCharts(
+            this.state.filteredEntries,
+            this.plugin.settings.metrics
+        );
+    }
+    
     private createControls() {
-        const controls = this.containerEl.createDiv({ cls: 'oom-dashboard-controls' });
+        const controls = this.contentContainer.createDiv({ cls: 'oom-dashboard-controls' });
         
         // Search component
         const searchContainer = controls.createDiv({ cls: 'oom-search-container' });
@@ -451,37 +551,11 @@ export class OneiroMetricsDashboardView extends ItemView {
     }
     
     private createTableContainer() {
-        // Create content wrapper for proper flex layout
-        const contentWrapper = this.containerEl.createDiv({ cls: 'oom-dashboard-content' });
-        
-        // Create table container inside content wrapper
-        const tableContainer = contentWrapper.createDiv({ cls: 'oom-table-container' });
+        // Create table container inside content container
+        const tableContainer = this.contentContainer.createDiv({ cls: 'oom-table-container' });
         // Table will be rendered here
-        
-        // Initialize charts integration below the table (also inside content wrapper)
-        this.initializeChartsIntegration();
     }
     
-    private async initializeChartsIntegration() {
-        try {
-            // Create charts integration instance
-            this.chartsIntegration = new DashboardChartsIntegration(
-                this.app,
-                this.plugin,
-                this.plugin.logger
-            );
-            
-            // Initialize charts section in the content wrapper
-            const contentWrapper = this.containerEl.querySelector('.oom-dashboard-content') as HTMLElement;
-            if (contentWrapper) {
-                await this.chartsIntegration.initialize(contentWrapper);
-            }
-            
-            this.plugin.logger?.debug('Dashboard', 'Charts integration initialized');
-        } catch (error) {
-            this.plugin.logger?.error('Dashboard', 'Failed to initialize charts integration', error);
-        }
-    }
     
     private async loadDreamEntries() {
         try {
@@ -769,7 +843,7 @@ export class OneiroMetricsDashboardView extends ItemView {
     private renderTable() {
         const startTime = performance.now();
         
-        const tableContainer = this.containerEl.querySelector('.oom-table-container') as HTMLElement;
+        const tableContainer = this.contentContainer.querySelector('.oom-table-container') as HTMLElement;
         if (!tableContainer) return;
         
         // Check if we're showing the beta placeholder
