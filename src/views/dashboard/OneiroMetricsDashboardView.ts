@@ -423,18 +423,39 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.entriesTabButton.setAttribute('aria-selected', 'false');
         }
         
-        // Clear content container
-        this.contentContainer.empty();
+        // Instead of clearing, hide/show content
+        const existingEntries = this.contentContainer.querySelector('.oom-entries-content');
+        const existingAnalytics = this.contentContainer.querySelector('.oom-analytics-content');
         
-        // Render appropriate content
         if (tab === 'entries') {
-            this.renderEntriesTab();
+            // Show entries, hide analytics
+            if (existingAnalytics) existingAnalytics.addClass('oom-hidden');
+            
+            if (existingEntries) {
+                existingEntries.removeClass('oom-hidden');
+            } else {
+                this.renderEntriesTab();
+            }
         } else {
-            this.renderAnalyticsTab();
+            // Show analytics, hide entries
+            if (existingEntries) existingEntries.addClass('oom-hidden');
+            
+            if (existingAnalytics) {
+                existingAnalytics.removeClass('oom-hidden');
+            } else {
+                this.renderAnalyticsTab();
+            }
         }
     }
     
     private renderEntriesTab() {
+        // Create wrapper for entries content
+        const entriesWrapper = this.contentContainer.createDiv({ cls: 'oom-entries-content' });
+        
+        // Store original container, use wrapper for entries
+        const originalContainer = this.contentContainer;
+        this.contentContainer = entriesWrapper;
+        
         // Create controls (search & filters)
         this.createControls();
         
@@ -443,9 +464,15 @@ export class OneiroMetricsDashboardView extends ItemView {
         
         // Render the table
         this.renderTable();
+        
+        // Restore original container
+        this.contentContainer = originalContainer;
     }
     
     private async renderAnalyticsTab() {
+        // Create wrapper for analytics content
+        const analyticsWrapper = this.contentContainer.createDiv({ cls: 'oom-analytics-content' });
+        
         // Create charts integration instance if not already done
         if (!this.chartsIntegration) {
             this.chartsIntegration = new DashboardChartsIntegration(
@@ -453,12 +480,12 @@ export class OneiroMetricsDashboardView extends ItemView {
                 this.plugin,
                 this.plugin.logger
             );
+            
+            // Initialize charts in the analytics wrapper
+            await this.chartsIntegration.initialize(analyticsWrapper);
         }
         
-        // Initialize charts in the content container
-        await this.chartsIntegration.initialize(this.contentContainer);
-        
-        // Update with current data
+        // Always update with current data (this generates the statistics table)
         await this.chartsIntegration.updateCharts(
             this.state.filteredEntries,
             this.plugin.settings.metrics

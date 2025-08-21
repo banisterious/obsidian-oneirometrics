@@ -12668,7 +12668,7 @@ input[type="date"]:focus-visible {
 }
 
 /* =============================================================================
-   COMPONENT: DASHBOARD (31.0 KB)
+   COMPONENT: DASHBOARD (31.2 KB)
    ============================================================================= */
 /* OneiroMetrics Dashboard Styles */
 /* Following Obsidian UI patterns and theme compatibility */
@@ -12717,6 +12717,19 @@ input[type="date"]:focus-visible {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+/* Tab content wrappers */
+.oom-entries-content,
+.oom-analytics-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.oom-hidden {
+    display: none !important;
 }
 
 /* Virtual Scrolling Styles */

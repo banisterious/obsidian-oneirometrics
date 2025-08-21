@@ -67,28 +67,8 @@ export class DashboardChartsIntegration {
      * Create the charts section structure in the dashboard
      */
     private createChartsSection(container: HTMLElement): void {
-        // Create charts section wrapper
-        const chartsSection = container.createDiv({ cls: 'oom-dashboard-charts-section' });
-        
-        // Create section header with toggle
-        const header = chartsSection.createDiv({ cls: 'oom-dashboard-charts-header' });
-        
-        // Add collapsible header
-        const headerTitle = header.createDiv({ cls: 'oom-dashboard-charts-title' });
-        headerTitle.createEl('h3', { text: 'Analytics & Insights' });
-        
-        // Add toggle button
-        const toggleBtn = headerTitle.createEl('button', {
-            cls: 'oom-charts-toggle',
-            attr: {
-                'aria-label': 'Toggle charts visibility',
-                'aria-expanded': 'true'
-            }
-        });
-        toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="oom-toggle-icon"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-        
-        // Create charts container with placeholder
-        this.chartsContainer = chartsSection.createDiv({ cls: 'oom-dashboard-charts-container' });
+        // Create charts container directly in the provided container
+        this.chartsContainer = container.createDiv({ cls: 'oom-dashboard-charts-container' });
         
         // Add placeholder for charts
         const placeholder = this.chartsContainer.createDiv({ 
@@ -96,49 +76,14 @@ export class DashboardChartsIntegration {
             attr: { id: 'oom-chart-tabs-placeholder' }
         });
         placeholder.createEl('p', { 
-            text: 'Charts will appear here after data is loaded',
+            text: 'Loading analytics...',
             cls: 'oom-charts-placeholder-text'
         });
-        
-        // Setup toggle functionality
-        this.setupToggleHandler(toggleBtn, this.chartsContainer);
         
         // Add resize observer for responsive charts
         this.setupResizeObserver();
     }
 
-    /**
-     * Setup toggle handler for showing/hiding charts
-     */
-    private setupToggleHandler(toggleBtn: HTMLButtonElement, container: HTMLElement): void {
-        let isExpanded = true;
-        
-        toggleBtn.addEventListener('click', () => {
-            isExpanded = !isExpanded;
-            
-            // Update button state
-            toggleBtn.setAttribute('aria-expanded', String(isExpanded));
-            toggleBtn.classList.toggle('collapsed', !isExpanded);
-            
-            // Toggle container visibility
-            if (isExpanded) {
-                container.classList.remove('collapsed');
-            } else {
-                container.classList.add('collapsed');
-            }
-            
-            // Update chart visibility if initialized
-            if (this.chartTabsManager) {
-                if (isExpanded) {
-                    this.chartTabsManager.showChartTabs();
-                } else {
-                    this.chartTabsManager.hideChartTabs();
-                }
-            }
-            
-            this.logger?.debug('DashboardChartsIntegration', 'Charts toggled', { isExpanded });
-        });
-    }
 
     /**
      * Setup resize observer for responsive chart rendering
