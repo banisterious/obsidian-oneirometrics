@@ -22,6 +22,7 @@ import { TemplateManager } from '../templates/TemplateManager';
 import { FilterPersistenceManager } from '../dom/filters/FilterPersistenceManager';
 import { DateNavigatorManager } from '../dom/date-navigator/DateNavigatorManager';
 import { LogFileManager } from '../logging/LogFileManager';
+import { createTaxonomyManager } from '../state/TaxonomyManager';
 
 // Import ScrapeEventEmitter for real-time feedback
 import { ScrapeEventEmitter, SCRAPE_EVENTS } from '../events/ScrapeEvents';
@@ -141,6 +142,14 @@ export class PluginInitializer {
 
         // Initialize ScrapeEventEmitter
         this.plugin.scrapeEventEmitter = new ScrapeEventEmitter();
+        
+        // Initialize TaxonomyManager
+        this.plugin.taxonomyManager = createTaxonomyManager({
+            app: this.app,
+            plugin: this.plugin,
+            settings: this.plugin.settings,
+            debugMode: this.plugin.settings?.logging?.level === 'debug'
+        });
         
         // Setup global backup warning event handlers to ensure they're always available
         this.setupGlobalBackupWarningHandlers();

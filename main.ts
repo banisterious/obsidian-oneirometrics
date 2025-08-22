@@ -98,6 +98,7 @@ import { RibbonManager } from './src/dom/RibbonManager';
 // Import the PluginLoader
 import { PluginLoader } from './src/plugin/PluginLoader';
 import { PluginInitializer } from './src/plugin/PluginInitializer';
+import { TaxonomyManager } from './src/state/TaxonomyManager';
 
 // Import debugging tools
 import { DebugTools } from './src/utils/DebugTools';
@@ -193,6 +194,7 @@ export default class DreamMetricsPlugin extends Plugin {
     public filterPersistenceManager: FilterPersistenceManager;
     public dateNavigatorManager: DateNavigatorManager;
     public logFileManager: LogFileManager;
+    public taxonomyManager: TaxonomyManager;
 
     async onload() {
         // Delegate all initialization logic to PluginInitializer

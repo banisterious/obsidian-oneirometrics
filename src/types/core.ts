@@ -423,6 +423,9 @@ export interface DreamMetricsSettings {
 
     /** Whether the onboarding banner has been dismissed */
     onboardingDismissed?: boolean;
+    
+    /** Dream Taxonomy data and settings */
+    dreamTaxonomy?: any; // Using 'any' to avoid circular dependency, actual type is TaxonomyState
 }
 
 /**

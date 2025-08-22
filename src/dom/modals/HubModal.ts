@@ -60,6 +60,7 @@ import { SettingsAdapter } from '../../state/adapters/SettingsAdapter';
 import { TemplateWizardModal } from './TemplateWizardModal';
 import { SafeDOMUtils } from '../../utils/SafeDOMUtils';
 import { TemplateHelpers } from '../../utils/TemplateHelpers';
+import { DreamTaxonomyTab } from '../components/DreamTaxonomyTab';
 
 // Import metrics functionality from settings
 import { 
@@ -264,6 +265,7 @@ export class HubModal extends Modal {
         this.createDreamScrapeTab();
         this.createContentAnalysisTab(); // NEW: Content Analysis tab
         this.createMetricsSettingsTab(); // NEW: Metrics Settings tab
+        this.createDreamTaxonomyTab(); // NEW: Dream Taxonomy tab
         
         // Create Overview tab (renamed to Reference Overview)
         this.createOverviewTab();
@@ -360,6 +362,23 @@ export class HubModal extends Modal {
         });
     }
     
+    // Create Dream Taxonomy tab
+    private createDreamTaxonomyTab() {
+        const dreamTaxonomyTab = this.tabsContainer.createDiv({
+            cls: 'vertical-tab-nav-item oom-hub-tab-nav-item',
+            attr: { 'data-tab-id': 'dream-taxonomy' }
+        });
+        
+        dreamTaxonomyTab.createDiv({ 
+            text: 'Dream Taxonomy', 
+            cls: 'oom-hub-tab-label' 
+        });
+        
+        dreamTaxonomyTab.addEventListener('click', () => {
+            this.selectTab('dream-taxonomy');
+        });
+    }
+    
     // Create Overview tab
     private createOverviewTab() {
         const overviewTab = this.tabsContainer.createDiv({
@@ -440,6 +459,8 @@ export class HubModal extends Modal {
             this.loadContentAnalysisContent();
         } else if (tabId === 'metrics-settings') {
             this.loadMetricsSettingsContent();
+        } else if (tabId === 'dream-taxonomy') {
+            this.loadDreamTaxonomyContent();
         } else if (tabId === 'journal-structure') {
             this.loadJournalStructureContent();
         } else if (tabId === 'overview') {
@@ -4833,6 +4854,15 @@ Example:
                 });
         }
 
+    }
+
+    // Load Dream Taxonomy content
+    private loadDreamTaxonomyContent() {
+        this.contentContainer.empty();
+        
+        // Initialize the Dream Taxonomy tab component
+        const dreamTaxonomyTab = new DreamTaxonomyTab(this.app, this.contentContainer);
+        dreamTaxonomyTab.render();
     }
 
     // Validate a template (placeholder implementation)

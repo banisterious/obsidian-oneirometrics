@@ -14133,3 +14133,469 @@ body.shimmering-focus .oom-dashboard-header {
     padding-top: var(--size-4-3);
     border-top: 1px solid var(--background-modifier-border);
 }
+
+/* =============================================================================
+   COMPONENT: DREAM-TAXONOMY (9.7 KB)
+   ============================================================================= */
+/**
+ * Dream Taxonomy Tab Styles
+ * 
+ * Styles for the Dream Taxonomy tree view in the Control Center.
+ * Follows Obsidian's native UI patterns and supports all themes.
+ */
+
+/* Main content container */
+.oom-dream-taxonomy-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--size-4-4);
+    gap: var(--size-4-3);
+    overflow: hidden;
+}
+
+/* Toolbar */
+.oom-taxonomy-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--size-4-4);
+    flex-shrink: 0;
+}
+
+/* Search container */
+.oom-search-container {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.oom-search-input {
+    width: 100%;
+    padding: var(--size-4-2) var(--size-4-3);
+    padding-left: var(--size-4-8);
+    padding-right: var(--size-4-8);
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+}
+
+.oom-search-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+}
+
+.oom-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.oom-search-icon {
+    position: absolute;
+    left: var(--size-4-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.oom-search-clear {
+    position: absolute;
+    right: var(--size-4-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: var(--size-2-1);
+    border-radius: var(--radius-s);
+}
+
+.oom-search-clear:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+/* Toolbar actions */
+.oom-toolbar-actions {
+    display: flex;
+    gap: var(--size-4-2);
+}
+
+.oom-button {
+    padding: var(--size-4-2) var(--size-4-3);
+    background: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.oom-button:hover:not([disabled]) {
+    background: var(--interactive-hover);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.oom-button:active:not([disabled]) {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.oom-button.oom-primary {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.oom-button.oom-primary:hover:not([disabled]) {
+    background: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+}
+
+/* Tree container */
+.oom-taxonomy-tree-container {
+    flex: 1;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    overflow: auto;
+    padding: var(--size-4-3);
+    min-height: 0;
+}
+
+/* Custom scrollbar for tree container */
+.oom-taxonomy-tree-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.oom-taxonomy-tree-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.oom-taxonomy-tree-container::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.oom-taxonomy-tree-container::-webkit-scrollbar-thumb:hover {
+    background: var(--background-modifier-border-hover);
+}
+
+/* Tree structure */
+.oom-tree-item {
+    margin: var(--size-2-1) 0;
+}
+
+.oom-tree-node {
+    display: flex;
+    align-items: center;
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    min-height: 32px;
+}
+
+.oom-tree-node:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-tree-node:active {
+    background: var(--background-modifier-active-hover);
+}
+
+/* Expand/collapse icon */
+.oom-expand-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+}
+
+.oom-expand-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Node icons */
+.oom-node-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: var(--size-4-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.oom-node-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Node label */
+.oom-node-label {
+    flex: 1;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Node count */
+.oom-node-count {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-left: var(--size-4-2);
+    opacity: 0.7;
+}
+
+/* Usage count for themes */
+.oom-node-usage {
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    margin-left: var(--size-4-2);
+    padding: 0 var(--size-4-1);
+    background: var(--background-modifier-active-hover);
+    border-radius: var(--radius-s);
+}
+
+/* Nested levels */
+.oom-tree-children {
+    margin-left: var(--size-4-5);
+    display: none;
+}
+
+.oom-tree-item.oom-expanded > .oom-tree-children {
+    display: block;
+}
+
+/* Cluster styling */
+.oom-cluster-node {
+    font-weight: var(--font-semibold);
+}
+
+.oom-cluster-node .oom-node-label {
+    font-size: var(--font-ui-medium);
+}
+
+.oom-cluster-color {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-s);
+    margin-right: var(--size-4-2);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px var(--background-modifier-border);
+}
+
+/* Vector styling */
+.oom-vector-node {
+    font-weight: var(--font-medium);
+}
+
+.oom-vector-node .oom-node-label {
+    font-size: var(--font-ui-small);
+}
+
+/* Theme styling */
+.oom-theme-node .oom-node-label {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.oom-theme-node:hover .oom-node-label {
+    color: var(--text-normal);
+}
+
+.oom-theme-icon {
+    font-size: var(--font-ui-small);
+    opacity: 0.5;
+}
+
+/* Highlighted search results */
+.oom-tree-node.oom-search-match {
+    background: var(--background-modifier-active-hover);
+}
+
+.oom-tree-node.oom-search-match .oom-node-label {
+    color: var(--text-accent);
+    font-weight: var(--font-medium);
+}
+
+/* Stats panel */
+.oom-stats-panel {
+    margin-top: var(--size-4-3);
+    padding: var(--size-4-3);
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    display: flex;
+    gap: var(--size-4-6);
+    font-size: var(--font-ui-small);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.oom-stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.oom-stat-label {
+    color: var(--text-muted);
+}
+
+.oom-stat-value {
+    font-weight: var(--font-semibold);
+    color: var(--text-accent);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .oom-dream-taxonomy-content {
+        padding: var(--size-4-2);
+    }
+
+    .oom-taxonomy-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--size-4-2);
+    }
+
+    .oom-search-container {
+        max-width: none;
+    }
+
+    .oom-toolbar-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .oom-button {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .oom-stats-panel {
+        flex-direction: column;
+        gap: var(--size-4-2);
+    }
+
+    /* Larger touch targets on mobile */
+    .oom-tree-node {
+        min-height: 44px;
+        padding: var(--size-4-2) var(--size-4-2);
+    }
+
+    .oom-expand-icon {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* Accessibility */
+.oom-tree-node:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+.oom-button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.oom-search-input:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+/* Theme-specific adjustments */
+.theme-light .oom-cluster-color {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .oom-node-usage {
+    background: var(--background-secondary-alt);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .oom-tree-node:hover {
+        outline: 1px solid var(--text-muted);
+    }
+
+    .oom-cluster-color {
+        outline: 1px solid var(--text-normal);
+    }
+}
+
+/* Loading state */
+.oom-taxonomy-tree-container.oom-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.oom-taxonomy-tree-container.oom-loading::after {
+    content: 'Loading taxonomy...';
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+/* Empty state */
+.oom-taxonomy-tree-container.oom-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    text-align: center;
+    padding: var(--size-4-6);
+}
+
+/* Tooltip support */
+.oom-tree-node[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--size-4-1) var(--size-4-2);
+    background: var(--background-modifier-message);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    border-radius: var(--radius-s);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: var(--layer-tooltip);
+}
+
+.oom-tree-node[data-tooltip]:hover::after {
+    opacity: 1;
+}
