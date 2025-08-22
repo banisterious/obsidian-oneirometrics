@@ -852,8 +852,31 @@ Understanding how common dream scenarios map to the taxonomy helps users quickly
 
 ---
 
+## Design Update: Control Center Integration
+
+**Important UI Location Change (August 2025):**
+After review, the Dream Taxonomy management interface will be implemented as a dedicated tab in the Control Center rather than in Settings. This provides:
+- Better accessibility and visibility as a core feature
+- Larger workspace for complex taxonomy operations  
+- Seamless integration with other analytical tools
+- Consistent tab-based navigation experience
+
+**Tab Placement:**
+The Dream Taxonomy tab will be positioned specifically between the Metrics settings tab and the Reference overview tab in the Control Center:
+- Analytics
+- Charts  
+- Metrics
+- **Dream Taxonomy** ← New tab positioned here
+- Reference
+
+This placement provides a logical flow from configuration (Metrics) to organization (Dream Taxonomy) to documentation (Reference).
+
+The Oneirograph will remain as a separate view (like Graph View) but may be added as a Control Center tab in a future iteration based on user feedback.
+
+---
+
 **Next Steps**:
-1. Review and approve plan
-2. Assign to development team
+1. Review and approve plan with Control Center integration
+2. Update component designs for tab-based implementation
 3. Set up project tracking
-4. Begin Phase 1 implementation
+4. Begin Phase 1 implementation with new UI location
