@@ -1,0 +1,299 @@
+/**
+ * Oneirograph Styles
+ * 
+ * Visual styling for the Oneirograph force-directed graph visualization.
+ * Uses "oom-" prefix for all classes (OneiroMetrics namespace).
+ */
+
+/* Main container */
+.oom-oneirograph-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--background-primary);
+}
+
+/* Canvas container */
+.oom-oneirograph-canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px; /* Space for controls */
+    overflow: hidden;
+}
+
+/* Main canvas */
+.oom-oneirograph-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+
+.oom-oneirograph-canvas:active {
+    cursor: grabbing;
+}
+
+/* Overlay for HTML elements */
+.oom-oneirograph-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Controls panel */
+.oom-oneirograph-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--background-secondary);
+    border-top: 1px solid var(--background-modifier-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--size-4-4);
+    gap: var(--size-4-4);
+}
+
+/* Zoom controls */
+.oom-oneirograph-zoom-controls {
+    display: flex;
+    gap: var(--size-4-2);
+}
+
+.oom-oneirograph-zoom-controls button {
+    padding: var(--size-4-1) var(--size-4-2);
+    background: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.oom-oneirograph-zoom-controls button:hover {
+    background: var(--interactive-hover);
+    border-color: var(--interactive-accent);
+}
+
+.oom-oneirograph-zoom-controls button:active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* Options container */
+.oom-oneirograph-options {
+    display: flex;
+    gap: var(--size-4-4);
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+}
+
+/* Option toggle */
+.oom-oneirograph-option {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+.oom-oneirograph-option input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.oom-oneirograph-option span {
+    user-select: none;
+}
+
+/* FPS counter */
+.oom-oneirograph-fps {
+    font-size: var(--font-ui-small);
+    color: var(--text-faint);
+    font-family: var(--font-monospace);
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Loading indicator */
+.oom-oneirograph-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--background-secondary);
+    padding: var(--size-4-4);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    z-index: 100;
+}
+
+.oom-oneirograph-loading span {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+/* Error message */
+.oom-oneirograph-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--background-secondary);
+    padding: var(--size-4-4);
+    border-radius: var(--radius-m);
+    border: 2px solid var(--background-modifier-error);
+    box-shadow: var(--shadow-s);
+    z-index: 100;
+}
+
+.oom-oneirograph-error span {
+    color: var(--text-error);
+    font-size: var(--font-ui-medium);
+}
+
+/* Tooltip styles */
+.oom-oneirograph-tooltip {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    padding: var(--size-4-2);
+    box-shadow: var(--shadow-s);
+    max-width: 300px;
+    font-size: var(--font-ui-small);
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.oom-oneirograph-tooltip-title {
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+    margin-bottom: var(--size-2-1);
+}
+
+.oom-oneirograph-tooltip-type {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.oom-oneirograph-tooltip-date {
+    color: var(--text-muted);
+    margin-top: var(--size-2-1);
+}
+
+.oom-oneirograph-tooltip-themes {
+    color: var(--text-faint);
+    margin-top: var(--size-2-1);
+    font-style: italic;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .oom-oneirograph-controls {
+        height: 80px;
+        flex-wrap: wrap;
+        padding: var(--size-4-2);
+    }
+    
+    .oom-oneirograph-canvas-container {
+        bottom: 80px;
+    }
+    
+    .oom-oneirograph-overlay {
+        bottom: 80px;
+    }
+    
+    .oom-oneirograph-options {
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .oom-oneirograph-option {
+        font-size: var(--font-ui-smaller);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .oom-oneirograph-canvas {
+        outline: 2px solid var(--text-normal);
+    }
+    
+    .oom-oneirograph-controls {
+        border-top-width: 2px;
+    }
+    
+    .oom-oneirograph-tooltip {
+        border-width: 2px;
+    }
+}
+
+/* Dark mode specific adjustments */
+.theme-dark .oom-oneirograph-container {
+    background: var(--background-primary);
+}
+
+.theme-dark .oom-oneirograph-loading,
+.theme-dark .oom-oneirograph-error {
+    background: var(--background-secondary-alt);
+}
+
+/* Animation classes */
+@keyframes oom-oneirograph-pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.oom-oneirograph-loading span {
+    animation: oom-oneirograph-pulse 1.5s ease-in-out infinite;
+}
+
+/* Context menu (future feature) */
+.oom-oneirograph-context-menu {
+    position: absolute;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-l);
+    min-width: 150px;
+    z-index: 1001;
+    display: none;
+}
+
+.oom-oneirograph-context-menu-item {
+    padding: var(--size-4-2) var(--size-4-3);
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+
+.oom-oneirograph-context-menu-item:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Performance mode indicator */
+.oom-oneirograph-perf-indicator {
+    position: absolute;
+    top: var(--size-4-2);
+    right: var(--size-4-2);
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    padding: var(--size-2-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    pointer-events: none;
+    z-index: 50;
+}

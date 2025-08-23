@@ -41,7 +41,9 @@
         "typescript": "^5.4.0"
     },
     "dependencies": {
+        "@types/d3": "^7.4.3",
         "chart.js": "^4.4.9",
+        "d3": "^7.9.0",
         "date-fns": "^2.30.0",
         "lucide-static": "^0.509.0",
         "replace-in-file": "^8.3.0",

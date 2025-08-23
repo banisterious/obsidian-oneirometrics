@@ -138,6 +138,8 @@ import { UnifiedTestSuiteModal } from './src/testing/ui/UnifiedTestSuiteModal';
 
 // Import dashboard view
 import { OneiroMetricsDashboardView, ONEIROMETRICS_DASHBOARD_VIEW_TYPE } from './src/views/dashboard/OneiroMetricsDashboardView';
+// Import Oneirograph view
+import { OneirographView, ONEIROGRAPH_VIEW_TYPE } from './src/dom/oneirograph/OneirographView';
 
 export default class DreamMetricsPlugin extends Plugin {
     settings: DreamMetricsSettings;
@@ -207,6 +209,12 @@ export default class DreamMetricsPlugin extends Plugin {
             (leaf) => new OneiroMetricsDashboardView(leaf, this)
         );
         
+        // Register the Oneirograph view
+        this.registerView(
+            ONEIROGRAPH_VIEW_TYPE,
+            (leaf) => new OneirographView(leaf, this)
+        );
+        
         // Add OneiroMetrics Hub command (always available)
         this.addCommand({
             id: 'open-oneirometrics-hub',
@@ -214,6 +222,28 @@ export default class DreamMetricsPlugin extends Plugin {
             callback: () => {
                 const modalsManager = new ModalsManager(this.app, this, this.logger);
                 modalsManager.openHubModal();
+            }
+        });
+        
+        // Add Oneirograph command
+        this.addCommand({
+            id: 'open-oneirograph',
+            name: 'Open Oneirograph',
+            callback: async () => {
+                const { workspace } = this.app;
+                let leaf = workspace.getLeavesOfType(ONEIROGRAPH_VIEW_TYPE)[0];
+                
+                if (!leaf) {
+                    // Create new leaf if it doesn't exist
+                    leaf = workspace.getLeaf('tab');
+                    await leaf.setViewState({
+                        type: ONEIROGRAPH_VIEW_TYPE,
+                        active: true
+                    });
+                }
+                
+                // Focus the leaf
+                workspace.revealLeaf(leaf);
             }
         });
 

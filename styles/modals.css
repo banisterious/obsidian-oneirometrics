@@ -393,6 +393,12 @@
     min-width: 140px;
 }
 
+/* Base styling for metrics tabs content container */
+.oom-metrics-tabs-content {
+    overflow-y: auto;
+    max-height: 100%;
+}
+
 /* Ensure the content container has proper layout for sticky footer */
 .oom-metrics-tabs-content:has(.oom-dream-scrape-sticky-footer) {
     display: flex;

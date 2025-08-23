@@ -479,16 +479,7 @@ export class HubModal extends Modal {
     private loadOverviewContent() {
         this.contentContainer.empty();
         
-        // Add welcome text
-        const welcomeText = this.contentContainer.createDiv({ 
-            cls: 'oom-metrics-tabs-overview-text' 
-        });
-        
-        welcomeText.createEl('p', { 
-            text: 'Welcome to the OneiroMetrics guide for understanding your dreams! This section provides clear definitions for each metric you can track in your dream journal. Use these descriptions to consistently score your dream entries, helping you unlock powerful insights into your nightly experiences and discover fascinating patterns in your subconscious mind.'
-        });
-        
-        // Add content from sources-and-inspirations.md
+        // Add content from sources-and-inspirations.md directly at the top
         const sourcesContent = this.getSourcesAndInspirationsContent();
         const sourcesDiv = this.contentContainer.createDiv({ 
             cls: 'oom-metrics-tabs-sources-content' 
@@ -588,6 +579,10 @@ The calendar visualization and metrics displays are informed by:
 - Time-series data visualization principles
 - Dashboard design best practices
 - User experience research on information density and accessibility
+
+### Dream Taxonomy
+
+The hierarchical structure of Clusters, Vectors, and Themes is a modern application of long-established concepts from qualitative research and information science. This approach is inspired by methodologies like thematic analysis, where a researcher systematically moves from detailed codes to broader themes, and from hierarchical data modeling, which organizes complex information into layered, logical taxonomies for easier comprehension and navigation. In a more technical sense, it also draws inspiration from data science and machine learning, where similar structures are used to organize unstructured data into meaningful clusters based on the properties of a vector, thereby providing a powerful framework for analysis and visualization.
 
 ### Conclusion
 
