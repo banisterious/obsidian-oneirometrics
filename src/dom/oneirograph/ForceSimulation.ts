@@ -79,6 +79,7 @@ export class ForceSimulation {
         // Add custom forces
         // Disable cluster force to let link hierarchy work properly
         // this.addClusterForce();
+        this.addVectorSubClusteringForce(); // Phase 4: Sub-clustering within clusters
         this.addChronologicalForce();
         this.addThematicForce();
         
@@ -123,6 +124,77 @@ export class ForceSimulation {
         };
         
         this.simulation.force('cluster', clusterForce);
+    }
+    
+    /**
+     * Phase 4: Add sub-clustering force for vectors within clusters
+     * Groups vectors based on theme overlap within each cluster
+     */
+    private addVectorSubClusteringForce() {
+        const vectorNodes = this.nodes.filter(n => n.type === 'vector');
+        if (vectorNodes.length === 0) return;
+        
+        // Calculate theme similarity between vectors within the same cluster
+        const vectorSimilarityMap = new Map<string, Map<string, number>>();
+        
+        for (const node1 of vectorNodes) {
+            const vector1 = node1.data as any; // TaxonomyVector
+            const similarityMap = new Map<string, number>();
+            
+            for (const node2 of vectorNodes) {
+                if (node1.id === node2.id) continue;
+                
+                const vector2 = node2.data as any; // TaxonomyVector
+                
+                // Only consider vectors in the same cluster
+                if (vector1.parentClusterId !== vector2.parentClusterId) continue;
+                
+                // Calculate theme overlap (Jaccard similarity)
+                const themes1 = new Set(vector1.themes?.map((t: any) => t.name) || []);
+                const themes2 = new Set(vector2.themes?.map((t: any) => t.name) || []);
+                
+                const intersection = new Set([...themes1].filter(x => themes2.has(x)));
+                const union = new Set([...themes1, ...themes2]);
+                
+                if (union.size > 0) {
+                    const similarity = intersection.size / union.size;
+                    if (similarity > 0.1) { // Threshold for meaningful similarity
+                        similarityMap.set(node2.id, similarity);
+                    }
+                }
+            }
+            
+            vectorSimilarityMap.set(node1.id, similarityMap);
+        }
+        
+        // Apply sub-clustering force
+        const subClusterForce = (alpha: number) => {
+            for (const [nodeId, similarities] of vectorSimilarityMap) {
+                const node1 = vectorNodes.find(n => n.id === nodeId);
+                if (!node1 || node1.x === undefined || node1.y === undefined) continue;
+                
+                for (const [otherId, similarity] of similarities) {
+                    const node2 = vectorNodes.find(n => n.id === otherId);
+                    if (!node2 || node2.x === undefined || node2.y === undefined) continue;
+                    
+                    // Apply attractive force based on similarity
+                    const dx = node2.x - node1.x;
+                    const dy = node2.y - node1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+                    
+                    const force = similarity * alpha * 0.2; // Moderate force for sub-clustering
+                    const fx = (dx / distance) * force;
+                    const fy = (dy / distance) * force;
+                    
+                    node1.vx = (node1.vx || 0) + fx;
+                    node1.vy = (node1.vy || 0) + fy;
+                    node2.vx = (node2.vx || 0) - fx;
+                    node2.vy = (node2.vy || 0) - fy;
+                }
+            }
+        };
+        
+        this.simulation.force('vectorSubClustering', subClusterForce);
     }
     
     /**

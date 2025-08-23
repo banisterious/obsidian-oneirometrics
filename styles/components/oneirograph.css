@@ -453,3 +453,357 @@
 .theme-dark .oom-dream-content-header {
     background: var(--background-primary-alt);
 }
+
+/* Phase 4: Search and Filter Panel (Top Left) */
+.oom-oneirograph-search-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-l);
+    z-index: 100;
+    min-width: 300px;
+    max-width: 350px;
+}
+
+.oom-search-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--size-4-3);
+    border-bottom: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    border-radius: var(--radius-m) var(--radius-m) 0 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.oom-search-panel-header:hover {
+    background: var(--background-modifier-hover);
+}
+
+.oom-search-panel-title {
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+.oom-oneirograph-search-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    padding: var(--size-4-4);
+    transition: all 0.3s ease;
+}
+
+.oom-oneirograph-search-controls.collapsed {
+    max-height: 0;
+    padding: 0 var(--size-4-4);
+    overflow: hidden;
+    opacity: 0;
+}
+
+/* Search input container */
+.oom-search-input-container {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.oom-search-label {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+}
+
+.oom-search-input {
+    flex: 1;
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-small);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    transition: border-color 0.2s ease;
+}
+
+.oom-search-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-opacity);
+}
+
+.oom-search-input::placeholder {
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+/* Filter container */
+.oom-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.oom-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+}
+
+.oom-filter-label {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    font-weight: var(--font-medium);
+}
+
+/* Date inputs */
+.oom-date-inputs {
+    display: flex;
+    gap: var(--size-4-2);
+}
+
+.oom-date-input {
+    flex: 1;
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-small);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    transition: border-color 0.2s ease;
+}
+
+.oom-date-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-opacity);
+}
+
+/* Multi-select controls */
+.oom-theme-select,
+.oom-cluster-select {
+    padding: var(--size-2-1);
+    font-size: var(--font-ui-small);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    transition: border-color 0.2s ease;
+    min-height: 80px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.oom-theme-select:focus,
+.oom-cluster-select:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-opacity);
+}
+
+.oom-theme-select option,
+.oom-cluster-select option {
+    padding: var(--size-2-1) var(--size-4-2);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    line-height: 1.4;
+    min-height: 20px;
+}
+
+.oom-theme-select option:checked,
+.oom-cluster-select option:checked {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* Active filters */
+.oom-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.oom-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-2-1);
+    background: var(--background-modifier-hover);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    max-width: 200px;
+}
+
+.oom-filter-tag-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oom-filter-tag button {
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: var(--radius-s);
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.oom-filter-tag button:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+/* Responsive adjustments for search panel */
+@media (max-width: 768px) {
+    .oom-oneirograph-search-panel {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+    
+    .oom-search-panel-header {
+        padding: var(--size-4-2);
+    }
+    
+    .oom-oneirograph-search-controls {
+        padding: var(--size-4-3);
+        gap: var(--size-4-2);
+    }
+    
+    .oom-filter-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .oom-filter-group {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .oom-date-inputs {
+        flex-direction: column;
+        gap: var(--size-2-1);
+    }
+    
+    .oom-active-filters {
+        justify-content: flex-start;
+        margin-top: var(--size-2-2);
+    }
+    
+    .oom-filter-tag {
+        max-width: 150px;
+    }
+}
+
+/* Dark mode adjustments for search panel */
+.theme-dark .oom-oneirograph-search-panel {
+    background: var(--background-secondary-alt);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.theme-dark .oom-search-panel-header {
+    background: var(--background-primary-alt);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.theme-dark .oom-search-input,
+.theme-dark .oom-date-input,
+.theme-dark .oom-theme-select,
+.theme-dark .oom-cluster-select {
+    background: var(--background-secondary);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.theme-dark .oom-filter-tag {
+    background: var(--background-modifier-border);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Phase 4: Keyboard Navigation & Focus Styles */
+.oom-oneirograph-container:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.oom-oneirograph-canvas:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+.oom-search-panel-header:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    background: var(--background-modifier-hover);
+}
+
+.oom-search-input:focus-visible,
+.oom-date-input:focus-visible,
+.oom-theme-select:focus-visible,
+.oom-cluster-select:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-color: var(--interactive-accent);
+}
+
+/* Keyboard navigation hints */
+.oom-oneirograph-canvas[aria-label]:after {
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    background: var(--text-faint);
+    opacity: 0.3;
+    border-radius: 50%;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.oom-oneirograph-canvas:focus[aria-label]:after {
+    opacity: 0.8;
+}
+
+/* Screen reader only text for keyboard instructions */
+.oom-keyboard-instructions {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* High contrast mode for search controls */
+@media (prefers-contrast: high) {
+    .oom-oneirograph-search-panel {
+        border-width: 2px;
+    }
+    
+    .oom-search-panel-header {
+        border-bottom-width: 2px;
+    }
+    
+    .oom-search-input,
+    .oom-date-input,
+    .oom-theme-select,
+    .oom-cluster-select {
+        border-width: 2px;
+    }
+    
+    .oom-filter-tag {
+        border-width: 2px;
+    }
+}

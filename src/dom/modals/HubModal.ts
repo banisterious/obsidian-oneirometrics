@@ -1025,9 +1025,15 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             });
         });
         
-        this.createQuickActionButton(quickActionsGrid, 'View Metrics Descriptions', 'book-open', () => {
-            // Navigate to Reference Overview tab
-            this.selectTab('overview');
+        this.createQuickActionButton(quickActionsGrid, 'OneiroGraph', 'git-branch', () => {
+            // Close the hub modal
+            this.close();
+            
+            // Open the Oneirograph view
+            this.app.workspace.getLeaf(false).setViewState({
+                type: 'oneirometrics-oneirograph',
+                active: true
+            });
         });
         
         this.createQuickActionButton(quickActionsGrid, 'Open Settings', 'settings', () => {

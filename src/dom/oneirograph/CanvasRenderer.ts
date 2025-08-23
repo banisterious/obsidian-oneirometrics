@@ -156,6 +156,8 @@ export class CanvasRenderer {
         if (!this.options.performanceMode) {
             // Draw cluster boundaries (convex hulls)
             this.drawClusterBoundaries(nodes);
+            // Phase 4: Draw vector sub-cluster boundaries
+            this.drawVectorBoundaries(nodes);
         }
         
         // Draw connections
@@ -277,12 +279,170 @@ export class CanvasRenderer {
     }
     
     /**
-     * Draw links between nodes
+     * Phase 4: Draw vector boundaries using sub-clustering
+     */
+    private drawVectorBoundaries(nodes: OneirographNode[]) {
+        // Group vector nodes by their parent cluster and calculate sub-clusters
+        const clusterVectorMap = new Map<string, OneirographNode[]>();
+        
+        // First, group vectors by cluster
+        for (const node of nodes) {
+            if (node.type === 'vector' && node.clusterId) {
+                const existing = clusterVectorMap.get(node.clusterId) || [];
+                existing.push(node);
+                clusterVectorMap.set(node.clusterId, existing);
+            }
+        }
+        
+        // For each cluster, create sub-clusters of vectors based on proximity
+        for (const [clusterId, vectorNodes] of clusterVectorMap) {
+            if (vectorNodes.length < 2) continue;
+            
+            // Find the cluster node for color reference
+            const clusterNode = nodes.find(n => n.type === 'cluster' && n.id === clusterId);
+            if (!clusterNode) continue;
+            
+            // Create sub-clusters using proximity-based grouping
+            const subClusters = this.createVectorSubClusters(vectorNodes, clusterNode);
+            
+            // Draw boundary for each sub-cluster
+            for (const subCluster of subClusters) {
+                if (subCluster.length < 2) continue;
+                
+                // Include dreams connected to these vectors for boundary calculation
+                const boundaryNodes = [...subCluster];
+                for (const vectorNode of subCluster) {
+                    const connectedDreams = nodes.filter(n => 
+                        n.type === 'dream' && 
+                        n.vectorIds?.includes(vectorNode.id) &&
+                        n.x !== undefined && n.y !== undefined
+                    );
+                    boundaryNodes.push(...connectedDreams);
+                }
+                
+                if (boundaryNodes.length < 3) continue;
+                
+                this.drawVectorSubClusterBoundary(boundaryNodes, clusterNode.color);
+            }
+        }
+    }
+    
+    /**
+     * Create vector sub-clusters based on spatial proximity
+     */
+    private createVectorSubClusters(vectorNodes: OneirographNode[], clusterNode: OneirographNode): OneirographNode[][] {
+        const subClusters: OneirographNode[][] = [];
+        const processed = new Set<string>();
+        const proximityThreshold = 120; // Distance threshold for grouping
+        
+        for (const node of vectorNodes) {
+            if (processed.has(node.id)) continue;
+            if (node.x === undefined || node.y === undefined) continue;
+            
+            const subCluster: OneirographNode[] = [node];
+            processed.add(node.id);
+            
+            // Find nearby vectors
+            for (const otherNode of vectorNodes) {
+                if (processed.has(otherNode.id)) continue;
+                if (otherNode.x === undefined || otherNode.y === undefined) continue;
+                
+                const dx = node.x - otherNode.x;
+                const dy = node.y - otherNode.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= proximityThreshold) {
+                    subCluster.push(otherNode);
+                    processed.add(otherNode.id);
+                }
+            }
+            
+            subClusters.push(subCluster);
+        }
+        
+        return subClusters;
+    }
+    
+    /**
+     * Draw boundary around a vector sub-cluster
+     */
+    private drawVectorSubClusterBoundary(nodes: OneirographNode[], clusterColor: string) {
+        const points: [number, number][] = nodes
+            .filter(n => n.x !== undefined && n.y !== undefined)
+            .map(n => [n.x!, n.y!]);
+        
+        if (points.length < 3) return;
+        
+        const hull = d3.polygonHull(points);
+        if (!hull) return;
+        
+        // Expand hull slightly for padding
+        const expandedHull = this.expandHull(hull, 15);
+        
+        // Draw filled boundary with low opacity
+        this.ctx.fillStyle = clusterColor;
+        this.ctx.globalAlpha = 0.08;
+        this.ctx.beginPath();
+        expandedHull.forEach((point, i) => {
+            if (i === 0) {
+                this.ctx.moveTo(point[0], point[1]);
+            } else {
+                this.ctx.lineTo(point[0], point[1]);
+            }
+        });
+        this.ctx.closePath();
+        this.ctx.fill();
+        
+        // Draw border with dashed line to distinguish from cluster boundaries
+        this.ctx.strokeStyle = clusterColor;
+        this.ctx.globalAlpha = 0.3;
+        this.ctx.lineWidth = 1;
+        this.ctx.setLineDash([5, 5]); // Dashed line
+        this.ctx.stroke();
+        this.ctx.setLineDash([]); // Reset to solid line
+        
+        this.ctx.globalAlpha = 1;
+    }
+    
+    /**
+     * Expand convex hull outward by a given distance
+     */
+    private expandHull(hull: [number, number][], expandBy: number): [number, number][] {
+        if (hull.length < 3) return hull;
+        
+        // Calculate centroid
+        const centroidX = hull.reduce((sum, p) => sum + p[0], 0) / hull.length;
+        const centroidY = hull.reduce((sum, p) => sum + p[1], 0) / hull.length;
+        
+        // Expand each point outward from centroid
+        return hull.map(([x, y]) => {
+            const dx = x - centroidX;
+            const dy = y - centroidY;
+            const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+            
+            const expandFactor = (distance + expandBy) / distance;
+            return [
+                centroidX + dx * expandFactor,
+                centroidY + dy * expandFactor
+            ] as [number, number];
+        });
+    }
+    
+    /**
+     * Draw explicit connection lines between nodes
+     * Phase 4: Enhanced with hierarchical styling and better visibility
      */
     private drawLinks(links: OneirographLink[], nodes: OneirographNode[], state: RenderState) {
         const linkColor = getComputedStyle(document.body).getPropertyValue('--text-faint') || '#999999';
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--interactive-accent') || '#007acc';
         
-        for (const link of links) {
+        // Sort links by type for consistent drawing order
+        const sortedLinks = [...links].sort((a, b) => {
+            const order = { cluster: 1, vector: 2, theme: 3 };
+            return (order[a.type as keyof typeof order] || 4) - (order[b.type as keyof typeof order] || 4);
+        });
+        
+        for (const link of sortedLinks) {
             const source = typeof link.source === 'string' 
                 ? nodes.find(n => n.id === link.source)
                 : link.source;
@@ -294,29 +454,147 @@ export class CanvasRenderer {
                 source.x === undefined || source.y === undefined ||
                 target.x === undefined || target.y === undefined) continue;
             
-            // Determine link opacity based on selection
-            let opacity = 0.1;
-            if (state.selectedNode) {
-                if (source.id === state.selectedNode.id || target.id === state.selectedNode.id) {
-                    opacity = 0.5;
-                }
-            } else if (state.selectedCluster) {
-                if (source.clusterId === state.selectedCluster || target.clusterId === state.selectedCluster) {
-                    opacity = 0.3;
-                }
+            // Skip links involving filtered nodes (Phase 4: Live filtering)
+            if ((source as any).filtered || (target as any).filtered) continue;
+            
+            // Determine link styling based on type and selection
+            const linkStyle = this.getLinkStyle(link, source, target, state);
+            
+            this.ctx.strokeStyle = linkStyle.color;
+            this.ctx.globalAlpha = linkStyle.opacity;
+            this.ctx.lineWidth = linkStyle.width;
+            
+            // Apply dash pattern for vector connections
+            if (link.type === 'vector') {
+                this.ctx.setLineDash([5, 3]);
+            } else if (link.type === 'theme') {
+                this.ctx.setLineDash([2, 2]);
+            } else {
+                this.ctx.setLineDash([]);
             }
             
-            // Draw link
-            this.ctx.strokeStyle = linkColor;
-            this.ctx.globalAlpha = opacity;
-            this.ctx.lineWidth = Math.max(0.5, link.strength * 5);
             this.ctx.beginPath();
             this.ctx.moveTo(source.x, source.y);
             this.ctx.lineTo(target.x, target.y);
             this.ctx.stroke();
             
-            this.ctx.globalAlpha = 1;
+            // Draw arrowhead for hierarchical relationships
+            if (linkStyle.showArrow) {
+                this.drawArrowhead(source.x, source.y, target.x, target.y, linkStyle.width);
+            }
         }
+        
+        // Reset line dash and alpha
+        this.ctx.setLineDash([]);
+        this.ctx.globalAlpha = 1;
+    }
+    
+    /**
+     * Get styling for a specific link based on type and state
+     */
+    private getLinkStyle(link: OneirographLink, source: OneirographNode, target: OneirographNode, state: RenderState) {
+        const linkColor = getComputedStyle(document.body).getPropertyValue('--text-faint') || '#999999';
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--interactive-accent') || '#007acc';
+        
+        // Base styling by link type
+        let baseStyle = {
+            color: linkColor,
+            opacity: 0.2,
+            width: 1,
+            showArrow: false
+        };
+        
+        switch (link.type) {
+            case 'cluster':
+                baseStyle = {
+                    color: accentColor,
+                    opacity: 0.4,
+                    width: 2,
+                    showArrow: true
+                };
+                break;
+            case 'vector':
+                baseStyle = {
+                    color: linkColor,
+                    opacity: 0.3,
+                    width: 1.5,
+                    showArrow: true
+                };
+                break;
+            case 'theme':
+                baseStyle = {
+                    color: linkColor,
+                    opacity: 0.15,
+                    width: 1,
+                    showArrow: false
+                };
+                break;
+        }
+        
+        // Enhanced visibility for selected nodes
+        if (state.selectedNode) {
+            if (source.id === state.selectedNode.id || target.id === state.selectedNode.id) {
+                return {
+                    ...baseStyle,
+                    opacity: Math.min(baseStyle.opacity * 3, 0.8),
+                    width: baseStyle.width + 1,
+                    color: accentColor
+                };
+            }
+        } else if (state.selectedCluster) {
+            if (source.clusterId === state.selectedCluster || target.clusterId === state.selectedCluster) {
+                return {
+                    ...baseStyle,
+                    opacity: Math.min(baseStyle.opacity * 2, 0.6),
+                    width: baseStyle.width + 0.5
+                };
+            }
+        }
+        
+        return baseStyle;
+    }
+    
+    /**
+     * Draw arrowhead for directional links
+     */
+    private drawArrowhead(sourceX: number, sourceY: number, targetX: number, targetY: number, lineWidth: number) {
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance === 0) return;
+        
+        // Normalize direction vector
+        const unitX = dx / distance;
+        const unitY = dy / distance;
+        
+        // Calculate arrowhead size based on line width
+        const arrowLength = Math.max(8, lineWidth * 4);
+        const arrowWidth = Math.max(4, lineWidth * 2);
+        
+        // Position arrowhead just before the target node
+        const offsetDistance = 15; // Distance from target node edge
+        const arrowX = targetX - unitX * offsetDistance;
+        const arrowY = targetY - unitY * offsetDistance;
+        
+        // Calculate arrowhead points
+        const perpX = -unitY;
+        const perpY = unitX;
+        
+        const tipX = arrowX;
+        const tipY = arrowY;
+        const leftX = arrowX - unitX * arrowLength + perpX * arrowWidth;
+        const leftY = arrowY - unitY * arrowLength + perpY * arrowWidth;
+        const rightX = arrowX - unitX * arrowLength - perpX * arrowWidth;
+        const rightY = arrowY - unitY * arrowLength - perpY * arrowWidth;
+        
+        // Draw filled arrowhead
+        this.ctx.beginPath();
+        this.ctx.moveTo(tipX, tipY);
+        this.ctx.lineTo(leftX, leftY);
+        this.ctx.lineTo(rightX, rightY);
+        this.ctx.closePath();
+        this.ctx.fill();
     }
     
     /**
@@ -327,6 +605,9 @@ export class CanvasRenderer {
         
         for (const node of nodes) {
             if (node.x === undefined || node.y === undefined) continue;
+            
+            // Skip filtered nodes (Phase 4: Live filtering)
+            if ((node as any).filtered) continue;
             
             // Calculate node size based on type and zoom
             let radius = node.radius;
@@ -384,6 +665,9 @@ export class CanvasRenderer {
         
         for (const node of nodes) {
             if (node.x === undefined || node.y === undefined) continue;
+            
+            // Skip filtered nodes (Phase 4: Live filtering)
+            if ((node as any).filtered) continue;
             
             // Only show labels for cluster nodes and selected nodes
             if (node.type === 'cluster' || state.selectedNode?.id === node.id) {
