@@ -771,7 +771,7 @@ h4 {
 } 
 
 /* =============================================================================
-   COMPONENT: MODALS (16.9 KB)
+   COMPONENT: MODALS (18.7 KB)
    ============================================================================= */
 /* ==========================================================================
    OneiroMetrics Modal Components
@@ -1172,6 +1172,59 @@ h4 {
 .oom-metrics-tabs-content {
     overflow-y: auto;
     max-height: 100%;
+    min-height: 0; /* Ensure flexbox children can shrink */
+    
+    /* Ensure Setting components and other content can scroll properly */
+    > * {
+        flex-shrink: 0; /* Prevent content from shrinking unexpectedly */
+    }
+}
+
+/* Ensure Setting components within tabs have proper layout */
+.oom-metrics-tabs-content .setting-item {
+    flex-shrink: 0;
+}
+
+/* Specific fixes for markdown-rendered content tabs */
+.oom-metrics-tabs-content .oom-metrics-tabs-sources-content,
+.oom-metrics-tabs-content .oom-metrics-tabs-description {
+    /* Ensure these containers don't interfere with parent scrolling */
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex-shrink: 0;
+}
+
+/* Ensure markdown rendered content doesn't create scroll contexts */
+.oom-metrics-tabs-content .oom-metrics-tabs-sources-content > *,
+.oom-metrics-tabs-content .oom-metrics-tabs-description > * {
+    overflow: visible !important;
+}
+
+/* Specific fixes for Journal Structure tab */
+.oom-metrics-tabs-content .oom-metrics-tabs-callout-settings-text,
+.oom-metrics-tabs-content .oom-callout-settings {
+    /* Ensure these containers don't interfere with parent scrolling */
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex-shrink: 0;
+}
+
+/* Ensure Setting components within Journal Structure don't interfere */
+.oom-metrics-tabs-content .oom-callout-settings .setting-item {
+    overflow: visible !important;
+    flex-shrink: 0;
+}
+
+/* Specific fixes for Metrics Settings tab */
+.oom-metrics-tabs-content .oom-hub-section,
+.oom-metrics-tabs-content .oom-hub-content-description {
+    /* Ensure these containers don't interfere with parent scrolling */
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex-shrink: 0;
 }
 
 /* Ensure the content container has proper layout for sticky footer */
@@ -1179,6 +1232,8 @@ h4 {
     display: flex;
     flex-direction: column;
     min-height: 100%;
+    /* Maintain scrolling even with flexbox layout */
+    overflow-y: auto;
 }
 
 /* =============================================================================
@@ -4426,7 +4481,7 @@ span.oom-metric-header svg {
 
 
 /* =============================================================================
-   COMPONENT: NAVIGATION (23.3 KB)
+   COMPONENT: NAVIGATION (23.9 KB)
    ============================================================================= */
 /* =============================================================================
    NAVIGATION COMPONENT - OneiroMetrics Tab & Navigation System
@@ -4665,8 +4720,9 @@ h2.oom-metrics-tabs-label {
 .oom-metrics-tabs-modal {
     display: flex;
     flex-direction: column;
-    height: auto;
+    height: 100%;
     max-height: calc(100% - 30px);
+    min-height: 0; /* Allow flex children to shrink */
 }
 
 /* Modal content label spacing */
@@ -4708,6 +4764,8 @@ h2.oom-metrics-tabs-label {
     min-height: 0;
     border-radius: var(--oom-radius-md);
     overflow: hidden;
+    /* Ensure proper height for scrolling */
+    height: 100%;
     
     /* NO VISUAL STYLING - Let theme handle borders and backgrounds */
 }
@@ -4826,6 +4884,8 @@ h2.oom-metrics-tabs-label {
     flex: 1;
     padding: var(--oom-spacing-lg);
     overflow-y: auto;
+    min-height: 0; /* Critical for proper flexbox scrolling */
+    height: 100%; /* Ensure full height utilization */
     
     /* NO VISUAL STYLING - Let theme handle content area styling */
     
@@ -4874,6 +4934,10 @@ h2.oom-metrics-tabs-label {
     line-height: var(--line-height-normal);
     
     /* NO VISUAL STYLING - Let theme handle description styling */
+    
+    /* === ENSURE SCROLLING COMPATIBILITY === */
+    flex-shrink: 0; /* Don't shrink in flex container */
+    min-height: 0; /* Allow content to determine height */
 }
 
 /* Overview text content */
@@ -4893,6 +4957,10 @@ h2.oom-metrics-tabs-label {
 /* Sources content section */
 .oom-metrics-tabs-sources-content {
     /* NO VISUAL STYLING - Let theme handle content styling */
+    
+    /* === ENSURE SCROLLING COMPATIBILITY === */
+    flex-shrink: 0; /* Don't shrink in flex container */
+    min-height: 0; /* Allow content to determine height */
     
     /* === NESTED HEADING STYLING === */
     h2,

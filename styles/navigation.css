@@ -235,8 +235,9 @@ h2.oom-metrics-tabs-label {
 .oom-metrics-tabs-modal {
     display: flex;
     flex-direction: column;
-    height: auto;
+    height: 100%;
     max-height: calc(100% - 30px);
+    min-height: 0; /* Allow flex children to shrink */
 }
 
 /* Modal content label spacing */
@@ -278,6 +279,8 @@ h2.oom-metrics-tabs-label {
     min-height: 0;
     border-radius: var(--oom-radius-md);
     overflow: hidden;
+    /* Ensure proper height for scrolling */
+    height: 100%;
     
     /* NO VISUAL STYLING - Let theme handle borders and backgrounds */
 }
@@ -396,6 +399,8 @@ h2.oom-metrics-tabs-label {
     flex: 1;
     padding: var(--oom-spacing-lg);
     overflow-y: auto;
+    min-height: 0; /* Critical for proper flexbox scrolling */
+    height: 100%; /* Ensure full height utilization */
     
     /* NO VISUAL STYLING - Let theme handle content area styling */
     
@@ -444,6 +449,10 @@ h2.oom-metrics-tabs-label {
     line-height: var(--line-height-normal);
     
     /* NO VISUAL STYLING - Let theme handle description styling */
+    
+    /* === ENSURE SCROLLING COMPATIBILITY === */
+    flex-shrink: 0; /* Don't shrink in flex container */
+    min-height: 0; /* Allow content to determine height */
 }
 
 /* Overview text content */
@@ -463,6 +472,10 @@ h2.oom-metrics-tabs-label {
 /* Sources content section */
 .oom-metrics-tabs-sources-content {
     /* NO VISUAL STYLING - Let theme handle content styling */
+    
+    /* === ENSURE SCROLLING COMPATIBILITY === */
+    flex-shrink: 0; /* Don't shrink in flex container */
+    min-height: 0; /* Allow content to determine height */
     
     /* === NESTED HEADING STYLING === */
     h2,
