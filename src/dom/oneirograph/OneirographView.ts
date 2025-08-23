@@ -396,6 +396,18 @@ export class OneirographView extends ItemView {
             if (dreamEntries.length > 0) {
                 const sampleDream = dreamEntries[0];
                 safeLogger.info('Oneirograph', `Sample dream metrics keys: ${Object.keys(sampleDream.metrics).join(', ')}`);
+                safeLogger.info('Oneirograph', `Sample dream "Dream Themes" value: ${JSON.stringify(sampleDream.metrics['Dream Themes'])}`);
+                
+                // Debug plugin settings for Dream Themes metric
+                if (this.plugin.settings?.metrics) {
+                    const dreamThemesConfig = this.plugin.settings.metrics['Dream Themes'];
+                    if (dreamThemesConfig) {
+                        safeLogger.info('Oneirograph', `Dream Themes config: ${JSON.stringify(dreamThemesConfig)}`);
+                    } else {
+                        safeLogger.info('Oneirograph', `Dream Themes not found in plugin.settings.metrics. Available: ${Object.keys(this.plugin.settings.metrics).join(', ')}`);
+                    }
+                }
+                
                 const themes = this.extractThemes(sampleDream);
                 safeLogger.info('Oneirograph', `Sample dream extracted themes: ${themes.join(', ')}`);
             }
@@ -530,10 +542,10 @@ export class OneirographView extends ItemView {
     private extractThemes(dream: DreamMetricData): string[] {
         const themes: string[] = [];
         
-        // Dynamically find metrics with category "theme" from plugin settings
+        // Dynamically find theme metrics from plugin settings
         if (this.plugin.settings?.metrics) {
             for (const [metricName, metricConfig] of Object.entries(this.plugin.settings.metrics)) {
-                if (metricConfig.category === 'theme' && metricConfig.enabled) {
+                if ((metricConfig.category === 'theme' || metricConfig.name === 'Dream Themes') && metricConfig.enabled) {
                     // Look for this metric in the dream data
                     // Try both the display name and the metric key itself
                     const possibleKeys = [
@@ -548,9 +560,21 @@ export class OneirographView extends ItemView {
                         const value = dream.metrics[key];
                         if (value) {
                             if (Array.isArray(value)) {
-                                themes.push(...value.map(v => String(v).trim()));
-                            } else if (typeof value === 'string') {
-                                themes.push(...value.split(',').map(t => t.trim()).filter(t => t.length > 0));
+                                for (const theme of value) {
+                                    const themeStr = String(theme).trim();
+                                    // Clean up malformed data like "[Control" -> "Control"
+                                    const cleanTheme = themeStr.replace(/^\[|\]$/g, '');
+                                    if (cleanTheme.length > 0) {
+                                        themes.push(cleanTheme);
+                                    }
+                                }
+                            } else if (typeof value === 'string' && value !== '[]') {
+                                const themeStr = value.trim();
+                                if (themeStr.length > 0) {
+                                    // Handle string like "[Control, Integration, Self-Creation]"
+                                    const cleanStr = themeStr.replace(/^\[|\]$/g, '');
+                                    themes.push(...cleanStr.split(',').map(t => t.trim()).filter(t => t.length > 0));
+                                }
                             }
                             break; // Found a match, stop looking for this metric
                         }
