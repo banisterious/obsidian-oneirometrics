@@ -1,5 +1,43 @@
 # OneiroMetrics Narrative Weaving - Implementation Plan
 
+## Table of Contents
+
+- [Executive Summary](#executive-summary)
+- [Implementation Phases & Timeline](#implementation-phases--timeline)
+  - [Phase 1: Foundation & Core Integration (Weeks 1-4)](#phase-1-foundation--core-integration-weeks-1-4)
+  - [Phase 2: Advanced Features & Parameters (Weeks 5-8)](#phase-2-advanced-features--parameters-weeks-5-8)
+  - [Phase 3: Templates & Optimization (Weeks 9-12)](#phase-3-templates--optimization-weeks-9-12)
+- [Technical Architecture](#technical-architecture)
+  - [Service Integration Pattern](#service-integration-pattern)
+  - [Data Flow Architecture](#data-flow-architecture)
+  - [UI Component Architecture](#ui-component-architecture)
+- [Dependencies & Prerequisites](#dependencies--prerequisites)
+  - [Core Dependencies](#core-dependencies)
+  - [Data Requirements](#data-requirements)
+  - [User Environment](#user-environment)
+- [Risk Assessment & Mitigation](#risk-assessment--mitigation)
+  - [Technical Risks](#technical-risks)
+  - [User Experience Risks](#user-experience-risks)
+  - [Data Security Considerations](#data-security-considerations)
+- [Testing Strategy](#testing-strategy)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+  - [User Acceptance Testing](#user-acceptance-testing)
+  - [Performance Testing](#performance-testing)
+- [Success Metrics](#success-metrics)
+  - [Technical Metrics](#technical-metrics)
+  - [User Experience Metrics](#user-experience-metrics)
+  - [Privacy & Performance Metrics](#privacy--performance-metrics)
+- [Resource Requirements](#resource-requirements)
+  - [Development Resources](#development-resources)
+  - [Infrastructure Needs](#infrastructure-needs)
+  - [Documentation Requirements](#documentation-requirements)
+- [Future Enhancement Roadmap](#future-enhancement-roadmap)
+  - [Phase 4: Advanced AI Features (Future)](#phase-4-advanced-ai-features-future)
+  - [Phase 5: Community Features (Future)](#phase-5-community-features-future)
+  - [Phase 6: Advanced Integrations (Future)](#phase-6-advanced-integrations-future)
+- [Conclusion](#conclusion)
+
 ## Executive Summary
 
 The Narrative Weaving feature transforms raw dream data into cohesive narratives using Large Language Models (LLMs). This implementation plan breaks down the feature into manageable phases, leverages existing OneiroMetrics architecture patterns, and prioritizes user privacy through local-first LLM support.
