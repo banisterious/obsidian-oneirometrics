@@ -492,20 +492,51 @@ export class OneirographView extends ItemView {
             nodeMap.set(clusterId, clusterNode);
         }
         
+        // Create vector nodes
+        for (const [vectorId, vector] of this.state.vectors) {
+            const parentCluster = this.state.clusters.get(vector.parentClusterId);
+            const vectorNode: OneirographNode = {
+                id: vectorId,
+                type: 'vector',
+                data: vector,
+                clusterId: vector.parentClusterId,
+                radius: 15,
+                color: parentCluster?.color || '#666666',
+                label: vector.name,
+                x: Math.random() * 600 - 300,
+                y: Math.random() * 400 - 200
+            };
+            nodes.push(vectorNode);
+            nodeMap.set(vectorId, vectorNode);
+            
+            // Create link from vector to its parent cluster
+            const clusterNode = nodeMap.get(vector.parentClusterId);
+            if (clusterNode) {
+                links.push({
+                    source: vectorNode,
+                    target: clusterNode,
+                    strength: 0.3,
+                    type: 'cluster'
+                });
+            }
+        }
+        
         // Create dream nodes and links
         safeLogger.info('Oneirograph', `Processing ${this.state.dreams.length} dreams for graph`);
         for (const dream of this.state.dreams) {
             const themes = this.extractThemes(dream);
+            const vectorIds = this.getVectorIdsForThemes(themes);
             const clusterIds = this.getClusterIdsForThemes(themes);
             
-            safeLogger.info('Oneirograph', `Dream "${dream.title}": themes=[${themes.join(', ')}], clusterIds=[${clusterIds.join(', ')}]`);
+            safeLogger.info('Oneirograph', `Dream "${dream.title}": themes=[${themes.join(', ')}], vectorIds=[${vectorIds.join(', ')}], clusterIds=[${clusterIds.join(', ')}]`);
             
-            if (clusterIds.length > 0) {
+            if (vectorIds.length > 0) {
                 const dreamNode: OneirographNode = {
                     id: dream.source.toString(),
                     type: 'dream',
                     data: dream,
-                    clusterId: clusterIds[0], // Primary cluster
+                    clusterId: clusterIds[0], // Primary cluster for color
+                    vectorIds: vectorIds, // Store vector associations
                     themes: themes,
                     radius: 5,
                     color: this.getDreamColor(clusterIds[0]),
@@ -515,15 +546,15 @@ export class OneirographView extends ItemView {
                 nodes.push(dreamNode);
                 nodeMap.set(dreamNode.id, dreamNode);
                 
-                // Create links to clusters
-                for (const clusterId of clusterIds) {
-                    const clusterNode = nodeMap.get(clusterId);
-                    if (clusterNode) {
+                // Create links to vectors (proper hierarchy)
+                for (const vectorId of vectorIds) {
+                    const vectorNode = nodeMap.get(vectorId);
+                    if (vectorNode) {
                         links.push({
                             source: dreamNode,
-                            target: clusterNode,
-                            strength: 0.1,
-                            type: 'cluster'
+                            target: vectorNode,
+                            strength: 0.2,
+                            type: 'vector'
                         });
                     }
                 }
@@ -599,6 +630,28 @@ export class OneirographView extends ItemView {
         }
         
         return themes;
+    }
+    
+    /**
+     * Get vector IDs for given themes
+     */
+    private getVectorIdsForThemes(themes: string[]): string[] {
+        const vectorIds = new Set<string>();
+        
+        for (const themeName of themes) {
+            // Find theme in taxonomy
+            for (const [, theme] of this.state.themes) {
+                if (theme.name.toLowerCase() === themeName.toLowerCase() || 
+                    theme.aliases?.some(alias => alias.toLowerCase() === themeName.toLowerCase())) {
+                    // Add vector IDs that contain this theme
+                    for (const vectorId of theme.vectorIds) {
+                        vectorIds.add(vectorId);
+                    }
+                }
+            }
+        }
+        
+        return Array.from(vectorIds);
     }
     
     /**
