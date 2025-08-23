@@ -46,9 +46,9 @@ Your real-time dashboard for dream analysis and insights:
 - **Enhanced Performance:** Optimized for large datasets with incremental updates
 
 <p align="center">
-  <img src="docs/images/OneiroMetrics-Note.gif" alt="Animated demonstration of the OneiroMetrics metrics view" width="600"/>
+  <img src="docs/images/OneiroMetrics-Overview.gif" alt="Animated demonstration of an OneiroMetrics overview" width="600"/>
 </p>
-<p align="center"><em>OneiroMetrics metrics view showing dream journal analysis</em></p>
+<p align="center"><em>OneiroMetrics overview</em></p>
 
 ## Dream Taxonomy & Oneirograph
 
