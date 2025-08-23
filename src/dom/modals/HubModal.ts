@@ -5363,31 +5363,24 @@ Example:
      * Analyze selected content for callout patterns
      */
     private async analyzeSelectedContent() {
-        // Fallback logging in case structured logging isn't working
-        console.log('?? CONTENT ANALYSIS STARTED - METHOD CALLED');
         this.logger.info('ContentAnalysis', 'ANALYSIS STARTED - Checking for targets');
         
         const targetsList = this.contentContainer.querySelector('.oom-targets-list');
-        console.log('?? Targets list element:', targetsList);
         
         if (!targetsList) {
-            console.log('?? NO TARGETS LIST FOUND IN DOM');
             this.logger.error('ContentAnalysis', 'No targets list found in DOM');
             return;
         }
         
         const targets = Array.from(targetsList.querySelectorAll('.oom-analysis-target'));
-        console.log('?? Found targets:', targets.length, targets);
         this.logger.info('ContentAnalysis', `Found ${targets.length} targets for analysis`);
         
         if (targets.length === 0) {
-            console.log('?? NO TARGETS SELECTED - This might be the issue');
             this.logger.warn('ContentAnalysis', 'No targets selected for analysis');
             new Notice('No targets selected for analysis');
             return;
         }
         
-        console.log('?? Starting analysis process with', targets.length, 'targets');
         this.logger.info('ContentAnalysis', 'Starting content analysis process');
         this.isScraping = true;
         this.updateAnalyzeButtonState();
@@ -5428,7 +5421,6 @@ Example:
                 fileStructures: {} as Record<string, { name: string; structure: CalloutNode[] }>
             };
             
-            console.log('?? Results object initialized, processing targets');
             this.logger.info('ContentAnalysis', 'Results object initialized, processing targets');
             
             // Get files to analyze from targets
@@ -5464,11 +5456,9 @@ Example:
             }
             
             results.totalFiles = filesToAnalyze.length;
-            console.log('?? Total files to analyze:', results.totalFiles);
             this.logger.info('ContentAnalysis', `Total files to analyze: ${results.totalFiles}`);
             
             if (results.totalFiles === 0) {
-                console.log('?? NO FILES FOUND TO ANALYZE - This is the problem!');
                 this.logger.error('ContentAnalysis', 'NO FILES FOUND TO ANALYZE - This is the problem!');
                 statusText.textContent = 'No files found to analyze';
                 setTimeout(() => {
@@ -5480,7 +5470,6 @@ Example:
             }
             
             // Analyze files
-            console.log('?? Starting analysis of', filesToAnalyze.length, 'files');
             this.logger.info('ContentAnalysis', `Starting analysis of ${filesToAnalyze.length} files`);
             for (let i = 0; i < filesToAnalyze.length; i++) {
                 const file = filesToAnalyze[i];
@@ -5490,7 +5479,6 @@ Example:
                 progressFill.style.setProperty('--oom-progress-width', `${progress}%`);
                 statusText.textContent = `Analyzing ${file.name} (${i + 1}/${filesToAnalyze.length})`;
                 
-                console.log('?? About to analyze file', i + 1, '/', filesToAnalyze.length, ':', file.name);
                 this.logger.info('ContentAnalysis', `About to analyze file ${i + 1}/${filesToAnalyze.length}: ${file.name}`);
                 await this.analyzeFile(file, results);
                 
@@ -5528,20 +5516,17 @@ Example:
      * Analyze a single file for callout patterns and nested structures
      */
     private async analyzeFile(file: any, results: any) {
-        console.log('?? ANALYZE FILE STARTED for:', file.name);
         this.logger.info('ContentAnalysis', 'Starting file analysis', {
             fileName: file.name,
             filePath: file.path
         });
         
         try {
-            console.log('?? About to read file content for:', file.name);
             this.logger.info('ContentAnalysis', 'Reading file content', {
                 fileName: file.name
             });
             
             const content = await this.app.vault.read(file);
-            console.log('?? File content read successfully, length:', content.length);
             
             this.logger.info('ContentAnalysis', 'File content read successfully', {
                 fileName: file.name,
@@ -5550,13 +5535,11 @@ Example:
             });
             
             // Find callout patterns and analyze nesting
-            console.log('?? About to call parseCalloutStructure');
             this.logger.info('ContentAnalysis', 'Calling parseCalloutStructure', {
                 fileName: file.name
             });
             
             const calloutStructure = this.parseCalloutStructure(content);
-            console.log('?? parseCalloutStructure completed, found', calloutStructure.length, 'callouts');
             this.logger.info('ContentAnalysis', 'parseCalloutStructure completed', {
                 fileName: file.name,
                 structureLength: calloutStructure.length,
@@ -6175,7 +6158,6 @@ Example:
         for (const block of blocks) {
             const currentDepth = block.depth;
             
-            console.log('?? Processing callout:', block.type, 'depth:', currentDepth, 'line:', block.lineNumber);
             this.logger.info('CalloutParser', 'Processing block for nesting', {
                 type: block.type,
                 depth: currentDepth,
@@ -6185,15 +6167,12 @@ Example:
             // Pop from stack until we find a suitable parent (with lower depth)
             while (parentStack.length > 0 && parentStack[parentStack.length - 1].depth >= currentDepth) {
                 const popped = parentStack.pop();
-                console.log('?? Popped from stack:', popped?.type, 'depth:', popped?.depth);
             }
             
-            console.log('?? Stack after popping:', parentStack.map(p => `${p.type}(${p.depth})`));
             
             // If we have a potential parent in the stack
             if (parentStack.length > 0) {
                 const parent = parentStack[parentStack.length - 1];
-                console.log('?? Found parent:', parent.type, 'depth:', parent.depth, 'for child:', block.type, 'depth:', currentDepth);
                 this.logger.info('CalloutParser', 'Found parent via stack', {
                     child: block.type,
                     childDepth: currentDepth,
@@ -6202,7 +6181,6 @@ Example:
                 });
                 parent.children.push(block);
         } else {
-                console.log('?? Adding as root:', block.type, 'depth:', currentDepth);
                 this.logger.info('CalloutParser', 'Adding root level callout', {
                     type: block.type,
                     depth: currentDepth
@@ -6212,7 +6190,6 @@ Example:
             
             // Add current block to stack for potential future children
             parentStack.push(block);
-            console.log('?? Added to stack:', block.type, 'Stack now:', parentStack.map(p => `${p.type}(${p.depth})`));
         }
         
         this.logger.info('CalloutParser', 'Callout structure parsing completed', {

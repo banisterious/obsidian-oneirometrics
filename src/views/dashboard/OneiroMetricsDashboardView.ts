@@ -2,6 +2,7 @@ import { ItemView, WorkspaceLeaf, DropdownComponent, Notice, TFile, Menu, Button
 import type DreamMetricsPlugin from '../../../main';
 import type { DreamMetricData } from '../../../types';
 import type { DreamMetricsSettings } from '../../../types';
+import safeLogger from '../../logging/safe-logger';
 
 // Date filter types
 type DateFilter = 'all' | 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'lastMonth' | 'last30' | 'last90' | 'thisYear' | 'last7' | 'custom';
@@ -354,7 +355,7 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.switchToTab('entries');
             
         } catch (error) {
-            console.error('Failed to initialize dashboard:', error);
+            safeLogger.error('Failed to initialize dashboard', error);
             this.showError('Failed to initialize dashboard');
         } finally {
             this.hideLoading();

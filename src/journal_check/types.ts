@@ -8,15 +8,13 @@ export * from '../types/journal-check';
 
 // Import debug mode utility
 import { isDebugMode } from '../utils/debug-mode';
+import safeLogger from '../logging/safe-logger';
 
 // INTENTIONAL CONSOLE USAGE: This warning is necessary to inform developers about
 // deprecated imports during development. This should not be replaced with structured
 // logging as it needs to run immediately upon import regardless of logging system state.
 if (isDebugMode()) {
-  console.warn(
-    "DEPRECATION WARNING: Importing from src/journal_check/types.ts is deprecated. " +
-    "Import from src/types instead. This file will be removed in a future version."
-  );
+  safeLogger.warn("DEPRECATION WARNING: Importing from src/journal_check/types.ts is deprecated. Import from src/types instead. This file will be removed in a future version.", 'types.ts');
 }
 
 /**
