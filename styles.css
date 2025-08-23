@@ -14135,7 +14135,7 @@ body.shimmering-focus .oom-dashboard-header {
 }
 
 /* =============================================================================
-   COMPONENT: DREAM-TAXONOMY (9.7 KB)
+   COMPONENT: DREAM-TAXONOMY (16.3 KB)
    ============================================================================= */
 /**
  * Dream Taxonomy Tab Styles
@@ -14152,6 +14152,21 @@ body.shimmering-focus .oom-dashboard-header {
     padding: var(--size-4-4);
     gap: var(--size-4-3);
     overflow: hidden;
+}
+
+/* Introduction section */
+.oom-taxonomy-introduction {
+    margin-bottom: var(--size-4-2);
+}
+
+.oom-intro-text {
+    color: var(--text-muted);
+    font-size: var(--font-ui-medium);
+    line-height: var(--line-height-normal);
+    text-align: left;
+    background: var(--background-modifier-form-field);
+    border-radius: var(--radius-s);
+    margin: 0;
 }
 
 /* Toolbar */
@@ -14265,6 +14280,17 @@ body.shimmering-focus .oom-dashboard-header {
     border-color: var(--interactive-accent-hover);
 }
 
+.oom-button.oom-danger {
+    background: var(--background-modifier-error);
+    border-color: var(--text-error);
+    color: var(--text-error);
+}
+
+.oom-button.oom-danger:hover:not([disabled]) {
+    background: var(--text-error);
+    color: var(--text-on-accent);
+}
+
 /* Tree container */
 .oom-taxonomy-tree-container {
     flex: 1;
@@ -14317,6 +14343,97 @@ body.shimmering-focus .oom-dashboard-header {
 
 .oom-tree-node:active {
     background: var(--background-modifier-active-hover);
+}
+
+/* Selected state */
+.oom-tree-node.oom-selected {
+    background: var(--background-modifier-active-hover);
+    box-shadow: inset 2px 0 0 var(--interactive-accent);
+}
+
+/* Action buttons */
+.oom-node-actions {
+    display: none;
+    gap: var(--size-2-1);
+    margin-left: auto;
+    padding-left: var(--size-4-2);
+}
+
+.oom-tree-node:hover .oom-node-actions,
+.oom-tree-node.oom-selected .oom-node-actions {
+    display: flex;
+}
+
+.oom-action-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-s);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: transparent;
+}
+
+.oom-action-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.oom-action-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.oom-edit-btn:hover {
+    color: var(--interactive-accent);
+}
+
+.oom-add-btn:hover {
+    color: var(--text-success);
+}
+
+.oom-delete-btn:hover {
+    color: var(--text-error);
+}
+
+/* Inline editing */
+.oom-inline-edit-input {
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--interactive-accent);
+    border-radius: var(--radius-s);
+    padding: 0 var(--size-4-1);
+    font-size: inherit;
+    color: var(--text-normal);
+    outline: none;
+    width: auto;
+    min-width: 100px;
+    max-width: 300px;
+}
+
+.oom-inline-edit-input:focus {
+    box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+}
+
+/* Drag and drop */
+.oom-tree-node.oom-dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.oom-tree-node.oom-drop-zone-active {
+    background: var(--background-modifier-active-hover);
+    box-shadow: inset 0 0 0 2px var(--interactive-accent);
+}
+
+.oom-tree-node[draggable="true"] {
+    cursor: grab;
+}
+
+.oom-tree-node[draggable="true"]:active {
+    cursor: grabbing;
 }
 
 /* Expand/collapse icon */
@@ -14472,6 +14589,198 @@ body.shimmering-focus .oom-dashboard-header {
     color: var(--text-accent);
 }
 
+/* Modal enhancements for taxonomy editing */
+.oom-taxonomy-edit-modal {
+    min-width: 500px;
+}
+
+.oom-color-input-container {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.oom-color-input {
+    width: 60px;
+    height: 32px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+}
+
+.oom-color-input:hover {
+    border-color: var(--background-modifier-border-hover);
+}
+
+.oom-color-input:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.oom-color-preview {
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-s);
+    margin-top: var(--size-4-2);
+    text-align: center;
+    font-weight: var(--font-semibold);
+    color: var(--text-on-accent);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oom-icon-preview {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+    padding: var(--size-4-2);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+}
+
+.oom-icon-preview-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-normal);
+}
+
+.oom-icon-preview-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.oom-icon-preview-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.oom-icon-preview-error {
+    color: var(--text-error);
+    font-size: var(--font-ui-small);
+}
+
+.oom-vector-assignment {
+    margin-top: var(--size-4-4);
+}
+
+.oom-section-title {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--size-4-2);
+    color: var(--text-normal);
+}
+
+.oom-section-description {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    margin-bottom: var(--size-4-3);
+}
+
+.oom-vector-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: var(--size-4-2);
+    background: var(--background-secondary);
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.oom-cluster-group {
+    margin-bottom: var(--size-4-3);
+}
+
+.oom-cluster-group:last-child {
+    margin-bottom: 0;
+}
+
+.oom-cluster-group-title {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    color: var(--text-accent);
+    margin-bottom: var(--size-4-2);
+}
+
+.oom-vector-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding-left: var(--size-4-3);
+}
+
+.oom-vector-item {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.oom-vector-checkbox {
+    cursor: pointer;
+}
+
+.oom-vector-label {
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.oom-vector-label:hover {
+    color: var(--text-accent);
+}
+
+/* Invalid input styling */
+.oom-invalid {
+    border-color: var(--text-error) !important;
+}
+
+.oom-invalid:focus {
+    box-shadow: 0 0 0 2px rgba(var(--text-error-rgb), 0.2) !important;
+}
+
+.oom-taxonomy-delete-modal .oom-warning-container {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-3);
+    padding: var(--size-4-4);
+    background: var(--background-modifier-error-rgb);
+    border-radius: var(--radius-m);
+    margin-bottom: var(--size-4-4);
+}
+
+.oom-taxonomy-delete-modal .oom-warning-icon {
+    color: var(--text-error);
+    flex-shrink: 0;
+}
+
+.oom-taxonomy-delete-modal .oom-warning-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.oom-taxonomy-delete-modal .oom-warning-message {
+    flex: 1;
+}
+
+.oom-taxonomy-delete-modal .oom-warning-text {
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--size-4-2);
+}
+
+.oom-taxonomy-delete-modal .oom-warning-children {
+    color: var(--text-muted);
+    margin-bottom: var(--size-4-2);
+}
+
+.oom-taxonomy-delete-modal .oom-warning-permanent {
+    color: var(--text-error);
+    font-weight: var(--font-semibold);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .oom-dream-taxonomy-content {
@@ -14510,6 +14819,16 @@ body.shimmering-focus .oom-dashboard-header {
     }
 
     .oom-expand-icon {
+        width: 44px;
+        height: 44px;
+    }
+    
+    /* Always show actions on mobile for touch accessibility */
+    .oom-node-actions {
+        display: flex;
+    }
+    
+    .oom-action-btn {
         width: 44px;
         height: 44px;
     }
