@@ -391,6 +391,18 @@ export class OneirographView extends ItemView {
             
             this.state.dreams = dreamEntries;
             
+            // Debug logging
+            safeLogger.info('Oneirograph', `Loaded ${dreamEntries.length} dream entries from ${files.length} files`);
+            if (dreamEntries.length > 0) {
+                const sampleDream = dreamEntries[0];
+                safeLogger.info('Oneirograph', `Sample dream metrics keys: ${Object.keys(sampleDream.metrics).join(', ')}`);
+                const themes = this.extractThemes(sampleDream);
+                safeLogger.info('Oneirograph', `Sample dream extracted themes: ${themes.join(', ')}`);
+            }
+            
+            // Debug taxonomy themes
+            safeLogger.info('Oneirograph', `Available taxonomy themes: ${Array.from(this.state.themes.values()).map(t => t.name).join(', ')}`);
+            
             // Build graph data
             this.buildGraphData();
             
@@ -409,21 +421,36 @@ export class OneirographView extends ItemView {
     }
     
     /**
-     * Get files to process based on plugin settings
+     * Get files to process based on plugin settings (recursive, like Dashboard)
      */
     private async getFilesToProcess(): Promise<string[]> {
         const files: string[] = [];
-        const selectedFolder = this.plugin.settings.selectedFolder || '/';
+        const settings = this.plugin.settings;
         
-        // Get all files in the selected folder
+        if (!settings) {
+            safeLogger.error('Oneirograph', 'Settings not available');
+            return [];
+        }
+        
+        const selectedFolder = settings.selectedFolder || '/';
+        
+        // Get all files in the selected folder recursively
         const folder = this.plugin.app.vault.getAbstractFileByPath(selectedFolder);
         if (folder && 'children' in folder) {
-            const folderObj = folder as any;
-            for (const child of folderObj.children) {
-                if ('extension' in child && child.extension === 'md') {
-                    files.push(child.path);
+            const gatherFiles = (folder: any, acc: string[], depth: number = 0) => {
+                for (const child of folder.children) {
+                    if (child && 'extension' in child && child.extension === 'md') {
+                        if (!settings.excludedNotes?.includes(child.path)) {
+                            acc.push(child.path);
+                        }
+                    } else if (child && 'children' in child) {
+                        if (!settings.excludedSubfolders?.includes(child.path)) {
+                            gatherFiles(child, acc, depth + 1);
+                        }
+                    }
                 }
-            }
+            };
+            gatherFiles(folder, files);
         }
         
         return files;
@@ -454,9 +481,12 @@ export class OneirographView extends ItemView {
         }
         
         // Create dream nodes and links
+        safeLogger.info('Oneirograph', `Processing ${this.state.dreams.length} dreams for graph`);
         for (const dream of this.state.dreams) {
             const themes = this.extractThemes(dream);
             const clusterIds = this.getClusterIdsForThemes(themes);
+            
+            safeLogger.info('Oneirograph', `Dream "${dream.title}": themes=[${themes.join(', ')}], clusterIds=[${clusterIds.join(', ')}]`);
             
             if (clusterIds.length > 0) {
                 const dreamNode: OneirographNode = {
