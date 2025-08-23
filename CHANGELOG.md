@@ -23,6 +23,37 @@
 
 ## [Unreleased]
 
+### Added
+- **Dream Taxonomy & Oneirograph Visualization System**: Complete hierarchical dream data visualization ✅ **MAJOR RELEASE FEATURE**
+  - Interactive force-directed graph displaying Clusters → Vectors → Themes → Dreams hierarchy
+  - Advanced vector sub-clustering with theme-based Jaccard similarity grouping for intelligent organization
+  - Convex hull boundary rendering with visual indicators for vector groupings
+  - Directional connection arrows with type-based styling (cluster/vector/theme links)
+  - Live filtering panel with collapsible interface for search, theme, cluster, and date filters
+  - Full keyboard navigation with accessible focus management following Obsidian conventions
+  - Canvas-based rendering with D3.js force simulation for optimal performance
+  - OneiroGraph launch button integrated into Control Center for easy access
+  - Comprehensive accessibility support with ARIA labels and screen reader compatibility
+  - Real-time search with instant visual feedback across all taxonomy levels
+  - Progressive disclosure patterns with expand/collapse functionality throughout
+
+### Technical Improvements
+- **Enhanced Force Simulation**: Advanced physics simulation with custom forces for hierarchical positioning
+  - Theme-based sub-clustering using Jaccard similarity for vector organization within clusters
+  - Chronological positioning force for temporal dream arrangement
+  - Collision detection and boundary constraints for optimal node spacing
+  - Dynamic force strengths tuned for hierarchical orbiting with comfortable spacing
+- **Canvas Rendering Optimization**: High-performance visualization with efficient update cycles
+  - Convex hull algorithms for vector boundary calculations
+  - Directional arrow rendering with type-specific styling and colors
+  - Filtered node rendering with performance optimizations for large datasets
+  - Theme-aware styling integration with Obsidian's CSS custom properties
+- **Interactive Search & Filtering**: Comprehensive filtering system with real-time updates
+  - Multi-criteria filtering by themes, clusters, dates, and free text search
+  - Collapsible search panel positioned for optimal user workflow
+  - Dynamic dropdown population with proper option management
+  - State persistence and filter synchronization across interface elements
+
 ## Released Versions
 
 ## [0.16.4] - 2025-06-25
