@@ -27,12 +27,12 @@ export class ForceSimulation {
     private height: number;
     private onTick?: () => void;
     
-    // Force strengths
-    private readonly CLUSTER_STRENGTH = 0.3;
-    private readonly LINK_STRENGTH = 0.1;
-    private readonly CHARGE_STRENGTH = -100;
-    private readonly COLLISION_RADIUS_FACTOR = 1.5;
-    private readonly CENTER_FORCE = 0.05;
+    // Force strengths - tuned for hierarchical orbiting with comfortable spacing
+    private readonly CLUSTER_STRENGTH = 0.1; // Reduced - let links handle hierarchy
+    private readonly LINK_STRENGTH = 0.8; // Increased - stronger hierarchical bonds
+    private readonly CHARGE_STRENGTH = -50; // Increased repulsion for more spacing
+    private readonly COLLISION_RADIUS_FACTOR = 1.4; // Increased - more breathing room
+    private readonly CENTER_FORCE = 0.03; // Slightly reduced
     
     constructor(canvas: HTMLCanvasElement, options: ForceSimulationOptions) {
         this.width = options.width;
@@ -77,7 +77,8 @@ export class ForceSimulation {
         this.simulation.force('link', linkForce);
         
         // Add custom forces
-        this.addClusterForce();
+        // Disable cluster force to let link hierarchy work properly
+        // this.addClusterForce();
         this.addChronologicalForce();
         this.addThematicForce();
         
@@ -201,7 +202,7 @@ export class ForceSimulation {
                     const dy = node2.y - node1.y;
                     const distance = Math.sqrt(dx * dx + dy * dy) || 1;
                     
-                    const force = similarity * alpha * 0.05; // Very weak force
+                    const force = similarity * alpha * 0.01; // Even weaker - don't interfere with hierarchy
                     const fx = (dx / distance) * force;
                     const fy = (dy / distance) * force;
                     

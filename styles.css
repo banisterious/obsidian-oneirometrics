@@ -14923,7 +14923,7 @@ body.shimmering-focus .oom-dashboard-header {
 }
 
 /* =============================================================================
-   COMPONENT: COMPONENTS/ONEIROGRAPH (6.5 KB)
+   COMPONENT: COMPONENTS/ONEIROGRAPH (10.0 KB)
    ============================================================================= */
 /**
  * Oneirograph Styles
@@ -15223,4 +15223,160 @@ body.shimmering-focus .oom-dashboard-header {
     font-weight: var(--font-semibold);
     pointer-events: none;
     z-index: 50;
+}
+
+/* Phase 4: Dream Content Panel */
+.oom-dream-content-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 400px;
+    max-height: calc(100% - 140px); /* Account for controls at bottom */
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-l);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Dream content header */
+.oom-dream-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--size-4-4);
+    border-bottom: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    gap: var(--size-4-2);
+}
+
+.oom-dream-content-title {
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    flex: 1;
+    line-height: 1.4;
+}
+
+.oom-dream-content-date {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
+.oom-dream-content-close {
+    color: var(--text-muted);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--radius-s);
+    line-height: 1;
+    margin-left: var(--size-4-2);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.oom-dream-content-close:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+/* Dream content body */
+.oom-dream-content-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--size-4-4);
+}
+
+.oom-dream-content-text {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    line-height: 1.6;
+    margin-bottom: var(--size-4-6);
+    white-space: pre-wrap;
+}
+
+/* Dream metrics section */
+.oom-dream-content-metrics {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: var(--size-4-4);
+}
+
+.oom-dream-content-metrics h4 {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    margin: 0 0 var(--size-4-3) 0;
+}
+
+.oom-dream-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--size-2-1) 0;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.oom-dream-metric:last-child {
+    border-bottom: none;
+}
+
+.oom-dream-metric-key {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-medium);
+    flex: 1;
+}
+
+.oom-dream-metric-value {
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    text-align: right;
+    max-width: 60%;
+    word-wrap: break-word;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .oom-dream-content-panel {
+        width: calc(100% - 40px);
+        left: 20px;
+        right: 20px;
+        top: 20px;
+        max-height: calc(100% - 120px);
+    }
+    
+    .oom-dream-content-header {
+        padding: var(--size-4-3);
+    }
+    
+    .oom-dream-content-body {
+        padding: var(--size-4-3);
+    }
+    
+    .oom-dream-metric {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--size-2-1);
+    }
+    
+    .oom-dream-metric-value {
+        max-width: 100%;
+        text-align: left;
+    }
+}
+
+/* Dark mode adjustments */
+.theme-dark .oom-dream-content-panel {
+    background: var(--background-secondary-alt);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.theme-dark .oom-dream-content-header {
+    background: var(--background-primary-alt);
 }

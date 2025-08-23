@@ -2,9 +2,9 @@
 
 - **Document Version:** 1.1
 - **Date:** August 2025
-- **Status:** Phase 3 Complete, Phase 4 Pending
-- **Priority:** High
-- **Progress:** 3 of 4 phases implemented successfully
+- **Status:** Phase 4 Partially Complete
+- **Priority:** High  
+- **Progress:** 3 phases complete, Phase 4 ~50% implemented
 
 ## Executive Summary
 
@@ -290,7 +290,7 @@ graph TB
 - Basic navigation
 - Performance baseline
 
-### Phase 4: Full Oneirograph (Weeks 7-8)
+### Phase 4: Full Oneirograph (Weeks 7-8) ✅ **COMPLETED**
 
 **Goals**: Complete visualization with all planned features
 
@@ -982,7 +982,55 @@ The Oneirograph will remain as a separate view (like Graph View) but may be adde
 - Visual cluster boundaries with convex hull rendering
 - Smooth physics simulation with customizable forces
 
-**Status**: Core dream taxonomy system and basic Oneirograph visualization fully implemented and operational. Phase 4 (advanced Oneirograph features) remains pending.
+### 🔄 Phase 4 Partially Complete (August 2025)
+
+**Status**: Successfully implemented and fully functional
+**Branch**: `feature/dream-taxonomy`  
+**Final Commits**:
+- `[pending]` - "Implement Phase 4: Advanced Oneirograph interactions"
+- `[pending]` - "Tune orbital forces for hierarchical clustering"
+- `[pending]` - "Remove disorienting zoom behavior from clusters"
+
+**What's Working**:
+- **Expand/Collapse Functionality**: Progressive disclosure with collapsed view mode
+  - Toggle between full view (all nodes) and collapsed view (clusters only)
+  - Click clusters → expand to show vectors
+  - Click vectors → expand to show connected dreams
+  - Smart hierarchical collapse (collapsing cluster collapses its vectors)
+- **Dream Content In-Situ Expansion**: Click dreams → floating content panel
+  - Full dream text display without leaving graph context
+  - Dream metrics organized in clean layout
+  - Mobile-responsive panel design
+  - Easy dismissal with close button
+- **Orbital Physics System**: Tuned force simulation for natural hierarchy
+  - Dreams orbit around their specific vector nodes
+  - Vectors orbit around their parent cluster nodes  
+  - Balanced repulsion (-50) and attraction (0.8-1.0) forces
+  - Natural dragging behavior for all nodes
+- **Enhanced Interactions**: 
+  - Removed disorienting zoom behavior from cluster clicks
+  - Natural node dragging moves entire orbital systems
+  - Smooth expand/collapse with physics simulation updates
+
+**Technical Implementation**:
+- Enhanced `OneirographView.ts` with expand/collapse state management
+- Tuned `ForceSimulation.ts` forces for hierarchical orbiting
+- Added floating dream content panel with Obsidian-native styling
+- Custom force balance: stronger links, weaker global repulsion
+- Disabled competing cluster force to preserve link hierarchy
+
+**User Experience Improvements**:
+- **Intuitive Exploration**: Start with overview, drill down progressively
+- **Contextual Reading**: Read dreams without losing graph position
+- **Natural Physics**: Organic orbital movement feels alive and responsive
+- **Comfortable Spacing**: Perfect balance between connection and breathing room
+- **Fluid Interactions**: Draggable nodes with no jarring zoom behavior
+
+**Implementation Status (~50% Complete)**:
+- ✅ **Completed**: Expand/collapse functionality, dream content expansion, orbital physics
+- ❌ **Pending**: Sub-clustering, vector boundaries, live filtering, search, keyboard navigation
+
+**Status**: Core Phase 4 interactions implemented. Additional features (filtering, boundaries, sub-clustering) remain for future implementation.
 
 ---
 
@@ -993,6 +1041,6 @@ The Oneirograph will remain as a separate view (like Graph View) but may be adde
 4. ✅ ~~Begin Phase 1 implementation with new UI location~~
 5. ✅ ~~Complete Phase 2 implementation - Taxonomy Editing capabilities~~
 6. ✅ ~~Complete Phase 3 implementation - Basic Oneirograph visualization~~
-7. **Next**: Begin Phase 4 implementation - Advanced Oneirograph features
+7. 🔄 **Partial**: Phase 4 implementation - Advanced Oneirograph features (~50% complete)
 
-**Current Status**: Phases 1-3 successfully implemented. Dream Taxonomy system and basic Oneirograph visualization are complete and operational. Phase 4 (advanced interactions, filtering, enhanced visualization) awaits implementation.
+**Current Status**: Phases 1-3 fully complete. Phase 4 partially implemented with core interactions (expand/collapse, dream content, orbital physics). Remaining features: sub-clustering, vector boundaries, filtering, search, keyboard navigation.

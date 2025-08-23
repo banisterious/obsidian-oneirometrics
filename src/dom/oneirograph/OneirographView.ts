@@ -5,7 +5,7 @@
  * providing an intuitive way to explore relationships and patterns in dream data.
  */
 
-import { ItemView, WorkspaceLeaf, Notice, ButtonComponent, SliderComponent } from 'obsidian';
+import { ItemView, WorkspaceLeaf, ButtonComponent } from 'obsidian';
 import * as d3 from 'd3';
 import type DreamMetricsPlugin from '../../../main';
 import { DreamMetricData } from '../../types/core';
@@ -68,6 +68,13 @@ interface OneirographState {
     showConnections: boolean;
     performanceMode: boolean;
     isLoading: boolean;
+    // Phase 4: Expand/collapse state
+    expandedClusters: Set<string>;
+    expandedVectors: Set<string>;
+    collapsedView: boolean; // true = start collapsed, false = show all
+    // Phase 4: Dream content expansion
+    selectedDream: DreamMetricData | null;
+    dreamContentVisible: boolean;
 }
 
 /**
@@ -110,7 +117,14 @@ export class OneirographView extends ItemView {
             showLabels: true,
             showConnections: true,
             performanceMode: false,
-            isLoading: true
+            isLoading: true,
+            // Phase 4: Expand/collapse state
+            expandedClusters: new Set(),
+            expandedVectors: new Set(),
+            collapsedView: false, // Start in expanded mode to show all nodes by default
+            // Phase 4: Dream content expansion
+            selectedDream: null,
+            dreamContentVisible: false
         };
     }
     
@@ -261,6 +275,24 @@ export class OneirographView extends ItemView {
         connectionsCheckbox.addEventListener('change', () => {
             this.state.showConnections = connectionsCheckbox.checked;
             this.render();
+        });
+        
+        // Phase 4: Collapsed view toggle
+        const collapsedToggle = optionsContainer.createDiv({ cls: 'oom-oneirograph-option' });
+        collapsedToggle.createSpan({ text: 'Collapsed View' });
+        const collapsedCheckbox = collapsedToggle.createEl('input', { type: 'checkbox' });
+        collapsedCheckbox.checked = this.state.collapsedView; // Will be false initially
+        collapsedCheckbox.addEventListener('change', () => {
+            this.state.collapsedView = collapsedCheckbox.checked;
+            if (!this.state.collapsedView) {
+                // Show all nodes when switching to expanded view
+                this.state.expandedClusters.clear();
+                this.state.expandedVectors.clear();
+            }
+            // Rebuild graph and restart simulation
+            this.buildGraphData();
+            this.forceSimulation.setData(this.state.nodes, this.state.links);
+            this.forceSimulation.start();
         });
         
         // Performance mode toggle
@@ -492,8 +524,13 @@ export class OneirographView extends ItemView {
             nodeMap.set(clusterId, clusterNode);
         }
         
-        // Create vector nodes
+        // Create vector nodes (only if parent cluster is expanded or not in collapsed view)
         for (const [vectorId, vector] of this.state.vectors) {
+            // Skip if in collapsed view and parent cluster is not expanded
+            if (this.state.collapsedView && !this.state.expandedClusters.has(vector.parentClusterId)) {
+                continue;
+            }
+            
             const parentCluster = this.state.clusters.get(vector.parentClusterId);
             const vectorNode: OneirographNode = {
                 id: vectorId,
@@ -515,7 +552,7 @@ export class OneirographView extends ItemView {
                 links.push({
                     source: vectorNode,
                     target: clusterNode,
-                    strength: 0.3,
+                    strength: 1.0, // Strong vector→cluster bond
                     type: 'cluster'
                 });
             }
@@ -531,6 +568,14 @@ export class OneirographView extends ItemView {
             safeLogger.info('Oneirograph', `Dream "${dream.title}": themes=[${themes.join(', ')}], vectorIds=[${vectorIds.join(', ')}], clusterIds=[${clusterIds.join(', ')}]`);
             
             if (vectorIds.length > 0) {
+                // Skip if in collapsed view and none of the parent vectors are expanded
+                if (this.state.collapsedView) {
+                    const hasExpandedVector = vectorIds.some(vectorId => this.state.expandedVectors.has(vectorId));
+                    if (!hasExpandedVector) {
+                        continue;
+                    }
+                }
+                
                 const dreamNode: OneirographNode = {
                     id: dream.source.toString(),
                     type: 'dream',
@@ -546,14 +591,14 @@ export class OneirographView extends ItemView {
                 nodes.push(dreamNode);
                 nodeMap.set(dreamNode.id, dreamNode);
                 
-                // Create links to vectors (proper hierarchy)
+                // Create links to vectors (only to vectors that exist in the current graph)
                 for (const vectorId of vectorIds) {
                     const vectorNode = nodeMap.get(vectorId);
                     if (vectorNode) {
                         links.push({
                             source: dreamNode,
                             target: vectorNode,
-                            strength: 0.2,
+                            strength: 0.8, // Strong dream→vector bond
                             type: 'vector'
                         });
                     }
@@ -726,9 +771,21 @@ export class OneirographView extends ItemView {
      */
     private handleNodeClick(node: OneirographNode) {
         if (node.type === 'cluster') {
-            this.zoomToCluster(node.id);
+            // Phase 4: Expand/collapse cluster in collapsed view, otherwise just select
+            if (this.state.collapsedView) {
+                this.toggleClusterExpansion(node.id);
+            } else {
+                // In expanded view, just select the cluster (allow dragging)
+                // No zoom behavior - let the user drag clusters naturally
+            }
+        } else if (node.type === 'vector') {
+            // Phase 4: Expand/collapse vector
+            if (this.state.collapsedView) {
+                this.toggleVectorExpansion(node.id);
+            }
         } else if (node.type === 'dream') {
-            this.showDreamDetails(node);
+            // Phase 4: Show dream content in-situ
+            this.showDreamContent(node.data as DreamMetricData);
         }
         
         this.state.selectedNode = node;
@@ -813,13 +870,133 @@ export class OneirographView extends ItemView {
     }
     
     /**
-     * Show dream details
+     * Phase 4: Toggle cluster expansion
+     */
+    private toggleClusterExpansion(clusterId: string) {
+        if (this.state.expandedClusters.has(clusterId)) {
+            // Collapse cluster - remove it and collapse all its vectors
+            this.state.expandedClusters.delete(clusterId);
+            // Also collapse all vectors in this cluster
+            for (const [vectorId, vector] of this.state.vectors) {
+                if (vector.parentClusterId === clusterId) {
+                    this.state.expandedVectors.delete(vectorId);
+                }
+            }
+            safeLogger.info('Oneirograph', `Collapsed cluster: ${clusterId}`);
+        } else {
+            // Expand cluster - show its vectors
+            this.state.expandedClusters.add(clusterId);
+            safeLogger.info('Oneirograph', `Expanded cluster: ${clusterId}`);
+        }
+        
+        // Rebuild graph data and restart simulation
+        this.buildGraphData();
+        this.forceSimulation.setData(this.state.nodes, this.state.links);
+        this.forceSimulation.start();
+    }
+    
+    /**
+     * Phase 4: Toggle vector expansion
+     */
+    private toggleVectorExpansion(vectorId: string) {
+        if (this.state.expandedVectors.has(vectorId)) {
+            // Collapse vector - hide its dreams
+            this.state.expandedVectors.delete(vectorId);
+            safeLogger.info('Oneirograph', `Collapsed vector: ${vectorId}`);
+        } else {
+            // Expand vector - show its dreams
+            this.state.expandedVectors.add(vectorId);
+            safeLogger.info('Oneirograph', `Expanded vector: ${vectorId}`);
+        }
+        
+        // Rebuild graph data and restart simulation
+        this.buildGraphData();
+        this.forceSimulation.setData(this.state.nodes, this.state.links);
+        this.forceSimulation.start();
+    }
+    
+    /**
+     * Phase 4: Show dream content in-situ
+     */
+    private showDreamContent(dream: DreamMetricData) {
+        this.state.selectedDream = dream;
+        this.state.dreamContentVisible = true;
+        
+        // Create dream content panel if it doesn't exist
+        this.createDreamContentPanel();
+        
+        safeLogger.info('Oneirograph', `Showing dream content: ${dream.title}`);
+    }
+    
+    /**
+     * Phase 4: Create dream content panel
+     */
+    private createDreamContentPanel() {
+        // Remove existing panel
+        const existingPanel = this.containerEl.querySelector('.oom-dream-content-panel');
+        if (existingPanel) {
+            existingPanel.remove();
+        }
+        
+        if (!this.state.selectedDream || !this.state.dreamContentVisible) {
+            return;
+        }
+        
+        const dream = this.state.selectedDream;
+        
+        // Create floating panel
+        const panel = this.containerEl.createDiv({ cls: 'oom-dream-content-panel' });
+        
+        // Header with title and close button
+        const header = panel.createDiv({ cls: 'oom-dream-content-header' });
+        header.createSpan({ cls: 'oom-dream-content-title', text: dream.title || 'Untitled Dream' });
+        header.createSpan({ cls: 'oom-dream-content-date', text: dream.date });
+        
+        const closeBtn = header.createSpan({ cls: 'oom-dream-content-close', text: '×' });
+        closeBtn.addEventListener('click', () => this.hideDreamContent());
+        
+        // Content area
+        const content = panel.createDiv({ cls: 'oom-dream-content-body' });
+        content.createDiv({ cls: 'oom-dream-content-text', text: dream.content });
+        
+        // Metrics
+        if (dream.metrics && Object.keys(dream.metrics).length > 0) {
+            const metricsDiv = content.createDiv({ cls: 'oom-dream-content-metrics' });
+            metricsDiv.createEl('h4', { text: 'Metrics' });
+            
+            for (const [key, value] of Object.entries(dream.metrics)) {
+                const metricDiv = metricsDiv.createDiv({ cls: 'oom-dream-metric' });
+                metricDiv.createSpan({ cls: 'oom-dream-metric-key', text: key + ':' });
+                metricDiv.createSpan({ cls: 'oom-dream-metric-value', text: String(value) });
+            }
+        }
+    }
+    
+    /**
+     * Phase 4: Hide dream content panel
+     */
+    private hideDreamContent() {
+        this.state.selectedDream = null;
+        this.state.dreamContentVisible = false;
+        
+        const panel = this.containerEl.querySelector('.oom-dream-content-panel');
+        if (panel) {
+            panel.remove();
+        }
+        
+        // Clear selection
+        this.state.selectedNode = null;
+        this.render();
+    }
+    
+    /**
+     * Show dream details (legacy method)
      */
     private showDreamDetails(node: OneirographNode) {
         if (node.type === 'dream' && node.data) {
             const dream = node.data as DreamMetricData;
-            // TODO: Implement dream details panel
-            new Notice(`Dream: ${dream.title || 'Untitled'} - ${dream.date}`);
+            // Use new Phase 4 method
+            this.showDreamContent(dream);
         }
     }
     
