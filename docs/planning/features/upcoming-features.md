@@ -121,6 +121,17 @@ These features are under consideration but may change significantly or might not
 - **Theme Detection**: AI-assisted identification of dream themes
 - **Privacy-Focused**: All processing done locally, no data sharing
 
+#### Narrative Weaving (In Planning)
+- **Dream-to-Narrative AI**: Transform dream collections into cohesive stories
+- **Multiple Narrative Flows**: Thematic, Character Arc, Setting-Based, and Emotional Arc weaving
+- **Local-First LLM Support**: Prioritizes local models (Ollama) over cloud APIs
+- **Customizable Parameters**: Tone, style, and contradiction handling options
+- **Template System**: Save and reuse narrative "recipes" for consistent storytelling
+- **Real-time Generation**: Stream narrative output as it's generated
+- **Privacy Protection**: Clear warnings and preferences for data handling
+
+> **Implementation Status**: Planning phase complete. See [Narrative Weaving Implementation Plan](../implementation/narrative-weaving-implementation-plan.md) for detailed technical specifications, phased timeline, and architecture decisions.
+
 ### Virtual Reality Visualization (Concept)
 - **3D Dream Mapping**: Experimental visualization of dream environments
 - **Spatial Relationship Tracking**: Map physical relationships in dreams
