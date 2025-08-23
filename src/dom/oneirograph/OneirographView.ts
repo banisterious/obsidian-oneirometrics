@@ -84,6 +84,8 @@ interface OneirographState {
         vectors?: string[];
     };
     dreamContentVisible: boolean;
+    searchPanelVisible: boolean;
+    infoPanelVisible: boolean;
 }
 
 /**
@@ -98,6 +100,7 @@ export class OneirographView extends ItemView {
     private controlsEl: HTMLElement;
     private activeFiltersContainer: HTMLElement | null = null;
     private searchPanel: HTMLElement | null = null;
+    private infoPanel: HTMLElement | null = null;
     private searchPanelContent: HTMLElement | null = null;
     private searchToggleButton: ButtonComponent | null = null;
     private forceSimulation: ForceSimulation;
@@ -141,7 +144,9 @@ export class OneirographView extends ItemView {
             // Phase 4: Search and filtering
             searchQuery: '',
             filteredNodeIds: new Set(),
-            activeFilters: {}
+            activeFilters: {},
+            searchPanelVisible: false,
+            infoPanelVisible: false
         };
     }
     
@@ -276,6 +281,16 @@ export class OneirographView extends ItemView {
             .setTooltip('Reset View')
             .onClick(() => this.resetView());
         
+        new ButtonComponent(zoomContainer)
+            .setIcon('search')
+            .setTooltip('Toggle Search & Filters')
+            .onClick(() => this.toggleSearchPanel());
+        
+        new ButtonComponent(zoomContainer)
+            .setIcon('help-circle')
+            .setTooltip('Getting Started Info')
+            .onClick(() => this.toggleInfoPanel());
+        
         // Display options
         const optionsContainer = this.controlsEl.createDiv({ cls: 'oom-oneirograph-options' });
         
@@ -332,6 +347,9 @@ export class OneirographView extends ItemView {
         // Phase 4: Search and filter controls (top left panel)
         this.createSearchPanel();
         
+        // Info panel (top right)
+        this.createInfoPanel();
+        
         // FPS counter
         const fpsContainer = this.controlsEl.createDiv({ cls: 'oom-oneirograph-fps' });
         this.updateFpsDisplay(fpsContainer);
@@ -342,7 +360,9 @@ export class OneirographView extends ItemView {
      * Phase 4: Live filtering and search functionality
      */
     private createSearchPanel() {
-        this.searchPanel = this.containerEl.createDiv({ cls: 'oom-oneirograph-search-panel' });
+        this.searchPanel = this.containerEl.createDiv({ 
+            cls: 'oom-oneirograph-search-panel oom-search-panel-hidden' 
+        });
         
         // Panel header with toggle button
         const panelHeader = this.searchPanel.createDiv({ cls: 'oom-search-panel-header' });
@@ -351,7 +371,7 @@ export class OneirographView extends ItemView {
         this.searchToggleButton = new ButtonComponent(panelHeader)
             .setIcon('chevron-down')
             .setTooltip('Toggle search panel')
-            .onClick(() => this.toggleSearchPanel());
+            .onClick(() => this.toggleSearchPanelCollapse());
         
         // Panel content (collapsible)
         this.searchPanelContent = this.searchPanel.createDiv({ cls: 'oom-oneirograph-search-controls' });
@@ -468,9 +488,78 @@ export class OneirographView extends ItemView {
     }
     
     /**
-     * Toggle the search panel visibility
+     * Create info panel (top right)
+     */
+    private createInfoPanel() {
+        this.infoPanel = this.containerEl.createDiv({ 
+            cls: 'oom-oneirograph-info-panel oom-info-panel-hidden' 
+        });
+        
+        // Panel header
+        const panelHeader = this.infoPanel.createDiv({ cls: 'oom-info-panel-header' });
+        panelHeader.createSpan({ text: 'Getting Started with OneiroGraph', cls: 'oom-info-panel-title' });
+        
+        const closeBtn = new ButtonComponent(panelHeader)
+            .setIcon('x')
+            .setTooltip('Close info panel')
+            .onClick(() => this.toggleInfoPanel());
+        
+        // Panel content
+        const panelContent = this.infoPanel.createDiv({ cls: 'oom-info-panel-content' });
+        
+        panelContent.createDiv({ 
+            cls: 'oom-info-panel-text', 
+            text: 'To use OneiroGraph, you need:' 
+        });
+        
+        const checklistContainer = panelContent.createDiv({ cls: 'oom-info-checklist' });
+        
+        const checklistItems = [
+            'Dream journal entries in your notes',
+            'Dream metrics (scoring data for your dreams)',
+            'Dream themes (tags, properties, or theme metrics)', 
+            'Dream taxonomy data (clusters and vectors)'
+        ];
+        
+        checklistItems.forEach(item => {
+            const checkItem = checklistContainer.createDiv({ cls: 'oom-info-check-item' });
+            checkItem.createSpan({ cls: 'oom-info-check-mark', text: '✓' });
+            checkItem.createSpan({ cls: 'oom-info-check-text', text: item });
+        });
+        
+        const finalText = panelContent.createDiv({ cls: 'oom-info-panel-footer' });
+        finalText.createDiv({ 
+            text: 'Once you have dream data with taxonomy structure, the graph will automatically display your hierarchical visualization with clusters, vectors, themes, and individual dreams.',
+            cls: 'oom-info-description'
+        });
+        
+        finalText.createDiv({ 
+            text: 'Check Dream Taxonomy settings in OneiroMetrics Hub to configure your classification system.',
+            cls: 'oom-info-settings-note'
+        });
+    }
+    
+    /**
+     * Toggle the search panel visibility (entire panel show/hide)
      */
     private toggleSearchPanel() {
+        this.state.searchPanelVisible = !this.state.searchPanelVisible;
+        
+        if (this.searchPanel) {
+            if (this.state.searchPanelVisible) {
+                this.searchPanel.removeClass('oom-search-panel-hidden');
+                this.searchPanel.addClass('oom-search-panel-visible');
+            } else {
+                this.searchPanel.removeClass('oom-search-panel-visible');
+                this.searchPanel.addClass('oom-search-panel-hidden');
+            }
+        }
+    }
+    
+    /**
+     * Toggle the search panel content collapse (internal panel expand/collapse)
+     */
+    private toggleSearchPanelCollapse() {
         if (!this.searchPanelContent || !this.searchToggleButton) return;
         
         const isCollapsed = this.searchPanelContent.hasClass('collapsed');
@@ -483,6 +572,23 @@ export class OneirographView extends ItemView {
             // Collapse panel
             this.searchPanelContent.addClass('collapsed');
             this.searchToggleButton.setIcon('chevron-right');
+        }
+    }
+    
+    /**
+     * Toggle info panel visibility
+     */
+    private toggleInfoPanel() {
+        this.state.infoPanelVisible = !this.state.infoPanelVisible;
+        
+        if (this.infoPanel) {
+            if (this.state.infoPanelVisible) {
+                this.infoPanel.removeClass('oom-info-panel-hidden');
+                this.infoPanel.addClass('oom-info-panel-visible');
+            } else {
+                this.infoPanel.removeClass('oom-info-panel-visible');
+                this.infoPanel.addClass('oom-info-panel-hidden');
+            }
         }
     }
     
@@ -1734,7 +1840,7 @@ export class OneirographView extends ItemView {
             panelHeader.addEventListener('keydown', (event: KeyboardEvent) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    this.toggleSearchPanel();
+                    this.toggleSearchPanelCollapse();
                     
                     // Update aria-expanded
                     const isCollapsed = this.searchPanelContent?.hasClass('collapsed');

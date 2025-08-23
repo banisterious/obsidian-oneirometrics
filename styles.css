@@ -14923,7 +14923,7 @@ body.shimmering-focus .oom-dashboard-header {
 }
 
 /* =============================================================================
-   COMPONENT: COMPONENTS/ONEIROGRAPH (18.1 KB)
+   COMPONENT: COMPONENTS/ONEIROGRAPH (21.3 KB)
    ============================================================================= */
 /**
  * Oneirograph Styles
@@ -15393,6 +15393,123 @@ body.shimmering-focus .oom-dashboard-header {
     z-index: 100;
     min-width: 300px;
     max-width: 350px;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Search panel visibility states */
+.oom-search-panel-hidden {
+    opacity: 0;
+    transform: translateX(-100%);
+    pointer-events: none;
+}
+
+.oom-search-panel-visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+/* Info Panel (Top Right) */
+.oom-oneirograph-info-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-l);
+    z-index: 100;
+    min-width: 320px;
+    max-width: 400px;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Info panel visibility states */
+.oom-info-panel-hidden {
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: none;
+}
+
+.oom-info-panel-visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.oom-info-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--size-4-3);
+    border-bottom: 1px solid var(--background-modifier-border);
+    background: var(--background-modifier-form-field);
+    border-radius: var(--radius-m) var(--radius-m) 0 0;
+}
+
+.oom-info-panel-title {
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+.oom-info-panel-content {
+    padding: var(--size-4-4);
+}
+
+.oom-info-panel-text {
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
+    margin-bottom: var(--size-4-3);
+}
+
+.oom-info-checklist {
+    margin-bottom: var(--size-4-4);
+}
+
+.oom-info-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-2);
+}
+
+.oom-info-check-mark {
+    color: var(--color-green);
+    font-weight: bold;
+    font-size: var(--font-ui-medium);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.oom-info-check-text {
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    line-height: 1.4;
+}
+
+.oom-info-panel-footer {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: var(--size-4-3);
+    margin-top: var(--size-4-3);
+}
+
+.oom-info-description {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.4;
+    margin-bottom: var(--size-4-3);
+}
+
+.oom-info-settings-note {
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-medium);
+    line-height: 1.4;
 }
 
 .oom-search-panel-header {
@@ -15601,6 +15718,14 @@ body.shimmering-focus .oom-dashboard-header {
         max-width: none;
     }
     
+    .oom-oneirograph-info-panel {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+    
     .oom-search-panel-header {
         padding: var(--size-4-2);
     }
@@ -15642,6 +15767,17 @@ body.shimmering-focus .oom-dashboard-header {
 }
 
 .theme-dark .oom-search-panel-header {
+    background: var(--background-primary-alt);
+    border-color: var(--background-modifier-border-hover);
+}
+
+/* Dark mode adjustments for info panel */
+.theme-dark .oom-oneirograph-info-panel {
+    background: var(--background-secondary-alt);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.theme-dark .oom-info-panel-header {
     background: var(--background-primary-alt);
     border-color: var(--background-modifier-border-hover);
 }
@@ -15720,6 +15856,14 @@ body.shimmering-focus .oom-dashboard-header {
     }
     
     .oom-search-panel-header {
+        border-bottom-width: 2px;
+    }
+    
+    .oom-oneirograph-info-panel {
+        border-width: 2px;
+    }
+    
+    .oom-info-panel-header {
         border-bottom-width: 2px;
     }
     
