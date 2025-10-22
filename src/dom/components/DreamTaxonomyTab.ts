@@ -124,18 +124,21 @@ export class DreamTaxonomyTab {
         });
         
         // Clear search button
-        const clearButton = searchContainer.createDiv({ cls: 'oom-search-clear' });
+        const clearButton = searchContainer.createDiv({ cls: 'oom-search-clear oom-hidden' });
         setIcon(clearButton, 'x');
-        clearButton.style.display = 'none';
         clearButton.addEventListener('click', () => {
             this.searchInput.value = '';
             this.handleSearch('');
-            clearButton.style.display = 'none';
+            clearButton.addClass('oom-hidden');
         });
-        
+
         // Show/hide clear button based on input
         this.searchInput.addEventListener('input', () => {
-            clearButton.style.display = this.searchInput.value ? 'flex' : 'none';
+            if (this.searchInput.value) {
+                clearButton.removeClass('oom-hidden');
+            } else {
+                clearButton.addClass('oom-hidden');
+            }
         });
         
         // Action buttons container
@@ -383,7 +386,7 @@ export class DreamTaxonomyTab {
                 this.toggleVector(vector.id);
             });
         } else {
-            expandIcon.style.visibility = 'hidden';
+            expandIcon.addClass('oom-invisible');
         }
         
         // Vector icon
@@ -480,9 +483,8 @@ export class DreamTaxonomyTab {
         themeNode.addEventListener('drop', (e) => this.handleDrop(e, theme, 'theme'));
         themeNode.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         
-        // No expand icon for themes
-        const spacer = themeNode.createDiv({ cls: 'oom-expand-icon' });
-        spacer.style.visibility = 'hidden';
+        // No expand icon for themes - just a spacer for alignment
+        themeNode.createDiv({ cls: 'oom-expand-icon oom-invisible' });
         
         // Theme icon (bullet point)
         const nodeIcon = themeNode.createDiv({ cls: 'oom-node-icon oom-theme-icon' });
@@ -743,11 +745,11 @@ export class DreamTaxonomyTab {
         input.setAttribute('aria-label', `Edit ${field}`);
         
         // Replace label with input
-        labelElement.style.display = 'none';
+        labelElement.addClass('oom-hidden');
         labelElement.parentElement?.insertBefore(input, labelElement);
         input.focus();
         input.select();
-        
+
         // Handle save
         const saveEdit = () => {
             const newValue = input.value.trim();
@@ -759,17 +761,17 @@ export class DreamTaxonomyTab {
                     labelElement.textContent = newValue;
                 }
             }
-            
+
             // Restore label
             input.remove();
-            labelElement.style.display = '';
+            labelElement.removeClass('oom-hidden');
             this.editingNodeId = null;
         };
-        
+
         // Handle cancel
         const cancelEdit = () => {
             input.remove();
-            labelElement.style.display = '';
+            labelElement.removeClass('oom-hidden');
             this.editingNodeId = null;
         };
         
@@ -832,15 +834,8 @@ export class DreamTaxonomyTab {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', JSON.stringify({ id: entity.id, type }));
         
-        // Add dragging class
+        // Add dragging class (visual feedback via CSS)
         this.draggedElement.classList.add('oom-dragging');
-        
-        // Visual feedback
-        setTimeout(() => {
-            if (this.draggedElement) {
-                this.draggedElement.style.opacity = '0.5';
-            }
-        }, 0);
     }
     
     /**
@@ -849,7 +844,6 @@ export class DreamTaxonomyTab {
     private handleDragEnd(_e: DragEvent): void {
         if (this.draggedElement) {
             this.draggedElement.classList.remove('oom-dragging');
-            this.draggedElement.style.opacity = '';
         }
         
         // Clean up drop zones

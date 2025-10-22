@@ -111,6 +111,22 @@ export class ProjectNoteEvents {
             new Notice('Opening date navigator...');
             this.showDateNavigator();
         }, 'Date navigator button');
+
+        // Find and attach migration notice buttons
+        const openDashboardBtn = previewEl.querySelector('.oom-open-dashboard-btn');
+        this.attachClickEvent(openDashboardBtn, () => {
+            this.logger?.debug('UI', 'Open dashboard button clicked');
+            (this.app as any).commands.executeCommandById('oneirometrics:open-dashboard');
+        }, 'Open dashboard button');
+
+        const dismissNoticeBtn = previewEl.querySelector('.oom-dismiss-notice-btn');
+        this.attachClickEvent(dismissNoticeBtn, () => {
+            this.logger?.debug('UI', 'Dismiss notice button clicked');
+            const notice = dismissNoticeBtn?.closest('.oom-migration-notice');
+            if (notice) {
+                notice.addClass('oom-hidden');
+            }
+        }, 'Dismiss notice button');
     }
     
     /**

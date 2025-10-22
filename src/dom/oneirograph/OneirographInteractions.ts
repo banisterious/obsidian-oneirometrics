@@ -85,11 +85,9 @@ export class OneirographInteractions {
      * Create tooltip element
      */
     private createTooltip() {
-        this.tooltipEl = this.overlay.createDiv({ cls: 'oom-oneirograph-tooltip' });
-        this.tooltipEl.style.display = 'none';
-        this.tooltipEl.style.position = 'absolute';
-        this.tooltipEl.style.pointerEvents = 'none';
-        this.tooltipEl.style.zIndex = '1000';
+        this.tooltipEl = this.overlay.createDiv({ cls: 'oom-oneirograph-tooltip oom-tooltip-hidden' });
+        // Static positioning styles moved to CSS (.oom-oneirograph-tooltip class)
+        // position: absolute, pointer-events: none, z-index: 1000
     }
     
     /**
@@ -366,8 +364,8 @@ export class OneirographInteractions {
         }
         
         this.tooltipEl.innerHTML = content;
-        this.tooltipEl.style.display = 'block';
-        
+        this.tooltipEl.removeClass('oom-tooltip-hidden');
+
         // Position tooltip
         this.updateTooltipPosition(this.currentMousePos.x, this.currentMousePos.y);
     }
@@ -384,7 +382,7 @@ export class OneirographInteractions {
      * Update tooltip position
      */
     private updateTooltipPosition(x: number, y: number) {
-        if (!this.tooltipEl || this.tooltipEl.style.display === 'none') return;
+        if (!this.tooltipEl || this.tooltipEl.hasClass('oom-tooltip-hidden')) return;
         
         const offset = 10;
         const rect = this.tooltipEl.getBoundingClientRect();
@@ -411,7 +409,7 @@ export class OneirographInteractions {
      */
     public hideTooltip() {
         if (this.tooltipEl) {
-            this.tooltipEl.style.display = 'none';
+            this.tooltipEl.addClass('oom-tooltip-hidden');
         }
     }
     
