@@ -15159,6 +15159,7 @@ body.shimmering-focus .oom-dashboard-header {
 
 /* Tooltip styles */
 .oom-oneirograph-tooltip {
+    position: absolute;
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-s);
@@ -15168,6 +15169,10 @@ body.shimmering-focus .oom-dashboard-header {
     font-size: var(--font-ui-small);
     pointer-events: none;
     z-index: 1000;
+}
+
+.oom-tooltip-hidden {
+    display: none;
 }
 
 .oom-oneirograph-tooltip-title {

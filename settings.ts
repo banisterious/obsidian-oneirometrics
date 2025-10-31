@@ -762,17 +762,10 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         };
         
         advancedToggle.appendChild(createChevronSvg('right'));
-        advancedToggle.style.position = 'absolute';
-        advancedToggle.style.right = '0';
-        advancedToggle.style.top = '50%';
-        advancedToggle.style.transform = 'translateY(-50%)';
-        advancedToggle.style.cursor = 'pointer';
-        advancedToggle.style.width = '20px';
-        advancedToggle.style.height = '20px';
-        
+        advancedToggle.addClass('oom-advanced-toggle');
+
         // Make the setting element itself clickable
-        advancedSetting.settingEl.style.position = 'relative';
-        advancedSetting.settingEl.style.cursor = 'pointer';
+        advancedSetting.settingEl.addClass('oom-advanced-setting-container');
         
         const advancedContent = advancedSection.createDiv({ 
             cls: 'oom-collapsible-content oom-advanced-content oom-advanced-content--collapsed'
@@ -863,19 +856,18 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
             .setName('View and manage logs')
             .setDesc('Easy access to plugin logs for debugging purposes')
             .addButton(button => {
-                button.setButtonText('Go to Logging')
-                    .onClick(() => {
-                        // Close the settings modal first
-                        (this.app as any).setting.close();
-                        
-                        // Open the Test Suite modal with Logging tab
-                        const { UnifiedTestSuiteModal } = require('./src/testing/ui/UnifiedTestSuiteModal');
-                        const testSuiteModal = new UnifiedTestSuiteModal(this.app, this.plugin);
-                        testSuiteModal.open();
-                        // Navigate to the logging tab
-                        setTimeout(() => {
-                            testSuiteModal.selectTab('logging');
-                        }, 100);
+                button.setButtonText('Open Log Files')
+                    .onClick(async () => {
+                        // Open the log folder in the file explorer
+                        const logFolder = `${this.app.vault.configDir}/plugins/oneirometrics/logs`;
+                        const folder = this.app.vault.getAbstractFileByPath(logFolder);
+                        if (folder) {
+                            // Note: Obsidian doesn't provide a direct API to open folders
+                            // Show a notice with instructions instead
+                            new Notice('Log files are located in: ' + logFolder);
+                        } else {
+                            new Notice('No log files found yet. Logs will be created when logging is enabled.');
+                        }
                     });
             });
 
@@ -1010,16 +1002,10 @@ export class DreamMetricsSettingTab extends PluginSettingTab {
         const header = templateListContainer.createEl('h3', { text: 'Manage Templates' });
         
         // Add close button to header
-        const closeButton = header.createEl('button', { 
+        const closeButton = header.createEl('button', {
             cls: 'oom-template-close-button',
             text: '×'
         });
-        closeButton.style.float = 'right';
-        closeButton.style.border = 'none';
-        closeButton.style.background = 'none';
-        closeButton.style.fontSize = '1.5em';
-        closeButton.style.cursor = 'pointer';
-        closeButton.style.padding = '0 0.5em';
         
         closeButton.addEventListener('click', () => {
             templateListContainer.classList.add('oom-template-manager--hidden');

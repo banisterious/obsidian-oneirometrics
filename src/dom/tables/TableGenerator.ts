@@ -58,8 +58,8 @@ export class TableGenerator {
         content += '<strong>📊 New OneiroMetrics View Available!</strong>\n';
         content += 'Experience real-time updates, better performance, and enhanced features with the new OneiroMetrics view.<br>\n';
         content += '<div>\n';
-        content += '<button onclick="app.commands.executeCommandById(\'oneirometrics:open-dashboard\')" class="mod-cta">Open OneiroMetrics View</button>\n';
-        content += '<button onclick="this.parentElement.parentElement.style.display=\'none\'">Dismiss</button>\n';
+        content += '<button class="mod-cta oom-open-dashboard-btn" type="button">Open OneiroMetrics View</button>\n';
+        content += '<button class="oom-dismiss-notice-btn" type="button">Dismiss</button>\n';
         content += '</div>\n';
         content += '</div>\n';
         

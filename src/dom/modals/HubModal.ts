@@ -1518,7 +1518,11 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         
                         // Show/hide callout settings container
                         if (calloutSettingsContainer) {
-                            calloutSettingsContainer.style.display = value ? 'block' : 'none';
+                            if (value) {
+                                calloutSettingsContainer.removeClass('oom-hidden');
+                            } else {
+                                calloutSettingsContainer.addClass('oom-hidden');
+                            }
                         }
                         
                         await this.plugin.saveSettings();
@@ -1526,8 +1530,8 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
             });
         
         // Callout settings container (only visible when callout-based is enabled)
-        calloutSettingsContainer = settingsContainer.createDiv({ cls: 'oom-callout-settings-container' });
-        calloutSettingsContainer.style.display = calloutBasedDreamsEnabled ? 'block' : 'none';
+        const containerClasses = calloutBasedDreamsEnabled ? 'oom-callout-settings-container' : 'oom-callout-settings-container oom-hidden';
+        calloutSettingsContainer = settingsContainer.createDiv({ cls: containerClasses });
         
         // Journal callout name setting
         new Setting(calloutSettingsContainer)
@@ -1617,15 +1621,20 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         
                         // Show/hide frontmatter property field
                         if (frontmatterPropertyContainer) {
-                            frontmatterPropertyContainer.style.display = value === 'frontmatter' ? 'block' : 'none';
+                            if (value === 'frontmatter') {
+                                frontmatterPropertyContainer.removeClass('oom-hidden');
+                            } else {
+                                frontmatterPropertyContainer.addClass('oom-hidden');
+                            }
                         }
                     });
             });
 
         // Frontmatter property field (only visible when placement is 'frontmatter')
         frontmatterPropertyContainer = dateOptionsContainer.createDiv({ cls: 'oom-frontmatter-property-container' });
-        frontmatterPropertyContainer.style.display = 
-            this.plugin.settings.dateHandling?.placement === 'frontmatter' ? 'block' : 'none';
+        if (this.plugin.settings.dateHandling?.placement !== 'frontmatter') {
+            frontmatterPropertyContainer.addClass('oom-hidden');
+        }
         
         new Setting(frontmatterPropertyContainer)
             .setName('Date property name')
@@ -1758,15 +1767,20 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         
                         // Show/hide dream title property field
                         if (dreamTitlePropertyContainer) {
-                            dreamTitlePropertyContainer.style.display = value ? 'block' : 'none';
+                            if (value) {
+                                dreamTitlePropertyContainer.removeClass('oom-hidden');
+                            } else {
+                                dreamTitlePropertyContainer.addClass('oom-hidden');
+                            }
                         }
                     });
             });
 
         // Dream Title Property Field (only visible when dreamTitleInProperties is true)
         dreamTitlePropertyContainer = settingsContainer.createDiv({ cls: 'oom-dream-title-property-container' });
-        dreamTitlePropertyContainer.style.display = 
-            this.plugin.settings.dateHandling?.dreamTitleInProperties ? 'block' : 'none';
+        if (!this.plugin.settings.dateHandling?.dreamTitleInProperties) {
+            dreamTitlePropertyContainer.addClass('oom-hidden');
+        }
         
         new Setting(dreamTitlePropertyContainer)
             .setName('Dream title property')
@@ -2443,15 +2457,20 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         
                         // Show/hide frontmatter property field
                         if (frontmatterPropertyContainer) {
-                            frontmatterPropertyContainer.style.display = value === 'frontmatter' ? 'block' : 'none';
+                            if (value === 'frontmatter') {
+                                frontmatterPropertyContainer.removeClass('oom-hidden');
+                            } else {
+                                frontmatterPropertyContainer.addClass('oom-hidden');
+                            }
                         }
                     });
             });
 
         // Frontmatter property field (only visible when placement is 'frontmatter')
         frontmatterPropertyContainer = dateOptionsContainer.createDiv({ cls: 'oom-frontmatter-property-container' });
-        frontmatterPropertyContainer.style.display = 
-            this.plugin.settings.dateHandling?.placement === 'frontmatter' ? 'block' : 'none';
+        if (this.plugin.settings.dateHandling?.placement !== 'frontmatter') {
+            frontmatterPropertyContainer.addClass('oom-hidden');
+        }
         
         new Setting(frontmatterPropertyContainer)
             .setName('Date property name')
@@ -2584,15 +2603,20 @@ Time Distortion assesses the surreal nature of time's flow within your dream. Un
                         
                         // Show/hide dream title property field
                         if (dreamTitlePropertyContainer) {
-                            dreamTitlePropertyContainer.style.display = value ? 'block' : 'none';
+                            if (value) {
+                                dreamTitlePropertyContainer.removeClass('oom-hidden');
+                            } else {
+                                dreamTitlePropertyContainer.addClass('oom-hidden');
+                            }
                         }
                     });
             });
 
         // Dream Title Property Field (only visible when dreamTitleInProperties is true)
         dreamTitlePropertyContainer = settingsContainer.createDiv({ cls: 'oom-dream-title-property-container' });
-        dreamTitlePropertyContainer.style.display = 
-            this.plugin.settings.dateHandling?.dreamTitleInProperties ? 'block' : 'none';
+        if (!this.plugin.settings.dateHandling?.dreamTitleInProperties) {
+            dreamTitlePropertyContainer.addClass('oom-hidden');
+        }
         
         new Setting(dreamTitlePropertyContainer)
             .setName('Dream title property')

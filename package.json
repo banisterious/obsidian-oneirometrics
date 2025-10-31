@@ -13,7 +13,8 @@
         "css:lint:fix": "stylelint \"styles/**/*.css\" --fix",
         "css:format": "prettier --write \"styles/**/*.css\"",
         "css:check": "npm run css:lint && npm run css:format --check",
-        "lint:setup": "echo 'CSS linting infrastructure ready - currently in warning mode'"
+        "lint:setup": "echo 'CSS linting infrastructure ready - currently in warning mode'",
+        "deploy": "npm run build && cp main.js styles.css manifest.json /mnt/d/Vaults/Banister/.obsidian/plugins/oneirometrics/ && echo '✅ Deployed to vault! Reload Obsidian (Ctrl+R) to see changes.'"
     },
     "keywords": [
         "obsidian",
