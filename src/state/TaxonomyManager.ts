@@ -113,10 +113,10 @@ export class TaxonomyManager {
         vectorsByCluster: Map<string, TaxonomyVector[]>;
         lastBuilt: number;
     } | null = null;
-    
+
     /** Debounce timer for saving */
-    private saveTimer: NodeJS.Timeout | null = null;
-    
+    private saveTimer: number | null = null;
+
     /** Save delay in milliseconds */
     private readonly SAVE_DELAY = 2000;
     

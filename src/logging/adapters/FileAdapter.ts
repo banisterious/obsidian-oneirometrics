@@ -36,7 +36,7 @@ export class FileAdapter implements LogAdapter {
   private buffer: string[] = [];
   private flushPromise: Promise<void> | null = null;
   private readonly FLUSH_INTERVAL = 5000; // 5 seconds
-  private flushTimer: NodeJS.Timeout | null = null;
+  private flushTimer: number | null = null;
   private isHandlingInternalError = false;
   
   /**

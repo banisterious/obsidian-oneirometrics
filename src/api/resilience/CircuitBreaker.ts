@@ -131,10 +131,10 @@ export class CircuitBreaker {
   
   /** Results of calls in the rolling window */
   private results: CallResult[] = [];
-  
+
   /** Timer for resetting the circuit */
-  private resetTimer?: NodeJS.Timeout;
-  
+  private resetTimer?: number;
+
   /** Time when the circuit was last opened */
   private lastOpenTime?: number;
   
@@ -310,7 +310,7 @@ export class CircuitBreaker {
         
         // Set up the reset timer
         this.resetTimer && clearTimeout(this.resetTimer);
-        this.resetTimer = setTimeout(() => {
+        this.resetTimer = window.setTimeout(() => {
           this.transitionToState(CircuitState.HALF_OPEN);
         }, this.options.resetTimeoutMs || DEFAULT_OPTIONS.resetTimeoutMs!);
       } else if (newState === CircuitState.HALF_OPEN) {

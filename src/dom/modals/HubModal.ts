@@ -4686,22 +4686,7 @@ Example:
             // Configuration Status
             new Setting(infrastructureSection)
                 .setName('Configuration Status')
-                .setDesc(`Version ${config.configVersion} � Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`)
-                .addButton(button => {
-                    button.setButtonText('Test Infrastructure')
-                        .onClick(() => {
-                            // Close the hub modal first
-                            this.close();
-                            
-                            // Open the test suite and navigate to settings test
-                            const { UnifiedTestSuiteModal } = require('../../testing/ui/UnifiedTestSuiteModal');
-                            const testModal = new UnifiedTestSuiteModal(this.app, this.plugin);
-                            testModal.open();
-                            setTimeout(() => {
-                                testModal.selectTab('test-settings');
-                            }, 100);
-                        });
-                });
+                .setDesc(`Version ${config.configVersion} � Auto-discovery: ${config.autoDiscovery ? 'Enabled' : 'Disabled'}`);
 
             // Visualization Thresholds Subsection
             const thresholdsSection = advancedSection.createDiv({ 

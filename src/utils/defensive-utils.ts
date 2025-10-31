@@ -132,8 +132,8 @@ export function debounce<T extends AnyFunction>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  
+  let timeout: number;
+
   return (...args: Parameters<T>): void => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {

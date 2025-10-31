@@ -2184,8 +2184,8 @@ export class OneiroMetricsDashboardView extends ItemView {
             if (this.updateDebounceTimer) {
                 clearTimeout(this.updateDebounceTimer);
             }
-            
-            this.updateDebounceTimer = setTimeout(async () => {
+
+            this.updateDebounceTimer = window.setTimeout(async () => {
                 await this.handleFileChange(file);
             }, 500);
         });
@@ -2473,10 +2473,10 @@ export class OneiroMetricsDashboardView extends ItemView {
             this.plugin.logger?.error('Dashboard', 'Failed to update charts', error);
         }
     }
-    
-    private updateDebounceTimer: NodeJS.Timeout | null = null;
+
+    private updateDebounceTimer: number | null = null;
     private lastEnabledMetrics: string[] | null = null;
-    
+
     /**
      * Show export menu with quick actions
      */
