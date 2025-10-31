@@ -49,7 +49,7 @@ import { SettingsManager } from './src/state/SettingsManager';
 import { MetricsProcessor, MetricsCollector, TableStatisticsUpdater } from './src/metrics';
 
 // For backward compatibility with legacy types
-import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './types';
+import { LintingSettings, Timeline, CalendarView, ActiveJournal } from './src/types';
 
 // Internal imports - Logging
 import { LoggingAdapter } from './src/logging';
@@ -134,7 +134,6 @@ import {
 import { WebWorkerTestModal } from './src/workers/ui/WebWorkerTestModal';
 import { MetricsCalculatorTestModal } from './src/workers/ui/MetricsCalculatorTestModal';
 import { TemplateTabsModal } from './src/templates/ui/TemplateTabsModal';
-import { UnifiedTestSuiteModal } from './src/testing/ui/UnifiedTestSuiteModal';
 
 // Import dashboard view
 import { OneiroMetricsDashboardView, ONEIROMETRICS_DASHBOARD_VIEW_TYPE } from './src/views/dashboard/OneiroMetricsDashboardView';
@@ -244,20 +243,6 @@ export default class DreamMetricsPlugin extends Plugin {
                 
                 // Focus the leaf
                 workspace.revealLeaf(leaf);
-            }
-        });
-
-        // Add Unified Test Suite Modal command (only available when logging is enabled)
-        this.addCommand({
-            id: 'open-unified-test-suite',
-            name: 'Open unified test suite',
-            checkCallback: (checking: boolean) => {
-                const logLevel = this.settings?.logging?.level || 'off';
-                if (logLevel === 'off') return false;
-                if (!checking) {
-                    new UnifiedTestSuiteModal(this.app, this).open();
-                }
-                return true;
             }
         });
 

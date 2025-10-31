@@ -154,4 +154,35 @@
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity var(--oom-transition-fast), transform var(--oom-transition-fast);
+}
+
+/* =============================================================================
+   INTERACTIVE ELEMENTS - Buttons & Controls
+   ============================================================================= */
+
+/* Advanced settings toggle button */
+.oom-advanced-toggle {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+}
+
+/* Advanced setting container positioning */
+.oom-advanced-setting-container {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Template close button */
+.oom-template-close-button {
+    float: right;
+    border: none;
+    background: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0 0.5em;
 } 
