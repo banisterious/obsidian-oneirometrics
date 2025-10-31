@@ -362,21 +362,27 @@ export class DateSelectionModal extends Modal {
                 
                 if (qualityLevel && qualityLevel !== 'none') {
                     const starsContainer = dayEl.createDiv('oom-day-metrics');
-                    
-                    let starsHtml = '';
+
+                    let starText = '';
+                    let starClass = '';
+
                     if (qualityLevel === 'high') {
-                        starsHtml = '<span class="oom-star-high">★★★</span>';
+                        starText = '★★★';
+                        starClass = 'oom-star-high';
                     } else if (qualityLevel === 'medium') {
-                        starsHtml = '<span class="oom-star-medium">★★</span>';
+                        starText = '★★';
+                        starClass = 'oom-star-medium';
                     } else if (qualityLevel === 'low') {
-                        starsHtml = '<span class="oom-star-low">★</span>';
+                        starText = '★';
+                        starClass = 'oom-star-low';
                     }
-                    
-                    if (starsHtml) {
-                        starsContainer.innerHTML = starsHtml;
+
+                    if (starText) {
+                        const starSpan = starsContainer.createEl('span', { cls: starClass });
+                        starSpan.textContent = starText; // Safe - static star characters
                         starsContainer.addClass(`oom-metric-${qualityLevel}`);
                         starsContainer.setAttribute('title', `${dreamEntries.length} dream entries - ${qualityLevel} quality`);
-                        
+
                         // DEBUG: Confirm stars were added
                         safeLogger.debug('DateSelectionModal', `Added ${qualityLevel} stars to ${dateKey}`);
                     }
@@ -1201,10 +1207,17 @@ export class DateSelectionModal extends Modal {
                             // Fallback: Update the filter display directly
                             const filterDisplay = metricsContainer.querySelector('#oom-time-filter-display');
                             if (filterDisplay) {
-                                filterDisplay.innerHTML = `
-                                    <span class="oom-filter-icon">🗓️</span>
-                                    <span class="oom-filter-text oom-filter--custom">Custom Range: ${startDateStr} to ${endDateStr}</span>
-                                `;
+                                // Clear existing content safely
+                                filterDisplay.empty();
+
+                                // Create icon element
+                                const iconEl = filterDisplay.createEl('span', { cls: 'oom-filter-icon' });
+                                iconEl.textContent = '🗓️'; // Safe - static emoji
+
+                                // Create text element
+                                const textEl = filterDisplay.createEl('span', { cls: 'oom-filter-text oom-filter--custom' });
+                                textEl.textContent = `Custom Range: ${startDateStr} to ${endDateStr}`; // Safe - date strings only
+
                                 filterDisplay.classList.add('oom-filter-active');
                             }
                         }
@@ -1326,15 +1339,18 @@ export class DateSelectionModal extends Modal {
         const filterDisplay = container.querySelector('#oom-time-filter-display');
         if (filterDisplay) {
             const visibleCount = visibilityMap.filter(r => r.visible).length;
-            const sortedDates = selectedDates.sort();
-            const dateRange = selectedDates.length > 1 
-                ? `${sortedDates[0]} to ${sortedDates[sortedDates.length - 1]}`
-                : sortedDates[0];
-            
-            filterDisplay.innerHTML = `
-                <span class="oom-filter-icon">📅</span>
-                <span class="oom-filter-text oom-filter--multi-date">Multi-Date: ${selectedDates.length} dates (${visibleCount} entries)</span>
-            `;
+
+            // Clear existing content safely
+            filterDisplay.empty();
+
+            // Create icon element
+            const iconEl = filterDisplay.createEl('span', { cls: 'oom-filter-icon' });
+            iconEl.textContent = '📅'; // Safe - static emoji
+
+            // Create text element
+            const textEl = filterDisplay.createEl('span', { cls: 'oom-filter-text oom-filter--multi-date' });
+            textEl.textContent = `Multi-Date: ${selectedDates.length} dates (${visibleCount} entries)`; // Safe - numbers only
+
             filterDisplay.classList.add('oom-filter-active');
         }
     }

@@ -106,7 +106,7 @@ export class DashboardChartsIntegration {
     /**
      * Handle container resize events
      */
-    private resizeTimeout: NodeJS.Timeout | null = null;
+    private resizeTimeout: number | null = null;
     private handleResize(): void {
         if (this.resizeTimeout) {
             clearTimeout(this.resizeTimeout);

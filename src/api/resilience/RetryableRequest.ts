@@ -103,13 +103,13 @@ interface RetryStatus {
   
   /** The start time of the operation */
   startTime: number;
-  
+
   /** Timeout ID for the total operation timeout */
-  totalTimeoutId?: NodeJS.Timeout;
-  
+  totalTimeoutId?: number;
+
   /** Timeout ID for the current attempt */
-  attemptTimeoutId?: NodeJS.Timeout;
-  
+  attemptTimeoutId?: number;
+
   /** The abort controller for the current attempt */
   abortController?: AbortController;
 }
@@ -159,7 +159,7 @@ export class RetryableRequest {
     return new Promise<T | RetryResult<T>>((resolve, reject) => {
       // Start the total timeout timer
       if (this.options.totalTimeoutMs) {
-        status.totalTimeoutId = setTimeout(() => {
+        status.totalTimeoutId = window.setTimeout(() => {
           this.abortCurrentAttempt(status);
           
           const timeoutError = new Error(`Operation timed out after ${this.options.totalTimeoutMs}ms`);
@@ -285,7 +285,7 @@ export class RetryableRequest {
       
       // Set a timeout for this attempt
       const timeoutMs = this.options.policy?.getTimeoutMs() || 30000;
-      status.attemptTimeoutId = setTimeout(() => {
+      status.attemptTimeoutId = window.setTimeout(() => {
         if (status.abortController) {
           status.abortController.abort();
         }

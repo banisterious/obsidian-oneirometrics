@@ -344,26 +344,42 @@ export class OneirographInteractions {
     
     /**
      * Show tooltip for node
+     * SECURITY FIX: Use safe DOM construction instead of innerHTML
      */
     public showTooltip(node: OneirographNode) {
         if (!this.tooltipEl) return;
-        
-        let content = '';
+
+        // Clear existing content safely
+        this.tooltipEl.empty();
+
         if (node.type === 'cluster') {
-            content = `
-                <div class="oom-oneirograph-tooltip-title">${node.label}</div>
-                <div class="oom-oneirograph-tooltip-type">Cluster</div>
-            `;
+            // Create title element
+            const titleEl = this.tooltipEl.createDiv({ cls: 'oom-oneirograph-tooltip-title' });
+            titleEl.textContent = node.label; // Safe - no HTML parsing
+
+            // Create type element
+            const typeEl = this.tooltipEl.createDiv({ cls: 'oom-oneirograph-tooltip-type' });
+            typeEl.textContent = 'Cluster'; // Safe - static text
         } else if (node.type === 'dream') {
             const dream = node.data as any;
-            content = `
-                <div class="oom-oneirograph-tooltip-title">${node.label}</div>
-                <div class="oom-oneirograph-tooltip-date">${dream.date}</div>
-                ${node.themes ? `<div class="oom-oneirograph-tooltip-themes">Themes: ${node.themes.slice(0, 3).join(', ')}${node.themes.length > 3 ? '...' : ''}</div>` : ''}
-            `;
+
+            // Create title element
+            const titleEl = this.tooltipEl.createDiv({ cls: 'oom-oneirograph-tooltip-title' });
+            titleEl.textContent = node.label; // Safe - no HTML parsing
+
+            // Create date element
+            const dateEl = this.tooltipEl.createDiv({ cls: 'oom-oneirograph-tooltip-date' });
+            dateEl.textContent = dream.date; // Safe - no HTML parsing
+
+            // Create themes element if themes exist
+            if (node.themes && node.themes.length > 0) {
+                const themesEl = this.tooltipEl.createDiv({ cls: 'oom-oneirograph-tooltip-themes' });
+                const themeList = node.themes.slice(0, 3).join(', ');
+                const suffix = node.themes.length > 3 ? '...' : '';
+                themesEl.textContent = `Themes: ${themeList}${suffix}`; // Safe - no HTML parsing
+            }
         }
-        
-        this.tooltipEl.innerHTML = content;
+
         this.tooltipEl.removeClass('oom-tooltip-hidden');
 
         // Position tooltip

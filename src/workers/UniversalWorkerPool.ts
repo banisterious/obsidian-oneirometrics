@@ -128,9 +128,9 @@ export class UniversalWorkerPool {
   }>();
 
   private loadBalancer: LoadBalancer;
-  private healthCheckInterval?: NodeJS.Timeout;
-  private queueProcessingInterval?: NodeJS.Timeout;
-  
+  private healthCheckInterval?: number;
+  private queueProcessingInterval?: number;
+
   // Pool statistics
   private stats: PoolStatistics = {
     totalWorkers: 0,

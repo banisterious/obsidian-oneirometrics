@@ -175,10 +175,10 @@ export class OfflineSupport {
   
   /** Whether synchronization is in progress */
   private isSyncing: boolean = false;
-  
+
   /** Timer for checking connection status */
-  private connectionCheckTimer?: NodeJS.Timeout;
-  
+  private connectionCheckTimer?: number;
+
   /** Event handlers */
   private eventHandlers: Map<OfflineEventType, OfflineEventHandler[]> = new Map();
   
@@ -266,8 +266,8 @@ export class OfflineSupport {
       if (this.connectionCheckTimer) {
         clearInterval(this.connectionCheckTimer);
       }
-      
-      this.connectionCheckTimer = setInterval(() => {
+
+      this.connectionCheckTimer = window.setInterval(() => {
         this.checkConnectionStatus();
       }, this.options.connectionCheckInterval || DEFAULT_OPTIONS.connectionCheckInterval!);
     },
