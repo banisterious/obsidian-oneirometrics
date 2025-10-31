@@ -235,14 +235,14 @@ export class DateNavigator {
                 'title': 'Previous month'
             }
         });
-        prevButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
-        
+        this.createChevronIcon(prevButton, 'left');
+
         // Month title
         const monthTitle = headerContainer.createEl('div', {
             cls: 'oom-month-title',
             text: format(this.currentMonth, 'MMMM yyyy')
         });
-        
+
         // Right navigation button
         const nextButton = headerContainer.createEl('button', {
                             cls: 'oom-month-button oom-month-next-button u-padding--sm',
@@ -251,7 +251,7 @@ export class DateNavigator {
                 'title': 'Next month'
             }
         });
-        nextButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+        this.createChevronIcon(nextButton, 'right');
         
         // Today button
         const todayButton = headerContainer.createEl('button', {
@@ -268,7 +268,30 @@ export class DateNavigator {
         nextButton.addEventListener('click', () => this.navigateMonth(1));
         todayButton.addEventListener('click', () => this.navigateToToday());
     }
-    
+
+    /**
+     * Create a chevron icon using DOM methods instead of innerHTML
+     * SECURITY FIX: Replace innerHTML with safe DOM manipulation
+     */
+    private createChevronIcon(container: HTMLElement, direction: 'left' | 'right'): void {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svg.setAttribute('width', '16');
+        svg.setAttribute('height', '16');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', direction === 'left' ? '15 18 9 12 15 6' : '9 18 15 12 9 6');
+
+        svg.appendChild(polyline);
+        container.appendChild(svg);
+    }
+
     private createMonthGrid(): void {
         // Use proper logging
         try {
