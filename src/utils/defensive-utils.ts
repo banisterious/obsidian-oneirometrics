@@ -135,8 +135,8 @@ export function debounce<T extends AnyFunction>(
   let timeout: number;
 
   return (...args: Parameters<T>): void => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
+    window.clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
       fn(...args);
     }, delay);
   };
